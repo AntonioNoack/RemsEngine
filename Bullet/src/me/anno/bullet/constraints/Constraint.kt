@@ -5,7 +5,7 @@ import com.bulletphysics.linearmath.Transform
 import me.anno.bullet.Rigidbody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityPhysics.invalidateRigidbody
+import me.anno.ecs.EntityPhysics.invalidatePhysics
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
@@ -115,7 +115,7 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
 
     override fun onChangeStructure(entity: Entity) {
         super.onChangeStructure(entity)
-        entity.invalidateRigidbody()
+        entity.invalidatePhysics()
     }
 
     abstract fun createConstraint(a: RigidBody, b: RigidBody, ta: Transform, tb: Transform): TypedConstraint

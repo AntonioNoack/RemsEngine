@@ -5,6 +5,9 @@ import me.anno.ecs.System
 import me.anno.ecs.Transform
 import me.anno.utils.structures.sets.FastIteratorSet
 
+/**
+ * Calls teleportUpdate on all entities at the start of each frame to update Transform.drawnTransform.
+ * */
 object MotionVectorSystem : System(), OnUpdate {
 
     override val priority: Int

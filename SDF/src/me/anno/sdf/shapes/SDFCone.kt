@@ -1,12 +1,13 @@
 package me.anno.sdf.shapes
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.mesh.material.utils.TypeValue
-import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector2f
@@ -14,7 +15,7 @@ import org.joml.Vector4f
 import kotlin.math.sign
 import kotlin.math.sqrt
 
-// center it, and the pyramid as well?
+@Docs("A cone (pyramid with circle base) centered at half-height")
 open class SDFCone : SDFShape() {
 
     private val params = Vector2f(1f, 2f)
@@ -40,9 +41,9 @@ open class SDFCone : SDFShape() {
         }
 
     override fun calculateBaseBounds(dst: AABBf) {
-        val h = height
+        val h = height * 0.5f
         val r = radius
-        dst.setMin(-r, 0f, -r)
+        dst.setMin(-r, -h, -r)
         dst.setMax(+r, +h, +r)
     }
 
@@ -71,7 +72,7 @@ open class SDFCone : SDFShape() {
         val qx = q.x
         val qy = q.y
         val wx = length(pos.x, pos.z)
-        val wy = qy - pos.y
+        val wy = qy * 0.5f - pos.y
         val af = clamp((wx * q.x + wy * q.y) / q.lengthSquared())
         val ax = wx - qx * af
         val ay = wy - qy * af
@@ -93,7 +94,7 @@ open class SDFCone : SDFShape() {
         // from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm, Inigo Quilez
         const val sdCone = "" +
                 "float sdCone(vec3 p, vec2 q) {\n" +
-                "  vec2 w = vec2(length(p.xz), -p.y+q.y);\n" +
+                "  vec2 w = vec2(length(p.xz), q.y*0.5-p.y);\n" +
                 "  vec2 a = w - q*clamp(dot(w,q)/dot(q,q), 0.0, 1.0);\n" +
                 "  vec2 b = w - q*vec2(clamp(w.x/q.x, 0.0, 1.0), 1.0);\n" +
                 "  float k = sign(q.y);\n" +
@@ -101,7 +102,5 @@ open class SDFCone : SDFShape() {
                 "  float s = max(k*(w.x*q.y-w.y*q.x),k*(w.y-q.y));\n" +
                 "  return sqrt(d)*sign(s);\n" +
                 "}"
-
     }
-
 }

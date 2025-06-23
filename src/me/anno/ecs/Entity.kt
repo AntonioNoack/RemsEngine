@@ -1,6 +1,6 @@
 package me.anno.ecs
 
-import me.anno.ecs.EntityPhysics.checkNeedsPhysics
+import me.anno.ecs.EntityPhysics.invalidatePhysicsIfEnabled
 import me.anno.ecs.EntityPhysics.invalidatePhysicsTransform
 import me.anno.ecs.EntityQuery.anyComponent
 import me.anno.ecs.EntityQuery.forAllChildren
@@ -467,7 +467,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         parent.invalidateCollisionMask()
         invalidateAABBsCompletely()
 
-        checkNeedsPhysics()
+        invalidatePhysicsIfEnabled()
 
         getSystems()?.addOrRemoveRecursively(this, true)
         parent.setChildPath(this, index, 'e')

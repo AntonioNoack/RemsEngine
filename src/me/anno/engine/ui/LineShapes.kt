@@ -32,7 +32,7 @@ object LineShapes {
     val zToX: Matrix4x3d = Matrix4x3d()
         .rotateY(PI / 2)
     val zToY: Matrix4x3d = Matrix4x3d()
-        .rotateX(PI / 2)
+        .rotateX(-PI / 2)
 
     fun drawCone(
         entity: Entity?,

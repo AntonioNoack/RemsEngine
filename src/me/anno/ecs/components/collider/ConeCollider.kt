@@ -1,5 +1,6 @@
 package me.anno.ecs.components.collider
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
@@ -18,17 +19,36 @@ import org.joml.Vector3f
 import kotlin.math.sign
 import kotlin.math.sqrt
 
+@Docs("A cone (pyramid with circular base), centered at half-height")
 class ConeCollider : Collider() {
 
     @Range(0.0, 2.0)
     @SerializedProperty
     var axis = Axis.Y
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateRigidbody()
+            }
+        }
 
     @SerializedProperty
     var height = 2f
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateRigidbody()
+            }
+        }
 
     @SerializedProperty
     var radius = 1f
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateRigidbody()
+            }
+        }
 
     override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         // union the peak and the bottom ring
@@ -65,7 +85,6 @@ class ConeCollider : Collider() {
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        // todo check whether they are correct (the same as the physics behaviour)
         val matrix = when (axis) {
             Axis.X -> LineShapes.zToX
             Axis.Y -> LineShapes.zToY
@@ -73,7 +92,8 @@ class ConeCollider : Collider() {
         }
         val color = getLineColor(hasPhysics)
         val radius = radius.toDouble()
-        drawCone(entity, radius, radius, height.toDouble(), 0.0, matrix, color)
+        val halfHeight = height * 0.5
+        drawCone(entity, radius, radius, -halfHeight, halfHeight, matrix, color)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

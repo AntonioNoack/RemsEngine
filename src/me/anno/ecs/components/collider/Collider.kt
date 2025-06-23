@@ -1,7 +1,7 @@
 package me.anno.ecs.components.collider
 
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityPhysics.invalidateRigidbody
+import me.anno.ecs.EntityPhysics.invalidatePhysics
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
@@ -63,7 +63,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
 
     override fun onChangeStructure(entity: Entity) {
         super.onChangeStructure(entity)
-        entity.invalidateRigidbody()
+        entity.invalidatePhysics()
         entity.invalidateCollisionMask()
     }
 

@@ -26,8 +26,8 @@ fun main() {
     OfficialExtensions.initForTests()
 
     val scene = Entity("Scene")
-    fun add(component: TextComponent, px: Double, py: Double, pz: Double = 0.0) {
-        Entity(component.text, scene)
+    fun add(component: TextComponent, alignY: TextAlignmentY, px: Double, py: Double, pz: Double = 0.0) {
+        Entity("${component.text}-$alignY", scene)
             .setPosition(px, py, pz)
             .add(component as Component)
     }
@@ -47,9 +47,9 @@ fun main() {
                 TextAlignmentY.MAX -> 2.0
             } * 0.5
 
-            add(MeshTextComponent(text, font, alignX, alignY), px, py, 0.2)
-            add(SDFTextComponent(text, font, alignX, alignY), px, py, 0.1)
-            add(TextureTextComponent(text, font, alignX, alignY, -1f), px, py, 0.0)
+            add(MeshTextComponent(text, font, alignX, alignY), alignY, px, py, 0.2)
+            add(SDFTextComponent(text, font, alignX, alignY), alignY, px, py, 0.1)
+            add(TextureTextComponent(text, font, alignX, alignY, -1f), alignY, px, py, 0.0)
         }
     }
 

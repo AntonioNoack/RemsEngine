@@ -24,7 +24,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.Shapes
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.utils.async.Callback.Companion.waitFor
 import org.joml.AABBd
 import org.joml.Matrix4x3
 
@@ -137,7 +136,7 @@ class SDFTextComponent(
                 val sy = getSy(texture.height, baselineY) * 0.5f
 
                 // todo why is that extra offset needed???
-                val dx1 = -0.33f
+                val dx1 = if (alignmentX == AxisAlignment.MAX) 0f else -0.33f
 
                 // todo this correction is needed, because dy0=baseline-correction isn't correct
                 val dy1 = if (alignmentY == TextAlignmentY.BASELINE) 0f else -0.08f

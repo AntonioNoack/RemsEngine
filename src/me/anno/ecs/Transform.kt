@@ -472,9 +472,5 @@ class Transform() : Saveable() {
         }
     }
 
-    fun getLocalForward(sign: Float, dst: Vector3f): Vector3f {
-        return localRotation.transform(0f, 0f, sign, dst)
-    }
-
     override val approxSize get() = 1
 }

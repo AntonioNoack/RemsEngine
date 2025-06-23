@@ -3,7 +3,6 @@ package me.anno.ecs
 import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.systems.Systems
 import kotlin.reflect.KClass
-import kotlin.reflect.safeCast
 
 /**
  * Helper functions to add Physics onto an Entity;
@@ -17,33 +16,29 @@ object EntityPhysics {
         }
     }
 
-    fun Entity.invalidateRigidbody() {
-        forAllPhysics { it.invalidate(this) }
+    fun Entity.invalidatePhysics() {
+        forAllPhysics { physics -> physics.invalidate(this) }
     }
 
     fun <V : Physics<*, *>> getPhysics(clazz: KClass<V>): V? {
         var result: V? = null
-        forAllPhysics {
-            if (result == null) {
-                result = clazz.safeCast(it)
-            }
-        }
+        Systems.forAllSystems(clazz) { physics -> result = physics }
         return result
     }
 
     inline fun forAllPhysics(crossinline callback: (Physics<*, *>) -> Unit) {
-        Systems.forAllSystems(Physics::class) { callback(it) }
+        Systems.forAllSystems(Physics::class) { physics -> callback(physics) }
     }
 
     fun Entity.hasPhysicsInfluence(): Boolean {
         return isPhysicsControlled || parentEntity?.hasPhysicsInfluence() == true
     }
 
-    fun Entity.checkNeedsPhysics() {
+    fun Entity.invalidatePhysicsIfEnabled() {
         // physics
         if (allInHierarchy { it.isEnabled }) {
             // something can change
-            forAllPhysics { it.invalidate(this) }
+            invalidatePhysics()
         }
     }
 }

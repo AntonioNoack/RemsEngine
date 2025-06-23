@@ -225,7 +225,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     private fun alignBinary(alignment: Int) {
         val remainder = binary.size() % alignment
         if (remainder > 0) {
-            for (i in remainder until alignment) {
+            repeat(alignment - remainder) {
                 binary.write(0)
             }
         }
@@ -314,7 +314,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         bounds.fill(Float.NEGATIVE_INFINITY, 4, 8)
         val pos = binary.size()
         var k = 0
-        for (i in 0 until data.size / numComp) {
+        repeat(data.size / numComp) {
             for (j in 0 until numComp) {
                 val value = data[k++]
                 bounds[j] = min(bounds[j], value)
@@ -842,7 +842,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     }
 
     private fun getMeshData(scene: MeshComponentBase, mesh: Mesh): MeshData {
-        val animations = if (scene is AnimMeshComponent && SkeletonCache.getEntry(mesh.skeleton) != null) {
+        val animations = if (scene is AnimMeshComponent && SkeletonCache.getEntry(mesh.skeleton).waitFor() != null) {
             scene.animations.map { it.source }.filter { it.exists }
         } else emptyList()
         return MeshData(mesh, scene.materials, animations)

@@ -1,6 +1,6 @@
 package me.anno.ecs
 
-import me.anno.ecs.EntityPhysics.invalidateRigidbody
+import me.anno.ecs.EntityPhysics.invalidatePhysics
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
@@ -86,7 +86,7 @@ abstract class Component : PrefabSaveable() {
     override fun isDefaultValue(): Boolean = false
 
     fun invalidateRigidbody() {
-        entity?.invalidateRigidbody()
+        entity?.invalidatePhysics()
     }
 
     @NotSerializedProperty
