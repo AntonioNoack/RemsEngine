@@ -2,6 +2,7 @@ package com.bulletphysics.linearmath.convexhull
 
 import com.bulletphysics.linearmath.convexhull.PackedNormalsCompressor.compressVertices
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
@@ -26,7 +27,7 @@ import kotlin.math.sqrt
  * Unless you're using the native version, your vertices might be filtered first for much better performance.
  * This naive algorithm is roughly O(n log n), taking 1700ns/vertex, the filtered version takes as little as 30ns/vertex (128k -> 32).
  *
- * @author Antonio Noack O(n log n), jezek2 O(n² log n)
+ * @author Antonio Noack O(n log n, 700ms for 128k->32, 53x faster), jezek2 O(n² log n, 37700ms for 128k->32)
  */
 class ConvexHulls {
 
@@ -408,7 +409,7 @@ class ConvexHulls {
         val maxNormalScale = ((limitI - 2) * 0.999999).toLongOr()
         val normalEpsilonScale = min((1.0 / normalEpsilon).toLongOr(-1), maxNormalScale)
 
-        val capacityGuess = clamp(inputVertices.size, 16, 65536)
+        val capacityGuess = max(inputVertices.size, 16)
         val uniqueVertices = HashMap<Long, Vector3d>(capacityGuess)
         val vertexToIndex = HashMap<Vector3d, Int>(capacityGuess)
         for (i in inputVertices.indices) {
@@ -439,7 +440,7 @@ class ConvexHulls {
                         // in which case we keep this one instead.
                         if (score > center.distanceSquared(inResult)) {
                             // this would modify the original set
-                            val indexInResult = vertexToIndex.remove(inResult)!!
+                            val indexInResult = vertexToIndex.remove(inResult) ?: continue // duplicate vertex?
                             cleanVertices[indexInResult] = inputVertex
                             vertexToIndex[inputVertex] = indexInResult
                         }

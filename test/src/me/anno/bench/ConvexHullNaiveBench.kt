@@ -14,7 +14,7 @@ private val LOGGER = LogManager.getLogger("ConvexHullBenchNaive")
  * */
 fun main() {
     val clock = Clock(LOGGER)
-    val sizes = listOf(1000, 2000, 4000, 8000, 16_000, 32_000, 64_000, 128_000)
+    val sizes = listOf(1000, 2000, 4000, 8000, 16_000, 32_000, 64_000, 128_000, 256_000, 512_000, 1024_000)
     val points = createPoints(sizes.last())
     for (n in sizes) {
         // O(n log n) for small n, O(n²) or worse for bigger n :/
