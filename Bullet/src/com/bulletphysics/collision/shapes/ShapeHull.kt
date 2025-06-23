@@ -1,7 +1,7 @@
 package com.bulletphysics.collision.shapes
 
-import com.bulletphysics.linearmath.convexhull.HullDesc
-import com.bulletphysics.linearmath.convexhull.ConvexHulls
+import me.anno.maths.geometry.convexhull.HullDesc
+import me.anno.maths.geometry.convexhull.ConvexHulls
 import org.joml.Vector3d
 
 /**

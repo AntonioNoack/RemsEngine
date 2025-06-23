@@ -1,4 +1,4 @@
-package com.bulletphysics.linearmath.convexhull
+package me.anno.maths.geometry.convexhull
 
 import me.anno.graph.octtree.OctTree
 import org.joml.Vector3d

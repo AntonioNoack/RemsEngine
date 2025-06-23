@@ -1,12 +1,9 @@
-package me.anno.experiments.convexdecomposition
+package me.anno.maths.geometry.convexhull
 
-import com.bulletphysics.linearmath.convexhull.ConvexHull
-import com.bulletphysics.linearmath.convexhull.HullDesc
-import com.bulletphysics.linearmath.convexhull.ConvexHulls
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.lists.Lists.createList
+import me.anno.utils.structures.lists.Lists
 import me.anno.utils.types.Floats.toIntOr
 import org.joml.AABBf
 import org.joml.Vector3d
@@ -45,6 +42,13 @@ class ConvexDecomposition(
         )
     }
 
+    fun splitMesh(mesh: Mesh): List<ConvexHull> {
+        positions = mesh.positions ?: return emptyList()
+        val triangles = meshToTriangles(positions, mesh)
+        split(triangles, maxRecursiveDepth)
+        return result
+    }
+
     private class Triangle(
         val ai: Int, val bi: Int, val ci: Int,
         val centerX3: Vector3f, val bounds: AABBf
@@ -70,13 +74,6 @@ class ConvexDecomposition(
         }
     }
 
-    fun splitMesh(mesh: Mesh): List<ConvexHull> {
-        positions = mesh.positions ?: return emptyList()
-        val triangles = meshToTriangles(positions, mesh)
-        split(triangles, maxRecursiveDepth)
-        return result
-    }
-
     private fun createHull(triangles: List<Triangle>): ConvexHull? {
         val points = ArrayList<Vector3d>(triangles.size * 3)
         val positions = positions
@@ -86,7 +83,7 @@ class ConvexDecomposition(
             points.add(Vector3d(positions, tri.bi * 3))
             points.add(Vector3d(positions, tri.ci * 3))
         }
-        return ConvexHulls.calculateConvexHull(HullDesc(points, maxVerticesPerHull))
+        return ConvexHulls.Companion.calculateConvexHull(HullDesc(points, maxVerticesPerHull))
     }
 
     private fun meshToTriangles(positions: FloatArray, mesh: Mesh): ArrayList<Triangle> {
@@ -118,7 +115,7 @@ class ConvexDecomposition(
             maxValue = max(maxValue, value)
         }
         if (minValue == maxValue) return emptyList()
-        val result = createList(splitsPerAxis) {
+        val result = Lists.createList(splitsPerAxis) {
             ArrayList<Triangle>()
         }
         val scale = (splitsPerAxis * (1f - 1e-6f)) / (maxValue - minValue)

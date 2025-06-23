@@ -1,7 +1,7 @@
 package me.anno.bench
 
-import com.bulletphysics.linearmath.convexhull.HullDesc
-import com.bulletphysics.linearmath.convexhull.ConvexHulls
+import me.anno.maths.geometry.convexhull.HullDesc
+import me.anno.maths.geometry.convexhull.ConvexHulls
 import me.anno.utils.Clock
 import me.anno.utils.assertions.assertNotNull
 import org.apache.logging.log4j.LogManager

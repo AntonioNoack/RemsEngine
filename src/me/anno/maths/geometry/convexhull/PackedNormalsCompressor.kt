@@ -1,4 +1,4 @@
-package com.bulletphysics.linearmath.convexhull
+package me.anno.maths.geometry.convexhull
 
 import me.anno.maths.Maths.max
 import me.anno.utils.types.Floats.toIntOr

@@ -1,6 +1,5 @@
-package com.bulletphysics.linearmath.convexhull
+package me.anno.maths.geometry.convexhull
 
-import com.bulletphysics.linearmath.convexhull.PackedNormalsCompressor.compressVertices
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.utils.assertions.assertTrue
@@ -617,7 +616,7 @@ class ConvexHulls {
             var gridSize = ceil(4 * sqrt(desc.maxNumVertices.toFloat())).toIntOr()
             gridSize = clamp(gridSize, 16, 64) // 64² = 4096 is the standard maximum output size
 
-            desc.vertices = compressVertices(desc.vertices, gridSize)
+            desc.vertices = PackedNormalsCompressor.compressVertices(desc.vertices, gridSize)
             return calculateConvexHullNaive(desc)
         }
 

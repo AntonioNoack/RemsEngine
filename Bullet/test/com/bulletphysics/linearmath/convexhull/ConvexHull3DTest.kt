@@ -1,5 +1,7 @@
 package com.bulletphysics.linearmath.convexhull
 
+import me.anno.maths.geometry.convexhull.ConvexHulls
+import me.anno.maths.geometry.convexhull.HullDesc
 import me.anno.utils.assertions.assertNotNull
 import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions

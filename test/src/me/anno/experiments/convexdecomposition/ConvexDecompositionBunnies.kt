@@ -1,7 +1,6 @@
 package me.anno.experiments.convexdecomposition
 
-import com.bulletphysics.linearmath.convexhull.ConvexHull
-import me.anno.Engine
+import me.anno.maths.geometry.convexhull.ConvexHull
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
 import me.anno.ecs.Entity
@@ -20,6 +19,7 @@ import me.anno.engine.debug.DebugTriangle
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths
 import me.anno.maths.Maths.TAU
+import me.anno.maths.geometry.convexhull.ConvexDecomposition
 import me.anno.utils.Color.black
 import me.anno.utils.OS.downloads
 import me.anno.utils.algorithms.ForLoop.forLoopSafely

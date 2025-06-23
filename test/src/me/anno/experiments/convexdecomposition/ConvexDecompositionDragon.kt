@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.maths.geometry.convexhull.ConvexDecomposition
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
 
