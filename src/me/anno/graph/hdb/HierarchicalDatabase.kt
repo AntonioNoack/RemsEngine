@@ -13,6 +13,7 @@ import me.anno.graph.hdb.index.IndexWriter
 import me.anno.graph.hdb.index.StorageFile
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.async.UnitCallback
@@ -387,10 +388,7 @@ class HierarchicalDatabase(
 
     fun remove(path: List<String>, hash: Long): Boolean {
         synchronized(this) {
-            var folder = root
-            for (i in path.indices) {
-                folder = folder.children[path[i]] ?: return false
-            }
+            val folder = find(path) ?: return false
             val files = folder.files
             val changed = synchronized(files) { files.remove(hash) != null }
             return if (changed) {
@@ -401,18 +399,44 @@ class HierarchicalDatabase(
     }
 
     fun removeAll(path: List<String>, recursive: Boolean): Boolean {
-        if (recursive) TODO("remove subpaths, too?")
+        val folder = find(path) ?: return false
+        return removeAll(folder, recursive)
+    }
+
+    fun removeAll(folder: Folder, recursive: Boolean): Boolean {
         synchronized(this) {
-            var folder = root
-            for (i in path.indices) {
-                folder = folder.children[path[i]] ?: return false
+            if (recursive && folder.children.isNotEmpty()) {
+                val storages = HashSet<StorageFile?>()
+                Recursion.processRecursive(folder) { folderI, remaining ->
+                    removeAll(folderI, false)
+                    remaining.addAll(folderI.children.values)
+                    folderI.children.clear()
+                    if (folderI.files.isNotEmpty()) {
+                        folderI.files.clear()
+                        storages.add(folderI.storageFile)
+                    }
+                }
+                for (storage in storages) {
+                    storage ?: continue
+                    optimizeStorage(storage)
+                }
+                return true
+            } else {
+                return if (folder.files.isNotEmpty()) {
+                    folder.files.clear()
+                    optimizeStorage(folder)
+                    true
+                } else false
             }
-            return if (folder.files.isNotEmpty()) {
-                folder.files.clear()
-                optimizeStorage(folder)
-                true
-            } else false
         }
+    }
+
+    fun find(path: List<String>): Folder? {
+        var folder = root
+        for (i in path.indices) {
+            folder = folder.children[path[i]] ?: return null
+        }
+        return folder
     }
 
     companion object {

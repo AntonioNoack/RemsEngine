@@ -2,6 +2,7 @@ package me.anno.ecs.components.camera
 
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
@@ -11,6 +12,7 @@ import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.engine.ui.LineShapes.drawRect
+import me.anno.engine.ui.LineShapes.getDrawMatrix
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.Color.black
@@ -20,18 +22,16 @@ import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector2f
 import org.joml.Vector3d
+import kotlin.math.tan
 
 // like the studio camera,
 // a custom state, which stores all related rendering information
 class Camera : Component(), OnDrawGUI {
 
-    // todo this is missing from EditorUI... why???
     var isPerspective = true
 
-    @Range(1e-38, 1e35)
+    // todo support near = 0 or even negative for orthographic
     var near = 0.01f
-
-    @Range(1e-35, 1e38)
     var far = 5000.0f
 
     @Range(0.0, 180.0)
@@ -44,6 +44,13 @@ class Camera : Component(), OnDrawGUI {
 
     @Docs("offset of the center relative to the screen center; in OpenGL coordinates [-1, +1]²")
     var center = Vector2f()
+
+    @DebugProperty
+    val previewAspectRatio: Float
+        get() {
+            val rv = RenderView.currentInstance
+            return if (rv != null) rv.width.toFloat() / rv.height.toFloat() else 1f
+        }
 
     @DebugAction
     fun use() {
@@ -73,14 +80,18 @@ class Camera : Component(), OnDrawGUI {
     }
 
     private fun defineRect(
-        aspect: Float, size: Double, z: Double,
+        aspect: Float, sy: Double, z: Double,
         n00: Vector3d, n01: Vector3d, n10: Vector3d, n11: Vector3d
     ) {
-        val sx = aspect * size
-        n00.set(-sx, -size, z)
-        n01.set(-sx, +size, z)
-        n10.set(+sx, -size, z)
-        n11.set(+sx, +size, z)
+        val sx = aspect * sy
+        val x0 = center.x - sx
+        val x1 = center.x + sx
+        val y0 = center.y - sy
+        val y1 = center.y + sy
+        n00.set(x0, y0, z)
+        n01.set(x0, y1, z)
+        n10.set(x1, y0, z)
+        n11.set(x1, y1, z)
     }
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
@@ -94,9 +105,8 @@ class Camera : Component(), OnDrawGUI {
     }
 
     fun drawCameraLines() {
-        val rv = RenderView.currentInstance
-        val aspectRatio = if (rv != null) rv.width.toFloat() / rv.height.toFloat() else 1f
 
+        val aspectRatio = previewAspectRatio
         val color = black or (if (far > near && near > 0.0) 0x77ff77 else 0xff7777)
 
         val n00 = JomlPools.vec3d.create()
@@ -109,22 +119,22 @@ class Camera : Component(), OnDrawGUI {
         val f11 = JomlPools.vec3d.create()
 
         if (isPerspective) {
-            val fovYRadians = fovY.toDouble().toRadians()
-            defineRect(aspectRatio, near * fovYRadians, -near.toDouble(), n00, n01, n10, n11)
-            defineRect(aspectRatio, far * fovYRadians, -far.toDouble(), f00, f01, f10, f11)
+            val tanFovY = tan(fovY.toDouble().toRadians() * 0.5)
+            defineRect(aspectRatio, near * tanFovY, -near.toDouble(), n00, n01, n10, n11)
+            defineRect(aspectRatio, far * tanFovY, -far.toDouble(), f00, f01, f10, f11)
         } else {
-            val size = fovOrthographic
-            defineRect(aspectRatio, size.toDouble(), -near.toDouble(), n00, n01, n10, n11)
-            defineRect(aspectRatio, size.toDouble(), -far.toDouble(), f00, f01, f10, f11)
+            val size = fovOrthographic * 0.5
+            defineRect(aspectRatio, size, -near.toDouble(), n00, n01, n10, n11)
+            defineRect(aspectRatio, size, -far.toDouble(), f00, f01, f10, f11)
         }
 
-        val entity = entity
-        drawRect(entity, n00, n01, n11, n10, color)
-        drawRect(entity, f00, f01, f11, f10, color)
-        drawLine(entity, n00, f00, color)
-        drawLine(entity, n01, f01, color)
-        drawLine(entity, n10, f10, color)
-        drawLine(entity, n11, f11, color)
+        val transform = getDrawMatrix(entity)
+        drawRect(transform, n00, n01, n11, n10, color)
+        drawRect(transform, f00, f01, f11, f10, color)
+        drawLine(transform, n00, f00, color)
+        drawLine(transform, n01, f01, color)
+        drawLine(transform, n10, f10, color)
+        drawLine(transform, n11, f11, color)
 
         JomlPools.vec3d.sub(8)
     }

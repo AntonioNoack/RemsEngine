@@ -187,7 +187,10 @@ object DebugRendering {
         // restore near,far
         rv.near = near
         rv.far = far
-        DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
+        DrawTextures.drawTexture(
+            x1 - w, y1 - h, w, h,
+            buffer.getTexture0(), true
+        )
     }
 
     fun showTimeRecords(rv: RenderView) {
