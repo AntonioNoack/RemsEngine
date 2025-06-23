@@ -21,6 +21,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.TAU
 import me.anno.maths.geometry.convexhull.ConvexDecomposition
 import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.downloads
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import kotlin.math.cos
@@ -32,12 +33,12 @@ fun visualizeHulls(hulls: List<ConvexHull>) {
         val vertices = hull.vertices
         val triangles = hull.triangles
         val color = Maths.randomInt() or black
+        val color1 = color.withAlpha(127)
         forLoopSafely(triangles.size, 3) { i ->
             val p0 = vertices[triangles[i]]
             val p1 = vertices[triangles[i + 1]]
             val p2 = vertices[triangles[i + 2]]
-            // todo why is this not working????
-            DebugShapes.debugTriangles.add(DebugTriangle(p0, p1, p2, color, 1e3f))
+            DebugShapes.debugTriangles.add(DebugTriangle(p0, p1, p2, color1, 1e3f))
             DebugShapes.debugLines.add(DebugLine(p0, p1, color, 1e3f))
             DebugShapes.debugLines.add(DebugLine(p1, p2, color, 1e3f))
             DebugShapes.debugLines.add(DebugLine(p2, p0, color, 1e3f))

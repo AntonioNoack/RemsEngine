@@ -4,7 +4,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Floats.toLongOr
 import me.anno.utils.types.Triangles.subCross
@@ -116,13 +116,15 @@ class ConvexHulls {
         return bestCandidate
     }
 
-    private fun serializeTriangles(): IntArrayList {
-        val vertexIds = IntArrayList()
+    private fun serializeTriangles(): IntArray {
+        val numTriangles = triangles.count2 { it != null }
+        val vertexIds = IntArray(numTriangles * 3)
+        var k = 0
         for (i in 0 until triangles.size) {
             val triangle = triangles[i] ?: continue
-            vertexIds.add(triangle.x)
-            vertexIds.add(triangle.y)
-            vertexIds.add(triangle.y)
+            vertexIds[k++] = triangle.x
+            vertexIds[k++] = triangle.y
+            vertexIds[k++] = triangle.z
         }
         triangles.clear() // not strictly necessary, but might help GC
         return vertexIds
@@ -360,7 +362,7 @@ class ConvexHulls {
     private fun compactVertices(
         inputVertices: List<Vector3d>,
         resultVertices: ArrayList<Vector3d>,
-        indices: IntArrayList
+        indices: IntArray
     ): Int {
         val usedIndices = IntArray(inputVertices.size)
         var numResultVertices = 0
