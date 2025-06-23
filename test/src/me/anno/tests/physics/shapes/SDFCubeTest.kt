@@ -7,7 +7,6 @@ import me.anno.sdf.SDFCollider
 import me.anno.sdf.physics.ConvexSDFShape
 import me.anno.sdf.shapes.SDFBox
 import me.anno.tests.physics.shapes.SDFSphereTest.Companion.nextPos
-import me.anno.tests.physics.shapes.SDFSphereTest.Companion.toKOML
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
@@ -44,8 +43,8 @@ class SDFCubeTest {
         val random = Random(1234)
         for (i in 0 until 20) {
             val pos = random.nextPos()
-            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d())
+            val actual = tested.localGetSupportingVertex(pos, Vector3d())
             assertEquals(expected, actual, 1.0) // error is a little large...
         }
     }
@@ -60,8 +59,8 @@ class SDFCubeTest {
                 if (i.hasFlag(2)) 1.0 else -1.0,
                 if (i.hasFlag(4)) 1.0 else -1.0,
             )
-            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d())
+            val actual = tested.localGetSupportingVertex(pos, Vector3d())
             assertEquals(expected, actual, 1e-7)
         }
     }
@@ -73,8 +72,8 @@ class SDFCubeTest {
         val random = Random(1234)
         for (i in 0 until 100) {
             val pos = random.nextPos()
-            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d())
+            val actual = tested.localGetSupportingVertex(pos, Vector3d())
             assertEquals(expected, actual, 2.0, "$pos") // error is a little large...
         }
     }

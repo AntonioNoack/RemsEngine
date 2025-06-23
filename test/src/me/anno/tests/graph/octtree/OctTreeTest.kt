@@ -25,7 +25,7 @@ class OctTreeTest {
     private fun createTree(numValues: Int, splitSize: Int, allNodes: HashSet<Vector3f>): TestNode {
         val root = TestNode(splitSize)
         val random = Random(1234)
-        for (i in 0 until numValues) {
+        repeat(numValues) {
             val v = Vector3f()
             v.x = random.nextFloat()
             v.y = random.nextFloat()

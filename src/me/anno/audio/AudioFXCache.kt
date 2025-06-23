@@ -15,17 +15,19 @@ import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.acquire
-import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.types.Floats.roundToLongOr
 import me.anno.utils.types.Ints.isPowerOf2
+import org.apache.logging.log4j.LogManager
 import java.lang.Math.floorDiv
 import java.util.concurrent.Semaphore
 import kotlin.math.max
 import kotlin.math.min
 
 object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioData>("AudioFX0") {
+
+    private val LOGGER = LogManager.getLogger(AudioFXCache::class)
 
     private val audioDataCache = CacheSection<PipelineKey, AudioData>("AudioDataCache")
     private val rangeCache = CacheSection<RangeKey, ShortData>("AudioFXRanges")
@@ -89,7 +91,14 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
     private val rawDataLimiter = Semaphore(32)
 
     fun getRawData(meta: MediaMetadata, key: PipelineKey): AsyncCacheData<AudioData> {
-        assertNotEquals(0, meta.audioSampleRate, "Cannot load audio without sample rate")
+        if (!meta.isReady) {
+            LOGGER.warn("Metadata isn't ready")
+            return AsyncCacheData.empty()
+        }
+        if (meta.audioSampleRate <= 0) {
+            LOGGER.warn("Cannot load audio without sample rate, '${meta.file}'")
+            return AsyncCacheData.empty()
+        }
         // we cannot simply return null from this function, so getEntryLimited isn't an option
         val result = AsyncCacheData<AudioData>()
         acquire(true, rawDataLimiter) {

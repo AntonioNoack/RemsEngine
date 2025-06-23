@@ -4,10 +4,10 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setScaleAdd
+import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.Axis
+import org.joml.Vector3d
 import kotlin.math.sqrt
 
 /**
@@ -26,33 +26,21 @@ open class CylinderShape(halfExtents: Vector3d, val upAxis: Axis) : BoxShape(hal
         getAabbBase(t, aabbMin, aabbMax)
     }
 
-    fun cylinderLocalSupportX(halfExtents: Vector3d, v: Vector3d, out: Vector3d): Vector3d {
-        return cylinderLocalSupport(halfExtents, v, 0, 1, 0, 2, out)
-    }
+    private fun cylinderLocalSupport(halfExtents: Vector3d, v: Vector3d, out: Vector3d): Vector3d {
 
-    fun cylinderLocalSupportY(halfExtents: Vector3d, v: Vector3d, out: Vector3d): Vector3d {
-        return cylinderLocalSupport(halfExtents, v, 1, 0, 1, 2, out)
-    }
+        val XX = upAxis.secondary
+        val YY = upAxis.id
+        val ZZ = upAxis.tertiary
 
-    fun cylinderLocalSupportZ(halfExtents: Vector3d, v: Vector3d, out: Vector3d): Vector3d {
-        return cylinderLocalSupport(halfExtents, v, 2, 0, 2, 1, out)
-    }
-
-    private fun cylinderLocalSupport(
-        halfExtents: Vector3d, v: Vector3d, cylinderUpAxis: Int,
-        XX: Int, YY: Int, ZZ: Int, out: Vector3d
-    ): Vector3d {
         //mapping depends on how cylinder local orientation is
         // extents of the cylinder is: X,Y is for radius, and Z for height
 
         val radius = VectorUtil.getCoord(halfExtents, XX)
-        val halfHeight = VectorUtil.getCoord(halfExtents, cylinderUpAxis)
+        val halfHeight = VectorUtil.getCoord(halfExtents, YY)
 
         val s = sqrt(
-            VectorUtil.getCoord(v, XX) * VectorUtil.getCoord(v, XX) + VectorUtil.getCoord(
-                v,
-                ZZ
-            ) * VectorUtil.getCoord(v, ZZ)
+            VectorUtil.getCoord(v, XX) * VectorUtil.getCoord(v, XX) +
+                    VectorUtil.getCoord(v, ZZ) * VectorUtil.getCoord(v, ZZ)
         )
         if (s != 0.0) {
             val d = radius / s
@@ -69,7 +57,7 @@ open class CylinderShape(halfExtents: Vector3d, val upAxis: Axis) : BoxShape(hal
 
     override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
         val halfExtents = getHalfExtentsWithoutMargin(Stack.newVec())
-        val result = cylinderLocalSupportY(halfExtents, dir, out)
+        val result = cylinderLocalSupport(halfExtents, dir, out)
         Stack.subVec(1)
         return result
     }
@@ -81,7 +69,7 @@ open class CylinderShape(halfExtents: Vector3d, val upAxis: Axis) : BoxShape(hal
     ) {
         val halfExtents = getHalfExtentsWithoutMargin(Stack.newVec())
         for (i in 0 until numVectors) {
-            cylinderLocalSupportY(halfExtents, dirs[i], outs[i])
+            cylinderLocalSupport(halfExtents, dirs[i], outs[i])
         }
         Stack.subVec(1)
     }
@@ -91,7 +79,7 @@ open class CylinderShape(halfExtents: Vector3d, val upAxis: Axis) : BoxShape(hal
         if (margin != 0.0) {
             val norm = Stack.newVec(dir)
             if (norm.lengthSquared() < (BulletGlobals.SIMD_EPSILON * BulletGlobals.SIMD_EPSILON)) {
-                norm.set(-1.0, -1.0, -1.0)
+                norm.set(-1.0)
             }
             norm.normalize()
             out.setScaleAdd(margin, norm, out)

@@ -8,7 +8,6 @@ import me.anno.sdf.SDFCollider
 import me.anno.sdf.physics.ConvexSDFShape
 import me.anno.sdf.shapes.SDFCylinder
 import me.anno.tests.physics.shapes.SDFSphereTest.Companion.nextPos
-import me.anno.tests.physics.shapes.SDFSphereTest.Companion.toKOML
 import me.anno.utils.assertions.assertEquals
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
@@ -54,7 +53,7 @@ class SDFCylinderTest {
         val accurate = marginI == 0f
         // it's a shame that we have to use soo big margins :/
         val threshold = if (accurate) 1e-5 else 1.0 + marginI
-        for (i in 0 until 100) {
+        repeat(100) {
             val pos = random.nextPos()
 
             // if possible, use smaller margins by spawning a point on the surface
@@ -80,8 +79,8 @@ class SDFCylinderTest {
                 }
             }
 
-            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d())
+            val actual = tested.localGetSupportingVertex(pos, Vector3d())
             assertEquals(expected.x, actual.x, threshold)
             assertEquals(expected.y, actual.y, threshold)
             assertEquals(expected.z, actual.z, threshold)

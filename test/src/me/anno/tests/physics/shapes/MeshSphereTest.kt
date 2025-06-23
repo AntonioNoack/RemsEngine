@@ -8,7 +8,6 @@ import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.tests.physics.shapes.SDFSphereTest.Companion.nextPos
-import me.anno.tests.physics.shapes.SDFSphereTest.Companion.toKOML
 import me.anno.utils.assertions.assertEquals
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
@@ -30,8 +29,8 @@ class MeshSphereTest {
         val random = Random(1234)
         for (i in 0 until 100) {
             val pos = random.nextPos()
-            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d())
+            val actual = tested.localGetSupportingVertex(pos, Vector3d())
             assertEquals(expected, actual, 0.17) // error comes from low poly approximation
         }
     }
@@ -51,8 +50,8 @@ class MeshSphereTest {
         val random = Random(1234)
         for (i in 0 until 100) {
             val pos = random.nextPos()
-            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d())
+            val actual = tested.localGetSupportingVertex(pos, Vector3d())
             assertEquals(expected, actual, 0.30) // error comes from low poly approximation
         }
     }
@@ -71,8 +70,8 @@ class MeshSphereTest {
         val random = Random(1234)
         for (i in 0 until 100) {
             val pos = random.nextPos()
-            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d())
+            val actual = tested.localGetSupportingVertex(pos, Vector3d())
             assertEquals(expected, actual, 0.17) // error comes from low poly approximation
         }
     }

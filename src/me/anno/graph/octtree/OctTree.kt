@@ -4,7 +4,7 @@ import me.anno.utils.types.Vectors.getMaxComponent
 import org.joml.Vector3d
 
 abstract class OctTree<Data>(maxNumChildren: Int) :
-    KdTree<Vector3d, Data>(maxNumChildren, Vector3d(Double.NEGATIVE_INFINITY), Vector3d(Double.POSITIVE_INFINITY)) {
+    KdTree<Vector3d, Data>(maxNumChildren, Vector3d(Double.POSITIVE_INFINITY), Vector3d(Double.NEGATIVE_INFINITY)) {
 
     override fun get(p: Vector3d, axis: Int) = p[axis]
     override fun min(a: Vector3d, b: Vector3d) = a.min(b, Vector3d())

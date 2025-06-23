@@ -1,5 +1,6 @@
 package me.anno.graph.octtree
 
+import me.anno.utils.Logging.hash32
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertNull
 import me.anno.utils.structures.Iterators.then
@@ -88,6 +89,7 @@ abstract class KdTree<Point, Value>(
                 val children = node.ensureChildren()
                 if (children.size >= node.maxNumChildren) {
                     node.split(children)
+                    assertNull(node.children)
                     val px = node.get(minI, node.axis)
                     node = node.findBestSideForPoint(px)
                 } else {
@@ -197,11 +199,12 @@ abstract class KdTree<Point, Value>(
     fun query(min: Point, max: Point, hasFound: (Value) -> Boolean): Value? {
         return Recursion.findRecursive(this) { node, remaining ->
             val left = node.left
-            if (left != null && node.get(left.max, axis) >= node.get(min, node.axis)) {
+            val axis = node.axis
+            if (left != null && node.get(left.max, axis) >= node.get(min, axis)) {
                 remaining.add(left)
             }
             val right = node.right
-            if (right != null && get(right.min, axis) <= node.get(max, node.axis)) {
+            if (right != null && get(right.min, axis) <= node.get(max, axis)) {
                 remaining.add(right)
             }
             var found: Value? = null
@@ -227,6 +230,7 @@ abstract class KdTree<Point, Value>(
      * Calls callback on all overlapping children-lists (and root) until true is returned by it.
      * Returns the first (any) child to return true.
      * */
+    @Suppress("unused")
     fun queryLists(min: Point, max: Point, hasFound: (List<Value>) -> Boolean): List<Value>? {
         return Recursion.findRecursive(this) { node, remaining ->
             val left = node.left
@@ -240,6 +244,20 @@ abstract class KdTree<Point, Value>(
             val values = node.children
             if (values != null && hasFound(values)) values else null
         }
+    }
+
+    @Suppress("unused")
+    fun containsValue(searched: Value): Boolean {
+        return query(getMin(searched), getMax(searched)) { value ->
+            value == searched
+        } != null
+    }
+
+    @Suppress("unused")
+    fun containsPoint(point: Point): Boolean {
+        return query(point, point) { value ->
+            getPoint(value) == point
+        } != null
     }
 
     /**
