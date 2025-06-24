@@ -4,7 +4,10 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.ActivationState
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
+import com.bulletphysics.collision.dispatch.CollisionFlags
+import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration
+import com.bulletphysics.collision.dispatch.GhostObject
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.CompoundShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
@@ -42,7 +45,7 @@ import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.max
 
-open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDrawGUI {
+open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody::class), OnDrawGUI {
 
     // I use jBullet2, however I have modified it to use doubles for everything
     // this may be bad for performance, but it also allows our engine to run much larger worlds
@@ -88,7 +91,11 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         }
     }
 
-    override fun createRigidbody(entity: Entity, rigidBody: Rigidbody): ScaledBody<Rigidbody, RigidBody>? {
+    override fun createRigidbody(
+        entity: Entity,
+        rigidBody: PhysicsBody<*>
+    ): ScaledBody<PhysicsBody<*>, CollisionObject>? {
+
         val colliders = rigidBody.activeColliders
         getValidComponents(entity, Collider::class, colliders)
         colliders.removeIf { !it.hasPhysics }
@@ -97,33 +104,48 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         // bullet does not work correctly with scale changes: create larger shapes directly
         val globalTransform = entity.transform.globalTransform
         val scale = globalTransform.getScale(Vector3d())
-        val centerOfMass = rigidBody.centerOfMass // create a copy of this vector?
+        val centerOfMass =
+            if (rigidBody is DynamicBody) rigidBody.centerOfMass // create a copy of this vector?
+            else Vector3d()
 
         // copy all knowledge from ecs to bullet
         val collider = createCollider(entity, colliders, scale, centerOfMass)
 
         val inertia = Stack.newVec()
-        val mass = max(0.0, rigidBody.mass)
+        val mass = if (rigidBody is DynamicBody) max(0.0, rigidBody.mass) else 0.0
         if (mass > 0.0) {
             collider.calculateLocalInertia(mass, inertia)
         }
 
-        val body = RigidBody(mass, collider, inertia)
+        val body =
+            if (rigidBody is GhostBody) GhostObject().apply {
+                collisionShape = collider
+            } else RigidBody(mass, collider, inertia)
+
         val tmpTransform = body.worldTransform
         mat4x3ToTransform(globalTransform, scale, centerOfMass, tmpTransform)
-        body.setInitialTransform(tmpTransform)
+        if (body is RigidBody) {
+            body.setInitialTransform(tmpTransform)
+        } else {
+            body as GhostObject
+            body.setWorldTransform(tmpTransform)
+        }
 
-        body.friction = rigidBody.friction
-        body.restitution = rigidBody.restitution
-        body.linearDamping = rigidBody.linearDamping
-        body.angularDamping = rigidBody.angularDamping
-        body.linearSleepingThreshold = rigidBody.linearSleepingThreshold
-        body.angularSleepingThreshold = rigidBody.angularSleepingThreshold
+        if (body is RigidBody && rigidBody is PhysicalBody) {
+            body.friction = rigidBody.friction
+            body.restitution = rigidBody.restitution
+            if (rigidBody is DynamicBody) {
+                body.linearDamping = rigidBody.linearDamping
+                body.angularDamping = rigidBody.angularDamping
+                body.linearSleepingThreshold = rigidBody.linearSleepingThreshold
+                body.angularSleepingThreshold = rigidBody.angularSleepingThreshold
+            }
+        }
         body.ccdMotionThreshold = 1e-7
 
         val center = Stack.newVec()
         body.ccdSweptSphereRadius = collider.getBoundingSphere(center)
-        if (mass > 0.0) { // else not supported
+        if (mass > 0.0 && rigidBody is DynamicBody && body is RigidBody) { // else not supported
             body.setLinearVelocity(rigidBody.globalLinearVelocity)
             body.setAngularVelocity(rigidBody.globalAngularVelocity)
         }
@@ -186,77 +208,98 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     }
 
     override fun onCreateRigidbody(
-        entity: Entity,
-        rigidbody: Rigidbody,
-        scaledBody: ScaledBody<Rigidbody, RigidBody>
+        entity: Entity, rigidbody: PhysicsBody<*>,
+        scaledBody: ScaledBody<PhysicsBody<*>, CollisionObject>
     ) {
 
         val body = scaledBody.external
 
         // vehicle stuff
-        if (rigidbody is Vehicle) {
+        if (rigidbody is Vehicle && body is RigidBody) {
             defineVehicle(entity, rigidbody, body)
         }
 
         // activate
-        if (rigidbody.activeByDefault) body.activationState = ActivationState.ACTIVE
+        val state =
+            if (rigidbody is DynamicBody) ActivationState.ACTIVE
+            else ActivationState.ALWAYS_ACTIVE
 
-        bulletInstance.addRigidBody(
-            body, // todo re-activate / correct groups and masks
-            // clamp(rigidbody.group, 0, 15).toShort(),
-            // rigidbody.collisionMask
-        )
+        body.activationState = state
+        body.collisionFlags = when (rigidbody) {
+            // todo allow custom material response for per-triangle friction/restitution (terrain)
+            is StaticBody -> CollisionFlags.STATIC_OBJECT
+            is KinematicBody -> CollisionFlags.KINEMATIC_OBJECT
+            is GhostBody -> CollisionFlags.NO_CONTACT_RESPONSE
+            else -> 0
+        }
+
+        if (body is RigidBody) {
+            bulletInstance.addRigidBody(
+                body, // todo re-activate / correct groups and masks
+                // clamp(rigidbody.group, 0, 15).toShort(),
+                // rigidbody.collisionMask
+            )
+        } else {
+            bulletInstance.addCollisionObject(body)
+        }
 
         // must be done after adding the body to the world,
         // because it is overridden by World.addRigidbody()
-        if (rigidbody.overrideGravity) {
+        if (rigidbody is DynamicBody && body is RigidBody && rigidbody.overrideGravity) {
             body.setGravity(rigidbody.gravity)
         }
 
         rigidBodies[entity] = scaledBody
-        rigidbody.bulletInstance = body
+        when (rigidbody) {
+            is GhostBody -> rigidbody.bulletInstance = body as GhostObject
+            is PhysicalBody -> rigidbody.bulletInstance = body as RigidBody
+        }
 
-        registerNonStatic(entity, rigidbody.isStatic, scaledBody)
+        registerNonStatic(entity, rigidbody is StaticBody, scaledBody)
 
-        val constraints = rigidbody.linkedConstraints
-        for (i in constraints.indices) {
-            val constraint = constraints[i]
-            if (constraint.isEnabled) {
-                // ensure the constraint exists
-                val rigidbody2 = constraint.entity
-                    ?.getComponent(Rigidbody::class, false)
-                    ?: continue
-                val rigidbody3 = getRigidbody(rigidbody2) ?: continue
-                addConstraint(constraint, rigidbody3, rigidbody2, rigidbody)
+        if (rigidbody is DynamicBody) {
+            val constraints = rigidbody.linkedConstraints
+            for (i in constraints.indices) {
+                val constraint = constraints[i]
+                if (constraint.isEnabled) {
+                    // ensure the constraint exists
+                    val dynamicBody2 = constraint.entity
+                        ?.getComponent(DynamicBody::class, false)
+                        ?: continue
+                    val rigidbody3 = getRigidbody(dynamicBody2) as? RigidBody ?: continue
+                    addConstraint(constraint, rigidbody3, dynamicBody2, rigidbody)
+                }
             }
         }
 
         // create all constraints
-        entity.forAllComponents(Constraint::class, false) { c ->
-            val other = c.other
-            if (other != null && other != rigidbody && other.isEnabled) {
-                addConstraint(c, body, rigidbody, other)
+        if (rigidbody is PhysicalBody && body is RigidBody) {
+            entity.forAllComponents(Constraint::class, false) { c ->
+                val other = c.other
+                if (other != null && other != rigidbody && other.isEnabled) {
+                    addConstraint(c, body, rigidbody, other)
+                }
             }
         }
     }
 
-    private fun addConstraint(c: Constraint<*>, body: RigidBody, rigidbody: Rigidbody, other: Rigidbody) {
+    private fun addConstraint(c: Constraint<*>, body: RigidBody, rigidbody: PhysicalBody, other: PhysicalBody) {
         val oldInstance = c.bulletInstance
         val world = bulletInstance
         if (oldInstance != null) {
             world.removeConstraint(oldInstance)
             c.bulletInstance = null
         }
-        if (!rigidbody.isStatic || !other.isStatic) {
+        if (rigidbody is DynamicBody || other is DynamicBody) {
             val otherBody = getRigidbody(other)
-            if (otherBody != null) {
+            if (otherBody is RigidBody) {
                 // create constraint
                 val constraint = c.createConstraint(body, otherBody, c.getTA(), c.getTB())
                 c["bulletInstance"] = constraint
                 world.addConstraint(constraint, c.disableCollisionsBetweenLinked)
             }
         } else {
-            LOGGER.warn("Cannot constrain two static bodies!, ${rigidbody.prefabPath} to ${other.prefabPath}")
+            LOGGER.warn("Cannot constrain two static/kinematic bodies!, ${rigidbody.prefabPath} to ${other.prefabPath}")
         }
     }
 
@@ -282,10 +325,10 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             }
         }
 
-        val rigidbody = entity.getComponent(Rigidbody::class, false)
-        if (rigidbody != null) {
-            rigidbody.activeColliders.clear()
-            for (c in rigidbody.linkedConstraints) {
+        val dynamicBody = entity.getComponent(DynamicBody::class, false)
+        if (dynamicBody != null) {
+            dynamicBody.activeColliders.clear()
+            for (c in dynamicBody.linkedConstraints) {
                 val bi = c.bulletInstance
                 if (bi != null) {
                     world.removeConstraint(bi)
@@ -317,14 +360,14 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
         entity.isPhysicsControlled = false
         if (fallenOutOfWorld) {
-            if (rigidbody != null) {
+            if (dynamicBody != null) {
                 // when something falls of the world, often it's nice to directly destroy the object,
                 // because it will no longer be needed
                 // call event, so e.g., we could add it back to a pool of entities, or respawn it
                 entity.forAllComponents(FallenOutOfWorld::class) {
                     it.onFallOutOfWorld()
                 }
-                if (rigidbody.deleteWhenKilledByDepth) {
+                if (dynamicBody.deleteWhenKilledByDepth) {
                     entity.parentEntity?.deleteChild(entity)
                 }
             }
@@ -360,25 +403,29 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
     }
 
-    override fun isActive(rigidbody: RigidBody): Boolean {
-        return rigidbody.isActive
+    override fun isActive(rigidbody: CollisionObject): Boolean {
+        return rigidbody is RigidBody && rigidbody.isActive
     }
 
-    override fun worldRemoveRigidbody(rigidbody: RigidBody) {
-        bulletInstance.removeRigidBody(rigidbody)
+    override fun worldRemoveRigidbody(rigidbody: CollisionObject) {
+        if (rigidbody is RigidBody) bulletInstance.removeRigidBody(rigidbody)
+        else bulletInstance.removeCollisionObject(rigidbody)
     }
 
     override fun convertTransformMatrix(
-        rigidbody: RigidBody, dstTransform: Matrix4x3,
+        rigidbody: CollisionObject, dstTransform: Matrix4x3,
         scale: Vector3d, centerOfMass: Vector3d
     ) {
         val worldTransform = rigidbody.worldTransform
         transformToMat4x3(worldTransform, scale, centerOfMass, dstTransform)
     }
 
-    override fun updateNonStaticRigidBody(entity: Entity, rigidbodyScaled: ScaledBody<Rigidbody, RigidBody>) {
+    override fun updateNonStaticRigidBody(
+        entity: Entity, rigidbodyScaled: ScaledBody<PhysicsBody<*>, CollisionObject>
+    ) {
         super.updateNonStaticRigidBody(entity, rigidbodyScaled)
         val (dst, src) = rigidbodyScaled
+        if (dst !is DynamicBody || src !is RigidBody) return
         dst.globalLinearVelocity.set(src.linearVelocity)
         dst.globalAngularVelocity.set(src.angularVelocity)
     }
@@ -462,13 +509,13 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
     override fun invalidateTransform(entity: Entity) {
         entity.validateTransform() // we need to know the global transform
-        val rigidbody = entity.getComponent(Rigidbody::class, false) ?: return
+        val dynamicBody = entity.getComponent(DynamicBody::class, false) ?: return
         val globalTransform = entity.transform.globalTransform
         // todo support scale changes, and adjust Entity.scale then, too
         val scale = JomlPools.vec3d.create()
         globalTransform.getScale(scale)
-        val transform = mat4x3ToTransform(globalTransform, scale, rigidbody.centerOfMass, Transform())
-        rigidbody.bulletInstance?.setWorldTransform(transform)
+        val transform = mat4x3ToTransform(globalTransform, scale, dynamicBody.centerOfMass, Transform())
+        dynamicBody.bulletInstance?.setWorldTransform(transform)
         JomlPools.vec3d.sub(1)
     }
 

@@ -1,7 +1,7 @@
 package me.anno.tests.network.rollingshooter
 
 import me.anno.Time
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
@@ -102,8 +102,8 @@ class BallPhysics(
     override fun onPhysicsUpdate(dt: Double) {
 
         val entity = entity!!
-        val rigidbody = entity.getComponent(Rigidbody::class)!!
-        val strength = 12.0 * rigidbody.mass
+        val dynamicBody = entity.getComponent(DynamicBody::class)!!
+        val strength = 12.0 * dynamicBody.mass
         if (entity.position.y < -10.0 || Input.wasKeyPressed(Key.KEY_R)) {
             respawn(selfPlayerEntity, staticScene)
         }
@@ -111,10 +111,10 @@ class BallPhysics(
         val c = cos(rotY) * strength
         val s = sin(rotY) * strength
 
-        if (Input.isKeyDown(Key.KEY_W)) rigidbody.applyTorque(-c, 0.0, +s)
-        if (Input.isKeyDown(Key.KEY_S)) rigidbody.applyTorque(+c, 0.0, -s)
-        if (Input.isKeyDown(Key.KEY_A)) rigidbody.applyTorque(+s, 0.0, +c)
-        if (Input.isKeyDown(Key.KEY_D)) rigidbody.applyTorque(-s, 0.0, -c)
+        if (Input.isKeyDown(Key.KEY_W)) dynamicBody.applyTorque(-c, 0.0, +s)
+        if (Input.isKeyDown(Key.KEY_S)) dynamicBody.applyTorque(+c, 0.0, -s)
+        if (Input.isKeyDown(Key.KEY_A)) dynamicBody.applyTorque(+s, 0.0, +c)
+        if (Input.isKeyDown(Key.KEY_D)) dynamicBody.applyTorque(-s, 0.0, -c)
 
         if (jumpForce > 0f && abs(Time.gameTimeN - lastJumpTime) > jumpTimeout) {
             // only jump if we are on something
@@ -124,7 +124,7 @@ class BallPhysics(
                 lastJumpTime = Time.gameTimeN
                 val iy = -10000.0 * strength * jumpForce
                 println("jumping with force $iy")
-                rigidbody.applyImpulse(0.0, iy, 0.0)
+                dynamicBody.applyImpulse(0.0, iy, 0.0)
             } else println("floating in air")
             jumpForce = 0f
         }

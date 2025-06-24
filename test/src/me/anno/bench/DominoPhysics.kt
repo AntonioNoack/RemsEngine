@@ -6,7 +6,8 @@ import com.bulletphysics.linearmath.CProfileNode
 import me.anno.Engine
 import me.anno.Time
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
+import me.anno.bullet.StaticBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.InfinitePlaneCollider
@@ -95,7 +96,7 @@ fun runDominoTest(numDominos: Int, numSteps: Int) {
         return Entity(dominos)
             .setPosition(x.toDouble(), (halfExtents1.y + margin1).toDouble(), z.toDouble())
             .add(MeshComponent(mesh))
-            .add(Rigidbody().apply {
+            .add(DynamicBody().apply {
                 mass = mass1
                 friction = 0.3
                 restitution = 0.0
@@ -109,8 +110,7 @@ fun runDominoTest(numDominos: Int, numSteps: Int) {
     // slightly faster
     Entity("Floor", scene)
         .add(InfinitePlaneCollider())
-        .add(Rigidbody().apply {
-            mass = 0.0
+        .add(StaticBody().apply {
             friction = 0.9
             restitution = 0.0
         })

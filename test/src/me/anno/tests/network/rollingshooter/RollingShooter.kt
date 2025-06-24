@@ -2,7 +2,7 @@ package me.anno.tests.network.rollingshooter
 
 import me.anno.Time
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
@@ -92,7 +92,7 @@ fun main() {
 
     fun createPlayerBase(color: Int): Entity {
         val player = Entity("Player", players)
-        player.add(Rigidbody().apply {
+        player.add(DynamicBody().apply {
             mass = 5.0
             friction = 1.0
             angularDamping = 0.9
@@ -116,7 +116,7 @@ fun main() {
         if (player != null && p.name != selfName) {
             val mesh = player.getComponent(MeshComponent::class)!!
             (p.color or black).toVecRGBA(MaterialCache.getEntry(mesh.materials[0]).waitFor()!!.diffuseBase)
-            val rb = player.getComponent(Rigidbody::class)!!
+            val rb = player.getComponent(DynamicBody::class)!!
             player.position = player.position.set(p.position)
             player.rotation = player.rotation.set(p.rotation)
             rb.globalLinearVelocity = rb.globalLinearVelocity.set(p.linearVelocity)
@@ -209,7 +209,7 @@ fun main() {
     )
     cameraArm.add(camera)
 
-    staticScene.add(Rigidbody().apply {
+    staticScene.add(DynamicBody().apply {
         restitution = 0.0
         friction = 1.0
     })
@@ -263,7 +263,7 @@ fun respawn(
         if (hit) {
             newPosition.y += radius - query.result.distance
             entity.position = newPosition
-            val rb = entity.getComponent(Rigidbody::class)!!
+            val rb = entity.getComponent(DynamicBody::class)!!
             rb.globalLinearVelocity = Vector3d()
             rb.globalAngularVelocity = Vector3d()
             break

@@ -12,12 +12,14 @@ object CollisionFlags {
     /** Sets this collision object as kinematic.  */
     const val KINEMATIC_OBJECT: Int = 2
 
-    /** Disables contact response.  */
+    /** Disables contact response; required for ghost objects */
     const val NO_CONTACT_RESPONSE: Int = 4
 
     /**
      * Enables calling [com.bulletphysics.ContactAddedCallback] for collision objects. This
      * allows per-triangle material (friction/restitution).
+     *
+     * todo test this for custom terrain :3
      */
     const val CUSTOM_MATERIAL_CALLBACK: Int = 8
 

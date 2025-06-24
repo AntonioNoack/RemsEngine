@@ -1,7 +1,7 @@
 package me.anno.tests.physics
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.systems.Systems
@@ -23,14 +23,14 @@ fun main() {
 
     val sphere = Entity()
     sphere.transform.globalTransform.translate(-1.0, y0, 0.0)
-    sphere.add(Rigidbody().apply { mass = 1.0 })
+    sphere.add(DynamicBody())
     sphere.add(SphereCollider())
     physics.addOrGet(sphere)
 
     // moves the other sphere to the side
     val sphere2 = Entity()
     sphere2.transform.globalTransform.translate(1.0, y0, 0.0)
-    sphere2.add(Rigidbody().apply { mass = 1.0 })
+    sphere2.add(DynamicBody())
     sphere2.add(SphereCollider())
     physics.addOrGet(sphere2)
 

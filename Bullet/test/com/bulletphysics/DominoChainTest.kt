@@ -3,7 +3,6 @@ package com.bulletphysics
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
-import com.bulletphysics.linearmath.Transform
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.joml.Vector3d
@@ -58,8 +57,7 @@ class DominoChainTest {
 
             var fallen = 0
             for (d in 0 until dominoCount) {
-                val tf = Transform()
-                dominos[d].motionState!!.getWorldTransform(tf)
+                val tf = dominos[d].worldTransform
                 val up = Vector3d()
                 tf.basis.getColumn(1, up) // local Y axis
                 val dot = up.dot(Vector3d(0.0, 1.0, 0.0)) // how aligned with world up
@@ -75,8 +73,7 @@ class DominoChainTest {
         }
 
         // Check that the last domino has fallen (tipped significantly)
-        val lastTransform = Transform()
-        dominos[dominoCount - 1].motionState!!.getWorldTransform(lastTransform)
+        val lastTransform = dominos[dominoCount - 1].worldTransform
 
         val upVector = Vector3d()
         lastTransform.basis.getColumn(1, upVector) // Y-axis of the last domino

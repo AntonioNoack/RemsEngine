@@ -1,6 +1,7 @@
 package me.anno.bullet
 
 import com.bulletphysics.collision.dispatch.ActivationState
+import com.bulletphysics.collision.dispatch.CollisionDispatcher
 import com.bulletphysics.collision.narrowphase.ManifoldPoint
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.ConvexHullShape
@@ -65,7 +66,7 @@ object BulletRendering {
         }
     }
 
-    private fun drawColliders(pipeline: Pipeline, rigidbody: Rigidbody) {
+    private fun drawColliders(pipeline: Pipeline, rigidbody: PhysicsBody<*>) {
         val colliders = rigidbody.activeColliders
         for (i in colliders.indices) {
             colliders.getOrNull(i)?.drawShape(pipeline)
@@ -74,21 +75,24 @@ object BulletRendering {
 
     private fun BulletPhysics.drawConstraints(pipeline: Pipeline) {
         for ((_, bodyWithScale) in dynamicRigidBodies) {
-            drawConstraints(pipeline, bodyWithScale.internal)
+            val body = bodyWithScale.internal as? PhysicalBody ?: continue
+            drawConstraints(pipeline, body)
         }
     }
 
-    private fun drawConstraints(pipeline: Pipeline, rigidbody: Rigidbody) {
+    private fun drawConstraints(pipeline: Pipeline, rigidbody: PhysicalBody) {
         val constraints = rigidbody.linkedConstraints
         for (i in constraints.indices) {
-            constraints.getOrNull(i)?.onDrawGUI(pipeline, true)
+            val constraint = constraints.getOrNull(i) ?: break
+            constraint.onDrawGUI(pipeline, true)
         }
     }
 
     private fun BulletPhysics.drawContactPoints() {
-        val dispatcher = bulletInstance.dispatcher
-        for (i in 0 until dispatcher.numManifolds) {
-            val contact = dispatcher.getManifold(i)
+        val dispatcher = bulletInstance.dispatcher as? CollisionDispatcher ?: return
+        val manifolds = dispatcher.manifoldsList
+        for (i in manifolds.indices) {
+            val contact = manifolds.getOrNull(i) ?: break
             drawContactManifold(contact)
         }
     }

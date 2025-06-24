@@ -1,7 +1,7 @@
 package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.bullet.constraints.GenericConstraint
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
@@ -34,7 +34,7 @@ fun main() {
         halfExtents.set(0.45, 1.0, 0.04)
     })
     box0.setPosition(0.0, 2.3, 0.0)
-    val body0 = Rigidbody()
+    val body0 = DynamicBody()
     body0.mass = 1.0
     box0.add(body0)
 
@@ -42,7 +42,7 @@ fun main() {
     box1.add(MeshComponent(flatCube.scaled(Vector3f(0.1f, 1.0f, 0.1f)).front))
     box1.add(BoxCollider().apply { halfExtents.set(0.1f, 1f, 0.1f) })
     box1.setRotation(5f.toRadians(), 0f, 0f)
-    val body1 = Rigidbody()
+    val body1 = DynamicBody()
     box1.add(body1)
 
     // todo this is very unstable... why??
@@ -57,7 +57,7 @@ fun main() {
     val floor = Entity("Floor", scene)
     floor.add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
     floor.add(BoxCollider())
-    floor.add(Rigidbody().apply {
+    floor.add(DynamicBody().apply {
         friction = 1.0
     })
     floor.setPosition(0.0, -22.0, 0.0)

@@ -79,10 +79,10 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
                     val p = Stack.newVec()
                     p.set(0.0, 0.0, 0.0)
                     val diff = Stack.newVec()
-                    diff.setSub(p, from)
+                    p.sub(from, diff)
 
                     val v = Stack.newVec()
-                    v.setSub(to, from)
+                    to.sub(from, v)
 
                     var t = v.dot(diff)
 
@@ -637,32 +637,22 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
         fun ptOutsideOfPlane(p: Vector3d, a: Vector3d, b: Vector3d, c: Vector3d, d: Vector3d): Int {
             val tmp = Stack.newVec()
             val normal = Stack.newVec()
-            normal.setSub(b, a)
-            tmp.setSub(c, a)
-            normal.setCross(normal, tmp)
+            b.sub(a, normal)
+            c.sub(a, tmp)
+            normal.cross(tmp)
 
-            tmp.setSub(p, a)
+            p.sub(a, tmp)
             val signp = tmp.dot(normal) // [AP AB AC]
 
-            tmp.setSub(d, a)
+            d.sub(a, tmp)
             val signd = tmp.dot(normal) // [AD AB AC]
-
-            //#ifdef CATCH_DEGENERATE_TETRAHEDRON
-//	#ifdef BT_USE_DOUBLE_PRECISION
-//	if (signd * signd < (btScalar(1e-8) * btScalar(1e-8)))
-//		{
-//			return -1;
-//		}
-//	#else
             Stack.subVec(2)
+
             if (signd * signd < ((1e-4f) * (1e-4f))) {
-                //		printf("affine dependent/degenerate\n");//
+                // affine dependent/degenerate
                 return -1
             }
 
-            //#endif
-
-            //#endif
             // Points on opposite sides if expression signs are opposite
             return if (signp * signd < 0.0) 1 else 0
         }

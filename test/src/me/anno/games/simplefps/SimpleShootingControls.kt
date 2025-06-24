@@ -1,6 +1,6 @@
 package me.anno.games.simplefps
 
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
@@ -28,7 +28,7 @@ class SimpleShootingControls : Component(), CustomEditMode {
             if (Raycast.raycast(scene, query)) {
                 val hitComponent = query.result.component
                 val hitEntity = hitComponent?.entity
-                val hitRigidbody = hitEntity?.getComponent(Rigidbody::class)
+                val hitRigidbody = hitEntity?.getComponent(DynamicBody::class)
                 if (hitRigidbody != null && !hitRigidbody.isStatic) {
                     val relativePos = query.result.positionWS.sub(hitEntity.transform.globalPosition, Vector3d())
                     val impulse = Vector3d(query.direction).mul(force)

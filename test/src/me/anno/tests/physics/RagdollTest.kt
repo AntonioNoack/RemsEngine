@@ -1,7 +1,8 @@
 package me.anno.tests.physics
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
+import me.anno.bullet.StaticBody
 import me.anno.bullet.constraints.ConeTwistConstraint
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Component
@@ -90,9 +91,9 @@ fun main() {
 
     // todo add bone visually
     val entities = ArrayList<Entity?>()
-    val rigidbodies = ArrayList<Rigidbody?>()
+    val rigidbodies = ArrayList<DynamicBody?>()
     val baseTransformInvs = ArrayList<Matrix4x3?>()
-    val roots = ArrayList<Pair<Double, Rigidbody>>()
+    val roots = ArrayList<Pair<Double, DynamicBody>>()
     var isRootBone = true
     for (bone in bones) {
 
@@ -133,7 +134,7 @@ fun main() {
         val length = parentPos.distance(bonePos)
         val centerPos = parentPos.add(bonePos, Vector3d()).mul(0.5)
         val direction = Vector3f(parentPos - bonePos)
-        val rigidbody = Rigidbody().apply {
+        val dynamicBody = DynamicBody().apply {
             mass = length
             rigidbodies.add(this)
         }
@@ -147,7 +148,7 @@ fun main() {
         }
 
         val entity = Entity(bone.name, scene)
-            .add(rigidbody)
+            .add(dynamicBody)
             .add(collider)
 
         val baseRotation = direction.normalize().normalToQuaternionY()
@@ -162,7 +163,7 @@ fun main() {
                 // angleY = 0.1
             })
         } else {
-            roots.add(length to rigidbody)
+            roots.add(length to dynamicBody)
         }
 
         entity.position = centerPos
@@ -269,7 +270,7 @@ fun main() {
     Entity("Floor", scene)
         .setPosition(0.0, -15.0, 0.0)
         .setScale(250f, 15f, 250f)
-        .add(Rigidbody().apply { mass = 0.0 })
+        .add(StaticBody())
         .add(BoxCollider())
         .add(MeshComponent(DefaultAssets.flatCube))
 

@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 
-class Vehicle : Rigidbody() {
+class Vehicle : DynamicBody() {
 
     @SerializedProperty
     var suspensionStiffness = 5.88

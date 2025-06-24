@@ -1,7 +1,7 @@
 package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.MeshComponent
@@ -36,7 +36,7 @@ fun main() {
             else 500.0 * (2.0 - abs(x)) // make the middle heavier for better stability?
         Entity("Bridge[$i]", bridge)
             .setPosition(pos)
-            .add(Rigidbody().apply {
+            .add(DynamicBody().apply {
                 this.mass = mass
                 friction = 0.9
             })

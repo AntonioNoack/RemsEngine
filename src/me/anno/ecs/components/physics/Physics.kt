@@ -109,8 +109,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     fun registerNonStatic(
-        entity: Entity,
-        isStatic: Boolean,
+        entity: Entity, isStatic: Boolean,
         scaledBody: ScaledBody<InternalRigidBody, ExternalRigidBody>
     ) {
         if (isStatic) {
@@ -140,13 +139,15 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     fun validate() {
         if (printValidations) LOGGER.debug("Validating {}", hash32(this))
-        invalidEntities.process2x({ entity ->
-            remove(entity, false)
-            removeConstraints(entity)
-        }, ::getInit)
+        invalidEntities.process2x(removal, creating)
     }
 
-    private fun getInit(entity: Entity) {
+    private val removal = { entity: Entity ->
+        remove(entity, false)
+        removeConstraints(entity)
+    }
+
+    private val creating = { entity: Entity ->
         val rigidbody = addOrGet(entity)
         entity.isPhysicsControlled = rigidbody != null
     }
@@ -236,12 +237,16 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         return bodyWithScale?.external
     }
 
+    fun isEntityValid(entity: Entity): Boolean {
+        return entity.root == Systems.world && entity.allInHierarchy { it.isEnabled }
+    }
+
     fun addOrGet(entity: Entity): ExternalRigidBody? {
         // LOGGER.info("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
-        if (entity.root == Systems.world && entity.allInHierarchy { it.isEnabled }) {
-            val rigidbody = entity.getComponent(rigidComponentClass, false)
-            return getRigidbody(rigidbody ?: return null)
-        } else return null
+        return if (isEntityValid(entity)) {
+            val rigidbody = entity.getComponent(rigidComponentClass, false) ?: return null
+            getRigidbody(rigidbody)
+        } else null
     }
 
     private fun callOnUpdates(dt: Double) {

@@ -1,7 +1,7 @@
 package me.anno.games.carchase
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.StaticBody
 import me.anno.bullet.Vehicle
 import me.anno.bullet.VehicleWheel
 import me.anno.config.DefaultConfig.style
@@ -73,7 +73,7 @@ fun createUI(): Panel {
     Entity("Floor", world)
         .add(MeshComponent(map))
         .add(MeshCollider(map).apply { isConvex = false })
-        .add(Rigidbody().apply { mass = 0.0 })
+        .add(StaticBody())
 
     val car0 = Entity()
     val car1 = Entity()

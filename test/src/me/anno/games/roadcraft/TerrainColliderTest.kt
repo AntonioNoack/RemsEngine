@@ -1,7 +1,8 @@
 package me.anno.games.roadcraft
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
+import me.anno.bullet.StaticBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.mesh.Mesh
@@ -52,7 +53,7 @@ fun main() {
         val y = perlin[(x + dx).toFloat(), (z + dz).toFloat()] + 1.5
         Entity("Ball[$i]", balls)
             .setPosition(x, y, z)
-            .add(Rigidbody().apply { mass = 1.0 })
+            .add(DynamicBody())
             .add(MeshComponent(ballMesh, DefaultAssets.goldenMaterial))
             .add(SphereCollider())
     }
@@ -82,7 +83,7 @@ fun createTerrain(
 
     Entity("Terrain", parent)
         .add(MeshComponent(mesh))
-        .add(Rigidbody().apply { mass = 0.0 })
+        .add(StaticBody())
         .add(TerrainCollider(width, length, perlin.min, perlin.max, heightData))
 
     return mesh

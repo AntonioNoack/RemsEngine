@@ -1,7 +1,7 @@
 package me.anno.tests.network.rollingshooter
 
 import me.anno.Time
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
@@ -49,7 +49,7 @@ class BallCamera(
         // send our data to the other players
         instance.client?.sendUDP(PlayerUpdatePacket {}.apply {
             val rot = selfPlayerEntity.rotation
-            val rb = selfPlayerEntity.getComponent(Rigidbody::class)!!
+            val rb = selfPlayerEntity.getComponent(DynamicBody::class)!!
             val vel = rb.globalLinearVelocity
             val ang = rb.globalAngularVelocity
             position.set(pos)

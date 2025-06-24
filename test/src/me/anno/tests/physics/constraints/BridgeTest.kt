@@ -1,7 +1,7 @@
 package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -62,7 +62,7 @@ fun main() {
                 roundness = 0.1f
             })
             .add(MeshComponent(pillarMesh, pillarMaterial))
-            .add(Rigidbody().apply {
+            .add(DynamicBody().apply {
                 friction = 1.0
             })
         toLink.add(entity)
@@ -79,7 +79,7 @@ fun main() {
                 roundness = 0.1f
             })
             .add(MeshComponent(barMesh, barMaterial))
-            .add(Rigidbody().apply {
+            .add(DynamicBody().apply {
                 mass = density * barSize.x * barSize.y * barSize.z
                 friction = 0.5
             })
@@ -99,7 +99,7 @@ fun main() {
             val link = PointConstraint()
             link.disableCollisionsBetweenLinked = false
             link.breakingImpulseThreshold = 0.3 // a little fun ^^
-            link.other = b.getComponent(Rigidbody::class)
+            link.other = b.getComponent(DynamicBody::class)
             link.lerpingSpeed = 0.5
             a.add(link)
             val z = ((i - 1.5) - (numBars - 1) * 0.5) * (barSpacing + barSize.z)
@@ -147,7 +147,7 @@ fun spawnFloor(scene: Entity) {
             roundness = 0f
         })
         .add(MeshComponent(flatCube.front))
-        .add(Rigidbody().apply { friction = 1.0 })
+        .add(DynamicBody().apply { friction = 1.0 })
         .setScale(10f)
         .setPosition(0.0, -10.0, 0.0)
 }
@@ -167,7 +167,7 @@ fun spawnSampleCubes(scene: Entity) {
             })
             .add(MeshComponent(cubeMesh, cubeMaterial))
             .setScale(size * 0.5f)
-            .add(Rigidbody().apply {
+            .add(DynamicBody().apply {
                 friction = 0.5
                 mass = cubeDensity * size.pow(3)
             })

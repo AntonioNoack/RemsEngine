@@ -1,7 +1,8 @@
 package me.anno.tests.physics
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
+import me.anno.bullet.StaticBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.collider.SphereCollider
@@ -27,19 +28,19 @@ fun main() {
         .add(MeshComponent(plane))
         .add(InfinitePlaneCollider())
         .setRotationDegrees(3f, 0f, 0f)
-        .add(Rigidbody().apply { mass = 0.0 })
+        .add(StaticBody())
         .setScale(10f)
 
     Entity("Normal Sphere", scene)
         .add(MeshComponent(icoSphere))
         .add(SphereCollider())
-        .add(Rigidbody().apply { mass = 1.0 })
+        .add(DynamicBody())
         .setPosition(-1.5, 1.0, 0.0)
 
     Entity("Weird Sphere", scene)
         .add(MeshComponent(icoSphere))
         .add(SphereCollider())
-        .add(Rigidbody().apply {
+        .add(DynamicBody().apply {
             centerOfMass.set(0.0, 0.25, 0.0)
             mass = 1.0
         })

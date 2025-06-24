@@ -2,7 +2,8 @@ package me.anno.experiments.convexdecomposition
 
 import me.anno.maths.geometry.convexhull.ConvexHull
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
+import me.anno.bullet.StaticBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.ConvexCollider
 import me.anno.ecs.components.collider.InfinitePlaneCollider
@@ -65,7 +66,7 @@ fun main() {
     Entity("Floor", scene)
         .add(MeshComponent(plane))
         .add(InfinitePlaneCollider())
-        .add(Rigidbody().apply { mass = 0.0 })
+        .add(StaticBody())
         .setPosition(0.0, y, 0.0)
         .setScale(1f)
 
@@ -90,7 +91,7 @@ fun main() {
                 (Maths.random() * TAU).toFloat(),
                 (Maths.random() * TAU).toFloat()
             )
-            .add(Rigidbody().apply {
+            .add(DynamicBody().apply {
                 // todo center of mass is behaving weirdly :( -> we're using it incorrectly
                 // centerOfMass.set(0.0, dy.toDouble(), 0.0)
                 mass = 1.0

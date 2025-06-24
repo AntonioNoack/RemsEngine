@@ -4,7 +4,8 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
+import me.anno.bullet.StaticBody
 import me.anno.bullet.createBulletBoxShape
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
@@ -33,21 +34,21 @@ fun main() {
         // physics.updateInEditMode = true
 
         Entity("SphereCollider", scene)
-            .add(Rigidbody().apply { mass = 0.0 })
+            .add(StaticBody())
             .add(SphereCollider())
             .setPosition(0.0, -20.0, 0.0)
             .setScale(20f)
             .add(SDFSphere())
 
         Entity("BoxCollider", scene)
-            .add(Rigidbody().apply { mass = 1.0 })
+            .add(DynamicBody())
             .add(BoxCollider())
             .setPosition(-3.3, 15.0, 0.0)
             .setScale(3f)
             .add(SDFBox())
 
         Entity("SDFCollider", scene)
-            .add(Rigidbody().apply { mass = 1.0 })
+            .add(DynamicBody())
             .add(SDFCollider().apply { isConvex = true })
             .setPosition(+3.3, 15.0, 0.0)
             .setScale(3f)

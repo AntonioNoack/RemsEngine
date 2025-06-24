@@ -23,8 +23,7 @@ import kotlin.math.pow
  * RigidBody is the main class for rigid body objects. It is derived from
  * [CollisionObject], so it keeps reference to [CollisionShape].
  *
- * It is recommended for performance and memory use to share [CollisionShape]
- * objects whenever possible.
+ * It is recommended for performance and memory use to share [CollisionShape] objects whenever possible.
  *
  * There are 3 types of rigid bodies:<br></br>
  *
@@ -34,12 +33,10 @@ import kotlin.math.pow
  * is on-way interaction, and Bullet calculates a velocity based on the timestep and
  * previous and current world transform.
  *
- * Bullet automatically deactivates dynamic rigid bodies, when the velocity is below
- * a threshold for a given time.
+ * Bullet automatically deactivates dynamic rigid bodies, when the velocity is below a threshold for a given time.
  *
- * Deactivated (sleeping) rigid bodies don't take any processing time, except a minor
- * broadphase collision detection impact (to allow active objects to activate/wake up
- * sleeping objects).
+ * Deactivated (sleeping) rigid bodies don't take any processing time,
+ * except a minor broadphase collision detection impact (to allow active objects to activate/wake up sleeping objects).
  *
  * @author jezek2
  */

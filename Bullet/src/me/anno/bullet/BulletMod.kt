@@ -14,7 +14,7 @@ class BulletMod : Mod() {
         super.onPreInit()
         // base classes
         Saveable.registerCustomClass(BulletPhysics())
-        Saveable.registerCustomClass(Rigidbody())
+        Saveable.registerCustomClass(DynamicBody())
         Saveable.registerCustomClass(Vehicle())
         Saveable.registerCustomClass(VehicleWheel())
         // physics constraints

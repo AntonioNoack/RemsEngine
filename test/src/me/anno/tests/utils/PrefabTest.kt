@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityStats.totalNumComponents
 import me.anno.ecs.EntityStats.totalNumEntities
@@ -36,7 +36,7 @@ class PrefabTest {
         registerCustomClass(CSet())
         registerCustomClass(Path())
         registerCustomClass(Entity())
-        registerCustomClass(Rigidbody())
+        registerCustomClass(DynamicBody())
         registerCustomClass(MeshComponent())
     }
 
@@ -148,7 +148,7 @@ class PrefabTest {
     fun testRemovingLowestChildWithInheritance() {
         val original = Entity()
         val childE = Entity(original)
-        val rigidE = Rigidbody()
+        val rigidE = DynamicBody()
         childE.add(rigidE)
 
         val prefab0 = original.ref

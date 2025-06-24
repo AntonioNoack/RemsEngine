@@ -1,7 +1,8 @@
 package me.anno.tests.collider
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
+import me.anno.bullet.StaticBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.InfinitePlaneCollider
@@ -23,13 +24,13 @@ fun testCollider(colliderImpl: Collider, mesh: FileReference, extraCode: ((Entit
         .add(colliderImpl)
         .setPosition(0.0, 3.0, 0.0)
         .setRotation(0.3f, 0f, 0.1f) // rotate a little to avoid symmetry
-        .add(Rigidbody().apply { mass = 1.0 })
+        .add(DynamicBody())
     extraCode?.invoke(body)
 
     Entity("Floor", scene)
         .add(InfinitePlaneCollider())
         .add(MeshComponent(plane))
-        .add(Rigidbody().apply { mass = 0.0 })
+        .add(StaticBody())
         .setScale(10f)
 
     testSceneWithUI("Collider Test", scene)

@@ -15,7 +15,7 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
 
     val manifoldsPool: ObjectPool<PersistentManifold> = ObjectPool.get(PersistentManifold::class.java)
 
-    private val manifoldsPtr = ArrayList<PersistentManifold>()
+    val manifoldsList = ArrayList<PersistentManifold>()
     private var staticWarningReported = false
 
     @JvmField
@@ -54,8 +54,8 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
         val manifold = manifoldsPool.get()
         manifold.init(body0, body1)
 
-        manifold.index1a = manifoldsPtr.size
-        manifoldsPtr.add(manifold)
+        manifold.index1a = manifoldsList.size
+        manifoldsList.add(manifold)
 
         return manifold
     }
@@ -64,10 +64,10 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
         clearManifold(manifold)
 
         val findIndex = manifold.index1a
-        assert(findIndex < manifoldsPtr.size)
-        Collections.swap(manifoldsPtr, findIndex, manifoldsPtr.lastIndex)
-        manifoldsPtr[findIndex].index1a = findIndex
-        manifoldsPtr.removeLast()
+        assert(findIndex < manifoldsList.size)
+        Collections.swap(manifoldsList, findIndex, manifoldsList.lastIndex)
+        manifoldsList[findIndex].index1a = findIndex
+        manifoldsList.removeLast()
 
         manifoldsPool.release(manifold)
     }
@@ -150,10 +150,10 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
     }
 
     override val numManifolds: Int
-        get() = manifoldsPtr.size
+        get() = manifoldsList.size
 
     override fun getManifold(index: Int): PersistentManifold {
-        return manifoldsPtr[index]
+        return manifoldsList[index]
     }
 
     companion object {

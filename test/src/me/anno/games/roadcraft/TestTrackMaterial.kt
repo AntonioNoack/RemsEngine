@@ -1,7 +1,7 @@
 package me.anno.games.roadcraft
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.StaticBody
 import me.anno.bullet.Vehicle
 import me.anno.bullet.VehicleWheel
 import me.anno.ecs.Component
@@ -134,7 +134,7 @@ fun main() {
         Entity("Floor", scene)
             .add(MeshComponent(plane))
             .add(InfinitePlaneCollider())
-            .add(Rigidbody().apply { mass = 0.0 })
+            .add(StaticBody())
             .setScale(20f)
     } else {
         val perlin = PerlinNoise(

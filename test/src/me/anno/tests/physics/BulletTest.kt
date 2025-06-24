@@ -1,7 +1,8 @@
 package me.anno.tests.physics
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
+import me.anno.bullet.StaticBody
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -51,9 +52,9 @@ class BulletTest {
         val physics = BulletPhysics()
         setupGravityTest(physics, gravity)
 
-        val rigidbody = Rigidbody()
+        val dynamicBody = DynamicBody()
         val sphere = Entity()
-            .add(rigidbody.apply {
+            .add(dynamicBody.apply {
                 linearDamping = 0.0
                 mass = 1.0
             })
@@ -68,7 +69,7 @@ class BulletTest {
         for (i in 0 until 200) {
 
             val actualPosition = sphere.position.y
-            val actualVelocity = rigidbody.globalLinearVelocity.y
+            val actualVelocity = dynamicBody.globalLinearVelocity.y
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
@@ -87,10 +88,10 @@ class BulletTest {
         val physics = BulletPhysics()
         setupGravityTest(physics, gravity)
 
-        val rigidbody = Rigidbody()
+        val dynamicBody = DynamicBody()
         val collider = SphereCollider()
         val sphere = Entity()
-            .add(rigidbody.apply {
+            .add(dynamicBody.apply {
                 linearDamping = 0.0
                 mass = 1.0
             })
@@ -114,18 +115,18 @@ class BulletTest {
                 else (1 shl di.shr(1))
             } else 0
             sphere.isEnabled = !disabledMask.hasFlag(1)
-            rigidbody.isEnabled = !disabledMask.hasFlag(2)
+            dynamicBody.isEnabled = !disabledMask.hasFlag(2)
             collider.isEnabled = !disabledMask.hasFlag(4)
-            rigidbody.mass = if (disabledMask.hasFlag(8)) 0.0 else 1.0
+            dynamicBody.mass = if (disabledMask.hasFlag(8)) 0.0 else 1.0
             val isPartOfWorld = !disabledMask.hasFlag(16)
             val hasRigidbody = !disabledMask.hasFlag(32)
             val hasCollider = !disabledMask.hasFlag(64)
             world.setContains(sphere, isPartOfWorld)
-            sphere.setContains(rigidbody, hasRigidbody)
+            sphere.setContains(dynamicBody, hasRigidbody)
             sphere.setContains(collider, hasCollider)
 
             val actualPosition = sphere.position.y
-            val actualVelocity = rigidbody.globalLinearVelocity.y
+            val actualVelocity = dynamicBody.globalLinearVelocity.y
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
@@ -163,15 +164,15 @@ class BulletTest {
 
         class ExtraForceComponent : Component(), OnPhysicsUpdate {
             override fun onPhysicsUpdate(dt: Double) {
-                val rb = getComponent(Rigidbody::class)!!
+                val rb = getComponent(DynamicBody::class)!!
                 val mass = rb.mass
                 rb.applyForce(0.0, extraAcceleration * mass, 0.0)
             }
         }
 
-        val rigidbody = Rigidbody()
+        val dynamicBody = DynamicBody()
         val sphere = Entity()
-            .add(rigidbody.apply {
+            .add(dynamicBody.apply {
                 linearDamping = 0.0
                 mass = 1.0
             })
@@ -187,7 +188,7 @@ class BulletTest {
         for (i in 0 until 20) {
 
             val actualPosition = sphere.position.y
-            val actualVelocity = rigidbody.globalLinearVelocity.y
+            val actualVelocity = dynamicBody.globalLinearVelocity.y
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
@@ -219,7 +220,7 @@ class BulletTest {
         val world = Entity()
         val floor = Entity()
             .setPosition(0.0, -10.0, 0.0)
-            .add(Rigidbody().apply {
+            .add(DynamicBody().apply {
                 friction = floorFriction.toDouble()
             })
             .add(BoxCollider().apply {
@@ -227,7 +228,7 @@ class BulletTest {
             })
         world.add(floor)
 
-        val underTest = Rigidbody()
+        val underTest = DynamicBody()
         underTest.globalAngularVelocity.z = 1.0
         val sphere = Entity()
             .setPosition(0.0, 1.0 + 1.0 / 8.0, 0.0)
@@ -287,7 +288,7 @@ class BulletTest {
         val world = Entity()
         val floor = Entity()
             .setRotation(0f, 0f, angle)
-            .add(Rigidbody().apply {
+            .add(DynamicBody().apply {
                 friction = 0.5
             })
             .add(BoxCollider().apply {
@@ -295,7 +296,7 @@ class BulletTest {
             })
         world.add(floor)
 
-        val underTest = Rigidbody()
+        val underTest = DynamicBody()
         val dist = 10f + 1.0
         val sphere = Entity()
             .setPosition(-sin(angle) * dist, cos(angle) * dist, 0.0)
@@ -336,7 +337,7 @@ class BulletTest {
         val world = Entity()
         val floor = Entity()
             .setRotation(0f, 0f, angle)
-            .add(Rigidbody().apply {
+            .add(DynamicBody().apply {
                 friction = 0.9
             })
             .add(BoxCollider().apply {
@@ -344,7 +345,7 @@ class BulletTest {
             })
         world.add(floor)
 
-        val underTest = Rigidbody()
+        val underTest = DynamicBody()
         val dist = 10f + 1.0
         val sphere = Entity()
             .setPosition(-sin(angle) * dist, cos(angle) * dist, 0.0)
@@ -387,8 +388,8 @@ class BulletTest {
             )
         }
 
-        fun createShape(): Pair<Entity, Rigidbody> {
-            val body = Rigidbody()
+        fun createShape(): Pair<Entity, DynamicBody> {
+            val body = DynamicBody()
             val entity = Entity()
                 .add(body.apply {
                     mass = 1.0
@@ -400,7 +401,7 @@ class BulletTest {
             return (entity to body)
         }
 
-        fun resetShape(entity: Entity, body: Rigidbody, x: Double, dx: Double, collider: Collider) {
+        fun resetShape(entity: Entity, body: DynamicBody, x: Double, dx: Double, collider: Collider) {
             body.globalLinearVelocity = Vector3d(dx, 0.0, 0.0)
             entity.setPosition(x, 0.0, 0.0)
             entity.remove(entity.components[1] as Collider)
@@ -478,8 +479,8 @@ class BulletTest {
 
                 val world = Entity()
 
-                fun createShape(x: Double, dx: Double, collider: Collider): Pair<Entity, Rigidbody> {
-                    val body = Rigidbody()
+                fun createShape(x: Double, dx: Double, collider: Collider): Pair<Entity, DynamicBody> {
+                    val body = DynamicBody()
                     body.globalLinearVelocity = Vector3d(dx, 0.0, 0.0)
                     val entity = Entity()
                         .setPosition(x, 0.0, 0.0)
@@ -552,8 +553,8 @@ class BulletTest {
         }
 
         val world = Entity()
-        fun createPoint(i: Int, mass: Double): Rigidbody {
-            val result = Rigidbody().apply {
+        fun createPoint(i: Int, mass: Double): DynamicBody {
+            val result = DynamicBody().apply {
                 this.mass = mass
                 linearDamping = 0.999
             }
@@ -565,7 +566,7 @@ class BulletTest {
         }
 
         // create nodes
-        val chain = ArrayList<Rigidbody>(n)
+        val chain = ArrayList<DynamicBody>(n)
         for (i in 0 until n) {
             chain.add(createPoint(i, if (i == 0 || i == n - 1) 0.0 else 1.0))
         }
@@ -645,8 +646,8 @@ class BulletTest {
         }
 
         val world = Entity()
-        fun createPoint(i: Int, mass: Double): Rigidbody {
-            val result = Rigidbody().apply {
+        fun createPoint(i: Int, mass: Double): DynamicBody {
+            val result = DynamicBody().apply {
                 this.mass = mass
                 linearDamping = 0.999
             }
@@ -658,7 +659,7 @@ class BulletTest {
         }
 
         // create nodes
-        val chain = ArrayList<Rigidbody>(n)
+        val chain = ArrayList<DynamicBody>(n)
         for (i in 0 until n) {
             chain.add(createPoint(i, if (i == 0 || i == n - 1) 0.0 else 1.0))
         }
@@ -731,7 +732,7 @@ class BulletTest {
             Entity(scene)
                 .setPosition(pos)
                 .add(MeshCollider(mesh).apply { margin = 0f })
-                .add(Rigidbody().apply { this.mass = mass })
+                .add(DynamicBody().apply { this.mass = mass })
         }
         val physics = BulletPhysics()
         setupGravityTest(physics, -10f)
@@ -754,14 +755,14 @@ class BulletTest {
     fun testPhysicsCleanup() {
         val scene = Entity()
         Entity("Floor", scene)
-            .add(Rigidbody().apply { mass = 0.0 })
+            .add(StaticBody())
             .add(BoxCollider())
             .setPosition(0.0, -10.0, 0.0)
-        val rb1 = Rigidbody().apply { mass = 1.0 }
+        val rb1 = DynamicBody()
         Entity("Box1", scene)
             .add(rb1)
             .add(BoxCollider())
-        val rb2 = Rigidbody().apply { mass = 1.0 }
+        val rb2 = DynamicBody()
         Entity("Box2", scene)
             .add(rb2)
             .add(BoxCollider())

@@ -1,7 +1,7 @@
 package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.bullet.constraints.SliderConstraint
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
@@ -27,7 +27,7 @@ fun main() {
     box0.add(MeshComponent(flatCube))
     box0.add(BoxCollider())
     box0.setPosition(0.0, 2.3, 0.0)
-    val body0 = Rigidbody()
+    val body0 = DynamicBody()
     body0.mass = 1.0
     box0.add(body0)
 
@@ -35,7 +35,7 @@ fun main() {
     box1.add(MeshComponent(flatCube))
     box1.add(BoxCollider())
     box1.setRotation(5f.toRadians(), 0f, 0f)
-    val body1 = Rigidbody()
+    val body1 = DynamicBody()
     box1.add(body1)
 
     val sliding = SliderConstraint().apply {
@@ -52,7 +52,7 @@ fun main() {
     Entity("Floor", scene)
         .add(MeshComponent(flatCube, Material.diffuse(0x333333)))
         .add(BoxCollider())
-        .add(Rigidbody().apply {
+        .add(DynamicBody().apply {
             friction = 1.0
         })
         .setPosition(0.0, -22.0, 0.0)

@@ -1,7 +1,8 @@
 package me.anno.tests.physics
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
+import me.anno.bullet.StaticBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.collider.BoxCollider
@@ -110,7 +111,7 @@ fun main() {
             return Entity(dominos)
                 .setPosition(x.toDouble(), (halfExtents1.y + margin1).toDouble(), z.toDouble())
                 .add(MeshComponent(mesh))
-                .add(Rigidbody().apply {
+                .add(DynamicBody().apply {
                     mass = mass1
                     friction = 0.3
                     restitution = 0.0
@@ -128,8 +129,7 @@ fun main() {
 
         Entity("Floor", scene)
             .add(InfinitePlaneCollider())
-            .add(Rigidbody().apply {
-                mass = 0.0
+            .add(StaticBody().apply {
                 friction = 0.9
                 restitution = 0.0
             })

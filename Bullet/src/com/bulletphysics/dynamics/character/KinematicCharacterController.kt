@@ -27,10 +27,9 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * KinematicCharacterController is an object that supports a sliding motion in
- * a world. It uses a [com.bulletphysics.collision.dispatch.GhostObject] and convex sweep test to test for upcoming
- * collisions. This is combined with discrete collision detection to recover
- * from penetrations.
+ * KinematicCharacterController is an object that supports a sliding motion in a world.
+ * It uses a [com.bulletphysics.collision.dispatch.GhostObject] and convex sweep test to test for upcoming collisions.
+ * This is combined with discrete collision detection to recover from penetrations.
  *
  * Interaction between KinematicCharacterController and dynamic rigid bodies
  * needs to be explicitly implemented by the user.

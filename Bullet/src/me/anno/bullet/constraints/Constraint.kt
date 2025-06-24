@@ -2,7 +2,8 @@ package me.anno.bullet.constraints
 
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.PhysicalBody
+import me.anno.bullet.DynamicBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityPhysics.invalidatePhysics
@@ -35,8 +36,8 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
             }
         }
 
-    @Type("Rigidbody/SameSceneRef")
-    var other: Rigidbody? = null
+    @Type("PhysicalBody/SameSceneRef")
+    var other: PhysicalBody? = null
         set(value) {
             field?.linkedConstraints?.remove(this)
             value?.linkedConstraints?.add(this)
@@ -49,18 +50,21 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
 
     @DebugWarning
     @NotSerializedProperty
+    @Suppress("unused")
     val missingOther
         get() = if (other == null) "True" else null
 
     @DebugWarning
     @NotSerializedProperty
+    @Suppress("unused")
     val isMissingRigidbody
-        get() = if (entity?.getComponent(Rigidbody::class) == null) "" else null
+        get() = if (entity?.getComponent(DynamicBody::class) == null) "" else null
 
     @DebugWarning
     @NotSerializedProperty
+    @Suppress("unused")
     val otherIsRigidbody
-        get() = if (entity?.getComponent(Rigidbody::class)?.run { this == other } == true) "" else null
+        get() = if (entity?.getComponent(DynamicBody::class)?.run { this == other } == true) "" else null
 
     var disableCollisionsBetweenLinked = true
 

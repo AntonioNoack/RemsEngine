@@ -1,7 +1,7 @@
 package me.anno.tests.physics
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.StaticBody
 import me.anno.bullet.Vehicle
 import me.anno.bullet.VehicleWheel
 import me.anno.ecs.Entity
@@ -85,7 +85,7 @@ class BulletVehicleTest {
         val floorMaterial = Material.diffuse(0xFFFACD)
         val floor = Entity("Floor")
             .setPosition(0.0, -scale.y, 0.0)
-            .add(Rigidbody().apply { mass = 0.0 })
+            .add(StaticBody())
             .add(BoxCollider().apply { halfExtents.set(scale) })
             .add(
                 Entity("FloorMesh")

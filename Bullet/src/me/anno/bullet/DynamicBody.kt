@@ -5,23 +5,16 @@ import com.bulletphysics.collision.dispatch.ActivationState.ALWAYS_ACTIVE
 import com.bulletphysics.collision.dispatch.ActivationState.DISABLE_SIMULATION
 import com.bulletphysics.collision.dispatch.ActivationState.SLEEPING
 import com.bulletphysics.collision.dispatch.ActivationState.WANTS_DEACTIVATION
-import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
-import me.anno.bullet.constraints.Constraint
-import me.anno.ecs.Component
-import me.anno.ecs.EntityPhysics.getPhysics
-import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.EntityTransform.getLocalXAxis
 import me.anno.ecs.EntityTransform.getLocalYAxis
 import me.anno.ecs.EntityTransform.getLocalZAxis
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
-import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
@@ -30,29 +23,19 @@ import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.pow
 import org.joml.Vector3d
-import kotlin.math.abs
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-open class Rigidbody : Component(), OnDrawGUI {
+@Docs("Dynamically simulated rigidbody")
+open class DynamicBody : PhysicalBody(), OnDrawGUI {
 
+    // todo we need to actually use this...
     @Range(0.0, 15.0)
-    var group = 1
+    var collisionGroup = 1
 
-    // which groups to collide with
     @DebugProperty
     @NotSerializedProperty
     val collisionMask
-        get() = collisionMatrix[group]
-
-    @DebugProperty
-    @NotSerializedProperty
-    var bulletInstance: RigidBody? = null
-
-    @NotSerializedProperty
-    val linkedConstraints = ArrayList<Constraint<*>>()
-
-    @NotSerializedProperty
-    val activeColliders = ArrayList<Collider>()
+        get() = collisionMatrix[collisionGroup]
 
     @DebugProperty
     @NotSerializedProperty
@@ -66,11 +49,6 @@ open class Rigidbody : Component(), OnDrawGUI {
             -1 -> "null"
             else -> s.toString()
         }
-
-    @DebugWarning
-    @NotSerializedProperty
-    val isMissingCollider: String?
-        get() = if (entity!!.hasComponent(Collider::class)) null else "True"
 
     @SerializedProperty
     var activeByDefault = true
@@ -111,20 +89,16 @@ open class Rigidbody : Component(), OnDrawGUI {
         }
 
     @Group("Mass")
-    @Docs("How heavy it is; 0 means static")
+    @Docs("How heavy it is")
     @SerializedProperty
-    var mass = 0.0
+    var mass = 1.0
         set(value) {
-            if (field != value) {
-                if ((field > 0.0) != (value > 0.0)) {
-                    invalidatePhysics()
-                } else {
-                    val bulletInstance = bulletInstance
-                    if (bulletInstance != null) {
-                        val inertia = Vector3d()
-                        bulletInstance.collisionShape!!.calculateLocalInertia(value, inertia)
-                        bulletInstance.setMassProps(mass, inertia)
-                    }
+            if (field != value && value > 0.0) {
+                val bulletInstance = bulletInstance
+                if (bulletInstance != null) {
+                    val inertia = Vector3d()
+                    bulletInstance.collisionShape!!.calculateLocalInertia(value, inertia)
+                    bulletInstance.setMassProps(mass, inertia)
                 }
                 field = value
             }
@@ -146,14 +120,6 @@ open class Rigidbody : Component(), OnDrawGUI {
         set(value) {
             field = value
             bulletInstance?.angularDamping = value
-        }
-
-    @Docs("How elastic a body is, 1 = fully elastic, 0 = all energy absorbed (knead)")
-    @Range(0.0, 1.0)
-    var restitution = 0.1
-        set(value) {
-            field = value
-            bulletInstance?.restitution = value
         }
 
     @Group("Movement")
@@ -258,23 +224,6 @@ open class Rigidbody : Component(), OnDrawGUI {
     val localAngularVelocityZ: Double
         get() = globalAngularVelocity.dot(getLocalZAxis())
 
-    fun invalidatePhysics() {
-        val entity = entity ?: return
-        getPhysics(BulletPhysics::class)
-            ?.invalidate(entity)
-    }
-
-    /**
-     * Slowing down on contact. 1.0 = high traction, 0.0 = like on black ice
-     * */
-    @Group("Movement")
-    @Range(0.0, 1.0)
-    var friction: Double = 0.5
-        set(value) {
-            field = value
-            bulletInstance?.friction = friction
-        }
-
     @Group("Mass")
     @SerializedProperty
     var centerOfMass: Vector3d = Vector3d()
@@ -286,18 +235,8 @@ open class Rigidbody : Component(), OnDrawGUI {
     @Group("Mass")
     @Docs("If an object is static, it will never move, and has infinite mass")
     @NotSerializedProperty
-    var isStatic
+    val isStatic
         get() = mass <= 0.0
-        set(value) {
-            if (value) {
-                // static: the negative value or null
-                mass = -abs(mass)
-            } else {
-                // non-static: positive value
-                mass = abs(mass)
-                if (mass < 1e-16) mass = 1.0
-            }
-        }
 
     /**
      * applies "rotation force"
@@ -422,27 +361,25 @@ open class Rigidbody : Component(), OnDrawGUI {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        if (dst !is Rigidbody) return
+        if (dst !is DynamicBody) return
         dst.centerOfMass = centerOfMass
         dst.activeByDefault = activeByDefault
         dst.linearDamping = linearDamping
         dst.angularDamping = angularDamping
-        dst.friction = friction
         dst.mass = mass
         dst.angularSleepingThreshold = angularSleepingThreshold
         dst.linearSleepingThreshold = linearSleepingThreshold
-        dst.restitution = restitution
         dst.overrideGravity = overrideGravity
         dst.gravity.set(gravity)
     }
 
     companion object {
+
         val gravity0 = Vector3d(0.0, -9.81, 0.0)
 
         // todo define some kind of matrix
         // todo this would need to be a) standardized
         // todo or be customizable...
-        val collisionMatrix = ShortArray(16) { (1 shl it).toShort() }
-        // val centerOfMassColor = Vector4f(1f, 0f, 0f, 1f)
+        val collisionMatrix = ShortArray(16) { ((it.shl(1) - 1)).toShort() }
     }
 }

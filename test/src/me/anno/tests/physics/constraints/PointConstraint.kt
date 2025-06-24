@@ -1,7 +1,7 @@
 package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
@@ -31,12 +31,12 @@ fun main() {
             halfExtents.set(0.45, 1.0, 0.04)
         })
         .setPosition(0.0, 2.3, 0.0)
-        .add(Rigidbody().apply {
+        .add(DynamicBody().apply {
             mass = 1.0
             angularDamping = 0.1
         })
 
-    val pillarRB = Rigidbody()
+    val pillarRB = DynamicBody()
     Entity("Pillar", scene)
         .add(MeshComponent(flatCube.scaled(Vector3f(0.1f, 1.0f, 0.1f)).front))
         .add(BoxCollider().apply { halfExtents.set(0.1f, 1f, 0.1f) })
@@ -56,7 +56,7 @@ fun main() {
     Entity("Floor", scene)
         .add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
         .add(BoxCollider())
-        .add(Rigidbody().apply {
+        .add(DynamicBody().apply {
             friction = 1.0
         })
         .setPosition(0.0, -1.5, 0.0)

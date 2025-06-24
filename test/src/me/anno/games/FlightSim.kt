@@ -2,7 +2,7 @@ package me.anno.games
 
 import me.anno.Time
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.Rigidbody
+import me.anno.bullet.DynamicBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
@@ -110,7 +110,7 @@ fun createTerrain(player: LocalPlayer): Entity {
                 .setPosition(chunkX * chunkSize, 0.0, chunkZ * chunkSize)
                 .add(MeshComponent(mesh))
                 .add(MeshCollider(mesh).apply { isConvex = false; margin = 0.5f })
-                .add(Rigidbody())
+                .add(DynamicBody())
             terrain.add(wrapper)
             terrain.invalidateAABBsCompletely()
             return wrapper
@@ -154,7 +154,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
         }
     }
 
-    val body = Rigidbody()
+    val body = DynamicBody()
     val rotor = plane.children.first { it.name.startsWith("SM_Veh_Plane_American_01_Prop") }
     rotor.add(object : Component(), OnPhysicsUpdate {
         var position = 0.0
