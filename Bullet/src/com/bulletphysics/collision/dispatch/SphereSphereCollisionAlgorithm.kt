@@ -7,10 +7,13 @@ import com.bulletphysics.collision.broadphase.DispatcherInfo
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.util.ObjectPool
-import cz.advel.stack.Stack
 import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import me.anno.maths.Maths.sq
+import kotlin.math.max
+import kotlin.math.sqrt
 
 /**
  * Provides collision detection between two spheres.
@@ -18,7 +21,7 @@ import com.bulletphysics.util.setSub
  * @author jezek2
  */
 class SphereSphereCollisionAlgorithm : CollisionAlgorithm() {
-    private var ownManifold = false
+    private var ownsManifold = false
     private var manifoldPtr: PersistentManifold? = null
 
     fun init(
@@ -31,15 +34,15 @@ class SphereSphereCollisionAlgorithm : CollisionAlgorithm() {
         manifoldPtr = mf
 
         if (manifoldPtr == null) {
-            manifoldPtr = dispatcher!!.getNewManifold(col0, col1)
-            ownManifold = true
+            manifoldPtr = dispatcher.getNewManifold(col0, col1)
+            ownsManifold = true
         }
     }
 
     override fun destroy() {
-        if (ownManifold) {
+        if (ownsManifold) {
             if (manifoldPtr != null) {
-                dispatcher!!.releaseManifold(manifoldPtr!!)
+                dispatcher.releaseManifold(manifoldPtr!!)
             }
             manifoldPtr = null
         }
@@ -51,36 +54,29 @@ class SphereSphereCollisionAlgorithm : CollisionAlgorithm() {
         dispatchInfo: DispatcherInfo,
         resultOut: ManifoldResult
     ) {
-        if (manifoldPtr == null) {
-            return
-        }
 
-        val tmpTrans1 = Stack.newTrans()
-        val tmpTrans2 = Stack.newTrans()
+        val manifoldPtr = manifoldPtr ?: return
+        resultOut.persistentManifold = manifoldPtr
 
-        resultOut.persistentManifold = manifoldPtr!!
-
-        val sphere0 = body0.collisionShape as SphereShape?
-        val sphere1 = body1.collisionShape as SphereShape?
+        val sphere0 = body0.collisionShape as SphereShape
+        val sphere1 = body1.collisionShape as SphereShape
 
         val diff = Stack.newVec()
-        diff.setSub(body0.getWorldTransform(tmpTrans1).origin, body1.getWorldTransform(tmpTrans2).origin)
+        diff.setSub(body0.worldTransform.origin, body1.worldTransform.origin)
 
-        val len = diff.length()
-        val radius0 = sphere0!!.radius
-        val radius1 = sphere1!!.radius
-
-        //#ifdef CLEAR_MANIFOLD
-        //manifoldPtr.clearManifold(); // don't do this, it disables warmstarting
-        //#endif
+        val lenSq = diff.lengthSquared()
+        val radius0 = sphere0.radius
+        val radius1 = sphere1.radius
 
         // if distance positive, don't generate a new contact
-        if (len > (radius0 + radius1)) {
-            //#ifndef CLEAR_MANIFOLD
+        if (lenSq > sq(radius0 + radius1)) {
             resultOut.refreshContactPoints()
-            //#endif //CLEAR_MANIFOLD
+            Stack.subVec(1)
             return
         }
+
+        val len = sqrt(max(lenSq, 0.0))
+
         // distance (negative means penetration)
         val dist = len - (radius0 + radius1)
 
@@ -90,24 +86,20 @@ class SphereSphereCollisionAlgorithm : CollisionAlgorithm() {
             normalOnSurfaceB.setScale(1.0 / len, diff)
         }
 
-        val tmp = Stack.newVec()
-
-        // point on A (worldspace)
+        // point on A (world space)
         val pos0 = Stack.newVec()
-        tmp.setScale(radius0, normalOnSurfaceB)
-        pos0.setSub(body0.getWorldTransform(tmpTrans1).origin, tmp)
+        pos0.setScale(radius0, normalOnSurfaceB)
+        pos0.setSub(body0.worldTransform.origin, pos0)
 
-        // point on B (worldspace)
+        // point on B (world space)
         val pos1 = Stack.newVec()
-        tmp.setScale(radius1, normalOnSurfaceB)
-        pos1.setAdd(body1.getWorldTransform(tmpTrans2).origin, tmp)
+        pos1.setScale(radius1, normalOnSurfaceB)
+        pos1.setAdd(body1.worldTransform.origin, pos1)
 
         // report a contact. internally this will be kept persistent, and contact reduction is done
         resultOut.addContactPoint(normalOnSurfaceB, pos1, dist)
-
-        //#ifndef CLEAR_MANIFOLD
         resultOut.refreshContactPoints()
-        //#endif //CLEAR_MANIFOLD
+        Stack.subVec(4)
     }
 
     override fun calculateTimeOfImpact(
@@ -115,13 +107,11 @@ class SphereSphereCollisionAlgorithm : CollisionAlgorithm() {
         body1: CollisionObject,
         dispatchInfo: DispatcherInfo,
         resultOut: ManifoldResult
-    ): Double {
-        return 1.0
-    }
+    ): Double = 1.0
 
     override fun getAllContactManifolds(manifoldArray: ArrayList<PersistentManifold>) {
         val manifoldPtr = manifoldPtr
-        if (manifoldPtr != null && ownManifold) {
+        if (manifoldPtr != null && ownsManifold) {
             manifoldArray.add(manifoldPtr)
         }
     }

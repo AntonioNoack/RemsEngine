@@ -86,7 +86,7 @@ class HexagonSpherePhysics(
         nullTransform.basis.identity()
         val aabbMin = Vector3d()
         val aabbMax = Vector3d()
-        shape.getAabb(nullTransform, aabbMin, aabbMax)
+        shape.getBounds(nullTransform, aabbMin, aabbMax)
         yMin = aabbMin.y.toFloat() * sphere.len
         yMax = aabbMax.y.toFloat() * sphere.len
     }

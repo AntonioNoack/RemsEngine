@@ -3,7 +3,6 @@ package com.bulletphysics.linearmath
 import com.bulletphysics.BulletStats.profileGetTicks
 
 /***************************************************************************************************
- *
  * Real-Time Hierarchical Profiling for Game Programming Gems 3
  *
  * by Greg Hjelstrom & Byon Garrabrant

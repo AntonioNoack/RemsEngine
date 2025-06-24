@@ -107,27 +107,27 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
     }
 
     private fun initSolverBody(solverBody: SolverBody, collisionObject: CollisionObject) {
-        val rb = collisionObject as? RigidBody
-        if (rb != null) {
-            rb.getAngularVelocity(solverBody.angularVelocity)
+        val body = collisionObject as? RigidBody
+        if (body != null) {
+            solverBody.angularVelocity.set(body.angularVelocity)
             solverBody.centerOfMassPosition.set(collisionObject.getWorldTransform(Stack.newTrans()).origin)
             solverBody.friction = collisionObject.friction
-            solverBody.invMass = rb.inverseMass
-            solverBody.linearVelocity.set(rb.linearVelocity)
-            solverBody.originalBody = rb
-            solverBody.angularFactor = rb.angularFactor
+            solverBody.invMass = body.inverseMass
+            solverBody.linearVelocity.set(body.linearVelocity)
+            solverBody.originalBody = body
+            solverBody.angularFactor = body.angularFactor
         } else {
-            solverBody.angularVelocity.set(0.0, 0.0, 0.0)
+            solverBody.angularVelocity.set(0.0)
             solverBody.centerOfMassPosition.set(collisionObject.getWorldTransform(Stack.newTrans()).origin)
             solverBody.friction = collisionObject.friction
             solverBody.invMass = 0.0
-            solverBody.linearVelocity.set(0.0, 0.0, 0.0)
+            solverBody.linearVelocity.set(0.0)
             solverBody.originalBody = null
             solverBody.angularFactor = 1.0
         }
 
-        solverBody.pushVelocity.set(0.0, 0.0, 0.0)
-        solverBody.turnVelocity.set(0.0, 0.0, 0.0)
+        solverBody.pushVelocity.set(0.0)
+        solverBody.turnVelocity.set(0.0)
     }
 
     private fun restitutionCurve(relVel: Double, restitution: Double): Double {

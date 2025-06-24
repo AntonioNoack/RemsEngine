@@ -45,8 +45,9 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
 
     override fun destroy() {
         if (ownManifold) {
-            if (this.manifold != null) {
-                dispatcher!!.releaseManifold(this.manifold!!)
+            val manifold = manifold
+            if (manifold != null) {
+                dispatcher.releaseManifold(manifold)
             }
             this.manifold = null
         }
@@ -63,7 +64,7 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
     ) {
         if (this.manifold == null) {
             // swapped?
-            this.manifold = dispatcher!!.getNewManifold(body0, body1)
+            this.manifold = dispatcher.getNewManifold(body0, body1)
             ownManifold = true
         }
         resultOut.persistentManifold = this.manifold!!
@@ -179,7 +180,7 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
     }
 
     /** ///////////////////////////////////////////////////////////////////////// */
-    class CreateFunc(var simplexSolver: SimplexSolverInterface, var pdSolver: ConvexPenetrationDepthSolver?) :
+    class CreateFunc(val simplexSolver: SimplexSolverInterface, val pdSolver: ConvexPenetrationDepthSolver) :
         CollisionAlgorithmCreateFunc() {
         private val pool = ObjectPool.Companion.get(ConvexConvexAlgorithm::class.java)
 

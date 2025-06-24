@@ -7,10 +7,10 @@ import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.StaticPlaneShape
 import com.bulletphysics.util.ObjectPool
-import cz.advel.stack.Stack
 import com.bulletphysics.util.setNegate
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
 
 /**
  * ConvexPlaneCollisionAlgorithm provides convex/plane collision detection.
@@ -18,7 +18,7 @@ import com.bulletphysics.util.setSub
  * @author jezek2
  */
 class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
-    private var ownManifold = false
+    private var ownsManifold = false
     private var manifoldPtr: PersistentManifold? = null
     private var isSwapped = false
 
@@ -30,25 +30,26 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
         isSwapped: Boolean
     ) {
         super.init(ci)
-        this.ownManifold = false
+        this.ownsManifold = false
         this.manifoldPtr = mf
         this.isSwapped = isSwapped
 
         val convexObj = if (isSwapped) col1 else col0
         val planeObj = if (isSwapped) col0 else col1
 
-        if (manifoldPtr == null && dispatcher!!.needsCollision(convexObj, planeObj)) {
-            manifoldPtr = dispatcher!!.getNewManifold(convexObj, planeObj)
-            ownManifold = true
+        if (manifoldPtr == null && dispatcher.needsCollision(convexObj, planeObj)) {
+            manifoldPtr = dispatcher.getNewManifold(convexObj, planeObj)
+            ownsManifold = true
         }
     }
 
     override fun destroy() {
-        if (ownManifold) {
+        if (ownsManifold) {
+            val manifoldPtr = manifoldPtr
             if (manifoldPtr != null) {
-                dispatcher!!.releaseManifold(manifoldPtr!!)
+                dispatcher.releaseManifold(manifoldPtr)
             }
-            manifoldPtr = null
+            this.manifoldPtr = null
         }
     }
 
@@ -68,26 +69,26 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
         val convexObj = if (isSwapped) body1 else body0
         val planeObj = if (isSwapped) body0 else body1
 
-        val convexShape = convexObj.collisionShape as ConvexShape?
-        val planeShape = planeObj.collisionShape as StaticPlaneShape?
+        val convexShape = convexObj.collisionShape as ConvexShape
+        val planeShape = planeObj.collisionShape as StaticPlaneShape
 
-        val planeNormal = planeShape!!.getPlaneNormal(Stack.newVec())
+        val planeNormal = Stack.newVec().set(planeShape.planeNormal)
         val planeConstant = planeShape.planeConstant
 
         val planeInConvex = Stack.newTrans()
         convexObj.getWorldTransform(planeInConvex)
         planeInConvex.inverse()
-        planeInConvex.mul(planeObj.getWorldTransform(tmpTrans))
+        planeInConvex.mul(planeObj.worldTransform)
 
         val convexInPlaneTrans = Stack.newTrans()
-        convexInPlaneTrans.inverse(planeObj.getWorldTransform(tmpTrans))
-        convexInPlaneTrans.mul(convexObj.getWorldTransform(tmpTrans))
+        convexInPlaneTrans.setInverse(planeObj.worldTransform)
+        convexInPlaneTrans.mul(convexObj.worldTransform)
 
         val tmp = Stack.newVec()
         tmp.setNegate(planeNormal)
         planeInConvex.basis.transform(tmp)
 
-        val vtx = convexShape!!.localGetSupportingVertex(tmp, Stack.newVec())
+        val vtx = convexShape.localGetSupportingVertex(tmp, Stack.newVec())
         val vtxInPlane = Stack.newVec(vtx)
         convexInPlaneTrans.transform(vtxInPlane)
 
@@ -111,7 +112,7 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
             resultOut.addContactPoint(normalOnSurfaceB, pOnB, distance)
             Stack.subVec(2)
         }
-        if (ownManifold) {
+        if (ownsManifold) {
             if (manifoldPtr.numContacts != 0) {
                 resultOut.refreshContactPoints()
             }
@@ -133,7 +134,7 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
 
     override fun getAllContactManifolds(manifoldArray: ArrayList<PersistentManifold>) {
         val manifoldPtr = manifoldPtr
-        if (manifoldPtr != null && ownManifold) {
+        if (manifoldPtr != null && ownsManifold) {
             manifoldArray.add(manifoldPtr)
         }
     }

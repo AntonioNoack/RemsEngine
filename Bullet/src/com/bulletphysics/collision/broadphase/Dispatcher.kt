@@ -23,7 +23,7 @@ interface Dispatcher {
         sharedManifold: PersistentManifold?
     ): CollisionAlgorithm?
 
-    fun getNewManifold(body0: Any, body1: Any): PersistentManifold
+    fun getNewManifold(body0: CollisionObject, body1: CollisionObject): PersistentManifold
 
     fun releaseManifold(manifold: PersistentManifold)
 
@@ -41,7 +41,7 @@ interface Dispatcher {
 
 	val numManifolds: Int
 
-    fun getManifoldByIndexInternal(index: Int): PersistentManifold
+    fun getManifold(index: Int): PersistentManifold
 
     fun freeCollisionAlgorithm(algo: CollisionAlgorithm)
 }

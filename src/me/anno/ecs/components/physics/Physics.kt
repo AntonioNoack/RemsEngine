@@ -63,10 +63,10 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     val invalidEntities = ParallelHashSet<Entity>(256)
 
     @NotSerializedProperty
-    val rigidBodies = HashMap<Entity, BodyWithScale<InternalRigidBody, ExternalRigidBody>?>()
+    val rigidBodies = HashMap<Entity, ScaledBody<InternalRigidBody, ExternalRigidBody>?>()
 
     @NotSerializedProperty
-    val nonStaticRigidBodies = HashMap<Entity, BodyWithScale<InternalRigidBody, ExternalRigidBody>>()
+    val nonStaticRigidBodies = HashMap<Entity, ScaledBody<InternalRigidBody, ExternalRigidBody>>()
 
     @SerializedProperty
     var targetUpdatesPerSecond = 30.0
@@ -101,12 +101,12 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     fun registerNonStatic(
         entity: Entity,
         isStatic: Boolean,
-        bodyWithScale: BodyWithScale<InternalRigidBody, ExternalRigidBody>
+        scaledBody: ScaledBody<InternalRigidBody, ExternalRigidBody>
     ) {
         if (isStatic) {
             nonStaticRigidBodies.remove(entity)
         } else {
-            nonStaticRigidBodies[entity] = bodyWithScale
+            nonStaticRigidBodies[entity] = scaledBody
         }
     }
 
@@ -190,12 +190,12 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     abstract fun createRigidbody(
         entity: Entity,
         rigidBody: InternalRigidBody
-    ): BodyWithScale<InternalRigidBody, ExternalRigidBody>?
+    ): ScaledBody<InternalRigidBody, ExternalRigidBody>?
 
     abstract fun onCreateRigidbody(
         entity: Entity,
         rigidbody: InternalRigidBody,
-        bodyWithScale: BodyWithScale<InternalRigidBody, ExternalRigidBody>
+        scaledBody: ScaledBody<InternalRigidBody, ExternalRigidBody>
     )
 
     fun getRigidbody(rigidBody: InternalRigidBody): ExternalRigidBody? {
@@ -367,8 +367,8 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     abstract fun isActive(rigidbody: ExternalRigidBody): Boolean
 
     abstract fun convertTransformMatrix(
-        rigidbody: ExternalRigidBody, scale: Vector3d,
-        dstTransform: Matrix4x3
+        rigidbody: ExternalRigidBody, dstTransform: Matrix4x3,
+        scale: Vector3d, centerOfMass: Vector3d,
     )
 
     @DebugAction
@@ -435,12 +435,12 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     open fun updateNonStaticRigidBody(
-        entity: Entity, rigidbodyWithScale: BodyWithScale<InternalRigidBody, ExternalRigidBody>
+        entity: Entity, rigidbodyScaled: ScaledBody<InternalRigidBody, ExternalRigidBody>
     ) {
-        val (_, rigidbody, scale) = rigidbodyWithScale
+        val (_, rigidbody, scale, centerOfMass) = rigidbodyScaled
         val dst = entity.transform
         val dstTransform = dst.globalTransform
-        convertTransformMatrix(rigidbody, scale, dstTransform)
+        convertTransformMatrix(rigidbody, dstTransform, scale, centerOfMass)
         dst.setStateAndUpdate(Transform.State.VALID_GLOBAL)
     }
 

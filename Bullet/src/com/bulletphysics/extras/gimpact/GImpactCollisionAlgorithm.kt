@@ -51,9 +51,9 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
 
     private val tmpPairList = IntPairList()
 
-    fun init(ci: CollisionAlgorithmConstructionInfo, body0: CollisionObject?, body1: CollisionObject?) {
+    override fun init(ci: CollisionAlgorithmConstructionInfo) {
         super.init(ci)
-        this.lastManifold = null
+        lastManifold = null
         convexAlgorithm = null
     }
 
@@ -71,78 +71,66 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
 
         this.resultOut = resultOut
         this.dispatchInfo = dispatchInfo
-        val gimpactshape0: GImpactShapeInterface?
-        val gimpactshape1: GImpactShapeInterface?
+        val gimpactShape0: GImpactShapeInterface?
+        val gimpactShape1: GImpactShapeInterface?
 
         if (body0.collisionShape!!.shapeType == BroadphaseNativeType.GIMPACT_SHAPE_PROXYTYPE) {
-            gimpactshape0 = body0.collisionShape as GImpactShapeInterface?
+            gimpactShape0 = body0.collisionShape as GImpactShapeInterface?
 
             if (body1.collisionShape!!.shapeType == BroadphaseNativeType.GIMPACT_SHAPE_PROXYTYPE) {
-                gimpactshape1 = body1.collisionShape as GImpactShapeInterface?
-
-                gimpact_vs_gimpact(body0, body1, gimpactshape0!!, gimpactshape1!!)
+                gimpactShape1 = body1.collisionShape as GImpactShapeInterface?
+                gimpactVsGimpact(body0, body1, gimpactShape0!!, gimpactShape1!!)
             } else {
-                gimpactVsShape(body0, body1, gimpactshape0!!, body1.collisionShape!!, false)
+                gimpactVsShape(body0, body1, gimpactShape0!!, body1.collisionShape!!, false)
             }
         } else if (body1.collisionShape!!.shapeType == BroadphaseNativeType.GIMPACT_SHAPE_PROXYTYPE) {
-            gimpactshape1 = body1.collisionShape as GImpactShapeInterface?
-
-            gimpactVsShape(body1, body0, gimpactshape1!!, body0.collisionShape!!, true)
+            gimpactShape1 = body1.collisionShape as GImpactShapeInterface?
+            gimpactVsShape(body1, body0, gimpactShape1!!, body0.collisionShape!!, true)
         }
     }
 
-    fun gimpact_vs_gimpact(
+    fun gimpactVsGimpact(
         body0: CollisionObject,
         body1: CollisionObject,
         shape0: GImpactShapeInterface,
         shape1: GImpactShapeInterface
     ) {
         if (shape0.gImpactShapeType == ShapeType.TRIMESH_SHAPE) {
-            val meshshape0 = shape0 as GImpactMeshShape
-            part0 = meshshape0.meshPartCount
-
+            val meshShape0 = shape0 as GImpactMeshShape
+            part0 = meshShape0.meshPartCount
             while ((part0--) != 0) {
-                gimpact_vs_gimpact(body0, body1, meshshape0.getMeshPart(part0), shape1)
+                gimpactVsGimpact(body0, body1, meshShape0.getMeshPart(part0), shape1)
             }
-
             return
         }
 
         if (shape1.gImpactShapeType == ShapeType.TRIMESH_SHAPE) {
-            val meshshape1 = shape1 as GImpactMeshShape
-            part1 = meshshape1.meshPartCount
-
+            val meshShape1 = shape1 as GImpactMeshShape
+            part1 = meshShape1.meshPartCount
             while ((part1--) != 0) {
-                gimpact_vs_gimpact(body0, body1, shape0, meshshape1.getMeshPart(part1))
+                gimpactVsGimpact(body0, body1, shape0, meshShape1.getMeshPart(part1))
             }
-
             return
         }
 
-        val orgtrans0 = body0.getWorldTransform(Stack.newTrans())
-        val orgtrans1 = body1.getWorldTransform(Stack.newTrans())
+        val orgTrans0 = body0.getWorldTransform(Stack.newTrans())
+        val orgTrans1 = body1.getWorldTransform(Stack.newTrans())
 
         val pairList = tmpPairList
         pairList.clear()
 
-        gimpactVsGimpactFindPairs(orgtrans0, orgtrans1, shape0, shape1, pairList)
+        gimpactVsGimpactFindPairs(orgTrans0, orgTrans1, shape0, shape1, pairList)
 
-        if (pairList.size() == 0) {
+        if (pairList.size == 0) {
             return
         }
+
         if (shape0.gImpactShapeType == ShapeType.TRIMESH_SHAPE_PART &&
             shape1.gImpactShapeType == ShapeType.TRIMESH_SHAPE_PART
         ) {
-            val shapepart0 = shape0 as GImpactMeshShapePart
-            val shapepart1 = shape1 as GImpactMeshShapePart
-
-            //specialized function
-            //#ifdef BULLET_TRIANGLE_COLLISION
-            //collide_gjk_triangles(body0,body1,shapepart0,shapepart1,&pairset[0].m_index1,pairset.size());
-            //#else
-            collideSatTriangles(body0, body1, shapepart0, shapepart1, pairList, pairList.size())
-
-            //#endif
+            val shapePart0 = shape0 as GImpactMeshShapePart
+            val shapePart1 = shape1 as GImpactMeshShapePart
+            collideSatTriangles(body0, body1, shapePart0, shapePart1, pairList)
             return
         }
 
@@ -166,12 +154,12 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
             val colShape1 = retriever1.getChildShape(this.face1)
 
             if (childHasTransform0) {
-                tmpTrans.setMul(orgtrans0, shape0.getChildTransform(this.face0))
+                tmpTrans.setMul(orgTrans0, shape0.getChildTransform(this.face0))
                 body0.setWorldTransform(tmpTrans)
             }
 
             if (childHasTransform1) {
-                tmpTrans.setMul(orgtrans1, shape1.getChildTransform(this.face1))
+                tmpTrans.setMul(orgTrans1, shape1.getChildTransform(this.face1))
                 body1.setWorldTransform(tmpTrans)
             }
 
@@ -179,11 +167,11 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
             convexVsConvexCollision(body0, body1, colShape0, colShape1)
 
             if (childHasTransform0) {
-                body0.setWorldTransform(orgtrans0)
+                body0.setWorldTransform(orgTrans0)
             }
 
             if (childHasTransform1) {
-                body1.setWorldTransform(orgtrans1)
+                body1.setWorldTransform(orgTrans1)
             }
         }
 
@@ -285,30 +273,31 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
     fun gimpactVsCompoundShape(
         body0: CollisionObject,
         body1: CollisionObject,
-        shape0: GImpactShapeInterface,
-        shape1: CompoundShape,
+        gimpact: GImpactShapeInterface,
+        compound: CompoundShape,
         swapped: Boolean
     ) {
-        val orgtrans1 = body1.getWorldTransform(Stack.newTrans())
-        val childtrans1 = Stack.newTrans()
-        val tmpTrans = Stack.newTrans()
+        val compoundTransform = body1.worldTransform
+        val childTransform = Stack.newTrans()
 
-        var i = shape1.numChildShapes
-        while ((i--) != 0) {
-            val colshape1 = shape1.getChildShape(i)
-            childtrans1.setMul(orgtrans1, shape1.getChildTransform(i, tmpTrans))
+        val children = compound.children
+        for (i in children.indices) {
 
-            body1.setWorldTransform(childtrans1)
+            val child = children[i]
+            childTransform.setMul(compoundTransform, child.transform)
+
+            body1.setWorldTransform(childTransform)
 
             // collide child shape
             gimpactVsShape(
                 body0, body1,
-                shape0, colshape1!!, swapped
+                gimpact, child.shape, swapped
             )
 
             // restore transforms
-            body1.setWorldTransform(orgtrans1)
+            body1.setWorldTransform(compoundTransform)
         }
+        Stack.subTrans(1)
     }
 
     fun gimpactVsConcave(
@@ -336,7 +325,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
 
         val minAABB = Stack.newVec()
         val maxAABB = Stack.newVec()
-        shape0.getAabb(gimpactInConcaveSpace, minAABB, maxAABB)
+        shape0.getBounds(gimpactInConcaveSpace, minAABB, maxAABB)
 
         shape1.processAllTriangles(callback, minAABB, maxAABB)
     }
@@ -345,21 +334,21 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
      * Creates a new contact point.
      */
     fun newContactManifold(body0: CollisionObject, body1: CollisionObject): PersistentManifold {
-        this.lastManifold = dispatcher!!.getNewManifold(body0, body1)
+        this.lastManifold = dispatcher.getNewManifold(body0, body1)
         return this.lastManifold!!
     }
 
     fun destroyConvexAlgorithm() {
         if (convexAlgorithm != null) {
             //convex_algorithm.destroy();
-            dispatcher!!.freeCollisionAlgorithm(convexAlgorithm!!)
+            dispatcher.freeCollisionAlgorithm(convexAlgorithm!!)
             convexAlgorithm = null
         }
     }
 
     fun destroyContactManifolds() {
         if (this.lastManifold == null) return
-        dispatcher!!.releaseManifold(this.lastManifold!!)
+        dispatcher.releaseManifold(this.lastManifold!!)
         this.lastManifold = null
     }
 
@@ -367,9 +356,9 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         destroyContactManifolds()
         destroyConvexAlgorithm()
 
-        this.face0 = -1
+        face0 = -1
         part0 = -1
-        this.face1 = -1
+        face1 = -1
         part1 = -1
     }
 
@@ -389,8 +378,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
      */
     fun newAlgorithm(body0: CollisionObject, body1: CollisionObject): CollisionAlgorithm? {
         checkManifold(body0, body1)
-
-        return dispatcher!!.findAlgorithm(body0, body1, this.lastManifold)
+        return dispatcher.findAlgorithm(body0, body1, this.lastManifold)
     }
 
     /**
@@ -418,68 +406,57 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         body1: CollisionObject,
         shape0: GImpactMeshShapePart,
         shape1: GImpactMeshShapePart,
-        pairs: IntPairList,
-        pair_count: Int
+        pairs: IntPairList
     ) {
-        var pair_count = pair_count
-        val tmp = Stack.newVec()
+        val normal = Stack.newVec()
 
-        val orgtrans0 = body0.getWorldTransform(Stack.newTrans())
-        val orgtrans1 = body1.getWorldTransform(Stack.newTrans())
+        val orgTrans0 = body0.getWorldTransform(Stack.newTrans())
+        val orgTrans1 = body1.getWorldTransform(Stack.newTrans())
 
-        val ptri0 = PrimitiveTriangle()
-        val ptri1 = PrimitiveTriangle()
-        val contact_data = TriangleContact()
+        val tri0 = PrimitiveTriangle()
+        val tri1 = PrimitiveTriangle()
+        val contactData = TriangleContact()
 
         shape0.lockChildShapes()
         shape1.lockChildShapes()
 
-        var pairPointer = 0
+        for (i in 0 until pairs.size) {
+            this.face0 = pairs.getFirst(i)
+            this.face1 = pairs.getSecond(i)
 
-        while ((pair_count--) != 0) {
-            this.face0 = pairs.getFirst(pairPointer)
-            this.face1 = pairs.getSecond(pairPointer)
-            pairPointer++
+            shape0.getPrimitiveTriangle(this.face0, tri0)
+            shape1.getPrimitiveTriangle(this.face1, tri1)
 
-            shape0.getPrimitiveTriangle(this.face0, ptri0)
-            shape1.getPrimitiveTriangle(this.face1, ptri1)
-
-            //#ifdef TRI_COLLISION_PROFILING
-            //bt_begin_gim02_tri_time();
-            //#endif
-            ptri0.applyTransform(orgtrans0)
-            ptri1.applyTransform(orgtrans1)
+            tri0.applyTransform(orgTrans0)
+            tri1.applyTransform(orgTrans1)
 
             // build planes
-            ptri0.buildTriPlane()
-            ptri1.buildTriPlane()
+            tri0.buildTriPlane()
+            tri1.buildTriPlane()
 
             // test conservative
-            if (ptri0.overlapTestConservative(ptri1)) {
-                if (ptri0.findTriangleCollisionClipMethod(ptri1, contact_data)) {
-                    var j = contact_data.pointCount
-                    while ((j--) != 0) {
-                        tmp.x = contact_data.separatingNormal.x
-                        tmp.y = contact_data.separatingNormal.y
-                        tmp.z = contact_data.separatingNormal.z
+            if (tri0.overlapTestConservative(tri1)) {
+                if (tri0.findTriangleCollisionClipMethod(tri1, contactData)) {
+                    for (j in 0 until contactData.pointCount) {
+                        normal.x = contactData.separatingNormal.x
+                        normal.y = contactData.separatingNormal.y
+                        normal.z = contactData.separatingNormal.z
 
                         addContactPoint(
                             body0, body1,
-                            contact_data.points[j],
-                            tmp,
-                            -contact_data.penetrationDepth
+                            contactData.points[j], normal,
+                            -contactData.penetrationDepth
                         )
                     }
                 }
             }
-
-            //#ifdef TRI_COLLISION_PROFILING
-            //bt_end_gim02_tri_time();
-            //#endif
         }
 
         shape0.unlockChildShapes()
         shape1.unlockChildShapes()
+
+        Stack.subTrans(2)
+        Stack.subVec(1)
     }
 
     fun shapeVsShapeCollision(
@@ -491,8 +468,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         val tmpShape0 = body0.collisionShape
         val tmpShape1 = body1.collisionShape
 
-        body0.collisionShape = (shape0)
-        body1.collisionShape = (shape1)
+        body0.collisionShape = shape0
+        body1.collisionShape = shape1
 
         val algor = newAlgorithm(body0, body1)
 
@@ -502,7 +479,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         algor!!.processCollision(body0, body1, dispatchInfo!!, resultOut!!)
 
         //algor.destroy();
-        dispatcher!!.freeCollisionAlgorithm(algor)
+        dispatcher.freeCollisionAlgorithm(algor)
 
         body0.collisionShape = (tmpShape0)
         body1.collisionShape = (tmpShape1)
@@ -532,24 +509,22 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
     fun gimpactVsGimpactFindPairs(
         trans0: Transform, trans1: Transform,
         shape0: GImpactShapeInterface, shape1: GImpactShapeInterface,
-        pairset: IntPairList
+        pairSet: IntPairList
     ) {
         if (shape0.hasBoxSet() && shape1.hasBoxSet()) {
-            GImpactBvh.Companion.findCollision(shape0.boxSet, trans0, shape1.boxSet, trans1, pairset)
+            GImpactBvh.Companion.findCollision(shape0.boxSet, trans0, shape1.boxSet, trans1, pairSet)
         } else {
-            val boxshape0 = AABB()
-            val boxshape1 = AABB()
-            var i = shape0.numChildShapes
+            val boxShape0 = AABB()
+            val boxShape1 = AABB()
 
-            while ((i--) != 0) {
-                shape0.getChildAabb(i, trans0, boxshape0.min, boxshape0.max)
+            for (i in 0 until shape0.numChildShapes) {
+                shape0.getChildAabb(i, trans0, boxShape0.min, boxShape0.max)
 
-                var j = shape1.numChildShapes
-                while ((j--) != 0) {
-                    shape1.getChildAabb(i, trans1, boxshape1.min, boxshape1.max)
+                for (j in 0 until shape1.numChildShapes) {
+                    shape1.getChildAabb(i, trans1, boxShape1.min, boxShape1.max)
 
-                    if (boxshape1.hasCollision(boxshape0)) {
-                        pairset.pushPair(i, j)
+                    if (boxShape1.hasCollision(boxShape0)) {
+                        pairSet.pushPair(i, j)
                     }
                 }
             }
@@ -561,29 +536,26 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         trans1: Transform,
         shape0: GImpactShapeInterface,
         shape1: CollisionShape,
-        collided_primitives: IntArrayList
+        collidedPrimitives: IntArrayList
     ) {
-        val boxshape = AABB()
+        val boxShape = AABB()
 
         if (shape0.hasBoxSet()) {
             val trans1to0 = Stack.newTrans()
-            trans1to0.inverse(trans0)
+            trans1to0.setInverse(trans0)
             trans1to0.mul(trans1)
 
-            shape1.getAabb(trans1to0, boxshape.min, boxshape.max)
+            shape1.getBounds(trans1to0, boxShape.min, boxShape.max)
 
-            shape0.boxSet.boxQuery(boxshape, collided_primitives)
+            shape0.boxSet.boxQuery(boxShape, collidedPrimitives)
         } else {
-            shape1.getAabb(trans1, boxshape.min, boxshape.max)
+            shape1.getBounds(trans1, boxShape.min, boxShape.max)
 
             val boxShape0 = AABB()
-            var i = shape0.numChildShapes
-
-            while ((i--) != 0) {
+            for (i in 0 until shape0.numChildShapes) {
                 shape0.getChildAabb(i, trans0, boxShape0.min, boxShape0.max)
-
-                if (boxshape.hasCollision(boxShape0)) {
-                    collided_primitives.add(i)
+                if (boxShape.hasCollision(boxShape0)) {
+                    collidedPrimitives.add(i)
                 }
             }
         }
@@ -601,7 +573,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
 
         // test box against plane
         val triangleBounds = AABB()
-        shape0.getAabb(orgTrans0, triangleBounds.min, triangleBounds.max)
+        shape0.getBounds(orgTrans0, triangleBounds.min, triangleBounds.max)
         triangleBounds.incrementMargin(shape1.margin)
 
         if (triangleBounds.planeClassify(plane) != PlaneIntersectionType.COLLIDE_PLANE) {
@@ -665,7 +637,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
             body1: CollisionObject
         ): CollisionAlgorithm {
             val algo = pool.get()
-            algo.init(ci, body0, body1)
+            algo.init(ci)
             return algo
         }
 
@@ -681,21 +653,11 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         @JvmStatic
         fun registerAlgorithm(dispatcher: CollisionDispatcher) {
             val createFunc = CreateFunc()
-
             val numTypes = BroadphaseNativeType.MAX_BROADPHASE_COLLISION_TYPES.ordinal
-            for (i in 0 until numTypes) {
-                dispatcher.registerCollisionCreateFunc(
-                    BroadphaseNativeType.GIMPACT_SHAPE_PROXYTYPE.ordinal,
-                    i,
-                    createFunc
-                )
-            }
-            for (i in 0 until numTypes) {
-                dispatcher.registerCollisionCreateFunc(
-                    i,
-                    BroadphaseNativeType.GIMPACT_SHAPE_PROXYTYPE.ordinal,
-                    createFunc
-                )
+            val i = BroadphaseNativeType.GIMPACT_SHAPE_PROXYTYPE.ordinal
+            for (j in 0 until numTypes) {
+                dispatcher.registerCollisionCreateFunc(i, j, createFunc)
+                dispatcher.registerCollisionCreateFunc(j, i, createFunc)
             }
         }
     }

@@ -82,7 +82,7 @@ abstract class PolyhedralConvexShape : ConvexInternalShape() {
         W_POOL.release(wcoords)
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         // not yet, return box inertia
 
         val margin = margin
@@ -91,7 +91,7 @@ abstract class PolyhedralConvexShape : ConvexInternalShape() {
         identity.setIdentity()
         val aabbMin = Stack.newVec()
         val aabbMax = Stack.newVec()
-        getAabb(identity, aabbMin, aabbMax)
+        getBounds(identity, aabbMin, aabbMax)
 
         val halfExtents = Stack.newVec()
         aabbMax.sub(aabbMin, halfExtents).mul(0.5)
@@ -108,6 +108,8 @@ abstract class PolyhedralConvexShape : ConvexInternalShape() {
 
         Stack.subVec(3)
         Stack.subTrans(1)
+
+        return inertia
     }
 
     private fun getNonvirtualAabb(trans: Transform, aabbMin: Vector3d, aabbMax: Vector3d, margin: Double) {
@@ -117,7 +119,7 @@ abstract class PolyhedralConvexShape : ConvexInternalShape() {
         AabbUtil.transformAabb(localAabbMin, localAabbMax, margin, trans, aabbMin, aabbMax)
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         getNonvirtualAabb(t, aabbMin, aabbMax, margin)
     }
 

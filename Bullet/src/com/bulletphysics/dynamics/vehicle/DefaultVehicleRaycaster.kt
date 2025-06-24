@@ -17,8 +17,8 @@ class DefaultVehicleRaycaster(var dynamicsWorld: DynamicsWorld) : VehicleRaycast
         dynamicsWorld.rayTest(from, to, rayCallback)
 
         if (rayCallback.hasHit()) {
-            val body = RigidBody.upcast(rayCallback.collisionObject)
-            if (body != null && body.hasContactResponse()) {
+            val body = rayCallback.collisionObject
+            if (body is RigidBody && body.hasContactResponse()) {
                 result.hitPointInWorld.set(rayCallback.hitPointWorld)
                 result.hitNormalInWorld.set(rayCallback.hitNormalWorld)
                 result.hitNormalInWorld.normalize()

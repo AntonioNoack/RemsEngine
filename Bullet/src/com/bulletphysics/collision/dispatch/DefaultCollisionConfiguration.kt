@@ -13,76 +13,52 @@ import com.bulletphysics.collision.narrowphase.VoronoiSimplexSolver
  * @author jezek2
  */
 class DefaultCollisionConfiguration : CollisionConfiguration {
-    //default simplex/penetration depth solvers
-    var pdSolver: ConvexPenetrationDepthSolver?
 
-    //default CreationFunctions, filling the m_doubleDispatch table
-    var convexConvexCreateFunc: CollisionAlgorithmCreateFunc
-    var convexConcaveCreateFunc: CollisionAlgorithmCreateFunc
-    var swappedConvexConcaveCreateFunc: CollisionAlgorithmCreateFunc
-    var compoundCreateFunc: CollisionAlgorithmCreateFunc
-    var swappedCompoundCreateFunc: CollisionAlgorithmCreateFunc
-    var emptyCreateFunc: CollisionAlgorithmCreateFunc
-    var sphereSphereCF: CollisionAlgorithmCreateFunc
-    var planeConvexCF: CollisionAlgorithmCreateFunc
-    var convexPlaneCF: CollisionAlgorithmCreateFunc
+    // default simplex/penetration depth solvers
+    var convexPenetrationSolver: ConvexPenetrationDepthSolver = GjkEpaPenetrationDepthSolver()
+
+    var convexConvexCreateFunc: CollisionAlgorithmCreateFunc =
+        ConvexConvexAlgorithm.CreateFunc(VoronoiSimplexSolver(), convexPenetrationSolver)
+    var convexConcaveCreateFunc: CollisionAlgorithmCreateFunc =
+        ConvexConcaveCollisionAlgorithm.CreateFunc()
+    var swappedConvexConcaveCreateFunc: CollisionAlgorithmCreateFunc =
+        ConvexConcaveCollisionAlgorithm.CreateFunc()
+    var compoundCreateFunc: CollisionAlgorithmCreateFunc =
+        CompoundCollisionAlgorithm.CreateFunc()
+    var swappedCompoundCreateFunc: CollisionAlgorithmCreateFunc =
+        CompoundCollisionAlgorithm.CreateFunc()
+    var emptyCreateFunc: CollisionAlgorithmCreateFunc =
+        EmptyAlgorithm.CreateFunc()
+    var sphereSphereCreateFunc: CollisionAlgorithmCreateFunc =
+        SphereSphereCollisionAlgorithm.CreateFunc()
+    var convexPlaneCreateFunc: CollisionAlgorithmCreateFunc =
+        ConvexPlaneCollisionAlgorithm.CreateFunc()
+    var swappedConvexPlaneCreateFunc: CollisionAlgorithmCreateFunc =
+        ConvexPlaneCollisionAlgorithm.CreateFunc()
 
     init {
-        pdSolver = GjkEpaPenetrationDepthSolver()
-
-        /*
-		//default CreationFunctions, filling the m_doubleDispatch table
-		*/
-        convexConvexCreateFunc = ConvexConvexAlgorithm.CreateFunc(VoronoiSimplexSolver(), pdSolver)
-        convexConcaveCreateFunc = ConvexConcaveCollisionAlgorithm.CreateFunc()
-        swappedConvexConcaveCreateFunc = ConvexConcaveCollisionAlgorithm.SwappedCreateFunc()
-        compoundCreateFunc = CompoundCollisionAlgorithm.CreateFunc()
-        swappedCompoundCreateFunc = CompoundCollisionAlgorithm.SwappedCreateFunc()
-        emptyCreateFunc = EmptyAlgorithm.CreateFunc()
-
-        sphereSphereCF = SphereSphereCollisionAlgorithm.CreateFunc()
-
-        // convex versus plane
-        convexPlaneCF = ConvexPlaneCollisionAlgorithm.CreateFunc()
-        planeConvexCF = ConvexPlaneCollisionAlgorithm.CreateFunc()
-        planeConvexCF.swapped = true
+        swappedConvexPlaneCreateFunc.swapped = true
+        swappedConvexConcaveCreateFunc.swapped = true
+        swappedCompoundCreateFunc.swapped = true
     }
 
     override fun getCollisionAlgorithmCreateFunc(
         proxyType0: BroadphaseNativeType,
         proxyType1: BroadphaseNativeType
     ): CollisionAlgorithmCreateFunc {
-        if ((proxyType0 == BroadphaseNativeType.SPHERE_SHAPE_PROXYTYPE) && (proxyType1 == BroadphaseNativeType.SPHERE_SHAPE_PROXYTYPE)) {
-            return sphereSphereCF
-        }
+        return when {
+            proxyType0 == BroadphaseNativeType.SPHERE_SHAPE_PROXYTYPE &&
+                    proxyType1 == BroadphaseNativeType.SPHERE_SHAPE_PROXYTYPE -> sphereSphereCreateFunc
+            proxyType0.isConvex && proxyType1 == BroadphaseNativeType.STATIC_PLANE_PROXYTYPE -> convexPlaneCreateFunc
+            proxyType1.isConvex && proxyType0 == BroadphaseNativeType.STATIC_PLANE_PROXYTYPE -> swappedConvexPlaneCreateFunc
+            proxyType0.isConvex && proxyType1.isConvex -> convexConvexCreateFunc
+            proxyType0.isConvex && proxyType1.isConcave -> convexConcaveCreateFunc
+            proxyType1.isConvex && proxyType0.isConcave -> swappedConvexConcaveCreateFunc
+            proxyType0.isCompound -> compoundCreateFunc
+            proxyType1.isCompound -> swappedCompoundCreateFunc
 
-        if (proxyType0.isConvex && (proxyType1 == BroadphaseNativeType.STATIC_PLANE_PROXYTYPE)) {
-            return convexPlaneCF
+            // failed to find an algorithm
+            else -> emptyCreateFunc
         }
-
-        if (proxyType1.isConvex && (proxyType0 == BroadphaseNativeType.STATIC_PLANE_PROXYTYPE)) {
-            return planeConvexCF
-        }
-
-        if (proxyType0.isConvex && proxyType1.isConvex) {
-            return convexConvexCreateFunc
-        }
-
-        if (proxyType0.isConvex && proxyType1.isConcave) {
-            return convexConcaveCreateFunc
-        }
-
-        if (proxyType1.isConvex && proxyType0.isConcave) {
-            return swappedConvexConcaveCreateFunc
-        }
-
-        if (proxyType0.isCompound) {
-            return compoundCreateFunc
-        } else if (proxyType1.isCompound) {
-            return swappedCompoundCreateFunc
-        }
-
-        // failed to find an algorithm
-        return emptyCreateFunc
     }
 }

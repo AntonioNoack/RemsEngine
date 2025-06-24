@@ -23,10 +23,7 @@ class StaticPlaneShape(val planeNormal: Vector3d, var planeConstant: Double) : C
 
     val localScaling = Vector3d(0.0, 0.0, 0.0)
 
-    fun getPlaneNormal(out: Vector3d): Vector3d {
-        out.set(planeNormal)
-        return out
-    }
+    override fun getVolume(): Double = 1e308
 
     override fun processAllTriangles(callback: TriangleCallback, aabbMin: Vector3d, aabbMax: Vector3d) {
         val tmp = Stack.newVec()
@@ -90,7 +87,7 @@ class StaticPlaneShape(val planeNormal: Vector3d, var planeConstant: Double) : C
         Stack.subVec(11)
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         aabbMin.set(-1e308, -1e308, -1e308)
         aabbMax.set(1e308, 1e308, 1e308)
     }
@@ -107,8 +104,8 @@ class StaticPlaneShape(val planeNormal: Vector3d, var planeConstant: Double) : C
         return out
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
-        //moving concave objects not supported
-        inertia.set(0.0, 0.0, 0.0)
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+        // moving concave objects is not supported
+        return inertia.set(0.0)
     }
 }

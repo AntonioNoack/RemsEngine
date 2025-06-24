@@ -1,27 +1,21 @@
 package com.bulletphysics.dynamics
 
 import com.bulletphysics.BulletGlobals
-import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.dispatch.ActivationState
 import com.bulletphysics.collision.dispatch.CollisionFlags
 import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.dynamics.constraintsolver.TypedConstraint
-import com.bulletphysics.linearmath.MatrixUtil.getRotation
-import com.bulletphysics.linearmath.MatrixUtil.scale
-import com.bulletphysics.linearmath.MiscUtil.GEN_clamped
-import com.bulletphysics.linearmath.MotionState
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.TransformUtil.calculateAngularVelocity
 import com.bulletphysics.linearmath.TransformUtil.calculateLinearVelocity
 import com.bulletphysics.linearmath.TransformUtil.integrateTransform
 import com.bulletphysics.util.setCross
-import com.bulletphysics.util.setMul
 import com.bulletphysics.util.setScaleAdd
 import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
+import me.anno.maths.Maths.clamp
 import org.joml.Matrix3d
-import org.joml.Quaterniond
 import org.joml.Vector3d
 import kotlin.math.pow
 
@@ -49,35 +43,40 @@ import kotlin.math.pow
  *
  * @author jezek2
  */
-class RigidBody : CollisionObject {
+class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : CollisionObject() {
+
+    constructor(mass: Double, shape: CollisionShape) : this(mass, shape, Vector3d())
 
     val invInertiaTensorWorld = Matrix3d()
     val linearVelocity = Vector3d()
     val angularVelocity = Vector3d()
 
-    var inverseMass: Double = 0.0
+    var inverseMass = 0.0
 
-    var angularFactor: Double = 0.0
+    var angularFactor = 1.0
 
     val gravity = Vector3d()
-    private val invInertiaLocal = Vector3d()
+    val invInertiaLocal = Vector3d()
     private val totalForce = Vector3d()
     private val totalTorque = Vector3d()
 
-    var linearDamping: Double = 0.0
-    var angularDamping: Double = 0.0
+    var linearDamping = 0.0
+        set(value) {
+            field = clamp(value)
+        }
+
+    var angularDamping = 0.5
+        set(value) {
+            field = clamp(value)
+        }
 
     private var additionalDamping = false
-    private var additionalDampingFactor = 0.0
-    private var additionalLinearDampingThresholdSqr = 0.0
-    private var additionalAngularDampingThresholdSqr = 0.0
-    private var additionalAngularDampingFactor = 0.0
+    private var additionalDampingFactor = 0.005
+    private var additionalLinearDampingThresholdSqr = 0.01
+    private var additionalAngularDampingThresholdSqr = 0.01
 
-    private var linearSleepingThreshold = 0.0
-    private var angularSleepingThreshold = 0.0
-
-    // optionalMotionState allows to automatically synchronize the world transform for active objects
-    private var optionalMotionState: MotionState? = null
+    var linearSleepingThreshold = 0.8
+    var angularSleepingThreshold = 1.0
 
     val predictedTransform = Transform()
 
@@ -88,62 +87,16 @@ class RigidBody : CollisionObject {
     var contactSolverType: Int = 0
     var frictionSolverType: Int = 0
 
-    var debugBodyId: Int = 0
-
-    constructor(constructionInfo: RigidBodyConstructionInfo) {
-        setupRigidBody(constructionInfo)
+    init {
+        friction = 0.5
+        restitution = 0.0
+        collisionShape = shape
+        setMassProps(mass, localInertia)
     }
 
-    @JvmOverloads
-    constructor(
-        mass: Double,
-        motionState: MotionState?,
-        collisionShape: CollisionShape,
-        localInertia: Vector3d = Vector3d(0.0, 0.0, 0.0)
-    ) {
-        setupRigidBody(RigidBodyConstructionInfo(mass, motionState, collisionShape, localInertia))
-    }
-
-    private fun setupRigidBody(constructionInfo: RigidBodyConstructionInfo) {
-        linearVelocity.set(0.0, 0.0, 0.0)
-        angularVelocity.set(0.0, 0.0, 0.0)
-        angularFactor = 1.0
-        gravity.set(0.0, 0.0, 0.0)
-        totalForce.set(0.0, 0.0, 0.0)
-        totalTorque.set(0.0, 0.0, 0.0)
-        linearDamping = 0.0
-        angularDamping = 0.5
-        linearSleepingThreshold = constructionInfo.linearSleepingThreshold
-        angularSleepingThreshold = constructionInfo.angularSleepingThreshold
-        optionalMotionState = constructionInfo.motionState
-        contactSolverType = 0
-        frictionSolverType = 0
-        additionalDamping = constructionInfo.additionalDamping
-        additionalDampingFactor = constructionInfo.additionalDampingFactor
-        additionalLinearDampingThresholdSqr = constructionInfo.additionalLinearDampingThresholdSqr
-        additionalAngularDampingThresholdSqr = constructionInfo.additionalAngularDampingThresholdSqr
-        additionalAngularDampingFactor = constructionInfo.additionalAngularDampingFactor
-
-        if (optionalMotionState != null) {
-            optionalMotionState!!.getWorldTransform(worldTransform)
-        } else {
-            worldTransform.set(constructionInfo.startWorldTransform)
-        }
-
-        interpolationWorldTransform.set(worldTransform)
-        interpolationLinearVelocity.set(0.0, 0.0, 0.0)
-        interpolationAngularVelocity.set(0.0, 0.0, 0.0)
-
-        // moved to CollisionObject
-        friction = constructionInfo.friction
-        restitution = constructionInfo.restitution
-
-        collisionShape = constructionInfo.collisionShape
-        debugBodyId = uniqueId++
-
-        setMassProps(constructionInfo.mass, constructionInfo.localInertia)
-        setDamping(constructionInfo.linearDamping, constructionInfo.angularDamping)
-        updateInertiaTensor()
+    fun setInitialTransform(transform: Transform) {
+        worldTransform.set(transform)
+        interpolationWorldTransform.set(transform)
     }
 
     fun destroy() {
@@ -166,8 +119,6 @@ class RigidBody : CollisionObject {
     fun saveKinematicState(timeStep: Double) {
         //todo: clamp to some (user definable) safe minimum timestep, to limit maximum angular/linear velocities
         if (timeStep == 0.0) return
-        //if we use motionState to synchronize world transforms, get the new kinematic/animated world transform
-        motionState?.getWorldTransform(worldTransform)
 
         // linear
         calculateLinearVelocity(interpolationWorldTransform, worldTransform, timeStep, linearVelocity)
@@ -189,11 +140,6 @@ class RigidBody : CollisionObject {
 
     fun setGravity(acceleration: Vector3d) {
         gravity.set(acceleration)
-    }
-
-    fun setDamping(lin_damping: Double, ang_damping: Double) {
-        linearDamping = GEN_clamped(lin_damping, 0.0, 1.0)
-        angularDamping = GEN_clamped(ang_damping, 0.0, 1.0)
     }
 
     /**
@@ -265,6 +211,8 @@ class RigidBody : CollisionObject {
             if (inertia.y != 0.0) 1.0 / inertia.y else 0.0,
             if (inertia.z != 0.0) 1.0 / inertia.z else 0.0
         )
+
+        updateInertiaTensor()
     }
 
     fun integrateVelocities(step: Double) {
@@ -379,13 +327,13 @@ class RigidBody : CollisionObject {
     }
 
     fun updateInertiaTensor() {
-        val mat1 = Stack.newMat()
-        scale(mat1, worldTransform.basis, invInertiaLocal)
+        val basisPerLocalInertia = Stack.newMat()
+        worldTransform.basis.scale(invInertiaLocal, basisPerLocalInertia)
 
-        val mat2 = Stack.newMat(worldTransform.basis)
-        mat2.transpose()
+        val worldBasisTransposed = Stack.newMat(worldTransform.basis)
+        worldBasisTransposed.transpose()
 
-        invInertiaTensorWorld.setMul(mat1, mat2)
+        basisPerLocalInertia.mul(worldBasisTransposed, invInertiaTensorWorld)
         Stack.subMat(2)
     }
 
@@ -394,19 +342,8 @@ class RigidBody : CollisionObject {
         return out
     }
 
-    @Suppress("unused")
-    fun getOrientation(out: Quaterniond): Quaterniond {
-        getRotation(worldTransform.basis, out)
-        return out
-    }
-
     fun getCenterOfMassTransform(out: Transform): Transform {
         out.set(worldTransform)
-        return out
-    }
-
-    fun getAngularVelocity(out: Vector3d): Vector3d {
-        out.set(angularVelocity)
         return out
     }
 
@@ -436,7 +373,7 @@ class RigidBody : CollisionObject {
     }
 
     fun getAabb(aabbMin: Vector3d, aabbMax: Vector3d) {
-        collisionShape!!.getAabb(worldTransform, aabbMin, aabbMax)
+        collisionShape!!.getBounds(worldTransform, aabbMin, aabbMax)
     }
 
     fun computeImpulseDenominator(pos: Vector3d, normal: Vector3d): Double {
@@ -492,45 +429,14 @@ class RigidBody : CollisionObject {
         return deactivationTime > BulletGlobals.deactivationTime
     }
 
-    val broadphaseProxy: BroadphaseProxy?
-        get() = broadphaseHandle
-
-    @Suppress("unused")
-    fun setNewBroadphaseProxy(broadphaseProxy: BroadphaseProxy?) {
-        this.broadphaseHandle = broadphaseProxy
-    }
-
-    @set:Suppress("unused")
-    var motionState: MotionState?
-        get() = optionalMotionState
-        set(motionState) {
-            this.optionalMotionState = motionState
-            if (optionalMotionState != null) {
-                motionState!!.getWorldTransform(worldTransform)
-            }
-        }
-
-    @get:Suppress("unused")
-    val isInWorld: Boolean
-        /**
-         * Is this rigidbody added to a CollisionWorld/DynamicsWorld/Broadphase?
-         */
-        get() = (this.broadphaseProxy != null)
-
     override fun checkCollideWithOverride(co: CollisionObject?): Boolean {
-        // TODO: change to cast
-        val otherRb: RigidBody? = upcast(co)
-        if (otherRb == null) {
-            return true
-        }
-
+        if (co !is RigidBody) return true
         for (i in constraintRefs.indices) {
             val c = constraintRefs[i]
-            if (c.rigidBodyA === otherRb || c.rigidBodyB === otherRb) {
+            if (c.rigidBodyA === co || c.rigidBodyB === co) {
                 return false
             }
         }
-
         return true
     }
 
@@ -550,18 +456,5 @@ class RigidBody : CollisionObject {
 
     companion object {
         private const val MAX_ANGULAR_VELOCITY = BulletGlobals.SIMD_HALF_PI
-
-        private var uniqueId = 0
-
-        /**
-         * To keep collision detection and dynamics separate we don't store a rigidbody pointer,
-         * but a rigidbody is derived from CollisionObject, so we can safely perform an upcast.
-         */
-        fun upcast(colObj: CollisionObject?): RigidBody? {
-            if (colObj is RigidBody) {
-                return colObj
-            }
-            return null
-        }
     }
 }

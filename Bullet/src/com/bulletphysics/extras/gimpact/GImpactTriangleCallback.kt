@@ -9,23 +9,21 @@ import org.joml.Vector3d
  */
 internal class GImpactTriangleCallback : TriangleCallback {
 
-    @JvmField
-    var algorithm: GImpactCollisionAlgorithm? = null
-    @JvmField
-    var body0: CollisionObject? = null
-    @JvmField
-    var body1: CollisionObject? = null
-    @JvmField
-    var shape: GImpactShapeInterface? = null
+    lateinit var algorithm: GImpactCollisionAlgorithm
+    lateinit var body0: CollisionObject
+    lateinit var body1: CollisionObject
+    lateinit var shape: GImpactShapeInterface
+
     @JvmField
     var swapped: Boolean = false
+
     @JvmField
     var margin: Double = 0.0
 
     override fun processTriangle(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
         val tri1 = TriangleShapeEx(triangle[0], triangle[1], triangle[2])
         tri1.margin = margin
-        val algorithm = algorithm!!
+        val algorithm = algorithm
         if (swapped) {
             algorithm.part0 = partId
             algorithm.face0 = triangleIndex
@@ -33,6 +31,6 @@ internal class GImpactTriangleCallback : TriangleCallback {
             algorithm.part1 = partId
             algorithm.face1 = triangleIndex
         }
-        algorithm.gimpactVsShape(body0!!, body1!!, shape!!, tri1, swapped)
+        algorithm.gimpactVsShape(body0, body1, shape, tri1, swapped)
     }
 }

@@ -27,8 +27,8 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
 
     private val tmpCI = CollisionAlgorithmConstructionInfo()
 
-    fun registerCollisionCreateFunc(proxyType0: Int, proxyType1: Int, createFunc: CollisionAlgorithmCreateFunc?) {
-        doubleDispatch[proxyType0][proxyType1] = createFunc!!
+    fun registerCollisionCreateFunc(proxyType0: Int, proxyType1: Int, createFunc: CollisionAlgorithmCreateFunc) {
+        doubleDispatch[proxyType0][proxyType1] = createFunc
     }
 
     override fun findAlgorithm(
@@ -37,8 +37,7 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
         val ci = tmpCI
         ci.dispatcher1 = this
         ci.manifold = sharedManifold
-        val createFunc =
-            doubleDispatch[body0.collisionShape!!.shapeType.ordinal][body1.collisionShape!!.shapeType.ordinal]
+        val createFunc = doubleDispatch[body0.collisionShape!!.shapeType.ordinal][body1.collisionShape!!.shapeType.ordinal]
         val algo = createFunc!!.createCollisionAlgorithm(ci, body0, body1)
         algo.internalSetCreateFunc(createFunc)
         return algo
@@ -51,10 +50,7 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
         algo.destroy()
     }
 
-    override fun getNewManifold(body0: Any, body1: Any): PersistentManifold {
-        val body0 = body0 as CollisionObject?
-        val body1 = body1 as CollisionObject?
-
+    override fun getNewManifold(body0: CollisionObject, body1: CollisionObject): PersistentManifold {
         val manifold = manifoldsPool.get()
         manifold.init(body0, body1)
 
@@ -156,7 +152,7 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
     override val numManifolds: Int
         get() = manifoldsPtr.size
 
-    override fun getManifoldByIndexInternal(index: Int): PersistentManifold {
+    override fun getManifold(index: Int): PersistentManifold {
         return manifoldsPtr[index]
     }
 

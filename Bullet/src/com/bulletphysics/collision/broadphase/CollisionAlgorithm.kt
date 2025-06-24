@@ -14,9 +14,7 @@ import com.bulletphysics.collision.narrowphase.PersistentManifold
 abstract class CollisionAlgorithm {
 
     private var createFunc: CollisionAlgorithmCreateFunc? = null
-
-    @JvmField
-    var dispatcher: Dispatcher? = null
+    lateinit var dispatcher: Dispatcher
 
     fun init() {
     }

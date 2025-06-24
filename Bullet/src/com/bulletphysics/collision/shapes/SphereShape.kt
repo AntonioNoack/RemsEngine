@@ -21,23 +21,26 @@ class SphereShape(radius: Double) : ConvexInternalShape() {
             margin = value
         }
 
+    override fun getVolume(): Double {
+        return radius * radius * radius * 4.0 / 3.0 * Math.PI
+    }
+
     // center.length + halfExtents
     override val angularMotionDisc: Double get() = margin
 
     override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
-        out.set(0.0, 0.0, 0.0)
-        return out
+        return out.set(0.0)
     }
 
     override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
         dirs: Array<Vector3d>, outs: Array<Vector3d>, numVectors: Int
     ) {
         for (i in 0 until numVectors) {
-            outs[i].set(0.0, 0.0, 0.0)
+            outs[i].set(0.0)
         }
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         val center = t.origin
         val margin = margin
         center.sub(margin, aabbMin)
@@ -47,9 +50,8 @@ class SphereShape(radius: Double) : ConvexInternalShape() {
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.SPHERE_SHAPE_PROXYTYPE
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         val radius = margin
-        val elem = 0.4 * mass * radius * radius
-        inertia.set(elem, elem, elem)
+        return inertia.set(0.4 * mass * radius * radius)
     }
 }

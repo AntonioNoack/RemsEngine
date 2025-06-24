@@ -2,6 +2,11 @@ package me.anno.maths.geometry.convexhull
 
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertLessThan
+import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.assertions.assertSame
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.count2
@@ -60,46 +65,42 @@ class ConvexHulls {
     }
 
     private fun allocateTriangle(a: Int, b: Int, c: Int): Triangle {
-        val tr = Triangle(a, b, c)
-        tr.id = triangles.size
-        triangles.add(tr)
-        return tr
+        val triangle = Triangle(a, b, c)
+        triangle.id = triangles.size
+        triangles.add(triangle)
+        return triangle
     }
 
     private fun deAllocateTriangle(tri: Triangle) {
-        assert(triangles[tri.id] === tri)
+        assertSame(tri, triangles[tri.id])
         triangles[tri.id] = null
     }
 
-    private fun b2bfix(s: Triangle, t: Triangle) {
-        b2bFixI(s, t, t.y, t.z)
-        b2bFixI(s, t, t.z, t.x)
-        b2bFixI(s, t, t.x, t.y)
-    }
-
     private fun b2bFixI(s: Triangle, t: Triangle, a: Int, b: Int) {
-        assert(triangles[s.getNeighbor(a, b)]!!.getNeighbor(b, a) == s.id)
-        assert(triangles[t.getNeighbor(a, b)]!!.getNeighbor(b, a) == t.id)
+        assertEquals(s.id, triangles[s.getNeighbor(a, b)]!!.getNeighbor(b, a))
+        assertEquals(t.id, triangles[t.getNeighbor(a, b)]!!.getNeighbor(b, a))
         triangles[s.getNeighbor(a, b)]!!.setNeighbor(b, a, t.getNeighbor(b, a))
         triangles[t.getNeighbor(b, a)]!!.setNeighbor(a, b, s.getNeighbor(a, b))
     }
 
     private fun removeB2b(s: Triangle, t: Triangle) {
-        b2bfix(s, t)
+        b2bFixI(s, t, t.y, t.z)
+        b2bFixI(s, t, t.z, t.x)
+        b2bFixI(s, t, t.x, t.y)
         deAllocateTriangle(s)
         deAllocateTriangle(t)
     }
 
-    private fun checkIt(t: Triangle) {
-        assert(triangles[t.id] === t)
-        checkItI(t, t.n.x, t.y, t.z)
-        checkItI(t, t.n.y, t.z, t.x)
-        checkItI(t, t.n.z, t.x, t.y)
+    private fun validateTriangleNeighbors(t: Triangle) {
+        assertSame(t, triangles[t.id])
+        validateTriangleEdge(t, t.n.x, t.y, t.z)
+        validateTriangleEdge(t, t.n.y, t.z, t.x)
+        validateTriangleEdge(t, t.n.z, t.x, t.y)
     }
 
-    private fun checkItI(t: Triangle, tni: Int, a: Int, b: Int) {
-        assert(a != b)
-        assert(triangles[tni]!!.getNeighbor(b, a) == t.id)
+    private fun validateTriangleEdge(t: Triangle, tni: Int, a: Int, b: Int) {
+        assertNotEquals(a, b)
+        assertEquals(t.id, triangles[tni]!!.getNeighbor(b, a))
     }
 
     private fun findExtrudableTriangle(epsilon: Double): Triangle? {
@@ -149,7 +150,7 @@ class ConvexHulls {
         val bounds = JomlPools.aabbd.borrow()
         calculateBounds(vertices, bounds)
         val epsilon = bounds.diagonal * 0.001
-        assert(epsilon != 0.0)
+        if (epsilon == 0.0 || bounds.isEmpty()) return false
 
         val p = findSimplex(vertices, isUsed)
         if (p == null) { // simplex failed
@@ -177,16 +178,16 @@ class ConvexHulls {
         isExtreme[p.z] = true
         isExtreme[p.w] = true
 
-        checkIt(t0)
-        checkIt(t1)
-        checkIt(t2)
-        checkIt(t3)
+        validateTriangleNeighbors(t0)
+        validateTriangleNeighbors(t1)
+        validateTriangleNeighbors(t2)
+        validateTriangleNeighbors(t3)
 
         val dir = newVec()
 
         for (j in triangles.indices) {
             val triangle = checkNotNull(triangles[j])
-            assert(triangle.maxValue < 0)
+            assertLessThan(triangle.maxValue, 0)
             triNormal(vertices[triangle.x], vertices[triangle.y], vertices[triangle.z], dir)
             triangle.maxValue = findVertexForSimplex(vertices, dir, isUsed)
             vertices[triangle.maxValue].sub(vertices[triangle.x], tmp)
@@ -197,8 +198,8 @@ class ConvexHulls {
         while (numRemainingVertices > 0) {
             val te = findExtrudableTriangle(epsilon) ?: break
             val v = te.maxValue
-            assert(v != -1)
-            assert(!isExtreme[v]) // wtf we've already done this vertex
+            assertNotEquals(-1, v)
+            assertFalse(isExtreme[v]) // this should be our first time looking at that vertex
             isExtreme[v] = true
             //if(v==p0 || v==p1 || v==p2 || v==p3) continue; // done these already
 
@@ -220,8 +221,8 @@ class ConvexHulls {
                 tmp1.cross(tmp2, tmp)
                 if (isAbove(vertices, nt, center, 0.01 * epsilon) || tmp.length() < epsilon * epsilon * 0.1) {
                     val nb = checkNotNull(triangles[triangles[j]!!.n.x])
-                    assert(!hasVertex(nb, v))
-                    assert(nb.id < j)
+                    assertFalse(hasVertex(nb, v))
+                    assertLessThan(nb.id, j)
                     extrude(nb, v)
                     j = triangles.size
                 }
@@ -331,9 +332,9 @@ class ConvexHulls {
         tc.n.set(t0.n.z, n, n + 1)
         triangles[t0.n.z]!!.setNeighbor(tx, ty, n + 2)
 
-        checkIt(ta)
-        checkIt(tb)
-        checkIt(tc)
+        validateTriangleNeighbors(ta)
+        validateTriangleNeighbors(tb)
+        validateTriangleNeighbors(tc)
 
         val tax = triangles[ta.n.x]!!
         if (hasVertex(tax, v)) {

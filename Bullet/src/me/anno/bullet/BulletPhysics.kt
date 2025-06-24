@@ -12,22 +12,21 @@ import com.bulletphysics.collision.shapes.CompoundShape
 import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.dynamics.RigidBodyConstructionInfo
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
 import com.bulletphysics.dynamics.vehicle.DefaultVehicleRaycaster
 import com.bulletphysics.dynamics.vehicle.RaycastVehicle
 import com.bulletphysics.dynamics.vehicle.VehicleTuning
 import com.bulletphysics.dynamics.vehicle.WheelInfo
-import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.getComponent
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
+import me.anno.ecs.components.physics.ScaledBody
 import me.anno.ecs.components.physics.events.FallenOutOfWorld
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.debug.DebugLine
@@ -35,9 +34,7 @@ import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.DrawAABB.drawAABB
-import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState.cameraPosition
-import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.LineBuffer.addLine
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.language.translation.NameDesc
@@ -82,22 +79,31 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     @NotSerializedProperty
     private val raycastVehicles = HashMap<Entity, RaycastVehicle>()
 
-    private fun createCollider(entity: Entity, colliders: List<Collider>, scale: org.joml.Vector3d): CollisionShape {
+    private fun createCollider(
+        entity: Entity, colliders: List<Collider>,
+        scale: Vector3d, centerOfMass: Vector3d
+    ): CollisionShape {
         val firstCollider = colliders.first()
-        return if (colliders.size == 1 && firstCollider.entity === entity) {
+        return if (colliders.size == 1 &&
+            firstCollider.entity === entity &&
+            centerOfMass.lengthSquared() == 0.0
+        ) {
             // there is only one, and no transform needs to be applied -> use it directly
             createBulletShape(firstCollider, scale)
         } else {
             val jointCollider = CompoundShape()
             for (collider in colliders) {
-                val (transform, subCollider) = createBulletCollider(collider, entity, scale)
+                val (transform, subCollider) = createBulletCollider(
+                    collider, entity,
+                    centerOfMass, scale
+                )
                 jointCollider.addChildShape(transform, subCollider)
             }
             jointCollider
         }
     }
 
-    override fun createRigidbody(entity: Entity, rigidBody: Rigidbody): BodyWithScale<Rigidbody, RigidBody>? {
+    override fun createRigidbody(entity: Entity, rigidBody: Rigidbody): ScaledBody<Rigidbody, RigidBody>? {
         val colliders = rigidBody.activeColliders
         getValidComponents(entity, Collider::class, colliders)
         colliders.removeIf { !it.hasPhysics }
@@ -105,46 +111,40 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
         // bullet does not work correctly with scale changes: create larger shapes directly
         val globalTransform = entity.transform.globalTransform
-        val scale = globalTransform.getScale(org.joml.Vector3d())
+        val scale = globalTransform.getScale(Vector3d())
+        val centerOfMass = Vector3d(rigidBody.centerOfMass)
 
         // copy all knowledge from ecs to bullet
-        val collider = createCollider(entity, colliders, scale)
+        val collider = createCollider(entity, colliders, scale, centerOfMass)
 
         val inertia = Stack.newVec()
         val mass = max(0.0, rigidBody.mass)
         if (mass > 0.0) {
             collider.calculateLocalInertia(mass, inertia)
         }
-        // LOGGER.info("Inertia for collider: $mass -> $inertia")
 
-        val transform1 = mat4x3ToTransform(globalTransform, scale)
+        val body = RigidBody(mass, collider, inertia)
+        val tmpTransform = body.worldTransform
+        mat4x3ToTransform(globalTransform, scale, centerOfMass, tmpTransform)
+        body.setInitialTransform(tmpTransform)
 
-        // convert the center of mass to a usable transform
-        val com0 = rigidBody.centerOfMass
-        val com1 = Transform()
-        com1.basis.identity()
-        com1.origin.set(com0.x, com0.y, com0.z)
+        body.friction = rigidBody.friction
+        body.restitution = rigidBody.restitution
+        body.linearDamping = rigidBody.linearDamping
+        body.angularDamping = rigidBody.angularDamping
+        body.linearSleepingThreshold = rigidBody.linearSleepingThreshold
+        body.angularSleepingThreshold = rigidBody.angularSleepingThreshold
+        body.ccdMotionThreshold = 1e-7
 
-        val motionState = DefaultMotionState(transform1, com1)
-        val rbInfo = RigidBodyConstructionInfo(mass, motionState, collider, inertia)
-        rbInfo.friction = rigidBody.friction
-        rbInfo.restitution = rigidBody.restitution
-        rbInfo.linearDamping = rigidBody.linearDamping
-        rbInfo.angularDamping = rigidBody.angularDamping
-        rbInfo.linearSleepingThreshold = rigidBody.linearSleepingThreshold
-        rbInfo.angularSleepingThreshold = rigidBody.angularSleepingThreshold
-
-        val rb = RigidBody(rbInfo)
-        rb.ccdMotionThreshold = 1e-7
-        val tmp = Stack.borrowVec()
-        rb.ccdSweptSphereRadius = collider.getBoundingSphere(tmp)
+        val center = Stack.newVec()
+        body.ccdSweptSphereRadius = collider.getBoundingSphere(center)
         if (mass > 0.0) { // else not supported
-            rb.setLinearVelocity(rigidBody.globalLinearVelocity)
-            rb.setAngularVelocity(rigidBody.globalAngularVelocity)
+            body.setLinearVelocity(rigidBody.globalLinearVelocity)
+            body.setAngularVelocity(rigidBody.globalAngularVelocity)
         }
-        Stack.subVec(1)
+        Stack.subVec(2) // inertia, center
 
-        return BodyWithScale(rigidBody, rb, scale)
+        return ScaledBody(rigidBody, body, scale, centerOfMass)
     }
 
     private fun defineVehicle(entity: Entity, vehicleComp: Vehicle, body: RigidBody) {
@@ -203,10 +203,10 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     override fun onCreateRigidbody(
         entity: Entity,
         rigidbody: Rigidbody,
-        bodyWithScale: BodyWithScale<Rigidbody, RigidBody>
+        scaledBody: ScaledBody<Rigidbody, RigidBody>
     ) {
 
-        val body = bodyWithScale.external
+        val body = scaledBody.external
 
         // vehicle stuff
         if (rigidbody is Vehicle) {
@@ -228,10 +228,10 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             body.setGravity(rigidbody.gravity)
         }
 
-        rigidBodies[entity] = bodyWithScale
+        rigidBodies[entity] = scaledBody
         rigidbody.bulletInstance = body
 
-        registerNonStatic(entity, rigidbody.isStatic, bodyWithScale)
+        registerNonStatic(entity, rigidbody.isStatic, scaledBody)
 
         val constraints = rigidbody.linkedConstraints
         for (i in constraints.indices) {
@@ -383,23 +383,25 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         bulletInstance.removeRigidBody(rigidbody)
     }
 
-    override fun convertTransformMatrix(rigidbody: RigidBody, scale: Vector3d, dstTransform: Matrix4x3) {
-        val tmpTransform = Stack.borrowTrans()
-        rigidbody.getWorldTransform(tmpTransform)
-        transformToMat4x3(tmpTransform, scale, dstTransform)
+    override fun convertTransformMatrix(
+        rigidbody: RigidBody, dstTransform: Matrix4x3,
+        scale: Vector3d, centerOfMass: Vector3d
+    ) {
+        val worldTransform = rigidbody.worldTransform
+        transformToMat4x3(worldTransform, scale, centerOfMass, dstTransform)
     }
 
-    override fun updateNonStaticRigidBody(entity: Entity, rigidbodyWithScale: BodyWithScale<Rigidbody, RigidBody>) {
-        super.updateNonStaticRigidBody(entity, rigidbodyWithScale)
-        val (dst, src) = rigidbodyWithScale
+    override fun updateNonStaticRigidBody(entity: Entity, rigidbodyScaled: ScaledBody<Rigidbody, RigidBody>) {
+        super.updateNonStaticRigidBody(entity, rigidbodyScaled)
+        val (dst, src) = rigidbodyScaled
         dst.globalLinearVelocity.set(src.linearVelocity)
         dst.globalAngularVelocity.set(src.angularVelocity)
     }
 
     override fun updateWheels() {
         super.updateWheels()
-        val scale = JomlPools.vec3d.create()
-        scale.set(1.0)
+        val scale = JomlPools.vec3d.create().set(1.0)
+        val centerOfMass = JomlPools.vec3d.create().set(0.0)
         for ((_, v) in raycastVehicles) {
             val wheelInfos = v.wheels
             for (i in wheelInfos.indices) {
@@ -410,16 +412,47 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
                 val dstTransform = dst.globalTransform
                 // todo use correct scale
                 val tr = wheelInfo.worldTransform
-                transformToMat4x3(tr, scale, dstTransform)
+                transformToMat4x3(tr, scale, centerOfMass, dstTransform)
                 dst.setStateAndUpdate(me.anno.ecs.Transform.State.VALID_GLOBAL)
             }
         }
-        JomlPools.vec3d.sub(1)
+        JomlPools.vec3d.sub(2) // scale, centerOfMass
     }
 
+    var enableDebugRendering = false
+
+    @DebugProperty
+    val numManifolds: Int
+        get() = bulletInstance.dispatcher.numManifolds
+
+    @DebugProperty
+    val numContactPoints: Int
+        get() {
+            var sum = 0
+            val dispatcher = bulletInstance.dispatcher
+            for (i in 0 until dispatcher.numManifolds) {
+                sum += dispatcher.getManifold(i).numContacts
+            }
+            return sum
+        }
+
+    @DebugProperty
+    val numIslands: Int
+        get() {
+            val objects = bulletInstance.collisionObjects
+            val islandIds = HashSet<Int>()
+            for (i in objects.indices) {
+                val co = objects[i]
+                val islandId = co.islandTag
+                if (islandId != -1) {
+                    islandIds.add(islandId)
+                }
+            }
+            return islandIds.size
+        }
+
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
-        val view = RenderView.currentInstance
-        if (view?.renderMode != RenderMode.PHYSICS) return
+        if (!enableDebugRendering) return
         // draw stuff
         drawConstraints(pipeline)
         drawColliders(pipeline)
@@ -440,7 +473,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             if (tag < 0) continue // no island available
             // get transformed bounds
             instance.getWorldTransform(transform)
-            instance.collisionShape!!.getAabb(transform, min, max)
+            instance.collisionShape!!.getBounds(transform, min, max)
             // add bounds to island
             boundsById.getOrPut(tag) { AABBd() }
                 .union(min.x, min.y, min.z, max.x, max.y, max.z)
@@ -484,7 +517,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val dispatcher = bulletInstance.dispatcher
         var i = 0
         while (i < dispatcher.numManifolds) {
-            val contact = dispatcher.getManifoldByIndexInternal(i)
+            val contact = dispatcher.getManifold(i)
             drawContactManifold(contact)
             i++
         }
@@ -502,9 +535,8 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val a = point.positionWorldOnB
         val n = point.normalWorldOnB
         val d = 0.05 * cam.distance(a.x, a.y, a.z)
-        val a2 = org.joml.Vector3d(a.x, a.y, a.z)
-        val b2 = org.joml.Vector3d(a.x + n.x * d, a.y + n.y * d, a.z + n.z * d)
-        DebugShapes.debugArrows.add(DebugLine(a2, b2, color, 0f))
+        val b2 = Vector3d(a.x + n.x * d, a.y + n.y * d, a.z + n.z * d)
+        DebugShapes.debugArrows.add(DebugLine(a, b2, color, 0f))
     }
 
     override fun createInspector(
@@ -550,7 +582,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
             try {
                 val shape = colObj.collisionShape!!
-                shape.getAabb(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
+                shape.getBounds(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
                 if (shape is ConvexHullShape) {
                     forLoopSafely(shape.points.size, 3) { idx ->
                         val p1 = Vector3d(shape.points, idx)
@@ -641,7 +673,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         // todo support scale changes, and adjust Entity.scale then, too
         val scale = JomlPools.vec3d.create()
         globalTransform.getScale(scale)
-        val transform = mat4x3ToTransform(globalTransform, scale)
+        val transform = mat4x3ToTransform(globalTransform, scale, rigidbody.centerOfMass, Transform())
         rigidbody.bulletInstance?.setWorldTransform(transform)
         JomlPools.vec3d.sub(1)
     }
@@ -690,19 +722,26 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
         private val LOGGER = LogManager.getLogger(BulletPhysics::class)
 
-        fun mat4x3ToTransform(ourTransform: Matrix4x3, scale: Vector3d): Transform {
-            val transform = Transform()
+        fun mat4x3ToTransform(
+            ourTransform: Matrix4x3, scale: Vector3d,
+            centerOfMass: Vector3d, dst: Transform
+        ): Transform {
             // bullet does not support scale -> we always need to correct it
-            transform.basis.set(ourTransform).scale(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z)
-            transform.origin.set(ourTransform.m30, ourTransform.m31, ourTransform.m32)
-            return transform
+            dst.basis.set(ourTransform).scale(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z)
+            ourTransform.transformDirection(centerOfMass, dst.origin) // local -> world
+            dst.origin.add(ourTransform.m30, ourTransform.m31, ourTransform.m32)
+            return dst
         }
 
-        fun transformToMat4x3(worldTransform: Transform, scale: Vector3d, dstTransform: Matrix4x3) {
+        fun transformToMat4x3(
+            worldTransform: Transform, scale: Vector3d,
+            centerOfMass: Vector3d, dstTransform: Matrix4x3
+        ): Matrix4x3 {
             // bullet does not support scale -> we always need to correct it
-            dstTransform.set(worldTransform.basis)
+            return dstTransform.set(worldTransform.basis)
                 .scale(scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
-                .setTranslation(worldTransform.origin)
+                .translate(-centerOfMass.x, -centerOfMass.y, -centerOfMass.z)
+                .translateLocal(worldTransform.origin)
         }
     }
 }

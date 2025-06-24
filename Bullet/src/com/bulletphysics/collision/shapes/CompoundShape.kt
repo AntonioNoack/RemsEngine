@@ -4,125 +4,52 @@ import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.VectorUtil.getCoord
-import com.bulletphysics.linearmath.VectorUtil.setCoord
-import com.bulletphysics.linearmath.VectorUtil.setMax
-import com.bulletphysics.linearmath.VectorUtil.setMin
-import cz.advel.stack.Stack
-import org.joml.Vector3d
-import com.bulletphysics.util.setMul
-import com.bulletphysics.util.setTranspose
-import com.bulletphysics.util.setScaleAdd
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import me.anno.maths.Maths.clamp
+import org.joml.Vector3d
 
-// JAVA NOTE: CompoundShape from 2.71
 /**
- * CompoundShape allows to store multiple other [CollisionShape]s. This allows
- * for moving concave collision objects. This is more general than the [BvhTriangleMeshShape].
+ * CompoundShape allows to store multiple other [CollisionShape]s.
+ * This allows for moving concave collision objects.
  *
+ * CompoundShape from 2.71
  * @author jezek2
  */
 class CompoundShape : CollisionShape() {
 
     val children = ArrayList<CompoundShapeChild>()
 
-    private val localAabbMin = Vector3d(1e308, 1e308, 1e308)
-    private val localAabbMax = Vector3d(-1e308, -1e308, -1e308)
+    private val localAabbMin = Vector3d(Double.POSITIVE_INFINITY)
+    private val localAabbMax = Vector3d(Double.NEGATIVE_INFINITY)
 
     init {
         margin = 0.0
     }
 
-    val localScaling: Vector3d = Vector3d(1.0, 1.0, 1.0)
+    val localScaling: Vector3d = Vector3d(1.0)
 
-    @Suppress("unused")
     fun addChildShape(localTransform: Transform, shape: CollisionShape) {
         children.add(CompoundShapeChild(localTransform, shape))
 
         // extend the local aabbMin/aabbMax
-        val localAabbMin = Stack.newVec()
-        val localAabbMax = Stack.newVec()
-        shape.getAabb(localTransform, localAabbMin, localAabbMax)
+        val childAabbMin = Stack.newVec()
+        val childAabbMax = Stack.newVec()
+        shape.getBounds(localTransform, childAabbMin, childAabbMax)
 
-        setMin(this.localAabbMin, localAabbMin)
-        setMax(this.localAabbMax, localAabbMax)
+        this.localAabbMin.min(childAabbMin)
+        this.localAabbMax.max(childAabbMax)
         Stack.subVec(2)
-    }
-
-    /**
-     * Remove all children shapes that contain the specified shape.
-     */
-    @Suppress("unused")
-    fun removeChildShape(shape: CollisionShape?) {
-        var doneRemoving: Boolean
-
-        // Find the children containing the shape specified, and remove those children.
-        do {
-            doneRemoving = true
-            for (i in children.indices) {
-                if (children[i].childShape === shape) {
-                    children.removeAt(i)
-                    doneRemoving = false // Do another iteration pass after removing from the vector
-                    break
-                }
-            }
-        } while (!doneRemoving)
-
-        recalculateLocalAabb()
-    }
-
-    val numChildShapes: Int
-        get() = children.size
-
-    fun getChildShape(index: Int): CollisionShape {
-        return children[index].childShape
-    }
-
-    fun getChildTransform(index: Int, out: Transform): Transform {
-        out.set(children[index].transform)
-        return out
     }
 
     /**
      * getAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version.
      */
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         AabbUtil.transformAabb(
             localAabbMin, localAabbMax, margin,
             t, aabbMin, aabbMax
         )
-    }
-
-    /**
-     * Re-calculate the local Aabb. Is called at the end of removeChildShapes.
-     * Use this yourself if you modify the children or their transforms.
-     */
-    fun recalculateLocalAabb() {
-        // Recalculate the local aabb
-        // Brute force, it iterates over all the shapes left.
-        localAabbMin.set(1e308, 1e308, 1e308)
-        localAabbMax.set(-1e308, -1e308, -1e308)
-
-        val tmpLocalAabbMin = Stack.newVec()
-        val tmpLocalAabbMax = Stack.newVec()
-
-        // extend the local aabbMin/aabbMax
-        for (j in children.indices) {
-            children[j].childShape.getAabb(
-                children[j].transform,
-                tmpLocalAabbMin,
-                tmpLocalAabbMax
-            )
-
-            for (i in 0..2) {
-                if (getCoord(localAabbMin, i) > getCoord(tmpLocalAabbMin, i)) {
-                    setCoord(localAabbMin, i, getCoord(tmpLocalAabbMin, i))
-                }
-                if (getCoord(localAabbMax, i) < getCoord(tmpLocalAabbMax, i)) {
-                    setCoord(localAabbMax, i, getCoord(tmpLocalAabbMax, i))
-                }
-            }
-        }
     }
 
     override fun setLocalScaling(scaling: Vector3d) {
@@ -130,32 +57,29 @@ class CompoundShape : CollisionShape() {
     }
 
     override fun getLocalScaling(out: Vector3d): Vector3d {
-        out.set(localScaling)
-        return out
+        return out.set(localScaling)
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
-        // approximation: take the inertia from the aabb for now
-        val ident = Stack.newTrans()
-        ident.setIdentity()
-        val aabbMin = Stack.newVec()
-        val aabbMax = Stack.newVec()
-        getAabb(ident, aabbMin, aabbMax)
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
 
-        val halfExtents = Stack.newVec()
-        halfExtents.setSub(aabbMax, aabbMin)
-        halfExtents.mul(0.5)
+        val masses = DoubleArray(children.size)
+        var totalMass = 0.0
+        val massLimit = 1e100
+        for (i in children.indices) {
+            val childShape = children[i].shape
+            var childMass = childShape.getVolume() * childShape.density
+            childMass = clamp(childMass, -massLimit, massLimit)
+            masses[i] = childMass
+            totalMass += childMass
+        }
 
-        val lx = 2.0 * halfExtents.x
-        val ly = 2.0 * halfExtents.y
-        val lz = 2.0 * halfExtents.z
-
-        inertia.x = (mass / 12f) * (ly * ly + lz * lz)
-        inertia.y = (mass / 12f) * (lx * lx + lz * lz)
-        inertia.z = (mass / 12f) * (lx * lx + ly * ly)
-
-        Stack.subVec(3)
+        val identity = Stack.newTrans()
+        identity.setIdentity()
+        calculatePrincipalAxisTransform(masses, identity, inertia)
+        inertia.mul(mass / totalMass)
         Stack.subTrans(1)
+
+        return inertia
     }
 
     override val shapeType: BroadphaseNativeType
@@ -171,79 +95,64 @@ class CompoundShape : CollisionShape() {
      * with the principal axes. This also necessitates a correction of the world transform
      * of the collision object by the principal transform.
      */
-    @Suppress("unused")
     fun calculatePrincipalAxisTransform(masses: DoubleArray, principal: Transform, inertia: Vector3d) {
-        val n = children.size
-
         var totalMass = 0.0
         val center = Stack.newVec()
         center.set(0.0, 0.0, 0.0)
-        for (k in 0 until n) {
-            center.setScaleAdd(masses[k], children[k].transform.origin, center)
-            totalMass += masses[k]
+        for (i in children.indices) {
+            val mass = masses[i]
+            center.fma(mass, children[i].transform.origin)
+            totalMass += mass
         }
         center.mul(1.0 / totalMass)
         principal.setTranslation(center)
 
-        val tensor = Stack.newMat()
-        tensor.zero()
+        val tensorSum = Stack.newMat()
+        val childTensor = Stack.newMat()
+        val localInertia = Stack.newVec()
+        tensorSum.zero()
 
-        for (k in 0 until n) {
-            val i = Stack.newVec()
-            children[k].childShape.calculateLocalInertia(masses[k], i)
+        for (i in children.indices) {
+            val child = children[i]
 
-            val t = children[k].transform
-            val o = Stack.newVec()
-            o.setSub(t.origin, center)
+            val mass = masses[i]
+            child.shape.calculateLocalInertia(mass, localInertia)
+
+            val childTransform = child.transform
+            val offset = Stack.newVec()
+            offset.setSub(childTransform.origin, center)
 
             // compute inertia tensor in coordinate system of compound shape
-            val j = Stack.newMat()
-            j.setTranspose(t.basis)
-
-            j.m00 *= i.x
-            j.m10 *= i.x
-            j.m20 *= i.x
-            j.m01 *= i.y
-            j.m11 *= i.y
-            j.m21 *= i.y
-            j.m02 *= i.z
-            j.m12 *= i.z
-            j.m22 *= i.z
-
-            j.setMul(t.basis, j)
+            childTransform.basis.transpose(childTensor)
+            childTensor.scaleLocal(localInertia)
+            childTransform.basis.mul(childTensor, childTensor)
 
             // add inertia tensor
-            tensor.add(j)
+            tensorSum.add(childTensor)
 
-            // compute inertia tensor of pointmass at o
-            val o2 = o.lengthSquared()
-            j.setRow(0, o2, 0.0, 0.0)
-            j.setRow(1, 0.0, o2, 0.0)
-            j.setRow(2, 0.0, 0.0, o2)
-            j.m00 += o.x * -o.x
-            j.m10 += o.y * -o.x
-            j.m20 += o.z * -o.x
-            j.m01 += o.x * -o.y
-            j.m11 += o.y * -o.y
-            j.m21 += o.z * -o.y
-            j.m02 += o.x * -o.z
-            j.m12 += o.y * -o.z
-            j.m22 += o.z * -o.z
+            // compute inertia tensor of pointmass at offset and add inertia tensor of pointmass
+            val (ox, oy, oz) = offset
+            val x2 = mass * ox * ox
+            val y2 = mass * oy * oy
+            val z2 = mass * oz * oz
+            tensorSum.m00 += y2 + z2
+            tensorSum.m11 += x2 + z2
+            tensorSum.m22 += x2 + y2
 
-            // add inertia tensor of pointmass
-            tensor.m00 += masses[k] * j.m00
-            tensor.m10 += masses[k] * j.m10
-            tensor.m20 += masses[k] * j.m20
-            tensor.m01 += masses[k] * j.m01
-            tensor.m11 += masses[k] * j.m11
-            tensor.m21 += masses[k] * j.m21
-            tensor.m02 += masses[k] * j.m02
-            tensor.m12 += masses[k] * j.m12
-            tensor.m22 += masses[k] * j.m22
+            val xy = mass * ox * oy
+            tensorSum.m01 -= xy
+            tensorSum.m10 -= xy
+
+            val xz = mass * ox * oz
+            tensorSum.m02 -= xz
+            tensorSum.m20 -= xz
+
+            val yz = mass * oy * oz
+            tensorSum.m12 -= yz
+            tensorSum.m21 -= yz
         }
 
-        MatrixUtil.diagonalize(tensor, principal.basis, 0.00001, 20)
-
-        inertia.set(tensor.m00, tensor.m11, tensor.m22)
+        MatrixUtil.diagonalize(tensorSum, principal.basis, 0.00001, 20)
+        inertia.set(tensorSum.m00, tensorSum.m11, tensorSum.m22)
     }
 }

@@ -416,7 +416,11 @@ open class Matrix3d : Matrix<Matrix3d, Vector3d, Vector3d> {
 
     @JvmOverloads
     fun scale(x: Double, y: Double, z: Double, dst: Matrix3d = this): Matrix3d {
-        return dst.set(m00 * x, m01 * x, m02 * x, m10 * y, m11 * y, m12 * y, m20 * z, m21 * z, m22 * z)
+        return dst.set(
+            m00 * x, m01 * x, m02 * x,
+            m10 * y, m11 * y, m12 * y,
+            m20 * z, m21 * z, m22 * z
+        )
     }
 
     @JvmOverloads
@@ -431,16 +435,11 @@ open class Matrix3d : Matrix<Matrix3d, Vector3d, Vector3d> {
 
     @JvmOverloads
     fun scaleLocal(x: Double, y: Double, z: Double, dst: Matrix3d = this): Matrix3d {
-        val nm00 = x * m00
-        val nm01 = y * m01
-        val nm02 = z * m02
-        val nm10 = x * m10
-        val nm11 = y * m11
-        val nm12 = z * m12
-        val nm20 = x * m20
-        val nm21 = y * m21
-        val nm22 = z * m22
-        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
+        return dst.set(
+            m00 * x, m01 * y, m02 * z,
+            m10 * x, m11 * y, m12 * z,
+            m20 * x, m21 * y, m22 * z
+        )
     }
 
     fun rotation(angle: Double, axis: Vector3d): Matrix3d {

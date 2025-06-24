@@ -2,8 +2,6 @@ package me.anno.tests.physics
 
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.dynamics.RigidBodyConstructionInfo
-import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
@@ -26,32 +24,28 @@ private fun libraryTest3d() {
 
     world.addRigidBody(
         RigidBody(
-            RigidBodyConstructionInfo(
-                0.0,
-                DefaultMotionState(
-                    Transform()
-                        .apply {
-                            origin.set(0.0, -10.0, 0.0)
-                            basis.identity()
-                        }),
-                BoxShape(Vector3d(50.0, 5.0, 50.0)),
-                Vector3d()
-            )
-        )
+            0.0,
+            BoxShape(Vector3d(50.0, 5.0, 50.0)),
+            Vector3d()
+        ).apply {
+            val transform = worldTransform
+            transform.setIdentity()
+            transform.setTranslation(0.0, -10.0, 0.0)
+            setInitialTransform(transform)
+        }
     )
 
     val boxBody = RigidBody(
-        RigidBodyConstructionInfo(
-            1.0,
-            DefaultMotionState(Transform()
-                .apply {
-                    origin.set(0.0, +10.0, 0.0)
-                    basis.identity()
-                }),
-            BoxShape(Vector3d(1.0, 1.0, 1.0)),
-            Vector3d()
-        )
-    )
+        1.0,
+        BoxShape(Vector3d(1.0, 1.0, 1.0)),
+        Vector3d()
+    ).apply {
+        val transform = worldTransform
+        transform.setIdentity()
+        transform.setTranslation(0.0, +10.0, 0.0)
+        setInitialTransform(transform)
+    }
+
     world.addRigidBody(boxBody)
 
     repeat(10) {

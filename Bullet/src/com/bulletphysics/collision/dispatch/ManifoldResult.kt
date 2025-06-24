@@ -131,9 +131,7 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
 
     fun refreshContactPoints() {
         val manifold = checkNotNull(manifold)
-        if (manifold.numContacts == 0) {
-            return
-        }
+        if (manifold.numContacts == 0) return
 
         val swapped = manifold.body0 !== body0
         if (swapped) {

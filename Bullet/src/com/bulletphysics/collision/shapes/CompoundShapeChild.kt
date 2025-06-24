@@ -7,7 +7,7 @@ import com.bulletphysics.linearmath.Transform
  *
  * @author jezek2
  */
-data class CompoundShapeChild(
+class CompoundShapeChild(
     val transform: Transform,
-    val childShape: CollisionShape
+    val shape: CollisionShape
 )

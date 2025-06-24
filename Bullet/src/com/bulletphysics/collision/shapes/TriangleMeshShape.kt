@@ -54,7 +54,7 @@ abstract class TriangleMeshShape constructor(val meshInterface: StridingMeshInte
         }
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         AabbUtil.transformAabb(
             localAabbMin, localAabbMax, margin,
             t, aabbMin, aabbMax
@@ -67,12 +67,10 @@ abstract class TriangleMeshShape constructor(val meshInterface: StridingMeshInte
         meshInterface!!.internalProcessAllTriangles(filterCallback, aabbMin, aabbMax)
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         // moving concave objects not supported
-        assert(false)
-        inertia.set(0.0, 0.0, 0.0)
+        return inertia.set(0.0)
     }
-
 
     override fun setLocalScaling(scaling: Vector3d) {
         meshInterface!!.setScaling(scaling)

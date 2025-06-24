@@ -59,7 +59,7 @@ internal class ConvexTriangleCallback(
         convexInTriangleSpace.mul(convexBody.getWorldTransform(Stack.newTrans()))
 
         val convexShape = convexBody.collisionShape
-        convexShape!!.getAabb(convexInTriangleSpace, aabbMin, aabbMax)
+        convexShape!!.getBounds(convexInTriangleSpace, aabbMin, aabbMax)
         val extra = Stack.newVec()
         extra.set(collisionMarginTriangle, collisionMarginTriangle, collisionMarginTriangle)
 
@@ -110,11 +110,11 @@ internal class ConvexTriangleCallback(
             val tmpShape = ob.collisionShape
             ob.collisionShape = (tm)
 
-            val colAlgo = ci.dispatcher1!!.findAlgorithm(convexBody, triBody, manifoldPtr)
+            val colAlgo = ci.dispatcher1.findAlgorithm(convexBody, triBody, manifoldPtr)
 
             resultOut!!.setShapeIdentifiers(-1, -1, partId, triangleIndex)
             colAlgo!!.processCollision(convexBody, triBody, dispatchInfoPtr!!, resultOut!!)
-            ci.dispatcher1!!.freeCollisionAlgorithm(colAlgo)
+            ci.dispatcher1.freeCollisionAlgorithm(colAlgo)
             ob.collisionShape = (tmpShape)
         }
     }

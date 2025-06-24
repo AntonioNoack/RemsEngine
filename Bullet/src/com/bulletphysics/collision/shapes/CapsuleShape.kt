@@ -7,11 +7,11 @@ import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.getCoord
 import com.bulletphysics.linearmath.VectorUtil.mul
 import com.bulletphysics.linearmath.VectorUtil.setCoord
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setScale
+import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.Axis
+import org.joml.Vector3d
 import kotlin.math.sqrt
 
 /**
@@ -31,6 +31,15 @@ open class CapsuleShape(radius: Double, height: Double, val upAxis: Axis) : Conv
     init {
         implicitShapeDimensions.set(radius)
         setCoord(implicitShapeDimensions, upAxis.id, 0.5 * height)
+    }
+
+    override fun getVolume(): Double {
+        val radius = radius
+        // common parts have been extracted
+        val commonPart = radius * radius * Math.PI
+        val sphereVolume = radius * 4.0 / 3.0
+        val cylinderVolume = halfHeight * 2.0
+        return (sphereVolume + cylinderVolume) * commonPart
     }
 
     override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
@@ -101,11 +110,11 @@ open class CapsuleShape(radius: Double, height: Double, val upAxis: Axis) : Conv
         throw UnsupportedOperationException("Not supported yet.")
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         // as an approximation, take the inertia of the box that bounds the spheres
 
-        val ident = Stack.newTrans()
-        ident.setIdentity()
+        val identity = Stack.newTrans()
+        identity.setIdentity()
 
         val radius = this.radius
 
@@ -129,12 +138,14 @@ open class CapsuleShape(radius: Double, height: Double, val upAxis: Axis) : Conv
 
         Stack.subVec(1)
         Stack.subTrans(1)
+
+        return inertia
     }
 
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.CAPSULE_SHAPE_PROXYTYPE
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         val radius = radius
         val halfExtents = Stack.newVec()
         halfExtents.set(radius)

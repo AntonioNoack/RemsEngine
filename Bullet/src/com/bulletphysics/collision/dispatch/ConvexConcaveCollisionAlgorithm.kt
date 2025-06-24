@@ -216,25 +216,7 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
             body1: CollisionObject
         ): CollisionAlgorithm {
             val algo = pool.get()
-            algo.init(ci, body0, body1, false)
-            return algo
-        }
-
-        override fun releaseCollisionAlgorithm(algo: CollisionAlgorithm) {
-            pool.release(algo as ConvexConcaveCollisionAlgorithm)
-        }
-    }
-
-    class SwappedCreateFunc : CollisionAlgorithmCreateFunc() {
-        private val pool = ObjectPool.Companion.get(ConvexConcaveCollisionAlgorithm::class.java)
-
-        override fun createCollisionAlgorithm(
-            ci: CollisionAlgorithmConstructionInfo,
-            body0: CollisionObject,
-            body1: CollisionObject
-        ): CollisionAlgorithm {
-            val algo = pool.get()
-            algo.init(ci, body0, body1, true)
+            algo.init(ci, body0, body1, swapped)
             return algo
         }
 

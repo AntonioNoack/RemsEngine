@@ -47,7 +47,7 @@ abstract class GImpactShapeInterface : ConcaveShape() {
      *
      * Calls updateBound() for update the box set.
      */
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         val aabb = AABB(localAABB)
         aabb.applyTransform(t)
         aabbMin.set(aabb.min)

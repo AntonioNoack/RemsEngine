@@ -8,9 +8,9 @@ package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.dynamics.RigidBody
+import com.bulletphysics.util.setScale
 import cz.advel.stack.Stack
 import org.joml.Vector3d
-import com.bulletphysics.util.setScale
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -57,6 +57,7 @@ class RotationalLimitMotor {
      * 0=free, 1=at low limit, 2=at high limit
      */
     var currentLimit: Int = 0
+
     @JvmField
     var accumulatedImpulse: Double = 0.0
 
@@ -119,7 +120,8 @@ class RotationalLimitMotor {
         maxMotorForce *= timeStep
 
         // current velocity difference
-        val velocityDifference = body0.getAngularVelocity(Stack.newVec())
+        val velocityDifference = Stack.newVec()
+        velocityDifference.set(body0.angularVelocity)
         if (body1 != null) {
             velocityDifference.sub(body1.angularVelocity)
         }

@@ -11,14 +11,14 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.getCoord
 import com.bulletphysics.linearmath.VectorUtil.setCoord
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setCross
 import com.bulletphysics.util.setNegate
 import com.bulletphysics.util.setNormalize
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setScaleAdd
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.atan2
 
@@ -180,34 +180,30 @@ class SliderConstraint : TypedConstraint {
     }
 
     fun buildJacobianInt(rbA: RigidBody, rbB: RigidBody, frameInA: Transform, frameInB: Transform) {
-        val tmpTrans = Stack.newTrans()
         val tmpTrans1 = Stack.newTrans()
         val tmpTrans2 = Stack.newTrans()
         val tmp = Stack.newVec()
         val tmp2 = Stack.newVec()
 
         // calculate transforms
-        calculatedTransformA.setMul(rbA.getCenterOfMassTransform(tmpTrans), frameInA)
-        calculatedTransformB.setMul(rbB.getCenterOfMassTransform(tmpTrans), frameInB)
+        calculatedTransformA.setMul(rbA.worldTransform, frameInA)
+        calculatedTransformB.setMul(rbB.worldTransform, frameInB)
         realPivotAInW.set(calculatedTransformA.origin)
         realPivotBInW.set(calculatedTransformB.origin)
         calculatedTransformA.basis.getColumn(0, tmp)
         sliderAxis.set(tmp) // along X
         delta.setSub(realPivotBInW, realPivotAInW)
         projPivotInW.setScaleAdd(sliderAxis.dot(delta), sliderAxis, realPivotAInW)
-        relPosA.setSub(projPivotInW, rbA.getCenterOfMassPosition(tmp))
-        relPosB.setSub(realPivotBInW, rbB.getCenterOfMassPosition(tmp))
+        relPosA.setSub(projPivotInW, rbA.worldTransform.origin)
+        relPosB.setSub(realPivotBInW, rbB.worldTransform.origin)
         val normalWorld = Stack.newVec()
 
         // linear part
-        for (i in 0..2) {
+        for (i in 0 until 3) {
             calculatedTransformA.basis.getColumn(i, normalWorld)
 
-            val mat1 = rbA.getCenterOfMassTransform(tmpTrans1).basis
-            mat1.transpose()
-
-            val mat2 = rbB.getCenterOfMassTransform(tmpTrans2).basis
-            mat2.transpose()
+            val mat1 = rbA.worldTransform.basis.transpose(tmpTrans1.basis)
+            val mat2 = rbB.worldTransform.basis.transpose(tmpTrans2.basis)
 
             jacLin[i].init(
                 mat1,
@@ -234,6 +230,9 @@ class SliderConstraint : TypedConstraint {
         // clear accumulator for motors
         accumulatedLinearMotorImpulse = 0.0
         accumulatedAngMotorImpulse = 0.0
+
+        Stack.subTrans(2)
+        Stack.subVec(4)
     }
 
     fun solveConstraintInt(rbA: RigidBody, rbB: RigidBody) {
@@ -255,11 +254,18 @@ class SliderConstraint : TypedConstraint {
             val depth = getCoord(this.depth, i)
             // get parameters
             val softness =
-                if (i != 0) softnessOrthogonalLinear else if (solveLinLim) softnessLimitLinear else softnessDirLinear
+                if (i != 0) softnessOrthogonalLinear
+                else if (solveLinLim) softnessLimitLinear
+                else softnessDirLinear
             val restitution =
-                if (i != 0) restitutionOrthogonalLinear else if (solveLinLim) restitutionLimitLinear else restitutionDirLinear
+                if (i != 0) restitutionOrthogonalLinear
+                else if (solveLinLim) restitutionLimitLinear
+                else restitutionDirLinear
             val damping =
-                if (i != 0) dampingOrthogonalLinear else if (solveLinLim) dampingLimitLinear else dampingDirLinear
+                if (i != 0) dampingOrthogonalLinear
+                else if (solveLinLim) dampingLimitLinear
+                else dampingDirLinear
+
             // calculate and apply impulse
             var normalImpulse = softness * (restitution * depth / timeStep - damping * relVel) * jacLinDiagABInv[i]
             if (abs(normalImpulse) > breakingImpulseThreshold) {
@@ -326,8 +332,8 @@ class SliderConstraint : TypedConstraint {
         if (len > 0.00001) {
             val normal = Stack.newVec()
             normal.setNormalize(velRelOrthogonal)
-            val denominator =
-                rbA.computeAngularImpulseDenominator(normal) + rbB.computeAngularImpulseDenominator(normal)
+            val denominator = rbA.computeAngularImpulseDenominator(normal) +
+                    rbB.computeAngularImpulseDenominator(normal)
             velRelOrthogonal.mul((1.0 / denominator) * dampingOrthogonalAngular * softnessOrthogonalAngular)
         }
 
@@ -339,8 +345,8 @@ class SliderConstraint : TypedConstraint {
         if (len2 > 0.00001) {
             val normal2 = Stack.newVec()
             normal2.setNormalize(angularError)
-            val denominator =
-                rbA.computeAngularImpulseDenominator(normal2) + rbB.computeAngularImpulseDenominator(normal2)
+            val denominator = rbA.computeAngularImpulseDenominator(normal2) +
+                    rbB.computeAngularImpulseDenominator(normal2)
             angularError.mul((1.0 / denominator) * restitutionOrthogonalAngular * softnessOrthogonalAngular)
         }
 
@@ -373,40 +379,41 @@ class SliderConstraint : TypedConstraint {
         rbA.applyTorqueImpulse(impulse)
         tmp.setNegate(impulse)
         rbB.applyTorqueImpulse(tmp)
+        Stack.subVec(1) // impulse
 
         // apply angular motor
-        if (poweredAngularMotor) {
-            if (accumulatedAngMotorImpulse < maxAngularMotorForce) {
-                val velRel = Stack.newVec()
-                velRel.setSub(angVelAroundAxisA, angVelAroundAxisB)
-                val projRelVel = velRel.dot(axisA)
+        if (poweredAngularMotor && accumulatedAngMotorImpulse < maxAngularMotorForce) {
+            val velRel = Stack.newVec()
+            velRel.setSub(angVelAroundAxisA, angVelAroundAxisB)
+            val projRelVel = velRel.dot(axisA)
 
-                val desiredMotorVel = targetAngularMotorVelocity
-                val motorRelVel = desiredMotorVel - projRelVel
+            val desiredMotorVel = targetAngularMotorVelocity
+            val motorRelVel = desiredMotorVel - projRelVel
 
-                var angImpulse = kAngle * motorRelVel
-                if (abs(angImpulse) > breakingImpulseThreshold) {
-                    isBroken = true
-                    angImpulse = 0.0
-                }
-
-                // clamp accumulated impulse
-                var newAcc = accumulatedAngMotorImpulse + abs(angImpulse)
-                if (newAcc > maxAngularMotorForce) {
-                    newAcc = maxAngularMotorForce
-                }
-                val del = newAcc - accumulatedAngMotorImpulse
-                angImpulse = if (angImpulse < 0.0) -del else del
-
-                accumulatedAngMotorImpulse = newAcc
-
-                // apply clamped impulse
-                val motorImp = Stack.newVec()
-                motorImp.setScale(angImpulse, axisA)
-                rbA.applyTorqueImpulse(motorImp)
-                tmp.setNegate(motorImp)
-                rbB.applyTorqueImpulse(tmp)
+            var angImpulse = kAngle * motorRelVel
+            if (abs(angImpulse) > breakingImpulseThreshold) {
+                isBroken = true
+                angImpulse = 0.0
             }
+
+            // clamp accumulated impulse
+            var newAcc = accumulatedAngMotorImpulse + abs(angImpulse)
+            if (newAcc > maxAngularMotorForce) {
+                newAcc = maxAngularMotorForce
+            }
+            val del = newAcc - accumulatedAngMotorImpulse
+            angImpulse = if (angImpulse < 0.0) -del else del
+
+            accumulatedAngMotorImpulse = newAcc
+
+            // apply clamped impulse
+            val motorImp = Stack.newVec()
+            motorImp.setScale(angImpulse, axisA)
+            rbA.applyTorqueImpulse(motorImp)
+            tmp.setNegate(motorImp)
+            rbB.applyTorqueImpulse(tmp)
+
+            Stack.subVec(2) // motorImp, velRel
         }
     }
 

@@ -3,15 +3,15 @@ package me.anno.ecs.components.mesh
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.io.files.FileReference
-import me.anno.mesh.Shapes.flatCube
 
 open class MeshComponent() : MeshComponentBase() {
 
     companion object {
         // using the flat cube as a default mesh seems a good choice :)
-        private val defaultMeshRef = flatCube.front.ref
+        private val defaultMeshRef = flatCube.ref
     }
 
     constructor(mesh: FileReference) : this() {

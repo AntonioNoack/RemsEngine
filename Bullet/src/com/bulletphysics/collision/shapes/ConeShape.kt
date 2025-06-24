@@ -2,13 +2,14 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
+import com.bulletphysics.collision.shapes.BoxShape.Companion.boxInertia
 import com.bulletphysics.linearmath.VectorUtil.getCoord
 import com.bulletphysics.linearmath.VectorUtil.setCoord
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setScaleAdd
+import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.Axis
-import kotlin.math.sqrt
+import org.joml.Vector3d
+import kotlin.math.hypot
 
 /**
  * ConeShape implements a cone shape primitive, centered around the origin and
@@ -18,11 +19,15 @@ import kotlin.math.sqrt
  */
 open class ConeShape(val radius: Double, val height: Double, val upAxis: Axis) : ConvexInternalShape() {
 
-    private val sinAngle: Double = (radius / sqrt(this.radius * this.radius + this.height * this.height))
+    private val sinAngle: Double = 1.0 / hypot(1.0, height / radius)
 
     val upAxisId get() = upAxis.id
     val secondary get() = upAxis.secondary
     val tertiary get() = upAxis.tertiary
+
+    override fun getVolume(): Double {
+        return radius * radius * height / 3.0
+    }
 
     private fun coneLocalSupport(v: Vector3d, out: Vector3d): Vector3d {
         val halfHeight = height * 0.5
@@ -33,7 +38,7 @@ open class ConeShape(val radius: Double, val height: Double, val upAxis: Axis) :
         } else {
             val v0 = getCoord(v, secondary)
             val v2 = getCoord(v, tertiary)
-            val s = sqrt(v0 * v0 + v2 * v2)
+            val s = hypot(v0, v2)
             if (s > BulletGlobals.FLT_EPSILON) {
                 val d = radius / s
                 setCoord(out, secondary, getCoord(v, secondary) * d)
@@ -78,29 +83,11 @@ open class ConeShape(val radius: Double, val height: Double, val upAxis: Axis) :
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.CONE_SHAPE_PROXYTYPE
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
-        val identity = Stack.newTrans()
-        identity.setIdentity()
-        val aabbMin = Stack.newVec()
-        val aabbMax = Stack.newVec()
-        getAabb(identity, aabbMin, aabbMax)
-
-        val halfExtents = Stack.newVec()
-        aabbMax.sub(aabbMin, halfExtents).mul(0.5)
-
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+        // todo surely, there's a better formula than just the box inertia...
+        // also, should the margin be part of this? -> yes, better that way
         val margin = margin
-        val lx = 2.0 * (halfExtents.x + margin)
-        val ly = 2.0 * (halfExtents.y + margin)
-        val lz = 2.0 * (halfExtents.z + margin)
-        val x2 = lx * lx
-        val y2 = ly * ly
-        val z2 = lz * lz
-        val scaledMass = mass * 0.08333333f
-
-        inertia.set(y2 + z2, x2 + z2, x2 + y2)
-        inertia.mul(scaledMass)
-
-        Stack.subVec(3)
-        Stack.subTrans(1)
+        boxInertia(radius + margin, radius + margin, height * 0.5 + margin, mass, inertia)
+        return inertia
     }
 }

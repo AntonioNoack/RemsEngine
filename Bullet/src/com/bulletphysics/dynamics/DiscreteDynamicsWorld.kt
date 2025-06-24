@@ -85,8 +85,8 @@ class DiscreteDynamicsWorld(
 
     fun synchronizeMotionStates() {
 
-        val interpolatedTransform = Stack.newTrans()
         var stackPos: IntArray? = null
+        /*val interpolatedTransform = Stack.newTrans()
         // todo: iterate over awake simulation islands!
         for (i in 0 until collisionObjects.size) {
             val colObj = collisionObjects[i]
@@ -107,15 +107,15 @@ class DiscreteDynamicsWorld(
                 Stack.reset(stackPos)
             }
         }
-        Stack.subTrans(1)
+        Stack.subTrans(1)*/
 
         if (debugDrawer != null && (debugDrawer!!.debugMode and DebugDrawModes.DRAW_WIREFRAME) != 0) {
             for (i in vehicles.indices) {
                 val vehicle = vehicles[i]
                 for (v in 0 until vehicle.numWheels) {
                     stackPos = Stack.getPosition(stackPos)
-                    // synchronize the wheels with the (interpolated) chassis worldtransform
-                    vehicle.updateWheelTransform(v, true)
+                    // synchronize the wheels with the chassis worldtransform
+                    vehicle.updateWheelTransform(v)
                     Stack.reset(stackPos)
                 }
             }
@@ -577,7 +577,7 @@ class DiscreteDynamicsWorld(
                 val tmpSphere = tmpSphere.get()
                 tmpSphere.radius = self.ccdSweptSphereRadius
 
-                val broadphase = self.broadphaseProxy!!
+                val broadphase = self.broadphaseHandle!!
                 results.collisionFilterGroup = broadphase.collisionFilterGroup
                 results.collisionFilterMask = broadphase.collisionFilterMask
 

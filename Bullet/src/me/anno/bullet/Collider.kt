@@ -204,14 +204,18 @@ fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
     }
 }
 
-fun createBulletCollider(collider: Collider, base: Entity, scale: Vector3d): Pair<Transform, CollisionShape> {
+fun createBulletCollider(
+    collider: Collider, base: Entity,
+    scale: Vector3d, centerOfMass: Vector3d
+): Pair<Transform, CollisionShape> {
     val transform0 = collider.entity!!.fromLocalToOtherLocal(base)
     // there may be extra scale hidden in there
     val extraScale = transform0.getScale(Vector3d())
     val totalScale = Vector3d(scale).mul(extraScale)
-    val shape = createBulletShape(collider, totalScale)
-    val transform = mat4x3ToTransform(transform0, extraScale)
-    return transform to shape
+    return mat4x3ToTransform(
+        transform0, extraScale,
+        centerOfMass, Transform()
+    ) to createBulletShape(collider, totalScale)
 }
 
 @JvmField

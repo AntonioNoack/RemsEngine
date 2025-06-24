@@ -70,7 +70,7 @@ fun main() {
                 if (false) {
                     val dispatcher = bulletInstance.dispatcher
                     for (i in 0 until dispatcher.numManifolds) {
-                        val contactManifold = dispatcher.getManifoldByIndexInternal(i)
+                        val contactManifold = dispatcher.getManifold(i)
                         if (contactManifold.numContacts < 1) continue
                         val a = contactManifold.body0!!
                         val b = contactManifold.body1!!

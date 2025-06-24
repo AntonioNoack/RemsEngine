@@ -22,7 +22,12 @@ open class CylinderShape(halfExtents: Vector3d, val upAxis: Axis) : BoxShape(hal
         recalculateLocalAabb()
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getVolume(): Double {
+        val boxVolume = super.getVolume()
+        return boxVolume * Math.PI / 4.0
+    }
+
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         getAabbBase(t, aabbMin, aabbMax)
     }
 

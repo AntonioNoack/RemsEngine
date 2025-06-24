@@ -2,14 +2,14 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Vector3d
 
 /**
  * UniformScalingShape allows to re-use uniform scaled instances of [ConvexShape]
- * in a memory efficient way. Istead of using [UniformScalingShape], it is better
+ * in a memory efficient way. Instead of using [UniformScalingShape], it is better
  * to use the non-uniform setLocalScaling method on convex shapes that implement it.
  *
  * @author jezek2
@@ -72,8 +72,8 @@ class UniformScalingShape(val childShape: ConvexShape, val uniformScalingFactor:
         childShape.getPreferredPenetrationDirection(index, penetrationVector)
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
-        childShape.getAabb(t, aabbMin, aabbMax)
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+        childShape.getBounds(t, aabbMin, aabbMax)
 
         val aabbCenter = Stack.newVec()
         aabbCenter.setAdd(aabbMax, aabbMin)
@@ -91,9 +91,8 @@ class UniformScalingShape(val childShape: ConvexShape, val uniformScalingFactor:
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.UNIFORM_SCALING_SHAPE_PROXYTYPE
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         // this linear upscaling is not realistic, but we don't deal with large mass ratios...
-        childShape.calculateLocalInertia(mass, inertia)
-        inertia.mul(uniformScalingFactor)
+        return childShape.calculateLocalInertia(mass, inertia).mul(uniformScalingFactor)
     }
 }

@@ -94,22 +94,21 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
         val wheel = wheels.last()
 
-        updateWheelTransformsWS(wheel, false)
-        updateWheelTransform(this.numWheels - 1, false)
+        updateWheelTransformsWS(wheel)
+        updateWheelTransform(numWheels - 1)
         return wheel
     }
 
     fun getWheelTransformWS(wheelIndex: Int, out: Transform): Transform {
-        assert(wheelIndex < this.numWheels)
+        assert(wheelIndex < numWheels)
         val wheel = wheels[wheelIndex]
         out.set(wheel.worldTransform)
         return out
     }
 
-    @JvmOverloads
-    fun updateWheelTransform(wheelIndex: Int, interpolatedTransform: Boolean = true) {
+    fun updateWheelTransform(wheelIndex: Int) {
         val wheel = wheels[wheelIndex]
-        updateWheelTransformsWS(wheel, interpolatedTransform)
+        updateWheelTransformsWS(wheel)
         val up = Stack.newVec()
         up.setNegate(wheel.raycastInfo.wheelDirectionWS)
         val right = wheel.raycastInfo.wheelAxleWS
@@ -161,14 +160,10 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
         }
     }
 
-    @JvmOverloads
-    fun updateWheelTransformsWS(wheel: WheelInfo, interpolatedTransform: Boolean = true) {
+    fun updateWheelTransformsWS(wheel: WheelInfo) {
         wheel.raycastInfo.isInContact = false
 
         val chassisTrans = getChassisWorldTransform(Stack.newTrans())
-        if (interpolatedTransform) {
-            this.rigidBody.motionState?.getWorldTransform(chassisTrans)
-        }
 
         wheel.raycastInfo.hardPointWS.set(wheel.chassisConnectionPointCS)
         chassisTrans.transform(wheel.raycastInfo.hardPointWS)
@@ -182,7 +177,7 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
     }
 
     fun rayCast(wheel: WheelInfo): Double {
-        updateWheelTransformsWS(wheel, false)
+        updateWheelTransformsWS(wheel)
 
         var depth = -1.0
 
@@ -271,7 +266,7 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
     fun updateVehicle(step: Double) {
         for (i in wheels.indices) {
-            updateWheelTransform(i, false)
+            updateWheelTransform(i)
         }
 
         currentSpeedKmHour = 3.6f * rigidBody.linearVelocity.length()
@@ -671,7 +666,7 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
     }
 
     companion object {
-        private val FIXED_OBJECT = RigidBody(0.0, null, SphereShape((0.0)))
+        private val FIXED_OBJECT = RigidBody(0.0, SphereShape((0.0)))
         private const val SIDE_FRICTION_STIFFNESS2 = 1.0
     }
 }

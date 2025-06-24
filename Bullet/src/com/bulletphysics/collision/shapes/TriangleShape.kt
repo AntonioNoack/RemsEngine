@@ -3,10 +3,10 @@ package com.bulletphysics.collision.shapes
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.maxAxis
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setCross
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Vector3d
 
 /**
  * Single triangle shape.
@@ -37,10 +37,6 @@ open class TriangleShape : PolyhedralConvexShape {
             return 3
         }
 
-    fun getVertexPtr(index: Int): Vector3d? {
-        return vertices[index]
-    }
-
     override fun getVertex(i: Int, vtx: Vector3d) {
         vtx.set(vertices[i])
     }
@@ -58,7 +54,7 @@ open class TriangleShape : PolyhedralConvexShape {
         getVertex((i + 1) % 3, pb)
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         getAabbSlow(t, aabbMin, aabbMax)
     }
 
@@ -82,7 +78,7 @@ open class TriangleShape : PolyhedralConvexShape {
     }
 
     override fun getPlane(planeNormal: Vector3d, planeSupport: Vector3d, i: Int) {
-        getPlaneEquation(i, planeNormal, planeSupport)
+        getPlaneEquation(planeNormal, planeSupport)
     }
 
     override val numPlanes get() = 1
@@ -97,14 +93,15 @@ open class TriangleShape : PolyhedralConvexShape {
         tmp1.cross(tmp2, normal).normalize()
     }
 
-    fun getPlaneEquation(i: Int, planeNormal: Vector3d, planeSupport: Vector3d) {
+    fun getPlaneEquation(planeNormal: Vector3d, planeSupport: Vector3d) {
         calcNormal(planeNormal)
         planeSupport.set(vertices[0])
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
-        assert(false)
-        inertia.set(0.0, 0.0, 0.0)
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+        // moving convex shapes is not supported
+        // todo this is convex, so... approximate this as a mix of its three corners...
+        return inertia.set(0.0)
     }
 
     override fun isInside(pt: Vector3d, tolerance: Double): Boolean {
@@ -118,11 +115,11 @@ open class TriangleShape : PolyhedralConvexShape {
             // inside check on edge-planes
             val pa = Stack.newVec()
             val pb = Stack.newVec()
+            val edge = Stack.newVec()
+            val edgeNormal = Stack.newVec()
             for (i in 0 until 3) {
                 getEdge(i, pa, pb)
-                val edge = Stack.newVec()
                 edge.setSub(pb, pa)
-                val edgeNormal = Stack.newVec()
                 edgeNormal.setCross(edge, normal)
                 edgeNormal.normalize()
                 /*double*/
@@ -130,13 +127,14 @@ open class TriangleShape : PolyhedralConvexShape {
                 val edgeConst = pa.dot(edgeNormal)
                 dist -= edgeConst
                 if (dist < -tolerance) {
-                    Stack.subVec(3)
+                    Stack.subVec(5)
                     return false
                 }
             }
-            Stack.subVec(3)
+            Stack.subVec(5)
             return true
         }
+        Stack.subVec(1) // normal
         return false
     }
 

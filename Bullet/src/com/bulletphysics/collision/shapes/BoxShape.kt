@@ -5,11 +5,12 @@ import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.ScalarUtil
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil
+import com.bulletphysics.util.setAdd
+import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import org.joml.Vector4d
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setSub
+import kotlin.math.abs
 
 /**
  * BoxShape is a box primitive around the origin, its sides axis aligned with length
@@ -19,36 +20,41 @@ import com.bulletphysics.util.setSub
  * @author jezek2
  */
 open class BoxShape(boxHalfExtents: Vector3d) : PolyhedralConvexShape() {
+
+    companion object {
+        private const val INV_3 = 1.0 / 3.0
+
+        fun boxInertia(hx: Double, hy: Double, hz: Double, mass: Double, dst: Vector3d): Vector3d {
+            val lx = hx * hx
+            val ly = hy * hy
+            val lz = hz * hz
+            return dst.set(ly + lz, lx + lz, lx + ly).mul(mass * INV_3)
+        }
+    }
+
     init {
-        val margin = Vector3d(margin, margin, margin)
-        VectorUtil.mul(implicitShapeDimensions, boxHalfExtents, localScaling)
-        implicitShapeDimensions.sub(margin)
+        boxHalfExtents.sub(margin, implicitShapeDimensions)
+    }
+
+    override fun getVolume(): Double {
+        val size = implicitShapeDimensions
+        return abs(size.x * size.y * size.z)
     }
 
     fun getHalfExtentsWithMargin(out: Vector3d): Vector3d {
-        val halfExtents = getHalfExtentsWithoutMargin(out)
-        val margin = Stack.borrowVec()
-        margin.set(this.margin, this.margin, this.margin)
-        halfExtents.add(margin)
-        return out
+        return getHalfExtentsWithoutMargin(out).add(margin)
     }
 
     fun getHalfExtentsWithoutMargin(out: Vector3d): Vector3d {
-        out.set(implicitShapeDimensions) // changed in Bullet 2.63: assume the scaling and margin are included
-        return out
+        // changed in Bullet 2.63: assume the scaling and margin are included
+        return out.set(implicitShapeDimensions)
     }
 
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.BOX_SHAPE_PROXYTYPE
 
     override fun localGetSupportingVertex(dir: Vector3d, out: Vector3d): Vector3d {
-        val halfExtents = getHalfExtentsWithoutMargin(out)
-
-        val margin: Double = margin
-        halfExtents.x += margin
-        halfExtents.y += margin
-        halfExtents.z += margin
-
+        val halfExtents = getHalfExtentsWithoutMargin(out).add(margin)
         out.set(
             ScalarUtil.select(dir.x, halfExtents.x, -halfExtents.x),
             ScalarUtil.select(dir.y, halfExtents.y, -halfExtents.y),
@@ -73,7 +79,6 @@ open class BoxShape(boxHalfExtents: Vector3d) : PolyhedralConvexShape() {
         numVectors: Int
     ) {
         val halfExtents = getHalfExtentsWithoutMargin(Stack.newVec())
-
         for (i in 0 until numVectors) {
             val vec = dirs[i]
             outs[i].set(
@@ -89,7 +94,7 @@ open class BoxShape(boxHalfExtents: Vector3d) : PolyhedralConvexShape() {
         set(value) {
             // correct the implicitShapeDimensions for the margin
             val oldMargin = Stack.newVec()
-            oldMargin.set(super.margin, super.margin, super.margin)
+            oldMargin.set(super.margin)
             val implicitShapeDimensionsWithMargin = Stack.newVec()
             implicitShapeDimensionsWithMargin.setAdd(implicitShapeDimensions, oldMargin)
 
@@ -115,7 +120,7 @@ open class BoxShape(boxHalfExtents: Vector3d) : PolyhedralConvexShape() {
         Stack.subVec(3)
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         AabbUtil.transformAabb(
             getHalfExtentsWithoutMargin(Stack.newVec()),
             margin, t, aabbMin, aabbMax
@@ -123,20 +128,11 @@ open class BoxShape(boxHalfExtents: Vector3d) : PolyhedralConvexShape() {
         Stack.subVec(1)
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         val halfExtents = getHalfExtentsWithMargin(Stack.newVec())
-
-        val lx = 2.0 * halfExtents.x
-        val ly = 2.0 * halfExtents.y
-        val lz = 2.0 * halfExtents.z
-
-        inertia.set(
-            mass / 12.0 * (ly * ly + lz * lz),
-            mass / 12.0 * (lx * lx + lz * lz),
-            mass / 12.0 * (lx * lx + ly * ly)
-        )
-
+        boxInertia(halfExtents.x, halfExtents.y, halfExtents.z, mass, inertia)
         Stack.subVec(1)
+        return inertia
     }
 
     override fun getPlane(planeNormal: Vector3d, planeSupport: Vector3d, i: Int) {
@@ -149,20 +145,9 @@ open class BoxShape(boxHalfExtents: Vector3d) : PolyhedralConvexShape() {
         localGetSupportingVertex(tmp, planeSupport)
     }
 
-    override val numPlanes
-        get(): Int {
-            return 6
-        }
-
-    override val numVertices
-        get(): Int {
-            return 8
-        }
-
-    override val numEdges
-        get(): Int {
-            return 12
-        }
+    override val numPlanes get(): Int = 6
+    override val numVertices get(): Int = 8
+    override val numEdges get(): Int = 12
 
     override fun getVertex(i: Int, vtx: Vector3d) {
         val halfExtents = getHalfExtentsWithoutMargin(Stack.newVec())

@@ -3,10 +3,10 @@ package com.bulletphysics.collision.shapes
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.Transform
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setNegate
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Vector3d
 
 /**
  * MinkowskiSumShape is only for advanced users. This shape represents implicit
@@ -79,16 +79,15 @@ class MinkowskiSumShape @Suppress("unused") constructor(
         Stack.subVec(3)
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         throw UnsupportedOperationException("Not supported yet.")
     }
 
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.MINKOWSKI_SUM_SHAPE_PROXYTYPE
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
-        assert(false)
-        inertia.set(0.0, 0.0, 0.0)
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+        throw NotImplementedError()
     }
 
     override var margin: Double

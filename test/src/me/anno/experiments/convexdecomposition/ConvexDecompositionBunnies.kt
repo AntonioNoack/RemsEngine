@@ -13,7 +13,6 @@ import me.anno.ecs.systems.Systems.registerSystem
 import me.anno.engine.DefaultAssets.plane
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.debug.DebugTriangle
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -32,19 +31,16 @@ fun visualizeHulls(hulls: List<ConvexHull>) {
         val hull = hulls[i]
         val vertices = hull.vertices
         val triangles = hull.triangles
-        val color = Maths.randomInt() or black
-        val color1 = color.withAlpha(127)
+        val lineColor = Maths.randomInt() or black
+        val faceColor = lineColor.withAlpha(127)
         forLoopSafely(triangles.size, 3) { i ->
             val p0 = vertices[triangles[i]]
             val p1 = vertices[triangles[i + 1]]
             val p2 = vertices[triangles[i + 2]]
-            DebugShapes.debugTriangles.add(DebugTriangle(p0, p1, p2, color1, 1e3f))
-            DebugShapes.debugLines.add(DebugLine(p0, p1, color, 1e3f))
-            DebugShapes.debugLines.add(DebugLine(p1, p2, color, 1e3f))
-            DebugShapes.debugLines.add(DebugLine(p2, p0, color, 1e3f))
-        }
-        for (v in vertices) {
-            DebugShapes.debugPoints.add(DebugPoint(v, color, 1e3f))
+            DebugShapes.debugTriangles.add(DebugTriangle(p0, p1, p2, faceColor, 1e3f))
+            DebugShapes.debugLines.add(DebugLine(p0, p1, lineColor, 1e3f))
+            DebugShapes.debugLines.add(DebugLine(p1, p2, lineColor, 1e3f))
+            DebugShapes.debugLines.add(DebugLine(p2, p0, lineColor, 1e3f))
         }
     }
 }
@@ -79,7 +75,7 @@ fun main() {
         val dst = FloatArray(pos.size * 3)
         for (i in pos.indices) {
             pos[i].get(dst, i * 3)
-            dst[i * 3 + 1] += dy
+           // dst[i * 3 + 1] += dy
         }
         dst
     }
@@ -88,7 +84,7 @@ fun main() {
     for (i in 0 until 5) {
         val angle = i * TAU / 5
         val bunny = Entity("Bunny-$i", scene)
-            .setPosition(cos(angle), y, sin(angle))
+            .setPosition(0.7 * cos(angle), y, 0.7 * sin(angle))
             .setRotation(
                 (Maths.random() * TAU).toFloat(),
                 (Maths.random() * TAU).toFloat(),

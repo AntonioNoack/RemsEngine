@@ -19,11 +19,6 @@ import kotlin.math.sqrt
  */
 object MatrixUtil {
     @JvmStatic
-    fun scale(dst: Matrix3d, mat: Matrix3d, s: Vector3d) {
-        mat.scale(s, dst)
-    }
-
-    @JvmStatic
     fun transposeTransform(dst: Vector3d, vec: Vector3d, mat: Matrix3d) {
         mat.transformTranspose(vec, dst)
     }

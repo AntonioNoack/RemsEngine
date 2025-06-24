@@ -66,7 +66,7 @@ class GImpactMeshShapePart : GImpactShapeInterface {
     override val primitiveManager: PrimitiveManagerBase?
         get() = this.trimeshPrimitiveManager
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         lockChildShapes()
 
         //#define CALC_EXACT_INERTIA 1
@@ -85,6 +85,7 @@ class GImpactMeshShapePart : GImpactShapeInterface {
         Stack.subVec(1)
 
         unlockChildShapes()
+        return inertia
     }
 
     override val gImpactShapeType: ShapeType?

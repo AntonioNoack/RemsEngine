@@ -65,14 +65,24 @@ class Transform {
     }
 
     fun inverse() {
-        basis.transpose()
+        basis.transpose() // no scale -> transpose = inverse
+        basis.transform(origin.negate())
+
+       /* basis.transpose()
         origin.negate()
-        basis.transform(origin)
+        basis.transform(origin)*/
     }
 
-    fun inverse(tr: Transform) {
+    fun setInverse(tr: Transform) {
         set(tr)
         inverse()
+    }
+
+    fun invXform(inVec: Vector3d, out: Vector3d) {
+        out.setSub(inVec, origin)
+        val mat = Stack.borrowMat(basis)
+        mat.transpose()
+        mat.transform(out)
     }
 
     fun mul(tr: Transform) {
@@ -87,13 +97,6 @@ class Transform {
         tr1.transform(vec)
         basis.setMul(tr1.basis, tr2.basis)
         origin.set(vec)
-    }
-
-    fun invXform(inVec: Vector3d, out: Vector3d) {
-        out.setSub(inVec, origin)
-        val mat = Stack.borrowMat(basis)
-        mat.transpose()
-        mat.transform(out)
     }
 
     fun setTranslation(x: Double, y: Double, z: Double) {

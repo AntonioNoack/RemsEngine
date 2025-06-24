@@ -80,7 +80,12 @@ class HeightMapShape : ConcaveShape() {
         localAabbMax.add(localAabbMin, localOrigin).mul(0.5)
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getVolume(): Double {
+        // terrain usually isn't moveable by physics (concave), so it shouldn't matter
+        return 1e308
+    }
+
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         val localMin = Stack.newVec()
         val localMax = Stack.newVec()
 
@@ -213,9 +218,9 @@ class HeightMapShape : ConcaveShape() {
         }
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         // moving concave objects not supported
-        inertia.set(0.0)
+        return inertia.set(0.0)
     }
 
     override fun getLocalScaling(out: Vector3d): Vector3d {

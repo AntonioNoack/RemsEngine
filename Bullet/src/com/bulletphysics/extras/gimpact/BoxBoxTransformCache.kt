@@ -35,7 +35,7 @@ class BoxBoxTransformCache {
      */
     fun calcFromHomogenic(trans0: Transform, trans1: Transform) {
         val tmpTrans = Stack.newTrans()
-        tmpTrans.inverse(trans0)
+        tmpTrans.setInverse(trans0)
         tmpTrans.mul(trans1)
 
         T1to0.set(tmpTrans.origin)

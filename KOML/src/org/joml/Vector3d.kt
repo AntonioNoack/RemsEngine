@@ -101,6 +101,10 @@ open class Vector3d(
         return dst.set(x + vx, y + vy, z + vz)
     }
 
+    /**
+     * dst = a * b + this
+     * if (this === dst): dst += a * b
+     * */
     fun fma(a: Vector3f, b: Vector3f, dst: Vector3d = this): Vector3d {
         dst.x = (a.x * b.x + x)
         dst.y = (a.y * b.y + y)
@@ -108,6 +112,10 @@ open class Vector3d(
         return dst
     }
 
+    /**
+     * dst = a * b + this
+     * if (this === dst): dst += a * b
+     * */
     fun fma(a: Vector3d, b: Vector3d, dst: Vector3d = this): Vector3d {
         dst.x = (a.x * b.x + x)
         dst.y = (a.y * b.y + y)
@@ -115,6 +123,10 @@ open class Vector3d(
         return dst
     }
 
+    /**
+     * dst = a * b + this;
+     * if (this === dst): dst += a * b
+     * */
     fun fma(a: Double, b: Vector3d, dst: Vector3d = this): Vector3d {
         dst.x = (a * b.x + x)
         dst.y = (a * b.y + y)
@@ -122,6 +134,10 @@ open class Vector3d(
         return dst
     }
 
+    /**
+     * dst = a * b + this
+     * if (this === dst): dst += a * b
+     * */
     fun fma(a: Vector3d, b: Vector3f, dst: Vector3d = this): Vector3d {
         dst.x = (a.x * b.x + x)
         dst.y = (a.y * b.y + y)
@@ -129,6 +145,10 @@ open class Vector3d(
         return dst
     }
 
+    /**
+     * dst = a * b + this
+     * if (this === dst): dst += a * b
+     * */
     fun fma(a: Double, b: Vector3f, dst: Vector3d = this): Vector3d {
         dst.x = (a * b.x + x)
         dst.y = (a * b.y + y)
@@ -136,6 +156,9 @@ open class Vector3d(
         return dst
     }
 
+    /**
+     * dst = this * a + b
+     * */
     fun mulAdd(a: Vector3d, b: Vector3d, dst: Vector3d = this): Vector3d {
         dst.x = (x * a.x + b.x)
         dst.y = (y * a.y + b.y)
@@ -143,6 +166,9 @@ open class Vector3d(
         return dst
     }
 
+    /**
+     * dst = this * a + b
+     * */
     fun mulAdd(a: Double, b: Vector3d, dst: Vector3d = this): Vector3d {
         dst.x = (x * a + b.x)
         dst.y = (y * a + b.y)
@@ -150,6 +176,9 @@ open class Vector3d(
         return dst
     }
 
+    /**
+     * dst = this * a + b
+     * */
     fun mulAdd(a: Vector3f, b: Vector3d, dst: Vector3d = this): Vector3d {
         dst.x = (x * a.x + b.x)
         dst.y = (y * a.y + b.y)

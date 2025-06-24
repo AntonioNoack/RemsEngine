@@ -7,6 +7,7 @@ import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
+import me.anno.maths.Maths
 import org.joml.Vector3d
 import kotlin.math.max
 import kotlin.math.min
@@ -20,7 +21,25 @@ import kotlin.math.min
 abstract class CollisionShape {
 
     /**getAabb returns the axis aligned bounding box in the coordinate frame of the given transform t. */
-    abstract fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d)
+    abstract fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d)
+
+    open fun getVolume(): Double {
+        // use bounds as volume guess
+        val aabbMin = Stack.newVec()
+        val aabbMax = Stack.newVec()
+
+        val identity = Stack.newTrans()
+        identity.setIdentity()
+        getBounds(identity, aabbMin, aabbMax)
+
+        val volume = Maths.max(aabbMax.x - aabbMin.x, 0.0) *
+                Maths.max(aabbMax.y - aabbMin.y, 0.0) *
+                Maths.max(aabbMax.z - aabbMin.z, 0.0)
+
+        Stack.subTrans(1)
+        Stack.subVec(2)
+        return volume
+    }
 
     fun getBoundingSphere(center: Vector3d): Double {
         val tmp = Stack.newVec()
@@ -30,7 +49,7 @@ abstract class CollisionShape {
         val aabbMin = Stack.newVec()
         val aabbMax = Stack.newVec()
 
-        getAabb(tr, aabbMin, aabbMax)
+        getBounds(tr, aabbMin, aabbMax)
 
         tmp.setSub(aabbMax, aabbMin)
         val dst = tmp.length() * 0.5 // halfExtents.length()
@@ -44,7 +63,9 @@ abstract class CollisionShape {
         return dst
     }
 
-    /**getAngularMotionDisc returns the maximus radius needed for Conservative Advancement to handle time-of-impact with rotations. */
+    /**
+     * maximum radius needed for Conservative Advancement to handle time-of-impact with rotations
+     * */
     open val angularMotionDisc: Double
         get() {
             val center = Stack.newVec()
@@ -67,7 +88,7 @@ abstract class CollisionShape {
         dstAabbMax: Vector3d
     ) {
         // get static aabb
-        getAabb(curTrans, dstAabbMin, dstAabbMax)
+        getBounds(curTrans, dstAabbMin, dstAabbMax)
 
         val stepX = linVel.x * timeStep
         val stepY = linVel.y * timeStep
@@ -89,16 +110,18 @@ abstract class CollisionShape {
         )
     }
 
-    val isCompound: Boolean
-        get() = shapeType.isCompound
-
     abstract val shapeType: BroadphaseNativeType
 
     abstract fun setLocalScaling(scaling: Vector3d)
 
     abstract fun getLocalScaling(out: Vector3d): Vector3d
 
-    abstract fun calculateLocalInertia(mass: Double, inertia: Vector3d)
+    abstract fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d
 
     open var margin: Double = BulletGlobals.CONVEX_DISTANCE_MARGIN
+
+    /**
+     * can be used as a multiplier for volume
+     * */
+    var density = 1.0
 }

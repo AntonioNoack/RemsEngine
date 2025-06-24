@@ -8,8 +8,7 @@ import com.bulletphysics.collision.narrowphase.PersistentManifold
  * @author jezek2
  */
 class CollisionAlgorithmConstructionInfo {
-    @JvmField
-	var dispatcher1: Dispatcher? = null
+	lateinit var dispatcher1: Dispatcher
     @JvmField
 	var manifold: PersistentManifold? = null
 }

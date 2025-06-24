@@ -11,8 +11,6 @@ import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastCollider
 import me.anno.engine.serialization.SerializedProperty
-import me.anno.engine.ui.render.RenderMode
-import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
 import me.anno.maths.bvh.HitType
@@ -236,10 +234,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
 
     // a collider needs to be drawn
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
-        if (all ||
-            // entity?.physics?.showDebug == true ||
-            RenderView.currentInstance?.renderMode == RenderMode.PHYSICS
-        ) drawShape(pipeline)
+        drawShape(pipeline)
         // todo color based on physics / trigger (?)
         // todo draw transformation gizmos for easy collider manipulation
     }

@@ -5,17 +5,15 @@ import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.dynamics.DynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.dynamics.RigidBodyConstructionInfo
 import com.bulletphysics.dynamics.constraintsolver.Generic6DofConstraint
 import com.bulletphysics.dynamics.constraintsolver.HingeConstraint
 import com.bulletphysics.dynamics.constraintsolver.Point2PointConstraint
 import com.bulletphysics.dynamics.constraintsolver.SliderConstraint
-import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
+import com.bulletphysics.util.setSub
 import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import com.bulletphysics.util.setSub
 import kotlin.math.abs
 
 class ConstraintTest {
@@ -206,14 +204,14 @@ class ConstraintTest {
 
     private fun createDynamicBox(pos: Vector3d, mass: Float): RigidBody {
         val shape: CollisionShape = BoxShape(Vector3d(0.5, 0.5, 0.5))
-        val t = Transform()
-        t.setIdentity()
-        t.setTranslation(pos)
-        val motionState = DefaultMotionState(t)
         val inertia = Vector3d()
         shape.calculateLocalInertia(mass.toDouble(), inertia)
-        val info = RigidBodyConstructionInfo(mass.toDouble(), motionState, shape, inertia)
-        return RigidBody(info)
+        val body = RigidBody(mass.toDouble(), shape, inertia)
+        val tmp = body.worldTransform
+        tmp.setIdentity()
+        tmp.setTranslation(pos)
+        body.setInitialTransform(tmp)
+        return body
     }
 
     private fun createStaticBox(pos: Vector3d): RigidBody {

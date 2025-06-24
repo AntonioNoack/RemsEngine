@@ -143,23 +143,18 @@ class SimulationIslandManager {
                 }
                 startIslandIndex = endIslandIndex
             }
-
-
-            var i: Int
             val maxNumManifolds = dispatcher.numManifolds
 
             //#define SPLIT_ISLANDS 1
             //#ifdef SPLIT_ISLANDS
             //#endif //SPLIT_ISLANDS
-            i = 0
-            while (i < maxNumManifolds) {
-                val manifold = dispatcher.getManifoldByIndexInternal(i)
+            for (i in 0 until maxNumManifolds) {
+                val manifold = dispatcher.getManifold(i)
 
                 val colObj0 = manifold.getBody0() as CollisionObject?
                 val colObj1 = manifold.getBody1() as CollisionObject?
 
                 if (colObj0 == null || colObj1 == null) {
-                    i++
                     continue
                 }
 
@@ -180,7 +175,6 @@ class SimulationIslandManager {
                         islandManifold.add(manifold)
                     }
                 }
-                i++
             }
         } finally {
             popProfile()

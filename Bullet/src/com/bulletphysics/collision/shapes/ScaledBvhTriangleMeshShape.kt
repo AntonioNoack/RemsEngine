@@ -47,7 +47,7 @@ class ScaledBvhTriangleMeshShape @Suppress("unused") constructor(
         childShape.processAllTriangles(scaledCallback, scaledAabbMin, scaledAabbMax)
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         val localAabbMin = childShape.getLocalAabbMin(Stack.newVec())
         val localAabbMax = childShape.getLocalAabbMax(Stack.newVec())
 
@@ -82,7 +82,8 @@ class ScaledBvhTriangleMeshShape @Suppress("unused") constructor(
         return out
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+        return childShape.calculateLocalInertia(mass, inertia).mul(localScaling) // correct?
     }
 
     /**///////////////////////////////////////////////////////////////////////// */

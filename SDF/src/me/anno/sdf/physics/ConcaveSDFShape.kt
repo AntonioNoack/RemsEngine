@@ -21,14 +21,15 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
         private val LOGGER = LogManager.getLogger(ConcaveSDFShape::class)
     }
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         collider.getAABB(t, aabbMin, aabbMax)
     }
 
     // might be correct...
-    override val shapeType: BroadphaseNativeType get() {
-        return BroadphaseNativeType.FAST_CONCAVE_MESH_PROXYTYPE
-    }
+    override val shapeType: BroadphaseNativeType
+        get() {
+            return BroadphaseNativeType.FAST_CONCAVE_MESH_PROXYTYPE
+        }
 
     val localScaling = Vector3d(1.0, 1.0, 1.0)
 
@@ -41,8 +42,8 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
         return out
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
-        collider.calculateLocalInertia(mass, inertia)
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+        return collider.calculateLocalInertia(mass, inertia).mul(localScaling)
     }
 
     override var margin: Double

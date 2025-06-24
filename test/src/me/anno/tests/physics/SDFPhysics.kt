@@ -76,7 +76,7 @@ fun main() {
             val max = Vector3d()
             val tr = Transform()
             tr.setIdentity()
-            shape.getAabb(tr, min, max)
+            shape.getBounds(tr, min, max)
             println("$min - $max")
             println(shape.margin)
             println(shape.shapeType)

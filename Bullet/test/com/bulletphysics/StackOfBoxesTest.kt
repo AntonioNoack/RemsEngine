@@ -10,14 +10,12 @@ import com.bulletphysics.collision.shapes.StaticPlaneShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.dynamics.DynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.dynamics.RigidBodyConstructionInfo
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
 import com.bulletphysics.dynamics.constraintsolver.SliderConstraint
-import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
+import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.joml.Vector3d
 import kotlin.math.abs
 
 class StackOfBoxesTest {
@@ -31,13 +29,12 @@ class StackOfBoxesTest {
 
         // Validate stack has not fallen
         for (i in boxes.indices) {
-            val trans = Transform()
-            boxes[i]!!.motionState!!.getWorldTransform(trans)
+            val trans = boxes[i]!!.worldTransform
             val y = trans.origin.y
             println(trans.origin)
-            Assertions.assertTrue(abs(trans.origin.x) < 0.5f, "Box " + i + " fell sideways on X axis")
-            Assertions.assertTrue(abs(trans.origin.z) < 0.5f, "Box " + i + " fell sideways on Z axis")
-            Assertions.assertTrue(y > 0.1f, "Box " + i + " dropped too low")
+            Assertions.assertTrue(abs(trans.origin.x) < 0.5f, "Box $i fell sideways on X axis")
+            Assertions.assertTrue(abs(trans.origin.z) < 0.5f, "Box $i fell sideways on Z axis")
+            Assertions.assertTrue(y > 0.1f, "Box $i dropped too low")
         }
     }
 
@@ -50,8 +47,7 @@ class StackOfBoxesTest {
         runSimulation(world)
 
         // Check that the top box has significantly deviated horizontally (i.e., tower has fallen)
-        val topBoxTransform = Transform()
-        boxes[boxes.size - 1]!!.motionState!!.getWorldTransform(topBoxTransform)
+        val topBoxTransform = boxes[boxes.size - 1]!!.worldTransform
         val finalX = topBoxTransform.origin.x
         val finalZ = topBoxTransform.origin.z
 
@@ -120,13 +116,12 @@ class StackOfBoxesTest {
         runSimulation(world)
 
         // Verify the tower has fallen (by checking top box's horizontal deviation)
-        val topTransform = Transform()
-        boxes[boxes.size - 1]!!.motionState!!.getWorldTransform(topTransform)
+        val topTransform = boxes[boxes.size - 1]!!.worldTransform
         val dx = abs(topTransform.origin.x)
         val dz = abs(topTransform.origin.z)
 
         val towerFell = dx > 1.0f || dz > 1.0f
-        Assertions.assertTrue(towerFell, "Tower did not fall after being hit. X offset: " + dx + ", Z offset: " + dz)
+        Assertions.assertTrue(towerFell, "Tower did not fall after being hit. X offset: $dx, Z offset: $dz")
     }
 
     private fun runSimulation(dynamicsWorld: DiscreteDynamicsWorld) {
@@ -186,9 +181,9 @@ class StackOfBoxesTest {
                 shape.calculateLocalInertia(mass.toDouble(), localInertia)
             }
 
-            val motionState = DefaultMotionState(transform)
-            val rbInfo = RigidBodyConstructionInfo(mass.toDouble(), motionState, shape, localInertia)
-            return RigidBody(rbInfo)
+            val body = RigidBody(mass.toDouble(), shape, localInertia)
+            body.setInitialTransform(transform)
+            return body
         }
 
         fun createRigidBody(mass: Float, position: Vector3d, shape: CollisionShape): RigidBody {

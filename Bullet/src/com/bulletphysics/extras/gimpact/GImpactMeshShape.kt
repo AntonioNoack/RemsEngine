@@ -50,18 +50,19 @@ class GImpactMeshShape(meshInterface: StridingMeshInterface) : GImpactShapeInter
         needsUpdate = true
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
-        inertia.set(0.0, 0.0, 0.0)
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
 
-        var i = this.meshPartCount
-        val partialMass = mass / i.toDouble()
+        val partialMass = mass / meshPartCount.toDouble()
 
+        inertia.set(0.0)
         val partialInertia = Stack.newVec()
-        while ((i--) != 0) {
+        for (i in 0 until meshPartCount) {
             getMeshPart(i).calculateLocalInertia(partialMass, partialInertia)
             inertia.add(partialInertia)
         }
         Stack.subVec(1)
+
+        return inertia
     }
 
     override val primitiveManager: PrimitiveManagerBase?

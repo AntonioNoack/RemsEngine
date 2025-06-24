@@ -1,6 +1,7 @@
 package me.anno.sdf
 
 import com.bulletphysics.collision.shapes.BoxShape
+import com.bulletphysics.collision.shapes.BoxShape.Companion.boxInertia
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.collider.Collider
@@ -8,7 +9,6 @@ import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.maths.Maths.sq
 import me.anno.sdf.physics.ConcaveSDFShape
 import me.anno.sdf.physics.ConvexSDFShape
 import org.joml.AABBd
@@ -42,19 +42,19 @@ class SDFCollider : Collider(), CustomBulletCollider {
         }
     }
 
-    fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
+    fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         // inertia of a box, because we have no better idea;
         // we could approximate it, but oh well...
         val sdf = sdf
-        val base = mass / 12.0
-        if (sdf != null) {
+        return if (sdf != null) {
             val bounds = sdf.globalAABB
-            val x2 = sq(bounds.deltaX)
-            val y2 = sq(bounds.deltaY)
-            val z2 = sq(bounds.deltaZ)
-            inertia.set(y2 + z2, z2 + x2, x2 + y2)
-            inertia.mul(base)
-        } else inertia.set(base, base, base)
+            boxInertia(
+                bounds.deltaX * 0.5,
+                bounds.deltaY * 0.5,
+                bounds.deltaZ * 0.5,
+                mass, inertia
+            )
+        } else inertia.set(mass / 12.0)
     }
 
     override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {

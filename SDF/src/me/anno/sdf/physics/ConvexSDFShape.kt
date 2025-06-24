@@ -12,7 +12,7 @@ import kotlin.math.abs
 
 class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexShape() {
 
-    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+    override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         collider.getAABB(t, aabbMin, aabbMax)
     }
 
@@ -33,8 +33,8 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
         return out
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
-        collider.calculateLocalInertia(mass, inertia)
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+        return collider.calculateLocalInertia(mass, inertia)
     }
 
     override var margin: Double

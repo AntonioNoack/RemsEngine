@@ -1,7 +1,7 @@
 package me.anno.box2d
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.physics.BodyWithScale
+import me.anno.ecs.components.physics.ScaledBody
 import me.anno.ecs.components.physics.Physics
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.SQRT3
@@ -65,7 +65,7 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         world.step(step.toFloat(), velocityIterations, positionIterations)
     }
 
-    override fun createRigidbody(entity: Entity, rigidBody: Rigidbody2d): BodyWithScale<Rigidbody2d, Body>? {
+    override fun createRigidbody(entity: Entity, rigidBody: Rigidbody2d): ScaledBody<Rigidbody2d, Body>? {
 
         val colliders = getValidComponents(entity, Collider2d::class).toList()
         if (colliders.isEmpty()) return null
@@ -143,7 +143,7 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         val transform = entity.transform
         val global = transform.globalTransform
         def.position.set(global.m30.toFloat(), global.m31.toFloat())
-        def.angle = -atan2(global.m10, global.m00).toFloat() // not perfect, but good enough probably
+        def.angle = -atan2(global.m10, global.m00) // not perfect, but good enough probably
         def.type = if (mass > 0f) BodyType.DYNAMIC else BodyType.STATIC // set that depending on state... Kinematic?
         def.bullet = rigidBody.preventTunneling
         def.gravityScale = rigidBody.gravityScale
@@ -173,17 +173,17 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
             body.createFixture(fixDef)
         }
 
-        return BodyWithScale(rigidBody, body, Vector3d(1.0))
+        return ScaledBody(rigidBody, body, Vector3d(1.0), Vector3d())
     }
 
-    override fun onCreateRigidbody(entity: Entity, rigidbody: Rigidbody2d, bodyWithScale: BodyWithScale<Rigidbody2d, Body>) {
+    override fun onCreateRigidbody(entity: Entity, rigidbody: Rigidbody2d, scaledBody: ScaledBody<Rigidbody2d, Body>) {
 
-        val body = bodyWithScale.external
+        val body = scaledBody.external
 
         rigidbody.box2dInstance = body
-        rigidBodies[entity] = bodyWithScale
+        rigidBodies[entity] = scaledBody
 
-        registerNonStatic(entity, !(body.fixtureList.density > 0f), bodyWithScale)
+        registerNonStatic(entity, !(body.fixtureList.density > 0f), scaledBody)
 
         // todo constraints
     }
@@ -198,7 +198,10 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
     override fun isActive(rigidbody: Body): Boolean = rigidbody.isActive
 
-    override fun convertTransformMatrix(rigidbody: Body, scale: Vector3d, dstTransform: Matrix4x3) {
+    override fun convertTransformMatrix(
+        rigidbody: Body, dstTransform: Matrix4x3,
+        scale: Vector3d, centerOfMass: Vector3d
+    ) {
         val pos = rigidbody.position
         val angle = rigidbody.angle
         val c = cos(angle)

@@ -14,9 +14,6 @@ abstract class TypedConstraint @JvmOverloads constructor(
     @JvmField var rigidBodyB: RigidBody = FIXED
 ) {
 
-    var userConstraintType: Int = -1
-    var userConstraintId: Int = -1
-
     @JvmField
     var appliedImpulse: Double = 0.0
 
@@ -39,6 +36,6 @@ abstract class TypedConstraint @JvmOverloads constructor(
         }
 
     companion object {
-        private val FIXED = RigidBody(0.0, null, SphereShape(0.0))
+        private val FIXED = RigidBody(0.0, SphereShape(0.0))
     }
 }
