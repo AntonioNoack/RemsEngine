@@ -50,11 +50,11 @@ class GhostObjectTest {
         repeat(steps) {
             world.stepSimulation(timeStep.toDouble())
 
-            val numOverlaps = ghost.numOverlappingObjects
             var inside = false
 
-            for (j in 0 until numOverlaps) {
-                if (ghost.getOverlappingObject(j) === sphere) {
+            val overlappingPairs = ghost.overlappingPairs
+            for (j in overlappingPairs.indices) {
+                if (overlappingPairs[j] === sphere) {
                     inside = true
                     break
                 }

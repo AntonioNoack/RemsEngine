@@ -4,7 +4,6 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.BulletStats.popProfile
 import com.bulletphysics.BulletStats.pushProfile
 import com.bulletphysics.collision.broadphase.BroadphaseInterface
-import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.broadphase.CollisionFilterGroups
 import com.bulletphysics.collision.broadphase.Dispatcher
@@ -621,54 +620,40 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                 Stack.subCastResult(1)
             } else {
                 if (collisionShape is ConcaveShape) {
-                    if (collisionShape.shapeType == BroadphaseNativeType.TRIANGLE_MESH_SHAPE_PROXYTYPE) {
+
+                    val worldToCollisionObject = Stack.newTrans()
+                    worldToCollisionObject.setInverse(colObjWorldTransform)
+
+                    val rayFromLocal = Stack.newVec(rayFromTrans.origin)
+                    worldToCollisionObject.transform(rayFromLocal)
+
+                    val rayToLocal = Stack.newVec(rayToTrans.origin)
+                    worldToCollisionObject.transform(rayToLocal)
+
+                    val rcb = BridgeTriangleRaycastCallback(
+                        rayFromLocal, rayToLocal,
+                        resultCallback, collisionObject
+                    )
+                    rcb.hitFraction = resultCallback.closestHitFraction
+
+                    if (collisionShape is BvhTriangleMeshShape) {
                         // optimized version for BvhTriangleMeshShape
-                        val triangleMesh = collisionShape as BvhTriangleMeshShape
-                        val worldToCollisionObject = Stack.newTrans()
-                        worldToCollisionObject.setInverse(colObjWorldTransform)
-                        val rayFromLocal = Stack.newVec(rayFromTrans.origin)
-                        worldToCollisionObject.transform(rayFromLocal)
-                        val rayToLocal = Stack.newVec(rayToTrans.origin)
-                        worldToCollisionObject.transform(rayToLocal)
-
-                        val rcb = BridgeTriangleRaycastCallback(
-                            rayFromLocal,
-                            rayToLocal,
-                            resultCallback,
-                            collisionObject
-                        )
-                        rcb.hitFraction = resultCallback.closestHitFraction
-                        triangleMesh.performRaycast(rcb, rayFromLocal, rayToLocal)
-
-                        Stack.subTrans(1)
-                        Stack.subVec(2)
+                        collisionShape.performRaycast(rcb, rayFromLocal, rayToLocal)
                     } else {
-                        val worldToCollisionObject = Stack.newTrans()
-                        worldToCollisionObject.setInverse(colObjWorldTransform)
-
-                        val rayFromLocal = Stack.newVec(rayFromTrans.origin)
-                        worldToCollisionObject.transform(rayFromLocal)
-                        val rayToLocal = Stack.newVec(rayToTrans.origin)
-                        worldToCollisionObject.transform(rayToLocal)
-
-                        val rcb = BridgeTriangleRaycastCallback(
-                            rayFromLocal,
-                            rayToLocal,
-                            resultCallback,
-                            collisionObject
-                        )
-                        rcb.hitFraction = resultCallback.closestHitFraction
 
                         val rayAabbMinLocal = Stack.newVec(rayFromLocal)
                         setMin(rayAabbMinLocal, rayToLocal)
+
                         val rayAabbMaxLocal = Stack.newVec(rayFromLocal)
                         setMax(rayAabbMaxLocal, rayToLocal)
 
                         collisionShape.processAllTriangles(rcb, rayAabbMinLocal, rayAabbMaxLocal)
 
-                        Stack.subTrans(1)
-                        Stack.subVec(4)
+                        Stack.subVec(2)
                     }
+
+                    Stack.subVec(2)
+                    Stack.subTrans(1)
                 } else {
                     // todo: use AABB tree or other BVH acceleration structure!
                     if (collisionShape is CompoundShape) {
@@ -745,77 +730,56 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                 }
                 Stack.subCastResult(1)
                 Stack.subGjkCC(1)
-            } else if (collisionShape is ConcaveShape) {
-                if (collisionShape.shapeType == BroadphaseNativeType.TRIANGLE_MESH_SHAPE_PROXYTYPE) {
-                    val triangleMesh = collisionShape as BvhTriangleMeshShape
-                    val worldToCollisionObject = Stack.newTrans()
-                    worldToCollisionObject.setInverse(colObjWorldTransform)
 
-                    val convexFromLocal = Stack.newVec()
-                    convexFromLocal.set(convexFromTrans.origin)
-                    worldToCollisionObject.transform(convexFromLocal)
+            } else if (collisionShape is TriangleMeshShape) {
 
-                    val convexToLocal = Stack.newVec()
-                    convexToLocal.set(convexToTrans.origin)
-                    worldToCollisionObject.transform(convexToLocal)
+                val worldToCollisionObject = Stack.newTrans()
+                worldToCollisionObject.setInverse(colObjWorldTransform)
 
-                    // rotation of box in local mesh space = MeshRotation^-1 * ConvexToRotation
-                    val rotationXform = Stack.newTrans()
-                    val tmpMat = Stack.newMat()
-                    tmpMat.setMul(worldToCollisionObject.basis, convexToTrans.basis)
-                    rotationXform.set(tmpMat)
+                val convexFromLocal = Stack.newVec()
+                convexFromLocal.set(convexFromTrans.origin)
+                worldToCollisionObject.transform(convexFromLocal)
 
-                    val tccb = BridgeTriangleConvexCastCallback(
-                        castShape, convexFromTrans, convexToTrans, resultCallback,
-                        collisionObject, triangleMesh, colObjWorldTransform
-                    )
-                    tccb.hitFraction = resultCallback.closestHitFraction
-                    tccb.normalInWorldSpace = true
+                val convexToLocal = Stack.newVec()
+                convexToLocal.set(convexToTrans.origin)
+                worldToCollisionObject.transform(convexToLocal)
 
-                    val boxMinLocal = Stack.newVec()
-                    val boxMaxLocal = Stack.newVec()
-                    castShape.getBounds(rotationXform, boxMinLocal, boxMaxLocal)
-                    triangleMesh.performConvexCast(tccb, convexFromLocal, convexToLocal, boxMinLocal, boxMaxLocal)
+                // rotation of box in local mesh space = MeshRotation^-1 * ConvexToRotation
+                val rotationXform = Stack.newTrans()
+                val tmpMat = Stack.newMat()
+                tmpMat.setMul(worldToCollisionObject.basis, convexToTrans.basis)
+                rotationXform.set(tmpMat)
+
+                val callback = BridgeTriangleConvexCastCallback(
+                    castShape, convexFromTrans, convexToTrans, resultCallback,
+                    collisionObject, collisionShape, colObjWorldTransform
+                )
+                callback.hitFraction = resultCallback.closestHitFraction
+
+                val boxMinLocal = Stack.newVec()
+                val boxMaxLocal = Stack.newVec()
+                castShape.getBounds(rotationXform, boxMinLocal, boxMaxLocal)
+
+                if (collisionShape is BvhTriangleMeshShape) {
+
+                    callback.normalInWorldSpace = true
+
+                    collisionShape.performConvexCast(callback, convexFromLocal, convexToLocal, boxMinLocal, boxMaxLocal)
 
                     Stack.subVec(4)
                     Stack.subTrans(2)
                     Stack.subMat(1)
                 } else {
-                    val triangleMesh = collisionShape as BvhTriangleMeshShape
-                    val worldToCollisionObject = Stack.newTrans()
-                    worldToCollisionObject.setInverse(colObjWorldTransform)
 
-                    val convexFromLocal = Stack.newVec()
-                    convexFromLocal.set(convexFromTrans.origin)
-                    worldToCollisionObject.transform(convexFromLocal)
+                    callback.normalInWorldSpace = false
 
-                    val convexToLocal = Stack.newVec()
-                    convexToLocal.set(convexToTrans.origin)
-                    worldToCollisionObject.transform(convexToLocal)
+                    val rayAabbMinLocal = Stack.newVec()
+                    val rayAabbMaxLocal = Stack.newVec()
 
-                    // rotation of box in local mesh space = MeshRotation^-1 * ConvexToRotation
-                    val rotationXform = Stack.newTrans()
-                    val tmpMat = Stack.newMat()
-                    tmpMat.setMul(worldToCollisionObject.basis, convexToTrans.basis)
-                    rotationXform.set(tmpMat)
+                    convexFromLocal.min(convexToLocal, rayAabbMinLocal).add(boxMinLocal)
+                    convexFromLocal.max(convexToLocal, rayAabbMaxLocal).add(boxMaxLocal)
 
-                    val tccb = BridgeTriangleConvexCastCallback(
-                        castShape, convexFromTrans, convexToTrans, resultCallback,
-                        collisionObject, triangleMesh, colObjWorldTransform
-                    )
-                    tccb.hitFraction = resultCallback.closestHitFraction
-                    tccb.normalInWorldSpace = false
-                    val boxMinLocal = Stack.newVec()
-                    val boxMaxLocal = Stack.newVec()
-                    castShape.getBounds(rotationXform, boxMinLocal, boxMaxLocal)
-
-                    val rayAabbMinLocal = Stack.newVec(convexFromLocal)
-                    setMin(rayAabbMinLocal, convexToLocal)
-                    val rayAabbMaxLocal = Stack.newVec(convexFromLocal)
-                    setMax(rayAabbMaxLocal, convexToLocal)
-                    rayAabbMinLocal.add(boxMinLocal)
-                    rayAabbMaxLocal.add(boxMaxLocal)
-                    triangleMesh.processAllTriangles(tccb, rayAabbMinLocal, rayAabbMaxLocal)
+                    collisionShape.processAllTriangles(callback, rayAabbMinLocal, rayAabbMaxLocal)
 
                     Stack.subVec(6)
                     Stack.subTrans(2)

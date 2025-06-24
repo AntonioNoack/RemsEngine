@@ -7,6 +7,7 @@ import com.bulletphysics.collision.dispatch.CollisionWorld.RayResultCallback
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
+import me.anno.utils.InternalAPI
 import org.joml.Vector3d
 
 /**
@@ -20,9 +21,7 @@ open class GhostObject : CollisionObject() {
 
     val overlappingPairs = ArrayList<CollisionObject>()
 
-    /**
-     * This method is mainly for expert/internal use only.
-     */
+    @InternalAPI
     open fun addOverlappingObjectInternal(otherProxy: BroadphaseProxy, thisProxy: BroadphaseProxy?) {
         val otherObject = checkNotNull(otherProxy.clientObject as CollisionObject?)
         // if this linearSearch becomes too slow (too many overlapping objects) we should add a more appropriate data structure
@@ -33,9 +32,7 @@ open class GhostObject : CollisionObject() {
         }
     }
 
-    /**
-     * This method is mainly for expert/internal use only.
-     */
+    @InternalAPI
     open fun removeOverlappingObjectInternal(
         otherProxy: BroadphaseProxy,
         dispatcher: Dispatcher,
@@ -67,6 +64,7 @@ open class GhostObject : CollisionObject() {
         val rayFromTrans = Stack.newTrans()
         rayFromTrans.setIdentity()
         rayFromTrans.setTranslation(rayFromWorld)
+
         val rayToTrans = Stack.newTrans()
         rayToTrans.setIdentity()
         rayToTrans.setTranslation(rayToWorld)
@@ -79,8 +77,7 @@ open class GhostObject : CollisionObject() {
             // only perform raycast if filterMask matches
             if (resultCallback.needsCollision(collisionObject.broadphaseHandle!!)) {
                 CollisionWorld.rayTestSingle(
-                    rayFromTrans, rayToTrans,
-                    collisionObject,
+                    rayFromTrans, rayToTrans, collisionObject,
                     collisionObject.collisionShape!!,
                     collisionObject.getWorldTransform(tmpTrans),
                     resultCallback
@@ -89,21 +86,5 @@ open class GhostObject : CollisionObject() {
         }
 
         Stack.subTrans(3)
-    }
-
-    val numOverlappingObjects: Int
-        get() = overlappingPairs.size
-
-    fun getOverlappingObject(index: Int): CollisionObject? {
-        return overlappingPairs[index]
-    }
-
-    companion object {
-        fun upcast(colObj: CollisionObject?): GhostObject? {
-            if (colObj is GhostObject) {
-                return colObj
-            }
-            return null
-        }
     }
 }
