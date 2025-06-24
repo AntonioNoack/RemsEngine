@@ -73,7 +73,7 @@ object BulletRendering {
     }
 
     private fun BulletPhysics.drawConstraints(pipeline: Pipeline) {
-        for ((_, bodyWithScale) in nonStaticRigidBodies) {
+        for ((_, bodyWithScale) in dynamicRigidBodies) {
             drawConstraints(pipeline, bodyWithScale.internal)
         }
     }
@@ -87,11 +87,9 @@ object BulletRendering {
 
     private fun BulletPhysics.drawContactPoints() {
         val dispatcher = bulletInstance.dispatcher
-        var i = 0
-        while (i < dispatcher.numManifolds) {
+        for (i in 0 until dispatcher.numManifolds) {
             val contact = dispatcher.getManifold(i)
             drawContactManifold(contact)
-            i++
         }
     }
 
@@ -193,7 +191,7 @@ object BulletRendering {
         val tmp = Stack.newVec()
         val mat = Stack.newTrans()
 
-        for (i in 0 until vehicles.size) {
+        for (i in vehicles.indices) {
             val vehicle = vehicles[i]
             val wheels = vehicle.wheels
             for (j in wheels.indices) {

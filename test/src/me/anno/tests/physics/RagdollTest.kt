@@ -25,7 +25,6 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes
-import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
 import me.anno.ui.UIColors
@@ -284,13 +283,12 @@ fun main() {
     // to do (hard) if it is a knee or elbow (by name), only allow rotation along one axis
 
     val physics = BulletPhysics()
+    physics.enableDebugRendering = true
     Systems.registerSystem(physics)
 
     // create ragdoll
     // adjust ragdoll to start on specific animation state/frame (e.g., walking)
     // make skin stick to ragdoll physics
     // test physics for ragdoll -> looks very weird, and there is two parts for some reason :/
-    testSceneWithUI("Ragdoll Test", scene) {
-        it.renderView.renderMode = RenderMode.PHYSICS
-    }
+    testSceneWithUI("Ragdoll Test", scene)
 }

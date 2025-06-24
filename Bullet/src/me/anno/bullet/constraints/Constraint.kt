@@ -15,6 +15,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.LineShapes
+import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.ui.UIColors
 import org.joml.Quaterniond
@@ -121,10 +122,11 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
     abstract fun createConstraint(a: RigidBody, b: RigidBody, ta: Transform, tb: Transform): TypedConstraint
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
-        LineShapes.drawPoint(entity, selfPosition, 1.0, constraintColor)
+        val sideLength = 0.02 * (selfPosition.distance(cameraPosition) + otherPosition.distance(cameraPosition))
+        LineShapes.drawPoint(entity, selfPosition, sideLength, constraintColor)
         LineShapes.drawLine(entity, zero, selfPosition, constraintColor)
         val other = other?.entity ?: entity
-        LineShapes.drawPoint(other, otherPosition, 1.0, constraintColor)
+        LineShapes.drawPoint(other, otherPosition, sideLength, constraintColor)
         LineShapes.drawLine(other, zero, otherPosition, constraintColor)
     }
 

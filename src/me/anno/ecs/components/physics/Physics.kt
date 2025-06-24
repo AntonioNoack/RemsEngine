@@ -13,6 +13,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.Group
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnPhysicsUpdate
 import me.anno.ecs.systems.OnUpdate
@@ -66,19 +67,26 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     val rigidBodies = HashMap<Entity, ScaledBody<InternalRigidBody, ExternalRigidBody>?>()
 
     @NotSerializedProperty
-    val nonStaticRigidBodies = HashMap<Entity, ScaledBody<InternalRigidBody, ExternalRigidBody>>()
+    val dynamicRigidBodies = HashMap<Entity, ScaledBody<InternalRigidBody, ExternalRigidBody>>()
 
     @SerializedProperty
     var targetUpdatesPerSecond = 30.0
 
     @DebugProperty
-    val numNonStatic get() = nonStaticRigidBodies.size
+    @Group("Bodies")
+    val numStaticBodies get() = rigidBodies.size - dynamicRigidBodies.size
 
     @DebugProperty
+    @Group("Bodies")
+    val numDynamicBodies get() = dynamicRigidBodies.size
+
+    @DebugProperty
+    @Group("Bodies")
     val numRigidbodies get() = rigidBodies.size
 
     @DebugProperty
-    val numInvalid get() = invalidEntities.size
+    @Group("Bodies")
+    val numInvalidBodies get() = invalidEntities.size
 
     @DebugProperty
     @NotSerializedProperty
@@ -104,9 +112,9 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         scaledBody: ScaledBody<InternalRigidBody, ExternalRigidBody>
     ) {
         if (isStatic) {
-            nonStaticRigidBodies.remove(entity)
+            dynamicRigidBodies.remove(entity)
         } else {
-            nonStaticRigidBodies[entity] = scaledBody
+            dynamicRigidBodies[entity] = scaledBody
         }
     }
 
@@ -124,7 +132,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
             worldRemoveRigidbody(rb?.external ?: continue)
         }
         rigidBodies.clear()
-        nonStaticRigidBodies.clear()
+        dynamicRigidBodies.clear()
         invalidEntities.clear() // correct??
     }
 
@@ -183,7 +191,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     open fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
         val rigid = rigidBodies.remove(entity) ?: return
         // LOGGER.debug("- ${entity.prefabPath}")
-        nonStaticRigidBodies.remove(entity)
+        dynamicRigidBodies.remove(entity)
         worldRemoveRigidbody(rigid.external)
     }
 
@@ -406,7 +414,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
 
         // update the local transforms last, so all global transforms have been completely updated
-        for ((entity, bodyWithScale) in nonStaticRigidBodies) {
+        for ((entity, bodyWithScale) in dynamicRigidBodies) {
             if (!isActive(bodyWithScale.external)) continue
             // val dst = entity.transform
             // dst.calculateLocalTransform((entity.parent as? Entity)?.transform)
@@ -419,7 +427,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     fun updateNonStaticRigidBodies(deadEntities: MutableList<Entity>) {
-        for ((entity, rigidbodyWithScale) in nonStaticRigidBodies) {
+        for ((entity, rigidbodyWithScale) in dynamicRigidBodies) {
             if (!isActive(rigidbodyWithScale.external)) continue
             updateNonStaticRigidBody(entity, rigidbodyWithScale)
             checkOutOfBounds(entity, deadEntities)

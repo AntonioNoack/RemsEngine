@@ -12,7 +12,6 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.pooling.JomlPools
@@ -32,6 +31,7 @@ fun main() {
     val scene = Entity("Scene")
     Systems.registerSystem(BulletPhysics().apply {
         updateInEditMode = true
+        enableDebugRendering = true
     })
 
     val numBars = 10
@@ -59,7 +59,7 @@ fun main() {
             .setPosition(0.0, pillarSize.y * 0.5, z)
             .add(BoxCollider().apply {
                 halfExtents.set(pillarSize).mul(0.5f)
-                roundness = 0f
+                roundness = 0.1f
             })
             .add(MeshComponent(pillarMesh, pillarMaterial))
             .add(Rigidbody().apply {
@@ -76,7 +76,7 @@ fun main() {
             .setPosition(0.0, height - barSize.y * 0.5, z)
             .add(BoxCollider().apply {
                 halfExtents.set(barSize).mul(0.5f)
-                roundness = 0f
+                roundness = 0.1f
             })
             .add(MeshComponent(barMesh, barMaterial))
             .add(Rigidbody().apply {
@@ -138,9 +138,7 @@ fun main() {
     spawnFloor(scene)
     spawnSampleCubes(scene)
 
-    testSceneWithUI("Bridge", scene) {
-        it.renderView.renderMode = RenderMode.PHYSICS
-    }
+    testSceneWithUI("Bridge", scene)
 }
 
 fun spawnFloor(scene: Entity) {
@@ -165,7 +163,7 @@ fun spawnSampleCubes(scene: Entity) {
         val size = cubeSize(i)
         Entity("Cube[$i]", scene)
             .add(BoxCollider().apply {
-                roundness = 0f
+                roundness = 0.1f
             })
             .add(MeshComponent(cubeMesh, cubeMaterial))
             .setScale(size * 0.5f)

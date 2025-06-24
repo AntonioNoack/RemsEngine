@@ -7,7 +7,6 @@ import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import kotlin.math.abs
 
@@ -24,6 +23,7 @@ fun main() {
     val scene = Entity("Scene")
     Systems.registerSystem(BulletPhysics().apply {
         //  updateInEditMode = true
+        enableDebugRendering = true
     })
 
     val bridge = Entity("Bridge", scene)
@@ -50,7 +50,5 @@ fun main() {
     spawnFloor(scene)
     spawnSampleCubes(scene)
 
-    testSceneWithUI("Bridge", scene) {
-        it.renderView.renderMode = RenderMode.PHYSICS
-    }
+    testSceneWithUI("Bridge", scene)
 }

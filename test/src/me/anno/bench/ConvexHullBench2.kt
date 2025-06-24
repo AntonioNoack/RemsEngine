@@ -1,64 +1,60 @@
 package me.anno.bench
 
-import me.anno.maths.geometry.convexhull.HullDesc
 import me.anno.maths.geometry.convexhull.ConvexHulls
+import me.anno.maths.geometry.convexhull.HullDesc
 import me.anno.utils.Clock
 import me.anno.utils.assertions.assertNotNull
-import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector3d
 import java.util.Random
 
 private val LOGGER = LogManager.getLogger("ConvexHullBench")
 
 /**
- * find algorithmic complexity of convex hull calculation...
- * -> originally O(n²) or worse, now O(n log n)
+ * test how performance behaves if we just use fewer dynamic allocations
+ * -> twice as fast 🤩, 16-18 ns/vertex on 128k->32
  * */
 fun main() {
     val clock = Clock(LOGGER)
     val sizes = listOf(1000, 2000, 4000, 8000, 16_000, 32_000, 64_000, 128_000)
-    val points = createPoints(sizes.last())
+    val points = createPoints3(sizes.last())
 
     for (n in sizes) {
         clock.benchmark(1, 3, n, "ConvexHull-$n-32") {
-            convexHullSphereLimited(points, n, 32)
+            convexHullSphereLimited3(points, n, 32)
         }
     }
 
     for (n in sizes) {
         clock.benchmark(1, 3, n, "ConvexHull-$n-64") {
-            convexHullSphereLimited(points, n, 64)
+            convexHullSphereLimited3(points, n, 64)
         }
     }
 
     for (n in sizes) {
         clock.benchmark(1, 3, n, "ConvexHull-$n-128") {
-            convexHullSphereLimited(points, n, 128)
+            convexHullSphereLimited3(points, n, 128)
         }
     }
 
     for (n in sizes) {
         // O(n log n) for small n, O(n²) or worse for bigger n :/
         clock.benchmark(1, 3, n, "ConvexHull-$n") {
-            convexHullSphere2(points, n)
+            convexHullSphere3(points, n)
         }
     }
 }
 
-fun createPoints(n: Int): List<Vector3d> {
+fun createPoints3(n: Int): FloatArray {
     val random = Random(1234)
-    return createList(n) {
-        Vector3d(
-            random.nextDouble(),
-            random.nextDouble(),
-            random.nextDouble()
-        ).sub(0.5)
-    }
+    return FloatArray(n * 3) { random.nextFloat() - 0.5f }
 }
 
-fun convexHullSphereLimited(points: List<Vector3d>, n: Int, limit: Int) {
-    val vertices = if (n == points.size) points else points.subList(0, n)
-    val hull = ConvexHulls.calculateConvexHull(HullDesc(vertices, limit))
+fun convexHullSphere3(points: FloatArray, n: Int) {
+    convexHullSphereLimited3(points, n, n)
+}
+
+fun convexHullSphereLimited3(points: FloatArray, n: Int, limit: Int) {
+    val vertices = if (n == points.size) points else points.copyOf(n)
+    val hull = ConvexHulls.calculateConvexHull(vertices, HullDesc(emptyList(), limit))
     assertNotNull(hull)
 }

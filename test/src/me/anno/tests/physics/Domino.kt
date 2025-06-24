@@ -9,7 +9,6 @@ import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.Systems
 import me.anno.engine.OfficialExtensions
-import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
@@ -47,7 +46,6 @@ fun main() {
 
     disableRenderDoc()
     testSceneWithUI("Dominos", scene) {
-        it.renderView.renderMode = RenderMode.PHYSICS
 
         val audiosEntity = Entity("Audios")
         scene.add(audiosEntity)
@@ -93,6 +91,7 @@ fun main() {
             fixedStep = 1.0 / 60.0
             synchronousPhysics = false
             maxSubSteps = 2
+            enableDebugRendering = true
         })
 
         val density = 1.0

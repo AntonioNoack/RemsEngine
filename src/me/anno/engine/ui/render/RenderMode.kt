@@ -468,8 +468,6 @@ class RenderMode private constructor(
                 .finish()
         )
 
-        val PHYSICS = RenderMode("Physics", DEFAULT)
-
         val POST_OUTLINE = RenderMode(
             "Post-Outline",
             QuickPipeline()

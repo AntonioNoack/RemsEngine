@@ -19,6 +19,7 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Group
+import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable
@@ -198,16 +199,19 @@ open class Rigidbody : Component(), OnDrawGUI {
         }
 
     @DebugProperty
+    @Order(0)
     @Group("Movement")
     val localLinearVelocityX: Double
         get() = globalLinearVelocity.dot(getLocalXAxis())
 
     @DebugProperty
+    @Order(1)
     @Group("Movement")
     val localLinearVelocityY: Double
         get() = globalLinearVelocity.dot(getLocalYAxis())
 
     @DebugProperty
+    @Order(2)
     @Group("Movement")
     val localLinearVelocityZ: Double
         get() = globalLinearVelocity.dot(getLocalZAxis())
@@ -237,16 +241,19 @@ open class Rigidbody : Component(), OnDrawGUI {
         }
 
     @DebugProperty
+    @Order(0)
     @Group("Rotation")
     val localAngularVelocityX: Double
         get() = globalAngularVelocity.dot(getLocalXAxis())
 
     @DebugProperty
+    @Order(1)
     @Group("Rotation")
     val localAngularVelocityY: Double
         get() = globalAngularVelocity.dot(getLocalYAxis())
 
     @DebugProperty
+    @Order(2)
     @Group("Rotation")
     val localAngularVelocityZ: Double
         get() = globalAngularVelocity.dot(getLocalZAxis())

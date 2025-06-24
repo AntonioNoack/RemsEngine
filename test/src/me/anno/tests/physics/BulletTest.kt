@@ -773,13 +773,13 @@ class BulletTest {
         physics.step(SECONDS_TO_NANOS, false)
         // check physics has dynamic objects
         assertEquals(3, physics.rigidBodies.size)
-        assertEquals(2, physics.nonStaticRigidBodies.size)
+        assertEquals(2, physics.dynamicRigidBodies.size)
         // switch scene
         val emptyScene = Entity()
         Systems.world = emptyScene
         // ensure physics is initialized
         physics.step(SECONDS_TO_NANOS, false)
         assertEquals(0, physics.rigidBodies.size)
-        assertEquals(0, physics.nonStaticRigidBodies.size)
+        assertEquals(0, physics.dynamicRigidBodies.size)
     }
 }

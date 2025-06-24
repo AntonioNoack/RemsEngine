@@ -623,6 +623,21 @@ class ConvexHulls {
             return calculateConvexHullNaive(desc)
         }
 
+        /**
+         * Finds the convex hull with filtering for better performance.
+         * Fewer dynamic allocations than pure HullDesc version.
+         *
+         * Returns null if too few unique vertices are provided.
+         * Vertices are considered equal, if their direction matches by normalEpsilon.
+         * */
+        fun calculateConvexHull(vertices: FloatArray, desc: HullDesc): ConvexHull? {
+            var gridSize = ceil(4 * sqrt(desc.maxNumVertices.toFloat())).toIntOr()
+            gridSize = clamp(gridSize, 16, 64) // 64² = 4096 is the standard maximum output size
+
+            desc.vertices = PackedNormalsCompressor.compressVertices(vertices, gridSize)
+            return calculateConvexHullNaive(desc)
+        }
+
         /** ///////////////////////////////////////////////////////////////////////// */
         private fun hasVertex(t: Triangle, v: Int): Boolean {
             return (t.x == v || t.y == v || t.z == v)
