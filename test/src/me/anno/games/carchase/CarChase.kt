@@ -1,9 +1,9 @@
 package me.anno.games.carchase
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.StaticBody
-import me.anno.bullet.Vehicle
-import me.anno.bullet.VehicleWheel
+import me.anno.bullet.bodies.StaticBody
+import me.anno.bullet.bodies.Vehicle
+import me.anno.bullet.bodies.VehicleWheel
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity

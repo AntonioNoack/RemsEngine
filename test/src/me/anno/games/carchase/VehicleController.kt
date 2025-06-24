@@ -1,7 +1,7 @@
 package me.anno.games.carchase
 
-import me.anno.bullet.Vehicle
-import me.anno.bullet.VehicleWheel
+import me.anno.bullet.bodies.Vehicle
+import me.anno.bullet.bodies.VehicleWheel
 import me.anno.ecs.Component
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.EntityQuery.getComponent

@@ -1,6 +1,7 @@
-package me.anno.bullet
+package me.anno.bullet.bodies
 
 import com.bulletphysics.collision.dispatch.CollisionObject
+import me.anno.bullet.BulletPhysics
 import me.anno.ecs.Component
 import me.anno.ecs.EntityPhysics.getPhysics
 import me.anno.ecs.annotations.DebugProperty

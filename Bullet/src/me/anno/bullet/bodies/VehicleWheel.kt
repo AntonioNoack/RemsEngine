@@ -1,4 +1,4 @@
-package me.anno.bullet
+package me.anno.bullet.bodies
 
 import com.bulletphysics.dynamics.vehicle.WheelInfo
 import me.anno.ecs.Component

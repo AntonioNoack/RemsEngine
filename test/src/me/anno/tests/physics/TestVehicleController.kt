@@ -1,10 +1,8 @@
 package me.anno.tests.physics
 
-import me.anno.bullet.Vehicle
-import me.anno.bullet.VehicleWheel
+import me.anno.bullet.bodies.VehicleWheel
 import me.anno.ecs.Component
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
-import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.PrefabSaveable

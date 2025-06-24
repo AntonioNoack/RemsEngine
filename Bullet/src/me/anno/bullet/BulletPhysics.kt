@@ -20,6 +20,14 @@ import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.bullet.BulletRendering.renderGUI
+import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.GhostBody
+import me.anno.bullet.bodies.KinematicBody
+import me.anno.bullet.bodies.PhysicalBody
+import me.anno.bullet.bodies.PhysicsBody
+import me.anno.bullet.bodies.StaticBody
+import me.anno.bullet.bodies.Vehicle
+import me.anno.bullet.bodies.VehicleWheel
 import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents

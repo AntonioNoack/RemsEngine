@@ -1,4 +1,4 @@
-package me.anno.bullet
+package me.anno.bullet.bodies
 
 /**
  * A rigidbody that never moves or rotates.

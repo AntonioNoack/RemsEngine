@@ -1,4 +1,4 @@
-package me.anno.bullet
+package me.anno.bullet.bodies
 
 /**
  * Physics object, that should be controlled exclusively by scripts.

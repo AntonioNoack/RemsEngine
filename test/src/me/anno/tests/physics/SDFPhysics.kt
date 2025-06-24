@@ -4,8 +4,8 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.DynamicBody
-import me.anno.bullet.StaticBody
+import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.StaticBody
 import me.anno.bullet.createBulletBoxShape
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider

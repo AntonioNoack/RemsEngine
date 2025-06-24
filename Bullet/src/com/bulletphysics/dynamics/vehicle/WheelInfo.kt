@@ -67,7 +67,7 @@ class WheelInfo(ci: WheelInfoConstructionInfo) {
     @JvmField
     var brake = 0.0
 
-    // set to me.anno.bullet.VehicleWheel
+    // set to me.anno.bullet.bodies.VehicleWheel
     var clientInfo: Any? = null // can be used to store pointer to sync transforms...
 
     @JvmField

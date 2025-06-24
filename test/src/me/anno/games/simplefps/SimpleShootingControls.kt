@@ -1,6 +1,6 @@
 package me.anno.games.simplefps
 
-import me.anno.bullet.DynamicBody
+import me.anno.bullet.bodies.DynamicBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent

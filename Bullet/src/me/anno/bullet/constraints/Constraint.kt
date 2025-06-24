@@ -2,8 +2,8 @@ package me.anno.bullet.constraints
 
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
-import me.anno.bullet.PhysicalBody
-import me.anno.bullet.DynamicBody
+import me.anno.bullet.bodies.PhysicalBody
+import me.anno.bullet.bodies.DynamicBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityPhysics.invalidatePhysics

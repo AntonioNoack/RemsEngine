@@ -2,7 +2,7 @@ package me.anno.games
 
 import me.anno.Time
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.DynamicBody
+import me.anno.bullet.bodies.DynamicBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera

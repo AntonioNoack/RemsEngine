@@ -1,9 +1,9 @@
 package me.anno.tests.physics
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.StaticBody
-import me.anno.bullet.Vehicle
-import me.anno.bullet.VehicleWheel
+import me.anno.bullet.bodies.StaticBody
+import me.anno.bullet.bodies.Vehicle
+import me.anno.bullet.bodies.VehicleWheel
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.collider.BoxCollider

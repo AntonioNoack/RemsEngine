@@ -1,7 +1,7 @@
 package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
-import me.anno.bullet.DynamicBody
+import me.anno.bullet.bodies.DynamicBody
 import me.anno.bullet.constraints.SliderConstraint
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider

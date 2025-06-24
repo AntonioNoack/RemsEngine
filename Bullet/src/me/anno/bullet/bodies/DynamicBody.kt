@@ -1,4 +1,4 @@
-package me.anno.bullet
+package me.anno.bullet.bodies
 
 import com.bulletphysics.collision.dispatch.ActivationState.ACTIVE
 import com.bulletphysics.collision.dispatch.ActivationState.ALWAYS_ACTIVE

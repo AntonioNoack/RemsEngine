@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.bullet.DynamicBody
+import me.anno.bullet.bodies.DynamicBody
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityStats.totalNumComponents
 import me.anno.ecs.EntityStats.totalNumEntities

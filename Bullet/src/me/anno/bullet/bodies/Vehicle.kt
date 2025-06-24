@@ -1,4 +1,4 @@
-package me.anno.bullet
+package me.anno.bullet.bodies
 
 import me.anno.ecs.EntityQuery.getComponentsInChildren
 import me.anno.ecs.annotations.DebugProperty
