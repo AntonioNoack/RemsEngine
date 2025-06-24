@@ -245,22 +245,22 @@ object DrawTexts {
             val lineOffset = font.sizeInt * 3 / 2
             for (index in split.indices) {
                 val size = getTextSizeCharByChar(font, split[index], equalSpaced)
-                sizeX = Maths.max(GFXx2D.getSizeX(size), sizeX)
+                sizeX = Maths.max(getSizeX(size), sizeX)
             }
-            return GFXx2D.getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
+            return getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
         }
 
         if (text.isEmpty())
-            return GFXx2D.getSize(0, font.sizeInt)
+            return getSize(0, font.sizeInt)
 
         return if (equalSpaced) {
             val charWidth = font.sampleWidth
             val textWidth = charWidth * text.length
-            GFXx2D.getSize(textWidth, font.sizeInt)
+            getSize(textWidth, font.sizeInt)
         } else {
             val group = TextGroup(font, text, 0.0)
             val textWidth = group.offsets.last().roundToIntOr()
-            GFXx2D.getSize(textWidth, font.sizeInt)
+            getSize(textWidth, font.sizeInt)
         }
     }
 
@@ -723,9 +723,8 @@ object DrawTexts {
         FontManager.getSize(font, text, widthLimit, heightLimit)
 
     fun getTextSizeOr(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
-        val exact = getTextSize(font, text, widthLimit, heightLimit).value
-        if (exact != null) return exact
-        return getSize(font.sampleWidth * text.length, font.sizeInt)
+        return getTextSize(font, text, widthLimit, heightLimit).value
+            ?: return getSize(font.sampleWidth * text.length, font.sizeInt)
     }
 
     fun getTextSize(key: TextCacheKey): AsyncCacheData<Int> = FontManager.getSize(key)

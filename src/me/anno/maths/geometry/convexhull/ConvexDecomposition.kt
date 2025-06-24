@@ -6,7 +6,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists
 import me.anno.utils.types.Floats.toIntOr
 import org.joml.AABBf
-import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
@@ -52,9 +51,7 @@ class ConvexDecomposition(
     private class Triangle(
         val ai: Int, val bi: Int, val ci: Int,
         val centerX3: Vector3f, val bounds: AABBf
-    ) {
-        var tmpValue = 0f
-    }
+    )
 
     private class Group(val triangles: ArrayList<Triangle>, val bounds: AABBf)
 
@@ -74,16 +71,29 @@ class ConvexDecomposition(
         }
     }
 
-    private fun createHull(triangles: List<Triangle>): ConvexHull? {
-        val points = ArrayList<Vector3d>(triangles.size * 3)
+    private fun getVertices(triangle: Triangle, points: FloatArray, k: Int) {
+        var k = k
+        val ai = triangle.ai * 3
+        val bi = triangle.bi * 3
+        val ci = triangle.ci * 3
         val positions = positions
+        points[k++] = positions[ai]
+        points[k++] = positions[ai + 1]
+        points[k++] = positions[ai + 2]
+        points[k++] = positions[bi]
+        points[k++] = positions[bi + 1]
+        points[k++] = positions[bi + 2]
+        points[k++] = positions[ci]
+        points[k++] = positions[ci + 1]
+        points[k] = positions[ci + 2]
+    }
+
+    private fun createHull(triangles: List<Triangle>): ConvexHull? {
+        val points = FloatArray(triangles.size * 3 * 3)
         for (i in triangles.indices) {
-            val tri = triangles[i]
-            points.add(Vector3d(positions, tri.ai * 3))
-            points.add(Vector3d(positions, tri.bi * 3))
-            points.add(Vector3d(positions, tri.ci * 3))
+            getVertices(triangles[i], points, i * 9)
         }
-        return ConvexHulls.Companion.calculateConvexHull(HullDesc(points, maxVerticesPerHull))
+        return ConvexHulls.calculateConvexHull(points, HullDesc(emptyList(), maxVerticesPerHull))
     }
 
     private fun meshToTriangles(positions: FloatArray, mesh: Mesh): ArrayList<Triangle> {
@@ -108,9 +118,8 @@ class ConvexDecomposition(
         var minValue = Float.MAX_VALUE
         var maxValue = Float.MIN_VALUE
         for (i in triangles.indices) {
-            val tri = triangles[i]
-            val value = axis.dot(tri.centerX3)
-            tri.tmpValue = value
+            val triangle = triangles[i]
+            val value = axis.dot(triangle.centerX3)
             minValue = min(minValue, value)
             maxValue = max(maxValue, value)
         }
@@ -120,9 +129,10 @@ class ConvexDecomposition(
         }
         val scale = (splitsPerAxis * (1f - 1e-6f)) / (maxValue - minValue)
         for (i in triangles.indices) {
-            val tri = triangles[i]
-            val index = ((tri.tmpValue - minValue) * scale).toIntOr()
-            result[index].add(tri)
+            val triangle = triangles[i]
+            val value = axis.dot(triangle.centerX3)
+            val index = ((value - minValue) * scale).toIntOr()
+            result[index].add(triangle)
         }
         return result.mapNotNull { triangles -> createGroup(triangles) }
     }

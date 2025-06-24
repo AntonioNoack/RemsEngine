@@ -1,12 +1,13 @@
 package me.anno.fonts.keys
 
+import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.utils.types.Booleans.hasFlag
-import me.anno.fonts.Font
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.contentHashCode
 import kotlin.math.min
 
 data class TextCacheKey(val text: CharSequence, val fontName: String, val properties: Int, val limits: Int) {
@@ -30,13 +31,8 @@ data class TextCacheKey(val text: CharSequence, val fontName: String, val proper
     private var _hashCode = generateHashCode()
     override fun hashCode() = _hashCode
 
-    @Suppress("unused")
-    fun updateHashCode() {
-        _hashCode = generateHashCode()
-    }
-
     fun generateHashCode(): Int {
-        var result = text.hashCode()
+        var result = text.contentHashCode()
         result = 31 * result + fontName.hashCode()
         result = 31 * result + properties
         result = 31 * result + limits
@@ -49,7 +45,7 @@ data class TextCacheKey(val text: CharSequence, val fontName: String, val proper
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is TextCacheKey) return false
-        return _hashCode == other._hashCode && text == other.text && fontName == other.fontName &&
+        return _hashCode == other._hashCode && text.contentEquals(other.text) && fontName == other.fontName &&
                 properties == other.properties && limits == other.limits
     }
 
@@ -65,10 +61,8 @@ data class TextCacheKey(val text: CharSequence, val fontName: String, val proper
         }
 
         fun getKey(
-            font: Font,
-            text: CharSequence,
-            widthLimit: Int,
-            heightLimit: Int,
+            font: Font, text: CharSequence,
+            widthLimit: Int, heightLimit: Int,
             grayscale: Boolean
         ): TextCacheKey {
 

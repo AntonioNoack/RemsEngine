@@ -98,7 +98,7 @@ class AWTFont(
     }
 
     override fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
-        if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
+        if (text.isEmpty()) return GFXx2D.getSize(0, fontMetrics.height)
         return if (text.containsSpecialChar() || (widthLimit in 0 until GFX.maxTextureSize)) {
             val parts = splitParts(
                 text, font.size, 4f, 0f,

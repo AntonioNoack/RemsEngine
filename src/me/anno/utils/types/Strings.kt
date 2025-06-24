@@ -67,6 +67,19 @@ object Strings {
         return builder
     }
 
+    /**
+     * StringBuilder doesn't implement hashCode ->
+     * we have to implement it ourselves for any keys using CharSequence instead of String
+     * */
+    fun CharSequence.contentHashCode(): Int {
+        if (this is String) return hashCode()
+        var hash = 0
+        for (index in indices) {
+            hash = hash * 31 + this[index].code
+        }
+        return hash
+    }
+
     @JvmStatic
     fun getLineWidth(line: List<Int>, endIndex: Int, tp: TextPanel) = getLineWidth(line, endIndex, tp.font)
 
