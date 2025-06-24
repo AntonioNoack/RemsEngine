@@ -2,7 +2,6 @@ package com.bulletphysics.linearmath
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.linearmath.MatrixUtil.getRotation
-import com.bulletphysics.linearmath.MatrixUtil.invert
 import com.bulletphysics.linearmath.QuaternionUtil.getAngle
 import com.bulletphysics.util.setMul
 import com.bulletphysics.util.setScale
@@ -110,8 +109,7 @@ object TransformUtil {
 
     fun calculateDiffAxisAngle(transform0: Transform, transform1: Transform, axis: Vector3d): Double {
         val tmp = Stack.newMat()
-        tmp.set(transform0.basis)
-        invert(tmp)
+        transform0.basis.invert(tmp)
 
         val dmat = Stack.newMat()
         dmat.setMul(transform1.basis, tmp)
@@ -141,8 +139,7 @@ object TransformUtil {
 
     fun calculateDiffAxisAngle(transform0: Transform, transform1: Transform): Double {
         val tmp = Stack.newMat()
-        tmp.set(transform0.basis)
-        invert(tmp)
+        transform0.basis.invert(tmp)
 
         val dmat = Stack.newMat()
         dmat.setMul(transform1.basis, tmp)

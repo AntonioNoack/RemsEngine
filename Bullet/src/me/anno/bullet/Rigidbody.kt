@@ -78,7 +78,10 @@ open class Rigidbody : Component(), OnDrawGUI {
     fun activate() {
         val bi = bulletInstance
         if (bi == null) invalidatePhysics()
-        else bi.applyCentralImpulse(Vector3d(0.0, 10.0 * mass, 0.0))
+        else {
+            bi.activationState = ACTIVE
+            bi.deactivationTime = 0.0
+        }
     }
 
     @Group("Movement")

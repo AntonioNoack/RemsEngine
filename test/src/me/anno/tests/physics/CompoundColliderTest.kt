@@ -16,7 +16,7 @@ import me.anno.utils.assertions.assertEquals
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
 
-// todo test a compound shape vs a regular shape,
+// to do test a compound shape vs a regular shape,
 //  check all properties, and see that they're equal!
 class CompoundColliderTest {
 

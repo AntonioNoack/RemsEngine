@@ -1,7 +1,6 @@
 package com.bulletphysics.linearmath
 
 import com.bulletphysics.linearmath.MatrixUtil.getRotation
-import com.bulletphysics.linearmath.MatrixUtil.setRotation
 import com.bulletphysics.util.setMul
 import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
@@ -19,6 +18,7 @@ import org.joml.Vector3d
  * @author jezek2
  */
 class Transform {
+
     /**
      * Rotation matrix of this Transform.
      */
@@ -30,16 +30,6 @@ class Transform {
      */
     @JvmField
     val origin = Vector3d()
-
-    constructor()
-
-    constructor(mat: Matrix3d) {
-        basis.set(mat)
-    }
-
-    constructor(tr: Transform) {
-        set(tr)
-    }
 
     fun set(tr: Transform) {
         basis.set(tr.basis)
@@ -113,7 +103,7 @@ class Transform {
     }
 
     fun setRotation(q: Quaterniond) {
-        setRotation(basis, q)
+        basis.set(q)
     }
 
     override fun equals(other: Any?): Boolean {

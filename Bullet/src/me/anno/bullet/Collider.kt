@@ -28,6 +28,7 @@ import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.utils.algorithms.ForLoop.forLoop
+import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -56,7 +57,7 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
         // calculate convex hull
         // simplify it maybe
         val convex = ConvexHullShape(positions)
-        convex.setLocalScaling(Vector3d(scale.x, scale.y, scale.z))
+        convex.setLocalScaling(scale)
         convex.margin = 0.0
 
         if (positions.size < 30 || !enableSimplifications) {
@@ -209,13 +210,24 @@ fun createBulletCollider(
     scale: Vector3d, centerOfMass: Vector3d
 ): Pair<Transform, CollisionShape> {
     val transform0 = collider.entity!!.fromLocalToOtherLocal(base)
-    // there may be extra scale hidden in there
-    val extraScale = transform0.getScale(Vector3d())
-    val totalScale = Vector3d(scale).mul(extraScale)
-    return mat4x3ToTransform(
+
+    val extraScale = JomlPools.vec3d.create()
+    val totalScale = JomlPools.vec3d.create()
+    val centerOfMass1 = JomlPools.vec3d.create()
+
+    transform0.getScale(extraScale)
+    scale.mul(extraScale, totalScale)
+    centerOfMass.negate(centerOfMass1)
+
+    val transform = mat4x3ToTransform(
         transform0, extraScale,
-        centerOfMass, Transform()
-    ) to createBulletShape(collider, totalScale)
+        centerOfMass1, Transform()
+    )
+    val shape = createBulletShape(collider, totalScale)
+    JomlPools.vec3d.sub(3)
+
+    // there may be extra scale hidden in there
+    return transform to shape
 }
 
 @JvmField

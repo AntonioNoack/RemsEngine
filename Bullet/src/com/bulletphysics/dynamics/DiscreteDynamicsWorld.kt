@@ -66,7 +66,7 @@ class DiscreteDynamicsWorld(
 
     override fun clearForces() {
         // todo: iterate over awake simulation islands!
-        for (i in 0 until collisionObjects.size) {
+        for (i in collisionObjects.indices) {
             val body = collisionObjects[i] as? RigidBody ?: continue
             body.clearForces()
         }
@@ -77,7 +77,7 @@ class DiscreteDynamicsWorld(
      */
     fun applyGravity() {
         // todo: iterate over awake simulation islands!
-        for (i in 0 until collisionObjects.size) {
+        for (i in collisionObjects.indices) {
             val body = collisionObjects[i] as? RigidBody ?: continue
             if (body.isActive) body.applyGravity()
         }
@@ -88,7 +88,7 @@ class DiscreteDynamicsWorld(
         var stackPos: IntArray? = null
         /*val interpolatedTransform = Stack.newTrans()
         // todo: iterate over awake simulation islands!
-        for (i in 0 until collisionObjects.size) {
+        for (i in collisionObjects.indices) {
             val colObj = collisionObjects[i]
 
             val body = colObj as? RigidBody
@@ -309,7 +309,7 @@ class DiscreteDynamicsWorld(
         pushProfile("updateActivationState")
         try {
             var stackPos: IntArray? = null
-            for (i in 0 until collisionObjects.size) {
+            for (i in collisionObjects.indices) {
                 stackPos = Stack.getPosition(stackPos)
                 val colObj = collisionObjects[i]
                 val body = colObj as? RigidBody
@@ -523,7 +523,7 @@ class DiscreteDynamicsWorld(
     fun integrateTransformsBegin(timeStep: Double) {
         val linVel = Stack.newVec()
         val tmpSphere = tmpSphere.get()
-        for (i in 0 until collisionObjects.size) {
+        for (i in collisionObjects.indices) {
             val self0 = collisionObjects[i]
 
             val self = self0 as? RigidBody ?: continue
@@ -607,7 +607,7 @@ class DiscreteDynamicsWorld(
     fun integrateTransformsEnd() {
         pushProfile("integrateTransforms")
         try {
-            for (i in 0 until collisionObjects.size) {
+            for (i in collisionObjects.indices) {
                 val self = collisionObjects[i] as? RigidBody ?: continue
                 if (!self.isActive || self.isStaticOrKinematicObject) continue
                 self.proceedToTransform(self.predictedTransform)
@@ -621,7 +621,7 @@ class DiscreteDynamicsWorld(
     fun predictUnconstrainedMotion(timeStep: Double) {
         pushProfile("predictUnconstrainedMotion")
         try {
-            for (i in 0 until collisionObjects.size) {
+            for (i in collisionObjects.indices) {
                 val body = collisionObjects[i] as? RigidBody ?: continue
                 if (!body.isStaticOrKinematicObject && body.isActive) {
                     body.integrateVelocities(timeStep)

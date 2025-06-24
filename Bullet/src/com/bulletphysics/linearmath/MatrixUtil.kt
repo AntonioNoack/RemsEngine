@@ -24,18 +24,8 @@ object MatrixUtil {
     }
 
     @JvmStatic
-    fun setRotation(dst: Matrix3d, q: Quaterniond) {
-        dst.set(q)
-    }
-
-    @JvmStatic
     fun getRotation(mat: Matrix3d, dst: Quaterniond) {
         mat.getUnnormalizedRotation(dst).normalize()
-    }
-
-    @JvmStatic
-    fun invert(mat: Matrix3d) {
-        mat.invert()
     }
 
     /**

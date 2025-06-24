@@ -19,14 +19,12 @@ class CenterOfMassTests {
             .rotateY(0.2f)
             .rotateZ(0.3f)
 
-        val scale = Vector3d(1.0, 2.0, 3.0)
-        val position = Vector3d(0.0, 10.0, 5.0)
+        val scale = Vector3d(1.5, 2.0, 3.0)
+        val position = Vector3d(7.0, 10.0, 5.0)
         val centerOfMass = Vector3d(17.0, -1.0, -20.0)
 
         val basis = Matrix4x3()
-            .translate(position)
-            .rotate(rotation)
-            .scale(Vector3f(scale))
+            .translationRotateScale(position, rotation, Vector3f(scale))
 
         val asTransform = mat4x3ToTransform(basis, scale, centerOfMass, Transform())
         val convertedBack = transformToMat4x3(asTransform, scale, centerOfMass, Matrix4x3())

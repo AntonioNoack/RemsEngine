@@ -8,7 +8,6 @@ package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.linearmath.MatrixUtil.invert
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.getCoord
 import com.bulletphysics.linearmath.VectorUtil.setCoord
@@ -109,8 +108,8 @@ class Generic6DofConstraint : TypedConstraint {
         val mat = Stack.newMat()
 
         val relativeFrame = Stack.newMat()
-        mat.set(calculatedTransformA.basis)
-        invert(mat)
+        calculatedTransformA.basis.invert(mat)
+
         relativeFrame.setMul(mat, calculatedTransformB.basis)
 
         matrixToEulerXYZ(relativeFrame, calculatedAxisAngleDiff)

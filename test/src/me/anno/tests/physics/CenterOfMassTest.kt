@@ -26,7 +26,7 @@ fun main() {
     Entity("Floor", scene)
         .add(MeshComponent(plane))
         .add(InfinitePlaneCollider())
-        .setRotationDegrees(10f, 0f, 0f)
+        .setRotationDegrees(3f, 0f, 0f)
         .add(Rigidbody().apply { mass = 0.0 })
         .setScale(10f)
 
@@ -40,7 +40,7 @@ fun main() {
         .add(MeshComponent(icoSphere))
         .add(SphereCollider())
         .add(Rigidbody().apply {
-            centerOfMass.set(0.0, 0.01, 0.0)
+            centerOfMass.set(0.0, 0.25, 0.0)
             mass = 1.0
         })
         .setPosition(+1.5, 1.0, 0.0)

@@ -375,7 +375,7 @@ class GjkEpaSolver {
                     tmpQuat.setAngleAxis(TAU / 3.0, tmp)
 
                     val r = Stack.newMat()
-                    MatrixUtil.setRotation(r, tmpQuat)
+                    r.set(tmpQuat)
 
                     val w = Stack.newVec()
                     w.set(b[if (m0 > m1) if (m0 > m2) 0 else 2 else if (m1 > m2) 1 else 2])

@@ -4,7 +4,6 @@ import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.ContactConstraint
 import com.bulletphysics.dynamics.constraintsolver.TypedConstraint
-import com.bulletphysics.linearmath.MatrixUtil.setRotation
 import com.bulletphysics.linearmath.MiscUtil.resize
 import com.bulletphysics.linearmath.QuaternionUtil.setRotation
 import com.bulletphysics.linearmath.Transform
@@ -121,13 +120,11 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
         val steeringOrn = Stack.newQuat()
         setRotation(steeringOrn, up, steering) //wheel.m_steering);
-        val steeringMat = Stack.newMat()
-        setRotation(steeringMat, steeringOrn)
+        val steeringMat = Stack.newMat().set(steeringOrn)
 
         val rotatingOrn = Stack.newQuat()
         setRotation(rotatingOrn, right, -wheel.rotation)
-        val rotatingMat = Stack.newMat()
-        setRotation(rotatingMat, rotatingOrn)
+        val rotatingMat = Stack.newMat().set(rotatingOrn)
 
         val basis2 = Stack.newMat()
         basis2.setRow(0, right.x, fwd.x, up.x)

@@ -5,11 +5,8 @@ import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.ActivationState
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration
-import com.bulletphysics.collision.narrowphase.ManifoldPoint
-import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.CompoundShape
-import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
@@ -19,6 +16,7 @@ import com.bulletphysics.dynamics.vehicle.VehicleTuning
 import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
+import me.anno.bullet.BulletRendering.renderGUI
 import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
@@ -29,31 +27,18 @@ import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.physics.ScaledBody
 import me.anno.ecs.components.physics.events.FallenOutOfWorld
 import me.anno.ecs.systems.OnDrawGUI
-import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes
 import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.engine.ui.render.DrawAABB.drawAABB
-import me.anno.engine.ui.render.RenderState.cameraPosition
-import me.anno.gpu.buffer.LineBuffer.addLine
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.Style
-import me.anno.ui.UIColors
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
-import me.anno.utils.Color.black
-import me.anno.utils.Color.withAlpha
-import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.maps.CountMap
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector3d
-import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -95,7 +80,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             for (collider in colliders) {
                 val (transform, subCollider) = createBulletCollider(
                     collider, entity,
-                    centerOfMass, scale
+                    scale, centerOfMass
                 )
                 jointCollider.addChildShape(transform, subCollider)
             }
@@ -112,7 +97,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         // bullet does not work correctly with scale changes: create larger shapes directly
         val globalTransform = entity.transform.globalTransform
         val scale = globalTransform.getScale(Vector3d())
-        val centerOfMass = Vector3d(rigidBody.centerOfMass)
+        val centerOfMass = rigidBody.centerOfMass // create a copy of this vector?
 
         // copy all knowledge from ecs to bullet
         val collider = createCollider(entity, colliders, scale, centerOfMass)
@@ -452,91 +437,9 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         }
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
-        if (!enableDebugRendering) return
-        // draw stuff
-        drawConstraints(pipeline)
-        drawColliders(pipeline)
-        drawContactPoints()
-        drawAABBs()
-        drawVehicles()
-        drawIslands()
-    }
-
-    private fun drawIslands() {
-        val transform = Transform()
-        val min = Vector3d()
-        val max = Vector3d()
-        val boundsById = HashMap<Int, AABBd>()
-        val countMap = CountMap<Int>()
-        for (instance in bulletInstance.collisionObjects) {
-            val tag = instance.islandTag
-            if (tag < 0) continue // no island available
-            // get transformed bounds
-            instance.getWorldTransform(transform)
-            instance.collisionShape!!.getBounds(transform, min, max)
-            // add bounds to island
-            boundsById.getOrPut(tag) { AABBd() }
-                .union(min.x, min.y, min.z, max.x, max.y, max.z)
-            countMap.incAndGet(tag)
+        if (enableDebugRendering) {
+            renderGUI(pipeline)
         }
-        // render all islands as AABBs
-        val color = UIColors.dodgerBlue
-        for ((tag, bounds) in boundsById) {
-            if (countMap[tag] == 1) continue // a not a true island
-            drawAABB(bounds, color)
-        }
-    }
-
-    private fun drawColliders(pipeline: Pipeline) {
-        for ((_, bodyWithScale) in rigidBodies) {
-            drawColliders(pipeline, bodyWithScale?.internal ?: continue)
-        }
-    }
-
-    private fun drawColliders(pipeline: Pipeline, rigidbody: Rigidbody) {
-        val colliders = rigidbody.activeColliders
-        for (i in colliders.indices) {
-            colliders.getOrNull(i)?.drawShape(pipeline)
-        }
-    }
-
-    private fun drawConstraints(pipeline: Pipeline) {
-        for ((_, bodyWithScale) in nonStaticRigidBodies) {
-            drawConstraints(pipeline, bodyWithScale.internal)
-        }
-    }
-
-    private fun drawConstraints(pipeline: Pipeline, rigidbody: Rigidbody) {
-        val constraints = rigidbody.linkedConstraints
-        for (i in constraints.indices) {
-            constraints.getOrNull(i)?.onDrawGUI(pipeline, true)
-        }
-    }
-
-    private fun drawContactPoints() {
-        val dispatcher = bulletInstance.dispatcher
-        var i = 0
-        while (i < dispatcher.numManifolds) {
-            val contact = dispatcher.getManifold(i)
-            drawContactManifold(contact)
-            i++
-        }
-    }
-
-    private fun drawContactManifold(contactManifold: PersistentManifold) {
-        for (j in 0 until contactManifold.numContacts) {
-            drawContactPoint(contactManifold.getContactPoint(j))
-        }
-    }
-
-    private fun drawContactPoint(point: ManifoldPoint) {
-        val color = UIColors.magenta
-        val cam = cameraPosition
-        val a = point.positionWorldOnB
-        val n = point.normalWorldOnB
-        val d = 0.05 * cam.distance(a.x, a.y, a.z)
-        val b2 = Vector3d(a.x + n.x * d, a.y + n.y * d, a.z + n.z * d)
-        DebugShapes.debugArrows.add(DebugLine(a, b2, color, 0f))
     }
 
     override fun createInspector(
@@ -555,115 +458,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
                         "- disable simulation: yellow", style
             )
         )
-    }
-
-    private fun drawAABBs() {
-
-        val tmpTrans = Stack.newTrans()
-        val minAabb = Stack.newVec()
-        val maxAabb = Stack.newVec()
-
-        val collisionObjects = bulletInstance.collisionObjects
-
-        val bounds = JomlPools.aabbd.create()
-        for (i in 0 until collisionObjects.size) {
-
-            val colObj = collisionObjects[i]
-            val color = when (colObj.activationState) {
-                ActivationState.ACTIVE -> 0xffffff
-                ActivationState.SLEEPING -> 0x333333
-                ActivationState.WANTS_DEACTIVATION -> 0x00ffff
-                ActivationState.ALWAYS_ACTIVE -> 0xff0000
-                ActivationState.DISABLE_SIMULATION -> 0xffff00
-            }.withAlpha(255)
-
-            // todo draw the local coordinate arrows
-            // debugDrawObject(colObj.getWorldTransform(tmpTrans), colObj.collisionShape, color)
-
-            try {
-                val shape = colObj.collisionShape!!
-                shape.getBounds(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
-                if (shape is ConvexHullShape) {
-                    forLoopSafely(shape.points.size, 3) { idx ->
-                        val p1 = Vector3d(shape.points, idx)
-                        tmpTrans.transform(p1)
-                        DebugShapes.debugPoints.add(DebugPoint(p1, -1, 0f))
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-            drawAABB(
-                bounds
-                    .setMin(minAabb.x, minAabb.y, minAabb.z)
-                    .setMax(maxAabb.x, maxAabb.y, maxAabb.z),
-                color
-            )
-        }
-
-        JomlPools.aabbd.sub(1)
-        Stack.subTrans(1)
-        Stack.subVec(2)
-    }
-
-    private fun transform(a: Vector3d, dst: Vector3f): Vector3f {
-        val pos = cameraPosition
-        return dst.set(
-            (a.x - pos.x).toFloat(),
-            (a.y - pos.y).toFloat(),
-            (a.z - pos.z).toFloat()
-        )
-    }
-
-    private fun drawLine(a: Vector3d, b: Vector3d, color: Int) {
-        val t0 = JomlPools.vec3f.create()
-        val t1 = JomlPools.vec3f.create()
-        addLine(transform(a, t0), transform(b, t1), color)
-        JomlPools.vec3f.sub(2)
-    }
-
-    private fun drawVehicles() {
-
-        val world = bulletInstance
-        val vehicles = world.vehicles
-
-        val tmp = Stack.newVec()
-        val mat = Stack.newTrans()
-
-        for (i in 0 until vehicles.size) {
-            val vehicle = vehicles[i]
-            val wheels = vehicle.wheels
-            for (j in wheels.indices) {
-
-                val wheel = wheels[j]
-                val wheelColor = (if (wheel.raycastInfo.isInContact) 0x0000ff else 0xff0000) or black
-
-                vehicle.getChassisWorldTransform(mat).inverse()
-
-                val wheelPosWS = wheel.worldTransform.origin
-
-                mat.transformDirection(wheel.wheelAxleCS, tmp)
-                tmp.add(wheelPosWS)
-                drawLine(wheelPosWS, tmp, wheelColor)
-
-                mat.transformDirection(wheel.wheelDirectionCS, tmp)
-                tmp.add(wheelPosWS)
-                drawLine(wheelPosWS, tmp, wheelColor)
-
-                val contact = wheel.raycastInfo.contactPointWS
-                drawLine(wheelPosWS, contact, wheelColor)
-            }
-        }
-
-        Stack.subVec(1)
-        Stack.subTrans(1)
-
-        val actions = world.actions
-        for (i in 0 until actions.size) {
-            val action = actions[i] ?: break
-            action.debugDraw(BulletDebugDraw)
-        }
     }
 
     override fun invalidateTransform(entity: Entity) {
@@ -726,7 +520,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             ourTransform: Matrix4x3, scale: Vector3d,
             centerOfMass: Vector3d, dst: Transform
         ): Transform {
-            // bullet does not support scale -> we always need to correct it
+            // bullet does not support scale -> we always must correct it
             dst.basis.set(ourTransform).scale(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z)
             ourTransform.transformDirection(centerOfMass, dst.origin) // local -> world
             dst.origin.add(ourTransform.m30, ourTransform.m31, ourTransform.m32)
