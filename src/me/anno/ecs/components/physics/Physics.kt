@@ -38,6 +38,7 @@ import org.joml.Vector3d
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
 abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     val rigidComponentClass: KClass<InternalRigidBody>
@@ -99,8 +100,9 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     @DebugAction
     fun invalidateAll() {
         (Systems.world as? Entity)?.forAll {
-            if (rigidComponentClass.isInstance(it)) {
-                val e = (it as? Component)?.entity
+            val rigidBody = rigidComponentClass.safeCast(it)
+            if (rigidBody != null) {
+                val e = rigidBody.entity
                 if (e != null) invalidate(e)
             }
         }

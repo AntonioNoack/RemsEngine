@@ -1,6 +1,8 @@
 package me.anno.ecs.components.collider
 
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.collider.SDFUtils.and3SDFs
+import me.anno.ecs.components.collider.UnionUtils.unionCube
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.serialization.SerializedProperty
@@ -24,7 +26,7 @@ class BoxCollider : Collider() {
     override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         val halfExtents = halfExtents
         unionCube(
-            globalTransform, dstUnion, tmp,
+            globalTransform, dstUnion,
             halfExtents.x.toDouble(), halfExtents.y.toDouble(), halfExtents.z.toDouble()
         )
     }
@@ -33,7 +35,7 @@ class BoxCollider : Collider() {
         val halfExtents = halfExtents
         deltaPos.absolute()
         deltaPos.sub(halfExtents.x, halfExtents.y, halfExtents.z)
-        return and3SDFs(deltaPos)
+        return and3SDFs(deltaPos, roundness)
     }
 
     override fun drawShape(pipeline: Pipeline) {

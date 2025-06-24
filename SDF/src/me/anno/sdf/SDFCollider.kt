@@ -58,17 +58,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
     }
 
     override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
-        val sdf = sdf ?: return
-        sdf.localAABB.apply {
-            union(globalTransform, dstUnion, tmp, minX, minY, minZ)
-            union(globalTransform, dstUnion, tmp, minX, minY, maxZ)
-            union(globalTransform, dstUnion, tmp, minX, maxY, minZ)
-            union(globalTransform, dstUnion, tmp, minX, maxY, maxZ)
-            union(globalTransform, dstUnion, tmp, maxX, minY, minZ)
-            union(globalTransform, dstUnion, tmp, maxX, minY, maxZ)
-            union(globalTransform, dstUnion, tmp, maxX, maxY, minZ)
-            union(globalTransform, dstUnion, tmp, maxX, maxY, maxZ)
-        }
+        sdf?.localAABB?.transformUnion(globalTransform, dstUnion)
     }
 
     override fun drawShape(pipeline: Pipeline) {

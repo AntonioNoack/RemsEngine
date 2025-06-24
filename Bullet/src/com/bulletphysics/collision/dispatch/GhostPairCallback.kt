@@ -7,16 +7,14 @@ import com.bulletphysics.collision.broadphase.OverlappingPairCallback
 
 /**
  * GhostPairCallback interfaces and forwards adding and removal of overlapping
- * pairs from the [BroadphaseInterface] to [GhostObject].
+ * pairs from the [BroadphaseProxy] to [GhostObject].
  *
  * @author tomrbryn
  */
 class GhostPairCallback : OverlappingPairCallback {
     override fun addOverlappingPair(proxy0: BroadphaseProxy, proxy1: BroadphaseProxy): BroadphasePair? {
-        val colObj0 = proxy0.clientObject as CollisionObject?
-        val colObj1 = proxy1.clientObject as CollisionObject?
-        val ghost0 = GhostObject.upcast(colObj0)
-        val ghost1 = GhostObject.upcast(colObj1)
+        val ghost0 = proxy0.clientObject as? GhostObject
+        val ghost1 = proxy1.clientObject as? GhostObject
 
         ghost0?.addOverlappingObjectInternal(proxy1, proxy0)
         ghost1?.addOverlappingObjectInternal(proxy0, proxy1)
@@ -26,10 +24,8 @@ class GhostPairCallback : OverlappingPairCallback {
     override fun removeOverlappingPair(
         proxy0: BroadphaseProxy, proxy1: BroadphaseProxy, dispatcher: Dispatcher
     ): Any? {
-        val colObj0 = proxy0.clientObject as CollisionObject?
-        val colObj1 = proxy1.clientObject as CollisionObject?
-        val ghost0 = GhostObject.upcast(colObj0)
-        val ghost1 = GhostObject.upcast(colObj1)
+        val ghost0 = proxy0.clientObject as? GhostObject
+        val ghost1 = proxy1.clientObject as? GhostObject
 
         ghost0?.removeOverlappingObjectInternal(proxy1, dispatcher, proxy0)
         ghost1?.removeOverlappingObjectInternal(proxy0, dispatcher, proxy1)

@@ -19,6 +19,8 @@ import kotlin.math.sin
 
 object LineShapes {
 
+    val NUM_CIRCLE_SEGMENTS = 16
+
     private val tmpVec3f = createArrayList(16) { Vector3f() }
     val tmpVec3d = createArrayList(16) { Vector3d() }
     private val defaultColor = 0x77ffff or black
@@ -457,7 +459,7 @@ object LineShapes {
         angle0: Double = 0.0,
         deltaAngle: Double = TAU,
     ) {
-        val segments = 16
+        val segments = NUM_CIRCLE_SEGMENTS
         val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
         val fullCircle = deltaAngle >= TAU

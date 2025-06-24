@@ -1,5 +1,6 @@
 package me.anno.box2d
 
+import me.anno.ecs.components.collider.UnionUtils.unionCube
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
@@ -48,7 +49,7 @@ class RectCollider : Collider2d() {
 
     override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         val halfExtents = halfExtents
-        unionCube(globalTransform, dstUnion, tmp, halfExtents.x.toDouble(), halfExtents.y.toDouble(), 1.0)
+        unionCube(globalTransform, dstUnion, halfExtents.x.toDouble(), halfExtents.y.toDouble(), 1.0)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

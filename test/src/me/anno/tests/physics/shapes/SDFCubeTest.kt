@@ -41,7 +41,7 @@ class SDFCubeTest {
         val baseline = createBaseline(0f)
         val tested = createTested(0f)
         val random = Random(1234)
-        for (i in 0 until 20) {
+        repeat(20) {
             val pos = random.nextPos()
             val expected = baseline.localGetSupportingVertex(pos, Vector3d())
             val actual = tested.localGetSupportingVertex(pos, Vector3d())
@@ -70,7 +70,7 @@ class SDFCubeTest {
         val baseline = createBaseline(1f)
         val tested = createTested(1f)
         val random = Random(1234)
-        for (i in 0 until 100) {
+        repeat(100) {
             val pos = random.nextPos()
             val expected = baseline.localGetSupportingVertex(pos, Vector3d())
             val actual = tested.localGetSupportingVertex(pos, Vector3d())

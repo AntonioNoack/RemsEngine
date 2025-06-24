@@ -2,6 +2,8 @@ package me.anno.ecs.components.collider
 
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.collider.SDFUtils.and2SDFs
+import me.anno.ecs.components.collider.UnionUtils.unionRing
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawCircle
@@ -31,8 +33,8 @@ class CylinderCollider : Collider() {
         // union the two rings
         val h = halfHeight.toDouble()
         val r = radius.toDouble()
-        unionRing(globalTransform, dstUnion, tmp, axis, r, +h)
-        unionRing(globalTransform, dstUnion, tmp, axis, r, -h)
+        unionRing(globalTransform, dstUnion, axis, r, +h)
+        unionRing(globalTransform, dstUnion, axis, r, -h)
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {

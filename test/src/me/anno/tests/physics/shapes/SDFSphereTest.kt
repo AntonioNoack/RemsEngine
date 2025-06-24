@@ -35,7 +35,7 @@ class SDFSphereTest {
         )
         tested.margin = 0.0
         val random = Random(1234)
-        for (i in 0 until 100) {
+        repeat(100) {
             val pos = random.nextPos()
             val expected = baseline.localGetSupportingVertex(pos, Vector3d())
             val actual = tested.localGetSupportingVertex(pos, Vector3d())

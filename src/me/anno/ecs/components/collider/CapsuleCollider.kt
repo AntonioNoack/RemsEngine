@@ -2,6 +2,7 @@ package me.anno.ecs.components.collider
 
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.collider.UnionUtils.unionRing
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawLine
@@ -32,8 +33,8 @@ class CapsuleCollider : Collider() {
         // union the two rings, and the top and bottom peak
         val r = radius.toDouble()
         val h = halfHeight.toDouble()
-        unionRing(globalTransform, dstUnion, tmp, axis, r, +h)
-        unionRing(globalTransform, dstUnion, tmp, axis, r, -h)
+        unionRing(globalTransform, dstUnion, axis, r, +h)
+        unionRing(globalTransform, dstUnion, axis, r, -h)
         val s = h + r
         dstUnion.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis.id, +s)))
         dstUnion.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis.id, -s)))

@@ -4,33 +4,24 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.closestAxis4
-import cz.advel.stack.Stack
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
 
 /**
  * PersistentManifold is a contact point cache, it stays persistent as long as objects
  * are overlapping in the broadphase. Those contact points are created by the collision
  * narrow phase.
  *
- *
- *
- *
  * The cache can be empty, or hold 1, 2, 3 or 4 points. Some collision algorithms (GJK)
  * might only add one point at a time, updates/refreshes old contact points, and throw
  * them away if necessary (distance becomes too large).
  *
- *
- *
- *
- * Reduces the cache to 4 points, when more then 4 points are added, using following rules:
- * the contact point with deepest penetration is always kept, and it tries to maximize the
+ * Reduces the cache to 4 points, when more than 4 points are added, using following rules:
+ * the contact point with the deepest penetration is always kept, and it tries to maximize the
  * area covered by the points.
  *
- *
- *
- *
- * Note that some pairs of objects might have more then one contact manifold.
+ * Note that some pairs of objects might have more than one contact manifold.
  *
  * @author jezek2
  */
@@ -230,7 +221,6 @@ class PersistentManifold {
     // calculated new worldspace coordinates and depth, and reject points that exceed the collision margin
     fun refreshContactPoints(trA: Transform, trB: Transform) {
         val tmp = Stack.newVec()
-        var i: Int
         //#ifdef DEBUG_PERSISTENCY
 //	printf("refreshContactPoints posA = (%f,%f,%f) posB = (%f,%f,%f)\n",
 //		trA.getOrigin().getX(),
@@ -241,8 +231,7 @@ class PersistentManifold {
 //		trB.getOrigin().getZ());
 //#endif //DEBUG_PERSISTENCY
         // first refresh worldspace positions and distance
-        i = this.numContacts - 1
-        while (i >= 0) {
+        for (i in numContacts - 1 downTo 0) {
             val manifoldPoint = pointCache[i]
 
             manifoldPoint.positionWorldOnA.set(manifoldPoint.localPointA)
@@ -256,15 +245,13 @@ class PersistentManifold {
             manifoldPoint.distance = tmp.dot(manifoldPoint.normalWorldOnB)
 
             manifoldPoint.lifeTime++
-            i--
         }
 
         // then
         val projectedDifference = Stack.newVec()
         val projectedPoint = Stack.newVec()
 
-        i = this.numContacts - 1
-        while (i >= 0) {
+        for (i in numContacts - 1 downTo 0) {
             val manifoldPoint = pointCache[i]
             // contact becomes invalid when signed distance exceeds margin (projected on contactnormal direction)
             if (!validContactDistance(manifoldPoint)) {
@@ -283,7 +270,6 @@ class PersistentManifold {
                         ?.contactProcessed(manifoldPoint, body0!!, body1!!)
                 }
             }
-            i--
         }
 
         Stack.subVec(3)

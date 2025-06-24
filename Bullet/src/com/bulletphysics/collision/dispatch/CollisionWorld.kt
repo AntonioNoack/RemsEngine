@@ -450,14 +450,14 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             if (normalInWorldSpace) {
                 hitNormalWorld.set(convexResult.hitNormalLocal)
                 if (hitNormalWorld.length() > 2) {
-                    println("CollisionWorld.addSingleResult world " + hitNormalWorld)
+                    println("CollisionWorld.addSingleResult world $hitNormalWorld")
                 }
             } else {
-                // need to transform normal into worldspace
+                // need to transform normal into world space
                 hitNormalWorld.set(convexResult.hitNormalLocal)
                 hitCollisionObject!!.getWorldTransform(Stack.newTrans()).basis.transform(hitNormalWorld)
                 if (hitNormalWorld.length() > 2) {
-                    println("CollisionWorld.addSingleResult world " + hitNormalWorld)
+                    println("CollisionWorld.addSingleResult world $hitNormalWorld")
                 }
             }
 
@@ -498,13 +498,12 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
 
             val linVel = Stack.newVec()
             val angVel = TransformUtil.calculateVelocity(convexFromWorld, convexToWorld, 1.0, linVel)
-            val R = Stack.newTrans()
-            R.setIdentity()
-            R.setRotation(convexFromWorld.getRotation(Stack.newQuat()))
-            selfShape.calculateTemporalAabb(R, linVel, angVel, 1.0, selfAabbMin, selfAabbMax)
+            val tmp = Stack.newTrans()
+            tmp.setIdentity()
+            tmp.basis.set(convexFromWorld.basis)
+            selfShape.calculateTemporalAabb(tmp, linVel, angVel, 1.0, selfAabbMin, selfAabbMax)
 
             Stack.subVec(1)
-            Stack.subQuat(1)
             Stack.subTrans(1)
         }
 
@@ -644,8 +643,6 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                         Stack.subTrans(1)
                         Stack.subVec(2)
                     } else {
-                        val triangleMesh = collisionShape as ConcaveShape
-
                         val worldToCollisionObject = Stack.newTrans()
                         worldToCollisionObject.setInverse(colObjWorldTransform)
 
@@ -667,7 +664,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                         val rayAabbMaxLocal = Stack.newVec(rayFromLocal)
                         setMax(rayAabbMaxLocal, rayToLocal)
 
-                        triangleMesh.processAllTriangles(rcb, rayAabbMinLocal, rayAabbMaxLocal)
+                        collisionShape.processAllTriangles(rcb, rayAabbMinLocal, rayAabbMaxLocal)
 
                         Stack.subTrans(1)
                         Stack.subVec(4)

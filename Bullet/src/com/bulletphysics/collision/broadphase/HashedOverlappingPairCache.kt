@@ -339,8 +339,7 @@ class HashedOverlappingPairCache : OverlappingPairCache {
     /**///////////////////////////////////////////////////////////////////////// */
     private class RemovePairCallback(private val obsoleteProxy: BroadphaseProxy?) : OverlapCallback {
         override fun processOverlap(pair: BroadphasePair): Boolean {
-            return ((pair.proxy0 === obsoleteProxy) ||
-                    (pair.proxy1 === obsoleteProxy))
+            return pair.proxy0 === obsoleteProxy || pair.proxy1 === obsoleteProxy
         }
     }
 
@@ -350,9 +349,7 @@ class HashedOverlappingPairCache : OverlappingPairCache {
         private val dispatcher: Dispatcher
     ) : OverlapCallback {
         override fun processOverlap(pair: BroadphasePair): Boolean {
-            if ((pair.proxy0 === cleanProxy) ||
-                (pair.proxy1 === cleanProxy)
-            ) {
+            if (pair.proxy0 === cleanProxy || pair.proxy1 === cleanProxy) {
                 pairCache.cleanOverlappingPair(pair, dispatcher)
             }
             return false

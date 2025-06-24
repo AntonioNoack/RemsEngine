@@ -2,6 +2,7 @@ package me.anno.ecs.components.collider
 
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.collider.UnionUtils.unionRing
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
@@ -54,7 +55,7 @@ class ConeCollider : Collider() {
         // union the peak and the bottom ring
         val h = height * 0.5
         val r = radius.toDouble()
-        unionRing(globalTransform, dstUnion, tmp, axis, r, -h)
+        unionRing(globalTransform, dstUnion, axis, r, -h)
         tmp[axis.id] = +h
         dstUnion.union(globalTransform.transformPosition(tmp))
     }

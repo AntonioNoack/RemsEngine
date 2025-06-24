@@ -1,5 +1,6 @@
 package me.anno.ecs.components.collider
 
+import me.anno.ecs.components.collider.UnionUtils.unionCube
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RayQueryLocal
@@ -25,7 +26,7 @@ class SphereCollider : Collider() {
 
     override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         val r = radius.toDouble()
-        unionCube(globalTransform, dstUnion, tmp, r, r, r)
+        unionCube(globalTransform, dstUnion, r, r, r)
     }
 
     override fun getSignedDistance(deltaPos: Vector3f, outNormal: Vector3f): Float {

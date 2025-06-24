@@ -14,7 +14,6 @@ import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.setMax
 import com.bulletphysics.linearmath.VectorUtil.setMin
 import com.bulletphysics.util.ObjectPool
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 
@@ -81,7 +80,6 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
         dispatchInfo: DispatcherInfo,
         resultOut: ManifoldResult
     ): Double {
-        val tmp = Stack.newVec()
 
         val convexBody = if (isSwapped) body1 else body0
         val concaveBody = if (isSwapped) body0 else body1
@@ -90,16 +88,11 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
 
         // only perform CCD above a certain threshold, this prevents blocking on the long run
         // because object in a blocked ccd state (hitfraction<1) get their linear velocity halved each frame...
-        tmp.setSub(
-            convexBody.getInterpolationWorldTransform(Stack.newTrans()).origin,
-            convexBody.getWorldTransform(Stack.newTrans()).origin
-        )
-        val squareMot0 = tmp.lengthSquared()
+        val squareMot0 = convexBody.interpolationWorldTransform.origin
+            .distanceSquared(convexBody.worldTransform.origin)
         if (squareMot0 < convexBody.ccdSquareMotionThreshold) {
             return 1.0
         }
-
-        val tmpTrans = Stack.newTrans()
 
         //const btVector3& from = convexbody->m_worldTransform.getOrigin();
         //btVector3 to = convexbody->m_interpolationWorldTransform.getOrigin();
@@ -108,12 +101,13 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
         triInv.inverse()
 
         val convexFromLocal = Stack.newTrans()
-        convexFromLocal.setMul(triInv, convexBody.getWorldTransform(tmpTrans))
+        convexFromLocal.setMul(triInv, convexBody.worldTransform)
 
         val convexToLocal = Stack.newTrans()
-        convexToLocal.setMul(triInv, convexBody.getInterpolationWorldTransform(tmpTrans))
+        convexToLocal.setMul(triInv, convexBody.interpolationWorldTransform)
 
         val concaveShape = concaveBody.collisionShape
+        var result = 1.0
         if (concaveShape is ConcaveShape) {
             val rayAabbMin = Stack.newVec(convexFromLocal.origin)
             setMin(rayAabbMin, convexToLocal.origin)
@@ -122,10 +116,8 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
             setMax(rayAabbMax, convexToLocal.origin)
 
             val ccdRadius0 = convexBody.ccdSweptSphereRadius
-
-            tmp.set(ccdRadius0, ccdRadius0, ccdRadius0)
-            rayAabbMin.sub(tmp)
-            rayAabbMax.add(tmp)
+            rayAabbMin.sub(ccdRadius0)
+            rayAabbMax.add(ccdRadius0)
 
             val curHitFraction = 1.0 // is this available?
             val raycastCallback = LocalTriangleSphereCastCallback(
@@ -136,22 +128,20 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
             raycastCallback.hitFraction = convexBody.hitFraction
 
             concaveShape.processAllTriangles(raycastCallback, rayAabbMin, rayAabbMax)
+            Stack.subVec(2) // rayAabbMin, rayAabbMax
 
             if (raycastCallback.hitFraction < convexBody.hitFraction) {
                 convexBody.hitFraction = raycastCallback.hitFraction
-                return raycastCallback.hitFraction
+                result = raycastCallback.hitFraction
             }
         }
 
-        return 1.0
+        Stack.subTrans(3)
+        return result
     }
 
     override fun getAllContactManifolds(manifoldArray: ArrayList<PersistentManifold>) {
         manifoldArray.add(triangleCallback!!.manifoldPtr)
-    }
-
-    fun clearCache() {
-        triangleCallback!!.clearCache()
     }
 
     /** ///////////////////////////////////////////////////////////////////////// */

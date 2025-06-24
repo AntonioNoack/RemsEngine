@@ -108,7 +108,7 @@ internal class ConvexTriangleCallback(
             tm.margin = collisionMarginTriangle
 
             val tmpShape = ob.collisionShape
-            ob.collisionShape = (tm)
+            ob.collisionShape = tm
 
             val colAlgo = ci.dispatcher1.findAlgorithm(convexBody, triBody, manifoldPtr)
 

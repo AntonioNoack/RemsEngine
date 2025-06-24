@@ -21,8 +21,8 @@ import cz.advel.stack.Stack
  * @author jezek2
  */
 class ConvexConvexAlgorithm : CollisionAlgorithm() {
-    val pointInputsPool =
-        ObjectPool.Companion.get(ClosestPointInput::class.java)
+
+    val pointInputsPool = ObjectPool.Companion.get(ClosestPointInput::class.java)
 
     private val gjkPairDetector = GjkPairDetector()
 

@@ -113,6 +113,7 @@ class Stack {
     }
 
     companion object {
+
         private val DOUBLE_PTRS = GenericStack<DoubleArray>({ DoubleArray(1) }, "double*")
         private val ARRAY_LISTS = GenericStack<ArrayList<*>>({ ArrayList<Any?>(16) }, "ObjectArrayList")
         private val AABB_MMs = GenericStack<DbvtAabbMm>({ DbvtAabbMm() }, "DbvtAabbMm")
@@ -186,21 +187,6 @@ class Stack {
             val stack: Stack = instances.get()
             stack.transPosition -= delta
             checkUnderflow(stack.transPosition)
-        }
-
-        fun resetVec(position: Int) {
-            val stack: Stack = instances.get()
-            stack.vectorPosition = position
-        }
-
-        fun resetMat(position: Int) {
-            val stack: Stack = instances.get()
-            stack.matrixPosition = position
-        }
-
-        fun resetTrans(position: Int) {
-            val stack: Stack = instances.get()
-            stack.transPosition = position
         }
 
         fun printSizes() {

@@ -79,69 +79,8 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         dst.hasPhysics = hasPhysics
     }
 
-    fun unionRing(
-        globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d,
-        axis: Axis, r: Double, h: Double
-    ) {
-        // approximate the circle as a quad
-        when (axis) {
-            Axis.X -> {
-                union(globalTransform, aabb, tmp, h, +r, +r)
-                union(globalTransform, aabb, tmp, h, +r, -r)
-                union(globalTransform, aabb, tmp, h, -r, +r)
-                union(globalTransform, aabb, tmp, h, -r, -r)
-            }
-            Axis.Y -> {
-                union(globalTransform, aabb, tmp, +r, h, +r)
-                union(globalTransform, aabb, tmp, +r, h, -r)
-                union(globalTransform, aabb, tmp, -r, h, +r)
-                union(globalTransform, aabb, tmp, -r, h, -r)
-            }
-            Axis.Z -> {
-                union(globalTransform, aabb, tmp, +r, +r, h)
-                union(globalTransform, aabb, tmp, +r, -r, h)
-                union(globalTransform, aabb, tmp, -r, +r, h)
-                union(globalTransform, aabb, tmp, -r, -r, h)
-            }
-        }
-    }
-
-    fun unionCube(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d, hx: Double, hy: Double, hz: Double) {
-        // union the most typical layout: a sphere
-        // 001,010,100,-001,-010,-100
-        union(globalTransform, dstUnion, tmp, +hx, +hy, +hz)
-        union(globalTransform, dstUnion, tmp, +hx, +hy, -hz)
-        union(globalTransform, dstUnion, tmp, +hx, -hy, +hz)
-        union(globalTransform, dstUnion, tmp, +hx, -hy, +hz)
-        union(globalTransform, dstUnion, tmp, -hx, +hy, +hz)
-        union(globalTransform, dstUnion, tmp, -hx, +hy, -hz)
-        union(globalTransform, dstUnion, tmp, -hx, -hy, +hz)
-        union(globalTransform, dstUnion, tmp, -hx, -hy, +hz)
-    }
-
-    fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d, x: Double, y: Double, z: Double) {
-        dstUnion.union(globalTransform.transformPosition(tmp.set(x, y, z)))
-    }
-
     open fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         cubeAABB.transformUnion(globalTransform, dstUnion)
-    }
-
-    fun and2SDFs(deltaPos: Vector3f, roundness: Float = this.roundness): Float {
-        val dx = deltaPos.x + roundness
-        val dy = deltaPos.y + roundness
-        val outside = Maths.length(max(dx, 0f), max(dy, 0f))
-        val inside = min(max(dx, dy), 0f)
-        return outside + inside - roundness
-    }
-
-    fun and3SDFs(deltaPos: Vector3f, roundness: Float = this.roundness): Float {
-        val dx = deltaPos.x + roundness
-        val dy = deltaPos.y + roundness
-        val dz = deltaPos.z + roundness
-        val outside = Maths.length(max(dx, 0f), max(dy, 0f), max(dz, 0f))
-        val inside = min(max(dx, max(dy, dz)), 0f)
-        return outside + inside - roundness
     }
 
     /**

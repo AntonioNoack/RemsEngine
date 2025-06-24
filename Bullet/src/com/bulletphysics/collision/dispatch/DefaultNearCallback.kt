@@ -34,9 +34,7 @@ class DefaultNearCallback : NearCallback {
                 algorithm.processCollision(colObj0, colObj1, dispatchInfo, contactPointResult)
             } else {
                 // continuous collision detection query, time of impact (toi)
-                val toi = algorithm.calculateTimeOfImpact(
-                    colObj0, colObj1, dispatchInfo, contactPointResult
-                )
+                val toi = algorithm.calculateTimeOfImpact(colObj0, colObj1, dispatchInfo, contactPointResult)
                 if (dispatchInfo.timeOfImpact > toi) {
                     dispatchInfo.timeOfImpact = toi
                 }

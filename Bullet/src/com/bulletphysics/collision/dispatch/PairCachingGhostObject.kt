@@ -9,7 +9,7 @@ import com.bulletphysics.collision.broadphase.HashedOverlappingPairCache
  */
 class PairCachingGhostObject : GhostObject() {
 
-    var overlappingPairCache: HashedOverlappingPairCache = HashedOverlappingPairCache()
+    var overlappingPairCache = HashedOverlappingPairCache()
 
     /**
      * This method is mainly for expert/internal use only.

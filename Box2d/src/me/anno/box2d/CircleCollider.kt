@@ -1,5 +1,6 @@
 package me.anno.box2d
 
+import me.anno.ecs.components.collider.UnionUtils.unionCube
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
@@ -30,7 +31,7 @@ class CircleCollider : Collider2d() {
 
     override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         val r = radius.toDouble()
-        unionCube(globalTransform, dstUnion, tmp, r, r, 1.0)
+        unionCube(globalTransform, dstUnion, r, r, 1.0)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

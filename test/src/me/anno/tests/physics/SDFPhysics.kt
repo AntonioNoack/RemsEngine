@@ -30,7 +30,7 @@ fun main() {
         val scene = Entity()
         val physics = BulletPhysics()
         Systems.registerSystem(physics)
-        physics.updateInEditMode = true
+        // physics.updateInEditMode = true
 
         Entity("SphereCollider", scene)
             .add(Rigidbody().apply { mass = 0.0 })
