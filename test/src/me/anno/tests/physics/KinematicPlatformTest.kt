@@ -50,6 +50,7 @@ fun main() {
     spawnFloor(scene)
     spawnSampleCubes(scene)
 
+    // for this to detect anything, the moved cube must be active!
     val ghost = GhostBody()
     Entity("Detector", scene)
         .add(BoxCollider())

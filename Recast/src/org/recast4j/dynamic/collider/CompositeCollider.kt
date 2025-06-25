@@ -36,7 +36,7 @@ class CompositeCollider : Collider {
     }
 
     override fun rasterize(hf: Heightfield, telemetry: Telemetry?) {
-        colliders.forEach { c: Collider -> c.rasterize(hf, telemetry) }
+        for (c in colliders) c.rasterize(hf, telemetry)
     }
 
     companion object {

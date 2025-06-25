@@ -6,22 +6,22 @@ class ObstacleCircle {
     /**
      * Position of the obstacle
      */
-    val p = Vector3f()
+    val position = Vector3f()
 
     /**
      * Velocity of the obstacle
      */
-    val vel = Vector3f()
+    val actualVelocity = Vector3f()
 
     /**
      * Velocity of the obstacle
      */
-    val dvel = Vector3f()
+    val desiredVelocity = Vector3f()
 
     /**
      * Radius of the obstacle
      */
-    var rad = 0f
+    var radius = 0f
 
     /**
      * Use for side selection during sampling.

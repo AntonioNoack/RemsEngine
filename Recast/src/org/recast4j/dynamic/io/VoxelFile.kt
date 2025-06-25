@@ -52,7 +52,7 @@ class VoxelFile {
     var rotation = Vector3f()
     val bounds = AABBf()
 
-    val tiles: MutableList<VoxelTile> = ArrayList()
+    val tiles = ArrayList<VoxelTile>()
     fun addTile(tile: VoxelTile) {
         tiles.add(tile)
     }
@@ -97,10 +97,13 @@ class VoxelFile {
     }
 
     companion object {
-        val PREFERRED_BYTE_ORDER = ByteOrder.BIG_ENDIAN
+
+        val PREFERRED_BYTE_ORDER: ByteOrder = ByteOrder.BIG_ENDIAN
+
         const val MAGIC = 'V'.code shl 24 or ('O'.code shl 16) or ('X'.code shl 8) or 'L'.code
         const val VERSION_EXPORTER_MASK = 0xF000
         const val VERSION_EXPORTER_RECAST4J = 0x1000
+
         fun from(config: RecastConfig, results: List<RecastBuilderResult>): VoxelFile {
             val f = VoxelFile()
             f.version = 1
@@ -157,10 +160,10 @@ class VoxelFile {
             f.tileSizeX = config.tileSizeX
             f.tileSizeZ = config.tileSizeZ
             f.bounds.clear()
-            for (vt in mesh.voxelTiles()) {
-                val heightfield = vt.heightfield()
-                f.tiles.add(VoxelTile(vt.tileX, vt.tileZ, heightfield))
-                f.bounds.union(vt.bounds)
+            for (tile in mesh.voxelTiles()) {
+                val heightfield = tile.heightfield()
+                f.tiles.add(VoxelTile(tile.tileX, tile.tileZ, heightfield))
+                f.bounds.union(tile.bounds)
             }
             return f
         }

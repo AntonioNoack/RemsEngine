@@ -10,11 +10,11 @@ class LongHashMap<V>(private var capacity: Int = 16) {
         private val entryCache = ArrayList<Entry<Any?>>()
         private fun <V> createEntry(k: Long, v: V): Entry<V> = synchronized(entryCache) {
             @Suppress("UNCHECKED_CAST")
-            val e = entryCache.removeLastOrNull() as? Entry<V>
-            if (e != null) {
-                e.key = k
-                e.value = v
-                e
+            val entry = entryCache.removeLastOrNull() as? Entry<V>
+            if (entry != null) {
+                entry.key = k
+                entry.value = v
+                entry
             } else Entry(k, v)
         }
 
@@ -23,7 +23,6 @@ class LongHashMap<V>(private var capacity: Int = 16) {
             @Suppress("UNCHECKED_CAST")
             bucketCache.removeLastOrNull() as? ArrayList<Entry<V>> ?: ArrayList()
         }
-
     }
 
     private class Entry<V>(var key: Long, var value: V)

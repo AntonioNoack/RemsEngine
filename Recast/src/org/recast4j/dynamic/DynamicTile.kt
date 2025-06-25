@@ -64,9 +64,9 @@ class DynamicTile(val voxelTile: VoxelTile) {
     }
 
     private fun buildHeightfield(config: DynamicNavMeshConfig, telemetry: Telemetry): Heightfield {
-        val rasterizedColliders: Collection<Long> = if (checkpoint != null) checkpoint!!.colliders else emptySet()
-        val heightfield = if (checkpoint != null) checkpoint!!.heightfield else voxelTile.heightfield()
-        colliders.forEach { (id, c) ->
+        val rasterizedColliders = checkpoint?.colliders ?: emptySet()
+        val heightfield = checkpoint?.heightfield ?: voxelTile.heightfield()
+        for ((id, c) in colliders) {
             if (!rasterizedColliders.contains(id)) {
                 heightfield.bounds.maxY = max(heightfield.bounds.maxY, c.bounds.maxY + heightfield.cellHeight * 2)
                 c.rasterize(heightfield, telemetry)

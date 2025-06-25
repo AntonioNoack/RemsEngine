@@ -17,8 +17,10 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic
 
-class RemoveColliderQueueItem(private val colliderId: Long, private val affectedTiles: Collection<DynamicTile>) :
-    UpdateQueueItem {
+class RemoveColliderQueueItem(
+    private val colliderId: Long,
+    private val affectedTiles: Collection<DynamicTile>
+) : UpdateQueueItem {
     override fun affectedTiles() = affectedTiles
     override fun process(tile: DynamicTile) {
         tile.removeCollider(colliderId)

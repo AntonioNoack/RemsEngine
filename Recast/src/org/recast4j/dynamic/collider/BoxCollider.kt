@@ -27,30 +27,28 @@ import kotlin.math.floor
 class BoxCollider(
     private val center: Vector3f,
     private val halfEdges: Array<FloatArray>,
-    area: Int,
-    flagMergeThreshold: Float
+    area: Int, flagMergeThreshold: Float
 ) : AbstractCollider(area, flagMergeThreshold, bounds(center, halfEdges)) {
+
     override fun rasterize(hf: Heightfield, telemetry: Telemetry?) {
         rasterizeBox(
-            hf,
-            center,
-            halfEdges,
-            area,
-            floor((flagMergeThreshold / hf.cellHeight)).toInt(),
+            hf, center, halfEdges, area,
+            floor(flagMergeThreshold / hf.cellHeight).toInt(),
             telemetry
         )
     }
 
     companion object {
         private fun bounds(center: Vector3f, halfEdges: Array<FloatArray>): AABBf {
+            val (hex, hey, hez) = halfEdges
             val bounds = AABBf()
             for (i in 0..7) {
                 val s0 = if (i and 1 != 0) 1f else -1f
                 val s1 = if (i and 2 != 0) 1f else -1f
                 val s2 = if (i and 4 != 0) 1f else -1f
-                val vx = center.x + s0 * halfEdges[0][0] + s1 * halfEdges[1][0] + s2 * halfEdges[2][0]
-                val vy = center.y + s0 * halfEdges[0][1] + s1 * halfEdges[1][1] + s2 * halfEdges[2][1]
-                val vz = center.z + s0 * halfEdges[0][2] + s1 * halfEdges[1][2] + s2 * halfEdges[2][2]
+                val vx = center.x + s0 * hex[0] + s1 * hey[0] + s2 * hez[0]
+                val vy = center.y + s0 * hex[1] + s1 * hey[1] + s2 * hez[1]
+                val vz = center.z + s0 * hex[2] + s1 * hey[2] + s2 * hez[2]
                 bounds.union(vx, vy, vz)
             }
             return bounds

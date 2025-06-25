@@ -31,9 +31,10 @@ class CapsuleCollider(
     area: Int,
     flagMergeThreshold: Float
 ) : AbstractCollider(area, flagMergeThreshold, bounds(start, end, radius)) {
+
     override fun rasterize(hf: Heightfield, telemetry: Telemetry?) {
         rasterizeCapsule(
-            hf, start, end, radius, area, floor((flagMergeThreshold / hf.cellHeight)).toInt(),
+            hf, start, end, radius, area, floor(flagMergeThreshold / hf.cellHeight).toInt(),
             telemetry
         )
     }

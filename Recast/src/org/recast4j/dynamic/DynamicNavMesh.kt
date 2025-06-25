@@ -172,14 +172,14 @@ class DynamicNavMesh(voxelFile: VoxelFile) {
         ).thenApply { updateNavMesh() }
     }
 
-    private fun getTiles(bounds: AABBf): Collection<DynamicTile> {
-        val minx = floor(((bounds.minX - navMeshParams.origin.x) / navMeshParams.tileWidth)).toInt()
-        val minz = floor(((bounds.minZ - navMeshParams.origin.z) / navMeshParams.tileHeight)).toInt()
-        val maxx = floor(((bounds.maxX - navMeshParams.origin.x) / navMeshParams.tileWidth)).toInt()
-        val maxz = floor(((bounds.maxZ - navMeshParams.origin.z) / navMeshParams.tileHeight)).toInt()
-        val tiles: MutableList<DynamicTile> = ArrayList()
-        for (z in minz..maxz) {
-            for (x in minx..maxx) {
+    private fun getTiles(bounds: AABBf): ArrayList<DynamicTile> {
+        val minX = floor((bounds.minX - navMeshParams.origin.x) / navMeshParams.tileWidth).toInt()
+        val minZ = floor((bounds.minZ - navMeshParams.origin.z) / navMeshParams.tileHeight).toInt()
+        val maxX = floor((bounds.maxX - navMeshParams.origin.x) / navMeshParams.tileWidth).toInt()
+        val maxZ = floor((bounds.maxZ - navMeshParams.origin.z) / navMeshParams.tileHeight).toInt()
+        val tiles = ArrayList<DynamicTile>()
+        for (z in minZ..maxZ) {
+            for (x in minX..maxX) {
                 val tile = getTileAt(x, z)
                 if (tile != null) {
                     tiles.add(tile)
@@ -215,9 +215,10 @@ class DynamicNavMesh(voxelFile: VoxelFile) {
     }
 
     private fun lookupKey(x: Long, z: Long): Long {
-        return z shl 32 or x
+        return z.shl(32) or x
     }
 
+    @Suppress("unused")
     fun voxelTiles(): List<VoxelTile> {
         return tiles.values.map { it.voxelTile }
     }

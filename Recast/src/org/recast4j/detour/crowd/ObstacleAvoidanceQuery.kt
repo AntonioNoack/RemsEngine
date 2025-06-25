@@ -23,104 +23,113 @@ import me.anno.maths.Maths.sq
 import org.joml.Vector3f
 import org.recast4j.Vectors
 import org.recast4j.detour.crowd.debug.ObstacleAvoidanceDebugData
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.hypot
+import kotlin.math.min
+import kotlin.math.sin
+import kotlin.math.sqrt
 
-class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
+class ObstacleAvoidanceQuery(maxNumCircles: Int, maxNumSegments: Int) {
 
     private lateinit var params: ObstacleAvoidanceParams
     private var invHorizTime = 0f
-    private var invVmax = 0f
+    private var invMaxVelocity = 0f
 
-    val circles = Array(maxCircles) { ObstacleCircle() }
+    val circles = Array(maxNumCircles) { ObstacleCircle() }
     private val maxCircles get() = circles.size
 
-    val segments = Array(maxSegments) { ObstacleSegment() }
+    val segments = Array(maxNumSegments) { ObstacleSegment() }
     private val maxNumSegments get() = segments.size
 
-    var circleCount = 0
-    var segmentCount: Int = 0
+    var numCircles = 0
+    var numSegments = 0
 
     fun reset() {
-        circleCount = 0
-        segmentCount = 0
+        numCircles = 0
+        numSegments = 0
     }
 
-    fun addCircle(pos: Vector3f, rad: Float, vel: Vector3f, dvel: Vector3f) {
-        if (circleCount >= maxCircles) return
-        val cir = circles[circleCount++]
-        cir.p.set(pos)
-        cir.rad = rad
-        cir.vel.set(vel)
-        cir.dvel.set(dvel)
+    fun addCircle(position: Vector3f, radius: Float, actualVelocity: Vector3f, desiredVelocity: Vector3f) {
+        if (numCircles >= maxCircles) return
+        val circle = circles[numCircles++]
+        circle.position.set(position)
+        circle.radius = radius
+        circle.actualVelocity.set(actualVelocity)
+        circle.desiredVelocity.set(desiredVelocity)
     }
 
-    fun addSegment(p: Vector3f, q: Vector3f) {
-        if (segmentCount >= maxNumSegments) return
-        val seg = segments[segmentCount++]
-        seg.p.set(p)
-        seg.q.set(q)
+    fun addSegment(segmentStart: Vector3f, segmentEnd: Vector3f) {
+        if (numSegments >= maxNumSegments) return
+        val segment = segments[numSegments++]
+        segment.segmentStart.set(segmentStart)
+        segment.segmentEnd.set(segmentEnd)
     }
 
-    private fun prepare(pos: Vector3f, dvel: Vector3f) {
+    private fun prepare(position: Vector3f, desiredVelocity: Vector3f) {
         // Prepare obstacles
-        val dv = Vector3f()
-        for (i in 0 until circleCount) {
-            val cir = circles[i]
+        val deltaVelocity = Vector3f()
+        val origin = Vector3f()
+        for (i in 0 until numCircles) {
+            val circle = circles[i]
 
             // Side
-            val pb = cir.p
-            val orig = Vector3f()
-            cir.dp.set(pb).sub(pos)
-            cir.dp.normalize()
-            cir.dvel.sub(dvel, dv)
-            val a = Vectors.triArea2D(orig, cir.dp, dv)
+            circle.position.sub(position, circle.dp).normalize()
+            circle.desiredVelocity.sub(desiredVelocity, deltaVelocity)
+            val a = Vectors.triArea2D(origin, circle.dp, deltaVelocity)
             if (a < 0.01f) {
-                cir.np.x = -cir.dp.z
-                cir.np.z = cir.dp.x
+                circle.np.x = -circle.dp.z
+                circle.np.z = circle.dp.x
             } else {
-                cir.np.x = cir.dp.z
-                cir.np.z = -cir.dp.x
+                circle.np.x = circle.dp.z
+                circle.np.z = -circle.dp.x
             }
         }
-        for (i in 0 until segmentCount) {
-            val seg = segments[i]
+        for (i in 0 until numSegments) {
+            val segment = segments[i]
 
-            // Precalc if the agent is really close to the segment.
-            val r = 0.01f
-            val first = Vectors.distancePtSegSqr2DFirst(pos, seg.p, seg.q)
-            seg.touch = first < r * r
+            // Precalculate if the agent is really close to the segment.
+            val epsilon = 0.01f
+            val first = Vectors.distancePtSegSqr2DFirst(position, segment.segmentStart, segment.segmentEnd)
+            segment.isTouchedByAgent = first < epsilon * epsilon
         }
     }
 
-    fun sweepCircleCircle(c0: Vector3f, r0: Float, v: Vector3f, c1: Vector3f, r1: Float): SweepCircleCircleResult? {
+    fun sweepCircleCircle(
+        center0: Vector3f, radius0: Float, velocity: Vector3f,
+        center1: Vector3f, radius1: Float
+    ): SweepCircleCircleResult? {
         val epsilon = 0.0001f
-        val sx = c1.x - c0.x
-        val sz = c1.z - c0.z
-        val r = r0 + r1
-        val c = (sx * sx + sz * sz) - r * r
-        var a = Vectors.dot2D(v, v)
-        if (a < epsilon) return null // not moving
+        val sx = center1.x - center0.x
+        val sz = center1.z - center0.z
+        val radiusSum = radius0 + radius1
+        val c = (sx * sx + sz * sz) - radiusSum * radiusSum
+        var velSq = velocity.lengthXZSquared()
+        if (velSq < epsilon) return null // not moving
         // Overlap, calc time to exit.
-        val b = v.x * sx + v.z * sz
-        val d = b * b - a * c
+        val b = velocity.x * sx + velocity.z * sz
+        val d = b * b - velSq * c
         if (d < 0f) return null // no intersection.
-        a = 1f / a
+        velSq = 1f / velSq
         val rd = sqrt(d)
-        return SweepCircleCircleResult((b - rd) * a, (b + rd) * a)
+        return SweepCircleCircleResult((b - rd) * velSq, (b + rd) * velSq)
     }
 
-    fun intersectRaySeg(ap: Vector3f, u: Vector3f, bp: Vector3f, bq: Vector3f): Float {
-        val vx = bq.x - bp.x
-        val vz = bq.z - bp.z
-        val wx = ap.x - bp.x
-        val wz = ap.z - bp.z
-        var d = (u.z * vx - u.x * vz)
-        if (abs(d) < 1e-6f) return -1f
-        d = 1f / d
-        val t = (vz * wx - vx * wz) * d
-        if (t < 0 || t > 1) return -1f
-        val s = (u.z * wx - u.x * wz) * d
-        return if (s < 0 || s > 1) -1f else t
+    fun intersectRaySegment(
+        rayOrigin: Vector3f, rayDirection: Vector3f,
+        segmentStart: Vector3f, segmentEnd: Vector3f
+    ): Float {
+        val vx = segmentEnd.x - segmentStart.x
+        val vz = segmentEnd.z - segmentStart.z
+        val wx = rayOrigin.x - segmentStart.x
+        val wz = rayOrigin.z - segmentStart.z
+        var len = (rayDirection.z * vx - rayDirection.x * vz)
+        if (abs(len) < 1e-6f) return -1f
+        len = 1f / len
+        val paramT = (vz * wx - vx * wz) * len
+        if (paramT < 0 || paramT > 1) return -1f
+        val paramS = (rayDirection.z * wx - rayDirection.x * wz) * len
+        return if (paramS < 0 || paramS > 1) -1f else paramT
     }
 
     /**
@@ -129,18 +138,19 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
      * @param minPenalty threshold penalty for early out
      */
     private fun processSample(
-        sampledVelocity: Vector3f, cs: Float, pos: Vector3f, rad: Float, vel: Vector3f, desiredVelocity: Vector3f,
+        sampledVelocity: Vector3f, cs: Float, position: Vector3f, radius: Float,
+        actualVelocity: Vector3f, desiredVelocity: Vector3f,
         minPenalty: Float, debug: ObstacleAvoidanceDebugData?
     ): Float {
         // penalty for straying away from the desired and current velocities
-        val desiredVelocityPenalty = params.weightDesVel * (Vectors.dist2D(sampledVelocity, desiredVelocity) * invVmax)
-        val currentVelocityPenalty = params.weightCurVel * (Vectors.dist2D(sampledVelocity, vel) * invVmax)
+        val desiredVelocityPenalty = params.weightDesiredVelocity * (Vectors.dist2D(sampledVelocity, desiredVelocity) * invMaxVelocity)
+        val currentVelocityPenalty = params.weightActualVelocity * (Vectors.dist2D(sampledVelocity, actualVelocity) * invMaxVelocity)
 
         // find the threshold hit time to bail out based on the early out penalty
         // (see how the penalty is calculated below to understnad)
         val minPen = minPenalty - desiredVelocityPenalty - currentVelocityPenalty
-        val tThresold = (params.weightToi / minPen - 0.1f) * params.horizTime
-        if (tThresold - params.horizTime > -Float.MIN_VALUE) return minPenalty // already too much
+        val tThreshold = (params.weightToi / minPen - 0.1f) * params.horizTime
+        if (tThreshold - params.horizTime > -Float.MIN_VALUE) return minPenalty // already too much
 
         // Find min time of impact and exit amongst all obstacles.
         var tmin = params.horizTime
@@ -148,17 +158,17 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
         var numSides = 0
 
         val vab = Vector3f()
-        for (i in 0 until circleCount) {
+        for (i in 0 until numCircles) {
             val cir = circles[i]
 
             // RVO
             sampledVelocity.mul(2f, vab)
-            vab.sub(vel).sub(cir.vel)
+            vab.sub(actualVelocity).sub(cir.actualVelocity)
 
             // Side
             side += clamp(min(Vectors.dot2D(cir.dp, vab) * 0.5f + 0.5f, Vectors.dot2D(cir.np, vab) * 2), 0f, 1f)
             numSides++
-            val circleResult = sweepCircleCircle(pos, rad, vab, cir.p, cir.rad) ?: continue
+            val circleResult = sweepCircleCircle(position, radius, vab, cir.position, cir.radius) ?: continue
             var yMin = circleResult.yMin
             val yMax = circleResult.yMax
 
@@ -171,23 +181,23 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
                 // The closest obstacle is somewhere ahead of us, keep track of nearest obstacle.
                 if (yMin < tmin) {
                     tmin = yMin
-                    if (tmin < tThresold) return minPenalty
+                    if (tmin < tThreshold) return minPenalty
                 }
             }
         }
         val snorm = Vector3f()
-        for (i in 0 until segmentCount) {
-            val seg = segments[i]
-            var htmin = if (seg.touch) {
+        for (i in 0 until numSegments) {
+            val segment = segments[i]
+            var htmin = if (segment.isTouchedByAgent) {
                 // Special case when the agent is very close to the segment.
-                seg.q.sub(seg.p, snorm)
+                segment.segmentEnd.sub(segment.segmentStart, snorm)
                 snorm.set(-snorm.z, 0f, snorm.x)
                 // If the velocity is pointing towards the segment, no collision.
                 if (Vectors.dot2D(snorm, sampledVelocity) < 0f) continue
                 // Else immediate collision.
                 0f
             } else {
-                val ires = intersectRaySeg(pos, sampledVelocity, seg.p, seg.q)
+                val ires = intersectRaySegment(position, sampledVelocity, segment.segmentStart, segment.segmentEnd)
                 if (ires < 0f) continue
                 ires
             }
@@ -198,7 +208,7 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
             // The closest obstacle is somewhere ahead of us, keep track of nearest obstacle.
             if (htmin < tmin) {
                 tmin = htmin
-                if (tmin < tThresold) {
+                if (tmin < tThreshold) {
                     return minPenalty
                 }
             }
@@ -210,7 +220,8 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
         val collisionTimePenalty = params.weightToi * (1f / (0.1f + tmin * invHorizTime))
         val penalty = desiredVelocityPenalty + currentVelocityPenalty + preferredSidePenalty + collisionTimePenalty
         // Store different penalties for debug viewing
-        debug?.addSample(sampledVelocity, cs, penalty,
+        debug?.addSample(
+            sampledVelocity, cs, penalty,
             desiredVelocityPenalty, currentVelocityPenalty,
             preferredSidePenalty, collisionTimePenalty
         )
@@ -218,116 +229,123 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
     }
 
     fun sampleVelocityGrid(
-        pos: Vector3f, rad: Float, vmax: Float, vel: Vector3f, dvel: Vector3f,
+        position: Vector3f, radius: Float, maxVelocity: Float, actualVelocity: Vector3f, desiredVelocity: Vector3f,
         params: ObstacleAvoidanceParams, debug: ObstacleAvoidanceDebugData?
     ): Pair<Int, Vector3f> {
-        prepare(pos, dvel)
+        prepare(position, desiredVelocity)
         this.params = params
         invHorizTime = 1f / this.params.horizTime
-        invVmax = if (vmax > 0) 1f / vmax else Float.MAX_VALUE
-        val nvel = Vector3f()
+        invMaxVelocity = if (maxVelocity > 0) 1f / maxVelocity else Float.MAX_VALUE
+        val newVelocity = Vector3f()
         debug?.reset()
-        val cvx = dvel.x * params.velBias
-        val cvz = dvel.z * params.velBias
-        val cs = vmax * 2 * (1 - params.velBias) / (params.gridSize - 1)
+        val cvx = desiredVelocity.x * params.velocityBias
+        val cvz = desiredVelocity.z * params.velocityBias
+        val cs = maxVelocity * 2 * (1 - params.velocityBias) / (params.gridSize - 1)
         val half = (params.gridSize - 1) * cs * 0.5f
         var minPenalty = Float.MAX_VALUE
-        var ns = 0
+        var numValidSamples = 0
         for (y in 0 until params.gridSize) {
             for (x in 0 until params.gridSize) {
                 val vcand = Vector3f(cvx + x * cs - half, 0f, cvz + y * cs - half)
-                val vmax2 = vmax + cs / 2
-                if (vcand.x * vcand.x + vcand.z * vcand.z > vmax2 * vmax2) continue
-                val penalty = processSample(vcand, cs, pos, rad, vel, dvel, minPenalty, debug)
-                ns++
+                val maxVelocity2 = maxVelocity + cs / 2
+                if (vcand.x * vcand.x + vcand.z * vcand.z > maxVelocity2 * maxVelocity2) continue
+                val penalty =
+                    processSample(vcand, cs, position, radius, actualVelocity, desiredVelocity, minPenalty, debug)
+                numValidSamples++
                 if (penalty < minPenalty) {
                     minPenalty = penalty
-                    nvel.set(vcand)
+                    newVelocity.set(vcand)
                 }
             }
         }
-        return Pair(ns, nvel)
+        return Pair(numValidSamples, newVelocity)
     }
 
     // vector normalization that ignores the y-component.
     fun dtNormalize2D(v: FloatArray) {
-        var d = sqrt((v[0] * v[0] + v[2] * v[2])).toFloat()
-        if (d == 0f) return
-        d = 1f / d
-        v[0] *= d
-        v[2] *= d
+        var len = hypot(v[0], v[2])
+        if (len == 0f) return
+        len = 1f / len
+        v[0] *= len
+        v[2] *= len
     }
 
     fun sampleVelocityAdaptive(
-        pos: Vector3f, rad: Float, vmax: Float, vel: Vector3f,
-        dvel: Vector3f, params: ObstacleAvoidanceParams, debug: ObstacleAvoidanceDebugData?
+        position: Vector3f, radius: Float, maxVelocity: Float, actualVelocity: Vector3f,
+        desiredVelocity: Vector3f, params: ObstacleAvoidanceParams, debug: ObstacleAvoidanceDebugData?
     ): Pair<Int, Vector3f> {
-        prepare(pos, dvel)
+        prepare(position, desiredVelocity)
         this.params = params
         invHorizTime = 1f / params.horizTime
-        invVmax = if (vmax > 0) 1f / vmax else Float.MAX_VALUE
+        invMaxVelocity = if (maxVelocity > 0) 1f / maxVelocity else Float.MAX_VALUE
         val nvel = Vector3f()
         debug?.reset()
 
         // Build sampling pattern aligned to desired velocity.
-        val pat = FloatArray((DT_MAX_PATTERN_DIVS * DT_MAX_PATTERN_RINGS + 1) * 2)
-        val ndivs = params.adaptiveDivs
-        val nrings = params.adaptiveRings
+        val pattern = FloatArray((DT_MAX_PATTERN_DIVS * DT_MAX_PATTERN_RINGS + 1) * 2)
+        val numDivs = params.numAdaptiveDivs
+        val numRings = params.numAdaptiveRings
         val depth = params.adaptiveDepth
-        val nd: Int = clamp(ndivs, 1, DT_MAX_PATTERN_DIVS)
-        val nr: Int = clamp(nrings, 1, DT_MAX_PATTERN_RINGS)
-        val da = 1f / nd * DT_PI * 2
-        val ca = cos(da)
-        val sa = sin(da)
+        val nd: Int = clamp(numDivs, 1, DT_MAX_PATTERN_DIVS)
+        val nr: Int = clamp(numRings, 1, DT_MAX_PATTERN_RINGS)
+        val deltaAngle = 1f / nd * DT_PI * 2
+        val ca = cos(deltaAngle)
+        val sa = sin(deltaAngle)
 
         // desired direction
-        val ddir = floatArrayOf(dvel.x, dvel.y, dvel.z, 0f, 0f, 0f)
-        dtNormalize2D(ddir)
-        val rotated = Vector3f(ddir).rotateY(da * 0.5f) // rotated by da/2
-        ddir[3] = rotated.x
-        ddir[4] = rotated.y
-        ddir[5] = rotated.z
-        var npat = 1
+        val desiredDirection = floatArrayOf(
+            desiredVelocity.x, desiredVelocity.y, desiredVelocity.z,
+            0f, 0f, 0f
+        )
+        dtNormalize2D(desiredDirection)
+        val rotated = Vector3f(desiredDirection).rotateY(deltaAngle * 0.5f) // rotated by da/2
+        desiredDirection[3] = rotated.x
+        desiredDirection[4] = rotated.y
+        desiredDirection[5] = rotated.z
+        var numSamples = 1
         for (j in 0 until nr) {
             val r = (nr - j).toFloat() / nr.toFloat()
-            pat[npat * 2] = ddir[j % 2 * 3] * r
-            pat[npat * 2 + 1] = ddir[j % 2 * 3 + 2] * r
-            var last1 = npat * 2
+            pattern[numSamples * 2] = desiredDirection[(j % 2) * 3] * r
+            pattern[numSamples * 2 + 1] = desiredDirection[(j % 2) * 3 + 2] * r
+            var last1 = numSamples * 2
             var last2 = last1
-            npat++
+            numSamples++
             var i = 1
             while (i < nd - 1) {
 
                 // get next point on the "right" (rotate CW)
-                pat[npat * 2] = pat[last1] * ca + pat[last1 + 1] * sa
-                pat[npat * 2 + 1] = -pat[last1] * sa + pat[last1 + 1] * ca
+                pattern[numSamples * 2] = pattern[last1] * ca + pattern[last1 + 1] * sa
+                pattern[numSamples * 2 + 1] = -pattern[last1] * sa + pattern[last1 + 1] * ca
                 // get next point on the "left" (rotate CCW)
-                pat[npat * 2 + 2] = pat[last2] * ca - pat[last2 + 1] * sa
-                pat[npat * 2 + 3] = pat[last2] * sa + pat[last2 + 1] * ca
-                last1 = npat * 2
+                pattern[numSamples * 2 + 2] = pattern[last2] * ca - pattern[last2 + 1] * sa
+                pattern[numSamples * 2 + 3] = pattern[last2] * sa + pattern[last2 + 1] * ca
+                last1 = numSamples * 2
                 last2 = last1 + 2
-                npat += 2
+                numSamples += 2
                 i += 2
             }
             if (nd and 1 == 0) {
-                pat[npat * 2 + 2] = pat[last2] * ca - pat[last2 + 1] * sa
-                pat[npat * 2 + 3] = pat[last2] * sa + pat[last2 + 1] * ca
-                npat++
+                pattern[numSamples * 2 + 2] = pattern[last2] * ca - pattern[last2 + 1] * sa
+                pattern[numSamples * 2 + 3] = pattern[last2] * sa + pattern[last2 + 1] * ca
+                numSamples++
             }
         }
 
         // Start sampling.
-        var cr = vmax * (1f - params.velBias)
-        val res = Vector3f(dvel.x * params.velBias, 0f, dvel.z * params.velBias)
-        var ns = 0
-        for (k in 0 until depth) {
+        var cr = maxVelocity * (1f - params.velocityBias)
+        val res = Vector3f(desiredVelocity.x * params.velocityBias, 0f, desiredVelocity.z * params.velocityBias)
+        var numProcessedSamples = 0
+        repeat(depth) {
             var minPenalty = Float.MAX_VALUE
             val bVel = Vector3f()
-            for (i in 0 until npat) {
-                val vcand = Vector3f(res.x + pat[i * 2] * cr, 0f, res.z + pat[i * 2 + 1] * cr)
-                if (sq(vcand.x) + sq(vcand.z) > sq(vmax + 0.001f)) continue
-                val penalty = processSample(vcand, cr / 10, pos, rad, vel, dvel, minPenalty, debug)
-                ns++
+            for (i in 0 until numSamples) {
+                val vcand = Vector3f(res.x + pattern[i * 2] * cr, 0f, res.z + pattern[i * 2 + 1] * cr)
+                if (sq(vcand.x) + sq(vcand.z) > sq(maxVelocity + 0.001f)) continue
+                val penalty = processSample(
+                    vcand, cr / 10, position, radius,
+                    actualVelocity, desiredVelocity, minPenalty, debug
+                )
+                numProcessedSamples++
                 if (penalty < minPenalty) {
                     minPenalty = penalty
                     bVel.set(vcand)
@@ -337,7 +355,7 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
             cr *= 0.5f
         }
         nvel.set(res)
-        return Pair(ns, nvel)
+        return Pair(numProcessedSamples, nvel)
     }
 
     companion object {

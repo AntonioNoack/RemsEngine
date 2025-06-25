@@ -17,48 +17,39 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.collider
 
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import org.joml.AABBf
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.RecastRasterization.rasterizeTriangle
 import org.recast4j.recast.Telemetry
 import kotlin.math.floor
 
-class TrimeshCollider : AbstractCollider {
-    private val vertices: FloatArray
-    private val triangles: IntArray
+class TrimeshCollider(
+    private val vertices: FloatArray,
+    private val triangles: IntArray,
+    bounds: AABBf, area: Int,
+    flagMergeThreshold: Float
+) : AbstractCollider(area, flagMergeThreshold, bounds) {
 
     constructor(vertices: FloatArray, triangles: IntArray, area: Int, flagMergeThreshold: Float) :
-            super(area, flagMergeThreshold, computeBounds(vertices)) {
-        this.vertices = vertices
-        this.triangles = triangles
-    }
-
-    constructor(
-        vertices: FloatArray, triangles: IntArray, bounds: AABBf,
-        area: Int, flagMergeThreshold: Float
-    ) : super(area, flagMergeThreshold, bounds) {
-        this.vertices = vertices
-        this.triangles = triangles
-    }
+            this(vertices, triangles, computeBounds(vertices), area, flagMergeThreshold)
 
     override fun rasterize(hf: Heightfield, telemetry: Telemetry?) {
-        var i = 2
-        while (i < triangles.size) {
+        forLoopSafely(triangles.size, 3) { i ->
             rasterizeTriangle(
                 hf, vertices,
-                triangles[i - 2], triangles[i - 1], triangles[i],
-                area, floor((flagMergeThreshold / hf.cellHeight)).toInt(),
+                triangles[i], triangles[i + 1], triangles[i + 2],
+                area, floor(flagMergeThreshold / hf.cellHeight).toInt(),
                 telemetry
             )
-            i += 3
         }
     }
 
     companion object {
         fun computeBounds(vertices: FloatArray): AABBf {
             val bounds = AABBf()
-            for (i in 0 until (vertices.size - 2) / 3) {
-                bounds.union(vertices, i * 3)
+            forLoopSafely(vertices.size, 3) { i ->
+                bounds.union(vertices, i)
             }
             return bounds
         }
