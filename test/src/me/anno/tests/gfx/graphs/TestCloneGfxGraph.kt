@@ -20,7 +20,7 @@ class TestCloneGfxGraph {
     ) {
 
         init {
-            setInput(1, PipelineStage.TRANSPARENT)
+            setInput(1, PipelineStage.GLASS)
         }
 
         val stage: PipelineStage
@@ -44,7 +44,7 @@ class TestCloneGfxGraph {
         originalGraph.add(TestNode())
         val originalNode = originalGraph.nodes
             .firstInstance2(TestNode::class)
-        assertEquals(PipelineStage.TRANSPARENT, originalNode.stage)
+        assertEquals(PipelineStage.GLASS, originalNode.stage)
         originalNode.setInput(1, PipelineStage.DECAL)
         assertEquals(PipelineStage.DECAL, originalNode.stage)
         val clonedGraph = originalGraph.clone() as FlowGraph
@@ -56,7 +56,7 @@ class TestCloneGfxGraph {
     @Test
     fun testCloningNode() {
         val originalNode = TestNode()
-        assertEquals(PipelineStage.TRANSPARENT, originalNode.stage)
+        assertEquals(PipelineStage.GLASS, originalNode.stage)
         originalNode.setInput(1, PipelineStage.DECAL)
         assertEquals(PipelineStage.DECAL, originalNode.stage)
         val clonedNode = originalNode.clone() as TestNode

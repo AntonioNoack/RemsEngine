@@ -3,9 +3,9 @@ package com.bulletphysics
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
+import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
+import org.junit.jupiter.api.Test
 
 class DominoChainTest {
     @Test
@@ -67,7 +67,7 @@ class DominoChainTest {
             }
 
             if (fallen != lastFallenCount) {
-                System.out.printf("[$dominoCount] Step %d: %d fallen%n", i, fallen)
+                println("[$dominoCount] Step $i: $fallen fallen")
                 lastFallenCount = fallen
             }
         }
@@ -81,9 +81,6 @@ class DominoChainTest {
         val verticalDot = upVector.dot(Vector3d(0.0, 1.0, 0.0)) // close to 1 if upright
         val isFallen = verticalDot < 0.7f // less than ~45° from upright
 
-        Assertions.assertTrue(
-            isFallen,
-            "Domino chain failed for N=$dominoCount. Final up vector dot: $verticalDot"
-        )
+        assertTrue(isFallen, "Domino chain failed for N=$dominoCount. Final up vector dot: $verticalDot")
     }
 }

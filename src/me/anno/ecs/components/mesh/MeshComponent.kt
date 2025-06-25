@@ -35,7 +35,7 @@ open class MeshComponent() : MeshComponentBase() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidateAABB()
+                invalidateBounds()
             }
         }
 

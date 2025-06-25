@@ -124,7 +124,7 @@ abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
         assertTrue(bx === b0 || bx === b1)
         this.buffer1 = if (bx === b1) b0 else b1
         this.buffer0 = if (bx === b1) b1 else b0
-        invalidateAABB()
+        invalidateBounds()
         return true
     }
 

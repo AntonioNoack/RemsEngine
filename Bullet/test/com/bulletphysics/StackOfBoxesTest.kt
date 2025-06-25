@@ -13,8 +13,8 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
 import com.bulletphysics.dynamics.constraintsolver.SliderConstraint
 import com.bulletphysics.linearmath.Transform
+import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 
@@ -32,9 +32,9 @@ class StackOfBoxesTest {
             val trans = boxes[i]!!.worldTransform
             val y = trans.origin.y
             println(trans.origin)
-            Assertions.assertTrue(abs(trans.origin.x) < 0.5f, "Box $i fell sideways on X axis")
-            Assertions.assertTrue(abs(trans.origin.z) < 0.5f, "Box $i fell sideways on Z axis")
-            Assertions.assertTrue(y > 0.1f, "Box $i dropped too low")
+            assertTrue(abs(trans.origin.x) < 0.5f, "Box $i fell sideways on X axis")
+            assertTrue(abs(trans.origin.z) < 0.5f, "Box $i fell sideways on Z axis")
+            assertTrue(y > 0.1f, "Box $i dropped too low")
         }
     }
 
@@ -53,10 +53,7 @@ class StackOfBoxesTest {
 
         // Threshold assumes a fall if final X or Z is way off from initial offset
         val fellOver = abs(finalX) > 3.0f || abs(finalZ) > 1.0f
-        Assertions.assertTrue(
-            fellOver,
-            "The stack did not fall over as expected. Final X: " + finalX + ", Z: " + finalZ
-        )
+        assertTrue(fellOver, "The stack did not fall over as expected. Final X: $finalX, Z: $finalZ")
     }
 
     @Test
@@ -121,7 +118,7 @@ class StackOfBoxesTest {
         val dz = abs(topTransform.origin.z)
 
         val towerFell = dx > 1.0f || dz > 1.0f
-        Assertions.assertTrue(towerFell, "Tower did not fall after being hit. X offset: $dx, Z offset: $dz")
+        assertTrue(towerFell, "Tower did not fall after being hit. X offset: $dx, Z offset: $dz")
     }
 
     private fun runSimulation(dynamicsWorld: DiscreteDynamicsWorld) {
@@ -129,7 +126,7 @@ class StackOfBoxesTest {
         val timeStep = 1f / 60f
         val maxSubSteps = 10
         val steps = 240 // 4 seconds of simulation
-        for (i in 0 until steps) {
+        repeat(steps) {
             dynamicsWorld.stepSimulation(timeStep.toDouble(), maxSubSteps)
         }
     }

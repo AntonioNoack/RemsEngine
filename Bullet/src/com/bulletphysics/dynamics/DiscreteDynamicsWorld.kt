@@ -7,6 +7,7 @@ import com.bulletphysics.BulletStats.pushProfile
 import com.bulletphysics.collision.broadphase.BroadphaseInterface
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.broadphase.CollisionFilterGroups
+import com.bulletphysics.collision.broadphase.CollisionFilterGroups.buildFilter
 import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.broadphase.OverlappingPairCache
 import com.bulletphysics.collision.dispatch.ActivationState
@@ -263,22 +264,29 @@ class DiscreteDynamicsWorld(
         if (body.collisionShape != null) {
             val isDynamic = !(body.isStaticObject || body.isKinematicObject)
             val collisionFilterGroup =
-                if (isDynamic) CollisionFilterGroups.DEFAULT_FILTER else CollisionFilterGroups.STATIC_FILTER
+                if (isDynamic) CollisionFilterGroups.DEFAULT_GROUP_ID
+                else if (body.isStaticObject) CollisionFilterGroups.STATIC_GROUP_ID
+                else CollisionFilterGroups.KINEMATIC_GROUP_ID
             val collisionFilterMask =
-                if (isDynamic) CollisionFilterGroups.ALL_FILTER else (CollisionFilterGroups.ALL_FILTER.toInt() xor CollisionFilterGroups.STATIC_FILTER.toInt()).toShort()
+                if (isDynamic) CollisionFilterGroups.ALL_MASK // dynamic reacts to all
+                else {
+                    // static/kinematic doesn't react with itself
+                    CollisionFilterGroups.ALL_MASK and
+                            (CollisionFilterGroups.STATIC_MASK or CollisionFilterGroups.KINEMATIC_MASK).inv()
+                }
 
-            addCollisionObject(body, collisionFilterGroup, collisionFilterMask)
+            addCollisionObject(body, buildFilter(collisionFilterGroup, collisionFilterMask))
         }
     }
 
     @Suppress("unused")
-    fun addRigidBody(body: RigidBody, group: Short, mask: Short) {
+    fun addRigidBody(body: RigidBody, filter: Int) {
         if (!body.isStaticOrKinematicObject) {
             body.setGravity(gravity)
         }
 
         if (body.collisionShape != null) {
-            addCollisionObject(body, group, mask)
+            addCollisionObject(body, filter)
         }
     }
 
@@ -577,9 +585,7 @@ class DiscreteDynamicsWorld(
                 val tmpSphere = tmpSphere.get()
                 tmpSphere.radius = self.ccdSweptSphereRadius
 
-                val broadphase = self.broadphaseHandle!!
-                results.collisionFilterGroup = broadphase.collisionFilterGroup
-                results.collisionFilterMask = broadphase.collisionFilterMask
+                results.collisionFilter = self.broadphaseHandle!!.collisionFilter
 
                 convexSweepTest(
                     tmpSphere,

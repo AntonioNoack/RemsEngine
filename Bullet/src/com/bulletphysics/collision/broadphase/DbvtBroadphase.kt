@@ -7,13 +7,12 @@ import org.joml.Vector3d
 /**
  * @author jezek2
  */
-class DbvtBroadphase(paircache: OverlappingPairCache?) : BroadphaseInterface() {
+class DbvtBroadphase() : BroadphaseInterface() {
 
     val sets = Array(2) { Dbvt() } // Dbvt sets
     var stageRoots: Array<DbvtProxy?> = arrayOfNulls(STAGE_COUNT + 1) // Stages list
 
-    override var overlappingPairCache: OverlappingPairCache =
-        (paircache ?: HashedOverlappingPairCache()) // Pair cache
+    override var overlappingPairCache: OverlappingPairCache =HashedOverlappingPairCache() // Pair cache
 
     var predictedFrames: Double = 2.0 // Frames predicted
     var stageCurrent: Int = 0// Current stage
@@ -83,9 +82,9 @@ class DbvtBroadphase(paircache: OverlappingPairCache?) : BroadphaseInterface() {
 
     override fun createProxy(
         aabbMin: Vector3d, aabbMax: Vector3d, shapeType: BroadphaseNativeType, userPtr: Any?,
-        collisionFilterGroup: Short, collisionFilterMask: Short, dispatcher: Dispatcher, multiSapProxy: Any?
+        collisionFilter: Int, dispatcher: Dispatcher, multiSapProxy: Any?
     ): BroadphaseProxy {
-        val proxy = DbvtProxy(userPtr, collisionFilterGroup, collisionFilterMask)
+        val proxy = DbvtProxy(userPtr, collisionFilter)
         DbvtAabbMm.Companion.fromMinMax(aabbMin, aabbMax, proxy.aabb)
         proxy.leaf = sets[0].insert(proxy.aabb, proxy)
         proxy.stage = stageCurrent
@@ -169,6 +168,7 @@ class DbvtBroadphase(paircache: OverlappingPairCache?) : BroadphaseInterface() {
     }
 
     companion object {
+
         const val DBVT_BP_MARGIN: Double = 0.05
 
         const val DYNAMIC_SET: Int = 0 // Dynamic set index

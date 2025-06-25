@@ -76,8 +76,8 @@ object BulletRendering {
     }
 
     private fun BulletPhysics.drawConstraints(pipeline: Pipeline) {
-        for ((_, bodyWithScale) in dynamicRigidBodies) {
-            val body = bodyWithScale.internal as? PhysicalBody ?: continue
+        for ((_, bodyWithScale) in rigidBodies) {
+            val body = bodyWithScale?.internal as? PhysicalBody ?: continue
             drawConstraints(pipeline, body)
         }
     }

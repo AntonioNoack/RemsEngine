@@ -1,7 +1,7 @@
 package me.anno.mesh.blender
 
 import me.anno.ecs.prefab.Prefab
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.gpu.shader.ShaderLib
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -215,7 +215,7 @@ object BlenderMaterialConverter {
                         }
                         "ShaderNodeBsdfGlass" -> {
                             // todo test these all, whether their names actually exist like that
-                            prefab["pipelineStage"] = TRANSPARENT_PASS
+                            prefab["pipelineStage"] = GLASS_PASS
                             val diffuse = findTintedMap(lookup(shaderNode, "Color"))
                             if (diffuse != null) {
                                 prefab["diffuseBase"] = diffuse.first

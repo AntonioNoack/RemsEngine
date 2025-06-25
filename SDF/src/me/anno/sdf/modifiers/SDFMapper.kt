@@ -24,7 +24,7 @@ abstract class SDFMapper : PrefabSaveable() {
     }
 
     fun invalidateBounds() {
-        (parent as? SDFComponent)?.invalidateBounds()
+        (parent as? SDFComponent)?.invalidateShaderBounds()
     }
 
     open fun applyTransform(bounds: AABBf) {}

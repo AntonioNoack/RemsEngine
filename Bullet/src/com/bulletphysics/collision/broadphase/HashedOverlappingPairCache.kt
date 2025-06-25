@@ -1,6 +1,7 @@
 package com.bulletphysics.collision.broadphase
 
 import com.bulletphysics.BulletStats
+import com.bulletphysics.collision.broadphase.CollisionFilterGroups.collidesBidirectional
 import com.bulletphysics.linearmath.MiscUtil.resize
 import com.bulletphysics.util.IntArrayList
 import com.bulletphysics.util.ObjectArrayList
@@ -32,11 +33,9 @@ class HashedOverlappingPairCache : OverlappingPairCache {
      */
     override fun addOverlappingPair(proxy0: BroadphaseProxy, proxy1: BroadphaseProxy): BroadphasePair? {
         BulletStats.addedPairs++
-
         if (!needsBroadphaseCollision(proxy0, proxy1)) {
             return null
         }
-
         return internalAddPair(proxy0, proxy1)
     }
 
@@ -137,14 +136,11 @@ class HashedOverlappingPairCache : OverlappingPairCache {
     }
 
     fun needsBroadphaseCollision(proxy0: BroadphaseProxy, proxy1: BroadphaseProxy): Boolean {
-        if (overlapFilterCallback != null) {
-            return overlapFilterCallback!!.needBroadphaseCollision(proxy0, proxy1)
+        val filterCallback = overlapFilterCallback
+        if (filterCallback != null) {
+            return filterCallback.needBroadphaseCollision(proxy0, proxy1)
         }
-
-        var collides = (proxy0.collisionFilterGroup.toInt() and proxy1.collisionFilterMask.toInt()) != 0
-        collides = collides && (proxy1.collisionFilterGroup.toInt() and proxy0.collisionFilterMask.toInt()) != 0
-
-        return collides
+        return collidesBidirectional(proxy0.collisionFilter, proxy1.collisionFilter)
     }
 
     override fun processAllOverlappingPairs(callback: OverlapCallback, dispatcher: Dispatcher) {

@@ -36,11 +36,9 @@ abstract class AxisSweep3Internal internal constructor(
     var firstFreeHandle: Int // free handles list
 
     // edge arrays for the 3 axes (each array has m_maxHandles * 2 + 2 sentinel entries)
-    var edges = Array<EdgeArray>(3) { createEdgeArray(maxHandles * 2)!! }
+    var edges = Array(3) { createEdgeArray(maxHandles * 2) }
 
     // OverlappingPairCallback is an additional optional user callback for adding/removing overlapping pairs, similar interface to OverlappingPairCache.
-    @get:Suppress("unused")
-    @set:Suppress("unused")
     var overlappingPairUserCallback: OverlappingPairCallback? = null
 
     var ownsPairCache: Boolean = false
@@ -181,10 +179,7 @@ abstract class AxisSweep3Internal internal constructor(
                 // if previous edge is a maximum check the bounds and add an overlap if necessary
                 if (updateOverlaps && testOverlap(axis, edgeHandle, prevHandle)) {
                     pairCache!!.addOverlappingPair(edgeHandle, prevHandle)
-                    if (this.overlappingPairUserCallback != null) {
-                        overlappingPairUserCallback!!.addOverlappingPair(edgeHandle, prevHandle)
-                        //AddOverlap(pEdge->m_handle, pPrev->m_handle);
-                    }
+                    overlappingPairUserCallback?.addOverlappingPair(edgeHandle, prevHandle)
                 }
 
                 // update edge reference in other handle
@@ -224,9 +219,7 @@ abstract class AxisSweep3Internal internal constructor(
                     val handle1 = getHandle(edgeArray.getHandle(nextIdx))
 
                     pairCache!!.removeOverlappingPair(handle0, handle1, dispatcher)
-                    if (this.overlappingPairUserCallback != null) {
-                        overlappingPairUserCallback!!.removeOverlappingPair(handle0, handle1, dispatcher)
-                    }
+                    overlappingPairUserCallback?.removeOverlappingPair(handle0, handle1, dispatcher)
                 }
 
                 // update edge reference in other handle
@@ -262,9 +255,7 @@ abstract class AxisSweep3Internal internal constructor(
                     val handle0 = getHandle(edgeArray.getHandle(edgeIdx))
                     val handle1 = getHandle(edgeArray.getHandle(prevIdx))
                     pairCache!!.removeOverlappingPair(handle0, handle1, dispatcher)
-                    if (this.overlappingPairUserCallback != null) {
-                        overlappingPairUserCallback!!.removeOverlappingPair(handle0, handle1, dispatcher)
-                    }
+                    overlappingPairUserCallback?.removeOverlappingPair(handle0, handle1, dispatcher)
                 }
 
                 // update edge reference in other handle
@@ -305,9 +296,7 @@ abstract class AxisSweep3Internal internal constructor(
                     val handle0 = getHandle(edgeArray.getHandle(edgeIdx))
                     val handle1 = getHandle(edgeArray.getHandle(prevIdx))
                     pairCache!!.addOverlappingPair(handle0, handle1)
-                    if (this.overlappingPairUserCallback != null) {
-                        overlappingPairUserCallback!!.addOverlappingPair(handle0, handle1)
-                    }
+                    overlappingPairUserCallback?.addOverlappingPair(handle0, handle1)
                 }
 
                 // update edge reference in other handle
@@ -363,8 +352,7 @@ abstract class AxisSweep3Internal internal constructor(
         aabbMin: Vector3d,
         aabbMax: Vector3d,
         pOwner: Any?,
-        collisionFilterGroup: Short,
-        collisionFilterMask: Short,
+        collisionFilter: Int,
         dispatcher: Dispatcher,
         multiSapProxy: Any?
     ): Int {
@@ -382,8 +370,7 @@ abstract class AxisSweep3Internal internal constructor(
         pHandle.uid = handle
         //pHandle->m_pOverlaps = 0;
         pHandle.clientObject = pOwner
-        pHandle.collisionFilterGroup = collisionFilterGroup
-        pHandle.collisionFilterMask = collisionFilterMask
+        pHandle.collisionFilter = collisionFilter
         pHandle.multiSapParentProxy = multiSapProxy
 
         // compute current limit of edge arrays
@@ -507,11 +494,11 @@ abstract class AxisSweep3Internal internal constructor(
 
     override fun createProxy(
         aabbMin: Vector3d, aabbMax: Vector3d, shapeType: BroadphaseNativeType, userPtr: Any?,
-        collisionFilterGroup: Short, collisionFilterMask: Short, dispatcher: Dispatcher, multiSapProxy: Any?
+        collisionFilter: Int, dispatcher: Dispatcher, multiSapProxy: Any?
     ): BroadphaseProxy {
         val handleId = addHandle(
             aabbMin, aabbMax, userPtr,
-            collisionFilterGroup, collisionFilterMask, dispatcher, multiSapProxy
+            collisionFilter, dispatcher, multiSapProxy
         )
         return getHandle(handleId)
     }

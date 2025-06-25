@@ -17,7 +17,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -101,7 +101,7 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
 
 class ForceFieldMaterial : Material() {
     init {
-        pipelineStage = TRANSPARENT_PASS
+        pipelineStage = GLASS_PASS
         // roughnessMinMax.set(0.01f)
         // metallicMinMax.set(1f)
         diffuseMap = pictures.getChild("HexagonalGrid2.png")

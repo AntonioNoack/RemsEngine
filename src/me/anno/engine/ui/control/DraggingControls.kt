@@ -14,7 +14,6 @@ import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.EngineBase.Companion.dragged
-import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.EditorState
@@ -417,7 +416,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 val globalCamTransform = camTransform.globalTransform
                 val offset = globalCamTransform.transformDirection(Vector3f(dx * speed, -dy * speed, 0f))
                 renderView.orbitCenter.sub(offset)
-                camera.invalidateAABB()
+                camera.invalidateBounds()
             }
             isSelected && Input.isLeftDown && mode != Mode.NOTHING -> {
 

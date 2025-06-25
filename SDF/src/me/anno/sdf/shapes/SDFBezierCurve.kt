@@ -24,7 +24,7 @@ class SDFBezierCurve : SDFShape() {
         Vector4f(0f, 1f, 1f, 0.1f)
     )
         set(value) {
-            if (field === value && dynamicSize) invalidateBounds()
+            if (field === value && dynamicSize) invalidateShaderBounds()
             else invalidateShader()
             field = value
         }

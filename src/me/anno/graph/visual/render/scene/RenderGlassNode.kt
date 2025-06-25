@@ -36,7 +36,7 @@ class RenderGlassNode : RenderViewNode(
         setInput(1, 256) // width
         setInput(2, 256) // height
         setInput(3, 1) // samples
-        setInput(4, PipelineStage.TRANSPARENT) // stage
+        setInput(4, PipelineStage.GLASS) // stage
     }
 
     var renderer = pbrRendererNoDepth

@@ -118,6 +118,6 @@ class SpiderLogic(val brain: FullyConnectedNN, val traps: Entity) : Component(),
 
         // todo teleport on edge transition
         // transform.smoothUpdate()
-        invalidateAABB()
+        invalidateBounds()
     }
 }

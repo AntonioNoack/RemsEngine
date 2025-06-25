@@ -14,8 +14,7 @@ abstract class BroadphaseInterface {
         aabbMax: Vector3d,
         shapeType: BroadphaseNativeType,
         userPtr: Any?,
-        collisionFilterGroup: Short,
-        collisionFilterMask: Short,
+        collisionFilter: Int,
         dispatcher: Dispatcher,
         multiSapProxy: Any?
     ): BroadphaseProxy
@@ -27,7 +26,7 @@ abstract class BroadphaseInterface {
     // calculateOverlappingPairs is optional: incremental algorithms (sweep and prune) might do it during the set aabb
     abstract fun calculateOverlappingPairs(dispatcher: Dispatcher)
 
-	abstract val overlappingPairCache: OverlappingPairCache
+    abstract val overlappingPairCache: OverlappingPairCache
 
     /**
      * returns the axis aligned bounding box in the 'global' coordinate frame

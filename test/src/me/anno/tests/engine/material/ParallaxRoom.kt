@@ -10,7 +10,7 @@ import me.anno.engine.DefaultAssets
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.ShaderLib
@@ -199,7 +199,7 @@ fun main() {
         metallicMinMax.set(1f)
         roughnessMinMax.set(0.01f)
         diffuseMap = documents.getChild("ParallaxRoom.png")
-        pipelineStage = TRANSPARENT_PASS
+        pipelineStage = GLASS_PASS
         shader = PRGlassShader
     }.ref)
 

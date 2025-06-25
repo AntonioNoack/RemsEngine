@@ -89,7 +89,7 @@ val teleportLineMaterial = Material().apply {
     indexOfRefraction = 1f
     metallicMinMax.set(1f)
     roughnessMinMax.set(0.01f)
-    pipelineStage = PipelineStage.TRANSPARENT
+    pipelineStage = PipelineStage.GLASS
 }
 
 fun prepareHand(scene: Entity, isRightHand1: Boolean) {

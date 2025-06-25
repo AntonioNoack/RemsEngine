@@ -14,11 +14,8 @@ open class BroadphaseProxy {
 	@JvmField
 	var clientObject: Any? = null
 
-    // TODO: mask
 	@JvmField
-	var collisionFilterGroup: Short = 0
-    @JvmField
-	var collisionFilterMask: Short = 0
+	var collisionFilter = 0
 
     @JvmField
 	var multiSapParentProxy: Any? = null
@@ -33,13 +30,11 @@ open class BroadphaseProxy {
     @JvmOverloads
     constructor(
         userPtr: Any?,
-        collisionFilterGroup: Short,
-        collisionFilterMask: Short,
+        collisionFilter: Int,
         multiSapParentProxy: Any? = null
     ) {
         this.clientObject = userPtr
-        this.collisionFilterGroup = collisionFilterGroup
-        this.collisionFilterMask = collisionFilterMask
+        this.collisionFilter = collisionFilter
         this.multiSapParentProxy = multiSapParentProxy
     }
 }

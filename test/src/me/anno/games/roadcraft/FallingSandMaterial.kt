@@ -26,7 +26,7 @@ class FallingSandMaterial : Material() {
 
     init {
         shader = FallingSandShader
-        pipelineStage = PipelineStage.TRANSPARENT
+        pipelineStage = PipelineStage.GLASS
     }
 
     override fun bind(shader: GPUShader) {

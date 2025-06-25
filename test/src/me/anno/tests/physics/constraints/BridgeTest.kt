@@ -2,15 +2,18 @@ package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.StaticBody
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.collider.BoxCollider
+import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
+import me.anno.engine.DefaultAssets.plane
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
@@ -128,7 +131,7 @@ fun main() {
                         val dir = globalB.sub(globalA, tmp).normalize()
                         transform.localRotation = Quaternionf(dir.normalToQuaternionY())
                         transform.localPosition = globalA.add(globalB, transform.localPosition).mul(0.5)
-                        invalidateAABB()
+                        invalidateBounds()
                         JomlPools.vec3d.sub(3)
                     }
                 })
@@ -143,13 +146,10 @@ fun main() {
 
 fun spawnFloor(scene: Entity) {
     Entity("Floor", scene)
-        .add(BoxCollider().apply {
-            roundness = 0f
-        })
-        .add(MeshComponent(flatCube.front))
-        .add(DynamicBody().apply { friction = 1.0 })
+        .add(MeshComponent(plane))
+        .add(InfinitePlaneCollider())
+        .add(StaticBody().apply { friction = 1.0 })
         .setScale(10f)
-        .setPosition(0.0, -10.0, 0.0)
 }
 
 fun spawnSampleCubes(scene: Entity) {

@@ -783,7 +783,7 @@ class GLTFReader(val src: FileReference) {
                 prefab["normalStrength"] = getFloat(normal["scale"], 1f)
             }
             if (material["alphaMode"] == "BLEND") {
-                prefab["pipelineStage"] = PipelineStage.TRANSPARENT
+                prefab["pipelineStage"] = PipelineStage.GLASS
             }
             if (material["doubleSided"] == true) {
                 prefab["cullMode"] = CullMode.BOTH

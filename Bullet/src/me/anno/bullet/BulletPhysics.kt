@@ -1,13 +1,15 @@
 package me.anno.bullet
 
 import com.bulletphysics.BulletGlobals
+import com.bulletphysics.collision.broadphase.CollisionFilterGroups.buildFilter
 import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.ActivationState
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
 import com.bulletphysics.collision.dispatch.CollisionFlags
 import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration
-import com.bulletphysics.collision.dispatch.GhostObject
+import com.bulletphysics.collision.dispatch.GhostPairCallback
+import com.bulletphysics.collision.dispatch.PairCachingGhostObject
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.CompoundShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
@@ -126,18 +128,12 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         }
 
         val body =
-            if (rigidBody is GhostBody) GhostObject().apply {
-                collisionShape = collider
-            } else RigidBody(mass, collider, inertia)
+            if (rigidBody is GhostBody) PairCachingGhostObject()
+            else RigidBody(mass, collider, inertia)
+        body.collisionShape = collider
+        body.userData = rigidBody
 
-        val tmpTransform = body.worldTransform
-        mat4x3ToTransform(globalTransform, scale, centerOfMass, tmpTransform)
-        if (body is RigidBody) {
-            body.setInitialTransform(tmpTransform)
-        } else {
-            body as GhostObject
-            body.setWorldTransform(tmpTransform)
-        }
+        setMatrix(body, globalTransform, scale, centerOfMass)
 
         if (body is RigidBody && rigidBody is PhysicalBody) {
             body.friction = rigidBody.friction
@@ -241,15 +237,12 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
             else -> 0
         }
 
-        if (body is RigidBody) {
-            bulletInstance.addRigidBody(
-                body, // todo re-activate / correct groups and masks
-                // clamp(rigidbody.group, 0, 15).toShort(),
-                // rigidbody.collisionMask
-            )
-        } else {
-            bulletInstance.addCollisionObject(body)
+        if (body is RigidBody && rigidbody is DynamicBody) {
+            body.setGravity(if (rigidbody.overrideGravity) rigidbody.gravity else gravity)
         }
+
+        val filter = buildFilter(rigidbody.groupId, rigidbody.collisionMask)
+        bulletInstance.addCollisionObject(body, filter)
 
         // must be done after adding the body to the world,
         // because it is overridden by World.addRigidbody()
@@ -259,11 +252,9 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
 
         rigidBodies[entity] = scaledBody
         when (rigidbody) {
-            is GhostBody -> rigidbody.bulletInstance = body as GhostObject
+            is GhostBody -> rigidbody.bulletInstance = body as PairCachingGhostObject
             is PhysicalBody -> rigidbody.bulletInstance = body as RigidBody
         }
-
-        registerNonStatic(entity, rigidbody is StaticBody, scaledBody)
 
         if (rigidbody is DynamicBody) {
             val constraints = rigidbody.linkedConstraints
@@ -291,20 +282,26 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         }
     }
 
-    private fun addConstraint(c: Constraint<*>, body: RigidBody, rigidbody: PhysicalBody, other: PhysicalBody) {
-        val oldInstance = c.bulletInstance
+    private fun addConstraint(
+        constraint: Constraint<*>, body: RigidBody,
+        rigidbody: PhysicalBody, other: PhysicalBody
+    ) {
+        val oldInstance = constraint.bulletInstance
         val world = bulletInstance
         if (oldInstance != null) {
             world.removeConstraint(oldInstance)
-            c.bulletInstance = null
+            constraint.bulletInstance = null
         }
         if (rigidbody is DynamicBody || other is DynamicBody) {
             val otherBody = getRigidbody(other)
             if (otherBody is RigidBody) {
                 // create constraint
-                val constraint = c.createConstraint(body, otherBody, c.getTA(), c.getTB())
-                c["bulletInstance"] = constraint
-                world.addConstraint(constraint, c.disableCollisionsBetweenLinked)
+                val bulletConstraint = constraint.createConstraint(
+                    body, otherBody,
+                    constraint.getTA(), constraint.getTB()
+                )
+                constraint["bulletInstance"] = bulletConstraint
+                world.addConstraint(bulletConstraint, constraint.disableCollisionsBetweenLinked)
             }
         } else {
             LOGGER.warn("Cannot constrain two static/kinematic bodies!, ${rigidbody.prefabPath} to ${other.prefabPath}")
@@ -382,14 +379,14 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         }
     }
 
-    override fun step(dt: Long, printSlack: Boolean) {
+    override fun step(dtNanos: Long, printSlack: Boolean) {
         // just in case
         if (printSlack) {
             Stack.printSizes()
         }
         // Stack.limit = 1024
         Stack.reset(printSlack)
-        super.step(dt, printSlack)
+        super.step(dtNanos, printSlack)
     }
 
     var maxSubSteps = 16
@@ -411,16 +408,20 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
     }
 
-    override fun isActive(rigidbody: CollisionObject): Boolean {
+    override fun isDynamic(rigidbody: CollisionObject): Boolean {
+        return rigidbody is RigidBody && !rigidbody.isStaticOrKinematicObject
+    }
+
+    override fun isActive(scaledBody: ScaledBody<PhysicsBody<*>, CollisionObject>): Boolean {
+        val rigidbody = scaledBody.external
         return rigidbody is RigidBody && rigidbody.isActive
     }
 
-    override fun worldRemoveRigidbody(rigidbody: CollisionObject) {
-        if (rigidbody is RigidBody) bulletInstance.removeRigidBody(rigidbody)
-        else bulletInstance.removeCollisionObject(rigidbody)
+    override fun worldRemoveRigidbody(scaledBody: ScaledBody<PhysicsBody<*>, CollisionObject>) {
+        bulletInstance.removeCollisionObject(scaledBody.external)
     }
 
-    override fun convertTransformMatrix(
+    override fun getMatrix(
         rigidbody: CollisionObject, dstTransform: Matrix4x3,
         scale: Vector3d, centerOfMass: Vector3d
     ) {
@@ -428,10 +429,19 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         transformToMat4x3(worldTransform, scale, centerOfMass, dstTransform)
     }
 
-    override fun updateNonStaticRigidBody(
+    override fun setMatrix(
+        rigidbody: CollisionObject, srcTransform: Matrix4x3,
+        scale: Vector3d, centerOfMass: Vector3d
+    ) {
+        val worldTransform = rigidbody.worldTransform
+        mat4x3ToTransform(srcTransform, scale, centerOfMass, worldTransform)
+        if (rigidbody is RigidBody) rigidbody.interpolationWorldTransform.set(worldTransform)
+    }
+
+    override fun updateDynamicRigidBody(
         entity: Entity, rigidbodyScaled: ScaledBody<PhysicsBody<*>, CollisionObject>
     ) {
-        super.updateNonStaticRigidBody(entity, rigidbodyScaled)
+        super.updateDynamicRigidBody(entity, rigidbodyScaled)
         val (dst, src) = rigidbodyScaled
         if (dst !is DynamicBody || src !is RigidBody) return
         dst.globalLinearVelocity.set(src.linearVelocity)
@@ -564,9 +574,11 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         fun createBulletWorld(): DiscreteDynamicsWorld {
             val collisionConfig = DefaultCollisionConfiguration()
             val dispatcher = CollisionDispatcher(collisionConfig)
-            val bp = DbvtBroadphase(null)
+            val bp = DbvtBroadphase()
             val solver = SequentialImpulseConstraintSolver()
-            return DiscreteDynamicsWorld(dispatcher, bp, solver)
+            val world = DiscreteDynamicsWorld(dispatcher, bp, solver)
+            world.broadphase.overlappingPairCache.setInternalGhostPairCallback(GhostPairCallback())
+            return world
         }
 
         private val LOGGER = LogManager.getLogger(BulletPhysics::class)

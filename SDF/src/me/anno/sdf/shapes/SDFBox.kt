@@ -20,7 +20,7 @@ open class SDFBox : SDFSmoothShape() {
 
     var halfExtents = Vector3f(1f)
         set(value) {
-            if (dynamicSize || globalDynamic) invalidateBounds()
+            if (dynamicSize || globalDynamic) invalidateShaderBounds()
             else invalidateShader()
             field.set(value)
         }

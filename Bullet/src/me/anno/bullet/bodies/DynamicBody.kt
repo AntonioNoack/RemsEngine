@@ -28,14 +28,7 @@ import org.joml.Vector3d
 @Docs("Dynamically simulated rigidbody")
 open class DynamicBody : PhysicalBody(), OnDrawGUI {
 
-    // todo we need to actually use this...
-    @Range(0.0, 15.0)
-    var collisionGroup = 1
-
-    @DebugProperty
-    @NotSerializedProperty
-    val collisionMask
-        get() = collisionMatrix[collisionGroup]
+    // todo when this is moved in the editor, activate() must be called!!!
 
     @DebugProperty
     @NotSerializedProperty
@@ -374,12 +367,6 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     }
 
     companion object {
-
         val gravity0 = Vector3d(0.0, -9.81, 0.0)
-
-        // todo define some kind of matrix
-        // todo this would need to be a) standardized
-        // todo or be customizable...
-        val collisionMatrix = ShortArray(16) { ((it.shl(1) - 1)).toShort() }
     }
 }

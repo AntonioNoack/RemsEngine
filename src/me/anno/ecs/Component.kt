@@ -67,7 +67,7 @@ abstract class Component : PrefabSaveable() {
      * */
     open fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean = false
 
-    open fun invalidateAABB() {
+    open fun invalidateBounds() {
         entity?.invalidateOwnAABB()
     }
 

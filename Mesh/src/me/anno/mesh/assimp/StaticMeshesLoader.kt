@@ -3,7 +3,7 @@ package me.anno.mesh.assimp
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.ByteImageFormat
 import me.anno.io.files.FileFileRef
@@ -484,7 +484,7 @@ object StaticMeshesLoader {
             // I wish there was a better way; opacity isn't guaranteed to be set to < 1
             // (tested with source files for SyntyStore "Ancient Empire Temple" wall meshes)
             if (name.contains("glass", true)) {
-                prefab["pipelineStage"] = TRANSPARENT_PASS
+                prefab["pipelineStage"] = GLASS_PASS
             }
             if (opacity != 1f) prefab["diffuseBase"] = Vector4f(1f, 1f, 1f, opacity)
         } else {

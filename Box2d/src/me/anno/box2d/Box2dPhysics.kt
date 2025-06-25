@@ -1,8 +1,8 @@
 package me.anno.box2d
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.physics.ScaledBody
 import me.anno.ecs.components.physics.Physics
+import me.anno.ecs.components.physics.ScaledBody
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.sq
@@ -183,22 +183,24 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         rigidbody.box2dInstance = body
         rigidBodies[entity] = scaledBody
 
-        registerNonStatic(entity, !(body.fixtureList.density > 0f), scaledBody)
-
         // todo constraints
+    }
+
+    override fun isDynamic(rigidbody: Body): Boolean {
+        return rigidbody.fixtureList.density > 0f
     }
 
     override fun removeConstraints(entity: Entity) {
         // todo constraints for Physics2d
     }
 
-    override fun worldRemoveRigidbody(rigidbody: Body) {
-        world.destroyBody(rigidbody)
+    override fun worldRemoveRigidbody(scaledBody: ScaledBody<Rigidbody2d, Body>) {
+        world.destroyBody(scaledBody.external)
     }
 
-    override fun isActive(rigidbody: Body): Boolean = rigidbody.isActive
+    override fun isActive(scaledBody: ScaledBody<Rigidbody2d, Body>): Boolean = scaledBody.external.isActive
 
-    override fun convertTransformMatrix(
+    override fun getMatrix(
         rigidbody: Body, dstTransform: Matrix4x3,
         scale: Vector3d, centerOfMass: Vector3d
     ) {
@@ -212,6 +214,13 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
             0f, 0f, 1f,
             pos.x.toDouble(), pos.y.toDouble(), 0.0
         )
+    }
+
+    override fun setMatrix(rigidbody: Body, srcTransform: Matrix4x3, scale: Vector3d, centerOfMass: Vector3d) {
+        // todo validate this teleports static objects correctly... do we even need this in 2D?
+        val global = srcTransform
+        rigidbody.position.set(global.m30.toFloat(), global.m31.toFloat())
+        rigidbody.m_sweep.a = -atan2(global.m10, global.m00) // mmh...
     }
 
     private val LOGGER = LogManager.getLogger(Box2dPhysics::class)

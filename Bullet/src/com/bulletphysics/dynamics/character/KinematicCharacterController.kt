@@ -259,38 +259,28 @@ class KinematicCharacterController(
      * Returns the reflection direction of a ray going 'direction' hitting a surface
      * with normal 'normal'.
      *
-     *
-     *
-     *
      * From: [Stanford-Article](http://www-cs-students.stanford.edu/~adityagp/final/node3.html)
      */
     fun computeReflectionDirection(direction: Vector3d, normal: Vector3d, out: Vector3d): Vector3d {
-        // return direction - (btScalar(2.0) * direction.dot(normal)) * normal;
-        out.set(normal)
-        out.mul(-2.0 * direction.dot(normal))
-        out.add(direction)
-        return out
+        normal.mul(-2.0 * direction.dot(normal), out)
+        return out.add(direction)
     }
 
     /**
      * Returns the portion of 'direction' that is parallel to 'normal'
      */
     fun parallelComponent(direction: Vector3d, normal: Vector3d, out: Vector3d): Vector3d {
-        //btScalar magnitude = direction.dot(normal);
-        //return normal * magnitude;
-        out.set(normal)
-        out.mul(direction.dot(normal))
-        return out
+        val magnitude = direction.dot(normal)
+        return normal.mul(magnitude, out)
     }
 
     /**
-     * Returns the portion of 'direction' that is perpindicular to 'normal'
+     * Returns the portion of 'direction' that is perpendicular to 'normal'
      */
-    fun perpindicularComponent(direction: Vector3d, normal: Vector3d, out: Vector3d): Vector3d {
-        //return direction - parallelComponent(direction, normal);
+    fun perpendicularComponent(direction: Vector3d, normal: Vector3d, out: Vector3d): Vector3d {
+        // perpendicular = direction - parallel
         val perpendicular = parallelComponent(direction, normal, out)
-        perpendicular.mul(-1.0)
-        perpendicular.add(direction)
+        direction.sub(perpendicular, perpendicular)
         return perpendicular
     }
 
@@ -344,7 +334,8 @@ class KinematicCharacterController(
         return penetration
     }
 
-    private val upAxisValue get() = upAxisDirection[upAxis.id]
+    private val upAxisValue: Vector3d
+        get() = upAxisDirection[upAxis.id]
 
     fun stepUp(world: CollisionWorld) {
         // phase 1: up
@@ -362,9 +353,10 @@ class KinematicCharacterController(
         // Find only sloped/flat surface hits, avoid wall and ceiling hits...
         val up = Stack.newVec()
         up.setScale(-1.0, upAxisValue)
+
+        val ghostObject = ghostObject
         val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, up, 0.0)
-        callback.collisionFilterGroup = this.ghostObject.broadphaseHandle!!.collisionFilterGroup
-        callback.collisionFilterMask = this.ghostObject.broadphaseHandle!!.collisionFilterMask
+        callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
         if (useGhostObjectSweepTest) {
             ghostObject.convexSweepTest(
@@ -405,7 +397,7 @@ class KinematicCharacterController(
             reflectDir.normalize()
 
             val parallelDir = parallelComponent(reflectDir, hitNormal, Stack.newVec())
-            val perpindicularDir = perpindicularComponent(reflectDir, hitNormal, Stack.newVec())
+            val perpindicularDir = perpendicularComponent(reflectDir, hitNormal, Stack.newVec())
 
             targetPosition.set(currentPosition)
             if (false)  //tangentMag != 0.0)
@@ -455,9 +447,9 @@ class KinematicCharacterController(
             start.setTranslation(currentPosition)
             end.setTranslation(targetPosition)
 
+            val ghostObject = ghostObject
             val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisValue, -1.0)
-            callback.collisionFilterGroup = this.ghostObject.broadphaseHandle!!.collisionFilterGroup
-            callback.collisionFilterMask = this.ghostObject.broadphaseHandle!!.collisionFilterMask
+            callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
             val margin = convexShape.margin
             convexShape.margin = margin + addedMargin
@@ -533,9 +525,9 @@ class KinematicCharacterController(
         start.setTranslation(currentPosition)
         end.setTranslation(targetPosition)
 
+        val ghostObject = ghostObject
         val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisValue, maxSlopeCosine)
-        callback.collisionFilterGroup = this.ghostObject.broadphaseHandle!!.collisionFilterGroup
-        callback.collisionFilterMask = this.ghostObject.broadphaseHandle!!.collisionFilterMask
+        callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
         if (useGhostObjectSweepTest) {
             ghostObject.convexSweepTest(
@@ -613,7 +605,7 @@ class KinematicCharacterController(
     }
 
     companion object {
-        private val upAxisDirection = arrayOf<Vector3d>(
+        private val upAxisDirection = arrayOf(
             Vector3d(1.0, 0.0, 0.0),
             Vector3d(0.0, 1.0, 0.0),
             Vector3d(0.0, 0.0, 1.0),

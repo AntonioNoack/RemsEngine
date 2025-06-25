@@ -132,7 +132,7 @@ class BoidV3(val n: Int) : MeshSpawner(), OnUpdate, OnDrawGUI {
         }
         accPool.sub(accPool.index)
 
-        invalidateAABB()
+        invalidateBounds()
     }
 
     override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {

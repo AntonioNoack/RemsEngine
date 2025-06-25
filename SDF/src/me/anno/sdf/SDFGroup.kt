@@ -112,7 +112,7 @@ open class SDFGroup : SDFComponent() {
     var progress = 0.5f
         set(value) {
             if (field != value) {
-                if (combinationMode == CombinationMode.INTERPOLATION) invalidateBounds()
+                if (combinationMode == CombinationMode.INTERPOLATION) invalidateShaderBounds()
                 field = value
             }
         }

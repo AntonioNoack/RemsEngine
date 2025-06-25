@@ -49,7 +49,7 @@ abstract class ProceduralMesh : MeshComponentBase() {
             needsMeshUpdate = false
             generateMesh(data)
             data.invalidateGeometry()
-            invalidateAABB()
+            invalidateBounds()
         }
         return data
     }

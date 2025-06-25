@@ -17,7 +17,6 @@ import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.RectangleLight
 import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.light.sky.Skybox
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.AutoTileableMaterial
 import me.anno.ecs.components.mesh.material.FurMeshComponent
@@ -39,7 +38,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.mesh.Shapes
 import me.anno.tests.ui.UITests
@@ -131,7 +130,7 @@ class CompileTest {
         val testWorld = TestWorld()
         scene.add(testWorld.createRaytracingMesh(0, 0, 0, 8, 8, 8))
         scene.add(testWorld.createRaytracingMeshV2(0, 0, 0, 8, 8, 8))
-        scene.add(MeshComponent(flatCube, Material().apply { pipelineStage = TRANSPARENT_PASS }))
+        scene.add(MeshComponent(flatCube, Material().apply { pipelineStage = GLASS_PASS }))
         return scene
     }
 

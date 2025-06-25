@@ -29,7 +29,7 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
 
     @Docs("How elastic a body is, 1 = fully elastic, 0 = all energy absorbed (knead)")
     @Range(0.0, 1.0)
-    var restitution = 0.1
+    var restitution = 0.0
         set(value) {
             field = value
             bulletInstance?.restitution = value

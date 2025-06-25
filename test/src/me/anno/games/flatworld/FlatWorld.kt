@@ -158,7 +158,7 @@ class FlatWorld : NamedSaveable() {
             }
             val mesh = intersection.streetMesh!!
             IntersectionMeshBuilder.createIntersection(intersection, this, mesh)
-            intersection.invalidateAABB() // since we changed the mesh
+            intersection.invalidateBounds() // since we changed the mesh
         }
     }
 

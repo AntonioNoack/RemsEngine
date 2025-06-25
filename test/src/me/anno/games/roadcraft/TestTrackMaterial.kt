@@ -109,7 +109,7 @@ class TrackVehicleControls : Component(), OnUpdate, OnPhysicsUpdate {
         trackPosition.x = actualLeft
         trackPosition.y = actualRight
 
-        invalidateAABB()
+        invalidateBounds()
     }
 
     override fun onPhysicsUpdate(dt: Double) {

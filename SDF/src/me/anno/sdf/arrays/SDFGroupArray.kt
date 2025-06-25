@@ -18,7 +18,7 @@ abstract class SDFGroupArray : SDFGroup() {
             if (field != v) {
                 field = v
                 invalidateShader()
-                invalidateBounds()
+                invalidateShaderBounds()
             }
         }
 

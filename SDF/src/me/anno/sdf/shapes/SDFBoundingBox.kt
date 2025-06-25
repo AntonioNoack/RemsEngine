@@ -29,7 +29,7 @@ open class SDFBoundingBox : SDFBox() {
     var thickness = 0.1f
         set(value) {
             if (field != value) {
-                if (dynamicThickness || globalDynamic) invalidateBounds()
+                if (dynamicThickness || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
                 field = value
             }

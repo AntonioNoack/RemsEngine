@@ -39,7 +39,6 @@ import me.anno.maths.Maths.PIf
 import me.anno.utils.OS.pictures
 import me.anno.utils.OS.res
 import me.anno.utils.types.Booleans.hasFlag
-import kotlin.math.PI
 
 // todo implement water shader like
 //  https://www.youtube.com/watch?v=-u3gEkhc8co
@@ -132,7 +131,7 @@ fun main() {
     val scene = Entity()
     scene.add(MeshComponent(res.getChild("meshes/NavMesh.fbx")))
     val material = Material().apply {
-        pipelineStage = PipelineStage.TRANSPARENT
+        pipelineStage = PipelineStage.GLASS
         normalMap = pictures.getChild("normal waves.jpg")
         indexOfRefraction = 1f
         shader = WaterShader

@@ -44,7 +44,7 @@ class LODMeshComponent() : MeshComponentBase() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidateAABB()
+                invalidateBounds()
             }
         }
 

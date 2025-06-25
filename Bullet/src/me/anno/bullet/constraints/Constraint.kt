@@ -58,13 +58,13 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
     @NotSerializedProperty
     @Suppress("unused")
     val isMissingRigidbody
-        get() = if (entity?.getComponent(DynamicBody::class) == null) "" else null
+        get() = if (entity?.getComponent(PhysicalBody::class) == null) "" else null
 
     @DebugWarning
     @NotSerializedProperty
     @Suppress("unused")
     val otherIsRigidbody
-        get() = if (entity?.getComponent(DynamicBody::class)?.run { this == other } == true) "" else null
+        get() = if (entity?.getComponent(PhysicalBody::class)?.run { this == other } == true) "" else null
 
     var disableCollisionsBetweenLinked = true
 

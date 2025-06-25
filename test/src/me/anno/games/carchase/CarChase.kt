@@ -91,7 +91,7 @@ fun createUI(): Panel {
     val glassMaterial = Material()
     glassMaterial.diffuseBase.w = 0.7f
     glassMaterial.cullMode = CullMode.BOTH
-    glassMaterial.pipelineStage = PipelineStage.TRANSPARENT
+    glassMaterial.pipelineStage = PipelineStage.GLASS
     glassMaterial.metallicMinMax.set(1f)
     glassMaterial.roughnessMinMax.set(0.1f)
     add(car1, carModelGlass, listOf(glassMaterial.ref))

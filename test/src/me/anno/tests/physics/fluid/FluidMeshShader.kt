@@ -68,7 +68,7 @@ object FluidMeshShader : ECSMeshShader("fluid") {
         fluidMaterial.shader = FluidMeshShader
         fluidMaterial.shaderOverrides["heightTex"] = TypeValueV2(GLSLType.S2D) { sim.pressure.read }
         fluidMaterial.shaderOverrides["waveHeight"] = TypeValue(GLSLType.V1F, waveHeight)
-        fluidMaterial.pipelineStage = PipelineStageImpl.TRANSPARENT_PASS
+        fluidMaterial.pipelineStage = PipelineStageImpl.GLASS_PASS
         fluidMaterial.metallicMinMax.set(1f)
         fluidMaterial.roughnessMinMax.set(0f)
         fluidMaterial.diffuseBase.w = 1f

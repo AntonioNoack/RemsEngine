@@ -9,5 +9,5 @@ val diffuseHexMaterial = Material().apply {
 
 val transparentHexMaterial = Material().apply {
     shader = HSMCShader
-    pipelineStage = PipelineStage.TRANSPARENT
+    pipelineStage = PipelineStage.GLASS
 }

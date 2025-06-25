@@ -2,6 +2,7 @@ package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.StaticBody
 import me.anno.bullet.constraints.HingeConstraint
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
@@ -41,12 +42,12 @@ fun main() {
     // todo why is the hinge flopping downwards, when it is invalidated???
     //  - given a second hinge, everything fails catastrophically, when we invalidate a hinge :(
 
-    val box1 = Entity("Pillar", scene)
-    box1.add(MeshComponent(flatCube.scaled(Vector3f(0.1f, 1.0f, 0.1f)).front))
-    box1.add(BoxCollider().apply { halfExtents.set(0.1f, 1f, 0.1f) })
-    box1.setRotation(5f.toRadians(), 0f, 0f)
-    val body1 = DynamicBody()
-    box1.add(body1)
+    val pillarBody = StaticBody()
+    Entity("Pillar", scene)
+        .add(MeshComponent(flatCube.scaled(Vector3f(0.1f, 1.0f, 0.1f)).front))
+        .add(BoxCollider().apply { halfExtents.set(0.1f, 1f, 0.1f) })
+        .setRotation(5f.toRadians(), 0f, 0f)
+        .add(pillarBody)
 
     // todo one hinge probably should be enough...
     fun addHinge(y: Double) {
@@ -58,7 +59,7 @@ fun main() {
         sliding.enableMotor = false
         sliding.otherPosition.set(0.0, y, 0.0)
         sliding.selfPosition.set(0.55, y, 0.0)
-        sliding.other = body1
+        sliding.other = pillarBody
         box0.add(sliding)
     }
     addHinge(-0.9)

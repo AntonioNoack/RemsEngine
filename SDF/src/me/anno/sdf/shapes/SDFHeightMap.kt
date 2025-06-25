@@ -92,7 +92,7 @@ class SDFHeightMap : SDFShape(), OnDrawGUI {
     var maxHeight = 1f
         set(value) {
             field = value
-            invalidateBounds()
+            invalidateShaderBounds()
         }
 
     @Type("Texture/Reference")
@@ -123,7 +123,7 @@ class SDFHeightMap : SDFShape(), OnDrawGUI {
             }
             if (lastImg != img) {
                 lastImg = img
-                invalidateBounds()
+                invalidateShaderBounds()
             }
             img ?: whiteTexture
         }

@@ -233,7 +233,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
                         pipeline.fill(root)
                         // decals and transparent objects are irrelevant for shadows
                         pipeline.stages.getOrNull(PipelineStage.DECAL.id)?.clear()
-                        pipeline.stages.getOrNull(PipelineStage.TRANSPARENT.id)?.clear()
+                        pipeline.stages.getOrNull(PipelineStage.GLASS.id)?.clear()
                         result.clearColor(0, depth = true)
                         pipeline.singlePassWithoutSky()
                     }

@@ -1,42 +1,43 @@
 package com.bulletphysics
 
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups
+import com.bulletphysics.StackOfBoxesTest.Companion.createGround
+import com.bulletphysics.StackOfBoxesTest.Companion.createRigidBody
+import com.bulletphysics.StackOfBoxesTest.Companion.createWorld
+import com.bulletphysics.collision.broadphase.CollisionFilterGroups.ALL_MASK
+import com.bulletphysics.collision.broadphase.CollisionFilterGroups.GHOST_GROUP_ID
+import com.bulletphysics.collision.broadphase.CollisionFilterGroups.buildFilter
 import com.bulletphysics.collision.dispatch.CollisionFlags
+import com.bulletphysics.collision.dispatch.GhostObject
 import com.bulletphysics.collision.dispatch.GhostPairCallback
 import com.bulletphysics.collision.dispatch.PairCachingGhostObject
 import com.bulletphysics.collision.shapes.BoxShape
-import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.SphereShape
-import com.bulletphysics.dynamics.DiscreteDynamicsWorld
-import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.linearmath.Transform
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
+import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
+import org.junit.jupiter.api.Test
 
 class GhostObjectTest {
     @Test
     fun testGhostObjectOverlapDetection() {
-        val world: DiscreteDynamicsWorld = StackOfBoxesTest.Companion.createWorld()
+        val world = createWorld()
         world.broadphase.overlappingPairCache.setInternalGhostPairCallback(GhostPairCallback())
-        StackOfBoxesTest.Companion.createGround(world)
+        createGround(world)
 
         // Ghost object region (box shape)
         val ghostShape = BoxShape(Vector3d(1.0, 0.5, 1.0))
-        val ghost = PairCachingGhostObject()
+        val ghost = GhostObject()
         ghost.collisionShape = ghostShape
-        val ghostTransform = Transform()
+        val ghostTransform = ghost.worldTransform
         ghostTransform.setIdentity()
         ghostTransform.setTranslation(0.0, 3.0, 0.0) // floating trigger region
-        ghost.setWorldTransform(ghostTransform)
         ghost.collisionFlags = CollisionFlags.NO_CONTACT_RESPONSE // no physics response
 
         // Must register ghost object in collision world
-        world.addCollisionObject(ghost, CollisionFilterGroups.SENSOR_TRIGGER, (-1).toShort())
+        world.addCollisionObject(ghost, buildFilter(GHOST_GROUP_ID, ALL_MASK))
 
         // Falling dynamic sphere
-        val sphereShape: CollisionShape = SphereShape(0.25)
-        val sphere: RigidBody = StackOfBoxesTest.Companion.createRigidBody(1f, Vector3d(0f, 5f, 0f), sphereShape)
+        val sphereShape = SphereShape(0.25)
+        val sphere = createRigidBody(1f, Vector3d(0f, 5f, 0f), sphereShape)
         world.addRigidBody(sphere)
 
         var entered = false
@@ -70,7 +71,7 @@ class GhostObjectTest {
         }
 
         // Assertions
-        Assertions.assertTrue(entered, "Sphere should have entered ghost zone.")
-        Assertions.assertTrue(exited, "Sphere should have exited ghost zone.")
+        assertTrue(entered, "Sphere should have entered ghost zone.")
+        assertTrue(exited, "Sphere should have exited ghost zone.")
     }
 }

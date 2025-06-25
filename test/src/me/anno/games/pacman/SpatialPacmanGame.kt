@@ -143,7 +143,7 @@ fun spatialPacmanGame(): Entity {
     val ghostMaterial = Material.diffuse(cornFlowerBlue).apply {
         metallicMinMax.set(1f)
         roughnessMinMax.set(0.2f)
-        pipelineStage = PipelineStage.TRANSPARENT
+        pipelineStage = PipelineStage.GLASS
     }
 
     val enemies = Entity("Enemies", scene)

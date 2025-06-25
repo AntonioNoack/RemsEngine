@@ -139,7 +139,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     var relativeMeshMargin = 0f
         set(value) {
             if (field != value) {
-                invalidateBounds()
+                invalidateShaderBounds()
                 field = value
             }
         }
@@ -218,7 +218,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     @Group("Transform")
     var position = Vector3f()
         set(value) {
-            if (dynamicPosition || globalDynamic) invalidateBounds()
+            if (dynamicPosition || globalDynamic) invalidateShaderBounds()
             else invalidateShader()
             field.set(value)
         }
@@ -227,7 +227,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     @Group("Transform")
     var rotation = Quaternionf()
         set(value) {
-            if (dynamicRotation || globalDynamic) invalidateBounds()
+            if (dynamicRotation || globalDynamic) invalidateShaderBounds()
             else invalidateShader()
             field.set(value)
         }
@@ -237,7 +237,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     var scale = 1f
         set(value) {
             if (field != value) {
-                if (dynamicScale || globalDynamic) invalidateBounds()
+                if (dynamicScale || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
                 field = value
             }
@@ -297,10 +297,10 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     }
 
     @DebugAction
-    fun invalidateBounds() {
+    fun invalidateShaderBounds() {
         val parent = parent
         if (parent is SDFComponent) {
-            parent.invalidateBounds()
+            parent.invalidateShaderBounds()
         } else hasInvalidBounds = true
     }
 
@@ -343,7 +343,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
             hasInvalidBounds = false
             // recalculate bounds & recreate mesh
             generateMesh(data)
-            invalidateAABB()
+            invalidateBounds()
         }
     }
 
@@ -401,7 +401,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
             parent.invalidateShader()
         } else {
             invalidateMesh()
-            invalidateAABB()
+            invalidateBounds()
         }
     }
 
@@ -465,7 +465,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     var limit = 1e3f
         set(value) {
             if (field != value) {
-                invalidateBounds()
+                invalidateShaderBounds()
                 field = value
             }
         }

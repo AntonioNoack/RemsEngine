@@ -4,7 +4,6 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.utils.structures.arrays.IntArrayList
@@ -28,7 +27,7 @@ open class SDFHexPrism : SDFSmoothShape() {
         get() = params.x
         set(value) {
             if (params.x != value) {
-                if (dynamicSize || globalDynamic) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
                 params.x = value
             }
@@ -39,7 +38,7 @@ open class SDFHexPrism : SDFSmoothShape() {
         get() = params.y
         set(value) {
             if (params.y != value) {
-                if (dynamicSize || globalDynamic) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
                 params.y = value
             }

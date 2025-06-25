@@ -14,7 +14,7 @@ open class SDFEllipsoid : SDFShape() {
     var halfAxes = Vector3f(1f)
         set(value) {
             if (!dynamicSize && !globalDynamic) invalidateShader()
-            else invalidateBounds()
+            else invalidateShaderBounds()
             field.set(value)
         }
 

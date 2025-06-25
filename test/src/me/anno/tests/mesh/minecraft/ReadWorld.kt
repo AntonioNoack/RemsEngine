@@ -320,7 +320,7 @@ fun main() {
         .map { isTransparent ->
             listOf(Material().apply {
                 if (isTransparent) {
-                    pipelineStage = PipelineStageImpl.TRANSPARENT_PASS
+                    pipelineStage = PipelineStageImpl.GLASS_PASS
                     metallicMinMax.set(1f)
                     roughnessMinMax.set(0f)
                 }

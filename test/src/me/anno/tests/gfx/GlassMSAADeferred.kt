@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFSphere
 
@@ -25,7 +25,7 @@ fun testComplex() {
     val glass = Material().apply {
         roughnessMinMax.set(0.1f)
         metallicMinMax.set(1f)
-        pipelineStage = TRANSPARENT_PASS
+        pipelineStage = GLASS_PASS
     }
 
     val meshSphere = IcosahedronModel.createIcosphere(5)
@@ -37,7 +37,7 @@ fun testComplex() {
     sdfSphere.position.set(2.5f, 0f, 0f)
     sdfSphere.highQualityMSAA = true
     sdfSphere.sdfMaterials = listOf(glass.ref)
-    sdfSphere.material.pipelineStage = TRANSPARENT_PASS
+    sdfSphere.material.pipelineStage = GLASS_PASS
     scene.add(sdfSphere)
 
     Entity("Diffuse Cube", scene)

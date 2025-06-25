@@ -26,7 +26,7 @@ open class SDFHyperCube : SDFSmoothShape() {
 
     var halfExtents = Vector4f(1f)
         set(value) {
-            if (dynamicSize || globalDynamic) invalidateBounds()
+            if (dynamicSize || globalDynamic) invalidateShaderBounds()
             else invalidateShader()
             field.set(value)
         }

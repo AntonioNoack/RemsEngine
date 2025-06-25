@@ -24,7 +24,7 @@ open class SDFCone : SDFShape() {
         get() = params.x
         set(value) {
             if (params.x != value) {
-                if (dynamicSize || globalDynamic) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
                 params.x = value
             }
@@ -34,7 +34,7 @@ open class SDFCone : SDFShape() {
         get() = params.y
         set(value) {
             if (params.y != value) {
-                if (dynamicSize || globalDynamic) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
                 params.y = value
             }

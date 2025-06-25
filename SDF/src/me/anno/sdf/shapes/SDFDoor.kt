@@ -29,7 +29,7 @@ class SDFDoor : SDF2DShape() {
         get() = params.y
         set(value) {
             if (params.y != value) {
-                if (dynamicSize || globalDynamic) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
                 params.y = value
             }

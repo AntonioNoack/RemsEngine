@@ -3,6 +3,7 @@ package me.anno.games
 import me.anno.Time
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.StaticBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
@@ -110,7 +111,7 @@ fun createTerrain(player: LocalPlayer): Entity {
                 .setPosition(chunkX * chunkSize, 0.0, chunkZ * chunkSize)
                 .add(MeshComponent(mesh))
                 .add(MeshCollider(mesh).apply { isConvex = false; margin = 0.5f })
-                .add(DynamicBody())
+                .add(StaticBody())
             terrain.add(wrapper)
             terrain.invalidateAABBsCompletely()
             return wrapper

@@ -61,7 +61,7 @@ class PipelineStageImpl(
     companion object {
 
         val OPAQUE_PASS = PipelineStage.OPAQUE
-        val TRANSPARENT_PASS = PipelineStage.TRANSPARENT
+        val GLASS_PASS = PipelineStage.GLASS
         val DECAL_PASS = PipelineStage.DECAL
 
         var drawnPrimitives = 0L

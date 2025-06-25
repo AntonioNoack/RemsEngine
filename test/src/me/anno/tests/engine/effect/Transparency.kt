@@ -9,7 +9,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
 
@@ -53,13 +53,13 @@ fun main() {
             when (material.name) {
                 "Piano_vetro", "sanjiaodisikeqiu_t", "08___Default_1001", "DefaultMaterial",
                 "glass", "material_0", "coat", "WINDSHIELD", "Material.003" -> {
-                    material.pipelineStage = TRANSPARENT_PASS
+                    material.pipelineStage = GLASS_PASS
                     material.cullMode = CullMode.BOTH
                     material.diffuseBase.w = 0.9f
                     material.metallicMinMax.y = 1f
                 }
                 "930_lights" -> {
-                    material.pipelineStage = TRANSPARENT_PASS
+                    material.pipelineStage = GLASS_PASS
                     material.cullMode = CullMode.BOTH
                     material.diffuseBase.w = 0.2f
                 }

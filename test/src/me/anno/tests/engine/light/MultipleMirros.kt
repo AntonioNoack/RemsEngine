@@ -54,7 +54,7 @@ fun main() {
         .setScale(10f)
 
     val glassMaterial = Material.metallic(-1, 0f)
-        .apply { pipelineStage = PipelineStage.TRANSPARENT }
+        .apply { pipelineStage = PipelineStage.GLASS }
     Entity("Sphere", scene)
         .add(MeshComponent(IcosahedronModel.createIcosphere(3), glassMaterial))
         .setPosition(0.0, 0.35, 0.0)

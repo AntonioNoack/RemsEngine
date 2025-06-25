@@ -32,7 +32,7 @@ import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.DECAL_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.OPAQUE_PASS
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.pipeline.occlusion.BoxOcclusionCulling
 import me.anno.gpu.pipeline.transparency.GlassPass
@@ -116,7 +116,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             stages.add(
                 when (stages.size) {
                     OPAQUE_PASS.id -> defaultStage
-                    TRANSPARENT_PASS.id -> PipelineStageImpl(
+                    GLASS_PASS.id -> PipelineStageImpl(
                         "transparent", RenderView.MAX_FORWARD_LIGHTS, BlendMode.DEFAULT,
                         DepthMode.CLOSE, false, CullMode.FRONT, pbrModelShader
                     )

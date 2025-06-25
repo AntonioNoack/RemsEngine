@@ -94,7 +94,7 @@ fun main() {
             .add(MeshComponent(monkey, golden))
     )
     val glass = IridescenceMaterial()
-    glass.pipelineStage = PipelineStage.TRANSPARENT
+    glass.pipelineStage = PipelineStage.GLASS
     glass.roughnessMinMax.set(0.2f)
     glass.metallicMinMax.set(1f)
     scene.add(

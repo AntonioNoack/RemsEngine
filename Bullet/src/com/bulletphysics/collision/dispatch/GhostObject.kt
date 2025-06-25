@@ -8,6 +8,8 @@ import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.utils.InternalAPI
+import me.anno.utils.structures.lists.Lists.swapRemove
+import me.anno.utils.structures.lists.Lists.swapRemoveAt
 import org.joml.Vector3d
 
 /**
@@ -38,11 +40,8 @@ open class GhostObject : CollisionObject() {
         dispatcher: Dispatcher,
         thisProxy: BroadphaseProxy?
     ) {
-        val otherObject: CollisionObject? = checkNotNull(otherProxy.clientObject as CollisionObject?)
-        val index = overlappingPairs.indexOf(otherObject)
-        if (index != -1) {
-            overlappingPairs[index] = overlappingPairs.removeLast()
-        }
+        val otherObject = otherProxy.clientObject as CollisionObject
+        overlappingPairs.swapRemove(otherObject)
     }
 
     fun convexSweepTest(
@@ -69,8 +68,6 @@ open class GhostObject : CollisionObject() {
         rayToTrans.setIdentity()
         rayToTrans.setTranslation(rayToWorld)
 
-        val tmpTrans = Stack.newTrans()
-
         for (i in overlappingPairs.indices) {
             val collisionObject = overlappingPairs[i]
 
@@ -79,12 +76,12 @@ open class GhostObject : CollisionObject() {
                 CollisionWorld.rayTestSingle(
                     rayFromTrans, rayToTrans, collisionObject,
                     collisionObject.collisionShape!!,
-                    collisionObject.getWorldTransform(tmpTrans),
+                    collisionObject.worldTransform,
                     resultCallback
                 )
             }
         }
 
-        Stack.subTrans(3)
+        Stack.subTrans(2)
     }
 }

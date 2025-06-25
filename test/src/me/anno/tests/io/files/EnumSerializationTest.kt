@@ -28,7 +28,7 @@ class EnumSerializationTest : Saveable() {
     fun testEnumSerialization() {
         registerCustomClass(EnumSerializationTest::class)
         val instance = EnumSerializationTest()
-        instance.stage = PipelineStage.TRANSPARENT
+        instance.stage = PipelineStage.GLASS
         val asText = instance.toString()
         assertEquals("[{\"class\":\"EnumSerializationTest\",\"i:*ptr\":1,\"i:stage\":1}]", asText)
         val clone = JsonStringReader.readFirst(asText, InvalidRef, EnumSerializationTest::class)

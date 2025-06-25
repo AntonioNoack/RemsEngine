@@ -52,7 +52,7 @@ object DefaultAssets {
     val goldenMaterial = Material.metallic(0xf5ba6c, 0.2f).noVertexColors()
     val glassMaterial = Material.metallic(white, 0f).noVertexColors().apply {
         diffuseBase.w = 0.5f
-        pipelineStage = PipelineStage.TRANSPARENT
+        pipelineStage = PipelineStage.GLASS
     }
     val blackMaterial = Material.diffuse(0)
     val emissiveMaterial = Material().noVertexColors().apply { emissiveBase.set(10f) }

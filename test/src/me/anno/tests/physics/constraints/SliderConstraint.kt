@@ -2,6 +2,7 @@ package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.StaticBody
 import me.anno.bullet.constraints.SliderConstraint
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
@@ -23,20 +24,12 @@ fun main() {
     Systems.registerSystem(physics)
     physics.updateInEditMode = true
 
-    val box0 = Entity("Moving Cube", scene)
-    box0.add(MeshComponent(flatCube))
-    box0.add(BoxCollider())
-    box0.setPosition(0.0, 2.3, 0.0)
-    val body0 = DynamicBody()
-    body0.mass = 1.0
-    box0.add(body0)
-
-    val box1 = Entity("Static Cube", scene)
-    box1.add(MeshComponent(flatCube))
-    box1.add(BoxCollider())
-    box1.setRotation(5f.toRadians(), 0f, 0f)
-    val body1 = DynamicBody()
-    box1.add(body1)
+    val staticCubeBody = StaticBody()
+    Entity("Static Cube", scene)
+        .add(MeshComponent(flatCube))
+        .add(BoxCollider())
+        .setRotation(5f.toRadians(), 0f, 0f)
+        .add(staticCubeBody)
 
     val sliding = SliderConstraint().apply {
         enableLinearMotor = true
@@ -45,9 +38,15 @@ fun main() {
         disableCollisionsBetweenLinked = true
         lowerLimit = -0.01
         upperLimit = +0.01
-        other = body1
+        other = staticCubeBody
     }
-    box0.add(sliding)
+
+    Entity("Moving Cube", scene)
+        .add(MeshComponent(flatCube))
+        .add(BoxCollider())
+        .setPosition(0.0, 2.3, 0.0)
+        .add(DynamicBody())
+        .add(sliding)
 
     Entity("Floor", scene)
         .add(MeshComponent(flatCube, Material.diffuse(0x333333)))

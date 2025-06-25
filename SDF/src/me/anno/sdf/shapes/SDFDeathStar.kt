@@ -21,7 +21,7 @@ open class SDFDeathStar : SDFShape() {
         get() = params.x
         set(value) {
             if (params.x != value) {
-                if (dynamicSize || globalDynamic) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
                 params.x = value
             }
@@ -33,7 +33,7 @@ open class SDFDeathStar : SDFShape() {
         get() = params.y
         set(value) {
             if (params.y != value) {
-                if (dynamicSize || globalDynamic) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
                 params.y = value
             }
@@ -44,7 +44,7 @@ open class SDFDeathStar : SDFShape() {
         get() = params.z
         set(value) {
             if (params.z != value) {
-                if (dynamicSize || globalDynamic) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
                 params.z = value
             }

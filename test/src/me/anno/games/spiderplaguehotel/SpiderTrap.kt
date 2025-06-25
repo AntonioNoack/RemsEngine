@@ -51,7 +51,7 @@ class SpiderTrap(
         // todo regular switching between these two isn't well supported...
         /*if (teleport)*/ transform.teleportUpdate()
         // else transform.smoothUpdate()
-        invalidateAABB()
+        invalidateBounds()
     }
 
     fun killSpiders() {

@@ -105,7 +105,7 @@ class Sim : Component(), OnUpdate {
                 .rotationY(nav1.actualVelocity.angleY())
         }
 
-        invalidateAABB()
+        invalidateBounds()
 
         return isFinished
     }

@@ -36,7 +36,7 @@ open class SDFCapsule : SDFShape() {
         }
 
     private fun update() {
-        if (dynamicSize || globalDynamic) invalidateBounds()
+        if (dynamicSize || globalDynamic) invalidateShaderBounds()
         else invalidateShader()
     }
 

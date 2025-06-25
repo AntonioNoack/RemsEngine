@@ -81,7 +81,7 @@ open class LookAtComponent : Component(), OnBeforeDraw {
         else transform.localScale = transform.localScale.set(scale)
 
         transform.validate()
-        invalidateAABB()
+        invalidateBounds()
     }
 
     override fun copyInto(dst: PrefabSaveable) {

@@ -6,6 +6,7 @@ import com.bulletphysics.BulletStats.pushProfile
 import com.bulletphysics.collision.broadphase.BroadphaseInterface
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.broadphase.CollisionFilterGroups
+import com.bulletphysics.collision.broadphase.CollisionFilterGroups.collidesBidirectional
 import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.broadphase.DispatcherInfo
 import com.bulletphysics.collision.broadphase.OverlappingPairCache
@@ -56,11 +57,9 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         }
     }
 
-    @JvmOverloads
     fun addCollisionObject(
         collisionObject: CollisionObject,
-        collisionFilterGroup: Short = CollisionFilterGroups.DEFAULT_FILTER,
-        collisionFilterMask: Short = CollisionFilterGroups.ALL_FILTER
+        collisionFilter: Int// = CollisionFilterGroups.DEFAULT_ALL,
     ) {
         // check that the object isn't already added
         assert(!collisionObjects.contains(collisionObject))
@@ -75,7 +74,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         val type = collisionObject.collisionShape!!.shapeType
         collisionObject.broadphaseHandle = broadphase.createProxy(
             minAabb, maxAabb, type,
-            collisionObject, collisionFilterGroup, collisionFilterMask,
+            collisionObject, collisionFilter,
             dispatcher, null
         )
 
@@ -319,23 +318,17 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
      * RayResultCallback is used to report new raycast results.
      */
     abstract class RayResultCallback {
-        @JvmField
-        var closestHitFraction: Double = 1.0
 
-        @JvmField
+        var closestHitFraction: Double = 1.0
         var collisionObject: CollisionObject? = null
-        var collisionFilterGroup: Short = CollisionFilterGroups.DEFAULT_FILTER
-        var collisionFilterMask: Short = CollisionFilterGroups.ALL_FILTER
+        var collisionFilter = CollisionFilterGroups.DEFAULT_ALL
 
         fun hasHit(): Boolean {
             return (collisionObject != null)
         }
 
         fun needsCollision(proxy0: BroadphaseProxy): Boolean {
-            var collides = ((proxy0.collisionFilterGroup.toInt() and collisionFilterMask.toInt()) and 0xFFFF) != 0
-            collides =
-                collides && ((collisionFilterGroup.toInt() and proxy0.collisionFilterMask.toInt()) and 0xFFFF) != 0
-            return collides
+            return collidesBidirectional(proxy0.collisionFilter, collisionFilter)
         }
 
         abstract fun addSingleResult(rayResult: LocalRayResult, normalInWorldSpace: Boolean): Double
@@ -398,15 +391,11 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         var closestHitFraction: Double = 1.0
 
         @JvmField
-        var collisionFilterGroup: Short = CollisionFilterGroups.DEFAULT_FILTER
-
-        @JvmField
-        var collisionFilterMask: Short = CollisionFilterGroups.ALL_FILTER
+        var collisionFilter = CollisionFilterGroups.DEFAULT_ALL
 
         fun init() {
             closestHitFraction = 1.0
-            collisionFilterGroup = CollisionFilterGroups.DEFAULT_FILTER
-            collisionFilterMask = CollisionFilterGroups.ALL_FILTER
+            collisionFilter = CollisionFilterGroups.DEFAULT_ALL
         }
 
         fun hasHit(): Boolean {
@@ -414,10 +403,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         }
 
         open fun needsCollision(proxy0: BroadphaseProxy): Boolean {
-            var collides = ((proxy0.collisionFilterGroup.toInt() and collisionFilterMask.toInt()) and 0xFFFF) != 0
-            collides =
-                collides && ((collisionFilterGroup.toInt() and proxy0.collisionFilterMask.toInt()) and 0xFFFF) != 0
-            return collides
+            return collidesBidirectional(proxy0.collisionFilter, collisionFilter)
         }
 
         abstract fun addSingleResult(convexResult: LocalConvexResult, normalInWorldSpace: Boolean): Double
@@ -730,7 +716,6 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                 }
                 Stack.subCastResult(1)
                 Stack.subGjkCC(1)
-
             } else if (collisionShape is TriangleMeshShape) {
 
                 val worldToCollisionObject = Stack.newTrans()

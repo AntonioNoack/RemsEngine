@@ -3,6 +3,7 @@ package me.anno.tests.network.rollingshooter
 import me.anno.Time
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.StaticBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
@@ -209,7 +210,7 @@ fun main() {
     )
     cameraArm.add(camera)
 
-    staticScene.add(DynamicBody().apply {
+    staticScene.add(StaticBody().apply {
         restitution = 0.0
         friction = 1.0
     })

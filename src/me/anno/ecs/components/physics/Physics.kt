@@ -28,6 +28,8 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.black
 import me.anno.utils.Logging.hash32
+import me.anno.utils.algorithms.Recursion
+import me.anno.utils.structures.Collections.setContains
 import me.anno.utils.structures.sets.ParallelHashSet
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.toLongOr
@@ -41,7 +43,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
 
 abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
-    val rigidComponentClass: KClass<InternalRigidBody>
+    val rigidComponentClass: KClass<InternalRigidBody>,
 ) : System(), OnUpdate {
 
     companion object {
@@ -68,26 +70,32 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     val rigidBodies = HashMap<Entity, ScaledBody<InternalRigidBody, ExternalRigidBody>?>()
 
     @NotSerializedProperty
-    val dynamicRigidBodies = HashMap<Entity, ScaledBody<InternalRigidBody, ExternalRigidBody>>()
+    val physicsUpdateListeners = HashSet<OnPhysicsUpdate>()
 
     @SerializedProperty
     var targetUpdatesPerSecond = 30.0
 
     @DebugProperty
     @Group("Bodies")
-    val numStaticBodies get() = rigidBodies.size - dynamicRigidBodies.size
+    val numDynamicBodies: Int
+        get() = rigidBodies.values.count { scaledBody ->
+            scaledBody != null && isDynamic(scaledBody.external)
+        }
 
     @DebugProperty
     @Group("Bodies")
-    val numDynamicBodies get() = dynamicRigidBodies.size
+    val numRegisteredBodies: Int
+        get() = rigidBodies.size
 
     @DebugProperty
     @Group("Bodies")
-    val numRigidbodies get() = rigidBodies.size
+    val numBodies: Int
+        get() = rigidBodies.values.count { it != null }
 
     @DebugProperty
     @Group("Bodies")
-    val numInvalidBodies get() = invalidEntities.size
+    val numInvalidBodies: Int
+        get() = invalidEntities.size
 
     @DebugProperty
     @NotSerializedProperty
@@ -108,32 +116,23 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
     }
 
-    fun registerNonStatic(
-        entity: Entity, isStatic: Boolean,
-        scaledBody: ScaledBody<InternalRigidBody, ExternalRigidBody>
-    ) {
-        if (isStatic) {
-            dynamicRigidBodies.remove(entity)
-        } else {
-            dynamicRigidBodies[entity] = scaledBody
-        }
-    }
-
     open fun invalidate(entity: Entity) {
         if (printValidations) LOGGER.debug("Invalidated {}", hash32(entity))
         invalidEntities.add(entity)
     }
+
+    abstract fun isDynamic(rigidbody: ExternalRigidBody): Boolean
 
     open fun invalidateTransform(entity: Entity) {
         invalidate(entity)
     }
 
     override fun clear() {
-        for ((_, rb) in rigidBodies) {
-            worldRemoveRigidbody(rb?.external ?: continue)
+        // todo this could be done more efficiently, I think...
+        for ((_, scaledBody) in rigidBodies) {
+            worldRemoveRigidbody(scaledBody ?: continue)
         }
         rigidBodies.clear()
-        dynamicRigidBodies.clear()
         invalidEntities.clear() // correct??
     }
 
@@ -149,7 +148,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     private val creating = { entity: Entity ->
         val rigidbody = addOrGet(entity)
-        entity.isPhysicsControlled = rigidbody != null
+        entity.isPhysicsControlled = rigidbody != null && isDynamic(rigidbody)
     }
 
     override fun setContains(entity: Entity, contains: Boolean) {
@@ -158,6 +157,9 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     override fun setContains(component: Component, contains: Boolean) {
         invalidate(component.entity ?: return)
+        if (component is OnPhysicsUpdate) {
+            physicsUpdateListeners.setContains(component, contains)
+        }
     }
 
     abstract fun removeConstraints(entity: Entity)
@@ -167,35 +169,22 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         dst: ArrayList<V> = ArrayList()
     ): List<V> {
         // only collect colliders, which are appropriate for this: stop at any other rigidbody
-        val tmp = ArrayList<Entity>()
-        tmp.add(root)
-        while (tmp.isNotEmpty()) { // non-recursive should be faster
-            val entity = tmp.removeLast()
-            collectValidComponents(entity, clazz, dst)
-            collectNextEntities(entity, tmp)
+        Recursion.processRecursive(root) { entity, remaining ->
+            entity.forAllComponents(clazz, false) { comp ->
+                dst.add(comp)
+            }
+            entity.forAllChildren(false) { child ->
+                if (!child.hasComponent(rigidComponentClass, false)) {
+                    remaining.add(child)
+                }
+            }
         }
         return dst
     }
 
-    private fun <V : Component> collectValidComponents(entity: Entity, clazz: KClass<V>, dst: ArrayList<V>) {
-        entity.forAllComponents(clazz, false) { comp ->
-            dst.add(comp)
-        }
-    }
-
-    private fun collectNextEntities(entity: Entity, tmp: ArrayList<Entity>) {
-        entity.forAllChildren(false) { child ->
-            if (!child.hasComponent(rigidComponentClass, false)) {
-                tmp.add(child)
-            }
-        }
-    }
-
     open fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
         val rigid = rigidBodies.remove(entity) ?: return
-        // LOGGER.debug("- ${entity.prefabPath}")
-        dynamicRigidBodies.remove(entity)
-        worldRemoveRigidbody(rigid.external)
+        worldRemoveRigidbody(rigid)
     }
 
     abstract fun createRigidbody(
@@ -224,17 +213,17 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         entity.validateTransform()
 
         var newlyCreated = false
-        val bodyWithScale = rigidBodies.getOrPut(entity) {
+        val scaledBody = rigidBodies.getOrPut(entity) {
             newlyCreated = true
             createRigidbody(entity, rigidBody)
         }
-        if (newlyCreated && bodyWithScale != null) {
+        if (newlyCreated && scaledBody != null) {
             // after creating and registering, so
             // it works for circular constraint dependencies
-            onCreateRigidbody(entity, rigidBody, bodyWithScale)
+            onCreateRigidbody(entity, rigidBody, scaledBody)
             // LOGGER.debug("+ ${entity.prefabPath}")
         }
-        return bodyWithScale?.external
+        return scaledBody?.external
     }
 
     fun isEntityValid(entity: Entity): Boolean {
@@ -249,18 +238,9 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         } else null
     }
 
-    private fun callOnUpdates(dt: Double) {
-        for (body in rigidBodies.keys) {
-            physicsUpdate(body, dt)
-        }
-    }
-
-    fun physicsUpdate(self: Entity, dt: Double) {
-        // called by physics thread
-        // only called for rigidbodies
-        // not called for static objects (?), since they should not move
-        self.forAllComponents(OnPhysicsUpdate::class, false) { c ->
-            c.onPhysicsUpdate(dt)
+    private fun invokePhysicsUpdates(dt: Double) {
+        for (component in physicsUpdateListeners) {
+            component.onPhysicsUpdate(dt)
         }
     }
 
@@ -377,12 +357,17 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     abstract fun worldStepSimulation(step: Double)
 
-    abstract fun worldRemoveRigidbody(rigidbody: ExternalRigidBody)
+    abstract fun worldRemoveRigidbody(scaledBody: ScaledBody<InternalRigidBody, ExternalRigidBody>)
 
-    abstract fun isActive(rigidbody: ExternalRigidBody): Boolean
+    abstract fun isActive(scaledBody: ScaledBody<InternalRigidBody, ExternalRigidBody>): Boolean
 
-    abstract fun convertTransformMatrix(
+    abstract fun getMatrix(
         rigidbody: ExternalRigidBody, dstTransform: Matrix4x3,
+        scale: Vector3d, centerOfMass: Vector3d,
+    )
+
+    abstract fun setMatrix(
+        rigidbody: ExternalRigidBody, srcTransform: Matrix4x3,
         scale: Vector3d, centerOfMass: Vector3d,
     )
 
@@ -392,51 +377,67 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         step(16_666_667L, true)
     }
 
-    open fun step(dt: Long, printSlack: Boolean) {
-
-        // clock.start()
-
-        // val oldSize = rigidBodies.size
+    open fun step(dtNanos: Long, printSlack: Boolean) {
         validate()
-        // val newSize = rigidBodies.size
-        // clock.stop("added ${newSize - oldSize} entities")
 
-        val step = dt * 1e-9
-        callOnUpdates(step)
-        worldStepSimulation(step)
+        val dtSeconds = dtNanos * 1e-9
+        beforeUpdate(dtSeconds)
+        worldStepSimulation(dtSeconds)
+        timeNanos += dtNanos
+        afterUpdate(dtSeconds)
+    }
 
-        // clock.stop("calculated changes, step ${dt * 1e-9}", 0.1)
+    open fun beforeUpdate(dt: Double) {
+        invokePhysicsUpdates(dt)
+        updateExternalTransforms()
+    }
 
-        this.timeNanos += dt
-
-        // is incorrect for the physics, but we use it for gfx only anyway
-        // val time = Engine.gameTime
-
-        val deadEntities = ArrayList<Entity>()
-        updateNonStaticRigidBodies(deadEntities)
+    open fun afterUpdate(dt: Double) {
+        updateInternalTransforms()
         updateWheels()
+        validateEntityTransforms()
+    }
 
+    fun updateExternalTransforms() {
+        for ((entity, scaledBody) in rigidBodies) {
+            if (scaledBody == null || isDynamic(scaledBody.external)) continue
+            val (_, rigidbody, scale, centerOfMass) = scaledBody
+
+            entity.validateTransform()
+
+            val srcTransform = entity.transform.globalTransform
+            setMatrix(rigidbody, srcTransform, scale, centerOfMass)
+        }
+    }
+
+    fun updateInternalTransforms() {
+        val deadEntities = ArrayList<Entity>()
+        updateDynamicBodies(deadEntities)
         for (i in deadEntities.indices) {
             remove(deadEntities[i], true)
         }
+    }
 
+    fun validateEntityTransforms() {
         // update the local transforms last, so all global transforms have been completely updated
-        for ((entity, bodyWithScale) in dynamicRigidBodies) {
-            if (!isActive(bodyWithScale.external)) continue
-            // val dst = entity.transform
-            // dst.calculateLocalTransform((entity.parent as? Entity)?.transform)
+        for ((entity, scaledBody) in rigidBodies) {
+            if (scaledBody == null ||
+                !isActive(scaledBody) ||
+                !isDynamic(scaledBody.external)
+            ) continue
             entity.invalidateAABBsCompletely()
             entity.invalidateChildTransforms()
             entity.validateTransform()
         }
-
-        // clock.total("physics step", 0.1)
     }
 
-    fun updateNonStaticRigidBodies(deadEntities: MutableList<Entity>) {
-        for ((entity, rigidbodyWithScale) in dynamicRigidBodies) {
-            if (!isActive(rigidbodyWithScale.external)) continue
-            updateNonStaticRigidBody(entity, rigidbodyWithScale)
+    fun updateDynamicBodies(deadEntities: MutableList<Entity>) {
+        for ((entity, scaledBody) in rigidBodies) {
+            if (scaledBody == null ||
+                !isActive(scaledBody) ||
+                !isDynamic(scaledBody.external)
+            ) continue
+            updateDynamicRigidBody(entity, scaledBody)
             checkOutOfBounds(entity, deadEntities)
         }
     }
@@ -449,13 +450,13 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
     }
 
-    open fun updateNonStaticRigidBody(
+    open fun updateDynamicRigidBody(
         entity: Entity, rigidbodyScaled: ScaledBody<InternalRigidBody, ExternalRigidBody>
     ) {
         val (_, rigidbody, scale, centerOfMass) = rigidbodyScaled
         val dst = entity.transform
         val dstTransform = dst.globalTransform
-        convertTransformMatrix(rigidbody, dstTransform, scale, centerOfMass)
+        getMatrix(rigidbody, dstTransform, scale, centerOfMass)
         dst.setStateAndUpdate(Transform.State.VALID_GLOBAL)
     }
 

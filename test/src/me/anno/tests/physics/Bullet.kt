@@ -5,6 +5,7 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.StaticBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.systems.Systems
@@ -63,7 +64,7 @@ private fun engineTest3d() {
     Systems.registerSystem(physics)
     val ground = Entity()
     ground.name = "Ground"
-    val groundRB = DynamicBody()
+    val groundRB = StaticBody()
     ground.add(groundRB)
     val groundShape = BoxCollider()
     groundShape.halfExtents.set(50.0, 5.0, 50.0)

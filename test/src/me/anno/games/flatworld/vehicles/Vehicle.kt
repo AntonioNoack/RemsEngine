@@ -111,7 +111,7 @@ class Vehicle(
                 angle = atan2(dx, dz)
                 transform.localPosition = position
                 transform.localRotation = transform.localRotation.rotationY(angle.toFloat())
-                invalidateAABB()
+                invalidateBounds()
             } else speed = 0.0
         }
         if (currentT >= 1.0) {

@@ -33,8 +33,6 @@ class GhostPairCallback : OverlappingPairCallback {
     }
 
     override fun removeOverlappingPairsContainingProxy(proxy0: BroadphaseProxy, dispatcher: Dispatcher) {
-        assert(false)
-
         // need to keep track of all ghost objects and call them here
         // hashPairCache.removeOverlappingPairsContainingProxy(proxy0, dispatcher);
     }

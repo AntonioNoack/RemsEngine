@@ -20,7 +20,7 @@ abstract class SDFSmoothShape : SDFShape() {
         set(value) {
             if (field != value) {
                 if (!(dynamicSmoothness || globalDynamic)) invalidateShader()
-                else if(boundsInfluencedBySmoothness) invalidateBounds()
+                else if(boundsInfluencedBySmoothness) invalidateShaderBounds()
                 field = value
             }
         }

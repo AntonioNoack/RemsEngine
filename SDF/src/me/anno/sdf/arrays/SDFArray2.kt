@@ -38,7 +38,7 @@ class SDFArray2 : SDFGroupArray() {
         set(value) {
             if (!globalDynamic && (!dynamic && (value.x > 0 || value.y > 0 || value.z > 0))) {
                 invalidateShader()
-            } else invalidateBounds()
+            } else invalidateShaderBounds()
             field.set(value)
         }
 
@@ -50,7 +50,7 @@ class SDFArray2 : SDFGroupArray() {
         set(value) {
             if (!globalDynamic && (!dynamic && (value.x > 0 || value.y > 0 || value.z > 0))) {
                 invalidateShader()
-            } else invalidateBounds()
+            } else invalidateShaderBounds()
             field.set(value)
         }
 

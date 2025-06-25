@@ -10,6 +10,7 @@ import com.bulletphysics.dynamics.vehicle.DefaultVehicleRaycaster
 import com.bulletphysics.dynamics.vehicle.RaycastVehicle
 import com.bulletphysics.dynamics.vehicle.VehicleTuning
 import cz.advel.stack.Stack.Companion.reset
+import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.joml.Vector3d
@@ -94,7 +95,7 @@ class VehicleTest {
         simulate(world, 120)
         val flatPos = Vector3d()
         vehicle.rigidBody.getCenterOfMassPosition(flatPos)
-        Assertions.assertTrue(flatPos.y < 1.5f && flatPos.y > 0.5f, "Vehicle should rest on ground")
+        assertTrue(flatPos.y < 1.5f && flatPos.y > 0.5f, "Vehicle should rest on ground")
 
         // Step 2: Hill test (no engine force)
         world = StackOfBoxesTest.Companion.createWorld()
@@ -104,7 +105,7 @@ class VehicleTest {
         simulate(world, 240) // 4 seconds
         val slopePos = Vector3d()
         vehicle.rigidBody.getCenterOfMassPosition(slopePos)
-        Assertions.assertTrue(slopePos.z < -1f, "Vehicle should have rolled downhill")
+        assertTrue(slopePos.z < -1f, "Vehicle should have rolled downhill")
 
         // Step 3: Driving test
         world = StackOfBoxesTest.Companion.createWorld()
@@ -115,7 +116,7 @@ class VehicleTest {
         simulate(world, 240)
         val drivePos = Vector3d()
         vehicle.rigidBody.getCenterOfMassPosition(drivePos)
-        Assertions.assertTrue(drivePos.z > 1f, "Vehicle should drive forward")
+        assertTrue(drivePos.z > 1f, "Vehicle should drive forward")
 
         // Step 4: Driving downhill
         world = StackOfBoxesTest.Companion.createWorld()
@@ -126,7 +127,7 @@ class VehicleTest {
         simulate(world, 240)
         val downPos = Vector3d()
         vehicle.rigidBody.getCenterOfMassPosition(downPos)
-        Assertions.assertTrue(downPos.z > 2f, "Vehicle should drive faster downhill")
+        assertTrue(downPos.z > 2f, "Vehicle should drive faster downhill")
 
         // Step 5: Turning
         world = StackOfBoxesTest.Companion.createWorld()
@@ -138,7 +139,7 @@ class VehicleTest {
         simulate(world, 240)
         val turnPos = Vector3d()
         vehicle.rigidBody.getCenterOfMassPosition(turnPos)
-        Assertions.assertTrue(abs(turnPos.x) > 0.5f, "Vehicle should have turned")
+        assertTrue(abs(turnPos.x) > 0.5f, "Vehicle should have turned")
     }
 
     @Test
@@ -171,7 +172,7 @@ class VehicleTest {
         println("Distance traveled during brake phase: deltaZ = $deltaZ")
 
         // Assert that braking significantly reduced forward motion
-        Assertions.assertTrue(deltaZ < 0.7f, "Vehicle should slow down when braking downhill")
+        assertTrue(deltaZ < 0.7f, "Vehicle should slow down when braking downhill")
     }
 
     private fun applyBrakes(vehicle: RaycastVehicle, brakeForce: Float) {

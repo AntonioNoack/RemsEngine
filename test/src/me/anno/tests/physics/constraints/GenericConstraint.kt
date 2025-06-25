@@ -2,6 +2,7 @@ package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.StaticBody
 import me.anno.bullet.constraints.GenericConstraint
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
@@ -28,40 +29,40 @@ fun main() {
     Systems.registerSystem(physics)
     physics.updateInEditMode = true
 
-    val box0 = Entity("Door", scene)
-    box0.add(MeshComponent(flatCube.scaled(Vector3f(0.45f, 1.0f, 0.04f)).front))
-    box0.add(BoxCollider().apply {
-        halfExtents.set(0.45, 1.0, 0.04)
-    })
-    box0.setPosition(0.0, 2.3, 0.0)
-    val body0 = DynamicBody()
-    body0.mass = 1.0
-    box0.add(body0)
+    val pillarBody = StaticBody()
+    Entity("Pillar", scene)
+        .add(MeshComponent(flatCube.scaled(Vector3f(0.1f, 1.0f, 0.1f)).front))
+        .add(BoxCollider().apply { halfExtents.set(0.1f, 1f, 0.1f) })
+        .setRotation(5f.toRadians(), 0f, 0f)
+        .add(pillarBody)
 
-    val box1 = Entity("Pillar", scene)
-    box1.add(MeshComponent(flatCube.scaled(Vector3f(0.1f, 1.0f, 0.1f)).front))
-    box1.add(BoxCollider().apply { halfExtents.set(0.1f, 1f, 0.1f) })
-    box1.setRotation(5f.toRadians(), 0f, 0f)
-    val body1 = DynamicBody()
-    box1.add(body1)
+    val sliding = GenericConstraint().apply {
+        otherPosition.set(0.0, 0.0, 0.0)
+        selfPosition.set(0.75, 0.0, 0.0)
+        lowerAngleLimit.set(0.0, -PI / 2, 0.0)
+        upperAngleLimit.set(0.0, +PI / 2, 0.0)
+        other = pillarBody
+    }
+
+    Entity("Door", scene)
+        .add(MeshComponent(flatCube.scaled(Vector3f(0.45f, 1.0f, 0.04f)).front))
+        .add(BoxCollider().apply {
+            halfExtents.set(0.45, 1.0, 0.04)
+        })
+        .setPosition(0.0, 2.3, 0.0)
+        .add(DynamicBody())
+        .add(sliding)
 
     // todo this is very unstable... why??
-    val sliding = GenericConstraint()
-    sliding.otherPosition.set(0.0, 0.0, 0.0)
-    sliding.selfPosition.set(0.75, 0.0, 0.0)
-    sliding.lowerAngleLimit.set(0.0, -PI / 2, 0.0)
-    sliding.upperAngleLimit.set(0.0, +PI / 2, 0.0)
-    sliding.other = body1
-    box0.add(sliding)
 
-    val floor = Entity("Floor", scene)
-    floor.add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
-    floor.add(BoxCollider())
-    floor.add(DynamicBody().apply {
-        friction = 1.0
-    })
-    floor.setPosition(0.0, -22.0, 0.0)
-    floor.setScale(20f)
+    Entity("Floor", scene)
+        .add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
+        .add(BoxCollider())
+        .add(StaticBody().apply {
+            friction = 1.0
+        })
+        .setPosition(0.0, -22.0, 0.0)
+        .setScale(20f)
 
     testSceneWithUI("Generic Constraint", scene)
 }

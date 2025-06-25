@@ -23,7 +23,7 @@ class SDFStairs : SDF2DShape() {
     @NotSerializedProperty
     private var params: Vector3f = Vector3f(0.2f, 0.2f, 5f)
         set(value) {
-            if (dynamicSize || globalDynamic) invalidateBounds()
+            if (dynamicSize || globalDynamic) invalidateShaderBounds()
             else invalidateShader()
             field.set(value)
         }

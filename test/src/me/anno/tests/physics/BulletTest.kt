@@ -220,7 +220,7 @@ class BulletTest {
         val world = Entity()
         val floor = Entity()
             .setPosition(0.0, -10.0, 0.0)
-            .add(DynamicBody().apply {
+            .add(StaticBody().apply {
                 friction = floorFriction.toDouble()
             })
             .add(BoxCollider().apply {
@@ -288,7 +288,7 @@ class BulletTest {
         val world = Entity()
         val floor = Entity()
             .setRotation(0f, 0f, angle)
-            .add(DynamicBody().apply {
+            .add(StaticBody().apply {
                 friction = 0.5
             })
             .add(BoxCollider().apply {
@@ -337,7 +337,7 @@ class BulletTest {
         val world = Entity()
         val floor = Entity()
             .setRotation(0f, 0f, angle)
-            .add(DynamicBody().apply {
+            .add(StaticBody().apply {
                 friction = 0.9
             })
             .add(BoxCollider().apply {
@@ -773,14 +773,14 @@ class BulletTest {
         // ensure physics is initialized
         physics.step(SECONDS_TO_NANOS, false)
         // check physics has dynamic objects
-        assertEquals(3, physics.rigidBodies.size)
-        assertEquals(2, physics.dynamicRigidBodies.size)
+        assertEquals(3, physics.numBodies)
+        assertEquals(2, physics.numDynamicBodies)
         // switch scene
         val emptyScene = Entity()
         Systems.world = emptyScene
         // ensure physics is initialized
         physics.step(SECONDS_TO_NANOS, false)
-        assertEquals(0, physics.rigidBodies.size)
-        assertEquals(0, physics.dynamicRigidBodies.size)
+        assertEquals(0, physics.numBodies)
+        assertEquals(0, physics.numDynamicBodies)
     }
 }

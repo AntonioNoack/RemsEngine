@@ -21,21 +21,21 @@ open class SDFTriangle : SDFShape() {
 
     var a: Vector3f = Vector3f(1f, 0f, 0f)
         set(value) {
-            if (dynamicSize || globalDynamic) invalidateBounds()
+            if (dynamicSize || globalDynamic) invalidateShaderBounds()
             else invalidateShader()
             field.set(value)
         }
 
     var b: Vector3f = Vector3f(0f, 1f, 0f)
         set(value) {
-            if (dynamicSize || globalDynamic) invalidateBounds()
+            if (dynamicSize || globalDynamic) invalidateShaderBounds()
             else invalidateShader()
             field.set(value)
         }
 
     var c: Vector3f = Vector3f(0f, 0f, 1f)
         set(value) {
-            if (dynamicSize || globalDynamic) invalidateBounds()
+            if (dynamicSize || globalDynamic) invalidateShaderBounds()
             else invalidateShader()
             field.set(value)
         }
