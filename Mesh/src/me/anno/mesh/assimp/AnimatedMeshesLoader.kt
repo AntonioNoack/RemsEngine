@@ -214,7 +214,6 @@ object AnimatedMeshesLoader {
             }
 
             val animRefs = animMap.values.map { it.sourceFile }
-            skeleton.setUnsafe(ROOT_PATH, "animations", animRefs.associateBy { it.getParent().name })
             animationReferences = animRefs
         }
 

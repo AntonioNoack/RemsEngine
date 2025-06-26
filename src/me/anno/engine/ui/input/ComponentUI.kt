@@ -82,6 +82,7 @@ import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS
 import me.anno.utils.Reflections.getParentClasses
 import me.anno.utils.algorithms.Recursion
+import me.anno.utils.files.LinkCreator
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.structures.tuples.MutablePair
@@ -166,7 +167,7 @@ object ComponentUI {
                 NameDesc("Link"), { -1 }, { newName ->
                     val dst = EngineBase.workspace.getChild(newName)
                     if (file != dst) {
-                        AssetImport.createLink(file, dst)
+                        LinkCreator.createLink(file, dst)
                     } else LOGGER.warn("Cannot link file to itself")
                 })
         }

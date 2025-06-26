@@ -1,7 +1,6 @@
 package me.anno.ecs.components.anim
 
 import me.anno.ecs.Transform
-import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
@@ -12,7 +11,6 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.FileReference
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
@@ -32,21 +30,14 @@ class Skeleton : PrefabSaveable(), Renderable {
     @SerializedProperty
     var bones: List<Bone> = emptyList()
 
-    @Type("Map<String, Animation/Reference>")
-    @SerializedProperty
-    var animations: Map<String, FileReference> = emptyMap()
-
     @NotSerializedProperty
     private var previewMesh: Mesh? = null
 
     @NotSerializedProperty
     private var bonePositions: List<Vector3f>? = null
 
-    override fun listChildTypes() = "ca"
-    override fun getChildListByType(type: Char): List<PrefabSaveable> {
-        return if (type == 'c') bones
-        else animations.values.mapNotNull { AnimationCache.getEntry(it).waitFor() }
-    }
+    override fun listChildTypes() = "c"
+    override fun getChildListByType(type: Char): List<PrefabSaveable> = bones
 
     override val children get() = bones
 
@@ -121,8 +112,7 @@ class Skeleton : PrefabSaveable(), Renderable {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is Skeleton) return
-        dst.animations = HashMap(animations)
-        dst.bones = ArrayList(bones)
+        dst.bones = bones.map { it.clone() as Bone }
     }
 
     override fun setProperty(name: String, value: Any?) {

@@ -21,6 +21,7 @@ import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.arrays.ByteArrayList
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.indexOf2
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.io.OutputStream
@@ -94,6 +95,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun getChild(name: String): FileReference {
+        if (name.isBlank2()) return this
         return getReference(appendPath(absolutePath, name))
     }
 

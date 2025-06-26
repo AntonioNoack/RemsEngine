@@ -1,7 +1,6 @@
 package me.anno.ecs.components.anim
 
 import me.anno.Time
-import me.anno.animation.LoopingState
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Docs
@@ -52,9 +51,6 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
     @SerializedProperty
     var animations: List<AnimationState> = emptyList()
 
-    @Docs("If no animation is set, use default?")
-    var useDefaultAnimation = true
-
     // animation state for motion vectors
     @NotSerializedProperty
     var prevTime = 0L
@@ -96,7 +92,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
 
     override fun hasAnimation(mesh: IMesh): Boolean {
         val skeleton = SkeletonCache.getEntry(mesh.skeleton).value
-        return skeleton != null && (useDefaultAnimation || animations.isNotEmpty())
+        return skeleton != null && animations.isNotEmpty()
     }
 
     fun addState(state: AnimationState) {
@@ -126,15 +122,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         // check whether the shader actually uses bones
         val location = shader[if (useAnimTextures) "animWeights" else "jointTransforms"]
 
-        if (useDefaultAnimation && animations.isEmpty() && skeleton.animations.isNotEmpty()) {
-            val sample = skeleton.animations.entries.firstOrNull()?.value
-            if (sample != null) {
-                addState(AnimationState(sample, 0f, 0f, 0f, LoopingState.PLAY_LOOP))
-            } else {
-                lastWarning = "No animation was found"
-                return false
-            }
-        } else if (animations.isEmpty()) {
+        if (animations.isEmpty()) {
             lastWarning = "No animation is set"
             return false
         }
@@ -261,15 +249,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             return false
         }
 
-        if (useDefaultAnimation && animations.isEmpty() && skeleton.animations.isNotEmpty()) {
-            val sample = skeleton.animations.entries.firstOrNull()?.value
-            if (sample != null) {
-                addState(AnimationState(sample, 0f, 0f, 0f, LoopingState.PLAY_LOOP))
-            } else {
-                lastWarning = "No animation was found"
-                return false
-            }
-        } else if (animations.isEmpty()) {
+        if (animations.isEmpty()) {
             lastWarning = "No animation is set"
             return false
         }
@@ -339,7 +319,6 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         super.copyInto(dst)
         if (dst !is AnimMeshComponent) return
         dst.animations = animations.map { it.clone() }
-        dst.useDefaultAnimation = useDefaultAnimation
         dst.prevIndices.set(prevIndices)
         dst.prevTime = prevTime
         dst.prevWeights.set(prevWeights)

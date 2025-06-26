@@ -510,11 +510,6 @@ class GLTFReader(val src: FileReference) {
             createAnimationPrefabs(animFolder, importedPrefab, null, null)
             animFolder.getChildImpl("Imported.json")
         }
-
-        for (skin in skins) {
-            val prefab = (skin as PrefabReadable).readPrefab()
-            prefab["animations"] = animations.associateBy { it.getParent().name }
-        }
     }
 
     private val jointNodes = ArrayList<List<Node>>()

@@ -29,6 +29,12 @@ open class LazyMap<K, V>(
         }
     }
 
+    operator fun set(key: K, value: V) {
+        synchronized(cache) {
+            cache[key] = value
+        }
+    }
+
     fun getOrNull(key: K): V? {
         return synchronized(cache) {
             cache[key]

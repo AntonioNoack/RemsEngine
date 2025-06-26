@@ -163,7 +163,7 @@ class RenderMode private constructor(
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
-                .then(RenderGlassNode())
+                .then(RenderGlassNode()) // todo bug: this is invisible :/
                 .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .finish()

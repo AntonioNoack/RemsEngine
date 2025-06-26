@@ -104,19 +104,18 @@ object Retargetings {
         ECSSceneTabs.open(prefab.sourceFile, PlayMode.EDITING, true)
     }
 
-    private fun getOrCreatePrefab(srcSkeleton: FileReference, dstSkeleton: FileReference): Prefab? {
-        val configReference = getConfigFile(srcSkeleton, dstSkeleton)
+    private fun getOrCreatePrefab(srcSkeletonFile: FileReference, dstSkeletonFile: FileReference): Prefab? {
+        val configReference = getConfigFile(srcSkeletonFile, dstSkeletonFile)
         var prefab = PrefabCache[configReference].waitFor()?.prefab
         if (prefab == null) {
             // create new file
             prefab = Prefab("Retargeting")
             prefab.sourceFile = configReference
-            prefab["srcSkeleton"] = srcSkeleton
-            prefab["dstSkeleton"] = dstSkeleton
-            defineDefaultMapping(
-                SkeletonCache.getEntry(srcSkeleton).waitFor()!!,
-                SkeletonCache.getEntry(dstSkeleton).waitFor()!!, prefab
-            )
+            prefab["srcSkeleton"] = srcSkeletonFile
+            prefab["dstSkeleton"] = dstSkeletonFile
+            val srcSkeleton = SkeletonCache.getEntry(srcSkeletonFile).waitFor() ?: return null
+            val dstSkeleton = SkeletonCache.getEntry(dstSkeletonFile).waitFor() ?: return null
+            defineDefaultMapping(srcSkeleton, dstSkeleton, prefab)
             configReference.getParent().tryMkdirs()
             configReference.writeText(JsonStringWriter.toText(prefab, workspace))
         } else if (prefab.clazzName != "Retargeting") {
@@ -186,8 +185,8 @@ object Retargetings {
     }
 
     private fun getConfigName(skeleton: FileReference): String {
-        val hash = SkeletonCache.getEntry(skeleton).waitFor()!!
-            .bones.joinToString("/") { it.name }.hashCode()
+        val skeleton = SkeletonCache.getEntry(skeleton).waitFor() ?: return "0"
+        val hash = skeleton.bones.joinToString("/") { it.name }.hashCode()
         return Integer.toUnsignedString(hash, 36)
     }
 

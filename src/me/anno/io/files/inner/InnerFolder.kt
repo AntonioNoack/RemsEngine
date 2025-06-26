@@ -12,6 +12,7 @@ import me.anno.io.files.inner.lazy.InnerLazyPrefabFile
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.async.Callback
 import me.anno.utils.structures.lists.UnsafeArrayList
+import me.anno.utils.types.Strings.isBlank2
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -74,8 +75,11 @@ open class InnerFolder(
     }
 
     override fun getChild(name: String): FileReference {
-        return if (isValidName(name)) super.getChild(name)
-        else getChildImpl(name)
+        return when {
+            name.isBlank2() -> this
+            isValidName(name) -> super.getChild(name)
+            else -> getChildImpl(name)
+        }
     }
 
     override fun getChildImpl(name: String): FileReference {

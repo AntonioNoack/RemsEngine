@@ -100,7 +100,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
 
         val projectFolder = currentProject?.location ?: return
         if (current.isSameOrSubFolderOf(projectFolder) &&
-            files.any { file -> AssetImport.getPureTypeOrNull(file) == null }
+            files.any { file -> AssetImportType.getPureTypeOrNull(file) == null }
         ) {
             pasteFiles(
                 files, folder,
@@ -120,7 +120,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
     override fun getPasteOptions(files: List<FileReference>, folder: FileReference): List<MenuOption> {
         val baseOptions = super.getPasteOptions(files, folder)
         val projectFolder = currentProject?.location ?: return baseOptions
-        if (files.none { file -> AssetImport.getPureTypeOrNull(file) == null }) return baseOptions
+        if (files.none { file -> AssetImportType.getPureTypeOrNull(file) == null }) return baseOptions
         // when dragging over a current folder, do that operation on that folder
         val entry = content2d.children.firstOrNull { it.contains(x, y) } as? FileExplorerEntry
         val current = if (entry == null) folder else getReference(entry.path)
