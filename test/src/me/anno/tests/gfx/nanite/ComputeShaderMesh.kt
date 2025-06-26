@@ -133,7 +133,7 @@ class ComputeShaderMesh(val mesh: Mesh) : IMesh {
             listOf(TargetType.Float32x1), 1, DepthBufferType.NONE
         ]
         useFrame(depthAsColor) {
-            Blitting.copy(target.depthTexture!!, false)
+            Blitting.copyColor(target.depthTexture!!, false)
         }
         return depthAsColor.getTexture0() as Texture2D
     }

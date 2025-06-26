@@ -79,7 +79,7 @@ fun main() {
                     }
                 }
 
-                Blitting.copy(msaaBuffer, true)
+                Blitting.copyColor(msaaBuffer, true)
             }
         }
     }

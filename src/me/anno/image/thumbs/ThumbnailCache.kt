@@ -166,7 +166,7 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
                 val newTex = Texture2D(srcFile.name, w, h, 1)
                 newTex.create(TargetType.UInt8x4)
                 useFrame(newTex) {
-                    Blitting.copy(tex, true)
+                    Blitting.copyColor(tex, true)
                 }
                 callback.ok(newTex)
             }

@@ -9,90 +9,87 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.iff
 import kotlin.math.PI
 
 object FlatShaders {
 
-    val copyShader = Shader(
-        "copy", emptyList(), coordsUVVertexShader, uvList, listOf(
-            Variable(GLSLType.S2D, "tex"),
-            Variable(GLSLType.V1F, "alpha"),
-            Variable(GLSLType.V4F, "result", VariableMode.OUT)
-        ), "void main(){ result = alpha * texture(tex, uv); }"
-    )
+    val colorSpaceConversion = "" +
+            "   if (isColor && convertSRGBToLinear && !convertLinearToSRGB) color.rgb *= color.rgb;\n" +
+            "   if (isColor && convertLinearToSRGB && !convertSRGBToLinear) color.rgb = sqrt(max(color.rgb, vec3(0.0)));\n"
 
-    val copyShaderMS = Shader(
-        "copyMS", emptyList(), coordsUVVertexShader, uvList, listOf(
-            Variable(GLSLType.S2DMS, "tex"),
-            Variable(GLSLType.V1F, "alpha"),
-            Variable(GLSLType.V1I, "samples"),
-            Variable(GLSLType.V1B, "sRGB"),
-            Variable(GLSLType.V4F, "result", VariableMode.OUT)
-        ), "void main() {\n" +
-                "   vec4 sum = vec4(0.0);\n" +
-                "   ivec2 uvi = ivec2(vec2(textureSize(tex)) * uv);\n" +
-                "   for(int i=0;i<samples;i++) {\n" +
-                "       vec4 color = texelFetch(tex, uvi, i);\n" +
-                "       sum += sRGB ? vec4(color.rgb * color.rgb, color.a) : color;\n" +
-                "   }\n" +
-                "   float invSamples = 1.0 / float(samples);\n" +
-                "   if(sRGB) { sum.rgb = sqrt(max(sum.rgb * invSamples,vec3(0.0))); }\n" +
-                "   result = (sRGB ? alpha : alpha * invSamples) * sum;\n" +
-                "}"
-    )
-
-    val getColor0SS = "vec4 getColor0(sampler2D colorTex, int srcSamples, vec2 uv){\n" +
-            "   return texture(colorTex,uv);\n" +
+    val getColor0SS = "vec4 getColor0(sampler2D colorTex, int srcSamples, vec2 uv, bool isColor) {\n" +
+            "   vec4 color = texture(colorTex,uv);\n" +
+            colorSpaceConversion +
+            "   return color;\n" +
             "}\n"
 
-    val getColor1MS = "vec4 getColor1(sampler2DMS colorTex, int srcSamples, vec2 uv){\n" +
+    val getColor1MS = "vec4 getColor1(sampler2DMS colorTex, int srcSamples, vec2 uv, bool isColor) {\n" +
             "   ivec2 uvi = ivec2(vec2(textureSize(colorTex)) * uv);\n" +
-            "   if(srcSamples > targetSamples){\n" +
+            "   if (srcSamples > targetSamples) {\n" +
             "       vec4 sum = vec4(0.0);\n" +
-            "       int ctr = 0;\n" +
-            "       for(int i=gl_SampleID;i<srcSamples;i+=targetSamples) {\n" +
+            "       int numSamples = 0;\n" +
+            "       for (int i=gl_SampleID;i<srcSamples;i+=targetSamples) {\n" +
             "           vec4 color = texelFetch(colorTex, uvi, i);\n" +
-            "           sum += sRGB ? vec4(color.rgb * color.rgb, color.a) : color;\n" +
-            "           ctr++;\n" +
+            "           if (convertSRGBToLinear && isColor) {\n" +
+            "               color.rgb *= color.rgb;\n" +
+            "           }\n" +
+            "           sum += color;\n" +
+            "           numSamples++;\n" +
             "       }\n" +
-            "       sum *= 1.0 / float(ctr);\n" +
-            "       if(sRGB) { sum.rgb = sqrt(max(sum.rgb,vec3(0.0))); }\n" +
+            "       sum *= 1.0 / float(numSamples);\n" +
+            "       if (convertLinearToSRGB && isColor) {" +
+            "           sum.rgb = sqrt(max(sum.rgb,vec3(0.0)));" +
+            "       }\n" +
             "       return sum;\n" +
-            "   } else if(srcSamples == targetSamples){\n" +
-            "       return texelFetch(colorTex, uvi, gl_SampleID);\n" +
-            "   } else {\n" +
-            "       return texelFetch(colorTex, uvi, gl_SampleID % srcSamples);\n" +
-            "   }\n" +
+            "   } else {" +
+            "       vec4 color = srcSamples == targetSamples\n" +
+            "           ? texelFetch(colorTex, uvi, gl_SampleID)\n" +
+            "           : texelFetch(colorTex, uvi, gl_SampleID % srcSamples);\n" +
+            colorSpaceConversion +
+            "       return color;\n" +
+            "   }" +
             "}\n"
+
+    const val MULTISAMPLED_DEPTH_FLAG = 1
+    const val MULTISAMPLED_COLOR_FLAG = 2
+    const val DEPTH_MASK_MULTIPLIER = 4
+    const val DONT_READ_DEPTH = 4
 
     /**
      * blit-like shader without any stupid OpenGL constraints like size or format;
      * copies color and depth
      * */
-    val copyShaderAnyToAny = LazyList(16) {
-        val colorMS = it.hasFlag(8)
-        val depthMS = it.hasFlag(4)
-        val depthMask = "xyzw"[it.and(3)]
+    val copyShaderAnyToAny = LazyList(20) { flags ->
+        val colorMS = flags.hasFlag(MULTISAMPLED_COLOR_FLAG)
+        val depthMS = flags.hasFlag(MULTISAMPLED_DEPTH_FLAG)
+        val depthMask = "xyzw "[flags / DEPTH_MASK_MULTIPLIER]
+        val writeDepth = depthMask != ' '
         Shader(
-            "copyMSAnyToAny/${it.toString(2)}", emptyList(), coordsUVVertexShader, uvList, listOf(
+            "copyMSAnyToAny/${flags.toString(2)}", emptyList(),
+            coordsUVVertexShader, uvList, listOf(
                 Variable(if (colorMS) GLSLType.S2DMS else GLSLType.S2D, "colorTex"),
                 Variable(if (depthMS) GLSLType.S2DMS else GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V1B, "monochrome"),
-                Variable(GLSLType.V1B, "sRGB"),
+                Variable(GLSLType.V1B, "overrideAlpha"),
+                Variable(GLSLType.V1F, "newAlpha"),
+                Variable(GLSLType.V1B, "convertLinearToSRGB"),
+                Variable(GLSLType.V1B, "convertSRGBToLinear"),
                 Variable(GLSLType.V1I, "colorSamples"),
                 Variable(GLSLType.V1I, "depthSamples"),
                 Variable(GLSLType.V1I, "targetSamples"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ), "" +
-                    (if (colorMS || depthMS) "" +
-                            getColor1MS else "") +
-                    (if (!colorMS || !depthMS) "" +
-                            getColor0SS else "") +
+                    getColor1MS.iff(colorMS || (writeDepth && depthMS)) +
+                    getColor0SS.iff(!colorMS || (writeDepth && !depthMS)) +
                     "void main() {\n" +
-                    "   result = getColor${colorMS.toInt()}(colorTex, colorSamples, uv);\n" +
-                    "   if(monochrome) result.rgb = result.rrr;\n" +
+                    "   result = getColor${colorMS.toInt()}(colorTex, colorSamples, uv, true);\n" +
+                    "   if (monochrome) result.rgb = result.rrr;\n" +
+                    "   if (overrideAlpha) result.a = newAlpha;\n" +
                     // is this [-1,1] or [0,1]? -> looks like it works just fine for now
-                    "   gl_FragDepth = getColor${depthMS.toInt()}(depthTex, depthSamples, uv).$depthMask;\n" +
+                    (if (writeDepth) {
+                        "gl_FragDepth = getColor${depthMS.toInt()}(depthTex, depthSamples, uv, false).$depthMask;\n"
+                    } else "") +
                     "}"
         ).apply {
             setTextureIndices("colorTex", "depthTex")

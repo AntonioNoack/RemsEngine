@@ -70,13 +70,11 @@ fun main() {
         .setPosition(0.0, y, 0.0)
         .setScale(1f)
 
-    val dy = -0.1f
     val hullPointsForEngine = hulls.map {
         val pos = it.vertices
         val dst = FloatArray(pos.size * 3)
         for (i in pos.indices) {
             pos[i].get(dst, i * 3)
-           // dst[i * 3 + 1] += dy
         }
         dst
     }
@@ -92,15 +90,10 @@ fun main() {
                 (Maths.random() * TAU).toFloat()
             )
             .add(DynamicBody().apply {
-                // todo center of mass is behaving weirdly :( -> we're using it incorrectly
-                // centerOfMass.set(0.0, dy.toDouble(), 0.0)
+                centerOfMass.set(0.0, 0.1, 0.0)
                 mass = 1.0
             })
-            .add(
-                Entity()
-                    .add(MeshComponent(bunnyFile))
-                    .setPosition(0.0, dy.toDouble(), 0.0)
-            )
+            .add(MeshComponent(bunnyFile))
         for (i in hulls.indices) {
             bunny.add(ConvexCollider().apply {
                 roundness = 0.001f

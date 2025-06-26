@@ -1,6 +1,7 @@
 package me.anno.gpu.shader.effects
 
 import me.anno.engine.ui.render.Renderers
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFXState
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -8,7 +9,6 @@ import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib
@@ -91,16 +91,15 @@ object Bloom {
     }
 
     private fun backwardPass(steps: Int): ITexture2D {
-        val shader = FlatShaders.copyShader
-        shader.use()
-        shader.v1f("alpha", 1f)
         var previous = tmpForward[steps - 1]!!
         GFXState.blendMode.use(BlendMode.PURE_ADD) {
             for (i in steps - 2 downTo 0) {// render onto that layer
                 val nextSrc = tmpForward[i]!! // large
                 GFXState.useFrame(nextSrc, Renderer.copyRenderer) {
+
                     previous.bindTexture0(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-                    flat01.draw(shader)
+                    Blitting.copyColorWithSpecificAlpha(1f, previous.samples, isSRGB = false)
+
                     previous = nextSrc
                 }
             }

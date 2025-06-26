@@ -1,6 +1,7 @@
 package me.anno.graph.visual.render.scene
 
 import me.anno.engine.ui.render.Renderers.pbrRenderer
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
@@ -47,9 +48,12 @@ class RenderForwardNode : RenderViewNode(
         ) {
             renderPurely {
                 if (prepassDepth != null && prepassDepth.isCreated()) {
-                    GizmoNode.copyColorAndDepth(prepassColor, prepassDepth, prepassDepthM)
+                    Blitting.copyColorAndDepth(
+                        prepassColor ?: blackTexture,
+                        prepassDepth, prepassDepthM, isSRGB = true
+                    )
                 } else if (prepassColor != null && prepassColor != blackTexture) {
-                    GizmoNode.copyColorAndDepth(prepassColor, depthTexture, 0)
+                    Blitting.copyColorAndDepth(prepassColor, depthTexture, 0, isSRGB = true)
                     framebuffer.clearDepth()
                 } else {
                     framebuffer.clearColor(0, depth = true)

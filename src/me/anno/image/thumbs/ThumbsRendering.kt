@@ -104,7 +104,7 @@ object ThumbsRendering {
                     TargetType.UInt8x4, DepthBufferType.NONE
                 )
                 GFXState.useFrame(newBuffer) {
-                    Blitting.copy(renderTarget, true)
+                    Blitting.copyColor(renderTarget, true)
                 }
                 newBuffer
             } else renderTarget

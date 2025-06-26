@@ -35,7 +35,7 @@ fun testCopyColorToDepth() {
             useFrame(colorDst) {
                 colorDst.clearColor(0, false)
                 if (Input.isShiftDown) {
-                    Blitting.copy(depthDst.depthTexture!!, false)
+                    Blitting.copyColor(depthDst.depthTexture!!, false)
                 } else if (!Input.isControlDown) {
                     Blitting.copyColorAndDepth(depthDst.depthTexture!!, whiteTexture, 0, false)
                 }

@@ -296,7 +296,7 @@ open class FileExplorerEntry(
                             AssetThumbnails.drawAnimatedSkeleton(animSample, frameIndex, aspect)
                         }
                     }
-                    Blitting.copy(tmp, true)
+                    Blitting.copyColor(tmp, true)
                 } else {
                     // use current buffer directly
                     GFXState.useFrame(x0, y0, w, h, GFXState.currentBuffer, Renderers.simpleRenderer) {

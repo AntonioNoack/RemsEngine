@@ -62,7 +62,7 @@ private fun testShader() {
             depth.bindTexture0(1, Filtering.NEAREST, Clamping.CLAMP)
             SimpleBuffer.flat01.draw(shader)
         }
-        Blitting.copy(result, true)
+        Blitting.copyColor(result, true)
     }
 }
 

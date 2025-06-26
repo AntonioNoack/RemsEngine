@@ -2,7 +2,6 @@ package me.anno.gpu.pipeline.transparency
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
-import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.RendererLib.getReflectivity
@@ -43,7 +42,8 @@ class GlassPass : TransparentPass() {
 
         /**
          * depth while drawing glass-materials;
-         * may be multi-sampled
+         * may be multi-sampled;
+         * used by shaders like water-shader
          * */
         var glassPassDepth: ITexture2D? = null
         // todo value for single-sampled glass depth? lazy maybe?
@@ -192,7 +192,7 @@ class GlassPass : TransparentPass() {
         // because we have refraction, we no longer copy 1:1, so we need a backup
         val copy = FBStack["glass-copy", old.width, old.height, 3, true, old.samples, DepthBufferType.NONE]
         useFrame(copy) {
-            Blitting.copy(old, false)
+            Blitting.copyColor(old, false)
         }
 
         renderPurely2 {

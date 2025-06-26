@@ -36,6 +36,7 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.pipeline.occlusion.BoxOcclusionCulling
 import me.anno.gpu.pipeline.transparency.GlassPass
+import me.anno.gpu.pipeline.transparency.AlphaBlendPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.texture.TextureLib
@@ -82,7 +83,8 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
     var applyToneMapping = true
 
-    var transparentPass: TransparentPass = GlassPass()
+    var glassPass: TransparentPass = GlassPass()
+    var alphaBlendPass: TransparentPass = AlphaBlendPass()
 
     val skyTimer = GPUClockNanos()
     val skyboxTimer = GPUClockNanos()
@@ -211,7 +213,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     override fun destroy() {
         bakedSkybox?.destroy()
         bakedSkybox = null
-        transparentPass.destroy()
+        alphaBlendPass.destroy()
         skyTimer.destroy()
         skyboxTimer.destroy()
     }

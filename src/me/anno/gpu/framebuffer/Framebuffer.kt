@@ -359,7 +359,7 @@ class Framebuffer(
                         }
                     } else {
                         useFrame(dstColor) {
-                            Blitting.copy(srcColor, isSRGB)
+                            Blitting.copyColor(srcColor, isSRGB)
                         }
                     }
                 }

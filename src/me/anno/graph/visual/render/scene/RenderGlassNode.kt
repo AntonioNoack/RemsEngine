@@ -12,7 +12,6 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
@@ -25,9 +24,10 @@ class RenderGlassNode : RenderViewNode(
         "Int", "Width",
         "Int", "Height",
         "Int", "Samples",
+        "Boolean", "IsGlass",
         "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
         "Texture", "Illuminated",
-        "Texture", "Depth"
+        "Texture", "Depth",
     ),
     listOf("Texture", "Illuminated")
 ) {
@@ -36,7 +36,8 @@ class RenderGlassNode : RenderViewNode(
         setInput(1, 256) // width
         setInput(2, 256) // height
         setInput(3, 1) // samples
-        setInput(4, PipelineStage.GLASS) // stage
+        setInput(4, true) // glass
+        setInput(5, PipelineStage.GLASS) // stage
     }
 
     var renderer = pbrRendererNoDepth
@@ -44,36 +45,40 @@ class RenderGlassNode : RenderViewNode(
     val width get() = getIntInput(1)
     val height get() = getIntInput(2)
     val samples get() = clamp(getIntInput(3), 1, GFX.maxSamples)
-    val prepassTex get() = getInput(5) as? Texture
+    val useGlassPass get() = getBoolInput(4)
+    val stage get() = getInput(5) as PipelineStage
+    val prepassColor get() = getInput(6) as? Texture
+    val prepassDepth get() = getInput(7) as? Texture
 
     override fun executeAction() {
         val width = width
         val height = height
-        val stage = getInput(4) as PipelineStage
+        val stage = stage
         if (width > 0 && height > 0 && needsRendering(stage)) {
             render(width, height, stage)
-        } else setOutput(1, prepassTex)
+        } else setOutput(1, prepassColor)
     }
 
     private fun render(width: Int, height: Int, stage: PipelineStage) {
         timeRendering("$name-$stage", timer) {
-            // val sorting = getInput(5) as Int
-            // val cameraIndex = getInput(6) as Int
 
             val framebuffer = FBStack["scene-glass",
                 width, height, TargetType.Float16x4,
                 samples, DepthBufferType.INTERNAL]
 
-            val prepassColor0 = if (samples > 1) prepassTex.texMSOrNull else prepassTex.texOrNull
-            val prepassColor = prepassColor0 ?: whiteTexture
-            val depthTex = getInput(6) as? Texture
-            val prepassDepth = if (samples > 1) depthTex.texMSOrNull else depthTex.texOrNull
+            val prepassColor0 = prepassColor
+            val prepassColor1 = if (samples > 1) prepassColor0.texMSOrNull else prepassColor0.texOrNull
+            val prepassColor2 = prepassColor1 ?: blackTexture
+
+            val prepassDepth0 = prepassDepth
+            val prepassDepth1 = if (samples > 1) prepassDepth0.texMSOrNull else prepassDepth0.texOrNull
 
             GFXState.useFrame(width, height, true, framebuffer, renderer) {
-                defineInputs(framebuffer, prepassColor, prepassDepth, depthTex.mask1Index)
+                defineInputs(framebuffer, prepassColor2, prepassDepth1, prepassDepth0.mask1Index)
                 val stageImpl = pipeline.stages.getOrNull(stage.id)
                 if (stageImpl != null && !stageImpl.isEmpty()) {
-                    pipeline.transparentPass.blendTransparentStage(pipeline, stageImpl, prepassColor)
+                    val pass = if (useGlassPass) pipeline.glassPass else pipeline.alphaBlendPass
+                    pass.blendTransparentStage(pipeline, stageImpl, prepassColor2)
                 }
                 GFX.check()
             }
@@ -93,7 +98,7 @@ class RenderGlassNode : RenderViewNode(
             )
         } else if (prepassColor != null && prepassColor != blackTexture) {
             framebuffer.clearDepth()
-            Blitting.copy(prepassColor, true)
+            Blitting.copyColor(prepassColor, true)
         } else {
             framebuffer.clearColor(0, depth = true)
         }
