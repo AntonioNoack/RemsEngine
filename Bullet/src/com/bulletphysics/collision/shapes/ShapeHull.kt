@@ -1,7 +1,8 @@
 package com.bulletphysics.collision.shapes
 
-import me.anno.maths.geometry.convexhull.HullDesc
 import me.anno.maths.geometry.convexhull.ConvexHulls
+import me.anno.maths.geometry.convexhull.HullDesc
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 
 /**
@@ -27,8 +28,8 @@ class ShapeHull(val shape: ConvexShape) {
     private fun buildHull(): Boolean {
 
         val directions = ArrayList<Vector3d>(NUM_UNIT_SPHERE_POINTS + shape.numPreferredPenetrationDirections)
-        for (v in constUnitSpherePoints) {
-            directions.add(Vector3d(v))
+        for (i in constUnitSpherePoints.indices) {
+            directions.add(Vector3d(constUnitSpherePoints[i]))
         }
 
         for (i in 0 until shape.numPreferredPenetrationDirections) {
@@ -37,14 +38,16 @@ class ShapeHull(val shape: ConvexShape) {
             directions.add(extraDirection)
         }
 
+        val tmp = Vector3d()
         for (i in directions.indices) {
             val v = directions[i]
-            shape.localGetSupportingVertex(v, v)
+            shape.localGetSupportingVertex(tmp.set(v), v)
         }
 
         val hullDesc = HullDesc(directions)
         val hullResult = ConvexHulls.calculateConvexHull(hullDesc)
         if (hullResult == null) {
+            LOGGER.warn("Failed to create convex hull for $directions")
             return false
         }
 
@@ -53,6 +56,9 @@ class ShapeHull(val shape: ConvexShape) {
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(ShapeHull::class)
+
         /** ///////////////////////////////////////////////////////////////////////// */
         private const val NUM_UNIT_SPHERE_POINTS = 42
 

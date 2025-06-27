@@ -4,6 +4,7 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.util.setScaleAdd
 import cz.advel.stack.Stack
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import org.joml.Vector3d
 import java.util.Arrays
 
@@ -28,20 +29,26 @@ class ConvexHullShape(val points: FloatArray) : PolyhedralConvexShape() {
     }
 
     override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
-        out.set(0.0, 0.0, 0.0)
+
+        val dx = dir.x
+        val dy = dir.y
+        val dz = dir.z
+
+        // default aka center
+        out.set(0.0)
+
+        val points = points
+        val localScaling = localScaling
         var maxDot = Double.NEGATIVE_INFINITY
-        var i = 0
-        val l = points.size
-        while (i < l) {
+        forLoopSafely(points.size, 3) { i ->
             val x = points[i] * localScaling.x
             val y = points[i + 1] * localScaling.y
             val z = points[i + 2] * localScaling.z
-            val newDot = dir.dot(x, y, z)
+            val newDot = x * dx + y * dy + z * dz
             if (newDot > maxDot) {
                 maxDot = newDot
                 out.set(x, y, z)
             }
-            i += 3
         }
         return out
     }

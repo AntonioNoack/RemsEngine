@@ -56,6 +56,7 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
     if (isConvex) {
         // calculate convex hull
         // simplify it maybe
+
         val convex = ConvexHullShape(positions)
         convex.setLocalScaling(scale)
         convex.margin = 0.0
@@ -66,9 +67,14 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
         }
 
         val hull = ShapeHull(convex)
-        val shape = ConvexHullShape(hull.verticesToFloatArray())
-        shape.margin = margin.toDouble()
-        return shape
+        if (hull.isValid) {
+            val shape = ConvexHullShape(hull.verticesToFloatArray())
+            shape.margin = margin.toDouble()
+            return shape
+        } else {
+            convex.margin = margin.toDouble()
+            return convex
+        }
     } else {
 
         // we don't send the data to the gpu here, so we don't need to allocate directly
