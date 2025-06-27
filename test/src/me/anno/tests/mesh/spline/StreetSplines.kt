@@ -14,7 +14,7 @@ import me.anno.ecs.components.mesh.spline.SplineCrossing
 import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
-import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAU
@@ -191,6 +191,6 @@ fun main() {
             add(street, Vector3d())
         }
 
-        testScene(world)
+        createSceneUI(world)
     }
 }

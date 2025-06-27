@@ -68,10 +68,11 @@ object BulletRendering {
         }
     }
 
-    private fun drawColliders(pipeline: Pipeline, rigidbody: PhysicsBody<*>) {
-        val colliders = rigidbody.activeColliders
+    private fun drawColliders(pipeline: Pipeline, physicsBody: PhysicsBody<*>) {
+        val colliders = physicsBody.activeColliders
         for (i in colliders.indices) {
-            colliders.getOrNull(i)?.drawShape(pipeline)
+            val collider = colliders.getOrNull(i) ?: continue
+            collider.drawShape(pipeline)
         }
     }
 

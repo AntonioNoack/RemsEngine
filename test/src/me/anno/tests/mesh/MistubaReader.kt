@@ -23,6 +23,6 @@ fun main() {
         val main = downloads.getChild("gradientdomain-scenes.zip/gradientdomain-scenes")
         val name = "veach-lamp"
         val sceneMain = main.getChild("$name/$name-gpt.xml/Scene.json")
-        SceneView.testScene(loadScenePrefab(sceneMain).newInstance())
+        SceneView.createSceneUI(loadScenePrefab(sceneMain).newInstance())
     }
 }

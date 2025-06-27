@@ -118,4 +118,8 @@ class Transform {
         hash = 41 * hash + origin.hashCode()
         return hash
     }
+
+    override fun toString(): String {
+        return "($basis + $origin)"
+    }
 }

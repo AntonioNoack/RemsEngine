@@ -86,7 +86,7 @@ fun main() {
         scene.add(MeshComponent(Shapes.flatCube.front))
         scene.add(rainControl)
         Saveable.registerCustomClass(SnowControl())
-        list.add(SceneView.testScene(scene) {
+        list.add(SceneView.createSceneUI(scene) {
             it.renderView.renderMode = rainRenderMode
         }, 2f)
         list

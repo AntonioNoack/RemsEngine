@@ -12,7 +12,7 @@ import me.anno.engine.WindowRenderFlags
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
-import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.gpu.CullMode
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
@@ -151,7 +151,7 @@ fun main() {
 
         world.addComponent(CrowdUpdateComponent(navMeshData))
 
-        testScene(world)
+        createSceneUI(world)
 
     }
 }

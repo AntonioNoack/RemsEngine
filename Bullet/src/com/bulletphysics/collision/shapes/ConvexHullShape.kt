@@ -4,7 +4,15 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.util.setScaleAdd
 import cz.advel.stack.Stack
+import me.anno.ecs.components.collider.MeshCollider
+import me.anno.engine.debug.DebugPoint
+import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugTriangle
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
+import me.anno.utils.structures.lists.Lists.createList
+import org.joml.Matrix4x3
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import java.util.Arrays
 
@@ -15,7 +23,8 @@ import java.util.Arrays
  *
  * @author Antonio, jezek2
  */
-class ConvexHullShape(val points: FloatArray) : PolyhedralConvexShape() {
+class ConvexHullShape(val points: FloatArray, val triangles: IntArray?) :
+    PolyhedralConvexShape(), MeshCollider.BulletShapeDrawable {
 
     val numPoints: Int = points.size / 3
 
@@ -130,4 +139,34 @@ class ConvexHullShape(val points: FloatArray) : PolyhedralConvexShape() {
 
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.CONVEX_HULL_SHAPE_PROXYTYPE
+
+    override fun draw(drawMatrix: Matrix4x3?, color: Int) {
+        val vertices = createList(numVertices) { idx ->
+            Vector3d(points, idx * 3)
+        }
+        if (drawMatrix != null) {
+            val pos = drawMatrix.getTranslation(Vector3d())
+            val rot = drawMatrix.getUnnormalizedRotation(Quaternionf()).normalize()
+            for (i in vertices.indices) {
+                val v = vertices[i]
+                v.rotate(rot)
+                v.add(pos)
+            }
+        }
+        val triangles = triangles
+        if (triangles != null) {
+            val color = color.withAlpha(127)
+            forLoopSafely(triangles.size, 3) { i ->
+                val a = vertices[triangles[i]]
+                val b = vertices[triangles[i + 1]]
+                val c = vertices[triangles[i + 2]]
+                DebugShapes.debugTriangles.add(DebugTriangle(a, b, c, color, 0f))
+            }
+        } else {
+            for (i in vertices.indices) {
+                val v = vertices[i]
+                DebugShapes.debugPoints.add(DebugPoint(v, color, 0f))
+            }
+        }
+    }
 }

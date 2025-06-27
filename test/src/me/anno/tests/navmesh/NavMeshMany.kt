@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.WindowRenderFlags
-import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.recast.CrowdUpdateComponent
@@ -122,7 +122,7 @@ fun main() {
 
         world.addComponent(CrowdUpdateComponent(navMeshData))
 
-        testScene(world)
+        createSceneUI(world)
 
     }
 }

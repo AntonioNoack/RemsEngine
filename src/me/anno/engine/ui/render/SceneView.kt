@@ -78,7 +78,7 @@ class SceneView(val renderView: RenderView, style: Style) : PanelStack(style) {
     companion object {
 
         fun testSceneWithUI(title: String, source: FileReference, init: ((SceneView) -> Unit)? = null) {
-            testUI3(title) { testScene(source, init) }
+            testUI3(title) { createSceneUI(source, init) }
         }
 
         fun testSceneWithUI(title: String, prefab: Prefab, init: ((SceneView) -> Unit)? = null) {
@@ -100,17 +100,17 @@ class SceneView(val renderView: RenderView, style: Style) : PanelStack(style) {
         fun testSceneWithUI(title: String, scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null) {
             testUI3(title) {
                 GFX.someWindow.windowStack.firstOrNull()?.drawDirectly = false
-                testScene(scene, init)
+                createSceneUI(scene, init)
             }
         }
 
         @Suppress("unused")
-        fun testScene(scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null): Panel {
+        fun createSceneUI(scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null): Panel {
             scene.prefabPath = Path.ROOT_PATH
-            return testScene(scene.ref, init)
+            return createSceneUI(scene.ref, init)
         }
 
-        fun testScene(scene: FileReference, init: ((SceneView) -> Unit)? = null): Panel {
+        fun createSceneUI(scene: FileReference, init: ((SceneView) -> Unit)? = null): Panel {
             val listY = PanelListY(style)
             listY.add(ECSSceneTabs)
             ECSSceneTabs.open(ECSSceneTab(scene, PlayMode.EDITING), true)

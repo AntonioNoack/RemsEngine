@@ -8,7 +8,7 @@ import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.maths.Maths.posMod
 import me.anno.tests.mesh.unique.ItemPanel.Companion.previewBlockIds
 import me.anno.tests.utils.TestWorld
@@ -109,7 +109,7 @@ fun main() {
     scene.add(sunEntity)
 
     testUI3("Voxel World") {
-        val sceneUI = testScene(scene) {
+        val sceneUI = createSceneUI(scene) {
             it.editControls = CreativeControls(
                 it.renderView, scene, world,
                 saveSystem, chunkLoader

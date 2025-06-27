@@ -11,7 +11,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.systems.Systems
-import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.sdf.SDFCollider
 import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
@@ -55,7 +55,7 @@ fun main() {
             .add(SDFBox())
 
         testUI("SDF Physics") {
-            testScene(scene)
+            createSceneUI(scene)
         }
     }
 

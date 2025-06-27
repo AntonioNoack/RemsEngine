@@ -35,11 +35,11 @@ class CollisionFilterTests {
         val static = buildFilter(STATIC_GROUP_ID, ALL_MASK and (STATIC_MASK or KINEMATIC_MASK).inv())
         val kinematic = buildFilter(KINEMATIC_GROUP_ID, ALL_MASK and (STATIC_MASK or KINEMATIC_MASK).inv())
 
-        val items = intArrayOf(dynamic, static, kinematic)
-        for (i in items.indices) {
-            for (j in items.indices) {
-                val filterI = items[i]
-                val filterJ = items[j]
+        val filters = intArrayOf(dynamic, static, kinematic)
+        for (i in filters.indices) {
+            for (j in filters.indices) {
+                val filterI = filters[i]
+                val filterJ = filters[j]
                 val expected = filterI == dynamic || filterJ == dynamic
                 assertEquals(expected, collides(filterI, filterJ))
             }

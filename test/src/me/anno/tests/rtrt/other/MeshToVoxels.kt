@@ -9,7 +9,7 @@ import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Renderers.attributeRenderers
-import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
@@ -344,6 +344,6 @@ fun main() {
         mat.useSDF = useSDF
         comp.materials = listOf(mat.ref)
 
-        testScene(comp)
+        createSceneUI(comp)
     }
 }

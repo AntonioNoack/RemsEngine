@@ -13,7 +13,7 @@ import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.LOOP
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.SOURCE
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.SPEED
 import me.anno.engine.OfficialExtensions
-import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.graph.visual.states.StateMachine
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI
@@ -63,7 +63,7 @@ fun main() {
     testUI("Animation Graph") {
         val list = CustomList(false, style)
         list.add(GraphEditor(graph, style))
-        list.add(testScene(entity), 2f)
+        list.add(createSceneUI(entity), 2f)
         list
     }
 }

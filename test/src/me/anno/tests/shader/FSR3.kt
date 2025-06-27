@@ -3,7 +3,7 @@ package me.anno.tests.shader
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderMode
-import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode.Companion.interFrames
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelListY
@@ -17,7 +17,7 @@ fun main() {
     val path = downloads.getChild("3d/DamagedHelmet.glb")
     testUI3("FrameGen") {
         val list = PanelListY(style)
-        val renderPanel = testScene(path) {
+        val renderPanel = createSceneUI(path) {
             it.renderView.renderMode = RenderMode.FSR3_MIXING
         }
         renderPanel.weight = 1f

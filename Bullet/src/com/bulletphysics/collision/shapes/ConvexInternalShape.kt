@@ -8,7 +8,6 @@ import com.bulletphysics.linearmath.VectorUtil.setCoord
 import com.bulletphysics.util.setScaleAdd
 import cz.advel.stack.Stack
 import org.joml.Vector3d
-import kotlin.math.max
 
 /**
  * ConvexInternalShape is an internal base class, shared by most convex shape implementations.

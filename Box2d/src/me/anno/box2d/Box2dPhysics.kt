@@ -67,7 +67,7 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
     override fun createRigidbody(entity: Entity, rigidBody: Rigidbody2d): ScaledBody<Rigidbody2d, Body>? {
 
-        val colliders = getValidComponents(entity, Collider2d::class).toList()
+        val colliders = getValidComponents(entity, rigidComponentClass, Collider2d::class).toList()
         if (colliders.isEmpty()) return null
 
         entity.validateTransform()

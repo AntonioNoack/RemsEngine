@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.WindowRenderFlags
-import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.gpu.CullMode
 import me.anno.recast.CrowdUpdateComponent
 import me.anno.recast.NavMeshBuilder
@@ -85,7 +85,7 @@ fun main() {
 
         world.addComponent(CrowdUpdateComponent(navMeshData))
 
-        testScene(world)
+        createSceneUI(world)
 
     }
 }

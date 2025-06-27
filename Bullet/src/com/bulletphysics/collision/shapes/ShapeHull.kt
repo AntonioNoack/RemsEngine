@@ -60,9 +60,9 @@ class ShapeHull(val shape: ConvexShape) {
         private val LOGGER = LogManager.getLogger(ShapeHull::class)
 
         /** ///////////////////////////////////////////////////////////////////////// */
-        private const val NUM_UNIT_SPHERE_POINTS = 42
+        const val NUM_UNIT_SPHERE_POINTS = 42
 
-        private val constUnitSpherePoints = ArrayList<Vector3d>(NUM_UNIT_SPHERE_POINTS)
+        val constUnitSpherePoints = ArrayList<Vector3d>(NUM_UNIT_SPHERE_POINTS)
 
         private fun v(x: Double, y: Double, z: Double) {
             constUnitSpherePoints.add(Vector3d(x, y, z))

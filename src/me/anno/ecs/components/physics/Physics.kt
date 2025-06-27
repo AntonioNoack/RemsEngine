@@ -48,6 +48,38 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     companion object {
         private val LOGGER = LogManager.getLogger(Physics::class)
+
+        fun <V : Component, R : Component> getValidComponents(
+            root: Entity, rigidComponentClass: KClass<R>, clazz: KClass<V>,
+            dst: ArrayList<V> = ArrayList()
+        ): List<V> {
+            // only collect colliders, which are appropriate for this: stop at any other rigidbody
+            Recursion.processRecursive(root) { entity, remaining ->
+                entity.forAllComponents(clazz, false) { comp ->
+                    dst.add(comp)
+                }
+                entity.forAllChildren(false) { child ->
+                    if (!child.hasComponent(rigidComponentClass, false)) {
+                        remaining.add(child)
+                    }
+                }
+            }
+            return dst
+        }
+
+        fun <V : Component, R : Component> hasValidComponents(
+            root: Entity, rigidComponentClass: KClass<R>, clazz: KClass<V>
+        ): Boolean {
+            // only collect colliders, which are appropriate for this: stop at any other rigidbody
+            return Recursion.anyRecursive(root) { entity, remaining ->
+                entity.forAllChildren(false) { child ->
+                    if (!child.hasComponent(rigidComponentClass, false)) {
+                        remaining.add(child)
+                    }
+                }
+                entity.hasComponent(clazz, false)
+            }
+        }
     }
 
     // entities outside these bounds will be killed
@@ -163,24 +195,6 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     abstract fun removeConstraints(entity: Entity)
-
-    fun <V : Component> getValidComponents(
-        root: Entity, clazz: KClass<V>,
-        dst: ArrayList<V> = ArrayList()
-    ): List<V> {
-        // only collect colliders, which are appropriate for this: stop at any other rigidbody
-        Recursion.processRecursive(root) { entity, remaining ->
-            entity.forAllComponents(clazz, false) { comp ->
-                dst.add(comp)
-            }
-            entity.forAllChildren(false) { child ->
-                if (!child.hasComponent(rigidComponentClass, false)) {
-                    remaining.add(child)
-                }
-            }
-        }
-        return dst
-    }
 
     open fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
         val rigid = rigidBodies.remove(entity) ?: return

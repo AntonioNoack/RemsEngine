@@ -2,12 +2,12 @@ package me.anno.bullet.bodies
 
 import com.bulletphysics.dynamics.RigidBody
 import me.anno.bullet.constraints.Constraint
-import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.physics.Physics.Companion.hasValidComponents
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 
@@ -39,7 +39,11 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
     @NotSerializedProperty
     @Suppress("unused")
     val isMissingCollider: String?
-        get() = if (entity?.hasComponent(Collider::class) == true) null else "True"
+        get() {
+            val entity = entity
+            val ok = entity != null && hasValidComponents(entity, PhysicalBody::class, Collider::class)
+            return if (ok) null else "True"
+        }
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

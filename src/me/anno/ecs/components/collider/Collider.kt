@@ -38,6 +38,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
     @SerializedProperty
     var roundness = 0.04f
 
+    // todo respect that for Bullet (???)
     @Docs("Whether this collider will collide with stuff, or just detect collisions")
     @SerializedProperty
     var hasPhysics = true

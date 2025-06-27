@@ -10,6 +10,7 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQueryLocal
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawLineTriangle
 import me.anno.engine.ui.LineShapes.getDrawMatrix
@@ -32,6 +33,10 @@ import org.joml.Vector3f
 import kotlin.math.sqrt
 
 open class MeshCollider() : Collider() {
+
+    fun interface BulletShapeDrawable {
+        fun draw(drawMatrix: Matrix4x3?, color: Int)
+    }
 
     constructor(src: FileReference) : this() {
         meshFile = src
@@ -72,6 +77,9 @@ open class MeshCollider() : Collider() {
             }
             return MeshCache.getEntry(meshFile).waitFor()
         }
+
+    @NotSerializedProperty
+    var bulletInstance: BulletShapeDrawable? = null
 
     /**
      * returns distance if hit, infinity else
@@ -193,12 +201,17 @@ open class MeshCollider() : Collider() {
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        val mesh = mesh as? Mesh ?: return
-        val color = getLineColor(hasPhysics)
         val transform = getDrawMatrix(entity)
-        mesh.forEachTriangle { a, b, c ->
-            drawLineTriangle(transform, a, b, c, color)
-            false
+        val color = getLineColor(hasPhysics)
+        val bi = bulletInstance
+        if (bi != null) {
+            bi.draw(transform, color)
+        } else {
+            val mesh = mesh as? Mesh ?: return
+            mesh.forEachTriangle { a, b, c ->
+                drawLineTriangle(transform, a, b, c, color)
+                false
+            }
         }
     }
 

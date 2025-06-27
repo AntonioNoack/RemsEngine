@@ -107,7 +107,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
     ): ScaledBody<PhysicsBody<*>, CollisionObject>? {
 
         val colliders = rigidBody.activeColliders
-        getValidComponents(entity, Collider::class, colliders)
+        getValidComponents(entity, rigidComponentClass, Collider::class, colliders)
         colliders.removeIf { !it.hasPhysics }
         if (colliders.isEmpty()) return null
 
@@ -589,7 +589,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         ): Transform {
             // bullet does not support scale -> we always must correct it
             dst.basis.set(ourTransform).scale(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z)
-            ourTransform.transformDirection(centerOfMass, dst.origin) // local -> world
+            dst.basis.transform(centerOfMass, dst.origin) // local -> world
             dst.origin.add(ourTransform.m30, ourTransform.m31, ourTransform.m32)
             return dst
         }
@@ -599,10 +599,11 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
             centerOfMass: Vector3d, dstTransform: Matrix4x3
         ): Matrix4x3 {
             // bullet does not support scale -> we always need to correct it
+            val origin = worldTransform.origin
             return dstTransform.set(worldTransform.basis)
                 .scale(scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
                 .translate(-centerOfMass.x, -centerOfMass.y, -centerOfMass.z)
-                .translateLocal(worldTransform.origin)
+                .translateLocal(origin.x, origin.y, origin.z)
         }
     }
 }

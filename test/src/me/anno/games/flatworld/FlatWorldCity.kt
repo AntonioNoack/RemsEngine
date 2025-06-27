@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.DefaultAssets
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.SceneView
-import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Key
 import me.anno.io.files.InvalidRef
@@ -119,7 +119,7 @@ fun main() {
 
     testUI3("FlatWorld City") {
         val ui = NineTilePanel(style)
-        val sceneUI = testScene(world.scene)
+        val sceneUI = createSceneUI(world.scene)
         ui.add(sceneUI)
         val sceneView = sceneUI.listOfAll.firstInstance2(SceneView::class)
         val renderView = sceneView.renderView

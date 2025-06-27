@@ -7,7 +7,8 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConeShape
 import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.collision.shapes.CylinderShape
-import com.bulletphysics.collision.shapes.ShapeHull
+import com.bulletphysics.collision.shapes.ShapeHull.Companion.NUM_UNIT_SPHERE_POINTS
+import com.bulletphysics.collision.shapes.ShapeHull.Companion.constUnitSpherePoints
 import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.collision.shapes.StaticPlaneShape
 import com.bulletphysics.collision.shapes.TriangleIndexVertexArray
@@ -27,6 +28,8 @@ import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.physics.CustomBulletCollider
+import me.anno.maths.geometry.convexhull.ConvexHulls
+import me.anno.maths.geometry.convexhull.HullDesc
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
@@ -36,6 +39,14 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 private val LOGGER = LogManager.getLogger("Collider")
+
+fun verticesToFloatArray(vertices: List<Vector3d>): FloatArray {
+    val dst = FloatArray(vertices.size * 3)
+    for (i in vertices.indices) {
+        vertices[i].get(dst, i * 3)
+    }
+    return dst
+}
 
 fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
 
@@ -57,24 +68,43 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
         // calculate convex hull
         // simplify it maybe
 
-        val convex = ConvexHullShape(positions)
+        val convex = ConvexHullShape(positions, null)
+
         convex.setLocalScaling(scale)
         convex.margin = 0.0
+
+        val min = Vector3d()
+        val max = Vector3d()
+        convex.getBounds(Transform(), min, max)
 
         if (positions.size < 30 || !enableSimplifications) {
             convex.margin = margin.toDouble()
             return convex
         }
 
-        val hull = ShapeHull(convex)
-        if (hull.isValid) {
-            val shape = ConvexHullShape(hull.verticesToFloatArray())
-            shape.margin = margin.toDouble()
-            return shape
-        } else {
+        val directions = ArrayList<Vector3d>(NUM_UNIT_SPHERE_POINTS)
+        for (i in constUnitSpherePoints.indices) {
+            directions.add(Vector3d(constUnitSpherePoints[i]))
+        }
+
+        val tmp = Vector3d()
+        for (i in directions.indices) {
+            val v = directions[i]
+            convex.localGetSupportingVertex(tmp.set(v), v)
+        }
+
+        val hull = ConvexHulls.calculateConvexHull(HullDesc(directions))
+        if (hull == null) {
+            LOGGER.warn("Failed to create convex hull for $directions")
             convex.margin = margin.toDouble()
             return convex
         }
+
+        val shape = ConvexHullShape(verticesToFloatArray(hull.vertices), hull.triangles)
+        shape.margin = margin.toDouble()
+        bulletInstance = shape
+        return shape
+
     } else {
 
         // we don't send the data to the gpu here, so we don't need to allocate directly
@@ -185,7 +215,7 @@ fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
         is CapsuleCollider -> collider.createBulletCapsuleShape(scale)
         is ConeCollider -> collider.createBulletConeShape(scale)
         is ConvexCollider -> {
-            val shape = ConvexHullShape(collider.points!!)
+            val shape = ConvexHullShape(collider.points!!, null)
             shape.setLocalScaling(scale)
             shape.margin = collider.roundness * scale.absMax()
             shape
@@ -213,20 +243,21 @@ fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
 
 fun createBulletCollider(
     collider: Collider, base: Entity,
-    scale: Vector3d, centerOfMass: Vector3d
+    bodyScale: Vector3d, centerOfMass: Vector3d
 ): Pair<Transform, CollisionShape> {
     val transform0 = collider.entity!!.fromLocalToOtherLocal(base)
 
-    val extraScale = JomlPools.vec3d.create()
+    val localScale = JomlPools.vec3d.create()
     val totalScale = JomlPools.vec3d.create()
     val centerOfMass1 = JomlPools.vec3d.create()
 
-    transform0.getScale(extraScale)
-    scale.mul(extraScale, totalScale)
+    transform0.getScale(localScale)
+    bodyScale.mul(localScale, totalScale)
+
     centerOfMass.negate(centerOfMass1)
 
     val transform = mat4x3ToTransform(
-        transform0, extraScale,
+        transform0, localScale,
         centerOfMass1, Transform()
     )
     val shape = createBulletShape(collider, totalScale)

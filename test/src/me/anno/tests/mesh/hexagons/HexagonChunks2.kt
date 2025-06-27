@@ -69,7 +69,7 @@ fun main() {
     recalculate()
     testUI2("Hexagon Chunks/2") {
         listOf(
-            SceneView.testScene(scene),
+            SceneView.createSceneUI(scene),
             PanelListX(style).apply {
                 for (it in listOf(
                     TextButton(NameDesc("j+"), true, DefaultConfig.style)

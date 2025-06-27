@@ -1,28 +1,33 @@
 package me.anno.games.carchase
 
 import me.anno.bullet.BulletPhysics
+import me.anno.bullet.bodies.KinematicBody
 import me.anno.bullet.bodies.StaticBody
 import me.anno.bullet.bodies.Vehicle
 import me.anno.bullet.bodies.VehicleWheel
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
+import me.anno.ecs.components.collider.BoxCollider
+import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
+import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.input.Input
-import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.PIf
 import me.anno.ui.Panel
@@ -61,109 +66,109 @@ val carModelGlass = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Glass-002.
 val carModelPlates = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Plates-002.json")
 val carModelMat = heistPackage.getChild("Materials/PolygonHeist_Character_Material_01.mat")
 
+fun sign(x: Int): Int {
+    return if (x > 0) 1 else -1
+}
+
 fun createUI(): Panel {
 
     val physics = BulletPhysics().apply {
-        updateInEditMode = true
+        // updateInEditMode = true
         synchronousPhysics = true
+        enableDebugRendering = true
     }
     Systems.registerSystem(physics)
 
-    val world = Entity()
-    Entity("Floor", world)
+    val scene = Entity()
+    Entity("Floor", scene)
         .add(MeshComponent(map))
-        .add(MeshCollider(map).apply { isConvex = false })
+        .add(MeshCollider(map).apply {
+            enableSimplifications = false
+            isConvex = false
+        })
+        .add(InfinitePlaneCollider())
         .add(StaticBody())
 
-    val car0 = Entity()
-    val car1 = Entity()
-    car1.setPosition(0.0, -0.8, 0.0)
-    car1.setScale(100f) // the car somehow is in cm size... even in Blender, so not a bug on our side
-    val materialList = listOf(carModelMat)
-    fun add(entity: Entity, source: FileReference, matList: List<FileReference> = materialList) {
-        val comp = MeshComponent(source)
-        comp.materials = matList
-        entity.add(comp)
+    val glassMaterial = Material().apply {
+        diffuseBase.w = 0.7f
+        cullMode = CullMode.BOTH
+        pipelineStage = PipelineStage.GLASS
+        metallicMinMax.set(1f)
+        roughnessMinMax.set(0.1f)
     }
-    add(car1, carModelMain)
-    add(car1, carModelPlates)
 
-    val glassMaterial = Material()
-    glassMaterial.diffuseBase.w = 0.7f
-    glassMaterial.cullMode = CullMode.BOTH
-    glassMaterial.pipelineStage = PipelineStage.GLASS
-    glassMaterial.metallicMinMax.set(1f)
-    glassMaterial.roughnessMinMax.set(0.1f)
-    add(car1, carModelGlass, listOf(glassMaterial.ref))
+    val carScale = 100f
+    val carVisuals = Entity("CarVisuals")
+        .setPosition(0.0, -0.8, 0.0)
+        .setScale(carScale) // the car somehow is in cm size... even in Blender, so not a bug on our side
+        .add(MeshComponent(carModelMain, carModelMat))
+        .add(MeshComponent(carModelPlates, carModelMat))
+        .add(MeshComponent(carModelGlass, glassMaterial))
 
-    car0.add(car1)
-    world.add(car0)
+    val vehicle = Vehicle().apply {
+        centerOfMass.set(0.0, -0.3, 0.0)
+    }
+
+    val controller = VehicleController()
+    val carEntity = Entity("PoliceCar", scene)
+        // vehicle.deleteWhenKilledByDepth = true
+        .setPosition(0.0, 0.7, 0.0) // move car into air
+        .add(vehicle)
+        .add(controller)
+        .add(carVisuals)
+
+    Entity("CarCollider", carEntity)
+        .setPosition(carVisuals.position)
+        .setScale(carVisuals.scale)
+        .add(MeshCollider(carModelMain))
 
     val player = LocalPlayer()
     LocalPlayer.currentLocalPlayer = player
 
-    val vehicle = Vehicle()
-    // vehicle.deleteWhenKilledByDepth = true
-    car0.setPosition(0.0, 3.0, 0.0) // move car into air
-    vehicle.centerOfMass.set(0.0, -0.3, 0.0)
-    car0.add(vehicle)
-    car0.add(
-        Entity("CarCollider")
-            .setPosition(car1.position)
-            .setScale(car1.scale)
-            .add(MeshCollider(carModelMain))
-    )
-    val controller = VehicleController()
-    car0.add(controller)
-
-    val steeringWheel = Entity()
-    val steeringWheelMesh = MeshComponent(carModelSteer)
-    steeringWheelMesh.materials = materialList
-    steeringWheel.add(steeringWheelMesh)
-    steeringWheel.add(object : Component(), OnUpdate {
+    class SteeringWheelVisuals : Component(), OnUpdate {
         val q = Quaternionf()
         val c = Vector3d()
         override fun onUpdate() {
-            val tr = steeringWheel.transform
-            val mesh = steeringWheelMesh.getMeshOrNull()?.getBounds() ?: return
+            val tr = transform ?: return
+            val meshComp = getComponent(MeshComponent::class)
+            val mesh = meshComp?.getMeshOrNull()?.getBounds() ?: return
             q.rotationZ(-5f * controller.lastSteering.toFloat())
             c.set(mesh.centerX.toDouble(), mesh.centerY.toDouble(), mesh.centerZ.toDouble())
             tr.setOffsetForLocalRotation(q, c)
         }
-    })
-    car1.add(steeringWheel)
+    }
 
+    Entity("Steering Wheel", carVisuals)
+        .add(MeshComponent(carModelSteer, carModelMat))
+        .add(SteeringWheelVisuals())
 
     // add four wheels :)
     for (x in listOf(-1, +1)) {
         for (z in listOf(-1, +1)) {
             val wheel = VehicleWheel().apply {
-                suspensionRestLength = 0.1
+                suspensionRestLength = -0.15
                 suspensionStiffness = 50.0
                 suspensionDampingRelaxation = 0.95
                 maxSuspensionTravel = 0.2
                 brakeForceMultiplier = 0.02 // what unit is this value??? why has it to be that low???
                 radius = 0.42678
             }
-            val wheelObj = Entity()
+            val wheelObj = Entity("Wheel[$x,$z]")
                 .add(wheel)
                 .setPosition(x * 0.9, -0.3, if (z > 0) 1.58 else -1.48)
-            val wheelMesh = Entity()
-            wheelMesh.add(MeshComponent(carModelFL).apply { materials = materialList })
+            val wheelMesh = Entity("WheelMesh", wheelObj)
+                .setScale(carScale)
+                .add(MeshComponent(carModelFL, carModelMat))
+                .setPosition(sign(x) * 0.86348, -0.42678, sign(x) * 1.5698)
             if (x > 0) {
-                wheelMesh.setPosition(0.86348, -0.42678, 1.5698)
                 wheelMesh.setRotation(0f, PIf, 0f)
-            } else {
-                wheelMesh.setPosition(-0.86348, -0.42678, -1.5698)
             }
-            wheelMesh.scale = wheelMesh.scale.set(100.0)
-            wheelObj.add(wheelMesh)
             if (z < 0) wheel.steeringMultiplier = 0.0
-            car0.add(wheelObj)
+            carEntity.add(wheelObj)
         }
     }
 
-    EditorState.prefabSource = world.ref
+    EditorState.prefabSource = scene.ref
     val sceneView = SceneView(PlayMode.PLAYING, style)
     val renderView = sceneView.renderView
     renderView.localPlayer = player
@@ -172,15 +177,23 @@ fun createUI(): Panel {
     val list = NineTilePanel(style)
     list.add(sceneView)
 
-    val camEntity = Entity()
     val camera = Camera()
+    val camEntity = Entity()
+        .setRotation(0f, PIf, 0f)
+        .add(camera)
+
     camera.use()
     camera.use()
 
     // orbit controls for the camera around the car :)
-    camEntity.add(camera)
-        .setRotation(0f, PIf, 0f)
     val orbitControls = object : OrbitControls(), OnUpdate {
+        init {
+            // movement is disabled
+            movementSpeed = 0.0
+            this.camera = camera
+            useGlobalSpace = true // less nauseating, when car is rotated
+        }
+
         override fun onUpdate() {
             if (Input.isKeyDown('R')) {
                 // reset car
@@ -191,33 +204,40 @@ fun createUI(): Panel {
             }
         }
     }
+
     // todo before moving the camera with mouse movement, capture the mouse :)
-    // movement is disabled
-    orbitControls.movementSpeed = 0.0
-    orbitControls.camera = camera
-    orbitControls.useGlobalSpace = true // less nauseating, when car is rotated
-    val camBase = Entity()
+
+    Entity("Controls & Camera",carEntity)
         .add(orbitControls)
         .setPosition(0.4, 0.57, 0.15)
         .add(camEntity)
-    car0.add(camBase)
 
-    val speedometer = UpdatingTextPanel(100, style) {
+    Entity("Ramp", scene)
+        .add(MeshComponent(flatCube))
+        .add(BoxCollider())
+        .add(KinematicBody())
+        .setPosition(1.0, -0.7, 5.0)
+        .setRotationDegrees(0f, 0f, 15f)
+
+    // speedometer
+    list.add(UpdatingTextPanel(100, style) {
         // calculate velocity along forward axis
         "${(vehicle.localLinearVelocityZ * 3.6).roundToIntOr()} km/h"
-    }
-    speedometer.alignmentX = AxisAlignment.CENTER
-    speedometer.alignmentY = AxisAlignment.MAX
-    list.add(speedometer)
+    }.apply {
+        alignmentX = AxisAlignment.CENTER
+        alignmentY = AxisAlignment.MAX
+    })
 
-    val minimap = MinimapPanel()
-    minimap.alignmentX = AxisAlignment.MIN
-    minimap.alignmentY = AxisAlignment.MAX
-    list.add(minimap)
+    list.add(MinimapPanel().apply {
+        alignmentX = AxisAlignment.MIN
+        alignmentY = AxisAlignment.MAX
+    })
 
-    world.validateTransform()
+    scene.validateTransform()
 
-    return list
+    return if (false) {
+        createSceneUI(scene)
+    } else list
 }
 
 fun main() {

@@ -260,7 +260,7 @@ fun main() {
         scene.add(MeshComponent(flatCube.front))
         scene.add(snowControl0)
         registerCustomClass(SnowControl())
-        list.add(SceneView.testScene(scene) {
+        list.add(SceneView.createSceneUI(scene) {
             it.renderView.renderMode = snowRenderMode
         }, 2f)
         list
