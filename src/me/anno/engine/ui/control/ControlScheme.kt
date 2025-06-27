@@ -12,7 +12,6 @@ import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
-import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.ui.EditorState
@@ -45,6 +44,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.tan
 
@@ -139,9 +139,19 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     override fun onUpdate() {
         super.onUpdate()
         handleInputs()
+        debugHits()
+        debugSleep()
+    }
+
+    fun debugHits() {
         if (renderView.renderMode == RenderMode.RAY_TEST) {
             testHits()
         }
+    }
+
+    fun debugSleep() {
+        val sleep = min(settings.debugGhostingMillis, 1000)
+        if (sleep > 0) Thread.sleep(sleep)
     }
 
     open fun handleInputs() {

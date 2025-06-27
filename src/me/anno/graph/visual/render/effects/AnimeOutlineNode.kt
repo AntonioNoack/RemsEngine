@@ -46,7 +46,7 @@ class AnimeOutlineNode : RenderViewNode(
         val sensitivity = getFloatInput(2)
         val color0 = getInput(3) as? Texture
         val color = color0.texOrNull
-        val depth = (getInput(4) as? Texture).texOrNull
+        val depth = getTextureInput(4)
         if (color == null || depth == null || sensitivity <= 0f || strength <= 0f) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {

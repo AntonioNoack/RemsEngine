@@ -9,6 +9,7 @@ import me.anno.io.files.FileFileRef.Companion.createTempFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class RecursiveAssetImportTest {
@@ -36,6 +37,12 @@ class RecursiveAssetImportTest {
         fileB.writeText(prefabB.toString())
 
         AssetImport.deepCopyImport(dstFolder, listOf(fileA), null)
+
+        assertEquals(2, dstFolder.listChildren().size)
+
+        srcFolder.delete()
+        dstFolder.delete()
+
         Engine.requestShutdown()
     }
 }

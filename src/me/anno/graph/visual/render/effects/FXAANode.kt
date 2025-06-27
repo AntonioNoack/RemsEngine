@@ -7,7 +7,6 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
 /**
  * fast approximate edge reconstruction:
@@ -25,7 +24,7 @@ class FXAANode : TimedRenderingNode(
 
     override fun executeAction() {
         val threshold = getFloatInput(1)
-        val color = (getInput(2) as? Texture).texOrNull
+        val color = getTextureInput(2)
         if (color != null) {
             timeRendering(name, timer) {
                 val framebuffer = FBStack[name, color.width, color.height, 4, false, 1, DepthBufferType.NONE]

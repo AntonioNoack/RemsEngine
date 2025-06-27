@@ -212,10 +212,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         currentInstance = this
 
-        // to see ghosting, if there is any
-        val renderMode = renderMode
-        if (renderMode == RenderMode.GHOSTING_DEBUG) Thread.sleep(250)
-
         val skipUpdate = FrameGenInitNode.skipThisFrame() && usesFrameGen()
 
         updateEditorCameraTransform()

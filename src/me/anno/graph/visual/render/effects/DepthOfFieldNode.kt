@@ -18,7 +18,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import kotlin.math.tan
@@ -59,8 +58,8 @@ class DepthOfFieldNode : TimedRenderingNode(
         val spherical = getFloatInput(5)
 
         val applyToneMapping = getBoolInput(6)
-        val color = (getInput(7) as? Texture).texOrNull ?: return // this is incorrect for tinted color!
-        val depth = (getInput(8) as? Texture).texOrNull ?: return
+        val color = getTextureInput(7) ?: return
+        val depth = getTextureInput(8) ?: return
 
         timeRendering(name, timer) {
             val result = render(

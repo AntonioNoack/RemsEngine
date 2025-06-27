@@ -59,7 +59,7 @@ class SSRNode : TimedRenderingNode(
         val illumMT = illumT.texMSOrNull
         val illumTT = illumT.texOrNull ?: return
 
-        val colorTT = (getInput(8) as? Texture).texOrNull ?: whiteTexture
+        val colorTT = getTextureInput(8, whiteTexture)
 
         val normal = getInput(9) as? Texture
         val normalZW = normal.isZWMapping
@@ -84,7 +84,7 @@ class SSRNode : TimedRenderingNode(
                 transform, strength, maskSharpness, wallThickness, fineSteps,
                 inPlace, result0
             )
-            val result = if (inPlace) result0 else mixResult(width, height, illumMT!!, result0)
+            val result = if (inPlace) result0 else mixResult(width, height, illumMT, result0)
             setOutput(1, Texture.texture(result, 0))
         }
     }

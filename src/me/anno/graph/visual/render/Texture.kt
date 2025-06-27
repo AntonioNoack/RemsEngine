@@ -16,7 +16,7 @@ import me.anno.utils.assertions.assertFail
 import org.joml.Vector4f
 import kotlin.math.max
 
-class Texture constructor(
+class Texture(
     val tex: ITexture2D,
     texMS: ITexture2D?,
     val mapping: String,

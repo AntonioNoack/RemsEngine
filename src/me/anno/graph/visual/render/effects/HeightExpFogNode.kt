@@ -59,7 +59,7 @@ class HeightExpFogNode : RenderViewNode(
     override fun executeAction() {
         val color0 = getInput(7) as? Texture
         val color = color0.texOrNull
-        val depth = (getInput(8) as? Texture).texOrNull
+        val depth = getTextureInput(8)
         val relativeDistance = max(getFloatInput(1), 0f)
         val fogStrength = max(getFloatInput(2), 0f)
         if (color == null || depth == null || (relativeDistance.isFinite() && fogStrength == 0f)) {

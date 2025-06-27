@@ -16,7 +16,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
 
 /**
@@ -29,8 +28,8 @@ class UnditherNode : RenderViewNode(
 ) {
 
     override fun executeAction() {
-        val colorT = (getInput(1) as? Texture).texOrNull
-        val depthT = (getInput(2) as? Texture).texOrNull
+        val colorT = getTextureInput(1)
+        val depthT = getTextureInput(2)
         if (colorT != null && depthT != null) {
             timeRendering(name, timer) {
                 val width = colorT.width

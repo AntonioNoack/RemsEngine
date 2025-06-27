@@ -37,6 +37,9 @@ open class ControlSettings : Inspectable {
     var showDebugFrames by ConfigRef("debug.ui.showDebugFrames", false)
 
     @Group("Debug")
+    var debugGhostingMillis by ConfigRef("debug.ui.debugGhostingMillis", 0L)
+
+    @Group("Debug")
     var inspectedX by ConfigRef("debug.ui.inspectedX", 0)
 
     @Group("Debug")

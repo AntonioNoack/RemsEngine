@@ -66,7 +66,7 @@ class GizmoNode : RenderViewNode(
         val aabbs = getBoolInput(5)
         val debug = getBoolInput(6)
 
-        val colorT = (getInput(7) as? Texture).texOrNull ?: blackTexture
+        val colorT = getTextureInput(7, blackTexture)
         val depth = getInput(8) as? Texture
         val depthT = depth.texOrNull ?: depthTexture
         val depthM = depth.mask1Index

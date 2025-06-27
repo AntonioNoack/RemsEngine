@@ -1,6 +1,5 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Materials
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState.timeRendering
@@ -9,6 +8,7 @@ import me.anno.gpu.deferred.DeferredLayerType.Companion.DEPTH
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.depthTexture
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.Texture
@@ -55,8 +55,8 @@ class FSR2Node : RenderViewNode(
         var height = getIntInput(2)
         if (width < 1 || height < 1) return
 
-        val color = (getInput(3) as? Texture).texOrNull ?: return
-        val motion = getInput(4) as? Texture ?: return
+        val color = getTextureInput(3, whiteTexture)
+        val motion = getTextureInput(4, blackTexture)
         val depth = getInput(5) as? Texture ?: return
 
         val scaleX = roundDiv(width, color.width)
@@ -68,7 +68,7 @@ class FSR2Node : RenderViewNode(
             val fsr = renderView.fsr22
             fsr.calculate(
                 color, depth.texOrNull ?: depthTexture, depth.mask1Index,
-                motion.texOrNull ?: blackTexture, width, height,
+                motion, width, height,
                 scaleX, scaleY
             )
             val view = fsr.views[RenderState.viewIndex]

@@ -110,9 +110,8 @@ fun main() {
         (sceneView.editControls as DraggingControls).settings.fovY = fov
     }
 
-    val renderModes = ArrayList(RenderMode.values.filter {
-        it != RenderMode.GHOSTING_DEBUG && it != RenderMode.RAY_TEST
-    })
+    val renderModes = ArrayList(RenderMode.values)
+    renderModes.remove(RenderMode.RAY_TEST)
 
     fun renderNextImage() {
         val mode = renderModes.removeLastOrNull()

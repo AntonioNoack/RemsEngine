@@ -18,11 +18,8 @@ import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.Texture.Companion.mask1Index
-import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.posMod
-import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
@@ -45,10 +42,10 @@ class TAANode : TimedRenderingNode(
     }
 
     override fun executeAction() {
-        val color = (getInput(1) as? Texture).texOrNull
-        val motion = (getInput(2) as? Texture).texOrNull
-        val maskTex0 = getInput(3) as? Texture
-        val maskTex = maskTex0.texOrNull ?: whiteTexture
+        val color = getTextureInput(1)
+        val motion = getTextureInput(2)
+        val maskTex = getTextureInput(3, whiteTexture)
+        val maskMask = getTextureInputMask(3)
         if (color != null && motion != null) {
             timeRendering(name, timer) {
                 val fi = RenderState.viewIndex * 2
@@ -58,7 +55,7 @@ class TAANode : TimedRenderingNode(
                 val maxTAA = getCameraSteadiness()
                 useFrame(color.width, color.height, true, dst, copyRenderer) {
                     if (maxTAA > 0.01f) {
-                        val shader = shader[maskTex0.mask1Index]
+                        val shader = shader
                         shader.use()
                         val srcT = if (src.isCreated()) src.getTexture0() else color
                         srcT.bindTrulyNearest(shader, "colorTex0")
@@ -68,6 +65,7 @@ class TAANode : TimedRenderingNode(
                         val deltaJitter = getPattern(0) - getPattern(-1)
                         shader.v2f("jitter", deltaJitter.mul(1f / src.width, 1f / src.height))
                         shader.v1f("maxTAA", maxTAA)
+                        shader.v4f("maskMask", maskMask)
                         flat01.draw(shader)
                     } else {
                         FXAA.render(color)
@@ -96,43 +94,41 @@ class TAANode : TimedRenderingNode(
             return max(0.98f - 20f * distance.toFloat(), 0f)
         }
 
-        val shader = LazyList(4) {
-            val maskMask = "xyzw"[it]
-            Shader(
-                "TAA", emptyList(), coordsUVVertexShader, uvList, listOf(
-                    Variable(GLSLType.V4F, "result", VariableMode.OUT),
-                    Variable(GLSLType.S2D, "colorTex1"),
-                    Variable(GLSLType.S2D, "colorTex0"),
-                    Variable(GLSLType.S2D, "motionTex"),
-                    Variable(GLSLType.S2D, "maskTex"),
-                    Variable(GLSLType.V1B, "showEdges"),
-                    Variable(GLSLType.V1F, "threshold"),
-                    Variable(GLSLType.V2F, "jitter"),
-                    Variable(GLSLType.V1F, "maxTAA")
-                ), "void main(){" +
-                        "   vec3 base = texture(colorTex1,uv).rgb;\n" +
-                        "   vec2 motion0 = texture(motionTex,uv).xy;\n" +
-                        "   vec2 motion = motion0 * 0.5 + jitter;\n" +
-                        "   vec2 uv2 = uv-motion.xy;\n" +
-                        "   vec2 cost = 50.0 * (\n" + // try to find neighboring motion
-                        "        abs(textureOffset(motionTex,uv,ivec2(+1,0)).xy-motion0) +\n" +
-                        "        abs(textureOffset(motionTex,uv,ivec2(-1,0)).xy-motion0) +\n" +
-                        "        abs(textureOffset(motionTex,uv,ivec2(0,+1)).xy-motion0) +\n" +
-                        "        abs(textureOffset(motionTex,uv,ivec2(0,-1)).xy-motion0) +\n" +
-                        "        abs(textureOffset(motionTex,uv,ivec2(+3,0)).xy-motion0) +\n" +
-                        "        abs(textureOffset(motionTex,uv,ivec2(-3,0)).xy-motion0) +\n" +
-                        "        abs(textureOffset(motionTex,uv,ivec2(0,+3)).xy-motion0) +\n" +
-                        "        abs(textureOffset(motionTex,uv,ivec2(0,-3)).xy-motion0)" +
-                        "   ) + abs(motion.xy);\n" +
-                        "   float f = maxTAA * texture(maskTex,uv).$maskMask - 250.0 * length(cost);\n" +
-                        "   if(f > 0.0 && uv2.x >= 0.0 && uv2.y >= 0.0 && uv2.x <= 1.0 && uv2.y <= 1.0){\n" +
-                        "       base = mix(base,texture(colorTex0,uv2).rgb,vec3(f));\n" +
-                        "   }\n" +
-                        "   result = vec4(base,1.0);\n" +
-                        //"   result = vec4(f,f,f,1.0);\n" +
-                        "}\n"
-            )
-        }
+        val shader = Shader(
+            "TAA", emptyList(), coordsUVVertexShader, uvList, listOf(
+                Variable(GLSLType.V4F, "result", VariableMode.OUT),
+                Variable(GLSLType.S2D, "colorTex1"),
+                Variable(GLSLType.S2D, "colorTex0"),
+                Variable(GLSLType.S2D, "motionTex"),
+                Variable(GLSLType.S2D, "maskTex"),
+                Variable(GLSLType.V4F, "maskMask"),
+                Variable(GLSLType.V1B, "showEdges"),
+                Variable(GLSLType.V1F, "threshold"),
+                Variable(GLSLType.V2F, "jitter"),
+                Variable(GLSLType.V1F, "maxTAA")
+            ), "void main(){" +
+                    "   vec3 base = texture(colorTex1,uv).rgb;\n" +
+                    "   vec2 motion0 = texture(motionTex,uv).xy;\n" +
+                    "   vec2 motion = motion0 * 0.5 + jitter;\n" +
+                    "   vec2 uv2 = uv-motion.xy;\n" +
+                    "   vec2 cost = 50.0 * (\n" + // try to find neighboring motion
+                    "        abs(textureOffset(motionTex,uv,ivec2(+1,0)).xy-motion0) +\n" +
+                    "        abs(textureOffset(motionTex,uv,ivec2(-1,0)).xy-motion0) +\n" +
+                    "        abs(textureOffset(motionTex,uv,ivec2(0,+1)).xy-motion0) +\n" +
+                    "        abs(textureOffset(motionTex,uv,ivec2(0,-1)).xy-motion0) +\n" +
+                    "        abs(textureOffset(motionTex,uv,ivec2(+3,0)).xy-motion0) +\n" +
+                    "        abs(textureOffset(motionTex,uv,ivec2(-3,0)).xy-motion0) +\n" +
+                    "        abs(textureOffset(motionTex,uv,ivec2(0,+3)).xy-motion0) +\n" +
+                    "        abs(textureOffset(motionTex,uv,ivec2(0,-3)).xy-motion0)" +
+                    "   ) + abs(motion.xy);\n" +
+                    "   float f = maxTAA * dot(texture(maskTex,uv),maskMask) - 250.0 * length(cost);\n" +
+                    "   if(f > 0.0 && uv2.x >= 0.0 && uv2.y >= 0.0 && uv2.x <= 1.0 && uv2.y <= 1.0){\n" +
+                    "       base = mix(base,texture(colorTex0,uv2).rgb,vec3(f));\n" +
+                    "   }\n" +
+                    "   result = vec4(base,1.0);\n" +
+                    //"   result = vec4(f,f,f,1.0);\n" +
+                    "}\n"
+        )
 
         val pattern = listOf(
             Vector2f(-0.37f, -0.37f),

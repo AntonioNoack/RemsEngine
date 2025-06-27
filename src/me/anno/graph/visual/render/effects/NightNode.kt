@@ -48,7 +48,7 @@ class NightNode : RenderViewNode(
         val skyDarkening = getFloatInput(2)
         val color0 = getInput(3) as? Texture
         val color1 = color0.texOrNull
-        val depth = (getInput(4) as? Texture).texOrNull ?: depthTexture
+        val depth = getTextureInput(4, depthTexture)
         if (color1 == null || strength <= 0f) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {

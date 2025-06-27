@@ -13,7 +13,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import org.joml.Vector2f
 
 class ChromaticAberrationNode : TimedRenderingNode(
@@ -36,7 +35,7 @@ class ChromaticAberrationNode : TimedRenderingNode(
 
     override fun executeAction() {
         val strength = getFloatInput(1) * 0.001f
-        val color = (getInput(5) as? Texture).texOrNull
+        val color = getTextureInput(5)
         if (color == null) {
             setOutput(1, Texture(missingTexture))
         } else {
