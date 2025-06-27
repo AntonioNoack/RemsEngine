@@ -277,7 +277,8 @@ class DiscreteDynamicsWorld(
                             (CollisionFilterGroups.STATIC_MASK or CollisionFilterGroups.KINEMATIC_MASK).inv()
                 }
 
-            addCollisionObject(body, buildFilter(collisionFilterGroup, collisionFilterMask))
+            val filter = buildFilter(collisionFilterGroup, collisionFilterMask)
+            addCollisionObject(body, filter)
         }
     }
 

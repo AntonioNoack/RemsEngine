@@ -121,28 +121,12 @@ abstract class AxisSweep3Internal internal constructor(
     }
 
     fun testOverlap(ignoreAxis: Int, pHandleA: Handle, pHandleB: Handle): Boolean {
-        // optimization 1: check the array index (memory address), instead of the m_pos
-
         for (axis in 0..2) {
             if (axis == ignoreAxis) continue
             if (pHandleA.getMaxEdges(axis) < pHandleB.getMinEdges(axis) ||
                 pHandleB.getMaxEdges(axis) < pHandleA.getMinEdges(axis)
-            ) {
-                return false
-            }
+            ) return false
         }
-
-        //optimization 2: only 2 axis need to be tested (conflicts with 'delayed removal' optimization)
-
-        /*for (int axis = 0; axis < 3; axis++)
-		{
-		if (m_pEdges[axis][pHandleA->m_maxEdges[axis]].m_pos < m_pEdges[axis][pHandleB->m_minEdges[axis]].m_pos ||
-		m_pEdges[axis][pHandleB->m_maxEdges[axis]].m_pos < m_pEdges[axis][pHandleA->m_minEdges[axis]].m_pos)
-		{
-		return false;
-		}
-		}
-		*/
         return true
     }
 
@@ -544,30 +528,27 @@ abstract class AxisSweep3Internal internal constructor(
     abstract fun getMaskI(): Int
 
     interface EdgeArray {
-        fun swap(idx1: Int, idx2: Int)
 
+        fun swap(idx1: Int, idx2: Int)
         fun set(dst: Int, src: Int)
 
         fun getPos(index: Int): Int
-
         fun setPos(index: Int, value: Int)
 
         fun getHandle(index: Int): Int
-
         fun setHandle(index: Int, value: Int)
 
         fun isMax(offset: Int): Int {
-            return (getPos(offset) and 1)
+            return getPos(offset) and 1
         }
     }
 
     abstract class Handle : BroadphaseProxy() {
+
         abstract fun getMinEdges(edgeIndex: Int): Int
-
-        abstract fun setMinEdges(edgeIndex: Int, value: Int)
-
         abstract fun getMaxEdges(edgeIndex: Int): Int
 
+        abstract fun setMinEdges(edgeIndex: Int, value: Int)
         abstract fun setMaxEdges(edgeIndex: Int, value: Int)
 
         fun incMinEdges(edgeIndex: Int) {
@@ -588,7 +569,7 @@ abstract class AxisSweep3Internal internal constructor(
 
         var nextFree: Int
             get() = getMinEdges(0)
-            public set(next) {
+            set(next) {
                 setMinEdges(0, next)
             }
     }

@@ -6,7 +6,7 @@ import com.bulletphysics.BulletStats.pushProfile
 import com.bulletphysics.collision.broadphase.BroadphaseInterface
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.broadphase.CollisionFilterGroups
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.collidesBidirectional
+import com.bulletphysics.collision.broadphase.CollisionFilterGroups.collides
 import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.broadphase.DispatcherInfo
 import com.bulletphysics.collision.broadphase.OverlappingPairCache
@@ -30,6 +30,7 @@ import com.bulletphysics.linearmath.VectorUtil.setMax
 import com.bulletphysics.linearmath.VectorUtil.setMin
 import com.bulletphysics.util.setMul
 import cz.advel.stack.Stack
+import me.anno.utils.assertions.assertFalse
 import me.anno.utils.structures.lists.Lists.swapRemove
 import org.joml.Vector3d
 
@@ -62,16 +63,17 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         collisionFilter: Int// = CollisionFilterGroups.DEFAULT_ALL,
     ) {
         // check that the object isn't already added
-        assert(!collisionObjects.contains(collisionObject))
+        assertFalse(collisionObjects.contains(collisionObject))
 
         collisionObjects.add(collisionObject)
 
         // calculate new AABB
+        val shape = collisionObject.collisionShape!!
         val minAabb = Stack.newVec()
         val maxAabb = Stack.newVec()
-        collisionObject.collisionShape!!.getBounds(collisionObject.worldTransform, minAabb, maxAabb)
+        shape.getBounds(collisionObject.worldTransform, minAabb, maxAabb)
 
-        val type = collisionObject.collisionShape!!.shapeType
+        val type = shape.shapeType
         collisionObject.broadphaseHandle = broadphase.createProxy(
             minAabb, maxAabb, type,
             collisionObject, collisionFilter,
@@ -328,7 +330,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         }
 
         fun needsCollision(proxy0: BroadphaseProxy): Boolean {
-            return collidesBidirectional(proxy0.collisionFilter, collisionFilter)
+            return collides(proxy0.collisionFilter, collisionFilter)
         }
 
         abstract fun addSingleResult(rayResult: LocalRayResult, normalInWorldSpace: Boolean): Double
@@ -399,11 +401,11 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         }
 
         fun hasHit(): Boolean {
-            return (closestHitFraction < 1.0)
+            return closestHitFraction < 1.0
         }
 
         open fun needsCollision(proxy0: BroadphaseProxy): Boolean {
-            return collidesBidirectional(proxy0.collisionFilter, collisionFilter)
+            return collides(proxy0.collisionFilter, collisionFilter)
         }
 
         abstract fun addSingleResult(convexResult: LocalConvexResult, normalInWorldSpace: Boolean): Double

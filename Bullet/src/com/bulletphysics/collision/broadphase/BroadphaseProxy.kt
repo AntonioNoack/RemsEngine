@@ -21,7 +21,8 @@ open class BroadphaseProxy {
 	var multiSapParentProxy: Any? = null
 
     /**
-     * uniqueId is introduced for paircache. could get rid of this, by calculating the address offset etc.
+     * uniqueId is introduced for HashedOverlappingPairCache.
+     * Could get rid of this, by calculating the address offset etc.
      */
     var uid: Int = 0
 

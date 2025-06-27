@@ -1,7 +1,7 @@
 package com.bulletphysics.collision.broadphase
 
 import com.bulletphysics.BulletStats
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.collidesBidirectional
+import com.bulletphysics.collision.broadphase.CollisionFilterGroups.collides
 import com.bulletphysics.linearmath.MiscUtil.resize
 import com.bulletphysics.util.IntArrayList
 import com.bulletphysics.util.ObjectArrayList
@@ -140,7 +140,7 @@ class HashedOverlappingPairCache : OverlappingPairCache {
         if (filterCallback != null) {
             return filterCallback.needBroadphaseCollision(proxy0, proxy1)
         }
-        return collidesBidirectional(proxy0.collisionFilter, proxy1.collisionFilter)
+        return collides(proxy0.collisionFilter, proxy1.collisionFilter)
     }
 
     override fun processAllOverlappingPairs(callback: OverlapCallback, dispatcher: Dispatcher) {

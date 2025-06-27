@@ -154,8 +154,8 @@ class StackOfBoxesTest {
     companion object {
         fun createGround(dynamicsWorld: DiscreteDynamicsWorld) {
             // Ground plane
-            val groundShape: CollisionShape = StaticPlaneShape(Vector3d(0.0, 1.0, 0.0), 1.0)
-            val groundBody: RigidBody = createRigidBody(0f, Vector3d(0f, -1f, 0f), groundShape)
+            val groundShape = StaticPlaneShape(Vector3d(0.0, 1.0, 0.0), 1.0)
+            val groundBody = createRigidBody(0f, Vector3d(0f, -1f, 0f), groundShape)
             dynamicsWorld.addRigidBody(groundBody)
         }
 

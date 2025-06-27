@@ -8,8 +8,8 @@ package com.bulletphysics.collision.broadphase
  */
 object CollisionFilterGroups {
 
-    const val NUM_MASK_BITS = 27
-    const val ALL_MASK = (2 shl NUM_MASK_BITS) - 1
+    const val NUM_GROUPS = 27
+    const val ALL_MASK = (1 shl NUM_GROUPS) - 1
 
     const val DEFAULT_GROUP_ID = 0
     const val STATIC_GROUP_ID = 1
@@ -30,11 +30,11 @@ object CollisionFilterGroups {
     val DEFAULT_ALL = buildFilter(DEFAULT_GROUP_ID, ALL_MASK)
 
     fun buildFilter(group: Int, mask: Int): Int {
-        return (mask and ALL_MASK) or (group shl NUM_MASK_BITS)
+        return (mask and ALL_MASK) or (group shl NUM_GROUPS)
     }
 
     fun getGroupId(filter: Int): Int {
-        return filter ushr NUM_MASK_BITS
+        return filter ushr NUM_GROUPS
     }
 
     fun getGroupMask(filter: Int): Int {
@@ -45,11 +45,11 @@ object CollisionFilterGroups {
         return filter and ALL_MASK
     }
 
-    fun collides(filter0: Int, filter1: Int): Boolean {
+    private fun collidesI(filter0: Int, filter1: Int): Boolean {
         return getGroupMask(filter0).and(getMask(filter1)) != 0
     }
 
-    fun collidesBidirectional(filter0: Int, filter1: Int): Boolean {
-        return collides(filter0, filter1) and collides(filter1, filter0)
+    fun collides(filter0: Int, filter1: Int): Boolean {
+        return collidesI(filter0, filter1) and collidesI(filter1, filter0)
     }
 }
