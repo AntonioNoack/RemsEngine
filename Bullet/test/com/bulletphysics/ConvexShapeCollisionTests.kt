@@ -14,6 +14,7 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.extras.gimpact.GImpactCollisionAlgorithm.Companion.registerAlgorithm
 import com.bulletphysics.extras.gimpact.GImpactMeshShape
 import me.anno.ecs.components.collider.Axis
+import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -61,7 +62,7 @@ class ConvexShapeCollisionTests {
         for (convex in shapes) {
             val collided = simulateConvexVsMeshCollision(convex)
             val name = convex.javaClass.getSimpleName()
-            Assertions.assertTrue(collided, "Expected collision: $name vs CubeMesh")
+            assertTrue(collided, "Expected collision: $name vs CubeMesh")
         }
     }
 
@@ -70,7 +71,7 @@ class ConvexShapeCollisionTests {
         for (convex in shapes) {
             val collided = simulateConvexVsGImpactMesh(convex)
             val name = convex.javaClass.getSimpleName()
-            Assertions.assertTrue(collided, "Expected collision: $name vs GImpactMesh")
+            assertTrue(collided, "Expected collision: $name vs GImpactMesh")
         }
     }
 
@@ -148,7 +149,7 @@ class ConvexShapeCollisionTests {
     private fun isColliding(world: DiscreteDynamicsWorld, bodyA: RigidBody?, bodyB: RigidBody?): Boolean {
         // Check for collision between A and B
 
-        val pairArray = world.broadphase.overlappingPairCache.overlappingPairArray
+        val pairArray = world.broadphase.overlappingPairCache.overlappingPairs
 
         for (i in pairArray.indices) {
             val pair = pairArray[i]!!

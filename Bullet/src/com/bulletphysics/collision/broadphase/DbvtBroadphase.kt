@@ -58,7 +58,7 @@ class DbvtBroadphase() : BroadphaseInterface() {
     }
 
     private fun collideCleanup(dispatcher: Dispatcher) {
-        val pairs = overlappingPairCache.overlappingPairArray
+        val pairs = overlappingPairCache.overlappingPairs
         var i = 0
         var ni = pairs.size
         while (i < ni) {

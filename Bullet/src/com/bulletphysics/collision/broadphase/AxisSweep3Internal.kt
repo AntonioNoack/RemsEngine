@@ -317,7 +317,7 @@ abstract class AxisSweep3Internal internal constructor(
 
     override fun calculateOverlappingPairs(dispatcher: Dispatcher) {
         if (pairCache!!.hasDeferredRemoval()) {
-            val overlappingPairArray = pairCache!!.overlappingPairArray
+            val overlappingPairArray = pairCache!!.overlappingPairs
 
             // perform a sort, to find duplicates and to sort 'invalid' pairs to the end
             @Suppress("UNCHECKED_CAST")

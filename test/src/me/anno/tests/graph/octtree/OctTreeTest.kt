@@ -70,7 +70,7 @@ class OctTreeTest {
         for (sample in samples) {
             assertFalse(root.remove(sample))
         }
-        for (node in root) {
+        root.forEach { node ->
             assertTrue(node in allNodes)
             assertTrue(node !in samples)
         }

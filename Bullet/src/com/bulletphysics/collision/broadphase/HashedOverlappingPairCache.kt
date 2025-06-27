@@ -15,7 +15,7 @@ import cz.advel.stack.Stack
 class HashedOverlappingPairCache : OverlappingPairCache {
 
     // must be ObjectArrayList, so we can access capacity
-    override val overlappingPairArray = ObjectArrayList<BroadphasePair?>()
+    override val overlappingPairs = ObjectArrayList<BroadphasePair?>()
 
     override var overlapFilterCallback: OverlapFilterCallback? = null
 
@@ -51,7 +51,7 @@ class HashedOverlappingPairCache : OverlappingPairCache {
         val proxyId1 = proxy0.uid
         val proxyId2 = proxy1.uid
 
-        val hash = getHash(proxyId1, proxyId2) and (overlappingPairArray.capacity() - 1)
+        val hash = getHash(proxyId1, proxyId2) and (overlappingPairs.capacity() - 1)
 
         val pair = internalFindPair(proxy0, proxy1, hash)
         if (pair == null) {
@@ -65,10 +65,10 @@ class HashedOverlappingPairCache : OverlappingPairCache {
         assert(pair.proxy0!!.uid == proxyId1)
         assert(pair.proxy1!!.uid == proxyId2)
 
-        val pairIndex = overlappingPairArray.indexOf(pair)
+        val pairIndex = overlappingPairs.indexOf(pair)
         assert(pairIndex != -1)
 
-        assert(pairIndex < overlappingPairArray.size)
+        assert(pairIndex < overlappingPairs.size)
 
         // Remove the pair from the hash table.
         var index = hashTable.get(hash)
@@ -90,7 +90,7 @@ class HashedOverlappingPairCache : OverlappingPairCache {
         // We now move the last pair into spot of the
         // pair being removed. We need to fix the hash
         // table indices to support the move.
-        val lastPairIndex = overlappingPairArray.lastIndex
+        val lastPairIndex = overlappingPairs.lastIndex
 
         if (ghostPairCallback != null) {
             ghostPairCallback!!.removeOverlappingPair(proxy0, proxy1, dispatcher)
@@ -98,14 +98,14 @@ class HashedOverlappingPairCache : OverlappingPairCache {
 
         // If the removed pair is the last pair, we are done.
         if (lastPairIndex == pairIndex) {
-            overlappingPairArray.removeQuick(overlappingPairArray.lastIndex)
+            overlappingPairs.removeQuick(overlappingPairs.lastIndex)
             return userData
         }
 
         // Remove the last pair from the hash table.
-        val last = overlappingPairArray.getQuick(lastPairIndex)!!
+        val last = overlappingPairs.getQuick(lastPairIndex)!!
         /* missing swap here too, Nat. */
-        val lastHash = getHash(last.proxy0!!.uid, last.proxy1!!.uid) and (overlappingPairArray.capacity() - 1)
+        val lastHash = getHash(last.proxy0!!.uid, last.proxy1!!.uid) and (overlappingPairs.capacity() - 1)
 
         index = hashTable.get(lastHash)
         assert(index != NULL_PAIR)
@@ -124,13 +124,13 @@ class HashedOverlappingPairCache : OverlappingPairCache {
         }
 
         // Copy the last pair into the remove pair's spot.
-        overlappingPairArray.getQuick(pairIndex)!!.set(overlappingPairArray.getQuick(lastPairIndex)!!)
+        overlappingPairs.getQuick(pairIndex)!!.set(overlappingPairs.getQuick(lastPairIndex)!!)
 
         // Insert the last pair into the hash table
         next.set(pairIndex, hashTable.get(lastHash))
         hashTable.set(lastHash, pairIndex)
 
-        overlappingPairArray.removeQuick(overlappingPairArray.lastIndex)
+        overlappingPairs.removeQuick(overlappingPairs.lastIndex)
 
         return userData
     }
@@ -145,18 +145,17 @@ class HashedOverlappingPairCache : OverlappingPairCache {
 
     override fun processAllOverlappingPairs(callback: OverlapCallback, dispatcher: Dispatcher) {
         var stackPos: IntArray? = null
-        var i = 0
-        while (i < overlappingPairArray.size) {
+        var numRemovedPairs = 0
+        for (i in overlappingPairs.lastIndex downTo 0) {
             stackPos = Stack.getPosition(stackPos)
-            val pair = overlappingPairArray[i]!!
+            val pair = overlappingPairs[i]!!
             if (callback.processOverlap(pair)) {
                 removeOverlappingPair(pair.proxy0!!, pair.proxy1!!, dispatcher)
-                BulletStats.overlappingPairs--
-            } else {
-                i++
+                numRemovedPairs++
             }
             Stack.reset(stackPos)
         }
+        BulletStats.overlappingPairs -= numRemovedPairs
     }
 
     override fun removeOverlappingPairsContainingProxy(proxy0: BroadphaseProxy, dispatcher: Dispatcher) {
@@ -187,13 +186,13 @@ class HashedOverlappingPairCache : OverlappingPairCache {
         val proxyId1 = proxy0.uid
         val proxyId2 = proxy1.uid
 
-        val hash = getHash(proxyId1, proxyId2) and (overlappingPairArray.capacity() - 1)
+        val hash = getHash(proxyId1, proxyId2) and (overlappingPairs.capacity() - 1)
         if (hash >= hashTable.size()) {
             return null
         }
 
         var index = hashTable.get(hash)
-        while (index != NULL_PAIR && !equalsPair(overlappingPairArray[index]!!, proxyId1, proxyId2)) {
+        while (index != NULL_PAIR && !equalsPair(overlappingPairs[index]!!, proxyId1, proxyId2)) {
             index = next.get(index)
         }
 
@@ -201,12 +200,12 @@ class HashedOverlappingPairCache : OverlappingPairCache {
             return null
         }
 
-        assert(index < overlappingPairArray.size)
-        return overlappingPairArray[index]
+        assert(index < overlappingPairs.size)
+        return overlappingPairs[index]
     }
 
     override val numOverlappingPairs: Int
-        get() = overlappingPairArray.size
+        get() = overlappingPairs.size
 
     override fun hasDeferredRemoval(): Boolean {
         return false
@@ -223,35 +222,33 @@ class HashedOverlappingPairCache : OverlappingPairCache {
         val proxyId1 = proxy0.uid
         val proxyId2 = proxy1.uid
 
-        var hash = getHash(proxyId1, proxyId2) and (overlappingPairArray.capacity() - 1) // New hash value with new mask
+        var hash = getHash(proxyId1, proxyId2) and (overlappingPairs.capacity() - 1) // New hash value with new mask
 
         var pair = internalFindPair(proxy0, proxy1, hash)
         if (pair != null) {
             return pair
         }
 
-        val count = overlappingPairArray.size
-        val oldCapacity = overlappingPairArray.capacity()
-        overlappingPairArray.add(null)
+        val count = overlappingPairs.size
+        val oldCapacity = overlappingPairs.capacity()
+        overlappingPairs.add(null)
 
         // this is where we add an actual pair, so also call the 'ghost'
-        if (ghostPairCallback != null) {
-            ghostPairCallback!!.addOverlappingPair(proxy0, proxy1)
-        }
+        ghostPairCallback?.addOverlappingPair(proxy0, proxy1)
 
-        val newCapacity = overlappingPairArray.capacity()
+        val newCapacity = overlappingPairs.capacity()
 
         if (oldCapacity < newCapacity) {
             growTables()
             // hash with new capacity
-            hash = getHash(proxyId1, proxyId2) and (overlappingPairArray.capacity() - 1)
+            hash = getHash(proxyId1, proxyId2) and (overlappingPairs.capacity() - 1)
         }
 
         pair = BroadphasePair(proxy0, proxy1)
         pair.algorithm = null
         pair.userInfo = null
 
-        overlappingPairArray.setQuick(overlappingPairArray.lastIndex, pair)
+        overlappingPairs.setQuick(overlappingPairs.lastIndex, pair)
 
         next.set(count, hashTable.get(hash))
         hashTable.set(hash, count)
@@ -260,7 +257,7 @@ class HashedOverlappingPairCache : OverlappingPairCache {
     }
 
     private fun growTables() {
-        val newCapacity = overlappingPairArray.capacity()
+        val newCapacity = overlappingPairs.capacity()
 
         if (hashTable.size() < newCapacity) {
             // grow hashtable and next table
@@ -277,11 +274,11 @@ class HashedOverlappingPairCache : OverlappingPairCache {
             }
 
             for (i in 0 until curHashtableSize) {
-                val pair = overlappingPairArray.getQuick(i)!!
+                val pair = overlappingPairs.getQuick(i)!!
                 val proxyId1 = pair.proxy0!!.uid
                 val proxyId2 = pair.proxy1!!.uid
                 // New hash value with new mask
-                val hashValue = getHash(proxyId1, proxyId2) and (overlappingPairArray.capacity() - 1)
+                val hashValue = getHash(proxyId1, proxyId2) and (overlappingPairs.capacity() - 1)
                 next.set(i, hashTable.get(hashValue))
                 hashTable.set(hashValue, i)
             }
@@ -315,7 +312,7 @@ class HashedOverlappingPairCache : OverlappingPairCache {
         //#endif
         var index = hashTable.get(hash)
 
-        while (index != NULL_PAIR && !equalsPair(overlappingPairArray.getQuick(index)!!, proxyId1, proxyId2)) {
+        while (index != NULL_PAIR && !equalsPair(overlappingPairs.getQuick(index)!!, proxyId1, proxyId2)) {
             index = next.get(index)
         }
 
@@ -323,9 +320,9 @@ class HashedOverlappingPairCache : OverlappingPairCache {
             return null
         }
 
-        assert(index < overlappingPairArray.size)
+        assert(index < overlappingPairs.size)
 
-        return overlappingPairArray.getQuick(index)
+        return overlappingPairs.getQuick(index)
     }
 
     override fun setInternalGhostPairCallback(ghostPairCallback: OverlappingPairCallback) {

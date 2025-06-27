@@ -297,7 +297,7 @@ class KinematicCharacterController(
         for (i in 0 until ghostObject.overlappingPairCache.numOverlappingPairs) {
             manifoldArray.clear()
 
-            val collisionPair = ghostObject.overlappingPairCache.overlappingPairArray.getQuick(i)
+            val collisionPair = ghostObject.overlappingPairCache.overlappingPairs.getQuick(i)
             collisionPair?.algorithm?.getAllContactManifolds(manifoldArray)
 
             for (j in manifoldArray.indices) {

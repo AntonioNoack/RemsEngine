@@ -36,12 +36,14 @@ import org.joml.Vector3d
  */
 class AxisSweep3_32(
     worldAabbMin: Vector3d, worldAabbMax: Vector3d, maxHandles: Int,  /* = 1500000*/
-    pairCache: OverlappingPairCache? /* = 0*/
+    pairCache: OverlappingPairCache?
 ) : AxisSweep3Internal(worldAabbMin, worldAabbMax, -0x2, 0x7fffffff, maxHandles, pairCache) {
 
+    @Suppress("unused")
     constructor(worldAabbMin: Vector3d, worldAabbMax: Vector3d) :
             this(worldAabbMin, worldAabbMax, 1500000, null)
 
+    @Suppress("unused")
     constructor(worldAabbMin: Vector3d, worldAabbMax: Vector3d, maxHandles: Int) :
             this(worldAabbMin, worldAabbMax, maxHandles, null)
 

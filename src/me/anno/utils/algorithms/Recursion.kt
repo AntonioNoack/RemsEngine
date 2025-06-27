@@ -24,8 +24,23 @@ object Recursion {
         }
     }
 
-    fun <V> processRecursive2(initial: Collection<V>, process: (item: V, remaining: ArrayList<V>) -> Unit) {
-        findRecursive2(initial) { item, remaining ->
+    /**
+     * processes all items in a tree; must not have loops;
+     * process() must add any to-be-processed children to the list
+     * */
+    @Suppress("unused")
+    fun <V, W> processRecursivePairs(
+        initialFirst: V, initialSecond: W,
+        process: (first: V, second: W, remaining: ArrayList<Any?>) -> Unit
+    ) {
+        findRecursivePairs(initialFirst, initialSecond) { first, second, remaining ->
+            process(first, second, remaining)
+            null
+        }
+    }
+
+    fun <V> processRecursiveSet(initial: Collection<V>, process: (item: V, remaining: ArrayList<V>) -> Unit) {
+        findRecursiveSet(initial) { item, remaining ->
             process(item, remaining)
             null
         }
@@ -46,9 +61,12 @@ object Recursion {
         return result
     }
 
-    fun <V> collectRecursive2(initial: Collection<V>, process: (item: V, remaining: ArrayList<V>) -> Unit): HashSet<V> {
+    fun <V> collectRecursiveSet(
+        initial: Collection<V>,
+        process: (item: V, remaining: ArrayList<V>) -> Unit
+    ): HashSet<V> {
         val result = HashSet<V>()
-        findRecursive2(initial) { item, remaining ->
+        findRecursiveSet(initial) { item, remaining ->
             if (result.add(item)) {
                 process(item, remaining)
             }
@@ -61,17 +79,30 @@ object Recursion {
      * finds whether an item fulfills a condition within a tree; must not have loops;
      * process() must add any to-be-processed children to the list
      * */
-    fun <V : Any> anyRecursive(initial: V, process: (item: V, remaining: ArrayList<V>) -> Boolean): Boolean {
+    fun <V> anyRecursive(initial: V, process: (item: V, remaining: ArrayList<V>) -> Boolean): Boolean {
         return findRecursive(initial) { item, remaining ->
             if (process(item, remaining)) Unit else null
         } == Unit
     }
 
-    fun <V : Any> anyRecursive(
-        initial: Collection<V>,
-        process: (item: V, remaining: ArrayList<V>) -> Boolean
+    /**
+     * finds whether an item fulfills a condition within a tree; must not have loops;
+     * process() must add any to-be-processed children to the list
+     * */
+    fun <V, W> anyRecursivePairs(
+        initialFirst: V, initialSecond: W,
+        process: (first: V, second: W, remaining: ArrayList<Any?>) -> Boolean
     ): Boolean {
-        return findRecursive2(initial) { item, remaining ->
+        return findRecursivePairs(initialFirst, initialSecond) { first, second, remaining ->
+            if (process(first, second, remaining)) Unit else null
+        } == Unit
+    }
+
+    @Suppress("unused")
+    fun <V> anyRecursiveSet(
+        initial: Collection<V>, process: (item: V, remaining: ArrayList<V>) -> Boolean
+    ): Boolean {
+        return findRecursiveSet(initial) { item, remaining ->
             if (process(item, remaining)) Unit else null
         } == Unit
     }
@@ -85,34 +116,70 @@ object Recursion {
      * finds first non-null value in a tree; must not have loops;
      * process() must add any to-be-processed children to the list
      * */
-    fun <V, W : Any> findRecursive(initial: V, process: (item: V, remaining: ArrayList<V>) -> W?): W? {
+    fun <V, R : Any> findRecursive(initial: V, process: (item: V, remaining: ArrayList<V>) -> R?): R? {
         val remaining = getContainer<V>()
         val startIndex = remaining.size
         remaining.add(initial)
         return findRecursiveRun(remaining, startIndex, process)
     }
 
-    fun <V, W : Any> findRecursive2(initial: Collection<V>, process: (item: V, remaining: ArrayList<V>) -> W?): W? {
+    /**
+     * finds first non-null value in a tree; must not have loops;
+     * process() must add any to-be-processed children to the list
+     * */
+    fun <V, W, R : Any> findRecursivePairs(
+        initialFirst: V, initialSecond: W,
+        process: (first: V, second: W, remaining: ArrayList<Any?>) -> R?
+    ): R? {
+        val remaining = getContainer<Any?>()
+        val startIndex = remaining.size
+        remaining.add(initialFirst)
+        remaining.add(initialSecond)
+        return findRecursiveRunPairs(remaining, startIndex, process)
+    }
+
+    fun <V, R : Any> findRecursiveSet(initial: Collection<V>, process: (item: V, remaining: ArrayList<V>) -> R?): R? {
         val remaining = getContainer<V>()
         val startIndex = remaining.size
         remaining.addAll(initial)
         return findRecursiveRun(remaining, startIndex, process)
     }
 
-    fun <V, W : Any> findRecursiveRun(
+    fun <V, R : Any> findRecursiveRun(
         remaining: ArrayList<V>, startIndex: Int,
-        process: (item: V, remaining: ArrayList<V>) -> W?
-    ): W? {
+        process: (item: V, remaining: ArrayList<V>) -> R?
+    ): R? {
         var maxSize = startIndex
-        var result: W? = null
+        var result: R? = null
         while (result == null && remaining.size > startIndex) {
             val entry = remaining.removeLast()
             result = process(entry, remaining)
             maxSize = max(maxSize, remaining.size)
         }
-        if (maxSize > startIndex + 500) {
+        if (maxSize > startIndex + TRIM_SIZE) {
             remaining.trimToSize()
         }
         return result
     }
+
+    fun <V, W, R : Any> findRecursiveRunPairs(
+        remaining: ArrayList<Any?>, startIndex: Int,
+        process: (first: V, second: W, remaining: ArrayList<Any?>) -> R?
+    ): R? {
+        var maxSize = startIndex
+        var result: R? = null
+        @Suppress("UNCHECKED_CAST")
+        while (result == null && remaining.size > startIndex) {
+            val second = remaining.removeLast() as W
+            val first = remaining.removeLast() as V
+            result = process(first, second, remaining)
+            maxSize = max(maxSize, remaining.size)
+        }
+        if (maxSize > startIndex + TRIM_SIZE) {
+            remaining.trimToSize()
+        }
+        return result
+    }
+
+    private const val TRIM_SIZE = 500
 }

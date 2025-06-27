@@ -10,7 +10,7 @@ import com.bulletphysics.util.ObjectArrayList
  */
 interface OverlappingPairCache : OverlappingPairCallback {
 
-    val overlappingPairArray: ObjectArrayList<BroadphasePair?>
+    val overlappingPairs: ObjectArrayList<BroadphasePair?>
 
     fun cleanOverlappingPair(pair: BroadphasePair, dispatcher: Dispatcher)
 

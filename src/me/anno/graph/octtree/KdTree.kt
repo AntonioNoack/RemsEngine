@@ -1,10 +1,7 @@
 package me.anno.graph.octtree
 
-import me.anno.utils.Logging.hash32
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertNull
-import me.anno.utils.structures.Iterators.then
-import java.util.Collections.emptyIterator
 
 /**
  * a generic node for quad trees and oct trees, or more/fewer dimensions;
@@ -20,7 +17,7 @@ import java.util.Collections.emptyIterator
 abstract class KdTree<Point, Value>(
     val maxNumChildren: Int,
     var min: Point, var max: Point
-) : Iterable<Value> {
+) {
 
     var axis = 0
     val parent: KdTree<Point, Value>? = null
@@ -260,28 +257,19 @@ abstract class KdTree<Point, Value>(
         } != null
     }
 
-    /**
-     * Calls callback on all overlapping pairs until true is returned by it.
-     * Returns whether true was ever returned
-     *
-     * todo this could be optimized:
-     *  we already know the leaf we're starting on,
-     *  so just use it, and later ignore it
-     * */
-    fun queryPairs(min: Point, max: Point, hasFound: (Value, Value) -> Boolean): Boolean {
-        var first: Value? = null // avoid allocations by creating the callback now
-        val subCallback = { newMin: Point, newMax: Point ->
-            query(newMin, newMax) { second ->
-                @Suppress("UNCHECKED_CAST")
-                hasFound(first as Value, second)
-            }
-        }
-        return query(min, max) { a ->
-            val newMin = getMin(a)
-            val newMax = getMax(a)
-            first = a
-            subCallback(newMin, newMax) != null
-        } != null
+    fun overlaps(other: KdTree<Point, Value>): Boolean {
+        return overlaps(min, max, other.min, other.max)
+    }
+
+    fun overlaps(other: Value): Boolean {
+        return overlaps(min, max, getMin(other), getMax(other))
+    }
+
+    fun overlaps(valueA: Value, valueB: Value): Boolean {
+        return overlaps(
+            getMin(valueA), getMax(valueA),
+            getMin(valueB), getMax(valueB)
+        )
     }
 
     fun find(hasFound: (Value) -> Boolean): Boolean {
@@ -313,8 +301,22 @@ abstract class KdTree<Point, Value>(
         return sum
     }
 
-    override fun iterator(): Iterator<Value> {
-        return left.then(right).then(children) ?: emptyIterator()
+    fun forEach(action: (Value) -> Unit) {
+        Recursion.processRecursive(this) { node, remaining ->
+            val children = node.children
+            if (children != null) {
+                for (i in children.indices) {
+                    action(children[i])
+                }
+            } else {
+                val left = node.left
+                val right = node.right
+                if (left != null && right != null) {
+                    remaining.add(left)
+                    remaining.add(right)
+                }
+            }
+        }
     }
 
     /**

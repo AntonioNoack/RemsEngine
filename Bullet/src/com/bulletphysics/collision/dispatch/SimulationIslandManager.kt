@@ -22,7 +22,7 @@ class SimulationIslandManager {
     }
 
     fun findUnions(world: CollisionWorld) {
-        val pairs = world.pairCache.overlappingPairArray
+        val pairs = world.pairCache.overlappingPairs
         for (i in pairs.indices) {
             val pair = pairs[i] ?: continue
             val col0 = pair.proxy0?.clientObject as CollisionObject? ?: continue

@@ -27,6 +27,8 @@ import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.TransformUtil
 import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
+import me.anno.graph.octtree.KdTreePairs.FLAG_SWAPPED_PAIRS
+import me.anno.graph.octtree.KdTreePairs.queryPairs
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
@@ -569,9 +571,10 @@ class DiscreteDynamicsWorld(
     fun integrateTransformsCCD(timeStep: Double) {
         pushProfile("integrateTransforms")
         try {
-            val min = Stack.newVec(-1e308)
-            val max = Stack.newVec(1e308)
-            collisionTree.queryPairs(min, max) { self, other ->
+            collisionTree.queryPairs(FLAG_SWAPPED_PAIRS) { self, other ->
+
+                // does this need swapped pairs? yes, looks like that
+                // does this need self-pairs? no
 
                 BulletStats.numClampedCcdMotions++
 
@@ -605,7 +608,6 @@ class DiscreteDynamicsWorld(
                 false
             }
         } finally {
-            Stack.subVec(2)
             popProfile()
         }
     }

@@ -109,7 +109,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
             // invalidate all thumbnails:
             val project = currentProject
             val fileDependencies = if (project != null) {
-                Recursion.collectRecursive2(sourceFiles) { file, remaining ->
+                Recursion.collectRecursiveSet(sourceFiles) { file, remaining ->
                     remaining.addAll(project.findDependencies(file))
                 }
             } else sourceFiles

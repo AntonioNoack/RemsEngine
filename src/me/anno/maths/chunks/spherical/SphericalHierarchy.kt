@@ -142,7 +142,7 @@ open class SphericalHierarchy(
      * iterate over all loaded triangles of all LODs, e.g., to save them
      * */
     fun forEach(shallCheckChildren: (SphereTriangle) -> Boolean, maxLevels: Int) {
-        Recursion.processRecursive2(triangles) { item, remaining ->
+        Recursion.processRecursiveSet(triangles) { item, remaining ->
             item.forEachR(maxLevels, shallCheckChildren, remaining)
         }
     }

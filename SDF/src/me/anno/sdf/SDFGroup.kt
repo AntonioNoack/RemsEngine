@@ -79,7 +79,7 @@ open class SDFGroup : SDFComponent() {
     override fun fill(pipeline: Pipeline, transform: Transform) {
         super.fill(pipeline, transform)
         val bounds = globalAABB
-        Recursion.processRecursive2(children) { child, remaining ->
+        Recursion.processRecursiveSet(children) { child, remaining ->
             if (child.isEnabled) {
                 child.clickId = pipeline.getClickId(bounds)
                 if (child is SDFGroup) {

@@ -589,7 +589,7 @@ class GLTFReader(val src: FileReference) {
 
     private fun createFlatPrefab(rootNodes: List<Node>, prefab: Prefab) {
         val meshesByTransform = HashMap<Matrix4x3, ArrayList<Node>>()
-        Recursion.processRecursive2(rootNodes) { node, remaining ->
+        Recursion.processRecursiveSet(rootNodes) { node, remaining ->
             if (node.hasMeshes) {
                 if (node.mesh >= 0) {
                     meshesByTransform.getOrPut(node.globalTransform!!, ::ArrayList)

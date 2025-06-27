@@ -1,5 +1,7 @@
 package com.bulletphysics
 
+import com.bulletphysics.StackOfBoxesTest.Companion.createRigidBody
+import com.bulletphysics.StackOfBoxesTest.Companion.createWorld
 import com.bulletphysics.collision.dispatch.ActivationState
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
@@ -88,7 +90,7 @@ class VehicleTest {
     @Test
     fun testVehicleBehavior() {
         // Step 1: Flat ground test
-        var world: DiscreteDynamicsWorld = StackOfBoxesTest.Companion.createWorld()
+        var world = createWorld()
         createGroundPlane(Vector3d(0.0, 1.0, 0.0), world) // Flat plane
         var vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
 
@@ -98,7 +100,7 @@ class VehicleTest {
         assertTrue(flatPos.y < 1.5f && flatPos.y > 0.5f, "Vehicle should rest on ground")
 
         // Step 2: Hill test (no engine force)
-        world = StackOfBoxesTest.Companion.createWorld()
+        world = createWorld()
         createGroundPlane(normalize(Vector3d(0.0, 1.0, -0.5)), world) // Inclined
         vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
 
@@ -108,7 +110,7 @@ class VehicleTest {
         assertTrue(slopePos.z < -1f, "Vehicle should have rolled downhill")
 
         // Step 3: Driving test
-        world = StackOfBoxesTest.Companion.createWorld()
+        world = createWorld()
         createGroundPlane(Vector3d(0.0, 1.0, 0.0), world) // Flat
         vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
         applyEngineForce(vehicle, 800f) // Drive forward
@@ -119,7 +121,7 @@ class VehicleTest {
         assertTrue(drivePos.z > 1f, "Vehicle should drive forward")
 
         // Step 4: Driving downhill
-        world = StackOfBoxesTest.Companion.createWorld()
+        world = createWorld()
         createGroundPlane(normalize(Vector3d(0.0, 1.0, 0.2)), world) // Mild hill
         vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
         applyEngineForce(vehicle, 800f)
@@ -130,7 +132,7 @@ class VehicleTest {
         assertTrue(downPos.z > 2f, "Vehicle should drive faster downhill")
 
         // Step 5: Turning
-        world = StackOfBoxesTest.Companion.createWorld()
+        world = createWorld()
         createGroundPlane(Vector3d(0.0, 1.0, 0.0), world) // Flat again
         vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
         applyEngineForce(vehicle, 800f)
@@ -144,7 +146,7 @@ class VehicleTest {
 
     @Test
     fun testVehicleBrakingDownhill() {
-        val world: DiscreteDynamicsWorld = StackOfBoxesTest.Companion.createWorld()
+        val world = createWorld()
 
         // Create downhill plane (slope in +Z)
         createGroundPlane(normalize(Vector3d(0.0, 1.0, 0.2)), world)
@@ -202,7 +204,7 @@ class VehicleTest {
 
     private fun createGroundPlane(normal: Vector3d, world: DiscreteDynamicsWorld) {
         val planeShape: CollisionShape = StaticPlaneShape(normal, 0f.toDouble())
-        val ground: RigidBody = StackOfBoxesTest.Companion.createRigidBody(0f, Vector3d(0f, 0f, 0f), planeShape)
+        val ground: RigidBody = createRigidBody(0f, Vector3d(0f, 0f, 0f), planeShape)
         world.addRigidBody(ground)
     }
 }

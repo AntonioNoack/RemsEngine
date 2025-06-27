@@ -1,6 +1,7 @@
 package com.bulletphysics
 
 import com.bulletphysics.collision.broadphase.AxisSweep3
+import com.bulletphysics.collision.broadphase.AxisSweep3_32
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration
 import com.bulletphysics.collision.shapes.BoxShape
@@ -69,13 +70,13 @@ class StackOfBoxesTest {
         // Sphere shape and setup
         val sphereRadius = 0.5f
         val sphereMass = 50f // Heavy sphere
-        val sphereShape: CollisionShape = SphereShape(sphereRadius.toDouble())
+        val sphereShape = SphereShape(sphereRadius.toDouble())
 
         val sphereTransform = Transform()
         sphereTransform.setIdentity()
         sphereTransform.setTranslation(-5.0, (boxSize * 2 * boxes.size - 1f).toDouble(), 0.0) // at height of top box
 
-        val sphereBody: RigidBody = createRigidBody(sphereMass, sphereTransform, sphereShape)
+        val sphereBody = createRigidBody(sphereMass, sphereTransform, sphereShape)
         sphereBody.friction = 0.0
         sphereBody.restitution = 0.2 // some energy loss on impact
         world.addRigidBody(sphereBody)
@@ -86,7 +87,7 @@ class StackOfBoxesTest {
 
 
         // Static body representing the world (for slider reference)
-        val staticRail: RigidBody = createRigidBody(0f, Transform(), BoxShape(Vector3d(0.1, 0.1, 0.1)))
+        val staticRail = createRigidBody(0f, Transform(), BoxShape(Vector3d(0.1, 0.1, 0.1)))
         world.addRigidBody(staticRail)
 
         // Frame in sphere's local space (starts at origin)
