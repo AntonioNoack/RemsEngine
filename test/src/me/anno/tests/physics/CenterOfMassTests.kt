@@ -15,13 +15,13 @@ class CenterOfMassTests {
     fun testCenterOfMassIsInvertible() {
 
         val rotation = Quaternionf()
-          //  .rotateX(0.1f)
-        //    .rotateY(0.2f)
-          //  .rotateZ(0.3f)
+            .rotateX(0.1f)
+            .rotateY(0.2f)
+            .rotateZ(0.3f)
 
         val scale = Vector3d(1.0, 2.0, 3.0)
-        val position = Vector3d(0.0, 0.0, 1.0)
-        val centerOfMass = Vector3d(4.0, 5.0, 6.0)
+        val position = Vector3d(-5.0, 3.0, 1.0)
+        val centerOfMass = Vector3d(7.0, 2.0, 13.0)
 
         val basis = Matrix4x3()
             .translationRotateScale(position, rotation, Vector3f(scale))
@@ -29,6 +29,6 @@ class CenterOfMassTests {
         val asTransform = mat4x3ToTransform(basis, scale, centerOfMass, Transform())
         val convertedBack = transformToMat4x3(asTransform, scale, centerOfMass, Matrix4x3())
 
-        assertEquals(basis, convertedBack)
+        assertEquals(basis, convertedBack, 1e-15)
     }
 }

@@ -599,11 +599,19 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
             centerOfMass: Vector3d, dstTransform: Matrix4x3
         ): Matrix4x3 {
             // bullet does not support scale -> we always need to correct it
+
+            // some little extra calculations, but also more accurate, because of float-double conversions
             val origin = worldTransform.origin
             return dstTransform.set(worldTransform.basis)
                 .scale(scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
-                .translate(-centerOfMass.x, -centerOfMass.y, -centerOfMass.z)
+                .translate(-centerOfMass.x / scale.x, -centerOfMass.y / scale.y, -centerOfMass.z / scale.z)
                 .translateLocal(origin.x, origin.y, origin.z)
+
+            /*val origin = worldTransform.origin
+            return dstTransform.set(worldTransform.basis)
+                .translate(-centerOfMass.x, -centerOfMass.y, -centerOfMass.z)
+                .scale(scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
+                .translateLocal(origin.x, origin.y, origin.z)*/
         }
     }
 }
