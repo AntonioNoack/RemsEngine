@@ -55,7 +55,7 @@ class CylinderCollider : Collider() {
         val h = halfHeight.toDouble()
         val r = radius.toDouble()
         val e = entity
-        val color = getLineColor(hasPhysics)
+        val color = colliderLineColor
         when (axis) {
             Axis.X -> {
                 drawLine(e, -h, -r, 0.0, +h, -r, 0.0, color)

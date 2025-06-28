@@ -53,7 +53,7 @@ class CapsuleCollider : Collider() {
         val r = radius.toDouble()
         val xi = PI / 2
         val zi = xi * 3
-        val color = getLineColor(hasPhysics)
+        val color = colliderLineColor
         when (axis) {
             Axis.X -> {
                 drawLine(entity, -h, -r, 0.0, +h, -r, 0.0, color)

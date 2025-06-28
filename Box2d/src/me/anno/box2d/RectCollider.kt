@@ -21,7 +21,7 @@ class RectCollider : Collider2d() {
     var halfExtents = Vector2f(1f)
         set(value) {
             field.set(value)
-            (box2dInstance?.shape as? PolygonShape)?.setAsBox(value.x, value.y)
+            (nativeInstance?.shape as? PolygonShape)?.setAsBox(value.x, value.y)
         }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
@@ -43,7 +43,7 @@ class RectCollider : Collider2d() {
         val p1 = v3.create().set(+x, -y, 0f)
         val p2 = v3.create().set(-x, -y, 0f)
         val p3 = v3.create().set(-x, +y, 0f)
-        LineShapes.drawRect(entity, p0, p1, p2, p3, getLineColor(hasPhysics))
+        LineShapes.drawRect(entity, p0, p1, p2, p3, colliderLineColor)
         v3.sub(4)
     }
 

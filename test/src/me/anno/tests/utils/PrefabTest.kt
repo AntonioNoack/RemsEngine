@@ -68,7 +68,7 @@ class PrefabTest {
         assertEquals(prefab.getSampleInstance().name, "Herbert")
 
         val child = prefab.add(Path.ROOT_PATH, 'e', "Entity", "SomeChild", basePrefabFile)
-        val rigidbody = prefab.add(child, 'c', "Rigidbody", "RB")
+        val rigidbody = prefab.add(child, 'c', "DynamicBody", "RB")
         prefab[rigidbody, "overrideGravity"] = true
         prefab[rigidbody, "gravity"] = Vector3d()
 
@@ -88,7 +88,7 @@ class PrefabTest {
         val prefab = Prefab("Entity")
         val child = prefab.add(Path.ROOT_PATH, 'e', "Entity", "E")
         prefab[child, "name"] = "Test"
-        val rigid = prefab.add(child, 'c', "Rigidbody", "RB")
+        val rigid = prefab.add(child, 'c', "DynamicBody", "RB")
         prefab[rigid, "overrideGravity"] = true
         prefab[rigid, "gravity"] = Vector3d()
 
@@ -118,7 +118,7 @@ class PrefabTest {
         val prefab = Prefab("Entity")
         val child = prefab.add(Path.ROOT_PATH, 'e', "Entity", "E")
         prefab[child, "name"] = "Test"
-        val rigid = prefab.add(child, 'c', "Rigidbody", "RB")
+        val rigid = prefab.add(child, 'c', "DynamicBody", "RB")
         prefab[rigid, "overrideGravity"] = true
         prefab[rigid, "gravity"] = Vector3d()
 

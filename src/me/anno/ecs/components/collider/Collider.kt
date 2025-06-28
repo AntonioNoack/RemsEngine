@@ -12,7 +12,6 @@ import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastCollider
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.maths.Maths
 import me.anno.maths.bvh.HitType
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
@@ -21,33 +20,12 @@ import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
-
-// todo collision-effect mappings:
-//  - which listener is used
-//  - whether a collision happens
-//  - whether a can push b
-//  - whether b can push a
-
-// todo collider events
 
 abstract class Collider : CollidingComponent(), OnDrawGUI {
 
     @Range(0.0, 1e38)
     @SerializedProperty
     var roundness = 0.04f
-
-    // todo respect that for Bullet (???)
-    @Docs("Whether this collider will collide with stuff, or just detect collisions")
-    @SerializedProperty
-    var hasPhysics = true
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateRigidbody()
-            }
-        }
 
     @Docs("Whether the collider is convex; in Bullet, only convex-convex and convex-concave interactions are defined")
     open val isConvex: Boolean = true
@@ -77,7 +55,6 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         super.copyInto(dst)
         if (dst !is Collider) return
         dst.roundness = roundness
-        dst.hasPhysics = hasPhysics
     }
 
     open fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
@@ -175,8 +152,8 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
     // a collider needs to be drawn
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         drawShape(pipeline)
-        // todo color based on physics / trigger (?)
         // todo draw transformation gizmos for easy collider manipulation
+        //  e.g., for changing the radius of a sphere
     }
 
     abstract fun drawShape(pipeline: Pipeline)
@@ -185,9 +162,6 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         private val sampleEntity = Entity()
         private val cubeAABB = AABBd(-1.0, 1.0)
 
-        fun getLineColor(hasPhysics: Boolean): Int {
-            return if (hasPhysics) 0x77ffff or black
-            else 0xffff77 or black
-        }
+        var colliderLineColor = 0x77ffff or black
     }
 }

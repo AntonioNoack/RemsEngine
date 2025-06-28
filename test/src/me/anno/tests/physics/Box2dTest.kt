@@ -2,8 +2,9 @@ package me.anno.tests.physics
 
 import me.anno.box2d.Box2dPhysics
 import me.anno.box2d.CircleCollider
+import me.anno.box2d.DynamicBody2d
 import me.anno.box2d.RectCollider
-import me.anno.box2d.Rigidbody2d
+import me.anno.box2d.StaticBody2d
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
@@ -18,7 +19,6 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector2f
 import org.joml.Vector3d
-import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -36,10 +36,10 @@ class Box2dTest {
         val gravity = 1f
         setupGravityTest(gravity)
 
-        val rigidbody = Rigidbody2d()
+        val rigidbody = DynamicBody2d()
         val sphere = Entity()
             .add(rigidbody)
-            .add(CircleCollider().apply { density = 1f })
+            .add(CircleCollider())
 
         val world = Entity().add(sphere)
         Systems.world = world
@@ -47,7 +47,7 @@ class Box2dTest {
         val dt = 1f
         var expectedPosition = 0f
         var expectedVelocity = 0f
-        for (i in 0 until 20) {
+        repeat(20) {
 
             val actualPosition = sphere.position.y.toFloat()
             val actualVelocity = rigidbody.linearVelocity.y
@@ -68,10 +68,10 @@ class Box2dTest {
         val gravity = 0f
         setupGravityTest(gravity)
 
-        val rigidbody = Rigidbody2d()
+        val rigidbody = DynamicBody2d()
         val sphere = Entity()
             .add(rigidbody)
-            .add(CircleCollider().apply { density = 1f })
+            .add(CircleCollider())
             .add(object : Component(), OnPhysicsUpdate {
                 override fun onPhysicsUpdate(dt: Double) {
                     val mass = 1f * PIf
@@ -85,7 +85,7 @@ class Box2dTest {
         val dt = 1.0
         val expectedPosition = Vector3d()
         val expectedVelocity = Vector2f()
-        for (i in 0 until 20) {
+        repeat(20) {
 
             val actualPosition = sphere.position
             val actualVelocity = rigidbody.linearVelocity
@@ -107,10 +107,10 @@ class Box2dTest {
         setupGravityTest(gravity)
 
         val speed = 0.02f
-        val rigidbody = Rigidbody2d()
+        val rigidbody = DynamicBody2d()
         val sphere = Entity()
             .add(rigidbody)
-            .add(CircleCollider().apply { density = 1f })
+            .add(CircleCollider())
             .add(object : Component(), OnPhysicsUpdate {
                 override fun onPhysicsUpdate(dt: Double) {
                     val mass = speed * PIf
@@ -129,7 +129,7 @@ class Box2dTest {
 
         val dt = 1.0
         var expectedRotation = 0f
-        for (i in 0 until 20) {
+        repeat(20) {
 
             val actualPosition = sphere.position
             val actualRotation = sphere.rotation.getEulerAngleYXZvZ()
@@ -157,9 +157,8 @@ class Box2dTest {
         val gravity = 1f
         setupGravityTest(gravity)
 
-        val rigidbody = Rigidbody2d()
+        val rigidbody = DynamicBody2d()
         val collider = CircleCollider()
-        collider.density = 1f
         val sphere = Entity()
             .add(rigidbody)
             .add(collider)
@@ -228,18 +227,18 @@ class Box2dTest {
 
         class ExtraForceComponent : Component(), OnPhysicsUpdate {
             override fun onPhysicsUpdate(dt: Double) {
-                val rb = getComponent(Rigidbody2d::class)!!
+                val rb = getComponent(DynamicBody2d::class)!!
                 val circle = getComponent(CircleCollider::class)!!
                 val mass = circle.radius * circle.radius * PIf * circle.density
                 rb.applyForce(0f, extraAcceleration * mass)
             }
         }
 
-        val rigidbody = Rigidbody2d()
+        val rigidbody = DynamicBody2d()
         val sphere = Entity()
             .add(rigidbody)
             .add(ExtraForceComponent())
-            .add(CircleCollider().apply { density = 1f })
+            .add(CircleCollider())
 
         val world = Entity().add(sphere)
         Systems.world = world
@@ -247,7 +246,7 @@ class Box2dTest {
         val dt = 1f
         var expectedPosition = 0f
         var expectedVelocity = 0f
-        for (i in 0 until 20) {
+        repeat(20) {
 
             val actualPosition = sphere.position.y.toFloat()
             val actualVelocity = rigidbody.linearVelocity.y
@@ -277,28 +276,26 @@ class Box2dTest {
         val gravity = -10f
         setupGravityTest(gravity)
 
-        val world = Entity()
-        val floor = Entity()
+        val scene = Entity()
+        Entity("Floor", scene)
             .setPosition(0.0, -10.0, 0.0)
-            .add(Rigidbody2d())
+            .add(StaticBody2d())
             .add(RectCollider().apply {
                 friction = floorFriction
                 halfExtents.set(30f, 10f)
             })
-        world.add(floor)
 
-        val underTest = Rigidbody2d()
+        val underTest = DynamicBody2d()
         underTest.angularVelocity = 1f
         val sphere = Entity()
             .setPosition(0.0, 1.0 + 1.0 / 8.0, 0.0)
             .add(underTest)
             .add(CircleCollider().apply {
                 friction = circleFriction
-                density = 1f
             })
-        world.add(sphere)
+        scene.add(sphere)
 
-        Systems.world = world
+        Systems.world = scene
 
         assertEquals(Vector3d(0.0, 1.125, 0.0), sphere.position)
         assertEquals(Vector2f(0f, 0f), underTest.linearVelocity)
@@ -312,7 +309,7 @@ class Box2dTest {
         assertEquals(Vector2f(0f, 0f), underTest.linearVelocity)
         assertEquals(1f, underTest.angularVelocity)
 
-        for (i in 0 until 3) {
+        repeat(3) {
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
 
@@ -344,28 +341,27 @@ class Box2dTest {
         val world = Entity()
         val floor = Entity()
             .setRotation(0f, 0f, angle)
-            .add(Rigidbody2d())
+            .add(DynamicBody2d())
             .add(RectCollider().apply {
                 friction = 0.5f
                 halfExtents.set(30f, 10f)
             })
         world.add(floor)
 
-        val underTest = Rigidbody2d()
+        val underTest = DynamicBody2d()
         val dist = 10f + 1.0
         val sphere = Entity()
             .setPosition(-sin(angle) * dist, cos(angle) * dist, 0.0)
             .add(underTest)
             .add(CircleCollider().apply {
                 friction = 0.5f
-                density = 1f
             })
         world.add(sphere)
 
         Systems.world = world
 
         val dt = 1f / 8f
-        for (i in 0 until 8) {
+        repeat(8) {
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
 
@@ -389,14 +385,14 @@ class Box2dTest {
         val world = Entity()
         val floor = Entity()
             .setRotation(0f, 0f, angle)
-            .add(Rigidbody2d())
+            .add(DynamicBody2d())
             .add(RectCollider().apply {
                 friction = 0.9f
                 halfExtents.set(30f, 10f)
             })
         world.add(floor)
 
-        val underTest = Rigidbody2d()
+        val underTest = DynamicBody2d()
         val dist = 10f + 1.0
         val sphere = Entity()
             .setPosition(-sin(angle) * dist, cos(angle) * dist, 0.0)
@@ -405,14 +401,13 @@ class Box2dTest {
             .add(RectCollider().apply {
                 halfExtents.set(1f)
                 friction = 0.9f
-                density = 1f
             })
         world.add(sphere)
 
         Systems.world = world
 
         val dt = 1f / 8f
-        for (i in 0 until 8) {
+        repeat(8) {
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
             println("${sphere.position} += ${underTest.linearVelocity}/${underTest.angularVelocity}")
         }
@@ -428,15 +423,14 @@ class Box2dTest {
 
         val world = Entity()
 
-        fun createSphere(x: Double, dx: Double): Pair<Entity, Rigidbody2d> {
-            val body = Rigidbody2d()
+        fun createSphere(x: Double, dx: Double): Pair<Entity, DynamicBody2d> {
+            val body = DynamicBody2d()
             body.linearVelocity.x = dx.toFloat()
             val sphere = Entity()
                 .setPosition(x, 1.0, 0.0)
                 .add(body)
                 .add(CircleCollider().apply {
                     friction = 0f
-                    density = 1f
                 })
             world.add(sphere)
             return (sphere to body)
@@ -451,7 +445,7 @@ class Box2dTest {
         //  but instead, they stick together
 
         val dt = 1f / 8f
-        for (i in 0 until 20) {
+        repeat(20) {
             println("${s0.position.x} += ${b0.linearVelocity.x} | ${s1.position.x} += ${b1.linearVelocity.x}")
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }

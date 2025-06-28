@@ -30,7 +30,7 @@ class ConvexCollider : Collider() {
         // currently drawn as a point cloud
         // triangles or polygons would be better, but we don't have them
         val points = points ?: return
-        val color = getLineColor(hasPhysics)
+        val color = colliderLineColor
         forLoopSafely(points.size, 3) { i ->
             LineShapes.drawPoint(entity, points[i], points[i + 1], points[i + 2], 0.1, color)
         }

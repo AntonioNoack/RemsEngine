@@ -28,7 +28,7 @@ class InfinitePlaneCollider : Collider() {
         for (i in -2..5) {
             val scale = (10.0).pow(i)
             drawBox(
-                entity, getLineColor(hasPhysics),
+                entity, colliderLineColor,
                 scale, 0.0, scale
             )
         }

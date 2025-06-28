@@ -1,7 +1,7 @@
 package me.anno.bullet
 
 import com.bulletphysics.BulletGlobals
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.buildFilter
+import me.anno.ecs.components.collider.CollisionFilters.createFilter
 import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.ActivationState
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
@@ -108,7 +108,6 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
 
         val colliders = rigidBody.activeColliders
         getValidComponents(entity, rigidComponentClass, Collider::class, colliders)
-        colliders.removeIf { !it.hasPhysics }
         if (colliders.isEmpty()) return null
 
         // bullet does not work correctly with scale changes: create larger shapes directly
@@ -241,7 +240,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
             body.setGravity(if (rigidbody.overrideGravity) rigidbody.gravity else gravity)
         }
 
-        val filter = buildFilter(rigidbody.groupId, rigidbody.collisionMask)
+        val filter = createFilter(rigidbody.groupId, rigidbody.collisionMask)
         bulletInstance.addCollisionObject(body, filter)
 
         // must be done after adding the body to the world,
@@ -252,8 +251,8 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
 
         rigidBodies[entity] = scaledBody
         when (rigidbody) {
-            is GhostBody -> rigidbody.bulletInstance = body as PairCachingGhostObject
-            is PhysicalBody -> rigidbody.bulletInstance = body as RigidBody
+            is GhostBody -> rigidbody.nativeInstance = body as PairCachingGhostObject
+            is PhysicalBody -> rigidbody.nativeInstance = body as RigidBody
         }
 
         if (rigidbody is DynamicBody) {
@@ -533,7 +532,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         val scale = JomlPools.vec3d.create()
         globalTransform.getScale(scale)
         val transform = mat4x3ToTransform(globalTransform, scale, dynamicBody.centerOfMass, Transform())
-        dynamicBody.bulletInstance?.setWorldTransform(transform)
+        dynamicBody.nativeInstance?.setWorldTransform(transform)
         JomlPools.vec3d.sub(1)
     }
 
@@ -599,7 +598,6 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
             centerOfMass: Vector3d, dstTransform: Matrix4x3
         ): Matrix4x3 {
             // bullet does not support scale -> we always need to correct it
-
             val origin = worldTransform.origin
             val epsilon = 1e-3
             if (abs(scale.x) > epsilon && abs(scale.y) > epsilon && abs(scale.z) > epsilon) {

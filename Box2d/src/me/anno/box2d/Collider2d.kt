@@ -1,6 +1,5 @@
 package me.anno.box2d
 
-import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable
@@ -15,19 +14,16 @@ import org.jbox2d.dynamics.Fixture
 abstract class Collider2d : Collider() {
 
     @NotSerializedProperty
-    var box2dInstance: Fixture? = null
+    var nativeInstance: Fixture? = null
 
-    @DebugProperty
-    val box2d get() = box2dInstance?.hashCode()
-
-    @Range(0.0, 1e100)
+    @Range(0.0, 1e38)
     @SerializedProperty
-    var density = 0f
+    var density = 1f
         set(value) {
             // could we update this at runtime? would need to update mass & inertia
             if (field != value) {
                 field = value
-                box2dInstance?.density = value
+                nativeInstance?.density = value
                 invalidateRigidbody()
             }
         }
@@ -37,7 +33,7 @@ abstract class Collider2d : Collider() {
     var friction = 0.2f
         set(value) {
             field = value
-            box2dInstance?.friction = value
+            nativeInstance?.friction = value
         }
 
     @Range(0.0, 1.0)
@@ -45,7 +41,7 @@ abstract class Collider2d : Collider() {
     var restitution = 0f
         set(value) {
             field = value
-            box2dInstance?.restitution = restitution
+            nativeInstance?.restitution = restitution
         }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -55,5 +51,4 @@ abstract class Collider2d : Collider() {
         dst.friction = friction
         dst.restitution = restitution
     }
-
 }

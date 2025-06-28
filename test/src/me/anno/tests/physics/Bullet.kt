@@ -91,8 +91,8 @@ private fun engineTest3d() {
         ground.validateTransform()
         println(
             box.position.toString() + ", " +
-                    boxRB.bulletInstance?.getWorldTransform(Transform())?.origin + ", " +
-                    groundRB.bulletInstance?.getWorldTransform(Transform())?.origin
+                    boxRB.nativeInstance?.getWorldTransform(Transform())?.origin + ", " +
+                    groundRB.nativeInstance?.getWorldTransform(Transform())?.origin
         )
         for (j in 0 until 100) physics.step(Maths.MILLIS_TO_NANOS * 10, false)
     }

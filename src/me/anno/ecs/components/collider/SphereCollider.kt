@@ -58,6 +58,6 @@ class SphereCollider : Collider() {
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        drawSphere(entity, radius.toDouble(), null, getLineColor(hasPhysics))
+        drawSphere(entity, radius.toDouble(), null, colliderLineColor)
     }
 }

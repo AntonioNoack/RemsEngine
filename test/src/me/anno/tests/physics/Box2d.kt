@@ -3,8 +3,9 @@ package me.anno.tests.physics
 import me.anno.box2d.Box2dPhysics
 import me.anno.box2d.CircleCollider
 import me.anno.box2d.Collider2d
+import me.anno.box2d.DynamicBody2d
 import me.anno.box2d.RectCollider
-import me.anno.box2d.Rigidbody2d
+import me.anno.box2d.StaticBody2d
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
@@ -67,7 +68,7 @@ private fun libraryTest2d() {
     fixtureDef.density = 1f
     fixtureDef.friction = 0.1f
     boxBody.createFixture(fixtureDef)
-    for (i in 0 until 10) {
+    repeat(10) {
         println(boxBody.position.toString() + ", " + boxBody.angle.toDegrees() + "°")
         world.step(1f, 1, 1)
     }
@@ -78,34 +79,33 @@ private fun engineTest2d() {
     println("Own World Test")
     // create the same world as in test 1, now just with our own classes
     // create test world
-    val world = Entity()
+    val scene = Entity()
     val physics = Box2dPhysics
     physics.velocityIterations = 1
     physics.positionIterations = 1
     Systems.registerSystem(physics)
-    Systems.world = world
-    val ground = Entity()
-    val groundRB = Rigidbody2d()
+    Systems.world = scene
+    val ground = Entity(scene)
+    val groundRB = StaticBody2d()
     ground.add(groundRB)
     val groundShape = RectCollider()
     groundShape.halfExtents.set(50f, 5f)
     ground.setPosition(0.0, -10.0, 0.0)
     ground.add(groundShape)
-    world.add(ground)
     // test gravity and maybe collisions
     val box = Entity()
-    val boxRB = Rigidbody2d()
+    val boxRB = DynamicBody2d()
     box.add(boxRB)
     box.setPosition(0.0, 10.0, 0.0)
     val boxShape = RectCollider()
     boxShape.density = 1f
     boxShape.halfExtents.set(1f, 1f)
     box.add(boxShape)
-    world.add(box)
-    world.validateTransform()
+    scene.add(box)
+    scene.validateTransform()
     groundRB.invalidatePhysics()
     boxRB.invalidatePhysics()
-    for (i in 0 until 10) {
+    repeat(10) {
         box.validateTransform()
         ground.validateTransform()
         println(box.position.toString() + ", " + (box.rotation.getEulerAnglesYXZ(Vector3f()).z.toDegrees()) + "°")
@@ -115,7 +115,7 @@ private fun engineTest2d() {
 
 // todo this sample is broken :(
 fun run2dPhysicsWithUI() {
-    val world = Entity("World")
+    val scene = Entity("World")
     val physics = Box2dPhysics
     physics.velocityIterations = 1
     physics.positionIterations = 1
@@ -123,7 +123,7 @@ fun run2dPhysicsWithUI() {
     physics.allowedSpace.all()
     physics.updateGravity()
     Systems.registerSystem(physics)
-    Systems.world = world
+    Systems.world = scene
 
     val width = 1000
     val height = 1000
@@ -132,51 +132,41 @@ fun run2dPhysicsWithUI() {
 
     for (dir in 0 until 4) {
         val angle = dir * PIf / 2
-        val ground = Entity("Ground")
-        val groundRB = Rigidbody2d()
-        ground.add(groundRB)
-        val groundShape = RectCollider()
-        groundShape.halfExtents.set(500f, strength.toFloat())
-        ground.setPosition(
-            sin(angle) * width * 0.5,
-            cos(angle) * height * 0.5,
-            0.0
-        )
-        ground.setRotation(0f, 0f, angle)
-        ground.add(groundShape)
-        world.add(ground)
+        val groundShape = RectCollider().apply { halfExtents.set(500f, strength.toFloat()) }
+        Entity("Ground$dir", scene)
+            .add(StaticBody2d())
+            .setPosition(
+                sin(angle) * width * 0.5,
+                cos(angle) * height * 0.5,
+                0.0
+            )
+            .setRotation(0f, 0f, angle)
+            .add(groundShape)
     }
 
     val random = Random(1234L)
     for (i in 0 until 100) {
-        val box = Entity("Box")
-        box.add(Rigidbody2d())
-        box.setPosition(
-            (random.nextDouble() - 0.5) * 600.0,
-            (random.nextDouble() - 0.5) * 600.0,
-            0.0
-        )
-        box.setRotation(0f, 0f, random.nextFloat() * PIf)
-        val shape = RectCollider()
-        shape.density = 1f
-        shape.halfExtents.set(20f, 7f)
-        box.add(shape)
-        world.add(box)
+        val shape = RectCollider().apply { halfExtents.set(20f, 7f) }
+        Entity("Box$i", scene)
+            .add(DynamicBody2d())
+            .setPosition(
+                (random.nextDouble() - 0.5) * 600.0,
+                (random.nextDouble() - 0.5) * 600.0,
+                0.0
+            )
+            .setRotation(0f, 0f, random.nextFloat() * PIf)
+            .add(shape)
     }
 
     for (i in 0 until 100) {
-        val circle = Entity("Circle")
-        circle.add(Rigidbody2d())
-        circle.setPosition(
-            (random.nextDouble() - 0.5) * 600.0,
-            (random.nextDouble() - 0.5) * 600.0,
-            0.0
-        )
-        val shape = CircleCollider()
-        shape.density = 1f
-        shape.radius = 12f
-        circle.add(shape)
-        world.add(circle)
+        val shape = CircleCollider().apply { radius = 12f }
+        Entity("Circle$i", scene)
+            .add(DynamicBody2d())
+            .setPosition(
+                (random.nextDouble() - 0.5) * 600.0,
+                (random.nextDouble() - 0.5) * 600.0,
+                0.0
+            ).add(shape)
     }
 
     val rect = listOf(
@@ -223,9 +213,9 @@ fun run2dPhysicsWithUI() {
                 if (Input.isKeyDown(dragButton)) {
                     val hovered = hovered
                     val entity = hovered?.entity
-                    val rb = entity?.getComponent(Rigidbody2d::class)
+                    val rb = entity?.getComponent(DynamicBody2d::class)
                     if (rb != null) {
-                        val body = rb.box2dInstance!!
+                        val body = rb.nativeInstance!!
                         val pos = entity.transform.globalPosition
                         val ang = entity.transform.globalRotation.getEulerAngleYXZvZ()
                         // calculate anchorWS from mouse position
@@ -247,7 +237,7 @@ fun run2dPhysicsWithUI() {
                 if (Input.isKeyDown(dragButton)) {
                     val hovered = hovered
                     val entity = hovered?.entity
-                    val rb = entity?.getComponent(Rigidbody2d::class)
+                    val rb = entity?.getComponent(DynamicBody2d::class)
                     if (rb != null) {
                         targetAngle += dy * 0.1f
                         return
@@ -284,8 +274,8 @@ fun run2dPhysicsWithUI() {
                 if (window != null) mouse.set(window.mouseX, window.mouseY)
 
                 val v = DrawCurves.lineBatch.start()
-                world.validateTransform()
-                world.forAll { entity ->
+                scene.validateTransform()
+                scene.forAll { entity ->
                     if (entity is Entity) entity.forAllComponents(Collider2d::class) { collider ->
                         val pos = entity.transform.globalPosition
                         val x1i = x0i + scale * pos.x.toFloat()

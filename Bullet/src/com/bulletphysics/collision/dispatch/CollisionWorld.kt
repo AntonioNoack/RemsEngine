@@ -5,8 +5,8 @@ import com.bulletphysics.BulletStats.popProfile
 import com.bulletphysics.BulletStats.pushProfile
 import com.bulletphysics.collision.broadphase.BroadphaseInterface
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.collides
+import me.anno.ecs.components.collider.CollisionFilters
+import me.anno.ecs.components.collider.CollisionFilters.collides
 import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.broadphase.DispatcherInfo
 import com.bulletphysics.collision.broadphase.OverlappingPairCache
@@ -323,7 +323,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
 
         var closestHitFraction: Double = 1.0
         var collisionObject: CollisionObject? = null
-        var collisionFilter = CollisionFilterGroups.DEFAULT_ALL
+        var collisionFilter = CollisionFilters.DEFAULT_ALL
 
         fun hasHit(): Boolean {
             return (collisionObject != null)
@@ -393,11 +393,11 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         var closestHitFraction: Double = 1.0
 
         @JvmField
-        var collisionFilter = CollisionFilterGroups.DEFAULT_ALL
+        var collisionFilter = CollisionFilters.DEFAULT_ALL
 
         fun init() {
             closestHitFraction = 1.0
-            collisionFilter = CollisionFilterGroups.DEFAULT_ALL
+            collisionFilter = CollisionFilters.DEFAULT_ALL
         }
 
         fun hasHit(): Boolean {

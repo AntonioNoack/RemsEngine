@@ -41,7 +41,7 @@ class BoxCollider : Collider() {
     override fun drawShape(pipeline: Pipeline) {
         val halfExtents = halfExtents
         drawBox(
-            entity, getLineColor(hasPhysics),
+            entity, colliderLineColor,
             halfExtents.x.toDouble(), halfExtents.y.toDouble(), halfExtents.z.toDouble()
         )
     }

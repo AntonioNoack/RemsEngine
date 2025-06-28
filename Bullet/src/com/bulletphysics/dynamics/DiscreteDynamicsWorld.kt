@@ -6,8 +6,6 @@ import com.bulletphysics.BulletStats.popProfile
 import com.bulletphysics.BulletStats.pushProfile
 import com.bulletphysics.collision.broadphase.BroadphaseInterface
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.buildFilter
 import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.broadphase.OverlappingPairCache
 import com.bulletphysics.collision.dispatch.ActivationState
@@ -27,6 +25,8 @@ import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.TransformUtil
 import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
+import me.anno.ecs.components.collider.CollisionFilters
+import me.anno.ecs.components.collider.CollisionFilters.createFilter
 import me.anno.graph.octtree.KdTreePairs.FLAG_SWAPPED_PAIRS
 import me.anno.graph.octtree.KdTreePairs.queryPairs
 import me.anno.utils.hpc.threadLocal
@@ -264,20 +264,17 @@ class DiscreteDynamicsWorld(
         }
 
         if (body.collisionShape != null) {
-            val isDynamic = !(body.isStaticObject || body.isKinematicObject)
-            val collisionFilterGroup =
-                if (isDynamic) CollisionFilterGroups.DEFAULT_GROUP_ID
-                else if (body.isStaticObject) CollisionFilterGroups.STATIC_GROUP_ID
-                else CollisionFilterGroups.KINEMATIC_GROUP_ID
+            val isDynamic = !body.isStaticOrKinematicObject
+            val collisionFilterGroup = when {
+                isDynamic -> CollisionFilters.DEFAULT_GROUP_ID
+                body.isStaticObject -> CollisionFilters.STATIC_GROUP_ID
+                else -> CollisionFilters.KINEMATIC_GROUP_ID
+            }
             val collisionFilterMask =
-                if (isDynamic) CollisionFilterGroups.ALL_MASK // dynamic reacts to all
-                else {
-                    // static/kinematic doesn't react with itself
-                    CollisionFilterGroups.ALL_MASK and
-                            (CollisionFilterGroups.STATIC_MASK or CollisionFilterGroups.KINEMATIC_MASK).inv()
-                }
+                if (isDynamic) CollisionFilters.ALL_MASK // dynamic reacts to all
+                else CollisionFilters.ANY_DYNAMIC_MASK // static/kinematic doesn't react with itself
 
-            val filter = buildFilter(collisionFilterGroup, collisionFilterMask)
+            val filter = createFilter(collisionFilterGroup, collisionFilterMask)
             addCollisionObject(body, filter)
         }
     }

@@ -3,13 +3,12 @@ package com.bulletphysics
 import com.bulletphysics.StackOfBoxesTest.Companion.createGround
 import com.bulletphysics.StackOfBoxesTest.Companion.createRigidBody
 import com.bulletphysics.StackOfBoxesTest.Companion.createWorld
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.ALL_MASK
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.GHOST_GROUP_ID
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.buildFilter
+import me.anno.ecs.components.collider.CollisionFilters.ALL_MASK
+import me.anno.ecs.components.collider.CollisionFilters.GHOST_GROUP_ID
+import me.anno.ecs.components.collider.CollisionFilters.createFilter
 import com.bulletphysics.collision.dispatch.CollisionFlags
 import com.bulletphysics.collision.dispatch.GhostObject
 import com.bulletphysics.collision.dispatch.GhostPairCallback
-import com.bulletphysics.collision.dispatch.PairCachingGhostObject
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.SphereShape
 import me.anno.utils.assertions.assertTrue
@@ -33,7 +32,7 @@ class GhostObjectTest {
         ghost.collisionFlags = CollisionFlags.NO_CONTACT_RESPONSE // no physics response
 
         // Must register ghost object in collision world
-        world.addCollisionObject(ghost, buildFilter(GHOST_GROUP_ID, ALL_MASK))
+        world.addCollisionObject(ghost, createFilter(GHOST_GROUP_ID, ALL_MASK))
 
         // Falling dynamic sphere
         val sphereShape = SphereShape(0.25)

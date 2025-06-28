@@ -24,7 +24,7 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
     var friction: Double = 0.5
         set(value) {
             field = value
-            bulletInstance?.friction = friction
+            nativeInstance?.friction = friction
         }
 
     @Docs("How elastic a body is, 1 = fully elastic, 0 = all energy absorbed (knead)")
@@ -32,7 +32,7 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
     var restitution = 0.0
         set(value) {
             field = value
-            bulletInstance?.restitution = value
+            nativeInstance?.restitution = value
         }
 
     @DebugWarning

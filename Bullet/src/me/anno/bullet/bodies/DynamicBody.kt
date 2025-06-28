@@ -33,7 +33,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     @DebugProperty
     @NotSerializedProperty
     val bulletState: String
-        get() = when (val s = bulletInstance?.activationState ?: -1) {
+        get() = when (val s = nativeInstance?.activationState ?: -1) {
             ACTIVE -> "Active"
             SLEEPING -> "Island Sleeping"
             WANTS_DEACTIVATION -> "Wants Deactivation"
@@ -48,7 +48,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
 
     @DebugAction
     fun activate() {
-        val bi = bulletInstance
+        val bi = nativeInstance
         if (bi == null) invalidatePhysics()
         else {
             bi.activationState = ACTIVE
@@ -66,7 +66,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
         set(value) {
             field = value
             if (value) {
-                bulletInstance?.setGravity(gravity)
+                nativeInstance?.setGravity(gravity)
             } else {
                 invalidateRigidbody() // it's complicated ^^
             }
@@ -78,7 +78,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
         set(value) {
             field.set(value)
             if (overrideGravity)
-                bulletInstance?.setGravity(value)
+                nativeInstance?.setGravity(value)
         }
 
     @Group("Mass")
@@ -87,11 +87,11 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     var mass = 1.0
         set(value) {
             if (field != value && value > 0.0) {
-                val bulletInstance = bulletInstance
-                if (bulletInstance != null) {
+                val bi = nativeInstance
+                if (bi != null) {
                     val inertia = Vector3d()
-                    bulletInstance.collisionShape!!.calculateLocalInertia(value, inertia)
-                    bulletInstance.setMassProps(mass, inertia)
+                    bi.collisionShape!!.calculateLocalInertia(value, inertia)
+                    bi.setMassProps(mass, inertia)
                 }
                 field = value
             }
@@ -103,7 +103,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     var linearDamping = 0.0
         set(value) {
             field = value
-            bulletInstance?.linearDamping = value
+            nativeInstance?.linearDamping = value
         }
 
     @Group("Rotation")
@@ -112,7 +112,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     var angularDamping = 0.0
         set(value) {
             field = value
-            bulletInstance?.angularDamping = value
+            nativeInstance?.angularDamping = value
         }
 
     @Group("Movement")
@@ -121,7 +121,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     var linearSleepingThreshold = 0.01
         set(value) {
             field = value
-            bulletInstance?.setSleepingThresholds(value, angularSleepingThreshold)
+            nativeInstance?.setSleepingThresholds(value, angularSleepingThreshold)
         }
 
     @Group("Rotation")
@@ -130,7 +130,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     var angularSleepingThreshold = 0.01
         set(value) {
             field = value
-            bulletInstance?.setSleepingThresholds(linearSleepingThreshold, value)
+            nativeInstance?.setSleepingThresholds(linearSleepingThreshold, value)
         }
 
     // getter not needed, is updated automatically from BulletPhysics.kt
@@ -138,7 +138,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     var globalLinearVelocity: Vector3d = Vector3d()
         set(value) {
             field.set(value)
-            bulletInstance?.setLinearVelocity(value)
+            nativeInstance?.setLinearVelocity(value)
         }
 
     @Group("Movement")
@@ -149,7 +149,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
         }
         set(value) {
             field.set(value)
-            val bi = bulletInstance
+            val bi = nativeInstance
             val tr = transform
             if (tr != null && mass > 0.0 && bi != null && !isStatic) {
                 val global = tr.globalTransform.transformDirection(field, Vector3d())
@@ -180,7 +180,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     var globalAngularVelocity: Vector3d = Vector3d()
         set(value) {
             field.set(value)
-            bulletInstance?.setAngularVelocity(value)
+            nativeInstance?.setAngularVelocity(value)
         }
 
     @Group("Movement")
@@ -191,7 +191,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
         }
         set(value) {
             field.set(value)
-            val bi = bulletInstance
+            val bi = nativeInstance
             val tr = transform
             if (tr != null && mass > 0.0 && bi != null && !isStatic) {
                 val global = tr.globalTransform.transformDirection(field, Vector3d())
@@ -238,7 +238,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     fun applyTorque(x: Double, y: Double, z: Double) {
         val v = Stack.borrowVec()
         v.set(x, y, z)
-        bulletInstance?.applyTorque(v)
+        nativeInstance?.applyTorque(v)
     }
 
     fun applyTorque(v: Vector3d) = applyTorque(v.x, v.y, v.z)
@@ -250,7 +250,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     fun applyForce(x: Double, y: Double, z: Double) {
         val v = Stack.borrowVec()
         v.set(x, y, z)
-        bulletInstance?.applyCentralForce(v)
+        nativeInstance?.applyCentralForce(v)
     }
 
     /**
@@ -268,7 +268,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
         relPos.set(px, py, pz)
         val force = Stack.newVec()
         force.set(x, y, z)
-        bulletInstance?.applyForce(force, relPos)
+        nativeInstance?.applyForce(force, relPos)
         Stack.subVec(2)
     }
 
@@ -284,10 +284,10 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
      * must be called onPhysicsUpdate()
      * */
     fun applyImpulse(strengthX: Double, strengthY: Double, strengthZ: Double) {
-        val bulletInstance = bulletInstance ?: return
+        val bi = nativeInstance ?: return
         val impulse = Stack.borrowVec()
         impulse.set(strengthX, strengthY, strengthZ)
-        bulletInstance.applyCentralImpulse(impulse)
+        bi.applyCentralImpulse(impulse)
     }
 
     /**
@@ -304,12 +304,12 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
         relPosX: Double, relPosY: Double, relPosZ: Double,
         strengthX: Double, strengthY: Double, strengthZ: Double
     ) {
-        val bulletInstance = bulletInstance ?: return
+        val bi = nativeInstance ?: return
         val relativePosition = Stack.newVec()
         relativePosition.set(relPosX, relPosY, relPosZ)
         val strength = Stack.newVec()
         strength.set(strengthX, strengthY, strengthZ)
-        bulletInstance.applyImpulse(strength, relativePosition)
+        bi.applyImpulse(strength, relativePosition)
         Stack.subVec(2)
     }
 
@@ -328,10 +328,10 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
      * must be called onPhysicsUpdate()
      * */
     fun applyTorqueImpulse(x: Double, y: Double, z: Double) {
-        val bulletInstance = bulletInstance ?: return
+        val bi = nativeInstance ?: return
         val impulse = Stack.borrowVec() // is reused by method
         impulse.set(x, y, z)
-        bulletInstance.applyTorqueImpulse(impulse)
+        bi.applyTorqueImpulse(impulse)
     }
 
     /**
@@ -345,7 +345,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
      * must be called onPhysicsUpdate()
      * */
     fun applyGravity() {
-        bulletInstance?.applyGravity()
+        nativeInstance?.applyGravity()
     }
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {

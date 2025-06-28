@@ -91,7 +91,7 @@ class ConeCollider : Collider() {
             Axis.Y -> LineShapes.zToY
             Axis.Z -> null
         }
-        val color = getLineColor(hasPhysics)
+        val color = colliderLineColor
         val radius = radius.toDouble()
         val halfHeight = height * 0.5
         drawCone(entity, radius, radius, -halfHeight, halfHeight, matrix, color)

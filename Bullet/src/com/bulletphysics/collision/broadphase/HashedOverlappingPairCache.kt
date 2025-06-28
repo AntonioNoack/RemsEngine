@@ -1,7 +1,7 @@
 package com.bulletphysics.collision.broadphase
 
 import com.bulletphysics.BulletStats
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.collides
+import me.anno.ecs.components.collider.CollisionFilters.collides
 import com.bulletphysics.linearmath.MiscUtil.resize
 import com.bulletphysics.util.IntArrayList
 import com.bulletphysics.util.ObjectArrayList

@@ -18,7 +18,7 @@ class CircleCollider : Collider2d() {
     var radius = 1f
         set(value) {
             field = value
-            (box2dInstance?.shape as? CircleShape)?.radius = value
+            (nativeInstance?.shape as? CircleShape)?.radius = value
         }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
@@ -26,7 +26,7 @@ class CircleCollider : Collider2d() {
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        LineShapes.drawCircle(entity, radius.toDouble(), 0, 1, 0.0, null, getLineColor(hasPhysics))
+        LineShapes.drawCircle(entity, radius.toDouble(), 0, 1, 0.0, null, colliderLineColor)
     }
 
     override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {

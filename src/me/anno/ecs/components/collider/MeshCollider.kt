@@ -202,7 +202,7 @@ open class MeshCollider() : Collider() {
 
     override fun drawShape(pipeline: Pipeline) {
         val transform = getDrawMatrix(entity)
-        val color = getLineColor(hasPhysics)
+        val color = colliderLineColor
         val bi = bulletInstance
         if (bi != null) {
             bi.draw(transform, color)

@@ -1,6 +1,7 @@
 package me.anno.ecs.components.collider
 
 import me.anno.ecs.Component
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
@@ -9,8 +10,9 @@ import org.joml.Matrix4x3
 
 abstract class CollidingComponent : Component() {
 
-    @Docs("What objects it should collide with, bit mask")
-    var collisionMask: Int = 1
+    @DebugProperty
+    @Docs("Which collisionGroups to interact with")
+    var collisionMask = 0xffff
 
     fun canCollide(collisionMask: Int) = this.collisionMask.and(collisionMask) != 0
 

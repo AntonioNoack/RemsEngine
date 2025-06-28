@@ -1,7 +1,7 @@
 package me.anno.bullet.bodies
 
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.ANY_DYNAMIC_MASK
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.GHOST_GROUP_ID
+import me.anno.ecs.components.collider.CollisionFilters.ANY_DYNAMIC_MASK
+import me.anno.ecs.components.collider.CollisionFilters.GHOST_GROUP_ID
 import com.bulletphysics.collision.dispatch.GhostObject
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
@@ -32,14 +32,14 @@ class GhostBody : PhysicsBody<GhostObject>() {
 
     private class OverlappingBodiesList(val ghostBody: GhostBody) : SimpleList<PhysicalBody>() {
         override fun get(index: Int): PhysicalBody {
-            val ghostObject = ghostBody.bulletInstance!!
+            val ghostObject = ghostBody.nativeInstance!!
             val rigidbody = ghostObject.overlappingPairs[index]
             return rigidbody.userData as PhysicalBody
         }
 
         override val size: Int
             get() {
-                val ghostObject = ghostBody.bulletInstance ?: return 0
+                val ghostObject = ghostBody.nativeInstance ?: return 0
                 return ghostObject.overlappingPairs.size
             }
     }

@@ -1,7 +1,7 @@
 package me.anno.bullet.bodies
 
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.ANY_DYNAMIC_MASK
-import com.bulletphysics.collision.broadphase.CollisionFilterGroups.KINEMATIC_MASK
+import me.anno.ecs.components.collider.CollisionFilters.ANY_DYNAMIC_MASK
+import me.anno.ecs.components.collider.CollisionFilters.KINEMATIC_MASK
 
 /**
  * Physics object, that should be controlled exclusively by scripts.

@@ -44,7 +44,7 @@ import kotlin.math.sin
  * Sleeping (removes motionless bodies from simulation until touched)
  * Serialization? idk, should be done by the engine
  * */
-object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
+object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
 
     var velocityIterations = 6
     var positionIterations = 2
@@ -65,7 +65,7 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         world.step(step.toFloat(), velocityIterations, positionIterations)
     }
 
-    override fun createRigidbody(entity: Entity, rigidBody: Rigidbody2d): ScaledBody<Rigidbody2d, Body>? {
+    override fun createRigidbody(entity: Entity, rigidBody: PhysicsBody2d): ScaledBody<PhysicsBody2d, Body>? {
 
         val colliders = getValidComponents(entity, rigidComponentClass, Collider2d::class).toList()
         if (colliders.isEmpty()) return null
@@ -132,7 +132,7 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
                 null -> {}
                 else -> LOGGER.warn("todo implement shape ${shape::class}")
             }
-            if (shape != null && collider.hasPhysics) {
+            if (shape != null) {
                 shape.computeMass(massData, collider.density)
                 mass += massData.mass
             }
@@ -144,20 +144,31 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         val global = transform.globalTransform
         def.position.set(global.m30.toFloat(), global.m31.toFloat())
         def.angle = -atan2(global.m10, global.m00) // not perfect, but good enough probably
-        def.type = if (mass > 0f) BodyType.DYNAMIC else BodyType.STATIC // set that depending on state... Kinematic?
-        def.bullet = rigidBody.preventTunneling
-        def.gravityScale = rigidBody.gravityScale
-        def.linearDamping = rigidBody.linearDamping
-        val lv = rigidBody.linearVelocity
-        def.linearVelocity.set(lv.x, lv.y)
-        def.angularDamping = rigidBody.angularDamping
-        def.angularVelocity = rigidBody.angularVelocity
-        def.fixedRotation = rigidBody.preventRotation
-        // def.userData = rigidBody // maybe for callbacks :)
+        def.type = when (rigidBody) {
+            is DynamicBody2d -> BodyType.DYNAMIC
+            is KinematicBody2d -> BodyType.KINEMATIC
+            is StaticBody2d -> BodyType.STATIC
+            else -> BodyType.KINEMATIC // mmh, for ghost objects
+        }
+
+        if (rigidBody is DynamicBody2d) {
+            def.bullet = rigidBody.preventTunneling
+            def.gravityScale = rigidBody.gravityScale
+            def.linearDamping = rigidBody.linearDamping
+            val lv = rigidBody.linearVelocity
+            def.linearVelocity.set(lv.x, lv.y)
+            def.angularDamping = rigidBody.angularDamping
+            def.angularVelocity = rigidBody.angularVelocity
+            def.fixedRotation = rigidBody.preventRotation
+            // def.userData = rigidBody // maybe for callbacks :)
+        }
 
         val body = world.createBody(def)
-        body.isSleepingAllowed = !rigidBody.alwaysActive
+        if (rigidBody is DynamicBody2d) {
+            body.isSleepingAllowed = !rigidBody.alwaysActive
+        }
 
+        val isSensor = rigidBody is GhostBody2d
         for (index in colliders.indices) {
             val collider = colliders[index]
             val shape = shapes[index] ?: continue
@@ -167,8 +178,10 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
             fixDef.density = collider.density
             fixDef.friction = collider.friction
             fixDef.restitution = collider.restitution
-            fixDef.isSensor = !collider.hasPhysics
-            fixDef.filter.maskBits = collider.collisionMask
+            fixDef.isSensor = isSensor
+            fixDef.filter.maskBits = rigidBody.collisionMask
+            fixDef.filter.categoryBits = 1 shl rigidBody.collisionGroup
+            fixDef.filter.groupIndex = 0 // overrides mask/group values: -1 = never collides (why), +1 = always collides
             // fixDef.userData = collider // maybe could be used :)
             body.createFixture(fixDef)
         }
@@ -176,11 +189,15 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         return ScaledBody(rigidBody, body, Vector3d(1.0), Vector3d())
     }
 
-    override fun onCreateRigidbody(entity: Entity, rigidbody: Rigidbody2d, scaledBody: ScaledBody<Rigidbody2d, Body>) {
+    override fun onCreateRigidbody(
+        entity: Entity,
+        rigidbody: PhysicsBody2d,
+        scaledBody: ScaledBody<PhysicsBody2d, Body>
+    ) {
 
         val body = scaledBody.external
 
-        rigidbody.box2dInstance = body
+        rigidbody.nativeInstance = body
         rigidBodies[entity] = scaledBody
 
         // todo constraints
@@ -194,11 +211,11 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         // todo constraints for Physics2d
     }
 
-    override fun worldRemoveRigidbody(scaledBody: ScaledBody<Rigidbody2d, Body>) {
+    override fun worldRemoveRigidbody(scaledBody: ScaledBody<PhysicsBody2d, Body>) {
         world.destroyBody(scaledBody.external)
     }
 
-    override fun isActive(scaledBody: ScaledBody<Rigidbody2d, Body>): Boolean = scaledBody.external.isActive
+    override fun isActive(scaledBody: ScaledBody<PhysicsBody2d, Body>): Boolean = scaledBody.external.isActive
 
     override fun getMatrix(
         rigidbody: Body, dstTransform: Matrix4x3,

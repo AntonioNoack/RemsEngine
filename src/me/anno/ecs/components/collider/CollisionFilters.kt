@@ -1,4 +1,4 @@
-package com.bulletphysics.collision.broadphase
+package me.anno.ecs.components.collider
 
 /**
  * Common collision filter groups,
@@ -6,7 +6,7 @@ package com.bulletphysics.collision.broadphase
  *
  * Up to 27 groups are supported, so the mask and groupId can be stored in one int32.
  */
-object CollisionFilterGroups {
+object CollisionFilters {
 
     const val NUM_GROUPS = 27
     const val ALL_MASK = (1 shl NUM_GROUPS) - 1
@@ -27,9 +27,9 @@ object CollisionFilterGroups {
 
     const val ANY_DYNAMIC_MASK = ALL_MASK and (STATIC_MASK or KINEMATIC_MASK or GHOST_MASK).inv()
 
-    val DEFAULT_ALL = buildFilter(DEFAULT_GROUP_ID, ALL_MASK)
+    val DEFAULT_ALL = createFilter(DEFAULT_GROUP_ID, ALL_MASK)
 
-    fun buildFilter(group: Int, mask: Int): Int {
+    fun createFilter(group: Int, mask: Int): Int {
         return (mask and ALL_MASK) or (group shl NUM_GROUPS)
     }
 

@@ -1,25 +1,21 @@
 package me.anno.box2d
 
-import me.anno.ecs.Component
-import me.anno.ecs.EntityPhysics.getPhysics
 import me.anno.ecs.prefab.PrefabSaveable
-import org.jbox2d.dynamics.Body
 import org.joml.Vector2f
 
-class Rigidbody2d : Component() {
+class DynamicBody2d : PhysicalBody2d() {
 
-    var box2dInstance: Body? = null
     var gravityScale = 1f
 
     var linearDamping = 0f
         set(value) {
             field = value
-            box2dInstance?.linearDamping = value
+            nativeInstance?.linearDamping = value
         }
 
     var linearVelocity = Vector2f()
         get() {
-            val bi = box2dInstance
+            val bi = nativeInstance
             if (bi != null) {
                 val vi = bi.linearVelocity
                 field.set(vi.x, vi.y)
@@ -28,18 +24,18 @@ class Rigidbody2d : Component() {
         }
         set(value) {
             field.set(value)
-            box2dInstance?.linearVelocity?.set(value.x, value.y)
+            nativeInstance?.linearVelocity?.set(value.x, value.y)
         }
 
     var angularDamping = 0f
         set(value) {
             field = value
-            box2dInstance?.angularDamping = value
+            nativeInstance?.angularDamping = value
         }
 
     var angularVelocity = 0f
         get() {
-            val bi = box2dInstance
+            val bi = nativeInstance
             if (bi != null) {
                 field = bi.angularVelocity
             }
@@ -47,13 +43,13 @@ class Rigidbody2d : Component() {
         }
         set(value) {
             field = value
-            box2dInstance?.angularVelocity = value
+            nativeInstance?.angularVelocity = value
         }
 
     var preventRotation = false
         set(value) {
             field = value
-            box2dInstance?.isFixedRotation = value
+            nativeInstance?.isFixedRotation = value
         }
 
     var preventTunneling = false
@@ -61,14 +57,8 @@ class Rigidbody2d : Component() {
     var alwaysActive = false
         set(value) {
             field = value
-            box2dInstance?.isSleepingAllowed = !value
+            nativeInstance?.isSleepingAllowed = !value
         }
-
-    fun invalidatePhysics() {
-        val entity = entity ?: return
-        getPhysics(Box2dPhysics::class)
-            ?.invalidate(entity)
-    }
 
     fun applyForce(force: Vector2f) {
         applyForce(force.x, force.y)
@@ -76,7 +66,7 @@ class Rigidbody2d : Component() {
 
     fun applyForce(fx: Float, fy: Float) {
         val tmp = Box2dPhysics.vec2f.borrow().set(fx, fy)
-        box2dInstance?.applyForceToCenter(tmp)
+        nativeInstance?.applyForceToCenter(tmp)
     }
 
     fun applyForce(force: Vector2f, point: Vector2f) {
@@ -87,10 +77,11 @@ class Rigidbody2d : Component() {
         val pool = Box2dPhysics.vec2f
         val force = pool.create().set(forceX, forceY)
         val point = pool.create().set(pointX, pointY)
-        box2dInstance?.applyForce(force, point)
+        nativeInstance?.applyForce(force, point)
         pool.sub(2)
     }
 
+    @Suppress("unused")
     fun applyImpulse(impulse: Vector2f, point: Vector2f, wake: Boolean = true) {
         applyImpulse(impulse.x, impulse.y, point.x, point.y, wake)
     }
@@ -99,19 +90,18 @@ class Rigidbody2d : Component() {
         val pool = Box2dPhysics.vec2f
         val impulse = pool.create().set(impulseX, impulseY)
         val point = pool.create().set(pointX, pointY)
-        box2dInstance?.applyLinearImpulse(impulse, point, wake)
+        nativeInstance?.applyLinearImpulse(impulse, point, wake)
         pool.sub(2)
     }
 
+    @Suppress("unused")
     fun applyAngularImpulse(impulse: Float) {
-        box2dInstance?.applyAngularImpulse(impulse)
+        nativeInstance?.applyAngularImpulse(impulse)
     }
-
-    val inertia get(): Float = box2dInstance?.inertia ?: 0f
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        if (dst !is Rigidbody2d) return
+        if (dst !is DynamicBody2d) return
         dst.gravityScale = gravityScale
         dst.linearDamping = linearDamping
         dst.linearVelocity.set(linearVelocity)
