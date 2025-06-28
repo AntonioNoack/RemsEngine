@@ -16,6 +16,7 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.OcclusionQuery
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
@@ -174,7 +175,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
      * */
     open fun hasAnimation(mesh: IMesh): Boolean = false
 
-    open fun defineVertexTransform(shader: Shader, transform: Transform, mesh: IMesh): Boolean {
+    open fun defineVertexTransform(shader: GPUShader, transform: Transform, mesh: IMesh): Boolean {
         return false
     }
 

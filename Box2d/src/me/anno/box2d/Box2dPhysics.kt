@@ -55,6 +55,8 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
     init {
         Settings.maxTranslation = 1e6f
         Settings.maxTranslationSquared = sq(Settings.maxTranslation)
+        // to do add contact listener to world to receive all contact events for things like damage detection
+        // we would need some kind of component/interface to receive them then
     }
 
     override fun updateGravity() {
@@ -167,6 +169,7 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
         if (rigidBody is DynamicBody2d) {
             body.isSleepingAllowed = !rigidBody.alwaysActive
         }
+        body.userData = rigidBody // used for GhostBody2d.overlappingBodies
 
         val isSensor = rigidBody is GhostBody2d
         for (index in colliders.indices) {

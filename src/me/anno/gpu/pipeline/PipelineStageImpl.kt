@@ -171,14 +171,14 @@ class PipelineStageImpl(
 
         private var lastTransform: Transform? = null
         private var lastMesh: IMesh? = null
-        private var lastShader: Shader? = null
+        private var lastShader: GPUShader? = null
         private var lastComp: Component? = null
 
         private fun Any?.getClass(): KClass<*>? {
             return if (this == null) null else this::class
         }
 
-        fun bindSkeletalUniforms(transform: Transform, shader: Shader, mesh: IMesh, renderer: Component) {
+        fun bindSkeletalUniforms(transform: Transform, shader: GPUShader, mesh: IMesh, renderer: Component) {
             if (lastTransform !== transform ||
                 lastMesh !== mesh ||
                 lastShader !== shader ||
@@ -196,7 +196,7 @@ class PipelineStageImpl(
         }
 
         fun bindUtilityUniforms(
-            shader: Shader, material: Material, mesh: IMesh,
+            shader: GPUShader, material: Material, mesh: IMesh,
             renderer: Component
         ) {
             shader.v4f("tint", 1f)

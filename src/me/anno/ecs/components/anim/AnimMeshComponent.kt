@@ -25,7 +25,7 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers.simpleRenderer
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.texture.ITexture2D
 import me.anno.image.thumbs.AssetThumbnails
 import me.anno.io.files.InvalidRef
@@ -73,7 +73,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
     }
 
     open fun onAnimFinished(anim: AnimationState) {
-        val instance = AnimationCache.getEntry(anim.source).waitFor()
+        val instance = AnimationCache.getEntry(anim.source).value
         if (instance != null) {
             val duration = instance.duration
             anim.progress = anim.repeat[anim.progress, duration]
@@ -95,21 +95,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         return skeleton != null && animations.isNotEmpty()
     }
 
-    fun addState(state: AnimationState) {
-        synchronized(this) {
-            val animations = animations
-            if (animations is MutableList) {
-                animations.add(state)
-            } else {
-                val newList = ArrayList<AnimationState>(animations.size + 4)
-                newList.addAll(animations)
-                newList.add(state)
-                this.animations = newList
-            }
-        }
-    }
-
-    override fun defineVertexTransform(shader: Shader, transform: Transform, mesh: IMesh): Boolean {
+    override fun defineVertexTransform(shader: GPUShader, transform: Transform, mesh: IMesh): Boolean {
 
         val skeleton = SkeletonCache.getEntry(mesh.skeleton).waitFor()
         if (skeleton == null) {
@@ -371,7 +357,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             }
         }
 
-        fun upload(shader: Shader, location: Int, matrices: List<Matrix4x3f>) {
+        fun upload(shader: GPUShader, location: Int, matrices: List<Matrix4x3f>) {
             val boneCount = min(matrices.size, BoneData.maxBones)
             val buffer = BoneData.matrixBuffer
             buffer.limit(BoneData.matrixSize * boneCount)

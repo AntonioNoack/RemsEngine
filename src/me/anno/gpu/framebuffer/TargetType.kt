@@ -13,12 +13,14 @@ import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 import org.lwjgl.opengl.GL46C.GL_R16
 import org.lwjgl.opengl.GL46C.GL_R16F
 import org.lwjgl.opengl.GL46C.GL_R32F
+import org.lwjgl.opengl.GL46C.GL_R32UI
 import org.lwjgl.opengl.GL46C.GL_R8
 import org.lwjgl.opengl.GL46C.GL_RED
 import org.lwjgl.opengl.GL46C.GL_RG
 import org.lwjgl.opengl.GL46C.GL_RG16
 import org.lwjgl.opengl.GL46C.GL_RG16F
 import org.lwjgl.opengl.GL46C.GL_RG32F
+import org.lwjgl.opengl.GL46C.GL_RG32UI
 import org.lwjgl.opengl.GL46C.GL_RG8
 import org.lwjgl.opengl.GL46C.GL_RGB
 import org.lwjgl.opengl.GL46C.GL_RGB32F
@@ -26,6 +28,7 @@ import org.lwjgl.opengl.GL46C.GL_RGBA
 import org.lwjgl.opengl.GL46C.GL_RGBA16
 import org.lwjgl.opengl.GL46C.GL_RGBA16F
 import org.lwjgl.opengl.GL46C.GL_RGBA32F
+import org.lwjgl.opengl.GL46C.GL_RGBA32UI
 import org.lwjgl.opengl.GL46C.GL_RGBA8
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
@@ -101,5 +104,23 @@ class TargetType(
         val UInt16x4 = if (GFXFeatures.isOpenGLES) Float16x3
         else TargetType("u16x4", GL_RGBA16, GL_RGBA, GL_UNSIGNED_SHORT, 8, 4, false)
         val UInt16xI = listOf(UInt16x1, UInt16x2, UInt16x4, UInt16x4)
+
+        const val WARN_INTEGER_FORMAT =
+            "If you use this for textures, they must be integer textures, which are much less supported (Desktop only)! E.g., linear filtering isn't supported."
+
+        @Deprecated(WARN_INTEGER_FORMAT)
+        val UInt32x1 = if (GFXFeatures.isOpenGLES) Float16x1
+        else TargetType("u16x1", GL_R32UI, GL_RED, GL_UNSIGNED_INT, 4, 1, false)
+
+        @Deprecated(WARN_INTEGER_FORMAT)
+        val UInt32x2 = if (GFXFeatures.isOpenGLES) Float16x2
+        else TargetType("u16x2", GL_RG32UI, GL_RG, GL_UNSIGNED_SHORT, 8, 2, false)
+
+        @Deprecated(WARN_INTEGER_FORMAT)
+        val UInt32x4 = if (GFXFeatures.isOpenGLES) Float16x3
+        else TargetType("u16x4", GL_RGBA32UI, GL_RGBA, GL_UNSIGNED_SHORT, 16, 4, false)
+
+        @Deprecated(WARN_INTEGER_FORMAT)
+        val UInt32xI = listOf(UInt16x1, UInt16x2, UInt16x4, UInt16x4)
     }
 }

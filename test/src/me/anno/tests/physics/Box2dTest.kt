@@ -3,6 +3,7 @@ package me.anno.tests.physics
 import me.anno.box2d.Box2dPhysics
 import me.anno.box2d.CircleCollider
 import me.anno.box2d.DynamicBody2d
+import me.anno.box2d.GhostBody2d
 import me.anno.box2d.RectCollider
 import me.anno.box2d.StaticBody2d
 import me.anno.ecs.Component
@@ -11,6 +12,7 @@ import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityUtils.setContains
 import me.anno.ecs.systems.OnPhysicsUpdate
 import me.anno.ecs.systems.Systems
+import me.anno.ecs.systems.Systems.registerSystem
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.TAUf
@@ -460,4 +462,35 @@ class Box2dTest {
     // what happens when one collider has a !=0-density, and another has a =0-density within the same rigidbody?
     // iff any shape has mass, the body is dynamic
 
+    /**
+     * create a falling objects
+     * create a ghost
+     * see if they collide
+     * */
+    @Test
+    fun testGhostBody() {
+
+        val physics = Box2dPhysics
+        registerSystem(physics)
+
+        val world = Entity()
+        Entity("Falling", world)
+            .setPosition(0.0, 5.0, 0.0)
+            .add(DynamicBody2d())
+            .add(CircleCollider())
+
+        val ghost = GhostBody2d()
+        Entity(world)
+            .add(ghost)
+            .add(CircleCollider())
+
+        Systems.world = world
+
+        for (i in 0 until 10) {
+            physics.step((1.0 / 5.0 * SECONDS_TO_NANOS).toLong(), false)
+            if (i == 0 || i == 9) assertTrue(ghost.overlappingBodies.isEmpty())
+            if (i == 5) assertEquals(1, ghost.overlappingBodies.size)
+            // println(ghost.numOverlaps)
+        }
+    }
 }
