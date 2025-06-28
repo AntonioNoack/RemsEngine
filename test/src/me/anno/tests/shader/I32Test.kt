@@ -45,6 +45,8 @@ class TestI32Stack(val space: Float) : InstancedI32Stack(
 
 /**
  * Shows how to use an i32-MeshSpawner
+ *
+ * todo bug: this has become invisible
  * */
 fun main() {
 

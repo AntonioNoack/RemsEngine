@@ -1,14 +1,16 @@
 package me.anno.fonts.keys
 
 import me.anno.fonts.Font
-import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
+import me.anno.fonts.FontManager.getFontSizeIndex
+import me.anno.fonts.FontManager.limitHeight
+import me.anno.fonts.FontManager.limitWidth
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.contentHashCode
-import kotlin.math.min
+import me.anno.utils.types.Strings.isBlank2
 
 data class TextCacheKey(val text: CharSequence, val fontName: String, val properties: Int, val limits: Int) {
 
@@ -60,23 +62,40 @@ data class TextCacheKey(val text: CharSequence, val fontName: String, val proper
             return fontSizeIndex * 8 + isItalic.toInt(4) + isBold.toInt(2) + grayscale.toInt(1)
         }
 
-        fun getKey(
+        fun getTextCacheKey(
             font: Font, text: CharSequence,
             widthLimit: Int, heightLimit: Int,
             grayscale: Boolean
         ): TextCacheKey {
-
             val fontSizeIndex = font.sizeIndex
             val properties = getProperties(fontSizeIndex, font, grayscale)
+            return getTextCacheKey(font, text, widthLimit, heightLimit, properties)
+        }
 
-            val wl = if (widthLimit < 0) GFX.maxTextureSize else min(widthLimit, GFX.maxTextureSize)
-            val hl = if (heightLimit < 0) GFX.maxTextureSize else min(heightLimit, GFX.maxTextureSize)
+        fun getTextCacheKey(
+            font: Font, text: CharSequence,
+            widthLimit: Int, heightLimit: Int,
+            properties: Int
+        ): TextCacheKey {
 
-            val wl2 = FontManager.limitWidth(font, text, wl, hl)
-            val hl2 = FontManager.limitHeight(font, text, wl2, hl)
+            val wl = limitWidth(font, text, widthLimit, heightLimit)
+            val hl = limitHeight(font, text, wl, heightLimit)
 
             val fontName = font.name
-            return TextCacheKey(text, fontName, properties, wl2, hl2)
+            return TextCacheKey(text, fontName, properties, wl, hl)
+        }
+
+        fun getTextCacheKey(
+            font: Font, text: String,
+            widthLimit: Int, heightLimit: Int
+        ): TextCacheKey? {
+
+            if (text.isBlank2()) return null
+            val fontSize = font.size
+
+            val fontSizeIndex = getFontSizeIndex(fontSize)
+            val properties = fontSizeIndex * 8 + font.isItalic.toInt(4) + font.isBold.toInt(2)
+            return getTextCacheKey(font, text, widthLimit, heightLimit, properties)
         }
     }
 }

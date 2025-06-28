@@ -63,11 +63,11 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
     }
 
     private val material = Material()
-    private var key = TextCacheKey.getKey(font, text, widthLimit.toIntOr(-1), -1, true)
+    private var key = TextCacheKey.getTextCacheKey(font, text, widthLimit.toIntOr(-1), -1, true)
 
     override fun onTextOrFontChange() {
         super.onTextOrFontChange()
-        key = TextCacheKey.getKey(font, text, widthLimit.toIntOr(-1), -1, true)
+        key = TextCacheKey.getTextCacheKey(font, text, widthLimit.toIntOr(-1), -1, true)
         material.diffuseMap = InvalidRef // invalidate texture
     }
 

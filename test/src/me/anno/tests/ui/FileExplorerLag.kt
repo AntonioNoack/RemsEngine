@@ -12,7 +12,7 @@ fun main() {
     val format = "Grand Theft Auto V XXXX-XX-XX XX-XX-XX.mp4"
     val folder = InnerFolder(desktop.getChild("tmp"))
     val image = IntImage(2, 2, intArrayOf(1, 2, -1, 0), false)
-    for (i in 0 until 10_000) {
+    repeat(10_000) {
         folder.createImageChild(
             format
                 .map {

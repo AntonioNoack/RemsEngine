@@ -7,6 +7,7 @@ import me.anno.fonts.FontStats.getTextGenerator
 import me.anno.fonts.FontStats.queryInstalledFonts
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
+import me.anno.fonts.keys.TextCacheKey.Companion.getTextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.ITexture2D
@@ -14,7 +15,6 @@ import me.anno.gpu.texture.Texture2DArray
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.hpc.ProcessingQueue
-import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.exp
@@ -47,13 +47,11 @@ object FontManager {
         font: Font, text: CharSequence,
         widthLimit: Int, heightLimit: Int
     ): Int {
-        return if (widthLimit < 0 || widthLimit >= GFX.maxTextureSize || font.size < 1f) GFX.maxTextureSize
-        else {
-            val size0 = getSize(font, text, GFX.maxTextureSize, heightLimit).waitFor() ?: 0
-            val w = GFXx2D.getSizeX(size0)
-            if (w <= widthLimit) return size0
+        return if (widthLimit < 0 || widthLimit >= GFX.maxTextureSize || font.size < 1f) {
+            GFX.maxTextureSize
+        } else {
             val step = max(1, font.size.toInt())
-            min(w, (widthLimit + step / 2) / step * step)
+            ceilDiv(widthLimit, step) * step
         }
     }
 
@@ -64,10 +62,10 @@ object FontManager {
         return max(ceilDiv(heightLimit, effLineHeight), 0) * effLineHeight
     }
 
-    fun limitHeight(font: Font, text: CharSequence, widthLimit2: Int, heightLimit: Int): Int {
+    fun limitHeight(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
         return if (heightLimit < 0 || heightLimit >= GFX.maxTextureSize) GFX.maxTextureSize
         else {
-            val size0 = getSize(font, text, widthLimit2, GFX.maxTextureSize)
+            val size0 = getSize(font, text, widthLimit, GFX.maxTextureSize)
                 .waitFor() ?: font.sizeInt
             val h = GFXx2D.getSizeY(size0)
             limitHeight(font, min(h, heightLimit))
@@ -87,8 +85,8 @@ object FontManager {
 
     fun getSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): AsyncCacheData<Int> {
         if (text.isEmpty()) return font.emptySize
-        val key = TextCacheKey.getKey(font, text, widthLimit, heightLimit, false)
-        val key1 = TextCacheKey.getKey(font, text, widthLimit, heightLimit, false)
+        val key = getTextCacheKey(font, text, widthLimit, heightLimit, false)
+        val key1 = getTextCacheKey(font, text, widthLimit, heightLimit, false)
         assertEquals(key, key1)
         return getSize(key)
     }
@@ -99,29 +97,6 @@ object FontManager {
 
     fun getLineHeight(font: Font): Float {
         return getFont(font).getLineHeight()
-    }
-
-    fun getTextCacheKey(
-        font: Font,
-        text: String,
-        widthLimit: Int,
-        heightLimit: Int
-    ): TextCacheKey? {
-
-        if (text.isBlank2()) return null
-        val fontSize = font.size
-
-        val fontSizeIndex = getFontSizeIndex(fontSize)
-        val sub = fontSizeIndex * 8 + font.isItalic.toInt(4) + font.isBold.toInt(2)
-
-        val wl = if (widthLimit < 0) GFX.maxTextureSize else min(widthLimit, GFX.maxTextureSize)
-        val hl = if (heightLimit < 0) GFX.maxTextureSize else min(heightLimit, GFX.maxTextureSize)
-
-        val wl2 = limitWidth(font, text, wl, hl)
-        val hl2 = limitHeight(font, text, wl2, hl)
-
-        val fontName = font.name
-        return TextCacheKey(text, fontName, sub, wl2, hl2)
     }
 
     fun getTexture(font: Font, text: String, widthLimit: Int, heightLimit: Int): AsyncCacheData<ITexture2D> {
