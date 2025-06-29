@@ -1,21 +1,21 @@
 package me.anno.ecs.components.mesh.utils
 
+import me.anno.Time
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.ecs.components.mesh.utils.IndexRemover.removeIndices
 import me.anno.gpu.buffer.DrawMode
 import me.anno.maths.Maths
+import me.anno.mesh.MeshUtils.numPoints
+import me.anno.mesh.MeshUtils.numTriangles
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Triangles
 import org.joml.Vector3f
 import kotlin.math.abs
-import kotlin.math.cos
 import kotlin.math.min
-import kotlin.math.sin
-import kotlin.math.sqrt
 
 // todo some blender meshes have broken normals
 object NormalCalculator {
@@ -189,127 +189,87 @@ object NormalCalculator {
 
     /**
      * @param mesh the mesh, where the normals shall be recalculated; indices should be null, but it might work anyway
-     * @param maxAllowedAngle maximum allowed angle for smoothing, in radians, typically 15°-45°
-     * @param largeLength all triangles, which have a larger perimeter than largeLength, will be ignored
-     * @param normalScale internal parameter for a deviation; shall be ~MinVertexDistance/3, or if unknown, ~MeshScale/100; must not be too small
-     * */
-    @JvmStatic
-    fun calculateSmoothNormals(mesh: Mesh, maxAllowedAngle: Float, largeLength: Float, normalScale: Float) {
-        val llSq = largeLength * largeLength
-        val maxD = Maths.length(cos(maxAllowedAngle) - 1f, sin(maxAllowedAngle))
-        calculateSmoothNormals(mesh, normalScale) { a, b, c ->
-            if (a.distanceSquared(b) + b.distanceSquared(c) + c.distanceSquared(a) < llSq) maxD
-            else normalScale
-        }
-    }
-
-    /**
-     * @param mesh the mesh, where the normals shall be recalculated; indices should be null, but it might work anyway
-     * @param normalScale internal parameter for a deviation; shall be ~MinVertexDistance/3, or if unknown, ~MeshScale/100; must not be too small
-     * @param getTriangleSmoothness how smooth the triangle shall be; 0 = flat shaded, 1 = fully smooth (no matter the angle up to 180°), 2 = fully smooth, any angle
      * */
     @JvmStatic
     fun calculateSmoothNormals(
-        mesh: Mesh, normalScale: Float,
-        getTriangleSmoothness: (Vector3f, Vector3f, Vector3f) -> Float
+        mesh: Mesh, maxCosineAngle: Float,
+        minVertexDistance: Float
     ) {
+
         // merge points with same normals
         // extend by normal, and bucket size relative to that size
-        val map = NormalHelperTree<Vector3f>()
+        val map = NormalHelperTree(mesh.numPoints / 3, mesh.getBounds(), minVertexDistance)
         val normal = Vector3f()
-        val min = Vector3f()
-        val max = Vector3f()
-        mesh.forEachTriangle { a, b, c ->
-            Triangles.subCross(a, b, c, normal)
-            val maxC = getTriangleSmoothness(a, b, c)
-            if (maxC > 0f) {
-                val maxD = maxC * normalScale
-                normal.safeNormalize(normalScale)
-                add(map, min, max, a, normal, maxD)
-                add(map, min, max, b, normal, maxD)
-                add(map, min, max, c, normal, maxD)
-            }
-            false
-        }
-        val positions = mesh.positions!!
-        val normals = mesh.normals.resize(positions.size)
-        mesh.normals = normals
+
         val a = Vector3f()
         val b = Vector3f()
         val c = Vector3f()
+
+        mesh.forEachTriangle(a, b, c) { a, b, c ->
+            Triangles.subCross(a, b, c, normal).safeNormalize()
+            map.put(a, normal)
+            map.put(b, normal)
+            map.put(c, normal)
+            false
+        }
+
+        val positions = mesh.positions!!
+        val normals = mesh.normals.resize(positions.size)
+        mesh.normals = normals
+
+        // query all values
+        normals.fill(0f)
+
         val tmp = Vector3f()
-        for (i in 0 until positions.size - 8) {
-            a.set(positions, i)
-            b.set(positions, i + 3)
-            c.set(positions, i + 6)
-            Triangles.subCross(a, b, c, normal)
-            val maxC = getTriangleSmoothness(a, b, c)
-            if (maxC > 0f) {
-                val maxD = maxC * normalScale
-                normal.safeNormalize(normalScale)
-                // query normal at each point
-                get(map, min, max, a.add(normal), maxD, tmp).get(normals, i)
-                get(map, min, max, b.add(normal), maxD, tmp).get(normals, i + 3)
-                get(map, min, max, c.add(normal), maxD, tmp).get(normals, i + 6)
-            } else {
-                // disable smoothing on large triangles
-                normal.normalize()
-                normal.get(normals, i)
-                normal.get(normals, i + 3)
-                normal.get(normals, i + 6)
-            }
+        mesh.forEachTriangleIndex { ai, bi, ci ->
+            a.set(positions, ai * 3)
+            b.set(positions, bi * 3)
+            c.set(positions, ci * 3)
+            Triangles.subCross(a, b, c, normal).safeNormalize()
+            get(map, a, normal, maxCosineAngle, tmp)
+                .addInto(normals, ai * 3)
+            get(map, b, normal, maxCosineAngle, tmp)
+                .addInto(normals, bi * 3)
+            get(map, c, normal, maxCosineAngle, tmp)
+                .addInto(normals, ci * 3)
+            false
+        }
+
+        // normalize all values
+        forLoopSafely(positions.size, 3) { i ->
+            normal.set(normals, i)
+                .safeNormalize()
+                .get(normals, i)
         }
     }
 
-    @JvmStatic
-    fun add(
-        map: NormalHelperTree<Vector3f>,
-        min: Vector3f, max: Vector3f,
-        a: Vector3f, normal: Vector3f, maxD: Float
-    ) {
-        // todo smoothing isn't working correctly on 50747 yet
-        a.add(normal)
-        val maxD2 = maxD * maxD
-        val maxDV2 = 1e-5f * (a.lengthSquared() + 1f)
-        val maxDV1 = sqrt(maxDV2)
-        min.set(a).sub(maxDV1, maxDV1, maxDV1)
-        max.set(a).add(maxDV1, maxDV1, maxDV1)
-        if (null == map.query(min, max) { k ->
-                // identical
-                val found = k.first.distanceSquared(a) <= maxDV2 &&
-                        Maths.sq(k.second.dot(normal)) > 0.99f * (normal.lengthSquared() * k.second.lengthSquared())
-                if (found) k.second.add(normal)
-                found
-            }) {
-            // not found -> add to map
-            map.add(Pair(Vector3f(a), Vector3f(normal)))
-            min.set(a).sub(maxD, maxD, maxD)
-            max.set(a).add(maxD, maxD, maxD)
-            // and add to all neighbors
-            map.query(min, max) { k ->
-                val foundIt = k.first.distanceSquared(a) <= maxD2
-                if (foundIt) k.second.add(normal)
-                false
-            }
-        }
+    private fun Vector3f.addInto(v: FloatArray, i: Int) {
+        v[i] += x
+        v[i + 1] += y
+        v[i + 2] += z
     }
 
     @JvmStatic
-    fun get(
-        map: NormalHelperTree<Vector3f>,
-        min: Vector3f, max: Vector3f,
-        a: Vector3f, maxD: Float,
-        dst: Vector3f
+    private fun get(
+        map: NormalHelperTree, position: Vector3f, normal: Vector3f,
+        maxCosineAngle: Float, dst: Vector3f,
     ): Vector3f {
-        min.set(a).sub(maxD, maxD, maxD)
-        max.set(a).add(maxD, maxD, maxD)
-        val maxD2 = maxD * maxD
-        map.query(min, max) { k ->
-            val foundIt = k.first.distanceSquared(a) <= maxD2
-            if (foundIt) dst.set(k.second)
-            foundIt
+
+        val normals = map.get(position)
+            ?: return dst.set(normal)
+
+        dst.set(0f)
+        forLoopSafely(normals.size, 3) { i ->
+            val nx = normals[i]
+            val ny = normals[i + 1]
+            val nz = normals[i + 2]
+            if (normal.dot(nx, ny, nz) >= maxCosineAngle) {
+                dst.add(nx, ny, nz)
+            }
         }
-        return dst.normalize()
+
+        if (normals.size > 3) dst.safeNormalize()
+        return dst
     }
 
     @JvmStatic

@@ -36,7 +36,7 @@ class InnerZipFile(
 
     companion object {
 
-        fun createFolderEntryV2(
+        private fun createFolderEntryV2(
             zipFileLocation: String,
             entry: String,
             registry: HashMap<String, InnerFile>
@@ -49,7 +49,7 @@ class InnerZipFile(
             }
         }
 
-        fun createEntryV2(
+        private fun createEntryV2(
             zipFile: FileReference,
             entry: ZipArchiveEntry,
             zis: ZipFile,
@@ -73,7 +73,7 @@ class InnerZipFile(
             return file
         }
 
-        fun zipFileFromFile(file: FileReference, callback: Callback<ZipFile>) {
+        private fun zipFileFromFile(file: FileReference, callback: Callback<ZipFile>) {
             val file = file.resolved()
             if (file is FileFileRef) {
                 callback.ok(ZipFile(file.file))
@@ -85,13 +85,12 @@ class InnerZipFile(
             }
         }
 
-        fun zipFileFromBytes(bytes: ByteArray, callback: Callback<ZipFile>) {
+        private fun zipFileFromBytes(bytes: ByteArray, callback: Callback<ZipFile>) {
             callback.ok(ZipFile(SeekableInMemoryByteChannel(bytes)))
         }
 
         fun createZipRegistryV2(
-            file0: FileReference,
-            bytes: ByteArray,
+            file0: FileReference, bytes: ByteArray,
             callback: Callback<InnerFolder>
         ) = createZipRegistryV3(file0, callback) { zipFileFromBytes(bytes, it) }
 
@@ -100,11 +99,15 @@ class InnerZipFile(
             callback: Callback<InnerFolder>
         ) = createZipRegistryV3(file0, callback) { zipFileFromFile(file0, it) }
 
-        fun createZipRegistryV3(
+        private fun createZipRegistryV3(
             file0: FileReference,
             callback: Callback<InnerFolder>,
             getStream: (Callback<ZipFile>) -> Unit
         ) {
+            if (file0 is FileFileRef) {
+                return InnerZipFileV2.createZipFile(file0, callback)
+            }
+
             val (file, registry) = createMainFolder(file0)
             var hasReadEntry = false
             getStream { zis, exc ->

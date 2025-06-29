@@ -176,14 +176,12 @@ object MeshUtils {
         else numPrimitivesByType(size, drawMode).toLong()
     }
 
-    fun Mesh.countPoints(): Int {
-        return positions!!.size / 3
-    }
+    val Mesh.numPoints: Int
+        get() = positions!!.size / 3
 
-    fun Mesh.countTriangles(): Long {
-        return when (drawMode) {
+    val Mesh.numTriangles: Long
+        get() = when (drawMode) {
             DrawMode.POINTS, DrawMode.LINES, DrawMode.LINE_STRIP -> 0
-            else -> countPrimitives()
+            DrawMode.TRIANGLES, DrawMode.TRIANGLE_STRIP -> countPrimitives()
         }
-    }
 }

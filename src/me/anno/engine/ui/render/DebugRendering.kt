@@ -300,13 +300,14 @@ object DebugRendering {
     }
 
     private fun drawDebugRays(view: RenderView) {
+        val cameraPosition = RenderState.cameraPosition
         val rays = DebugShapes.debugRays
         for (i in rays.indices) {
             val ray = rays[i]
             val pos = ray.start
             val dir = ray.direction
             val color = ray.color
-            val length = view.radius * 100.0
+            val length = 0.2 * pos.distance(cameraPosition)
             drawDebugPoint(view, pos, color)
             LineBuffer.putRelativeVector(
                 pos, dir, length,
