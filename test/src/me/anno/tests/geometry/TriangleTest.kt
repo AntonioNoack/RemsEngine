@@ -313,7 +313,7 @@ class TriangleTest {
             if (hit) hits++
             val distanceLimit = if (testTooFar) distance * 0.99f else 1e3f
             val expectedDist = if (hit) distance else Float.POSITIVE_INFINITY
-            val actualDist = rayTriangleIntersection(start, dir, a, b, c, distanceLimit, dstNormal, dstPosition, dstUVW)
+            val actualDist = rayTriangleIntersection(start, dir, a, b, c, distanceLimit, dstPosition, dstNormal, dstUVW)
             assertEquals(min(expectedDist, 1e38f), min(actualDist, 1e38f), 1e-3f)
             if (hit) assertEquals(uvw, dstUVW, 1e-3)
             else assertEquals(dstUVW0, dstUVW) // must not be changed, if the ray doesn't hit
@@ -343,7 +343,7 @@ class TriangleTest {
             if (hit) hits++
             val distanceLimit = if (testTooFar) distance * 0.99 else 1e3
             val expectedDist = if (hit) distance else Double.POSITIVE_INFINITY
-            val actualDist = rayTriangleIntersection(start, dir, a, b, c, distanceLimit, dstNormal, dstPosition, dstUVW)
+            val actualDist = rayTriangleIntersection(start, dir, a, b, c, distanceLimit, dstPosition, dstNormal, dstUVW)
             assertEquals(min(expectedDist, 1e300), min(actualDist, 1e300), 1e-12)
             if (hit) assertEquals(uvw, dstUVW, 1e-11)
             else assertEquals(dstUVW0, dstUVW) // must not be changed, if the ray doesn't hit
@@ -373,7 +373,7 @@ class TriangleTest {
             val distanceLimit = 1e3f
             val expectedDist = if (hit) distance else Float.POSITIVE_INFINITY
             val actualDist =
-                rayTriangleIntersectionFront(start, dir, a, b, c, distanceLimit, dstNormal, dstPosition, dstUVW)
+                rayTriangleIntersectionFront(start, dir, a, b, c, distanceLimit, dstPosition, dstNormal, dstUVW)
             assertEquals(min(expectedDist, 1e38f), min(actualDist, 1e38f), 1e-3f)
             if (hit) assertEquals(uvw, dstUVW, 1e-3)
             else assertEquals(dstUVW0, dstUVW) // must not be changed, if the ray doesn't hit
@@ -403,7 +403,7 @@ class TriangleTest {
             val distanceLimit = 1e3
             val expectedDist = if (hit) distance else Double.POSITIVE_INFINITY
             val actualDist =
-                rayTriangleIntersectionFront(start, dir, a, b, c, distanceLimit, dstNormal, dstPosition, dstUVW)
+                rayTriangleIntersectionFront(start, dir, a, b, c, distanceLimit, dstPosition, dstNormal, dstUVW)
             assertEquals(min(expectedDist, 1e300), min(actualDist, 1e300), 1e-12)
             if (hit) assertEquals(uvw, dstUVW, 1e-11)
             else assertEquals(dstUVW0, dstUVW) // must not be changed, if the ray doesn't hit

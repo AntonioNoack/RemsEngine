@@ -9,7 +9,7 @@ import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.fonts.keys.TextCacheKey.Companion.getTextCacheKey
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.maths.Maths.ceilDiv
@@ -43,10 +43,7 @@ object FontManager {
     fun getFontSizeIndex(fontSize: Float): Int = max(0, round(100.0 * ln(fontSize)).toInt())
     fun getAvgFontSize(fontSizeIndex: Int): Float = exp(fontSizeIndex * 0.01f)
 
-    fun limitWidth(
-        font: Font, text: CharSequence,
-        widthLimit: Int, heightLimit: Int
-    ): Int {
+    fun limitWidth(font: Font, widthLimit: Int): Int {
         return if (widthLimit < 0 || widthLimit >= GFX.maxTextureSize || font.size < 1f) {
             GFX.maxTextureSize
         } else {
@@ -55,7 +52,7 @@ object FontManager {
         }
     }
 
-    fun limitHeight(font: Font, heightLimit: Int): Int {
+    private fun roundHeightLimitToNumberOfLines(font: Font, heightLimit: Int): Int {
         val fontHeight = font.size // roughly, not exact!
         val spaceBetweenLines = spaceBetweenLines(fontHeight)
         val effLineHeight = font.sizeInt + spaceBetweenLines
@@ -65,10 +62,11 @@ object FontManager {
     fun limitHeight(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
         return if (heightLimit < 0 || heightLimit >= GFX.maxTextureSize) GFX.maxTextureSize
         else {
-            val size0 = getSize(font, text, widthLimit, GFX.maxTextureSize)
-                .waitFor() ?: font.sizeInt
-            val h = GFXx2D.getSizeY(size0)
-            limitHeight(font, min(h, heightLimit))
+            val size = getSize(font, text, widthLimit, GFX.maxTextureSize).value
+            val heightLimit2 =
+                if (size != null) min(getSizeY(size), heightLimit) // doesn't really need rounding...
+                else heightLimit
+            roundHeightLimitToNumberOfLines(font, heightLimit2)
         }
     }
 
@@ -166,9 +164,7 @@ object FontManager {
 
     private fun getFont(name: String, fontSizeIndex: Int, bold: Boolean, italic: Boolean): TextGenerator {
         val key = FontKey(name, fontSizeIndex, bold, italic)
-        return fonts.getOrPut(key) {
-            getTextGenerator(key)
-        }
+        return fonts.getOrPut(key) { getTextGenerator(key) }
     }
 
     fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToIntOr()

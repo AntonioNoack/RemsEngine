@@ -21,8 +21,8 @@ object Triangles {
         origin: Vector3f, direction: Vector3f,
         a: Vector3f, b: Vector3f, c: Vector3f,
         maxDistance: Float,
-        dstNormal: Vector3f,
         dstPosition: Vector3f,
+        dstNormal: Vector3f,
         dstUVW: Vector3f? = null,
     ): Float {
         val n = subCross(a, b, c, dstNormal)
@@ -46,8 +46,8 @@ object Triangles {
         origin: Vector3f, direction: Vector3f,
         a: Vector3f, b: Vector3f, c: Vector3f,
         maxDistance: Float,
-        dstNormal: Vector3f, // always set
         dstPosition: Vector3f,
+        dstNormal: Vector3f, // always set
         dstUVW: Vector3f? = null,
     ): Float {
         val n = subCross(a, b, c, dstNormal)
@@ -68,8 +68,8 @@ object Triangles {
         origin: Vector3d, direction: Vector3d,
         a: Vector3d, b: Vector3d, c: Vector3d,
         maxDistance: Double,
-        dstNormal: Vector3d,
         dstPosition: Vector3d,
+        dstNormal: Vector3d,
         dstUVW: Vector3d? = null,
     ): Double {
         val n = subCross(a, b, c, dstNormal)
@@ -79,38 +79,6 @@ object Triangles {
             origin, direction, a, b, c, maxDistance,
             n, ndd, dstPosition, dstUVW
         )
-    }
-
-    @JvmStatic
-    fun rayTriangleIntersection2(
-        origin: Vector3f, direction: Vector3f,
-        a: Vector3f, b: Vector3f, c: Vector3f,
-        maxDistance: Float, n: Vector3f, ndd: Float,
-        dstPosition: Vector3f, dstUVW: Vector3f?
-    ): Float {
-        val dist = n.dot(a)
-        val distance = (dist - n.dot(origin)) / ndd
-        if (distance < 0f || distance >= maxDistance) return Float.POSITIVE_INFINITY
-        direction.mulAdd(distance, origin, dstPosition) // dstPosition = dx, p0=a, p1=b, p2=c
-
-        val hit = calculateUVW(a, b, c, dstPosition, dstUVW)
-        return if (hit) distance else Float.POSITIVE_INFINITY
-    }
-
-    @JvmStatic
-    fun rayTriangleIntersection2(
-        origin: Vector3d, direction: Vector3d,
-        a: Vector3d, b: Vector3d, c: Vector3d,
-        maxDistance: Double, n: Vector3d, ndd: Double,
-        dstPosition: Vector3d, dstUVW: Vector3d?
-    ): Double {
-        val dist = n.dot(a)
-        val distance = (dist - n.dot(origin)) / ndd
-        if (distance < 0.0 || distance >= maxDistance) return Double.POSITIVE_INFINITY
-        direction.mulAdd(distance, origin, dstPosition) // dstPosition = dx, p0=a, p1=b, p2=c
-
-        val hit = calculateUVW(a, b, c, dstPosition, dstUVW)
-        return if (hit) distance else Double.POSITIVE_INFINITY
     }
 
     // https://courses.cs.washington.edu/courses/csep557/10au/lectures/triangle_intersection.pdf
@@ -182,6 +150,38 @@ object Triangles {
         val distance = (dist - n.dot(ox, oy, oz)) / n.dot(direction) // distance to triangle
         if (distance < 0.0 || distance >= maxDistance) return Double.POSITIVE_INFINITY
         dstPosition.set(direction).mul(distance).add(ox, oy, oz)
+
+        val hit = calculateUVW(a, b, c, dstPosition, dstUVW)
+        return if (hit) distance else Double.POSITIVE_INFINITY
+    }
+
+    @JvmStatic
+    private fun rayTriangleIntersection2(
+        origin: Vector3f, direction: Vector3f,
+        a: Vector3f, b: Vector3f, c: Vector3f,
+        maxDistance: Float, normal: Vector3f, ndd: Float,
+        dstPosition: Vector3f, dstUVW: Vector3f?
+    ): Float {
+        val dist = normal.dot(a)
+        val distance = (dist - normal.dot(origin)) / ndd
+        if (distance < 0f || distance >= maxDistance) return Float.POSITIVE_INFINITY
+        direction.mulAdd(distance, origin, dstPosition) // dstPosition = dx, p0=a, p1=b, p2=c
+
+        val hit = calculateUVW(a, b, c, dstPosition, dstUVW)
+        return if (hit) distance else Float.POSITIVE_INFINITY
+    }
+
+    @JvmStatic
+    private fun rayTriangleIntersection2(
+        origin: Vector3d, direction: Vector3d,
+        a: Vector3d, b: Vector3d, c: Vector3d,
+        maxDistance: Double, normal: Vector3d, ndd: Double,
+        dstPosition: Vector3d, dstUVW: Vector3d?
+    ): Double {
+        val dist = normal.dot(a)
+        val distance = (dist - normal.dot(origin)) / ndd
+        if (distance < 0.0 || distance >= maxDistance) return Double.POSITIVE_INFINITY
+        direction.mulAdd(distance, origin, dstPosition) // dstPosition = dx, p0=a, p1=b, p2=c
 
         val hit = calculateUVW(a, b, c, dstPosition, dstUVW)
         return if (hit) distance else Double.POSITIVE_INFINITY
@@ -440,10 +440,10 @@ object Triangles {
         maxDistance: Double,
         allowBackside: Boolean
     ): Boolean {
-        val t0 = JomlPools.vec3d.create()
-        val t1 = JomlPools.vec3d.create()
-        val dist = if (allowBackside) rayTriangleIntersection(origin, direction, a, b, c, maxDistance, t0, t1)
-        else rayTriangleIntersectionFront(origin, direction, a, b, c, maxDistance, t0, t1)
+        val tmp0 = JomlPools.vec3d.create()
+        val tmp1 = JomlPools.vec3d.create()
+        val dist = if (allowBackside) rayTriangleIntersection(origin, direction, a, b, c, maxDistance, tmp0, tmp1)
+        else rayTriangleIntersectionFront(origin, direction, a, b, c, maxDistance, tmp0, tmp1)
         JomlPools.vec3d.sub(2)
         return dist.isFinite()
     }

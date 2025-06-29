@@ -94,8 +94,8 @@ object RaycastMesh {
         val acceptBack = getCullingBack(typeMask, mesh.cullMode)
         val tmp = query.result.tmpVector3ds
         mesh.forEachTriangle(tmp[3], tmp[4], tmp[5]) { a, b, c ->
-            val tmpPos = tmp[0]
-            val tmpNor = tmp[1]
+            val dstPosition = tmp[0]
+            val dstNormal = tmp[1]
             val tmpDir = tmp[2]
             if (globalTransform != null) {
                 globalTransform.transformPosition(a)
@@ -106,15 +106,15 @@ object RaycastMesh {
             val distance = Triangles.rayTriangleIntersection(
                 query.start, tmpDir.set(query.direction), a, b, c,
                 query.radiusAtOrigin, query.radiusPerUnit,
-                maxDistance, tmpPos, tmpNor
+                maxDistance, dstPosition, dstNormal
             )
             val result = query.result
             if (distance < result.distance) {
-                if (if (tmpNor.dot(query.direction) < 0f) acceptFront else acceptBack) {
+                if (if (dstNormal.dot(query.direction) < 0f) acceptFront else acceptBack) {
                     result.distance = distance
-                    result.positionWS.set(tmpPos)
-                    result.geometryNormalWS.set(tmpNor)
-                    result.shadingNormalWS.set(tmpNor)
+                    result.positionWS.set(dstPosition)
+                    result.geometryNormalWS.set(dstNormal)
+                    result.shadingNormalWS.set(dstNormal)
                 }
             }
             false
@@ -244,7 +244,7 @@ object RaycastMesh {
                 // check collision of localStart-localEnd with triangle ABC
                 val localDistance = Triangles.rayTriangleIntersection(
                     start, dir, ai, bi, ci,
-                    bestDistance, localNormalTmp, localHitTmp,
+                    bestDistance, localHitTmp, localNormalTmp,
                 )
                 if (localDistance < bestDistance && localDistance <= maxDistance &&
                     if (localNormalTmp.dot(dir) < 0f) acceptFront else acceptBack

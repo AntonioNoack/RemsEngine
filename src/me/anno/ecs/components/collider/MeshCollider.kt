@@ -94,8 +94,8 @@ open class MeshCollider() : Collider() {
 
         // test whether we intersect any triangle of this mesh
         var bestDistance = Float.POSITIVE_INFINITY
-        val tmpPos = JomlPools.vec3f.create()
-        val tmpNor = JomlPools.vec3f.create()
+        val dstPosition = JomlPools.vec3f.create()
+        val dstNormal = JomlPools.vec3f.create()
 
         val mid = JomlPools.vec3f.create()
         val scaleUp = -0.001f // against small inaccuracies
@@ -110,11 +110,11 @@ open class MeshCollider() : Collider() {
             val localDistance = Triangles.rayTriangleIntersection(
                 query.start, query.direction, a, b, c,
                 query.radiusAtOrigin, query.radiusPerUnit,
-                bestDistance, tmpPos, tmpNor
+                bestDistance, dstPosition, dstNormal
             )
             if (localDistance < bestDistance) {
                 bestDistance = localDistance
-                surfaceNormal?.set(tmpNor)
+                surfaceNormal?.set(dstNormal)
                 anyHit
             } else false
         }

@@ -78,7 +78,7 @@ data class TextCacheKey(val text: CharSequence, val fontName: String, val proper
             properties: Int
         ): TextCacheKey {
 
-            val wl = limitWidth(font, text, widthLimit, heightLimit)
+            val wl = limitWidth(font, widthLimit)
             val hl = limitHeight(font, text, wl, heightLimit)
 
             val fontName = font.name

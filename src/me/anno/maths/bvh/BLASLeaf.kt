@@ -53,7 +53,7 @@ class BLASLeaf(
 
                 val localDistance = rayTriangleIntersectionFront(
                     pos, dir, a, b, c, bestLocalDistance,
-                    localNormalTmp, localHitTmp, barycentrics
+                    localHitTmp, localNormalTmp, barycentrics
                 )
 
                 if (localDistance < bestLocalDistance) {
