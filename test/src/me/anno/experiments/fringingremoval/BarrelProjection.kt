@@ -100,12 +100,14 @@ fun getError(image: Image, channel: Int, polynomial: Polynomial): Int {
                 error += getError(correct(base, corrected, mask))
             }
         }
-        synchronized(Unit) {
+        synchronized(barrelLock) {
             errorSum += error
         }
     }
     return errorSum
 }
+
+private val barrelLock = Any()
 
 fun main() {
 

@@ -5,7 +5,6 @@ import me.anno.io.Streams.writeString
 import me.anno.io.config.ConfigBasics
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_NANOS
-import me.anno.utils.OS
 import me.anno.utils.OSFeatures
 import me.anno.utils.types.Strings.indexOf2
 import org.apache.commons.logging.Log
@@ -348,50 +347,50 @@ open class LoggerImpl(val name: String) : Logger, Log {
         private val lastWarned = HashMap<String, Long>()
 
         private var lastTime = 0L
-        private val lastTimeStr = StringBuilder(16)
+        private val lastTimeStr = StringBuilder(16).append("hh:mm:ss.sss")
         private var logFileStream: OutputStream? = null
 
-        fun getLogFileStream(): OutputStream? {
-            if (!OSFeatures.supportsContinuousLogFiles) return null
-            if (logFileStream != null) return logFileStream
-            val logFolder = ConfigBasics.cacheFolder.getChild("logs")
-            logFolder.tryMkdirs()
-            // to do pack all existing .log files into .zip files? -> no, the file size shouldn't be THAT big
-            // delete log files older than 14 days
-            val time = System.currentTimeMillis()
-            val deleteTime = time - 14L * 24L * 3600L * 1000L
-            for (child in logFolder.listChildren()) {
-                val childCreated = child.nameWithoutExtension.toLongOrNull() ?: continue
-                if (childCreated < deleteTime) child.delete()
+        private val logStreamLock = Any()
+        private fun getLogFileStream(): OutputStream? {
+            synchronized(logStreamLock) {
+                if (!OSFeatures.supportsContinuousLogFiles) return null
+                if (logFileStream != null) return logFileStream
+                val logFolder = ConfigBasics.cacheFolder.getChild("logs")
+                logFolder.tryMkdirs()
+                // to do pack all existing .log files into .zip files? -> no, the file size shouldn't be THAT big
+                // delete log files older than 14 days
+                val time = System.currentTimeMillis()
+                val deleteTime = time - 14L * 24L * 3600L * 1000L
+                for (child in logFolder.listChildren()) {
+                    val childCreated = child.nameWithoutExtension.toLongOrNull() ?: continue
+                    if (childCreated < deleteTime) child.delete()
+                }
+                val logFile = logFolder.getChild("$time.log")
+                logFileStream = logFile.outputStream(true)
+                // must use println, or we would create an infinite loop
+                println("[${getTimeStamp()},INFO:Logger] Writing log to $logFile")
+                return logFileStream
             }
-            val logFile = logFolder.getChild("$time.log")
-            logFileStream = logFile.outputStream(true)
-            // must use println, or we would create an infinite loop
-            println("[${getTimeStamp()},INFO:Logger] Writing log to $logFile")
-            return logFileStream
         }
 
         fun getTimeStamp(): CharSequence {
             val updateInterval = MILLIS_TO_NANOS shr 1
             val time = Time.nanoTime / updateInterval
-            synchronized(Unit) {
-                if (!(time == lastTime && lastTimeStr.isNotEmpty())) {
-                    val calendar = Calendar.getInstance()
-                    val millis = calendar.get(Calendar.MILLISECOND)
-                    val seconds = calendar.get(Calendar.SECOND)
-                    val minutes = calendar.get(Calendar.MINUTE)
-                    val hours = calendar.get(Calendar.HOUR_OF_DAY)
-                    formatTime(hours, minutes, seconds, millis)
-                    lastTime = time
-                }
+
+            if (!(time == lastTime && lastTimeStr.isNotEmpty())) {
+                val calendar = Calendar.getInstance()
+                val millis = calendar.get(Calendar.MILLISECOND)
+                val seconds = calendar.get(Calendar.SECOND)
+                val minutes = calendar.get(Calendar.MINUTE)
+                val hours = calendar.get(Calendar.HOUR_OF_DAY)
+                formatTime(hours, minutes, seconds, millis)
+                lastTime = time
             }
+
             return lastTimeStr
         }
 
         private fun formatTime(hours: Int, minutes: Int, seconds: Int, millis: Int) {
-            if (lastTimeStr.isEmpty()) {
-                lastTimeStr.append("hh:mm:ss.sss")
-            }
             format10s(hours, 0)
             format10s(minutes, 3)
             format10s(seconds, 6)
