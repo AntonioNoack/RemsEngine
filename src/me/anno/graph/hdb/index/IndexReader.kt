@@ -38,7 +38,7 @@ class IndexReader(input: InputStream, val lookupStorageFile: (sfIndex: Int) -> S
         if (sf != null) {
             val files = folder.files
             val maxBytePosition = synchronized(files) {
-                files.values.maxOfOrNull { it.range.last } ?: -1
+                files.values.maxOfOrNull { it?.range?.last ?: -1 } ?: -1
             }
             sf.size = max(sf.size, maxBytePosition + 1)
         }

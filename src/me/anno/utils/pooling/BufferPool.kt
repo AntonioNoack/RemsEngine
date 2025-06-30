@@ -8,6 +8,7 @@ import me.anno.utils.assertions.assertGreaterThanEquals
 import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 import me.anno.utils.types.Ints.isPowerOf2
 import org.apache.logging.log4j.LogManager
+import speiger.primitivecollections.IntToObjectHashMap
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.min
 
@@ -24,7 +25,7 @@ abstract class BufferPool<V>(
     private val allocated = AtomicLong()
     private val available = arrayListOfNulls<V?>(size)
     private val lastUsed = LongArray(size)
-    private val smallSizes = HashMap<Int, ObjectPool<V>>()
+    private val smallSizes = IntToObjectHashMap<ObjectPool<V>>()
 
     open fun prepare(buffer: V, size: Int) {}
 
@@ -78,7 +79,7 @@ abstract class BufferPool<V>(
         var sum = 0L
         // lock is required to avoid ConcurrencyExceptions
         synchronized(this) {
-            for ((size, value) in smallSizes) {
+            smallSizes.forEach { size, value ->
                 sum += size.toLong() * value.size
             }
         }

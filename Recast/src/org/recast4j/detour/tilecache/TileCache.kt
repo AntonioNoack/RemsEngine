@@ -32,6 +32,7 @@ import org.recast4j.detour.NavMeshDataCreateParams
 import org.recast4j.detour.tilecache.TileCacheObstacle.TileCacheObstacleType
 import org.recast4j.detour.tilecache.builder.TileCacheBuilder
 import org.recast4j.detour.tilecache.io.TileCacheLayerHeaderReader
+import speiger.primitivecollections.LongToObjectHashMap
 import java.nio.ByteBuffer
 import kotlin.math.cos
 import kotlin.math.floor
@@ -51,7 +52,7 @@ class TileCache(
     }
 
     /** Tile hash lookup.  */
-    private val posLookup = HashMap<Long, CompressedTile>()
+    private val posLookup = LongToObjectHashMap<CompressedTile>()
 
     private val tiles = arrayOfNulls<CompressedTile?>(params.maxTiles)
 

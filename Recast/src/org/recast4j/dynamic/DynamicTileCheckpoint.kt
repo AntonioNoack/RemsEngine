@@ -20,8 +20,9 @@ package org.recast4j.dynamic
 import org.joml.AABBf
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.Span
+import speiger.primitivecollections.LongHashSet
 
-class DynamicTileCheckpoint(heightfield: Heightfield, val colliders: Set<Long>) {
+class DynamicTileCheckpoint(heightfield: Heightfield, val colliders: LongHashSet) {
 
     val heightfield = clone(heightfield)
 

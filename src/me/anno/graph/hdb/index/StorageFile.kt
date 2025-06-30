@@ -25,7 +25,8 @@ class StorageFile(val index: Int) {
         for (folder in folders) {
             val files = folder.files
             synchronized(files) {
-                sortedFiles.addAll(files.values)
+                sortedFiles.ensureCapacity(sortedFiles.size + files.size)
+                files.forEach { _, file -> sortedFiles.add(file) }
             }
         }
         sortedFiles.sortBy { it.range.first }

@@ -16,6 +16,7 @@ import me.anno.utils.types.Triangles.subCross
 import org.joml.AABBd
 import org.joml.Vector3d
 import org.joml.Vector4i
+import speiger.primitivecollections.LongToObjectHashMap
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.cos
@@ -412,7 +413,7 @@ class ConvexHulls {
         val normalEpsilonScale = min((1.0 / normalEpsilon).toLongOr(-1), maxNormalScale)
 
         val capacityGuess = max(inputVertices.size, 16)
-        val uniqueVertices = HashMap<Long, Vector3d>(capacityGuess)
+        val uniqueVertices = LongToObjectHashMap<Vector3d>(capacityGuess)
         val vertexToIndex = HashMap<Vector3d, Int>(capacityGuess)
         for (i in inputVertices.indices) {
             val inputVertex = inputVertices[i]

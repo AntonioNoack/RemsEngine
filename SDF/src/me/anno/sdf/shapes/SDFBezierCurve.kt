@@ -2,15 +2,16 @@ package me.anno.sdf.shapes
 
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.material.utils.TypeValue
-import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
+import me.anno.sdf.VariableCounter
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.maps.LazyMap
 import org.joml.AABBf
 import org.joml.Vector4f
 import kotlin.math.min
@@ -41,7 +42,7 @@ class SDFBezierCurve : SDFShape() {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         val points = points
         functions.add(sdBezier)
-        functions.add(getFunction(points.size))
+        functions.add(Companion.functions[points.size])
         smartMinBegin(builder, dstIndex)
         builder.append("sdBezier(pos").append(trans.posIndex).append(',')
         if (dynamicSize) {
@@ -158,31 +159,28 @@ class SDFBezierCurve : SDFShape() {
 
     companion object {
 
-        val functions = HashMap<Int, String>()
-        fun getFunction(n: Int): String {
-            return functions.getOrPut(n) {
-                when (n) {
-                    0 -> "float sdBezier(vec3 p){ return Infinity; }\n"
-                    1 -> "float sdBezier(vec3 p, vec4 b0){ return length(p-b0.xyz)-b0.w; }\n"
-                    2 -> "float sdBezier(vec3 p, vec4 b0, vec4 b1){ return sdBezier(p,b0,(b0+b1)*0.5,b1); }\n"
-                    3 -> ""
-                    else -> {
-                        // create function
-                        val builder = StringBuilder()
-                        builder.append("float sdBezier(vec3 p")
-                        for (i in 0 until n) builder.append(", vec4 b").append(i)
-                        builder.append(
-                            "){\n" +
-                                    "vec4 a=b0,b=b1,c=b2,na,nb,nc;\n" +
-                                    "float dist=sdBezier(p,a,b,c);\n"
-                        )
-                        for (i in 3 until n) {
-                            builder.append("na=c;nb=c+c-b;c=b").append(i).append(";\n")
-                            builder.append("a=na;b=nb;dist=min(dist,sdBezier(p,a,b,c));\n")
-                        }
-                        builder.append("return dist;\n}\n")
-                        builder.toString()
+        val functions = LazyMap { n: Int ->
+            when (n) {
+                0 -> "float sdBezier(vec3 p){ return Infinity; }\n"
+                1 -> "float sdBezier(vec3 p, vec4 b0){ return length(p-b0.xyz)-b0.w; }\n"
+                2 -> "float sdBezier(vec3 p, vec4 b0, vec4 b1){ return sdBezier(p,b0,(b0+b1)*0.5,b1); }\n"
+                3 -> ""
+                else -> {
+                    // create function
+                    val builder = StringBuilder()
+                    builder.append("float sdBezier(vec3 p")
+                    for (i in 0 until n) builder.append(", vec4 b").append(i)
+                    builder.append(
+                        "){\n" +
+                                "vec4 a=b0,b=b1,c=b2,na,nb,nc;\n" +
+                                "float dist=sdBezier(p,a,b,c);\n"
+                    )
+                    for (i in 3 until n) {
+                        builder.append("na=c;nb=c+c-b;c=b").append(i).append(";\n")
+                        builder.append("a=na;b=nb;dist=min(dist,sdBezier(p,a,b,c));\n")
                     }
+                    builder.append("return dist;\n}\n")
+                    builder.toString()
                 }
             }
         }
@@ -215,5 +213,4 @@ class SDFBezierCurve : SDFShape() {
                 "   return bez.x-thickness;\n" +
                 "}\n"
     }
-
 }

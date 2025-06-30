@@ -31,22 +31,22 @@ object HashUtil {
 
     @JvmStatic
     fun nextPowerOfTwo(x: Int): Int {
-        return 1 shl 32 - Integer.numberOfLeadingZeros(x - 1)
+        return 1.shl(32 - (x - 1).countLeadingZeroBits())
     }
 
     @JvmStatic
     fun nextPowerOfTwo(x: Long): Long {
-        return 1L shl 64 - java.lang.Long.numberOfLeadingZeros(x - 1L)
+        return 1L.shl(64 - (x - 1L).countLeadingZeroBits())
     }
 
     @JvmStatic
     fun getRequiredBits(value: Int): Int {
-        return Integer.bitCount(nextPowerOfTwo(value + 1) - 1)
+        return (nextPowerOfTwo(value + 1) - 1).countOneBits()
     }
 
     @JvmStatic
     fun getRequiredBits(value: Long): Int {
-        return java.lang.Long.bitCount(nextPowerOfTwo(value + 1L) - 1L)
+        return (nextPowerOfTwo(value + 1L) - 1L).countOneBits()
     }
 
     @JvmStatic

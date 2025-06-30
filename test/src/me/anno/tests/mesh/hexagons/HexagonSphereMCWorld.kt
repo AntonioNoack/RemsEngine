@@ -1,13 +1,14 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.maths.chunks.spherical.Hexagon
-import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
+import me.anno.maths.chunks.spherical.Hexagon
+import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.maths.noise.FullNoise
 import me.anno.maths.noise.PerlinNoise
 import org.joml.Vector4f
+import speiger.primitivecollections.LongToObjectHashMap
 import kotlin.math.ln
 
 class HexagonSphereMCWorld(val sphere: HexagonSphere, val save: HexMCWorldSave = HexMCWorldSave()) {
@@ -48,11 +49,11 @@ class HexagonSphereMCWorld(val sphere: HexagonSphere, val save: HexMCWorldSave =
     fun generateWorld(hex: Hexagon) = generateWorld(arrayListOf(hex), true)
     fun generateWorld(hexagons: ArrayList<Hexagon>, ensureNeighbors: Boolean): Pair<ByteArray, IndexMap> {
         if (ensureNeighbors) {
-            val hexMap = HashMap<Long, Hexagon>(hexagons.size)
+            val hexMap = LongToObjectHashMap<Hexagon>(hexagons.size)
             for (hex in hexagons) hexMap[hex.index] = hex
             sphere.ensureNeighbors(hexagons, hexMap, depth)
         }
-        val idMap = HashMap<Long, Int>(hexagons.size)
+        val idMap = LongToObjectHashMap<Int>(hexagons.size)
         for (index in hexagons.indices) {
             val hex = hexagons[index]
             idMap[hex.index] = index
@@ -121,7 +122,5 @@ class HexagonSphereMCWorld(val sphere: HexagonSphere, val save: HexMCWorldSave =
         }
 
         return world
-
     }
-
 }

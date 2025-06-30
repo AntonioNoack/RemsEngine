@@ -1,8 +1,8 @@
 package me.anno.graph.hdb.index
 
-import me.anno.utils.types.size
 import me.anno.io.json.generic.JsonWriter
 import me.anno.utils.InternalAPI
+import me.anno.utils.types.size
 import java.io.Writer
 
 @InternalAPI
@@ -29,7 +29,7 @@ class IndexWriter(stream: Writer) : JsonWriter(stream) {
         writeObject {
             val files = folder.files
             synchronized(files) {
-                for ((hash, file) in files) {
+                files.forEach { hash, file ->
                     attr(hash.toString())
                     writeFile(file)
                 }

@@ -18,6 +18,7 @@ import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
+import speiger.primitivecollections.LongToObjectHashMap
 import kotlin.math.max
 
 class HexagonSpherePhysics(
@@ -189,8 +190,11 @@ class HexagonSpherePhysics(
     }
 
     fun ensureNeighbors(hex: Hexagon) {
-        if (hex.neighbors.any { it == null })
-            sphere.ensureNeighbors(arrayListOf(hex), hashMapOf(hex.index to hex), 0)
+        if (hex.neighbors.any { it == null }) {
+            val hexMap = LongToObjectHashMap<Hexagon>()
+            hexMap.put(hex.index, hex)
+            sphere.ensureNeighbors(arrayListOf(hex), hexMap, 0)
+        }
     }
 
     fun accelerate(dir: Vector3f, dt: Float) {

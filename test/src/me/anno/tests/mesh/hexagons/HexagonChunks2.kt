@@ -6,12 +6,14 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView
 import me.anno.language.translation.NameDesc
+import me.anno.maths.chunks.spherical.Hexagon
 import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.debug.TestEngine.Companion.testUI2
 import me.anno.ui.input.IntInput
 import me.anno.ui.input.NumberType
+import speiger.primitivecollections.LongToObjectHashMap
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -47,7 +49,11 @@ fun main() {
             val random = Random(1234L * ti)
             fun add(si: Int, sj: Int) {
                 val chunk = hexagons.queryChunk(tri.index, si, sj)
-                hexagons.ensureNeighbors(ArrayList(chunk), HashMap(chunk.associateBy { it.index }), 0)
+                val hexMap = LongToObjectHashMap<Hexagon>(chunk.size)
+                for (hexagon in chunk) {
+                    hexMap[hexagon.index] = hexagon
+                }
+                hexagons.ensureNeighbors(ArrayList(chunk), hexMap, 0)
                 scene.add(MeshComponent(chunkToFaceMesh(chunk, random.nextInt(16_777_216))))
                 // .add(MeshComponent(chunkToMesh2(chunk, len, random.nextInt(16_777_216))))
             }

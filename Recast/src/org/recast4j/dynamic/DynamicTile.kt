@@ -31,6 +31,7 @@ import org.recast4j.recast.RecastBuilder
 import org.recast4j.recast.RecastBuilderResult
 import org.recast4j.recast.RecastConfig
 import org.recast4j.recast.Telemetry
+import speiger.primitivecollections.LongToObjectHashMap
 import kotlin.math.max
 import kotlin.math.min
 
@@ -40,7 +41,7 @@ class DynamicTile(val voxelTile: VoxelTile) {
     var recastResult: RecastBuilderResult? = null
     var meshData: MeshData? = null
 
-    private val colliders = HashMap<Long, Collider>()
+    private val colliders = LongToObjectHashMap<Collider>()
     private var dirty = true
     private var id = 0L
 
@@ -64,16 +65,16 @@ class DynamicTile(val voxelTile: VoxelTile) {
     }
 
     private fun buildHeightfield(config: DynamicNavMeshConfig, telemetry: Telemetry): Heightfield {
-        val rasterizedColliders = checkpoint?.colliders ?: emptySet()
+        val rasterizedColliders = checkpoint?.colliders
         val heightfield = checkpoint?.heightfield ?: voxelTile.heightfield()
-        for ((id, c) in colliders) {
-            if (!rasterizedColliders.contains(id)) {
+        colliders.forEach { id, c ->
+            if (rasterizedColliders == null || id !in rasterizedColliders) {
                 heightfield.bounds.maxY = max(heightfield.bounds.maxY, c.bounds.maxY + heightfield.cellHeight * 2)
                 c.rasterize(heightfield, telemetry)
             }
         }
         if (config.enableCheckpoints) {
-            checkpoint = DynamicTileCheckpoint(heightfield, HashSet(colliders.keys))
+            checkpoint = DynamicTileCheckpoint(heightfield, colliders.keysToHashSet())
         }
         return heightfield
     }

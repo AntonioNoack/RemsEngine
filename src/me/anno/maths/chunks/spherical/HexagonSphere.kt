@@ -17,6 +17,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix3f
 import org.joml.Vector3f
+import speiger.primitivecollections.LongToObjectHashMap
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.ln
@@ -563,7 +564,7 @@ class HexagonSphere(
         return dst
     }
 
-    fun ensureNeighbors(hexList: ArrayList<Hexagon>, hexMap: HashMap<Long, Hexagon>, depth: Int) {
+    fun ensureNeighbors(hexList: ArrayList<Hexagon>, hexMap: LongToObjectHashMap<Hexagon>, depth: Int) {
         // ensure all neighbors
         var i0 = 0
         for (di in 0..depth) {

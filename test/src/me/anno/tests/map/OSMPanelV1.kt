@@ -33,10 +33,10 @@ class OSMPanelV1(val map: OSMap) : MapPanel(style) {
         val maxLon = (windowToCoordsX(x1.toDouble()) / scaleX).toFloat()
         val minLat = windowToCoordsY(y0.toDouble()).toFloat()
         val maxLat = windowToCoordsY(y1.toDouble()).toFloat()
-        for (node in map.nodes.values) {
+        map.nodes.forEach { _, node ->
             drawNode(node, minLon, minLat, maxLon, maxLat, UIColors.axisWColor)
         }
-        for (relation in map.relations.values) {
+        map.relations.forEach { _, relation ->
             for (nodes2 in relation.nodesByType.values) {
                 // to do color by type
                 for (node in nodes2) {
@@ -47,10 +47,10 @@ class OSMPanelV1(val map: OSMap) : MapPanel(style) {
         DrawRectangles.finishBatch(v)
         v = DrawCurves.lineBatch.start()
         // draw all lines
-        for (way in map.ways.values) {
+        map.ways.forEach { _, way ->
             drawWay(way, minLon, minLat, maxLon, maxLat, UIColors.axisXColor)
         }
-        for (relation in map.relations.values) {
+        map.relations.forEach { _, relation ->
             for (ways2 in relation.waysByType.values) {
                 // to do color by type
                 for (way in ways2) {

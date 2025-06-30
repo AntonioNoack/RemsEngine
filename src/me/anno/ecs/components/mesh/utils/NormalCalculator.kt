@@ -259,14 +259,14 @@ object NormalCalculator {
 
         dst.set(0f)
 
-        val hash0 = map.hash0(position)
+        val gridIndexBaseCorner = map.gridIndexBaseCorner(position)
 
         // loop of 2³ neighbors to avoid rounding errors separating vertices
         // putting this in the getter instead of the setter is 2x faster (120ms vs 58ms)
         var numValues = 0
         for (i in 0 until 8) {
-            val hashI = map.hash8(hash0, i)
-            val normals = map.entries[hashI] ?: continue
+            val gridIndexI = map.gridIndexIthCorner(gridIndexBaseCorner, i)
+            val normals = map.entries[gridIndexI] ?: continue
 
             forLoopSafely(normals.size, 3) { i ->
                 val nx = normals[i]

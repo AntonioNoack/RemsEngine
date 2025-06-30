@@ -19,6 +19,7 @@ import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.async.UnitCallback
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
+import speiger.primitivecollections.IntToObjectHashMap
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
@@ -42,7 +43,7 @@ class HierarchicalDatabase(
     private val cache = CacheSection<Int, ByteArray>("HDB-$name")
 
     private val root = Folder("")
-    private val storageFiles = HashMap<Int, StorageFile>()
+    private val storageFiles = IntToObjectHashMap<StorageFile>()
 
     private val indexFile = storage.getChild("index.json")
 
@@ -69,7 +70,7 @@ class HierarchicalDatabase(
                 }
             }.readFolder(root)
             // validate all storage files: files and ranges need to be reconstructed
-            for ((_, sf) in storageFiles) {
+            storageFiles.forEach { _, sf ->
                 synchronized(sf) {
                     sf.rebuildSortedFiles()
                     sf.rebuildSortedRanges()
@@ -107,7 +108,7 @@ class HierarchicalDatabase(
 
     private fun cleanDirtyStorageFiles() {
         synchronized(storageFiles) {
-            for ((_, sf) in storageFiles) {
+            storageFiles.forEach { _, sf ->
                 if (sf.isDirty) {
                     optimizeStorage(sf)
                 }
@@ -123,7 +124,8 @@ class HierarchicalDatabase(
                 if (file.lcExtension == dataExtension) {
                     val index = file.nameWithoutExtension.toIntOrNull()
                     if (index != null) {
-                        if (index !in storageFiles || storageFiles[index]?.size == 0) {
+                        val sf = storageFiles[index]
+                        if (sf == null || sf.size == 0) {
                             file.delete()
                         }
                     } else {
@@ -145,7 +147,7 @@ class HierarchicalDatabase(
         val numFilesRemoved = if (useTimeout) {
             val files = folder.files
             synchronized(files) {
-                files.removeIf { (_, file) ->
+                files.removeIf { _, file ->
                     file.lastAccessedMillis < lastValidTime
                 }
             }
@@ -206,7 +208,7 @@ class HierarchicalDatabase(
     fun clearMemory() {
         cache.clear()
         synchronized(storageFiles) {
-            for (sf in storageFiles.values) {
+            storageFiles.forEach { _, sf ->
                 synchronized(sf) {
                     sf.clear()
                 }
@@ -331,7 +333,7 @@ class HierarchicalDatabase(
             for (folder in sf.folders) {
                 val files = folder.files
                 synchronized(files) {
-                    files.removeIf { (_, file) -> !file.range.isEmpty() }
+                    files.removeIf { _, file -> !file.range.isEmpty() }
                 }
             }
             sf.sortedFiles.clear()

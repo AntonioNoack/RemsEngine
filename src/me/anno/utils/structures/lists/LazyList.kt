@@ -1,6 +1,7 @@
 package me.anno.utils.structures.lists
 
 import me.anno.utils.search.BinarySearch
+import speiger.primitivecollections.IntToObjectHashMap
 
 /**
  * create a list, where evaluations are cached, because they are expensive
@@ -12,7 +13,7 @@ class LazyList<V>(override val size: Int, val generator: (Int) -> V) : SimpleLis
 
     // supposedly, only a small fraction of items will be generated, because they are expensive
     // -> use a hash map instead of a full array
-    private val cache = HashMap<Int, V>()
+    private val cache = IntToObjectHashMap<V>()
 
     override fun get(index: Int): V {
         return cache.getOrPut(index) {

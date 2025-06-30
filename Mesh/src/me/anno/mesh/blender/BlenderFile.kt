@@ -64,6 +64,7 @@ import me.anno.mesh.blender.impl.values.BNSVVector
 import me.anno.utils.Color.rgba
 import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
+import speiger.primitivecollections.LongToObjectHashMap
 import java.io.IOException
 import java.nio.ByteOrder
 
@@ -174,7 +175,8 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         if (LOGGER.isDebugEnabled()) {
             for (name in structByName.keys.sorted()) {
                 val struct = structByName[name]!!
-                LOGGER.debug("Struct {}({}): { {} }", name, struct.type.size,
+                LOGGER.debug(
+                    "Struct {}({}): { {} }", name, struct.type.size,
                     struct.byName.entries
                         .filter {
                             !it.key.startsWith("_pad") &&
@@ -202,7 +204,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         blockTable = BlockTable(this, blocks, indices)
     }
 
-    private val objectCache = HashMap<String, HashMap<Long, BlendData?>>()
+    private val objectCache = HashMap<String, LongToObjectHashMap<BlendData?>>()
 
     // read all main instances
     val instances = HashMap<String, ArrayList<BlendData>>(64)
@@ -259,7 +261,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     }
 
     fun getOrCreate(struct: DNAStruct, clazz: String, block: Block, address: Long): BlendData? {
-        return objectCache.getOrPut(clazz, ::HashMap).getOrPut(address) {
+        return objectCache.getOrPut(clazz, ::LongToObjectHashMap).getOrPut(address) {
             create(struct, clazz, block, address)
         }
     }

@@ -27,6 +27,7 @@ import org.joml.AABBi
 import org.joml.Vector3f
 import org.recast4j.LongArrayList
 import org.recast4j.Vectors
+import speiger.primitivecollections.LongToObjectHashMap
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
@@ -55,7 +56,7 @@ class NavMesh(
     var tileWidth = params.tileWidth
     var tileHeight = params.tileHeight
 
-    private val tileByXY = HashMap<Long, MeshTile>()
+    private val tileByXY = LongToObjectHashMap<MeshTile>()
     private val tileById = HashMap<Int, MeshTile>()
     private val availableTileIds = HashMap<Int, Int>() // id,salt
     private var nextTileId = 1

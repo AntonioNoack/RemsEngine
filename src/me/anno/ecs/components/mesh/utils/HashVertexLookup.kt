@@ -38,7 +38,7 @@ open class HashVertexLookup<V>(initialCapacity: Int, bounds: AABBf, minVertexDis
         roundingDelta = supportedMinVertexDistance * 0.5f
     }
 
-    fun hash(px: Float, py: Float, pz: Float): Long {
+    fun gridIndex(px: Float, py: Float, pz: Float): Long {
         val rx = (px - x0) * scale
         val ry = (py - y0) * scale
         val rz = (pz - z0) * scale
@@ -51,30 +51,30 @@ open class HashVertexLookup<V>(initialCapacity: Int, bounds: AABBf, minVertexDis
         return sx.shl(42) or sy.shl(21) or sz
     }
 
-    fun hash(position: Vector3f): Long {
-        return hash(position.x, position.y, position.z)
+    fun gridIndex(position: Vector3f): Long {
+        return gridIndex(position.x, position.y, position.z)
     }
 
     /**
-     * Returns the hash of the floored corner.
+     * Returns the 3d grid index of the floored corner.
      * */
-    fun hash0(position: Vector3f): Long {
-        return hash(position.x - roundingDelta, position.y - roundingDelta, position.z - roundingDelta)
+    fun gridIndexBaseCorner(position: Vector3f): Long {
+        return gridIndex(position.x - roundingDelta, position.y - roundingDelta, position.z - roundingDelta)
     }
 
     /**
-     * Given the hash of the floored corner, and i from 0 to 7 (inclusive),
-     * return the hash of the i-th corner in a 2x2x2 cube.
+     * Given the 3d grid index of the floored corner, and i from 0 to 7 (inclusive),
+     * return the grid index of the i-th corner in a 2x2x2 cube.
      *
-     * Ideally, to keep allocations low, you insert into hash(), and query all corners using hash0() and hash8().
-     * As an alternative, when there is much fewer puts than gets, use hash0() and hash8() to insert the value into all corners,
-     * and just query using hash().
+     * Ideally, to keep allocations low, you insert into gridIndex(), and query all corners using gridIndex0() and gridIndex8().
+     * As an alternative, when there is much fewer puts than gets, use gridIndex0() and gridIndex8() to insert the value into all corners,
+     * and just query using gridIndex().
      * */
-    fun hash8(hash0: Long, i: Int): Long {
+    fun gridIndexIthCorner(gridIndexBaseCorner: Long, i: Int): Long {
         val dx = (i and 4).toLong()
         val dy = (i and 2).toLong()
         val dz = (i and 1).toLong()
-        return hash0 +
+        return gridIndexBaseCorner +
                 dx.shl(40) + // 2 bits left by i
                 dy.shl(20) + // 1 bit  left by i
                 dz // 0 bits left by i

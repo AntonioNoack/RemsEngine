@@ -6,13 +6,14 @@ import me.anno.fonts.FontStats.getTextLength
 import me.anno.maths.Maths
 import me.anno.maths.Packing.pack64
 import me.anno.utils.types.Strings.joinChars
-import org.apache.logging.log4j.LogManager
+import speiger.primitivecollections.IntToObjectHashMap
+import speiger.primitivecollections.LongToDoubleHashMap
 
 class CharacterOffsetCache(val font: Font) {
 
-    private val charDistance = HashMap<Long, Double>()// |a| = |ab| - |b|
-    private val charWidth = HashMap<Int, Double>()// |a|
-    val charMesh = HashMap<Int, Mesh>() // triangles of a
+    private val charDistance = LongToDoubleHashMap(0.0)// |a| = |ab| - |b|
+    private val charWidth = LongToDoubleHashMap(0.0)// |a|
+    val charMesh = IntToObjectHashMap<Mesh>() // triangles of a
 
     val spaceLength by lazy {
         val xLength = getTextLength(font, "x")
@@ -32,7 +33,7 @@ class CharacterOffsetCache(val font: Font) {
         }
 
         fun getCharLength(char: Int): Double {
-            return charWidth.getOrPut(char) {
+            return charWidth.getOrPut(char.toLong()) {
                 getLength(char.joinChars().toString())
             }
         }

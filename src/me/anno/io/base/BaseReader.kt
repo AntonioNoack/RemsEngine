@@ -5,10 +5,11 @@ import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.UnknownSaveable
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import speiger.primitivecollections.IntToObjectHashMap
 
 abstract class BaseReader : ReaderImpl {
 
-    private val byPointer = HashMap<Int, Saveable>()
+    private val byPointer = IntToObjectHashMap<Saveable>()
     override val allInstances = ArrayList<Saveable>()
 
     // for debugging

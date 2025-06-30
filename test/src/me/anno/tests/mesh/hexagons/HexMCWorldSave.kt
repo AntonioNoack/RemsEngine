@@ -11,14 +11,15 @@ import me.anno.io.files.FileReference
 import me.anno.maths.chunks.spherical.Hexagon
 import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.utils.structures.lists.Lists.createArrayList
+import speiger.primitivecollections.LongToObjectHashMap
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.InflaterInputStream
 
-typealias ChunkS = HashMap<Long, ByteArray>
-typealias TriangleS = HashMap<Long, ChunkS>
+typealias ChunkS = LongToObjectHashMap<ByteArray>
+typealias TriangleS = LongToObjectHashMap<ChunkS>
 
 class HexMCWorldSave {
 
@@ -62,19 +63,19 @@ class HexMCWorldSave {
         }
     }
 
-    fun read(it: InputStream, tri: TriangleS) {
+    fun read(stream: InputStream, tri: TriangleS) {
         tri.clear()
-        val len = it.readBE32()
-        for (i in 0 until len) {
-            tri[it.readBE64()] = read(it)
+        val len = stream.readBE32()
+        repeat(len) {
+            tri[stream.readBE64()] = read(stream)
         }
     }
 
-    fun read(it: InputStream): ChunkS {
-        val len = it.readBE32()
+    fun read(stream: InputStream): ChunkS {
+        val len = stream.readBE32()
         val sub = ChunkS(len)
-        for (i in 0 until len) {
-            sub[it.readBE64()] = it.readNBytes2(sy, true)
+        repeat(len) {
+            sub[stream.readBE64()] = stream.readNBytes2(sy, true)
         }
         return sub
     }
@@ -95,7 +96,7 @@ class HexMCWorldSave {
     fun write(it: OutputStream, tri: TriangleS) {
         val len = tri.size
         it.writeBE32(len)
-        for ((key, value) in tri) {
+        tri.forEach { key, value ->
             it.writeBE64(key)
             write1(it, value)
         }
@@ -104,7 +105,7 @@ class HexMCWorldSave {
     fun write1(it: OutputStream, tri: ChunkS) {
         val len = tri.size
         it.writeBE32(len)
-        for ((key, value) in tri) {
+        tri.forEach { key, value ->
             it.writeBE64(key)
             it.write(value, 0, sy)
         }

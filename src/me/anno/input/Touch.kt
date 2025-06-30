@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.maths.Maths.sq
 import me.anno.ui.WindowStack
 import org.joml.Vector3f
+import speiger.primitivecollections.IntToObjectHashMap
 import kotlin.math.max
 import kotlin.math.sqrt
 
@@ -47,11 +48,11 @@ class Touch(var x: Float, var y: Float) {
     companion object {
 
         @JvmField
-        val touches = HashMap<Int, Touch>()
+        val touches = IntToObjectHashMap<Touch>()
 
         @JvmStatic
         fun updateAll() {
-            for (touch in touches.values) {
+            touches.forEach { _, touch ->
                 touch.update()
             }
         }
@@ -140,8 +141,8 @@ class Touch(var x: Float, var y: Float) {
         fun onTouchUp(touchId: Int, x: Float, y: Float) {
             val touch = touches.remove(touchId) ?: return
             touch.update(x, y)
-            for (listener in listeners) {
-                listener.onTouchUp(touch)
+            for (i in listeners.indices) {
+                listeners[i].onTouchUp(touch)
             }
         }
     }

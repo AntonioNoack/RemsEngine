@@ -30,7 +30,7 @@ fun printHierarchy(folder: Folder, depth: Int, fullName: String) {
     for (child in folder.children.values.sortedBy { it.name }) {
         printHierarchy(child, depth + 1, child.name)
     }
-    for ((key, file) in folder.files) {
+    folder.files.forEach { key, file ->
         val key1 = key.toUInt().toString(16).padStart(4, '0')
         println("  ".repeat(depth + 1) + "$key1: ${file.range}")
     }

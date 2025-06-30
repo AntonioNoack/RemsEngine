@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.assimp.AIFile
 import org.lwjgl.assimp.AIFileIO
 import org.lwjgl.system.MemoryUtil
+import speiger.primitivecollections.LongToObjectHashMap
 
 object AIFileIOImpl {
 
@@ -15,7 +16,7 @@ object AIFileIOImpl {
 
         val fileIO = AIFileIO.calloc()
         val byteCache = HashMap<FileReference, ByteArray>()
-        val openedStreams = HashMap<Long, IFileIOStream>()
+        val openedStreams = LongToObjectHashMap<IFileIOStream>()
 
         fileIO.set({ _, fileNamePtr, openModePtr ->
 
@@ -74,7 +75,6 @@ object AIFileIOImpl {
 
                 if (debug) LOGGER.debug("\nopen $fileName as *${callbacks.address().toString(16)}")
                 callbacks.address()
-
             } else 0L
         }, { _, aiFile ->
             if (debug) LOGGER.debug("close *${aiFile.toString(16)}\n")
@@ -84,7 +84,5 @@ object AIFileIOImpl {
         }, 0L)
 
         return fileIO
-
     }
-
 }

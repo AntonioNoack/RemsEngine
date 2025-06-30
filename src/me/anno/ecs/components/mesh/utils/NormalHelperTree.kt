@@ -9,8 +9,8 @@ class NormalHelperTree(initialCapacity: Int, bounds: AABBf, minVertexDistance: F
     HashVertexLookup<FloatArrayList>(initialCapacity, bounds, minVertexDistance) {
 
     fun put(position: Vector3f, normal: Vector3f) {
-        val hash = hash(position)
-        val entry = entries.getOrPut(hash) { FloatArrayList(15) }
+        val gridIndex = gridIndex(position)
+        val entry = entries.getOrPut(gridIndex) { FloatArrayList(15) }
         if (entry.size < 32 * 3) entry.add(normal) // else limit reached
     }
 }

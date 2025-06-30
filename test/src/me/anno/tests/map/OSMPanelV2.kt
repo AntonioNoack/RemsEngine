@@ -48,7 +48,7 @@ class OSMPanelV2(style: Style) : MapPanel(style) {
             /*for ((_, way) in piece.ways) {
                 drawWay(piece, way, -1)
             }*/
-            for ((_, rel) in piece.relations) {
+            piece.relations.forEach { _, rel ->
                 for ((type, ways) in rel.waysByType) {
                     val color = (0x777777 or type.hashCode()) or black
                     for (way in ways) {
