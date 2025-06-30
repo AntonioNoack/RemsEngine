@@ -4,9 +4,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.ecs.components.mesh.utils.IndexRemover.removeIndices
-import me.anno.ecs.components.mesh.utils.NormalHelperTree.Companion.DX
-import me.anno.ecs.components.mesh.utils.NormalHelperTree.Companion.DY
-import me.anno.ecs.components.mesh.utils.NormalHelperTree.Companion.DZ
 import me.anno.gpu.buffer.DrawMode
 import me.anno.maths.Maths
 import me.anno.mesh.MeshUtils.numPoints
@@ -262,16 +259,13 @@ object NormalCalculator {
 
         dst.set(0f)
 
-        val hash0 = map.hashLow(position)
+        val hash0 = map.hash0(position)
 
         // loop of 2³ neighbors to avoid rounding errors separating vertices
         // putting this in the getter instead of the setter is 2x faster (120ms vs 58ms)
         var numValues = 0
         for (i in 0 until 8) {
-            val dx = i and 1
-            val dy = (i shr 1) and 1
-            val dz = (i shr 2) and 1
-            val hashI = hash0 + DX * dx + DY * dy + DZ * dz
+            val hashI = map.hash8(hash0, i)
             val normals = map.entries[hashI] ?: continue
 
             forLoopSafely(normals.size, 3) { i ->
