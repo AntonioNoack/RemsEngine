@@ -355,29 +355,32 @@ open class LoggerImpl(val name: String) : Logger, Log {
             synchronized(logStreamLock) {
                 if (!OSFeatures.supportsContinuousLogFiles) return null
                 if (logFileStream != null) return logFileStream
-                val logFolder = ConfigBasics.cacheFolder.getChild("logs")
-                logFolder.tryMkdirs()
-                // to do pack all existing .log files into .zip files? -> no, the file size shouldn't be THAT big
-                // delete log files older than 14 days
-                val time = System.currentTimeMillis()
-                val deleteTime = time - 14L * 24L * 3600L * 1000L
-                for (child in logFolder.listChildren()) {
-                    val childCreated = child.nameWithoutExtension.toLongOrNull() ?: continue
-                    if (childCreated < deleteTime) child.delete()
-                }
-                val logFile = logFolder.getChild("$time.log")
-                logFileStream = logFile.outputStream(true)
-                // must use println, or we would create an infinite loop
-                println("[${getTimeStamp()},INFO:Logger] Writing log to $logFile")
-                return logFileStream
+                return createFileLogStream()
             }
         }
 
-        fun getTimeStamp(): CharSequence {
-            val updateInterval = MILLIS_TO_NANOS shr 1
-            val time = Time.nanoTime / updateInterval
+        private fun createFileLogStream(): OutputStream? {
+            val logFolder = ConfigBasics.cacheFolder.getChild("logs")
+            logFolder.tryMkdirs()
+            // to do pack all existing .log files into .zip files? -> no, the file size shouldn't be THAT big
+            // delete log files older than 14 days
+            val time = System.currentTimeMillis()
+            val deleteTime = time - 14L * 24L * 3600L * 1000L
+            for (child in logFolder.listChildren()) {
+                val childCreated = child.nameWithoutExtension.toLongOrNull() ?: continue
+                if (childCreated < deleteTime) child.delete()
+            }
+            val logFile = logFolder.getChild("$time.log")
+            logFileStream = logFile.outputStream(true)
+            // must use println, or we would create an infinite loop
+            println("[${getTimeStamp()},INFO:Logger] Writing log to $logFile")
+            return logFileStream
+        }
 
-            if (!(time == lastTime && lastTimeStr.isNotEmpty())) {
+        fun getTimeStamp(): CharSequence {
+            val updateInterval = MILLIS_TO_NANOS shr 1 // half a millisecond
+            val time = Time.nanoTime / updateInterval
+            if (time != lastTime) {
                 val calendar = Calendar.getInstance()
                 val millis = calendar.get(Calendar.MILLISECOND)
                 val seconds = calendar.get(Calendar.SECOND)
@@ -386,7 +389,6 @@ open class LoggerImpl(val name: String) : Logger, Log {
                 formatTime(hours, minutes, seconds, millis)
                 lastTime = time
             }
-
             return lastTimeStr
         }
 

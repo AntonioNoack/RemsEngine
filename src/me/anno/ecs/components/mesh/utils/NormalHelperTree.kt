@@ -8,13 +8,17 @@ import org.joml.AABBf
 import org.joml.Vector3f
 import kotlin.math.max
 
+/**
+ * todo: this can be cut down from 58ms to 34ms by using
+ *  speiger.src.collections.longs.maps.impl.hash.Long2ObjectOpenHashMap
+ * */
 class NormalHelperTree(initialCapacity: Int, bounds: AABBf, minVertexDistance: Float) {
 
     companion object {
         private const val MAX_VALUE = 1L shl 21
-        private const val DX = 1L shl 42
-        private const val DY = 1L shl 21
-        private const val DZ = 1
+        const val DX = 1L shl 42
+        const val DY = 1L shl 21
+        const val DZ = 1
     }
 
     // better than that isn't in our budget
@@ -25,10 +29,10 @@ class NormalHelperTree(initialCapacity: Int, bounds: AABBf, minVertexDistance: F
     private val y0 = bounds.minY - supportedMinVertexDistance * 2f
     private val z0 = bounds.minZ - supportedMinVertexDistance * 2f
 
-    private val entries = HashMap<Long, FloatArrayList>(initialCapacity)
+    val entries = HashMap<Long, FloatArrayList>(initialCapacity)
     private val insertDelta = supportedMinVertexDistance * 0.5f
 
-    private fun hash(px: Float, py: Float, pz: Float): Long {
+    fun hash(px: Float, py: Float, pz: Float): Long {
         val rx = (px - x0) * scale
         val ry = (py - y0) * scale
         val rz = (pz - z0) * scale
@@ -41,19 +45,13 @@ class NormalHelperTree(initialCapacity: Int, bounds: AABBf, minVertexDistance: F
         return sx.shl(42) or sy.shl(21) or sz
     }
 
-    fun get(position: Vector3f): FloatArrayList? {
-        return entries[hash(position.x, position.y, position.z)]
+    fun hashLow(position: Vector3f): Long {
+        return hash(position.x - insertDelta, position.y - insertDelta, position.z - insertDelta)
     }
 
     fun put(position: Vector3f, normal: Vector3f) {
-        val hash = hash(position.x - insertDelta, position.y - insertDelta, position.z - insertDelta)
-        for (i in 0 until 8) {
-            val dx = i and 1
-            val dy = (i shr 1) and 1
-            val dz = (i shr 2) and 1
-            val hashI = hash + DX * dx + DY * dy + DZ * dz
-            val entry = entries.getOrPut(hashI) { FloatArrayList(15) }
-            if (entry.size < 32 * 3) entry.add(normal) // else limit reached
-        }
+        val hash = hash(position.x, position.y, position.z)
+        val entry = entries.getOrPut(hash) { FloatArrayList(15) }
+        if (entry.size < 32 * 3) entry.add(normal) // else limit reached
     }
 }
