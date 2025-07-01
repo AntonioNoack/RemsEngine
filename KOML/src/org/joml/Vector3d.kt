@@ -701,29 +701,12 @@ open class Vector3d(
     }
 
     @JvmOverloads
-    fun orthogonalize(v: Vector3d, dst: Vector3d = this): Vector3d {
-        val rx: Double
-        val ry: Double
-        val rz: Double
-        if (abs(v.x) > abs(v.z)) {
-            rx = -v.y
-            ry = v.x
-            rz = 0.0
+    fun orthogonalize(dst: Vector3d = this): Vector3d {
+        return if (abs(x) > abs(z)) {
+            dst.set(-y, x, 0.0)
         } else {
-            rx = 0.0
-            ry = -v.z
-            rz = v.y
-        }
-        val invLen = JomlMath.invsqrt(rx * rx + ry * ry + rz * rz)
-        dst.x = rx * invLen
-        dst.y = ry * invLen
-        dst.z = rz * invLen
-        return dst
-    }
-
-    @JvmOverloads
-    fun orthogonalizeUnit(v: Vector3d, dst: Vector3d = this): Vector3d {
-        return orthogonalize(v, dst)
+            dst.set(0.0, -z, y)
+        }.safeNormalize()
     }
 
     @JvmOverloads

@@ -9,6 +9,7 @@ import org.joml.Vector3f
 import org.joml.Vector3i
 import org.junit.jupiter.api.Test
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 class Vector3dTests {
     @Test
@@ -109,6 +110,20 @@ class Vector3dTests {
         assertEquals(2.0, Vector3d(2.0, 1.0, 1.0).max())
         assertEquals(2.0, Vector3d(1.0, 2.0, 1.0).max())
         assertEquals(2.0, Vector3d(1.0, 1.0, 2.0).max())
+    }
+
+    @Test
+    fun testOrthogonalize() {
+        val rnd = Random(123)
+        val vec = Vector3d()
+        val ortho = Vector3d()
+        repeat(100) {
+            vec.set(rnd.nextDouble(), rnd.nextDouble(), rnd.nextDouble())
+                .sub(0.5)
+            vec.orthogonalize(ortho)
+            assertEquals(0.0, vec.dot(ortho), 1e-16)
+            assertEquals(1.0, ortho.lengthSquared(), 1e-15)
+        }
     }
 
     @Test

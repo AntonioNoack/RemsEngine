@@ -1,5 +1,6 @@
 package me.anno.utils.algorithms
 
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.hpc.threadLocal
 import kotlin.math.max
 
@@ -150,16 +151,20 @@ object Recursion {
         process: (item: V, remaining: ArrayList<V>) -> R?
     ): R? {
         var maxSize = startIndex
-        var result: R? = null
-        while (result == null && remaining.size > startIndex) {
-            val entry = remaining.removeLast()
-            result = process(entry, remaining)
-            maxSize = max(maxSize, remaining.size)
+        try {
+            var result: R? = null
+            while (result == null && remaining.size > startIndex) {
+                val entry = remaining.removeLast()
+                result = process(entry, remaining)
+                maxSize = max(maxSize, remaining.size)
+            }
+            if (maxSize > startIndex + TRIM_SIZE) {
+                remaining.trimToSize()
+            }
+            return result
+        } finally {
+            clearList(remaining, startIndex, maxSize)
         }
-        if (maxSize > startIndex + TRIM_SIZE) {
-            remaining.trimToSize()
-        }
-        return result
     }
 
     fun <V, W, R : Any> findRecursiveRunPairs(
@@ -167,18 +172,33 @@ object Recursion {
         process: (first: V, second: W, remaining: ArrayList<Any?>) -> R?
     ): R? {
         var maxSize = startIndex
-        var result: R? = null
-        @Suppress("UNCHECKED_CAST")
-        while (result == null && remaining.size > startIndex) {
-            val second = remaining.removeLast() as W
-            val first = remaining.removeLast() as V
-            result = process(first, second, remaining)
-            maxSize = max(maxSize, remaining.size)
+        try {
+            var result: R? = null
+            @Suppress("UNCHECKED_CAST")
+            while (result == null && remaining.size > startIndex) {
+                val second = remaining.removeLast() as W
+                val first = remaining.removeLast() as V
+                result = process(first, second, remaining)
+                maxSize = max(maxSize, remaining.size)
+            }
+            return result
+        } finally {
+            clearList(remaining, startIndex, maxSize)
+        }
+    }
+
+    private fun <V> clearList(remaining: ArrayList<V>, startIndex: Int, maxSize: Int) {
+        if (remaining.size > startIndex + 16) { // fast clear, one dynamic allocation
+            remaining.subList(startIndex, remaining.size).clear()
+        } else { // normal clear
+            while (remaining.size > startIndex) {
+                remaining.removeLast()
+            }
         }
         if (maxSize > startIndex + TRIM_SIZE) {
             remaining.trimToSize()
         }
-        return result
+        assertEquals(startIndex, remaining.size)
     }
 
     private const val TRIM_SIZE = 500

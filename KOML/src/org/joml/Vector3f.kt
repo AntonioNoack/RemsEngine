@@ -638,29 +638,12 @@ open class Vector3f(
     }
 
     @JvmOverloads
-    fun orthogonalize(v: Vector3f, dst: Vector3f = this): Vector3f {
-        val rx: Float
-        val ry: Float
-        val rz: Float
-        if (abs(v.x) > abs(v.z)) {
-            rx = -v.y
-            ry = v.x
-            rz = 0f
+    fun orthogonalize(dst: Vector3f = this): Vector3f {
+        return if (abs(x) > abs(z)) {
+            dst.set(-y, x, 0f)
         } else {
-            rx = 0f
-            ry = -v.z
-            rz = v.y
-        }
-        val invLen = JomlMath.invsqrt(rx * rx + ry * ry + rz * rz)
-        dst.x = rx * invLen
-        dst.y = ry * invLen
-        dst.z = rz * invLen
-        return dst
-    }
-
-    @JvmOverloads
-    fun orthogonalizeUnit(v: Vector3f, dst: Vector3f = this): Vector3f {
-        return orthogonalize(v, dst)
+            dst.set(0f, -z, y)
+        }.safeNormalize()
     }
 
     @JvmOverloads
