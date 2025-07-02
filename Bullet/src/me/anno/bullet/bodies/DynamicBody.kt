@@ -118,7 +118,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     @Group("Movement")
     @Docs("Minimum velocity to count as standing still")
     @Range(0.0, Double.POSITIVE_INFINITY)
-    var linearSleepingThreshold = 0.01
+    var linearSleepingThreshold = 0.0001
         set(value) {
             field = value
             nativeInstance?.setSleepingThresholds(value, angularSleepingThreshold)
@@ -127,7 +127,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
     @Group("Rotation")
     @Docs("Minimum angular velocity to count as standing still")
     @Range(0.0, Double.POSITIVE_INFINITY)
-    var angularSleepingThreshold = 0.01
+    var angularSleepingThreshold = 0.0001
         set(value) {
             field = value
             nativeInstance?.setSleepingThresholds(linearSleepingThreshold, value)

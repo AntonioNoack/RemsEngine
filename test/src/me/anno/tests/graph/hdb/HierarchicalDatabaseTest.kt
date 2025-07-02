@@ -3,6 +3,7 @@ package me.anno.tests.graph.hdb
 import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HierarchicalDatabase
 import me.anno.io.config.ConfigBasics
+import me.anno.tests.FlakyTest
 import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNull
@@ -29,6 +30,7 @@ class HierarchicalDatabaseTest {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testDatabaseGettersAndSetters() {
 

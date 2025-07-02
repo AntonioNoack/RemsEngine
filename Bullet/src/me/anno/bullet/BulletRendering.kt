@@ -24,6 +24,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.CountMap
 import org.joml.AABBd
 import org.joml.Vector3d
+import speiger.primitivecollections.IntToObjectHashMap
 
 object BulletRendering {
 
@@ -41,7 +42,7 @@ object BulletRendering {
         val transform = Transform()
         val min = Vector3d()
         val max = Vector3d()
-        val boundsById = HashMap<Int, AABBd>()
+        val boundsById = IntToObjectHashMap<AABBd>()
         val countMap = CountMap<Int>()
         for (instance in bulletInstance.collisionObjects) {
             val tag = instance.islandTag
@@ -54,11 +55,13 @@ object BulletRendering {
                 .union(min.x, min.y, min.z, max.x, max.y, max.z)
             countMap.incAndGet(tag)
         }
+
         // render all islands as AABBs
         val color = UIColors.dodgerBlue
-        for ((tag, bounds) in boundsById) {
-            if (countMap[tag] == 1) continue // a not a true island
-            drawAABB(bounds, color)
+        boundsById.forEach { tag, bounds ->
+            if (countMap[tag] > 1) {
+                drawAABB(bounds, color)
+            } // else a not a true island
         }
     }
 

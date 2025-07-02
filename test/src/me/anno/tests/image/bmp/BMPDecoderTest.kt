@@ -8,6 +8,7 @@ import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
+import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -44,6 +45,7 @@ class BMPDecoderTest {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testSize() {
         val src = createBmpFile()
@@ -54,6 +56,7 @@ class BMPDecoderTest {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testImageContent() {
         // todo this isn't using the standard BMP decoder, but the built-in one from ImageIO

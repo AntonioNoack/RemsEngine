@@ -25,7 +25,7 @@ class MeshColliderTests {
     @Test
     fun testSignedDistanceWithoutNormal() {
         val collider = MeshCollider(sphere3)
-        collider.enableSimplifications = false
+        collider.maxNumVertices = 0
         val random = Random(1324)
         repeat(100) {
             val x = (random.nextFloat() - 0.5f) * 3f

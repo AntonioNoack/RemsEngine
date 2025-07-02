@@ -1,6 +1,8 @@
 package me.anno.utils
 
 import me.anno.ui.input.EnumInput.Companion.getEnumConstants
+import speiger.primitivecollections.HashUtil.initialSize
+import speiger.primitivecollections.IntToObjectHashMap
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import kotlin.reflect.KClass
@@ -79,12 +81,18 @@ object Reflections {
         }
     }
 
-    private val enumByClass = HashMap<Class<*>, Map<Int, Enum<*>>>()
-    private fun getEnumByIdMap(clazz: Class<*>): Map<Int, Enum<*>> {
+    private val enumByClass = HashMap<Class<*>, IntToObjectHashMap<Enum<*>>>()
+    private fun getEnumByIdMap(clazz: Class<*>): IntToObjectHashMap<Enum<*>> {
         return enumByClass.getOrPut(clazz) {
-            val constants = getEnumConstants(clazz)
+            val enumValues = getEnumConstants(clazz)
             val getter = getEnumIdGetter(clazz)
-            constants.associateBy { getter(it) }
+            val minSize = initialSize(enumValues.size)
+            val idToEnum = IntToObjectHashMap<Enum<*>>(minSize)
+            for (i in enumValues.indices) {
+                val constant = enumValues[i]
+                idToEnum.put(getter(constant), constant)
+            }
+            idToEnum
         }
     }
 

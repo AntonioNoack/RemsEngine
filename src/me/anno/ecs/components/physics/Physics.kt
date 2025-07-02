@@ -350,7 +350,8 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     override fun onUpdate() {
         lastUpdate = Time.nanoTime
-        val shallExecute = updateInEditMode || RenderView.currentInstance?.playMode != PlayMode.EDITING
+        val playMode = RenderView.currentInstance?.playMode
+        val shallExecute = updateInEditMode || (playMode != PlayMode.EDITING && playMode != null)
         if (shallExecute) {
             if (synchronousPhysics) {
                 step((Time.deltaTime * 1e9).toLongOr(), false)

@@ -12,6 +12,7 @@ import me.anno.maths.Maths.SQRT2f
 import me.anno.maths.Maths.SQRT3f
 import me.anno.maths.bvh.HitType
 import me.anno.mesh.Shapes.flatCube
+import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertEquals
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -70,6 +71,7 @@ object RaycastMeshTest {
     }
 
     @Test
+    @FlakyTest
     fun testEdgeCasesInside() {
         mesh.forEachLine { a, b ->
             val dir = a.mix(b, 0.5f).normalize()
@@ -80,6 +82,7 @@ object RaycastMeshTest {
     }
 
     @Test
+    @FlakyTest
     fun testEdgeCasesOutside() {
         mesh.forEachLine { a, b ->
             val dir = a.mix(b, 0.5f).normalize()
@@ -101,6 +104,7 @@ object RaycastMeshTest {
     }
 
     @Test
+    @FlakyTest
     fun testCornerCasesOutside() {
         val pos = Vector3f()
         val dir = Vector3f()

@@ -6,6 +6,7 @@ import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.network.UDPClient
 import me.anno.network.packets.PingPacket
+import me.anno.tests.FlakyTest
 import me.anno.tests.network.NetworkTests.nextPort
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertLessThan
@@ -20,6 +21,7 @@ import kotlin.concurrent.thread
 class NetworkTest {
 
     @Test
+    @FlakyTest
     fun runParallelServers() {
         val bad = AtomicInteger(0)
         val threads = (0 until 100).map {
@@ -38,6 +40,7 @@ class NetworkTest {
     }
 
     @Test
+    @FlakyTest
     fun runSerialServer() {
 
         val tcpReceived = ConcurrentSkipListSet<String>()

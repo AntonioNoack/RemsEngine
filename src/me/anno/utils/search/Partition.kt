@@ -21,6 +21,8 @@ object Partition {
             else break
         }
 
+        // if nothing is on the right side, make sure we return endExclusive
+        if (compareToPivot.compareToPivot(i)) i++
         return i // i == j
     }
 }

@@ -22,6 +22,7 @@ object BinarySearch {
 
     /**
      * performs a binary search;
+     * @param maxIndex inclusive index, so you should use the lastIndex, not size
      * @param comparator compare element at this index with the searched element; return 0 if found
      * @return index of element or -1-insertIndex if not found
      * */
@@ -45,5 +46,4 @@ object BinarySearch {
         }
         return -1 - min
     }
-
 }

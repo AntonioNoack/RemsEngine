@@ -1,5 +1,6 @@
 package speiger.primitivecollections
 
+import me.anno.utils.types.Floats.toIntOr
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -55,5 +56,9 @@ object HashUtil {
             1073741824L,
             max(2L, nextPowerOfTwo(ceil((size.toFloat() / loadFactor).toDouble()).toLong()))
         ).toInt()
+    }
+
+    fun initialSize(usedSize: Int, loadFactor: Float = DEFAULT_LOAD_FACTOR): Int {
+        return max(ceil(usedSize / loadFactor).toIntOr(), 4)
     }
 }

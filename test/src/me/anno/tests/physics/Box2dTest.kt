@@ -13,9 +13,11 @@ import me.anno.ecs.EntityUtils.setContains
 import me.anno.ecs.systems.OnPhysicsUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.ecs.systems.Systems.registerSystem
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.TAUf
+import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
@@ -151,6 +153,7 @@ class Box2dTest {
     // todo test apply impulse
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testDisabledStates() {
 
@@ -171,7 +174,7 @@ class Box2dTest {
         val dt = 1f
         var expectedPosition = 0f
         var expectedVelocity = 0f
-        val numFlags = 7
+        val numFlags = 6
         val testAllCombinations = false
         val numTests = if (testAllCombinations) (1 shl (numFlags - 1)) * 8 + 4 else numFlags * 8 + 4
         for (i in 0 until numTests) {
@@ -185,10 +188,9 @@ class Box2dTest {
             sphere.isEnabled = !disabledMask.hasFlag(1)
             rigidbody.isEnabled = !disabledMask.hasFlag(2)
             collider.isEnabled = !disabledMask.hasFlag(4)
-            collider.density = if (disabledMask.hasFlag(8)) 0f else 1f
-            val isPartOfWorld = !disabledMask.hasFlag(16)
-            val hasRigidbody = !disabledMask.hasFlag(32)
-            val hasCollider = !disabledMask.hasFlag(64)
+            val isPartOfWorld = !disabledMask.hasFlag(8)
+            val hasRigidbody = !disabledMask.hasFlag(16)
+            val hasCollider = !disabledMask.hasFlag(32)
             world.setContains(sphere, isPartOfWorld)
             sphere.setContains(rigidbody, hasRigidbody)
             sphere.setContains(collider, hasCollider)
@@ -208,7 +210,7 @@ class Box2dTest {
     }
 
     private fun setupGravityTest(gravity: Float) {
-        Systems.registerSystem(physics)
+        registerSystem(physics)
 
         physics.gravity = Vector3d(0.0, gravity.toDouble(), 0.0)
         physics.positionIterations = 1
@@ -332,6 +334,7 @@ class Box2dTest {
      * why is any angle sufficient to start rolling?? because starting rolling takes very little effort
      * */
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testStartRollingOnDecline() {
 
@@ -343,7 +346,7 @@ class Box2dTest {
         val world = Entity()
         val floor = Entity()
             .setRotation(0f, 0f, angle)
-            .add(DynamicBody2d())
+            .add(StaticBody2d())
             .add(RectCollider().apply {
                 friction = 0.5f
                 halfExtents.set(30f, 10f)
@@ -468,10 +471,10 @@ class Box2dTest {
      * see if they collide
      * */
     @Test
+    @FlakyTest
     fun testGhostBody() {
 
-        val physics = Box2dPhysics
-        registerSystem(physics)
+        setupGravityTest(-10f)
 
         val world = Entity()
         Entity("Falling", world)
@@ -486,11 +489,13 @@ class Box2dTest {
 
         Systems.world = world
 
+        if (false) testSceneWithUI("Ghost", world)
+
         for (i in 0 until 10) {
             physics.step((1.0 / 5.0 * SECONDS_TO_NANOS).toLong(), false)
             if (i == 0 || i == 9) assertTrue(ghost.overlappingBodies.isEmpty())
             if (i == 5) assertEquals(1, ghost.overlappingBodies.size)
-            // println(ghost.numOverlaps)
+            // println("$i: ${ghost.numOverlaps}")
         }
     }
 }

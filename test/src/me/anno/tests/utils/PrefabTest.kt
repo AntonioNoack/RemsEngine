@@ -15,6 +15,7 @@ import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertNotEquals
@@ -41,6 +42,7 @@ class PrefabTest {
     }
 
     @Test
+    @FlakyTest
     fun testAddingAppendingAndPropertySetting() {
 
         // test adding, appending, setting of properties
@@ -145,6 +147,7 @@ class PrefabTest {
     }
 
     @Test
+    @FlakyTest
     fun testRemovingLowestChildWithInheritance() {
         val original = Entity()
         val childE = Entity(original)

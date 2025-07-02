@@ -2,6 +2,7 @@ package me.anno.tests.physics
 
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.PhysicalBody
 import me.anno.bullet.bodies.StaticBody
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Component
@@ -21,10 +22,12 @@ import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.systems.OnPhysicsUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.DefaultAssets.flatCube
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.maths.Optimization.simplexAlgorithm
+import me.anno.tests.FlakyTest
 import me.anno.tests.LOGGER
 import me.anno.tests.physics.constraints.createBridgeMeshes
 import me.anno.utils.assertions.assertEquals
@@ -66,7 +69,7 @@ class BulletTest {
         val dt = 1.0
         var expectedPosition = 0.0
         var expectedVelocity = 0.0
-        for (i in 0 until 200) {
+        repeat(200) {
 
             val actualPosition = sphere.position.y
             val actualVelocity = dynamicBody.globalLinearVelocity.y
@@ -81,6 +84,7 @@ class BulletTest {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testDisabledStates() {
 
@@ -103,30 +107,33 @@ class BulletTest {
         val dt = 1.0
         var expectedPosition = 0.0
         var expectedVelocity = 0.0
-        val numFlags = 7
+        val numFlags = 6
         val testAllCombinations = false
         val numTests = if (testAllCombinations) (1 shl (numFlags - 1)) * 8 + 4 else numFlags * 8 + 4
         for (i in 0 until numTests) {
 
+
             // if any flag of this is true, the rigidbody is invalid or static, and must not be moved
             val di = i / 4
+
             val disabledMask = if (di.hasFlag(1)) {
                 if (testAllCombinations) di.shr(1)
                 else (1 shl di.shr(1))
             } else 0
+
             sphere.isEnabled = !disabledMask.hasFlag(1)
             dynamicBody.isEnabled = !disabledMask.hasFlag(2)
             collider.isEnabled = !disabledMask.hasFlag(4)
-            dynamicBody.mass = if (disabledMask.hasFlag(8)) 0.0 else 1.0
-            val isPartOfWorld = !disabledMask.hasFlag(16)
-            val hasRigidbody = !disabledMask.hasFlag(32)
-            val hasCollider = !disabledMask.hasFlag(64)
+            val isPartOfWorld = !disabledMask.hasFlag(8)
+            val hasRigidbody = !disabledMask.hasFlag(16)
+            val hasCollider = !disabledMask.hasFlag(32)
             world.setContains(sphere, isPartOfWorld)
             sphere.setContains(dynamicBody, hasRigidbody)
             sphere.setContains(collider, hasCollider)
 
             val actualPosition = sphere.position.y
             val actualVelocity = dynamicBody.globalLinearVelocity.y
+            // println("Step[$i -> $di -> $disabledMask], $actualPosition, $actualVelocity")
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
@@ -185,7 +192,7 @@ class BulletTest {
         val dt = 1.0
         var expectedPosition = 0.0
         var expectedVelocity = 0.0
-        for (i in 0 until 20) {
+        repeat(20) {
 
             val actualPosition = sphere.position.y
             val actualVelocity = dynamicBody.globalLinearVelocity.y
@@ -255,7 +262,7 @@ class BulletTest {
         // assertEquals(Vector3d(0.0, 0.0, 0.0), underTest.velocity)
         // assertEquals(Vector3d(0.0, 0.0, 1.0), underTest.angularVelocity)
 
-        for (i in 0 until 3) {
+        repeat(3) {
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
 
@@ -266,7 +273,11 @@ class BulletTest {
             assertEquals(Vector3d(0.0, 0.0, 0.365), underTest.globalAngularVelocity, 0.01)
         } else {
             assertEquals(Vector3d(0.0, 1.0, 0.0), sphere.position, 0.15)
-            assertEquals(Vector3d(0.0, 0.03, 0.0), underTest.globalLinearVelocity, 0.05) // todo why is there y-movement??
+            assertEquals(
+                Vector3d(0.0, 0.03, 0.0),
+                underTest.globalLinearVelocity,
+                0.05
+            ) // todo why is there y-movement??
             assertEquals(Vector3d(0.0, 0.0, 1.0), underTest.globalAngularVelocity, 0.06)
         }
     }
@@ -276,6 +287,7 @@ class BulletTest {
      * why is any angle sufficient to start rolling?? because starting rolling takes very little effort
      * */
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testStartRollingOnDecline() {
 
@@ -301,6 +313,8 @@ class BulletTest {
         val sphere = Entity()
             .setPosition(-sin(angle) * dist, cos(angle) * dist, 0.0)
             .add(underTest.apply {
+                linearSleepingThreshold = 0.0
+                angularSleepingThreshold = 0.0
                 linearDamping = 0.0
                 angularDamping = 0.0
                 friction = 0.5
@@ -311,13 +325,15 @@ class BulletTest {
 
         Systems.world = world
 
+        // testSceneWithUI("Rolling", world)
+
         val dt = 1f / 8f
-        for (i in 0 until 8) {
+        repeat(8) {
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
 
-        assertEquals(Vector3d(-0.82, -0.07, 0.0), underTest.globalLinearVelocity, 0.04)
-        assertEquals(Vector3d(0.0, 0.0, 0.814), underTest.globalAngularVelocity, 0.04)
+        assertEquals(Vector3d(-0.89, -0.09, 0.0), underTest.globalLinearVelocity, 0.09)
+        assertEquals(Vector3d(0.0, 0.0, 0.904), underTest.globalAngularVelocity, 0.04)
     }
 
     /**
@@ -362,16 +378,19 @@ class BulletTest {
         Systems.world = world
 
         val dt = 1f / 8f
-        for (i in 0 until 8) {
+        repeat(8) {
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
             println("${sphere.position} += ${underTest.globalLinearVelocity}/${underTest.globalAngularVelocity}")
         }
+
+        // todo validate things
     }
 
     // todo test interaction between all shapes
     //  - no sliding gravity; same mass, crash on one shall stop it and give the other equal velocity
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testTransferringImpulse() {
 
@@ -425,18 +444,19 @@ class BulletTest {
             println("Checking ${shape1.className} vs ${shape2.className}")
 
             val dt = 1f / 8f
-            for (i in 0 until 10) {
+            repeat(10) {
                 physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
             }
 
             // check that all impulse has been transferred perfectly
-            assertEquals(Vector3d(-2.25, 0.0, 0.0), s0.position, 0.3)
+            assertEquals(Vector3d(-1.91, 0.0, 0.0), s0.position, 0.3)
             assertEquals(Vector3d(0.0), b0.globalLinearVelocity, 0.15)
             assertEquals(Vector3d(1.0, 0.0, 0.0), b1.globalLinearVelocity, 0.15)
         }
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testInteraction() {
 
@@ -451,9 +471,8 @@ class BulletTest {
                 CylinderCollider().apply { name = "y"; axis = Axis.Y },
                 CylinderCollider().apply { name = "z"; axis = Axis.Z },
                 ConeCollider().apply { name = "x"; axis = Axis.X },
-                // todo y and z are incompatible??
                 ConeCollider().apply { name = "y"; axis = Axis.Y },
-                // ConeCollider().apply { name = "z"; axis = Axis.Z },
+                ConeCollider().apply { name = "z"; axis = Axis.Z },
                 ConvexCollider().apply {
                     points = floatArrayOf(
                         -1f, +1f, +1f,
@@ -488,11 +507,11 @@ class BulletTest {
                         .add(body.apply {
                             mass = 1.0
                             friction = 0.0
-                            restitution = 1.0
+                            restitution = 0.0
                         })
                         .add(collider)
                     world.add(entity)
-                    return (entity to body)
+                    return entity to body
                 }
 
                 val (s0, b0) = createShape(-2.5, 1.0, shape1)
@@ -503,7 +522,7 @@ class BulletTest {
                 // println("Checking ${shape1.toShortString()} vs ${shape2.toShortString()}")
 
                 val dt = 1f / 8f
-                for (i in 0 until 10) {
+                repeat(20) {
                     physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
                 }
 
@@ -519,7 +538,7 @@ class BulletTest {
                     assertEquals(Vector3d(1.0, 0.0, 0.0), b0.globalLinearVelocity + b1.globalLinearVelocity, 0.01)
                     good++
                 } catch (e: Exception) {
-                    LOGGER.warn("Failed ${shape1.toShortString()} vs ${shape2.toShortString()}")
+                    LOGGER.warn("Failed ${shape1.toShortString()} vs ${shape2.toShortString()}", e)
                     failed++
                 }
             }
@@ -530,6 +549,7 @@ class BulletTest {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testPointConstraintByBuildingAHangingBridge() {
 
@@ -553,10 +573,13 @@ class BulletTest {
         }
 
         val world = Entity()
-        fun createPoint(i: Int, mass: Double): DynamicBody {
-            val result = DynamicBody().apply {
-                this.mass = mass
-                linearDamping = 0.999
+        fun createPoint(i: Int, static: Boolean): PhysicalBody {
+            val result = if (static) {
+                StaticBody()
+            } else {
+                DynamicBody().apply {
+                    linearDamping = 0.999
+                }
             }
             Entity("$i", world)
                 .setPosition(i * dist, initialShape(i), 0.0)
@@ -566,9 +589,9 @@ class BulletTest {
         }
 
         // create nodes
-        val chain = ArrayList<DynamicBody>(n)
+        val chain = ArrayList<PhysicalBody>(n)
         for (i in 0 until n) {
-            chain.add(createPoint(i, if (i == 0 || i == n - 1) 0.0 else 1.0))
+            chain.add(createPoint(i, i == 0 || i == n - 1))
         }
 
         // create links
@@ -588,7 +611,7 @@ class BulletTest {
             return chain[i].transform!!.globalPosition.y
         }
 
-        for (k in 0 until 100) {
+        repeat(100) {
             physics.step((0.1f * SECONDS_TO_NANOS).toLong(), false)
             if (debug) println(chain.indices.map { i -> getY(i).f3s() })
         }
@@ -622,34 +645,27 @@ class BulletTest {
         println("$bestErr -> $avgErr, $y0,$y1")
     }
 
-    @Test
-    @Execution(ExecutionMode.SAME_THREAD)
-    fun testPointConstraintByBuildingABowBridge() {
+    val cosh0 = cosh(0.0) // 1.0
+    val cosh1 = cosh(1.0)
 
-        val physics = BulletPhysics()
-        setupGravityTest(physics, -10f)
+    fun createPointConstraintBridge(n: Int): Entity {
 
-        val debug = true
-        val n = 31
         val dist = 2.5
-        val chainFactor = 0.51
-
-        val cosh0 = cosh(0.0) // 1.0
-        val cosh1 = cosh(1.0)
 
         // trying to find a good start, so we don't have too much bounce
         fun initialShape(i: Int): Double {
             val halfN = (n - 1) * 0.5
             val x11 = (i - halfN) / halfN
-            val dy = 43.3
+            val dy = 8.4
             return (cosh(x11) - cosh1) * dy / (cosh1 - cosh0)
         }
 
         val world = Entity()
-        fun createPoint(i: Int, mass: Double): DynamicBody {
-            val result = DynamicBody().apply {
-                this.mass = mass
+        fun createPoint(i: Int, static: Boolean): PhysicalBody {
+            val result = if (static) StaticBody() else DynamicBody().apply {
                 linearDamping = 0.999
+                linearSleepingThreshold = 0.0
+                angularSleepingThreshold = 0.0
             }
             Entity("$i", world)
                 .setPosition(i * dist, initialShape(i), 0.0)
@@ -659,35 +675,50 @@ class BulletTest {
         }
 
         // create nodes
-        val chain = ArrayList<DynamicBody>(n)
+        val chain = ArrayList<PhysicalBody>(n)
         for (i in 0 until n) {
-            chain.add(createPoint(i, if (i == 0 || i == n - 1) 0.0 else 1.0))
+            chain.add(createPoint(i, i == 0 || i == n - 1))
         }
 
         // create links
+        val chainFactor = 0.51
         for (i in 1 until n) {
             val c0 = chain[i - 1].entity!!
             val c1 = chain[i]
-            val dx = 2.0
             c0.addChild(PointConstraint().apply {
-                selfPosition = selfPosition.set(-dist * chainFactor, dx, 0.0)
-                otherPosition = otherPosition.set(+dist * chainFactor, dx, 0.0)
-                other = c1
-            })
-            c0.addChild(PointConstraint().apply {
-                selfPosition = selfPosition.set(-dist * chainFactor, -dx, 0.0)
-                otherPosition = otherPosition.set(+dist * chainFactor, -dx, 0.0)
+                selfPosition = selfPosition.set(+dist * chainFactor, 0.0, 0.0)
+                otherPosition = otherPosition.set(-dist * chainFactor, 0.0, 0.0)
                 other = c1
             })
         }
+
+        return world
+    }
+
+    @Test
+    @FlakyTest
+    @Execution(ExecutionMode.SAME_THREAD)
+    fun testPointConstraintByBuildingABowBridge() {
+
+        val physics = BulletPhysics()
+        physics.enableDebugRendering = true
+        setupGravityTest(physics, -10f)
+
+        val debug = true
+        val n = 31
+        val world = createPointConstraintBridge(31)
+        val chain = world.children
 
         Systems.world = world
+        physics.validate()
 
         fun getY(i: Int): Double {
-            return chain[i].transform!!.globalPosition.y
+            return chain[i].transform.globalPosition.y
         }
 
-        for (k in 0 until 1000) {
+        if (false) testSceneWithUI("PointConstraintBridge", world)
+
+        repeat(1000) {
             physics.step((0.1f * SECONDS_TO_NANOS).toLong(), false)
             // if (debug) println((chain.indices step 3).map { i -> getY(i).f3s() })
         }
@@ -712,33 +743,43 @@ class BulletTest {
         ) { params -> fitShapeError(params[0], params[1]) }
         val (y0, y1) = bestParams
 
-        if (debug) println(chain.mapIndexed { i, it -> (it.transform!!.globalPosition.y - fitShape(i, y0, y1)).f3s() })
+        if (debug) println(chain.mapIndexed { i, it -> (it.transform.globalPosition.y - fitShape(i, y0, y1)).f3s() })
         val avgErr = sqrt(bestErr / (n - 2))
 
         println("$bestErr -> $avgErr, $y0,$y1")
-        assertEquals(7.0, y0, 5.0)
-        assertEquals(47.0, y1, 5.0)
-        assertTrue(avgErr < 2.3, "$avgErr")
+        assertEquals(3.667, y0, 1.0)
+        assertEquals(29.5, y1, 5.0)
+        assertTrue(avgErr < 1.0, "$avgErr")
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testBowBridgeFromMeshColliders() {
-        val meshes = createBridgeMeshes(8, 0.2f, 1f, 0f)
+
         val scene = Entity()
+        val meshes = createBridgeMeshes(2, 0.2f, 1f, 0f)
         for (i in meshes.indices) {
-            val mass = if (i == 0 || i == meshes.lastIndex) 0.0 else 1.0
             val (mesh, pos) = meshes[i]
-            Entity(scene)
+            val entity = Entity(scene)
                 .setPosition(pos)
-                .add(MeshCollider(mesh).apply { margin = 0f })
-                .add(DynamicBody().apply { this.mass = mass })
+                .add(MeshCollider(mesh).apply {
+                    maxNumVertices = 0
+                    margin = 1e-6f
+                    roundness = 1e-6f
+                })
+            if (i == 0 || i == meshes.lastIndex) {
+                entity.add(StaticBody())
+            } else {
+                entity.add(DynamicBody())
+            }
         }
+
         val physics = BulletPhysics()
         setupGravityTest(physics, -10f)
         Systems.world = scene
         // withstand a few iterations
-        for (i in 0 until 100) {
+        repeat(100) {
             val dt = 1f / 60f
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }

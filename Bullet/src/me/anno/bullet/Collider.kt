@@ -7,8 +7,6 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConeShape
 import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.collision.shapes.CylinderShape
-import com.bulletphysics.collision.shapes.ShapeHull.Companion.NUM_UNIT_SPHERE_POINTS
-import com.bulletphysics.collision.shapes.ShapeHull.Companion.constUnitSpherePoints
 import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.collision.shapes.StaticPlaneShape
 import com.bulletphysics.collision.shapes.TriangleIndexVertexArray
@@ -77,25 +75,27 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
         val max = Vector3d()
         convex.getBounds(Transform(), min, max)
 
-        if (positions.size < 30 || !enableSimplifications) {
+        val maxNumVertices = maxNumVertices
+        val numVertices = positions.size / 3
+        if (numVertices < maxNumVertices || maxNumVertices < 4) {
             convex.margin = margin.toDouble()
             return convex
         }
 
-        val directions = ArrayList<Vector3d>(NUM_UNIT_SPHERE_POINTS)
-        for (i in constUnitSpherePoints.indices) {
-            directions.add(Vector3d(constUnitSpherePoints[i]))
-        }
+        /* val directions = ArrayList<Vector3d>(NUM_UNIT_SPHERE_POINTS)
+         for (i in constUnitSpherePoints.indices) {
+             directions.add(Vector3d(constUnitSpherePoints[i]))
+         }
 
-        val tmp = Vector3d()
-        for (i in directions.indices) {
-            val v = directions[i]
-            convex.localGetSupportingVertex(tmp.set(v), v)
-        }
+         val tmp = Vector3d()
+         for (i in directions.indices) {
+             val v = directions[i]
+             convex.localGetSupportingVertex(tmp.set(v), v)
+         }*/
 
-        val hull = ConvexHulls.calculateConvexHull(HullDesc(directions))
+        val hull = ConvexHulls.calculateConvexHull(positions, HullDesc(emptyList(), maxNumVertices))
         if (hull == null) {
-            LOGGER.warn("Failed to create convex hull for $directions")
+            LOGGER.warn("Failed to create convex hull for ${mesh.ref}")
             convex.margin = margin.toDouble()
             return convex
         }
@@ -104,7 +104,6 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
         shape.margin = margin.toDouble()
         bulletInstance = shape
         return shape
-
     } else {
 
         // we don't send the data to the gpu here, so we don't need to allocate directly

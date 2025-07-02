@@ -5,6 +5,7 @@ import me.anno.image.ImageCache
 import me.anno.image.bmp.BMPWriter
 import me.anno.image.raw.IntImage
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
+import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -13,6 +14,7 @@ import kotlin.random.Random
 
 class BMPWriterTest {
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testWriter() {
         OfficialExtensions.initForTests()

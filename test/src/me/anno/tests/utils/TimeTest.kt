@@ -78,29 +78,53 @@ class TimeTest {
     fun testTimeSpeed(timeSpeed: Double, delayMs: Long = this.delayMs) {
         ensureClassesAreLoaded()
         Time.timeSpeed = timeSpeed
+
         val t0 = System.nanoTime()
         val start = record()
-        Thread.sleep(delayMs)
         val t1 = System.nanoTime()
+
+        Thread.sleep(delayMs)
+
+        val t3 = System.nanoTime()
         val end = record()
-        val delayNanos = t1 - t0
+        val t4 = System.nanoTime()
+
+        val extraTolerance = (t1 - t0) + (t4 - t3) // just 0.1 ms
+        println("Extra tolerance: $extraTolerance ns")
+
+        val delayNanos = t3 - t0
+        println("Wanted to sleep for $delayMs, actually slept ${delayNanos / MILLIS_TO_NANOS}")
+
         val tStart = Time.startTimeN
         assertEquals(timeSpeed, Time.timeSpeed)
         assertEquals(min(timeSpeed * delayNanos * 1e-9, 0.1), end.gameTime - start.gameTime, 0.001)
-        assertEquals(min(timeSpeed * delayNanos, 100.0 * MILLIS_TO_NANOS), (end.gameTimeN - start.gameTimeN).toDouble(), 1e6)
+        assertEquals(
+            min(timeSpeed * delayNanos, 100.0 * MILLIS_TO_NANOS),
+            (end.gameTimeN - start.gameTimeN).toDouble(), 1e6
+        )
+
+        // check gameTime of start being equals to lastGameTime of end
         assertEquals(start.gameTime, end.lastGameTime)
         assertEquals(start.gameTimeN, end.lastGameTimeN)
+
+        // check nanoTime being later than frameTimeNanos
         assertTrue(end.nanoTime >= end.frameTimeNanos)
         assertTrue(start.nanoTime >= start.frameTimeNanos)
-        assertEqualsN(t1, end.nanoTime + tStart, 1_000_000L)
-        assertEqualsN(t0, start.nanoTime + tStart, 1_000_000L)
+
+        // check (start/end).nanoTime being roughly the same as what we recorded
+        assertEqualsN(t3, end.nanoTime + tStart, extraTolerance)
+        assertEqualsN(t0, start.nanoTime + tStart, extraTolerance)
+
         assertEquals(min(delayNanos * timeSpeed * 1e-9, 0.1), end.deltaTime, 0.001)
         assertEquals(min(delayNanos / 1e9, 0.1), end.uiDeltaTime, 0.001)
         assertEquals(delayNanos / 1e9, end.rawDeltaTime, 0.001)
-        assertEquals(1,end.frameIndex - start.frameIndex)
+        assertEquals(1, end.frameIndex - start.frameIndex)
         // assertEquals(1e9 / delayNanos, end.currentFPS, 0.1)
-        assertEqualsN(t0, start.frameTimeNanos + tStart, 1_000_000L)
-        assertEqualsN(t1, end.frameTimeNanos + tStart, 1_000_000L)
+
+        // check that frameTimeNanos is just our time source plus offset
+        assertEqualsN(t0, start.frameTimeNanos + tStart, extraTolerance)
+        assertEqualsN(t3, end.frameTimeNanos + tStart, extraTolerance)
+        // println("$t0 + ${start.frameTimeNanos} + $tStart")
     }
 
     fun assertEqualsN(expected: Long, actual: Long, absoluteTolerance: Long) {

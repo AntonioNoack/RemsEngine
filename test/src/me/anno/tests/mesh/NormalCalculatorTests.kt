@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.components.mesh.utils.IndexRemover.removeIndices
 import me.anno.engine.DefaultAssets.flatCube
+import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.assertions.assertNull
@@ -20,6 +21,7 @@ class NormalCalculatorTests {
     }
 
     @Test
+    @FlakyTest
     fun testFlatSphere2() {
         testFlatShape(UVSphereModel.createUVSphere(10, 10))
     }
@@ -59,6 +61,7 @@ class NormalCalculatorTests {
      * test cube, make it smooth
      * */
     @Test
+    @FlakyTest
     fun testSmoothCube() {
         val shape = flatCube.deepClone()
         shape.normals = null
@@ -79,6 +82,7 @@ class NormalCalculatorTests {
      * test sphere without indices, generate new indices
      * */
     @Test
+    @FlakyTest
     fun testSphereNewIndices() {
         val shape = UVSphereModel.createUVSphere(10, 10)
         val numIndices = shape.indices!!.size

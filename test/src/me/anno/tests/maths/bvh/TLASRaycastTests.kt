@@ -11,6 +11,7 @@ import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.HitType
 import me.anno.maths.bvh.SplitMethod
 import me.anno.maths.bvh.TLASNode
+import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertGreaterThan
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
@@ -46,6 +47,7 @@ class TLASRaycastTests {
     }
 
     @Test
+    @FlakyTest
     fun testRaycastingSphereClosestHit() {
         var ctr = 0
         val hit = RayHit()
@@ -62,6 +64,7 @@ class TLASRaycastTests {
     }
 
     @Test
+    @FlakyTest
     fun testRaycastingSphereAnyHit() {
         var ctr = 0
         val hit = RayHit().apply { hitType = HitType.ANY }

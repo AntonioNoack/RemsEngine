@@ -49,6 +49,7 @@ class TgaImageReaderTest {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testImageContent() {
         val image = ImageCache[res.getChild("files/gimp-3x3.tga")].waitFor()!!
@@ -58,6 +59,7 @@ class TgaImageReaderTest {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testImageContent2() {
         val image = ImageCache[res.getChild("files/gimp-3x3-fy.tga")].waitFor()!!

@@ -225,11 +225,9 @@ abstract class WorkSplitter(val numThreads: Int) {
             }
         }
         // process last
-        val tx0 = partition(0, tilesX, threadCountX)
         val tx1 = partition(1, tilesX, threadCountX)
-        val ty0 = partition(0, tilesY, threadCountY)
         val ty1 = partition(1, tilesY, threadCountY)
-        process2d(x0, y0, x1, y1, tileSize, tx0, ty0, tx1, ty1, tiledTask)
+        process2d(x0, y0, x1, y1, tileSize, 0, 0, tx1, ty1, tiledTask)
         waitUntil(true) { counter.get() <= 0 }
     }
 }

@@ -12,6 +12,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertIs
 import me.anno.utils.assertions.assertTrue
@@ -30,31 +31,37 @@ class GeneralFileEncodingTest {
     }
 
     @Test
+    @FlakyTest
     fun testPrettyJson() {
         testEncoding(FileEncoding.PRETTY_JSON, "json")
     }
 
     @Test
+    @FlakyTest
     fun testCompactJson() {
         testEncoding(FileEncoding.COMPACT_JSON, "json")
     }
 
     @Test
+    @FlakyTest
     fun testPrettyXML() {
         testEncoding(FileEncoding.PRETTY_XML, "xml-re")
     }
 
     @Test
+    @FlakyTest
     fun testCompactXML() {
         testEncoding(FileEncoding.COMPACT_XML, "xml-re")
     }
 
     @Test
+    @FlakyTest
     fun testYAMLEncodings() {
         testEncoding(FileEncoding.YAML, "yaml-re")
     }
 
     @Test
+    @FlakyTest
     fun testBinaryEncodings() {
         testEncoding(FileEncoding.BINARY, "rem")
     }

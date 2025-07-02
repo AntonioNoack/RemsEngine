@@ -2,6 +2,7 @@ package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.StaticBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.MeshComponent
@@ -31,20 +32,26 @@ fun main() {
     for (i in meshes.indices) {
         val (mesh, pos) = meshes[i]
         val x = (i.toFloat() / meshes.lastIndex) * 2f - 1f
-        val mass =
-            if (i == 0 || i == meshes.lastIndex) 0.0
-            else 500.0 * (2.0 - abs(x)) // make the middle heavier for better stability?
-        Entity("Bridge[$i]", bridge)
+        val entity = Entity("Bridge[$i]", bridge)
             .setPosition(pos)
-            .add(DynamicBody().apply {
-                this.mass = mass
-                friction = 0.9
-            })
             .add(MeshCollider(mesh).apply {
-                margin = 0.1f
+                maxNumVertices = 0
+                margin = 1e-6f
+                roundness = 1e-6f
                 isConvex = true
             })
             .add(MeshComponent(mesh))
+        if (i == 0 || i == meshes.lastIndex) {
+            entity.add(StaticBody().apply {
+                friction = 0.9
+            })
+        } else {
+            entity.add(DynamicBody().apply {
+                // make the middle heavier for better stability?
+               mass = 500.0 * (2.0 - abs(x))
+                friction = 0.9
+            })
+        }
     }
 
     spawnFloor(scene)

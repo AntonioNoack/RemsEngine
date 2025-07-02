@@ -84,17 +84,18 @@ object Median {
         val maxAcceptableI = start + count4th * 3
         val maxNumTries = count.toFloat().log2i().shr(1)
         for (tryIndex in 0 until maxNumTries) {
+
             // using this guessed pivot as a first try reduced the time from 80ms to 57ms on my Ryzen 9 7950x3d
-            pivot = pivot0
+            @Suppress("AssignedValueIsNeverRead") // pivot is read by compareToPivot
             if (tryIndex > 0) {
                 // try finding a better median
                 pivot = 0.0
-                for (i in 0 until 5) {
+                repeat(5) {
                     val idx = random.nextInt(start, endExclusive)
                     pivot += sampler.sample(idx)
                 }
                 pivot *= 0.2
-            }
+            } else pivot = pivot0
 
             val splitI = Partition.partition(start, endExclusive, compareToPivot, swapper)
             if (splitI in minAcceptableI..maxAcceptableI) { // >50% chance

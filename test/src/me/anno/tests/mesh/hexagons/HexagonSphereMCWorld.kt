@@ -8,6 +8,7 @@ import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.maths.noise.FullNoise
 import me.anno.maths.noise.PerlinNoise
 import org.joml.Vector4f
+import speiger.primitivecollections.LongToIntHashMap
 import speiger.primitivecollections.LongToObjectHashMap
 import kotlin.math.ln
 
@@ -53,12 +54,12 @@ class HexagonSphereMCWorld(val sphere: HexagonSphere, val save: HexMCWorldSave =
             for (hex in hexagons) hexMap[hex.index] = hex
             sphere.ensureNeighbors(hexagons, hexMap, depth)
         }
-        val idMap = LongToObjectHashMap<Int>(hexagons.size)
+        val idMap = LongToIntHashMap(-1, hexagons.size)
         for (index in hexagons.indices) {
             val hex = hexagons[index]
             idMap[hex.index] = index
         }
-        val indexMap = IndexMap { idMap[it] ?: -1 }
+        val indexMap = IndexMap { idMap[it] }
         return generateWorld(hexagons, indexMap) to indexMap
     }
 

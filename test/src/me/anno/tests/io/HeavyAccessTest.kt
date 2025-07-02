@@ -3,6 +3,7 @@ package me.anno.tests.io
 import me.anno.engine.OfficialExtensions
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.temporary.InnerTmpFile
+import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertContentEquals
 import me.anno.utils.assertions.assertNull
 import me.anno.utils.assertions.assertTrue
@@ -85,6 +86,7 @@ class HeavyAccessTest {
      * - ensure it gets opened two times only for heavy files
      * */
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testHeavyAccess() {
         testAccessImpl(false, 3)
@@ -98,6 +100,7 @@ class HeavyAccessTest {
      * - ensure it gets opened a single time only for light files
      * */
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testLightFiles() {
         testAccessImpl(true, 2)

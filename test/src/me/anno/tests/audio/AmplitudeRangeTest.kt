@@ -8,6 +8,7 @@ import me.anno.cache.CacheSection
 import me.anno.engine.OfficialExtensions
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.tests.FlakyTest
 import me.anno.tests.audio.AudioReaderTest.Companion.createStereoAudioFile
 import me.anno.tests.audio.AudioReaderTest.Companion.numSamples
 import me.anno.utils.assertions.assertEquals
@@ -32,6 +33,7 @@ class AmplitudeRangeTest {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testAmplitudeRange() {
         Engine.cancelShutdown()

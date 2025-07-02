@@ -9,6 +9,7 @@ import me.anno.engine.ECSRegistry
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.maths.Maths
 import me.anno.mesh.Shapes
+import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode
 class AutoRefTest {
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun test() {
 

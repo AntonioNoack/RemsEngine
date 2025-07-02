@@ -83,7 +83,7 @@ fun createUI(): Panel {
     Entity("Floor", scene)
         .add(MeshComponent(map))
         .add(MeshCollider(map).apply {
-            enableSimplifications = false
+            maxNumVertices = 0
             isConvex = false
         })
         .add(InfinitePlaneCollider())

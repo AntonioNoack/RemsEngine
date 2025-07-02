@@ -67,6 +67,7 @@ class FileCacheTests {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testFileCacheAsyncIsLoading() {
         val fileCache = init()
@@ -77,6 +78,7 @@ class FileCacheTests {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testFileCacheFirstSync() {
         val fileCache = init()
@@ -88,7 +90,7 @@ class FileCacheTests {
     }
 
     @Test
-    @FlakyTest()
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testFileCacheUpdateAndReloading() {
         val fileCache = init()

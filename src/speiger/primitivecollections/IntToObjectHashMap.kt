@@ -1,12 +1,13 @@
 package speiger.primitivecollections
 
+import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.callbacks.IntObjectCallback
 
 /**
  * Wrapper around LongToObjectHashMap.
  * The overhead isn't that big, and it saves us from having lots of duplicated code.
  * */
-class IntToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) {
+class IntToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = DEFAULT_LOAD_FACTOR) {
 
     private val content = LongToObjectHashMap<V>(minCapacity, loadFactor)
 

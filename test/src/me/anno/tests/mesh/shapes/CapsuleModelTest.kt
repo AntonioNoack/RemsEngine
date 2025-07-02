@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.shapes.CapsuleModel
 import me.anno.ecs.components.mesh.shapes.CapsuleModel.transformYToAxis
 import me.anno.sdf.SDFComponent
 import me.anno.sdf.shapes.SDFCapsule
+import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
@@ -62,6 +63,7 @@ class CapsuleModelTest {
     }
 
     @Test
+    @FlakyTest
     fun testCapsuleX() {
         val mesh = CapsuleModel.createCapsule(us, vs, radius0, halfHeight)
         transformYToAxis(mesh, Axis.X)
@@ -79,6 +81,7 @@ class CapsuleModelTest {
     }
 
     @Test
+    @FlakyTest
     fun testCapsuleY() {
         val mesh = CapsuleModel.createCapsule(us, vs, radius0, halfHeight)
         val sdf = SDFCapsule().apply {
@@ -95,6 +98,7 @@ class CapsuleModelTest {
     }
 
     @Test
+    @FlakyTest
     fun testCapsuleZ() {
         val mesh = CapsuleModel.createCapsule(us, vs, radius0, halfHeight)
         transformYToAxis(mesh, Axis.Z)

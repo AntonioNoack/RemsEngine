@@ -2,6 +2,7 @@ package me.anno.ecs.components.collider
 
 import me.anno.ecs.EntityQuery.getComponentInChildren
 import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
@@ -48,8 +49,9 @@ open class MeshCollider() : Collider() {
     @SerializedProperty
     override var isConvex = true
 
+    @Docs("Maximum number of vertices for collision checks. <= 3 disables simplifications")
     @SerializedProperty
-    var enableSimplifications = true
+    var maxNumVertices = 16
 
     // todo can we define roundness instead? moving vertices inside by normal; then adding margin on top
     @SerializedProperty
@@ -226,6 +228,6 @@ open class MeshCollider() : Collider() {
         dst.meshFile = meshFile
         dst.isConvex = isConvex
         dst.margin = margin
-        dst.enableSimplifications = enableSimplifications
+        dst.maxNumVertices = maxNumVertices
     }
 }
