@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.components.mesh.TransformMesh.transform
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
+import me.anno.mesh.MeshUtils.numTriangles
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.addUnsafe
@@ -21,7 +22,7 @@ object CapsuleModel {
      * */
     fun createCapsule(us: Int, vs: Int, r: Float, h: Float, mesh: Mesh = Mesh()): Mesh {
         UVSphereModel.createUVSphere(us, vs * 2, mesh)
-        val numSrcTriangles = mesh.numPrimitives.toInt()
+        val numSrcTriangles = mesh.numTriangles.toInt()
         val numDstTriangles = numSrcTriangles + 2 * us
         val positions = FloatArrayList(numDstTriangles * 9)
         val normals = FloatArrayList(numDstTriangles * 9)
@@ -29,13 +30,18 @@ object CapsuleModel {
             positions.addUnsafe(a.x * r, a.y * r + dy, a.z * r)
             normals.addUnsafe(a)
         }
+
+        var ctr = 0
         mesh.forEachTriangle { a, b, c ->
             val dy = sign(a.y + b.y + c.y) * h
             addPoint(a, dy)
             addPoint(b, dy)
             addPoint(c, dy)
+            ctr++
             false
         }
+        assertEquals(numSrcTriangles, ctr)
+
         fun addPoint(xi: Int, y: Float) {
             val angle = xi * TAUf / us
             val x = cos(angle)

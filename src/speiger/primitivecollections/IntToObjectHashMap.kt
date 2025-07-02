@@ -9,7 +9,7 @@ import speiger.primitivecollections.callbacks.IntObjectCallback
  * */
 class IntToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = DEFAULT_LOAD_FACTOR) {
 
-    private val content = LongToObjectHashMap<V>(minCapacity, loadFactor)
+    val content = LongToObjectHashMap<V>(minCapacity, loadFactor)
 
     val size get() = content.size
     fun isEmpty() = size == 0

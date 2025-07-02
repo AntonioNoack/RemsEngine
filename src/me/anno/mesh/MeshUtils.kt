@@ -164,6 +164,7 @@ object MeshUtils {
         val indices = indices
         val positions = positions
         val drawMode = drawMode
+        // println("indices: ${indices?.size}, positions: ${positions?.size}, drawMode: $drawMode")
         val numPositionValues = when {
             indices != null -> indices.size * 3
             positions != null -> positions.size

@@ -1,5 +1,6 @@
 package me.anno.tests.audio
 
+import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioCache.playbackSampleRate
 import me.anno.audio.AudioFXCache
@@ -35,6 +36,7 @@ class AudioReaderTest {
     @Execution(ExecutionMode.SAME_THREAD)
     fun writeReadSineWavFile() {
         // init engine
+        Engine.cancelShutdown()
         OfficialExtensions.initForTests()
 
         // create file

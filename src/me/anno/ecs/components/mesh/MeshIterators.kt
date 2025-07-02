@@ -129,7 +129,8 @@ object MeshIterators {
             if (indices.size < 3) return
             when (drawMode) {
                 DrawMode.TRIANGLES -> {
-                    for (i in 0 until (indices.size - 2) / 3) {
+                    // this is correct, no -2 needed!!
+                    for (i in 0 until indices.size / 3) {
                         val i3 = i * 3
                         if (callback.call(indices[i3], indices[i3 + 1], indices[i3 + 2], i)) break
                     }

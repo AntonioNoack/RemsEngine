@@ -2,7 +2,6 @@ package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
 import speiger.primitivecollections.callbacks.LongCallback
-import java.util.function.LongPredicate
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -43,6 +42,11 @@ abstract class LongToHashMap<AV>(
     @InternalAPI
     var minCapacity = 0
 
+    /**
+     * Where the key 0L is stored.
+     * It is stored at the very last index.
+     * For size 16, an array of size 17 is created, and nullIndex = 16.
+     * */
     @InternalAPI
     var nullIndex = 0
 
@@ -151,34 +155,32 @@ abstract class LongToHashMap<AV>(
     }
 
     fun rehash(newSize: Int) {
+
         val newMask = newSize - 1
         val newKeys = LongArray(newSize + 1)
         val newValues = createArray(newSize + 1)
-        var i = nullIndex
 
-        var j = size - (if (containsNull) 1 else 0)
-        while (j-- != 0) {
-            --i
-            if (i < 0) {
-                throw ConcurrentModificationException("Map was modified during rehash")
-            }
-
-            var pos = 0
-            if (keys[i] != 0L) {
-                pos = HashUtil.mix(keys[i].hashCode()) and newMask
-                if (newKeys[pos] != 0L) {
-                    do {
-                        pos = (pos + 1) and newMask
-                    } while (newKeys[pos] != 0L)
+        var numRemainingItems = size - (if (containsNull) 1 else 0)
+        for (srcIndex in 0 until nullIndex) {
+            val key = keys[srcIndex]
+            if (key != 0L) {
+                var dstIndex = HashUtil.mix(key.hashCode()) and newMask
+                while (newKeys[dstIndex] != 0L) {
+                    dstIndex = (dstIndex + 1) and newMask
                 }
 
-                newKeys[pos] = keys[i]
+                newKeys[dstIndex] = key
+                copyOver(newValues, dstIndex, values, srcIndex)
+                numRemainingItems--
             }
-            copyOver(newValues, pos, values, i)
+        }
+        if (numRemainingItems != 0) {
+            throw ConcurrentModificationException("Map was modified during rehash")
         }
 
         copyOver(newValues, newSize, values, nullIndex)
         nullIndex = newSize
+
         mask = newMask
         maxFill = min(ceil((nullIndex.toFloat() * loadFactor).toDouble()).toInt(), nullIndex - 1)
         keys = newKeys

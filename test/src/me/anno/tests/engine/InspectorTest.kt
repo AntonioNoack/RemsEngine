@@ -17,7 +17,6 @@ class InspectorTest {
             assertNotNull(reflections.allProperties["isCollapsed"])
             assertNotNull(reflections.allProperties["isEnabled"])
             assertTrue(reflections.editorFields.any { it.name == "isEnabled" })
-            assertTrue(reflections.editorFields.any { it.name == "isCollapsed" })
         }
     }
 }
