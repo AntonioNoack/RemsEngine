@@ -53,7 +53,7 @@ class TLASRaycastTests {
         val hit = RayHit()
         val gen = RandomRayGenerator()
         val blas = createTLAS()
-        for (i in 0 until 1000) {
+        repeat(1000) {
             hit.distance = 1e300
             val shouldHitSphere = gen.next()
             val hitsSphere = blas.raycast(gen.pos, gen.dir, hit)
@@ -70,7 +70,7 @@ class TLASRaycastTests {
         val hit = RayHit().apply { hitType = HitType.ANY }
         val blas = createTLAS()
         val gen = RandomRayGenerator()
-        for (i in 0 until 1000) {
+        repeat(1000) {
             hit.distance = 1e300
             val shouldHitSphere = gen.next()
             val hitsSphere = blas.raycast(gen.pos, gen.dir, hit)

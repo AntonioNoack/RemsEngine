@@ -1,5 +1,6 @@
 package me.anno.tests.lua
 
+import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.input.Key
@@ -20,6 +21,7 @@ class QuickInputScriptTest {
 
     @BeforeEach
     fun registerTypes() {
+        Engine.cancelShutdown()
         registerCustomClass(Entity::class)
         registerCustomClass(TestComponent::class)
         registerCustomClass(QuickInputScriptComponent::class)

@@ -9,7 +9,7 @@ abstract class TextDrawable : ICacheData {
     val bounds = AABBf()
 
     fun interface DrawBufferCallback {
-        fun draw(mesh: Mesh?, textSDF: TextSDF?, offset: Float): Boolean
+        fun draw(mesh: Mesh?, textSDF: TextSDF?, xOffset: Float): Boolean
     }
 
     abstract fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback)

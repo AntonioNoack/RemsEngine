@@ -132,6 +132,8 @@ class SDFTextComponent(
                 val material = getOrCreateMaterial(i)
                 material.diffuseMap = texture.ref
 
+                // println("char[$offset]: ${texture.width} x ${texture.height}")
+
                 val sx = getSx(texture.width, baselineY)
                 val sy = getSy(texture.height, baselineY) * 0.5f
 

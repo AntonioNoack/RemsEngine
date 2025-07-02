@@ -1,5 +1,6 @@
 package me.anno.engine
 
+import me.anno.Engine
 import me.anno.extensions.ExtensionLoader
 import me.anno.utils.OS.res
 
@@ -30,6 +31,7 @@ object OfficialExtensions {
     }
 
     fun initForTests() {
+        Engine.cancelShutdown()
         register()
         ExtensionLoader.load()
         ECSRegistry.init()

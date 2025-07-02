@@ -52,6 +52,7 @@ class SVGThumbnailTest {
     fun testPureThumbnail() {
         OfficialExtensions.initForTests()
         HiddenOpenGLContext.createOpenGL()
+
         val scale = 8
         val file = createSVGFile(baseline, scale)
         val thumbnail = ThumbnailCache.getEntry(file, baseline.width * scale).waitFor()!!
@@ -70,6 +71,7 @@ class SVGThumbnailTest {
     fun testMeshThumbnail() {
         OfficialExtensions.initForTests()
         HiddenOpenGLContext.createOpenGL()
+
         val scale = 8
         val file0 = createSVGFile(baseline, scale)
         val file = file0.getChild("Scene.json")

@@ -42,6 +42,7 @@ class ImageAsFolderTest {
     @Execution(ExecutionMode.SAME_THREAD)
     fun testImages() {
         HiddenOpenGLContext.createOpenGL()
+
         val ref = base.ref
         expectImage(base.data, ref, IntImage::class)
         assertIs(ImageReadable::class, ref.getChild("r.png"))
