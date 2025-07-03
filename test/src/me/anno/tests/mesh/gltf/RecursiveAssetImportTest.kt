@@ -4,12 +4,14 @@ import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.AssetImport
 import me.anno.io.files.FileFileRef.Companion.createTempFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.utils.assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class RecursiveAssetImportTest {
@@ -18,9 +20,13 @@ class RecursiveAssetImportTest {
         var reference: FileReference = InvalidRef
     }
 
+    @BeforeEach
+    fun init() {
+        OfficialExtensions.initForTests()
+    }
+
     @Test
     fun testRecursiveAssetImport() {
-        registerCustomClass(Entity()) // to avoid the useless warning
         registerCustomClass(RecursiveAsset())
 
         val srcFolder = createTempFolder("RecursiveAsset")

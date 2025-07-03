@@ -296,8 +296,7 @@ fun main() {
 }
 
 fun buildTLAS(
-    scene: Entity,
-    cameraPosition: Vector3d,
+    scene: Entity, cameraPosition: Vector3d,
     splitMethod: SplitMethod, maxNodeSize: Int
 ): TLASNode? {
     val clock = Clock(LOGGER)
@@ -308,7 +307,7 @@ fun buildTLAS(
             val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize)
             if (blas != null) {
                 mesh.raycaster = blas
-                objects.add(createTLASLeaf(mesh, blas, comp.transform!!, comp))
+                objects.add(createTLASLeaf(mesh, blas, comp.transform!!, comp, cameraPosition))
             }
         }
     }

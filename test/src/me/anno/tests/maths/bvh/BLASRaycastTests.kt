@@ -7,7 +7,6 @@ import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.HitType
 import me.anno.maths.bvh.SplitMethod
 import me.anno.utils.assertions.assertGreaterThan
-import me.anno.utils.types.Booleans.toInt
 import org.junit.jupiter.api.Test
 
 class BLASRaycastTests {
@@ -19,31 +18,31 @@ class BLASRaycastTests {
 
     @Test
     fun testRaycastingSphereClosestHit() {
-        var ctr = 0
+        var numCorrectHits = 0
         val hit = RayHit()
         val gen = RandomRayGenerator()
         val blas = createBLAS()
-        for (i in 0 until 1000) {
+        repeat(1000) {
             hit.distance = 1e300
             val shouldHitSphere = gen.next()
             val hitsSphere = blas.raycast(gen.pos, gen.dir, hit)
-            ctr += (shouldHitSphere == hitsSphere).toInt()
+            if (shouldHitSphere == hitsSphere) numCorrectHits++
         }
-        assertGreaterThan(ctr, 990)
+        assertGreaterThan(numCorrectHits, 990)
     }
 
     @Test
     fun testRaycastingSphereAnyHit() {
-        var ctr = 0
+        var numCorrectHits = 0
         val hit = RayHit().apply { hitType = HitType.ANY }
         val blas = createBLAS()
         val gen = RandomRayGenerator()
-        for (i in 0 until 1000) {
+        repeat(1000) {
             hit.distance = 1e300
             val shouldHitSphere = gen.next()
             val hitsSphere = blas.raycast(gen.pos, gen.dir, hit)
-            ctr += (shouldHitSphere == hitsSphere).toInt()
+            if (shouldHitSphere == hitsSphere) numCorrectHits++
         }
-        assertGreaterThan(ctr, 990)
+        assertGreaterThan(numCorrectHits, 990)
     }
 }

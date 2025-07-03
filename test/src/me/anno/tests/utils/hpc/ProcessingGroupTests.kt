@@ -1,8 +1,10 @@
 package me.anno.tests.utils.hpc
 
+import me.anno.Engine
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.hpc.ProcessingGroup
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -10,6 +12,11 @@ class ProcessingGroupTests {
 
     private fun createGroup(size: Int): ProcessingGroup {
         return ProcessingGroup("ProcessingGroupTests", size)
+    }
+
+    @BeforeEach
+    fun init() {
+        Engine.cancelShutdown()
     }
 
     @Test

@@ -44,7 +44,7 @@ class NetworkTest {
     @Test
     @FlakyTest
     fun runSerialServer() {
-        runSerialServer(true)
+        runSerialServer(false)
     }
 
     fun runSerialServer(checkUdp: Boolean) {

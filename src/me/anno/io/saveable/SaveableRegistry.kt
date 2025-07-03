@@ -19,7 +19,7 @@ object SaveableRegistry {
         private val clazz by lazy {
             try {
                 Class.forName(classPath)
-            } catch (ifModuleMissing: ClassNotFoundException) {
+            } catch (_: ClassNotFoundException) {
                 null
             }
         }
@@ -31,7 +31,7 @@ object SaveableRegistry {
         private fun getConstructor(vararg args: Class<*>): Constructor<*>? {
             return try {
                 clazz?.getConstructor(*args)
-            } catch (e: NoSuchMethodException) {
+            } catch (_: NoSuchMethodException) {
                 null
             }
         }

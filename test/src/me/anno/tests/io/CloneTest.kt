@@ -8,15 +8,21 @@ import me.anno.io.saveable.Saveable
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotSame
 import me.anno.utils.assertions.assertSame
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 
 class CloneTest {
+
+    @BeforeEach
+    fun init() {
+        OfficialExtensions.initForTests()
+    }
+
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
     fun testClone() {
-        OfficialExtensions.initForTests()
         var failedClasses = 0
         var passedClasses = 0
         for ((_, entry) in Saveable.objectTypeRegistry) {

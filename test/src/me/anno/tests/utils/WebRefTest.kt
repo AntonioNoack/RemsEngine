@@ -1,10 +1,12 @@
 package me.anno.tests.utils
 
+import me.anno.Engine
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.WebRef
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import org.apache.logging.log4j.LogManager
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class WebRefTest {
@@ -13,6 +15,11 @@ class WebRefTest {
 
     private fun getWebRef(path: String): WebRef {
         return getReference(path).resolved() as WebRef
+    }
+
+    @BeforeEach
+    fun init() {
+        Engine.cancelShutdown()
     }
 
     @Test

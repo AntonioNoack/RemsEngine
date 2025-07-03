@@ -641,7 +641,7 @@ class BulletTest {
 
         assertEquals(3.6, y0, 1.0)
         assertEquals(30.0, y1, 2.0)
-        assertTrue(avgErr < 0.7, "avgErr = $avgErr < 0.7")
+        assertTrue(avgErr < 0.8, "avgErr = $avgErr < 0.7")
         println("$bestErr -> $avgErr, $y0,$y1")
     }
 

@@ -26,9 +26,12 @@ object BVHBuilder {
 
     private val LOGGER = LogManager.getLogger(BVHBuilder::class)
 
-    fun createTLASLeaf(mesh: Mesh, blas: BLASNode, transform: Transform, component: Component?): TLASLeaf {
+    fun createTLASLeaf(
+        mesh: Mesh, blas: BLASNode, transform: Transform, component: Component?,
+        cameraPosition: Vector3d, // offset for TLAS, because TLAS only has fp32 precision for positions
+    ): TLASLeaf {
         val drawMatrix = transform.getDrawMatrix()
-        val localToWorld = Matrix4x3f().set4x3delta(drawMatrix)
+        val localToWorld = Matrix4x3f().set4x3delta(drawMatrix, cameraPosition)
         val worldToLocal = Matrix4x3f()
         localToWorld.invert(worldToLocal)
         val centroid = Vector3f()
@@ -42,9 +45,10 @@ object BVHBuilder {
 
     fun buildTLAS(
         scene: PipelineStageImpl, // filled with meshes
-        cameraPosition: Vector3d,
+        cameraPosition: Vector3d, // offset for TLAS, because TLAS only has fp32 precision for positions
         splitMethod: SplitMethod, maxNodeSize: Int
     ): TLASNode? {
+
         val clock = Clock(LOGGER)
         val sizeGuess = scene.nextInsertIndex + scene.instanced.data.sumOf { it.size }
         val objects = ArrayList<TLASLeaf>(max(sizeGuess, 16))
@@ -59,8 +63,9 @@ object BVHBuilder {
             val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize) ?: continue
             mesh.raycaster = blas
             val transform = dri.transform
-            objects += createTLASLeaf(mesh, blas, transform, dri.component)
+            objects += createTLASLeaf(mesh, blas, transform, dri.component, cameraPosition)
         }
+
         // add all instanced objects
         scene.instanced.data.forEach { mesh, _, _, stack ->
             if (mesh is Mesh) {
@@ -69,11 +74,12 @@ object BVHBuilder {
                     mesh.raycaster = blas
                     for (i in 0 until stack.size) {
                         val transform = stack.transforms[i] as Transform
-                        objects += createTLASLeaf(mesh, blas, transform, null)
+                        objects += createTLASLeaf(mesh, blas, transform, null, cameraPosition)
                     }
                 }
             }
         }
+
         clock.stop("Creating BLASes")
         LOGGER.info("Building TLAS from ${objects.size} objects")
         if (objects.isEmpty()) return null

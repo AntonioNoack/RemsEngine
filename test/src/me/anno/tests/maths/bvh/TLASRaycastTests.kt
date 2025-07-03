@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayHit
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.bvh.BVHBuilder
@@ -13,18 +14,30 @@ import me.anno.maths.bvh.SplitMethod
 import me.anno.maths.bvh.TLASNode
 import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertGreaterThan
-import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class TLASRaycastTests {
+
     companion object {
         private val LOGGER = LogManager.getLogger(TLASRaycastTests::class)
     }
 
+    @Test
+    fun runFlakyTest() {
+        testRaycastingSphereAnyHit()
+    }
+
+    @BeforeEach
+    fun init() {
+        OfficialExtensions.initForTests()
+    }
+
     fun createTLAS(): TLASNode {
+
         val scene = Entity()
         val sphereMesh = IcosahedronModel.createIcosphere(3)
         sphereMesh.forEachTriangle { a, b, c ->
@@ -37,10 +50,12 @@ class TLASRaycastTests {
             scene.add(Entity().add(MeshComponent(subMesh)))
             false
         }
+
         // add them to PipelineStage
         val pipeline = Pipeline(null)
         pipeline.frustum.setToEverything(Vector3d(), Quaternionf())
         pipeline.fill(scene)
+
         val stage = pipeline.defaultStage
         // build TLAS
         return BVHBuilder.buildTLAS(stage, Vector3d(), SplitMethod.MEDIAN_APPROX, 8)!!
@@ -49,7 +64,7 @@ class TLASRaycastTests {
     @Test
     @FlakyTest
     fun testRaycastingSphereClosestHit() {
-        var ctr = 0
+        var numCorrectHits = 0
         val hit = RayHit()
         val gen = RandomRayGenerator()
         val blas = createTLAS()
@@ -57,16 +72,16 @@ class TLASRaycastTests {
             hit.distance = 1e300
             val shouldHitSphere = gen.next()
             val hitsSphere = blas.raycast(gen.pos, gen.dir, hit)
-            ctr += (shouldHitSphere == hitsSphere).toInt()
+            if (shouldHitSphere == hitsSphere) numCorrectHits++
         }
-        LOGGER.info("Sphere-Closest: $ctr/1000")
-        assertGreaterThan(ctr, 990)
+        LOGGER.info("Sphere-Closest: $numCorrectHits/1000")
+        assertGreaterThan(numCorrectHits, 990)
     }
 
     @Test
     @FlakyTest
     fun testRaycastingSphereAnyHit() {
-        var ctr = 0
+        var numCorrectHits = 0
         val hit = RayHit().apply { hitType = HitType.ANY }
         val blas = createTLAS()
         val gen = RandomRayGenerator()
@@ -74,9 +89,9 @@ class TLASRaycastTests {
             hit.distance = 1e300
             val shouldHitSphere = gen.next()
             val hitsSphere = blas.raycast(gen.pos, gen.dir, hit)
-            ctr += (shouldHitSphere == hitsSphere).toInt()
+            if (shouldHitSphere == hitsSphere) numCorrectHits++
         }
-        LOGGER.info("Sphere-Any: $ctr/1000")
-        assertGreaterThan(ctr, 990)
+        LOGGER.info("Sphere-Any: $numCorrectHits/1000")
+        assertGreaterThan(numCorrectHits, 990)
     }
 }

@@ -4,18 +4,18 @@ import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.ecs.prefab.change.CSet
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.projects.FileEncoding
 import me.anno.io.binary.BinaryReader
 import me.anno.io.binary.BinaryWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
-import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertIs
 import me.anno.utils.assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
 
@@ -25,9 +25,9 @@ import java.io.ByteArrayOutputStream
  * */
 class GeneralFileEncodingTest {
 
-    init {
-        registerCustomClass(Prefab::class)
-        registerCustomClass(CSet::class)
+    @BeforeEach
+    fun init() {
+        OfficialExtensions.initForTests()
     }
 
     @Test

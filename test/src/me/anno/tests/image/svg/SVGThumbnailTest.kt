@@ -18,34 +18,36 @@ import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class SVGThumbnailTest {
+    companion object {
 
-    val baseline = IntImage(
-        3, 2, intArrayOf(
-            0xff0000, 0xffff00, 0x00ff00,
-            0x000000, 0x0000ff, 0x00ffff
-        ), false
-    )
+        val baseline = IntImage(
+            3, 2, intArrayOf(
+                0xff0000, 0xffff00, 0x00ff00,
+                0x000000, 0x0000ff, 0x00ffff
+            ), false
+        )
 
-    fun createSVGFile(image: Image, scale: Int): FileReference {
-        val svg = XMLNode("svg")
-        val ws = image.width * scale
-        val hs = image.height * scale
-        svg["width"] = ws.toString()
-        svg["height"] = hs.toString()
-        svg["viewBox"] = "0 0 $ws $hs"
-        val scaleStr = scale.toString()
-        image.forEachPixel { x, y ->
-            // <rect width="200" height="100" x="10" y="10" rx="20" ry="20" fill="blue" />
-            val rect = XMLNode("rect")
-            rect["width"] = scaleStr
-            rect["height"] = scaleStr
-            rect["x"] = (x * scale).toString()
-            rect["y"] = (y * scale).toString()
-            rect["fill"] = image.getRGB(x, y).toHexColor()
-            svg.children.add(rect)
+        fun createSVGFile(image: Image, scale: Int): FileReference {
+            val svg = XMLNode("svg")
+            val ws = image.width * scale
+            val hs = image.height * scale
+            svg["width"] = ws.toString()
+            svg["height"] = hs.toString()
+            svg["viewBox"] = "0 0 $ws $hs"
+            val scaleStr = scale.toString()
+            image.forEachPixel { x, y ->
+                // <rect width="200" height="100" x="10" y="10" rx="20" ry="20" fill="blue" />
+                val rect = XMLNode("rect")
+                rect["width"] = scaleStr
+                rect["height"] = scaleStr
+                rect["x"] = (x * scale).toString()
+                rect["y"] = (y * scale).toString()
+                rect["fill"] = image.getRGB(x, y).toHexColor()
+                svg.children.add(rect)
+            }
+            val svgText = XMLWriter.write(svg, null, false, false)
+            return InnerTmpTextFile(svgText, "svg")
         }
-        val svgText = XMLWriter.write(svg, null, false, false)
-        return InnerTmpTextFile(svgText, "svg")
     }
 
     @Test

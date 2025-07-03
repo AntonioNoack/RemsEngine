@@ -1,5 +1,6 @@
 package me.anno.tests.graph.hdb
 
+import me.anno.engine.OfficialExtensions
 import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HierarchicalDatabase
 import me.anno.io.config.ConfigBasics
@@ -9,6 +10,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNull
 import me.anno.utils.types.size
 import org.apache.logging.log4j.LogManager
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
@@ -27,6 +29,11 @@ class HierarchicalDatabaseTest {
 
     val sampleData = samples.map {
         it.encodeToByteArray()
+    }
+
+    @BeforeEach
+    fun init() {
+        OfficialExtensions.initForTests()
     }
 
     @Test

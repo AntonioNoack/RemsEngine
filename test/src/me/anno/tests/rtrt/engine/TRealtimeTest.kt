@@ -97,8 +97,10 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
     }
     clock.stop("Building Scene")
 
-    val tlas =
-        BVHBuilder.buildTLAS(pipeline.defaultStage, cameraPosition, SplitMethod.MEDIAN_APPROX, maxNodeSize)
+    val tlas = BVHBuilder.buildTLAS(
+        pipeline.defaultStage, Vector3d(),
+        SplitMethod.MEDIAN_APPROX, maxNodeSize
+    )
     clock.stop("Building BLAS")
 
     return SampleTLAS(tlas!!, Vector3f(cameraPosition), Quaternionf(cameraRotation), 0.2f)
