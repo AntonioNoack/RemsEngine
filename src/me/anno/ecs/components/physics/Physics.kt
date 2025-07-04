@@ -215,13 +215,10 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     fun getRigidbody(rigidBody: InternalRigidBody): ExternalRigidBody? {
 
         // todo when a rigidbody is invalidated, also re-create all constrained rigidbodies!
-        // todo otherwise we'll get issues, where one partner no longer is part of the world...
+        //  otherwise we'll get issues, where one partner no longer is part of the world...
 
         // todo possible solution: instead of recreating the rigidbody instance, just clear all properties,
-        // todo and write them again :)
-
-        // todo also we need to somehow ensure, that constrained rigidbodies are enabled as well
-        // todo we can't have constraints between two static rigidbodies
+        //  and write them again :)
 
         val entity = rigidBody.entity!!
         entity.validateTransform()

@@ -13,9 +13,6 @@ import kotlin.math.abs
 
 /**
  * using bullet, build a bow bridge, and a few objects on top for testing
- *
- * todo build a bow-bridge with hinge constraints?
- * todo build a string-hung bridge using spring constraints??
  * */
 fun main() {
 
@@ -57,5 +54,5 @@ fun main() {
     spawnFloor(scene)
     spawnSampleCubes(scene)
 
-    testSceneWithUI("Bridge", scene)
+    testSceneWithUI("Mesh Bow Bridge", scene)
 }

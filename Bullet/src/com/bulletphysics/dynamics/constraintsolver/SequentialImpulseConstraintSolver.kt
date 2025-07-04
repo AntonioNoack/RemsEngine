@@ -13,7 +13,7 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.ContactConstraint.resolveSingleCollisionCombined
 import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.MiscUtil.resize
-import com.bulletphysics.linearmath.TransformUtil.planeSpace1
+import com.bulletphysics.linearmath.TransformUtil.findOrthonormalBasis
 import com.bulletphysics.util.IntArrayList
 import com.bulletphysics.util.ObjectPool
 import com.bulletphysics.util.Packing.pack
@@ -49,7 +49,6 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
     /** ///////////////////////////////////////////////////////////////////////// */
     private val bodiesPool = ObjectPool.Companion.get(SolverBody::class.java)
     private val constraintsPool = ObjectPool.Companion.get(SolverConstraint::class.java)
-    private val jacobiansPool = ObjectPool.Companion.get(JacobianEntry::class.java)
 
     private val tmpSolverBodyPool = ArrayList<SolverBody>()
     private val tmpSolverConstraintPool = ArrayList<SolverConstraint>()
@@ -515,7 +514,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             } else {
                 // re-calculate friction direction every frame, todo: check if this is really needed
 
-                planeSpace1(cp.normalWorldOnB, cp.lateralFrictionDir1, cp.lateralFrictionDir2)
+                findOrthonormalBasis(cp.normalWorldOnB, cp.lateralFrictionDir1, cp.lateralFrictionDir2)
                 addFrictionConstraint(
                     cp.lateralFrictionDir1,
                     solverBodyIdA, solverBodyIdB, frictionIndex, cp,
@@ -760,26 +759,22 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         }
 
         if (infoGlobal.splitImpulse) {
-            for (i in 0 until tmpSolverBodyPool.size) {
+            for (i in tmpSolverBodyPool.indices) {
                 tmpSolverBodyPool[i].writebackVelocity(infoGlobal.timeStep)
-                bodiesPool.release(tmpSolverBodyPool[i])
             }
         } else {
-            for (i in 0 until tmpSolverBodyPool.size) {
+            for (i in tmpSolverBodyPool.indices) {
                 tmpSolverBodyPool[i].writebackVelocity()
-                bodiesPool.release(tmpSolverBodyPool[i])
             }
         }
 
+        bodiesPool.releaseAll(tmpSolverBodyPool)
         tmpSolverBodyPool.clear()
-        for (i in 0 until tmpSolverConstraintPool.size) {
-            constraintsPool.release(tmpSolverConstraintPool[i])
-        }
+
+        constraintsPool.releaseAll(tmpSolverConstraintPool)
         tmpSolverConstraintPool.clear()
 
-        for (i in 0 until tmpSolverFrictionConstraintPool.size) {
-            constraintsPool.release(tmpSolverFrictionConstraintPool[i])
-        }
+        constraintsPool.releaseAll(tmpSolverFrictionConstraintPool)
         tmpSolverFrictionConstraintPool.clear()
     }
 
@@ -887,7 +882,6 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         BulletStats.totalContactPoints += numpoints
 
         val tmpVec = Stack.newVec()
-        val tmpVec1 = Stack.newVec()
 
         val pos1 = Stack.newVec()
         val pos2 = Stack.newVec()
@@ -902,35 +896,20 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         val ftorqueAxis0 = Stack.newVec()
         val ftorqueAxis1 = Stack.newVec()
 
-        val trans1 = Stack.newTrans()
-        val trans2 = Stack.newTrans()
-
         for (i in 0 until numpoints) {
             val cp = manifoldPtr.getContactPoint(i)
             if (cp.distance <= 0.0) {
-                cp.getPositionWorldOnA(pos1)
-                cp.getPositionWorldOnB(pos2)
 
-                relPos1.setSub(pos1, body0.getCenterOfMassPosition(tmpVec))
-                relPos2.setSub(pos2, body1.getCenterOfMassPosition(tmpVec))
+                cp.getPositionWorldOnA(pos1).sub(body0.worldTransform.origin, relPos1)
+                cp.getPositionWorldOnB(pos2).sub(body1.worldTransform.origin, relPos2)
 
                 // this jacobian entry is re-used for all iterations
-                val mat1 = body0.getCenterOfMassTransform(trans1).basis
-                mat1.transpose()
-
-                val mat2 = body1.getCenterOfMassTransform(trans2).basis
-                mat2.transpose()
-
-                val jac = jacobiansPool.get()
-                jac.init(
-                    mat1, mat2,
+                val jacDiagABInv = JacobianEntry.calculateDiagonalInv(
+                    body0.worldTransform.basis, body1.worldTransform.basis,
                     relPos1, relPos2, cp.normalWorldOnB,
-                    body0.getInvInertiaDiagLocal(tmpVec), body0.inverseMass,
-                    body1.getInvInertiaDiagLocal(tmpVec1), body1.inverseMass
+                    body0.invInertiaLocal, body0.inverseMass,
+                    body1.invInertiaLocal, body1.inverseMass
                 )
-
-                val jacDiagAB = jac.diagonal
-                jacobiansPool.release(jac)
 
                 var cpd = cp.userPersistentData as ConstraintPersistentData?
                 if (cpd != null) {
@@ -956,7 +935,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                     //printf("CREATED: %x . cpd->m_persistentLifeTime = %i cp.getLifeTime() = %i\n",cpd,cpd->m_persistentLifeTime,cp.getLifeTime());
                 }
 
-                cpd.jacDiagABInv = 1.0 / jacDiagAB
+                cpd.jacDiagABInv = jacDiagABInv
 
                 // Dependent on Rigidbody A and B types, fetch the contact/friction response func
                 // perhaps do a similar thing for friction/restutution combiner funcs...
@@ -997,7 +976,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 cpd.prevAppliedImpulse = cpd.appliedImpulse
 
                 // re-calculate friction direction every frame, todo: check if this is really needed
-                planeSpace1(cp.normalWorldOnB, cpd.frictionWorldTangential0, cpd.frictionWorldTangential1)
+                findOrthonormalBasis(cp.normalWorldOnB, cpd.frictionWorldTangential0, cpd.frictionWorldTangential1)
 
                 //#define NO_FRICTION_WARMSTART 1
                 //#ifdef NO_FRICTION_WARMSTART
@@ -1053,8 +1032,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             }
         }
 
-        Stack.subVec(14)
-        Stack.subTrans(2)
+        Stack.subVec(13)
     }
 
     @Suppress("unused")

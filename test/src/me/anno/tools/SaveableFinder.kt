@@ -1,4 +1,4 @@
-package me.anno.tests.tools
+package me.anno.tools
 
 import me.anno.config.DefaultConfig.style
 import me.anno.io.saveable.Saveable
@@ -9,6 +9,7 @@ import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.isName
 import org.apache.logging.log4j.LogManager
 import java.lang.reflect.Modifier
+import kotlin.collections.iterator
 
 class SaveableFinder {
 

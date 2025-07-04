@@ -19,13 +19,13 @@ import com.bulletphysics.util.setSub
 class TranslationalLimitMotor {
 
     @JvmField
-    val lowerLimit: Vector3d = Vector3d()
+    val lowerLimit = Vector3d()
 
     @JvmField
-    val upperLimit: Vector3d = Vector3d()
+    val upperLimit = Vector3d()
 
     @JvmField
-    val accumulatedImpulse: Vector3d = Vector3d()
+    val accumulatedImpulse = Vector3d()
 
     /**
      * Softness for linear limit

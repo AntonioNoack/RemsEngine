@@ -1,9 +1,16 @@
 package com.bulletphysics.collision.dispatch
 
-import com.bulletphysics.collision.broadphase.*
+import com.bulletphysics.collision.broadphase.BroadphaseNativeType
+import com.bulletphysics.collision.broadphase.BroadphasePair
+import com.bulletphysics.collision.broadphase.CollisionAlgorithm
+import com.bulletphysics.collision.broadphase.CollisionAlgorithmConstructionInfo
+import com.bulletphysics.collision.broadphase.Dispatcher
+import com.bulletphysics.collision.broadphase.DispatcherInfo
+import com.bulletphysics.collision.broadphase.OverlapCallback
+import com.bulletphysics.collision.broadphase.OverlappingPairCache
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.util.ObjectPool
-import java.util.*
+import java.util.Collections
 
 /**
  * CollisionDispatcher supports algorithms that handle ConvexConvex and ConvexConcave collision pairs.
@@ -14,31 +21,43 @@ import java.util.*
 class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Dispatcher {
 
     val manifoldsPool: ObjectPool<PersistentManifold> = ObjectPool.get(PersistentManifold::class.java)
-
     val manifoldsList = ArrayList<PersistentManifold>()
     private var staticWarningReported = false
 
     @JvmField
-    var nearCallback: NearCallback? = null
+    var nearCallback: NearCallback = DefaultNearCallback()
 
-    private val doubleDispatch = Array<Array<CollisionAlgorithmCreateFunc?>>(MAX_BROADPHASE_COLLISION_TYPES) {
-        arrayOfNulls(MAX_BROADPHASE_COLLISION_TYPES)
+    private val collisionPairCallback = CollisionPairCallback()
+    private val doubleDispatch = Array(MAX_BROADPHASE_COLLISION_TYPES * MAX_BROADPHASE_COLLISION_TYPES) { idx ->
+        val j = idx % MAX_BROADPHASE_COLLISION_TYPES
+        val i = idx / MAX_BROADPHASE_COLLISION_TYPES
+        collisionConfiguration.getCollisionAlgorithmCreateFunc(
+            BroadphaseNativeType.entries[i],
+            BroadphaseNativeType.entries[j]
+        )
+    }
+
+    private fun getCollisionCreateFunc(
+        type0: BroadphaseNativeType, type1: BroadphaseNativeType
+    ): CollisionAlgorithmCreateFunc {
+        return doubleDispatch[type0.ordinal * MAX_BROADPHASE_COLLISION_TYPES + type1.ordinal]
+    }
+
+    fun registerCollisionCreateFunc(proxyType0: Int, proxyType1: Int, createFunc: CollisionAlgorithmCreateFunc) {
+        doubleDispatch[proxyType0 * MAX_BROADPHASE_COLLISION_TYPES + proxyType1] = createFunc
     }
 
     private val tmpCI = CollisionAlgorithmConstructionInfo()
-
-    fun registerCollisionCreateFunc(proxyType0: Int, proxyType1: Int, createFunc: CollisionAlgorithmCreateFunc) {
-        doubleDispatch[proxyType0][proxyType1] = createFunc
-    }
-
     override fun findAlgorithm(
         body0: CollisionObject, body1: CollisionObject, sharedManifold: PersistentManifold?
     ): CollisionAlgorithm {
         val ci = tmpCI
         ci.dispatcher1 = this
         ci.manifold = sharedManifold
-        val createFunc = doubleDispatch[body0.collisionShape!!.shapeType.ordinal][body1.collisionShape!!.shapeType.ordinal]
-        val algo = createFunc!!.createCollisionAlgorithm(ci, body0, body1)
+        val type0 = body0.collisionShape!!.shapeType
+        val type1 = body1.collisionShape!!.shapeType
+        val createFunc = getCollisionCreateFunc(type0, type1)
+        val algo = createFunc.createCollisionAlgorithm(ci, body0, body1)
         algo.internalSetCreateFunc(createFunc)
         return algo
     }
@@ -84,9 +103,7 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
 
         if (!staticWarningReported) {
             // broadphase filtering already deals with this
-            if ((body0.isStaticObject || body0.isKinematicObject) &&
-                (body1.isStaticObject || body1.isKinematicObject)
-            ) {
+            if (body0.isStaticOrKinematicObject && body1.isStaticOrKinematicObject) {
                 staticWarningReported = true
                 System.err.println("warning CollisionDispatcher.needsCollision: static-static collision!")
             }
@@ -120,25 +137,8 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
 
         override fun processOverlap(pair: BroadphasePair): Boolean {
             val dispatcher = dispatcher!!
-            dispatcher.nearCallback!!.handleCollision(pair, dispatcher, dispatchInfo!!)
+            dispatcher.nearCallback.handleCollision(pair, dispatcher, dispatchInfo!!)
             return false
-        }
-    }
-
-    private val collisionPairCallback = CollisionPairCallback()
-
-    init {
-
-        this.nearCallback = DefaultNearCallback()
-
-        for (i in 0 until MAX_BROADPHASE_COLLISION_TYPES) {
-            for (j in 0 until MAX_BROADPHASE_COLLISION_TYPES) {
-                doubleDispatch[i][j] = collisionConfiguration.getCollisionAlgorithmCreateFunc(
-                    BroadphaseNativeType.forValue(i),
-                    BroadphaseNativeType.forValue(j)
-                )
-                checkNotNull(doubleDispatch[i][j])
-            }
         }
     }
 

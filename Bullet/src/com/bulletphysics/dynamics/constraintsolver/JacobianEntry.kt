@@ -1,11 +1,9 @@
 package com.bulletphysics.dynamics.constraintsolver
 
-import com.bulletphysics.BulletGlobals
 import com.bulletphysics.linearmath.VectorUtil.mul
 import cz.advel.stack.Stack
-import org.joml.Vector3d
 import org.joml.Matrix3d
-import com.bulletphysics.util.setCross
+import org.joml.Vector3d
 
 //notes:
 // Another memory optimization would be to store m_1MinvJt in the remaining 3 w components
@@ -18,138 +16,65 @@ import com.bulletphysics.util.setCross
  *
  * @author jezek2
  */
-class JacobianEntry {
-    val linearJointAxis: Vector3d = Vector3d()
-    val aJ: Vector3d = Vector3d()
-    val bJ: Vector3d = Vector3d()
-    val m_0MinvJt: Vector3d = Vector3d()
-    val m_1MinvJt: Vector3d = Vector3d()
-
-    // Optimization: can be stored in the w/last component of one of the vectors
-    var diagonal: Double = 0.0
+object JacobianEntry {
 
     /**
      * Constraint between two different rigidbodies.
      */
-    fun init(
-        world2A: Matrix3d,
-        world2B: Matrix3d,
-        relPos1: Vector3d,
-        relPos2: Vector3d,
-        jointAxis: Vector3d,
-        inertiaInvA: Vector3d,
-        massInvA: Double,
-        inertiaInvB: Vector3d,
-        massInvB: Double
-    ) {
-        linearJointAxis.set(jointAxis)
+    fun calculateDiagonalInv(
+        a2World: Matrix3d, b2World: Matrix3d,
+        relPosA: Vector3d, relPosB: Vector3d, jointAxis: Vector3d,
+        inertiaInvA: Vector3d, massInvA: Double,
+        inertiaInvB: Vector3d, massInvB: Double
+    ): Double {
 
-        aJ.setCross(relPos1, linearJointAxis)
-        world2A.transform(aJ)
+        val aJ = Stack.newVec()
+        val bJ = Stack.newVec()
 
-        bJ.set(linearJointAxis)
-        bJ.negate()
-        bJ.setCross(relPos2, bJ)
-        world2B.transform(bJ)
+        val m0MinVJt = Stack.newVec()
+        val m1MinVJt = Stack.newVec()
 
-        mul(m_0MinvJt, inertiaInvA, aJ)
-        mul(m_1MinvJt, inertiaInvB, bJ)
-        this.diagonal = massInvA + m_0MinvJt.dot(aJ) + massInvB + m_1MinvJt.dot(bJ)
+        relPosA.cross(jointAxis, aJ)
+        a2World.transformTranspose(aJ)
+        inertiaInvA.mul(aJ, m0MinVJt)
 
-        assert(this.diagonal > 0.0)
+        relPosB.cross(jointAxis, bJ).negate()
+        b2World.transformTranspose(bJ)
+        inertiaInvB.mul(bJ, m1MinVJt)
+
+        val diagonal = massInvA + m0MinVJt.dot(aJ) +
+                massInvB + m1MinVJt.dot(bJ)
+
+        Stack.subVec(4)
+        assert(diagonal > 0.0)
+        return 1.0 / diagonal
     }
 
     /**
      * Angular constraint between two different rigidbodies.
      */
-    fun init(
+    fun calculateDiagonalInv(
         jointAxis: Vector3d,
-        world2A: Matrix3d,
-        world2B: Matrix3d,
+        a2World: Matrix3d, b2World: Matrix3d,
         inertiaInvA: Vector3d,
         inertiaInvB: Vector3d
-    ) {
-        linearJointAxis.set(0.0, 0.0, 0.0)
+    ): Double {
 
-        aJ.set(jointAxis)
-        world2A.transform(aJ)
+        val aJ = Stack.newVec()
+        val bJ = Stack.newVec()
 
-        bJ.set(jointAxis)
-        bJ.negate()
-        world2B.transform(bJ)
+        val m0MinVJt = Stack.newVec()
+        val m1MinVJt = Stack.newVec()
 
-        mul(m_0MinvJt, inertiaInvA, aJ)
-        mul(m_1MinvJt, inertiaInvB, bJ)
-        this.diagonal = m_0MinvJt.dot(aJ) + m_1MinvJt.dot(bJ)
+        a2World.transformTranspose(jointAxis, aJ)
+        b2World.transformTranspose(jointAxis, bJ).negate()
 
-        assert(this.diagonal > 0.0)
-    }
+        mul(m0MinVJt, inertiaInvA, aJ)
+        mul(m1MinVJt, inertiaInvB, bJ)
+        val diagonal = m0MinVJt.dot(aJ) + m1MinVJt.dot(bJ)
 
-    /**
-     * Angular constraint between two different rigidbodies.
-     */
-    fun init(
-        axisInA: Vector3d,
-        axisInB: Vector3d,
-        inertiaInvA: Vector3d,
-        inertiaInvB: Vector3d
-    ) {
-        linearJointAxis.set(0.0, 0.0, 0.0)
-        aJ.set(axisInA)
-
-        bJ.set(axisInB)
-        bJ.negate()
-
-        mul(m_0MinvJt, inertiaInvA, aJ)
-        mul(m_1MinvJt, inertiaInvB, bJ)
-        this.diagonal = m_0MinvJt.dot(aJ) + m_1MinvJt.dot(bJ)
-
-        assert(this.diagonal > 0.0)
-    }
-
-    /**
-     * Constraint on one rigidbody.
-     */
-    fun init(
-        world2A: Matrix3d,
-        rel_pos1: Vector3d, rel_pos2: Vector3d,
-        jointAxis: Vector3d,
-        inertiaInvA: Vector3d,
-        massInvA: Double
-    ) {
-        linearJointAxis.set(jointAxis)
-
-        aJ.setCross(rel_pos1, jointAxis)
-        world2A.transform(aJ)
-
-        bJ.set(jointAxis)
-        bJ.negate()
-        bJ.setCross(rel_pos2, bJ)
-        world2A.transform(bJ)
-
-        mul(m_0MinvJt, inertiaInvA, aJ)
-        m_1MinvJt.set(0.0, 0.0, 0.0)
-        this.diagonal = massInvA + m_0MinvJt.dot(aJ)
-
-        assert(this.diagonal > 0.0)
-    }
-
-    fun getRelativeVelocity(linVelA: Vector3d, angVelA: Vector3d, linVelB: Vector3d, angVelB: Vector3d): Double {
-        val linRel = Stack.newVec()
-        linVelA.sub(linVelB, linRel)
-
-        val angVelAi = Stack.newVec()
-        mul(angVelAi, angVelA, aJ)
-
-        val angVelBi = Stack.newVec()
-        mul(angVelBi, angVelB, bJ)
-
-        mul(linRel, linRel, linearJointAxis)
-
-        angVelAi.add(angVelBi)
-        angVelAi.add(linRel)
-
-        val relVel2 = angVelAi.x + angVelAi.y + angVelAi.z
-        return relVel2 + BulletGlobals.FLT_EPSILON
+        Stack.subVec(4)
+        assert(diagonal > 0.0)
+        return 1.0 / diagonal
     }
 }

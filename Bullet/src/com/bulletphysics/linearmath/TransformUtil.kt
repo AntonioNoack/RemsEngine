@@ -25,7 +25,7 @@ object TransformUtil {
     private const val INV_48 = 1.0 / 48.0
 
     @JvmStatic
-    fun planeSpace1(n: Vector3d, p: Vector3d, q: Vector3d) {
+    fun findOrthonormalBasis(n: Vector3d, p: Vector3d, q: Vector3d) {
         if (abs(n.z) > SIMD_SQRT12) {
             // choose p in y-z plane
             val a = n.y * n.y + n.z * n.z

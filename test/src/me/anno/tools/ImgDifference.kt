@@ -1,4 +1,4 @@
-package me.anno.tests.tools
+package me.anno.tools
 
 import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageCache

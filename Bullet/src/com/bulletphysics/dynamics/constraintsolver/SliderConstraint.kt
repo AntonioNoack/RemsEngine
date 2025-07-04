@@ -76,7 +76,7 @@ class SliderConstraint : TypedConstraint {
     private var solveLinLim = false
     private var solveAngLim = false
 
-    private val jacLin: Array<JacobianEntry> = arrayOf(JacobianEntry(), JacobianEntry(), JacobianEntry())
+    private val jacLin = Array(3) { Vector3d() }
     private val jacLinDiagABInv = DoubleArray(3)
 
     private var timeStep = 0.0
@@ -180,10 +180,9 @@ class SliderConstraint : TypedConstraint {
     }
 
     fun buildJacobianInt(rbA: RigidBody, rbB: RigidBody, frameInA: Transform, frameInB: Transform) {
-        val tmpTrans1 = Stack.newTrans()
-        val tmpTrans2 = Stack.newTrans()
+
         val tmp = Stack.newVec()
-        val tmp2 = Stack.newVec()
+        val axisA = Stack.newVec()
 
         // calculate transforms
         calculatedTransformA.setMul(rbA.worldTransform, frameInA)
@@ -196,27 +195,19 @@ class SliderConstraint : TypedConstraint {
         projPivotInW.setScaleAdd(sliderAxis.dot(delta), sliderAxis, realPivotAInW)
         relPosA.setSub(projPivotInW, rbA.worldTransform.origin)
         relPosB.setSub(realPivotBInW, rbB.worldTransform.origin)
-        val normalWorld = Stack.newVec()
 
         // linear part
         for (i in 0 until 3) {
+            val normalWorld = jacLin[i]
             calculatedTransformA.basis.getColumn(i, normalWorld)
 
-            val mat1 = rbA.worldTransform.basis.transpose(tmpTrans1.basis)
-            val mat2 = rbB.worldTransform.basis.transpose(tmpTrans2.basis)
-
-            jacLin[i].init(
-                mat1,
-                mat2,
-                relPosA,
-                relPosB,
-                normalWorld,
-                rbA.getInvInertiaDiagLocal(tmp),
-                rbA.inverseMass,
-                rbB.getInvInertiaDiagLocal(tmp2),
-                rbB.inverseMass
+            jacLinDiagABInv[i] = JacobianEntry.calculateDiagonalInv(
+                rbA.worldTransform.basis, rbB.worldTransform.basis,
+                relPosA, relPosB, normalWorld,
+                rbA.invInertiaLocal, rbA.inverseMass,
+                rbB.invInertiaLocal, rbB.inverseMass
             )
-            jacLinDiagABInv[i] = 1.0 / jacLin[i].diagonal
+
             setCoord(depth, i, delta.dot(normalWorld))
         }
         testLinLimits()
@@ -224,15 +215,13 @@ class SliderConstraint : TypedConstraint {
         // angular part
         testAngLimits()
 
-        val axisA = Stack.newVec()
         calculatedTransformA.basis.getColumn(0, axisA)
         kAngle = 1.0 / (rbA.computeAngularImpulseDenominator(axisA) + rbB.computeAngularImpulseDenominator(axisA))
         // clear accumulator for motors
         accumulatedLinearMotorImpulse = 0.0
         accumulatedAngMotorImpulse = 0.0
 
-        Stack.subTrans(2)
-        Stack.subVec(4)
+        Stack.subVec(2)
     }
 
     fun solveConstraintInt(rbA: RigidBody, rbB: RigidBody) {
@@ -248,7 +237,7 @@ class SliderConstraint : TypedConstraint {
         val impulseVector = Stack.newVec()
 
         for (i in 0..2) {
-            val normal = jacLin[i].linearJointAxis
+            val normal = jacLin[i]
             val relVel = normal.dot(vel)
             // calculate positional error
             val depth = getCoord(this.depth, i)

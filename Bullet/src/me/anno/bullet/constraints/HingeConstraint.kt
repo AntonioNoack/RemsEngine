@@ -63,7 +63,7 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
 
     @Range(-3.1416, 3.1416)
     @Docs("Minimum allowed angle in radians; only works if strictly less than upperLimit")
-    var lowerLimit = 0.0
+    var lowerLimit = -PI / 2
         set(value) {
             field = value
             bulletInstance?.lowerLimit = value

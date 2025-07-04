@@ -87,7 +87,7 @@ object BulletRendering {
     }
 
     private fun drawConstraints(pipeline: Pipeline, rigidbody: PhysicalBody) {
-        val constraints = rigidbody.linkedConstraints
+        val constraints = rigidbody.activeConstraints
         for (i in constraints.indices) {
             val constraint = constraints.getOrNull(i) ?: break
             constraint.onDrawGUI(pipeline, true)

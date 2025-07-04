@@ -1,4 +1,4 @@
-package me.anno.tests.tools
+package me.anno.tools
 
 import org.lwjgl.glfw.GLFW
 import java.lang.reflect.Modifier

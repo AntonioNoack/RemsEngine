@@ -44,7 +44,7 @@ class StaticPlaneShape(val planeNormal: Vector3d, var planeConstant: Double) : C
         val tangentDir1 = Stack.newVec()
 
         // tangentDir0/tangentDir1 can be precalculated
-        TransformUtil.planeSpace1(planeNormal, tangentDir0, tangentDir1)
+        TransformUtil.findOrthonormalBasis(planeNormal, tangentDir0, tangentDir1)
 
         val projectedCenter = Stack.newVec()
         tmp.setScale(planeNormal.dot(center) - planeConstant, planeNormal)

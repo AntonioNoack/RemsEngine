@@ -68,9 +68,4 @@ enum class BroadphaseNativeType {
     val isCompound: Boolean
         get() = (ordinal == COMPOUND_SHAPE_PROXYTYPE.ordinal)
 
-    companion object {
-        fun forValue(value: Int): BroadphaseNativeType {
-            return entries[value]
-        }
-    }
 }

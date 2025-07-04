@@ -201,7 +201,6 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
         val body = scaledBody.external
 
         rigidbody.nativeInstance = body
-        rigidBodies[entity] = scaledBody
 
         // todo constraints
     }

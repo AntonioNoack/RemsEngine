@@ -14,7 +14,7 @@ import me.anno.engine.serialization.NotSerializedProperty
 abstract class PhysicalBody : PhysicsBody<RigidBody>() {
 
     @NotSerializedProperty
-    val linkedConstraints = ArrayList<Constraint<*>>()
+    val activeConstraints = ArrayList<Constraint<*>>()
 
     /**
      * Slowing down on contact. 1.0 = high traction, 0.0 = like on black ice

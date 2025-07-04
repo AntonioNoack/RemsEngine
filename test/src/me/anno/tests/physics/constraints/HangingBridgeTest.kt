@@ -2,6 +2,7 @@ package me.anno.tests.physics.constraints
 
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
+import me.anno.bullet.bodies.PhysicalBody
 import me.anno.bullet.bodies.StaticBody
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Component
@@ -15,8 +16,11 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.DefaultAssets.plane
 import me.anno.engine.ECSRegistry
+import me.anno.engine.debug.DebugLine
+import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
+import me.anno.ui.UIColors
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
@@ -33,12 +37,12 @@ fun main() {
 
     val scene = Entity("Scene")
     Systems.registerSystem(BulletPhysics().apply {
-        updateInEditMode = true
+        // updateInEditMode = true
         enableDebugRendering = true
     })
 
     val numBars = 10
-    val numLinks = 3
+    val numLinks = 2
     val linkSpacing = 0.35
 
     val barSize = Vector3d(1.2, 0.1, 0.35)
@@ -65,8 +69,11 @@ fun main() {
                 roundness = 0.1f
             })
             .add(MeshComponent(pillarMesh, pillarMaterial))
-            .add(DynamicBody().apply {
+            .add(StaticBody().apply {
                 friction = 1.0
+                if (this is DynamicBody) {
+                    mass = pillarSize.x * pillarSize.y * pillarSize.z * density
+                }
             })
         toLink.add(entity)
     }
@@ -101,16 +108,15 @@ fun main() {
         for (j in 0 until numLinks) {
             val link = PointConstraint()
             link.disableCollisionsBetweenLinked = false
-            link.breakingImpulseThreshold = 0.3 // a little fun ^^
-            link.other = b.getComponent(DynamicBody::class)
+            // link.breakingImpulseThreshold = 0.3 // a little fun ^^
+            link.other = b.getComponent(PhysicalBody::class)
             link.lerpingSpeed = 0.5
             a.add(link)
             val z = ((i - 1.5) - (numBars - 1) * 0.5) * (barSpacing + barSize.z)
             val x = (j - (numLinks - 1) * 0.5) * linkSpacing
-            val barSpacingHalf = barSpacing * 0.5
-            link.selfPosition.set(x, linkY - a.position.y, z - a.position.z + barSpacingHalf)
-            link.otherPosition.set(x, linkY - b.position.y, z - b.position.z - barSpacingHalf)
-            Entity("Link[$i]", scene)
+            link.selfPosition.set(x, linkY - a.position.y, z - a.position.z)
+            link.otherPosition.set(x, linkY - b.position.y, z - b.position.z)
+            Entity("Link[$i.$j]", scene)
                 .setPosition(x, linkY, z)
                 .add(MeshComponent(linkMesh, linkMaterial))
                 .add(object : Component(), OnUpdate {
@@ -128,6 +134,14 @@ fun main() {
                         a.transform.globalTransform.transformPosition(globalA)
                         b.transform.globalTransform.transformPosition(globalB)
 
+                        // visualize these points
+                        DebugShapes.debugArrows.add(
+                            DebugLine(
+                                Vector3d(globalA), Vector3d(globalB),
+                                UIColors.paleGoldenRod, 0f
+                            )
+                        )
+
                         val dir = globalB.sub(globalA, tmp).normalize()
                         transform.localRotation = Quaternionf(dir.normalToQuaternionY())
                         transform.localPosition = globalA.add(globalB, transform.localPosition).mul(0.5)
@@ -141,7 +155,7 @@ fun main() {
     spawnFloor(scene)
     spawnSampleCubes(scene)
 
-    testSceneWithUI("Bridge", scene)
+    testSceneWithUI("Hanging Bridge", scene)
 }
 
 fun spawnFloor(scene: Entity) {

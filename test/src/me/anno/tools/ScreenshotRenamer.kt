@@ -1,4 +1,4 @@
-package me.anno.tests.tools
+package me.anno.tools
 
 import me.anno.io.files.FileReference
 import me.anno.utils.OS.screenshots

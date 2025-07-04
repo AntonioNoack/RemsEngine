@@ -34,6 +34,15 @@ class ObjectPool<T>(private val cls: Class<T>) {
         list.add(obj)
     }
 
+    /**
+     * Release instance into pool.
+     *
+     * @param obj previously obtained instance from pool
+     */
+    fun releaseAll(obj: List<T>) {
+        list.addAll(obj)
+    }
+
     companion object {
         /** ///////////////////////////////////////////////////////////////////////// */
         private val threadLocal =

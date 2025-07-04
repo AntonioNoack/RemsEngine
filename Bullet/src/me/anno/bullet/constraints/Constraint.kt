@@ -3,7 +3,6 @@ package me.anno.bullet.constraints
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import me.anno.bullet.bodies.PhysicalBody
-import me.anno.bullet.bodies.DynamicBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityPhysics.invalidatePhysics
@@ -39,8 +38,8 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
     @Type("PhysicalBody/SameSceneRef")
     var other: PhysicalBody? = null
         set(value) {
-            field?.linkedConstraints?.remove(this)
-            value?.linkedConstraints?.add(this)
+            field?.activeConstraints?.remove(this)
+            value?.activeConstraints?.add(this)
             field = value
         }
 

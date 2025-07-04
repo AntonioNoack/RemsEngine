@@ -1,7 +1,6 @@
 package me.anno.bullet
 
 import com.bulletphysics.BulletGlobals
-import me.anno.ecs.components.collider.CollisionFilters.createFilter
 import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.ActivationState
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
@@ -15,6 +14,7 @@ import com.bulletphysics.collision.shapes.CompoundShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
+import com.bulletphysics.dynamics.constraintsolver.TypedConstraint
 import com.bulletphysics.dynamics.vehicle.DefaultVehicleRaycaster
 import com.bulletphysics.dynamics.vehicle.RaycastVehicle
 import com.bulletphysics.dynamics.vehicle.VehicleTuning
@@ -36,7 +36,9 @@ import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.collider.CollisionFilters.createFilter
 import me.anno.ecs.components.physics.Physics
+import me.anno.ecs.components.physics.PhysicsBodyBase
 import me.anno.ecs.components.physics.ScaledBody
 import me.anno.ecs.components.physics.events.FallenOutOfWorld
 import me.anno.ecs.systems.OnDrawGUI
@@ -215,20 +217,19 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         scaledBody: ScaledBody<PhysicsBody<*>, CollisionObject>
     ) {
 
-        val body = scaledBody.external
+        val bulletBody = scaledBody.external
 
         // vehicle stuff
-        if (rigidbody is Vehicle && body is RigidBody) {
-            defineVehicle(entity, rigidbody, body)
+        if (rigidbody is Vehicle && bulletBody is RigidBody) {
+            defineVehicle(entity, rigidbody, bulletBody)
         }
 
         // activate
-        val state =
+        bulletBody.activationState =
             if (rigidbody is DynamicBody) ActivationState.ACTIVE
             else ActivationState.ALWAYS_ACTIVE
 
-        body.activationState = state
-        body.collisionFlags = when (rigidbody) {
+        bulletBody.collisionFlags = when (rigidbody) {
             // todo allow custom material response for per-triangle friction/restitution (terrain)
             is StaticBody -> CollisionFlags.STATIC_OBJECT
             is KinematicBody -> CollisionFlags.KINEMATIC_OBJECT
@@ -236,74 +237,61 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
             else -> 0
         }
 
-        if (body is RigidBody && rigidbody is DynamicBody) {
-            body.setGravity(if (rigidbody.overrideGravity) rigidbody.gravity else gravity)
+        if (bulletBody is RigidBody && rigidbody is DynamicBody) {
+            bulletBody.setGravity(if (rigidbody.overrideGravity) rigidbody.gravity else gravity)
         }
 
         val filter = createFilter(rigidbody.groupId, rigidbody.collisionMask)
-        bulletInstance.addCollisionObject(body, filter)
+        bulletInstance.addCollisionObject(bulletBody, filter)
 
         // must be done after adding the body to the world,
         // because it is overridden by World.addRigidbody()
-        if (rigidbody is DynamicBody && body is RigidBody && rigidbody.overrideGravity) {
-            body.setGravity(rigidbody.gravity)
+        if (rigidbody is DynamicBody && bulletBody is RigidBody && rigidbody.overrideGravity) {
+            bulletBody.setGravity(rigidbody.gravity)
         }
 
-        rigidBodies[entity] = scaledBody
         when (rigidbody) {
-            is GhostBody -> rigidbody.nativeInstance = body as PairCachingGhostObject
-            is PhysicalBody -> rigidbody.nativeInstance = body as RigidBody
-        }
-
-        if (rigidbody is DynamicBody) {
-            val constraints = rigidbody.linkedConstraints
-            for (i in constraints.indices) {
-                val constraint = constraints[i]
-                if (constraint.isEnabled) {
-                    // ensure the constraint exists
-                    val dynamicBody2 = constraint.entity
-                        ?.getComponent(DynamicBody::class, false)
-                        ?: continue
-                    val rigidbody3 = getRigidbody(dynamicBody2) as? RigidBody ?: continue
-                    addConstraint(constraint, rigidbody3, dynamicBody2, rigidbody)
-                }
-            }
+            is GhostBody -> rigidbody.nativeInstance = bulletBody as PairCachingGhostObject
+            is PhysicalBody -> rigidbody.nativeInstance = bulletBody as RigidBody
         }
 
         // create all constraints
-        if (rigidbody is PhysicalBody && body is RigidBody) {
-            entity.forAllComponents(Constraint::class, false) { c ->
-                val other = c.other
-                if (other != null && other != rigidbody && other.isEnabled) {
-                    addConstraint(c, body, rigidbody, other)
+        if (rigidbody is PhysicalBody && bulletBody is RigidBody) {
+            entity.forAllComponents(Constraint::class, false) { constraint ->
+                val otherEngineBody = constraint.other
+                if (otherEngineBody != null && otherEngineBody != rigidbody && otherEngineBody.isEnabled) {
+                    addConstraint(constraint, bulletBody, rigidbody, otherEngineBody)
                 }
             }
         }
     }
 
     private fun addConstraint(
-        constraint: Constraint<*>, body: RigidBody,
-        rigidbody: PhysicalBody, other: PhysicalBody
+        constraint: Constraint<*>,
+        bulletBody: RigidBody, engineBody: PhysicalBody,
+        otherEngineBody: PhysicalBody
     ) {
-        val oldInstance = constraint.bulletInstance
+        val oldConstraint = constraint.bulletInstance
         val world = bulletInstance
-        if (oldInstance != null) {
-            world.removeConstraint(oldInstance)
+        if (oldConstraint != null) {
+            world.removeConstraint(oldConstraint)
             constraint.bulletInstance = null
         }
-        if (rigidbody is DynamicBody || other is DynamicBody) {
-            val otherBody = getRigidbody(other)
+
+        if (engineBody is DynamicBody || otherEngineBody is DynamicBody) {
+            val otherBody = getRigidbody(otherEngineBody)
             if (otherBody is RigidBody) {
                 // create constraint
                 val bulletConstraint = constraint.createConstraint(
-                    body, otherBody,
+                    bulletBody, otherBody,
                     constraint.getTA(), constraint.getTB()
                 )
-                constraint["bulletInstance"] = bulletConstraint
+                @Suppress("UNCHECKED_CAST")
+                (constraint as Constraint<TypedConstraint>).bulletInstance = bulletConstraint
                 world.addConstraint(bulletConstraint, constraint.disableCollisionsBetweenLinked)
-            }
+            } else LOGGER.warn("Expected RigidBody")
         } else {
-            LOGGER.warn("Cannot constrain two static/kinematic bodies!, ${rigidbody.prefabPath} to ${other.prefabPath}")
+            LOGGER.warn("Cannot constrain two static/kinematic bodies!, ${engineBody.prefabPath} to ${otherEngineBody.prefabPath}")
         }
     }
 
@@ -320,24 +308,26 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         super.remove(entity, fallenOutOfWorld)
 
         val world = bulletInstance
-        entity.forAllComponents(Constraint::class) {
-            val bi = it.bulletInstance
-            if (bi != null) {
-                it.bulletInstance = null
-                world.removeConstraint(bi)
-                // LOGGER.debug("- ${it.prefabPath}")
+        entity.forAllComponents(Constraint::class) { constraint ->
+            val bulletConstraint = constraint.bulletInstance
+            if (bulletConstraint != null) {
+                constraint.bulletInstance = null
+                world.removeConstraint(bulletConstraint)
             }
         }
 
-        val dynamicBody = entity.getComponent(DynamicBody::class, false)
-        if (dynamicBody != null) {
-            dynamicBody.activeColliders.clear()
-            for (c in dynamicBody.linkedConstraints) {
-                val bi = c.bulletInstance
-                if (bi != null) {
-                    world.removeConstraint(bi)
-                    c.bulletInstance = null
-                    // LOGGER.debug("- ${c.prefabPath}")
+        val physicalBody = entity.getComponent(PhysicsBodyBase::class, true)
+        physicalBody?.activeColliders?.clear()
+
+        val rigidBody = entity.getComponent(PhysicalBody::class, true)
+        if (rigidBody != null) {
+            val activeConstraints = rigidBody.activeConstraints
+            for (i in activeConstraints.indices) {
+                val constraint = activeConstraints[i]
+                val bulletConstraint = constraint.bulletInstance
+                if (bulletConstraint != null) {
+                    world.removeConstraint(bulletConstraint)
+                    constraint.bulletInstance = null
                 }
             }
         }
@@ -364,14 +354,14 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
 
         entity.isPhysicsControlled = false
         if (fallenOutOfWorld) {
-            if (dynamicBody != null) {
+            if (rigidBody != null) {
                 // when something falls of the world, often it's nice to directly destroy the object,
                 // because it will no longer be needed
                 // call event, so e.g., we could add it back to a pool of entities, or respawn it
-                entity.forAllComponents(FallenOutOfWorld::class) {
-                    it.onFallOutOfWorld()
+                entity.forAllComponents(FallenOutOfWorld::class) { component ->
+                    component.onFallOutOfWorld()
                 }
-                if (dynamicBody.deleteWhenKilledByDepth) {
+                if (rigidBody is DynamicBody && rigidBody.deleteWhenKilledByDepth) {
                     entity.parentEntity?.deleteChild(entity)
                 }
             }

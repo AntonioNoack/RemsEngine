@@ -14,9 +14,8 @@ private val LOGGER = LogManager.getLogger("FindFlakyTestDependencies")
 
 fun main() {
 
-    // todo there is flaky tests...
+    // there is flaky tests...
     //  find which tests cause flakiness by running subsets of them
-    // todo provide a seed and a percentage, and it will create a flakiness report
 
     // find all tests and run them
     // exclude long running tests
@@ -49,7 +48,6 @@ fun main() {
         //"me.anno.tests.audio.AmplitudeRangeTest.testAmplitudeRange",
     )
 
-    // todo reproduce flakiness
     val runTests = ArrayList<String>()
 
     val allTestMethods = testMethods.flatten()

@@ -1,4 +1,4 @@
-package me.anno.tests.tools
+package me.anno.tools
 
 import me.anno.io.zip.ExeSkipper.getBytesAfterExeSections
 import me.anno.utils.OS.desktop

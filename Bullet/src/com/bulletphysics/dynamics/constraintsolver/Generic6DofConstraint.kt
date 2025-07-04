@@ -11,13 +11,13 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.getCoord
 import com.bulletphysics.linearmath.VectorUtil.setCoord
-import cz.advel.stack.Stack
-import org.joml.Matrix3d
-import org.joml.Vector3d
 import com.bulletphysics.util.getElement
 import com.bulletphysics.util.setCross
 import com.bulletphysics.util.setMul
 import com.bulletphysics.util.setScale
+import cz.advel.stack.Stack
+import org.joml.Matrix3d
+import org.joml.Vector3d
 import kotlin.math.asin
 import kotlin.math.atan2
 
@@ -61,11 +61,12 @@ import kotlin.math.atan2
  */
 @Suppress("unused")
 class Generic6DofConstraint : TypedConstraint {
+
     val frameInA: Transform = Transform() //!< the constraint space w.r.t body A
     val frameInB: Transform = Transform() //!< the constraint space w.r.t body B
 
-    val jacLinear = arrayOf(JacobianEntry(), JacobianEntry(), JacobianEntry()) //!< 3 orthogonal linear constraints
-    val jacAng = arrayOf(JacobianEntry(), JacobianEntry(), JacobianEntry()) //!< 3 orthogonal angular constraints
+    val jacLinearDiagonalInv = DoubleArray(3) //!< 3 orthogonal linear constraints
+    val jacAngularDiagonalInv = DoubleArray(3) //!< 3 orthogonal angular constraints
 
     val linearLimits: TranslationalLimitMotor = TranslationalLimitMotor()
 
@@ -161,40 +162,27 @@ class Generic6DofConstraint : TypedConstraint {
     fun buildLinearJacobian(
         jacLinearIndex: Int, normalWorld: Vector3d, pivotAInW: Vector3d, pivotBInW: Vector3d
     ) {
-        val mat1 = rigidBodyA.getCenterOfMassTransform(Stack.newTrans()).basis
-        mat1.transpose()
+        val relPosA = Stack.newVec()
+        pivotAInW.sub(rigidBodyA.worldTransform.origin, relPosA)
 
-        val mat2 = rigidBodyB.getCenterOfMassTransform(Stack.newTrans()).basis
-        mat2.transpose()
+        val relPosB = Stack.newVec()
+        pivotBInW.sub(rigidBodyB.worldTransform.origin, relPosB)
 
-        val tmpVec = Stack.newVec()
-
-        val tmp1 = Stack.newVec()
-        pivotAInW.sub(rigidBodyA.getCenterOfMassPosition(tmpVec), tmp1)
-
-        val tmp2 = Stack.newVec()
-        pivotBInW.sub(rigidBodyB.getCenterOfMassPosition(tmpVec), tmp2)
-
-        jacLinear[jacLinearIndex].init(
-            mat1, mat2, tmp1, tmp2, normalWorld,
-            rigidBodyA.getInvInertiaDiagLocal(Stack.newVec()),
-            rigidBodyA.inverseMass,
-            rigidBodyB.getInvInertiaDiagLocal(Stack.newVec()),
-            rigidBodyB.inverseMass
+        jacLinearDiagonalInv[jacLinearIndex] = JacobianEntry.calculateDiagonalInv(
+            rigidBodyA.worldTransform.basis, rigidBodyB.worldTransform.basis,
+            relPosA, relPosB, normalWorld,
+            rigidBodyA.invInertiaLocal, rigidBodyA.inverseMass,
+            rigidBodyB.invInertiaLocal, rigidBodyB.inverseMass
         )
+
+        Stack.subVec(2)
     }
 
     fun buildAngularJacobian(jacAngularIndex: Int, jointAxisW: Vector3d) {
-        val mat1 = rigidBodyA.getCenterOfMassTransform(Stack.newTrans()).basis
-        mat1.transpose()
-
-        val mat2 = rigidBodyB.getCenterOfMassTransform(Stack.newTrans()).basis
-        mat2.transpose()
-
-        jacAng[jacAngularIndex].init(
-            jointAxisW, mat1, mat2,
-            rigidBodyA.getInvInertiaDiagLocal(Stack.newVec()),
-            rigidBodyB.getInvInertiaDiagLocal(Stack.newVec())
+        jacAngularDiagonalInv[jacAngularIndex] = JacobianEntry.calculateDiagonalInv(
+            jointAxisW,
+            rigidBodyA.worldTransform.basis, rigidBodyB.worldTransform.basis,
+            rigidBodyA.invInertiaLocal, rigidBodyB.invInertiaLocal
         )
     }
 
@@ -273,7 +261,7 @@ class Generic6DofConstraint : TypedConstraint {
         //calculateTransforms();
         for (i in 0 until 3) {
             if (linearLimits.isLimited(i)) {
-                jacDiagABInv = 1.0 / jacLinear[i].diagonal
+                jacDiagABInv = jacLinearDiagonalInv[i]
 
                 if (useLinearReferenceFrameA) {
                     calculatedTransformA.basis.getColumn(i, linearAxis)
@@ -303,7 +291,7 @@ class Generic6DofConstraint : TypedConstraint {
                 // get axis
                 angularAxis.set(calculatedAxis[i])
 
-                angularJacDiagABInv = 1.0 / jacAng[i].diagonal
+                angularJacDiagABInv = jacAngularDiagonalInv[i]
 
                 angularLimits[i].solveAngularLimits(
                     timeStep, angularAxis, angularJacDiagABInv,

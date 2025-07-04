@@ -7,14 +7,13 @@ import com.bulletphysics.linearmath.QuaternionUtil.shortestArcQuat
 import com.bulletphysics.linearmath.ScalarUtil
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.TransformUtil
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setCross
 import com.bulletphysics.util.setNegate
-import com.bulletphysics.util.setNormalize
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -29,7 +28,8 @@ class ConeTwistConstraint : TypedConstraint {
     /**
      * 3 orthogonal linear constraints
      * */
-    private val jac = arrayOf(JacobianEntry(), JacobianEntry(), JacobianEntry())
+    private val jacNormals = Array(3) { Vector3d() }
+    private val jacInvDiagonals = DoubleArray(3)
 
     private val rbAFrame = Transform()
     private val rbBFrame = Transform()
@@ -59,33 +59,14 @@ class ConeTwistConstraint : TypedConstraint {
 
     private var angularOnly = false
 
-    @get:Suppress("unused")
     var solveTwistLimit: Boolean = false
         private set
+
     private var solveSwingLimit = false
 
-    @Suppress("unused")
-    constructor() : super()
-
-    @Suppress("unused")
     constructor(rbA: RigidBody, rbB: RigidBody, rbAFrame: Transform, rbBFrame: Transform) : super(rbA, rbB) {
         this.rbAFrame.set(rbAFrame)
         this.rbBFrame.set(rbBFrame)
-
-        swingSpan1 = 1e308
-        swingSpan2 = 1e308
-        twistSpan = 1e308
-        biasFactor = 0.3
-        relaxationFactor = 1.0
-
-        solveTwistLimit = false
-        solveSwingLimit = false
-    }
-
-    @Suppress("unused")
-    constructor(rbA: RigidBody, rbAFrame: Transform) : super(rbA) {
-        this.rbAFrame.set(rbAFrame)
-        this.rbBFrame.set(this.rbAFrame)
 
         swingSpan1 = 1e308
         swingSpan2 = 1e308
@@ -116,42 +97,37 @@ class ConeTwistConstraint : TypedConstraint {
 
         if (!angularOnly) {
             val pivotAInW = Stack.newVec(rbAFrame.origin)
-            rigidBodyA.getCenterOfMassTransform(tmpTrans).transform(pivotAInW)
+            rigidBodyA.worldTransform.transform(pivotAInW)
 
             val pivotBInW = Stack.newVec(rbBFrame.origin)
-            rigidBodyB.getCenterOfMassTransform(tmpTrans).transform(pivotBInW)
+            rigidBodyB.worldTransform.transform(pivotBInW)
 
             val relPos = Stack.newVec()
-            relPos.setSub(pivotBInW, pivotAInW)
+            pivotBInW.sub(pivotAInW, relPos)
 
-            // TODO: stack
-            val normal = arrayOf(Stack.newVec(), Stack.newVec(), Stack.newVec())
+            val normal = jacNormals
             if (relPos.lengthSquared() > BulletGlobals.FLT_EPSILON) {
-                normal[0].setNormalize(relPos)
+                relPos.normalize(normal[0])
             } else {
                 normal[0].set(1.0, 0.0, 0.0)
             }
 
-            TransformUtil.planeSpace1(normal[0], normal[1], normal[2])
+            TransformUtil.findOrthonormalBasis(normal[0], normal[1], normal[2])
 
             for (i in 0..2) {
-                val mat1 = rigidBodyA.getCenterOfMassTransform(Stack.newTrans()).basis
-                mat1.transpose()
 
-                val mat2 = rigidBodyB.getCenterOfMassTransform(Stack.newTrans()).basis
-                mat2.transpose()
+                pivotAInW.sub(rigidBodyA.worldTransform.origin, tmp1)
+                pivotBInW.sub(rigidBodyB.worldTransform.origin, tmp2)
 
-                tmp1.setSub(pivotAInW, rigidBodyA.getCenterOfMassPosition(tmp))
-                tmp2.setSub(pivotBInW, rigidBodyB.getCenterOfMassPosition(tmp))
-
-                jac[i].init(
-                    mat1, mat2, tmp1, tmp2, normal[i],
-                    rigidBodyA.getInvInertiaDiagLocal(Stack.newVec()),
-                    rigidBodyA.inverseMass,
-                    rigidBodyB.getInvInertiaDiagLocal(Stack.newVec()),
-                    rigidBodyB.inverseMass
+                jacInvDiagonals[i] = JacobianEntry.calculateDiagonalInv(
+                    rigidBodyA.worldTransform.basis, rigidBodyB.worldTransform.basis,
+                    tmp1, tmp2, normal[i],
+                    rigidBodyA.invInertiaLocal, rigidBodyA.inverseMass,
+                    rigidBodyB.invInertiaLocal, rigidBodyB.inverseMass
                 )
             }
+
+            Stack.subVec(3)
         }
 
         val b1Axis1 = Stack.newVec()
@@ -198,12 +174,12 @@ class ConeTwistConstraint : TypedConstraint {
             swing2 *= fact
         }
 
-        val RMaxAngle1Sq = 1.0 / (swingSpan1 * swingSpan1)
-        val RMaxAngle2Sq = 1.0 / (swingSpan2 * swingSpan2)
-        val EllipseAngle = abs(swing1 * swing1) * RMaxAngle1Sq + abs(swing2 * swing2) * RMaxAngle2Sq
+        val rMaxAngle1Sq = 1.0 / (swingSpan1 * swingSpan1)
+        val rMaxAngle2Sq = 1.0 / (swingSpan2 * swingSpan2)
+        val ellipseAngle = abs(swing1 * swing1) * rMaxAngle1Sq + abs(swing2 * swing2) * rMaxAngle2Sq
 
-        if (EllipseAngle > 1.0) {
-            swingCorrection = EllipseAngle - 1.0
+        if (ellipseAngle > 1.0) {
+            swingCorrection = ellipseAngle - 1.0
             solveSwingLimit = true
 
             // Calculate necessary axis & factors
@@ -256,42 +232,41 @@ class ConeTwistConstraint : TypedConstraint {
     }
 
     override fun solveConstraint(timeStep: Double) {
-        val tmp = Stack.newVec()
-        val tmp2 = Stack.newVec()
 
-        val tmpVec = Stack.newVec()
-        val tmpTrans = Stack.newTrans()
+        val tmp1 = Stack.newVec()
+        val tmp2 = Stack.newVec()
+        val tmp3 = Stack.newVec()
 
         val pivotAInW = Stack.newVec(rbAFrame.origin)
-        rigidBodyA.getCenterOfMassTransform(tmpTrans).transform(pivotAInW)
+        rigidBodyA.worldTransform.transform(pivotAInW)
 
         val pivotBInW = Stack.newVec(rbBFrame.origin)
-        rigidBodyB.getCenterOfMassTransform(tmpTrans).transform(pivotBInW)
+        rigidBodyB.worldTransform.transform(pivotBInW)
 
         val tau = 0.3
 
         // linear part
         if (!angularOnly) {
             val relPos1 = Stack.newVec()
-            relPos1.setSub(pivotAInW, rigidBodyA.getCenterOfMassPosition(tmpVec))
+            relPos1.setSub(pivotAInW, rigidBodyA.worldTransform.origin)
 
             val relPos2 = Stack.newVec()
-            relPos2.setSub(pivotBInW, rigidBodyB.getCenterOfMassPosition(tmpVec))
+            relPos2.setSub(pivotBInW, rigidBodyB.worldTransform.origin)
 
             val vel1 = rigidBodyA.getVelocityInLocalPoint(relPos1, Stack.newVec())
             val vel2 = rigidBodyB.getVelocityInLocalPoint(relPos2, Stack.newVec())
-            val vel = Stack.newVec()
-            vel.setSub(vel1, vel2)
+            val relVel = Stack.newVec()
+            relVel.setSub(vel1, vel2)
 
             val impulseVector = Stack.newVec()
             for (i in 0..2) {
-                val normal = jac[i].linearJointAxis
-                val jacDiagABInv = 1.0 / jac[i].diagonal
+                val normal = jacNormals[i]
+                val jacDiagABInv = jacInvDiagonals[i]
 
-                val relVel = normal.dot(vel)
+                val relVel = normal.dot(relVel)
                 // positional error (zeroth order error)
-                tmp.setSub(pivotAInW, pivotBInW)
-                val depth = -(tmp).dot(normal) // this is the error projected on the normal
+                tmp1.setSub(pivotAInW, pivotBInW)
+                val depth = -(tmp1).dot(normal) // this is the error projected on the normal
                 val impulse = depth * tau / timeStep * jacDiagABInv - relVel * jacDiagABInv
                 if (impulse > breakingImpulseThreshold) {
                     isBroken = true
@@ -301,12 +276,12 @@ class ConeTwistConstraint : TypedConstraint {
                 appliedImpulse += impulse
                 impulseVector.setScale(impulse, normal)
 
-                tmp.setSub(pivotAInW, rigidBodyA.getCenterOfMassPosition(tmpVec))
-                rigidBodyA.applyImpulse(impulseVector, tmp)
+                tmp1.setSub(pivotAInW, rigidBodyA.getCenterOfMassPosition(tmp3))
+                rigidBodyA.applyImpulse(impulseVector, tmp1)
 
-                tmp.setNegate(impulseVector)
-                tmp2.setSub(pivotBInW, rigidBodyB.getCenterOfMassPosition(tmpVec))
-                rigidBodyB.applyImpulse(tmp, tmp2)
+                tmp1.setNegate(impulseVector)
+                tmp2.setSub(pivotBInW, rigidBodyB.getCenterOfMassPosition(tmp3))
+                rigidBodyB.applyImpulse(tmp1, tmp2)
             }
             Stack.subVec(6)
         }
@@ -319,9 +294,9 @@ class ConeTwistConstraint : TypedConstraint {
 
             // solve swing limit
             if (solveSwingLimit) {
-                tmp.setSub(angVelB, angVelA)
+                tmp1.setSub(angVelB, angVelA)
                 val amplitude =
-                    ((tmp).dot(swingAxis) * relaxationFactor * relaxationFactor + swingCorrection * (1.0 / timeStep) * biasFactor)
+                    ((tmp1).dot(swingAxis) * relaxationFactor * relaxationFactor + swingCorrection * (1.0 / timeStep) * biasFactor)
                 var impulseMag = amplitude * kSwing
 
                 // Clamp the accumulated impulse
@@ -335,16 +310,16 @@ class ConeTwistConstraint : TypedConstraint {
                     impulse.setScale(impulseMag, swingAxis)
                     rigidBodyA.applyTorqueImpulse(impulse)
 
-                    tmp.setNegate(impulse)
-                    rigidBodyB.applyTorqueImpulse(tmp)
+                    tmp1.setNegate(impulse)
+                    rigidBodyB.applyTorqueImpulse(tmp1)
                 }
             }
 
             // solve twist limit
             if (solveTwistLimit) {
-                tmp.setSub(angVelB, angVelA)
+                tmp1.setSub(angVelB, angVelA)
                 val amplitude =
-                    (tmp.dot(twistAxis) * relaxationFactor * relaxationFactor + twistCorrection * (1.0 / timeStep) * biasFactor)
+                    (tmp1.dot(twistAxis) * relaxationFactor * relaxationFactor + twistCorrection * (1.0 / timeStep) * biasFactor)
                 var impulseMag = amplitude * kTwist
 
                 // Clamp the accumulated impulse
@@ -358,15 +333,14 @@ class ConeTwistConstraint : TypedConstraint {
                     impulse.setScale(impulseMag, twistAxis)
                     rigidBodyA.applyTorqueImpulse(impulse)
 
-                    tmp.setNegate(impulse)
-                    rigidBodyB.applyTorqueImpulse(tmp)
+                    tmp1.setNegate(impulse)
+                    rigidBodyB.applyTorqueImpulse(tmp1)
                 }
             }
             Stack.subVec(3)
         }
 
         Stack.subVec(3)
-        Stack.subTrans(1)
     }
 
     fun updateRHS(timeStep: Double) {
