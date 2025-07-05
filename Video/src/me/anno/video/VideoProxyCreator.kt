@@ -67,7 +67,7 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
                 // devNull("error", process.errorStream)
                 devLog("error", process.errorStream)
                 devLog("input", process.inputStream)
-                waitUntil(true, { !process.isAlive }) {
+                waitUntil("VideoProxyCreator:waitForProcess",true, { !process.isAlive }) {
                     onSuccess()
                     callback()
                 }

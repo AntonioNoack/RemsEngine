@@ -31,7 +31,9 @@ object ImageReaderExt {
                         meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
                             val frame = frames.firstOrNull()
                             if (frame != null) {
-                                Sleep.waitUntil(true, { frame.isCreated || frame.isDestroyed }, {
+                                Sleep.waitUntil("ImageReaderExt:forGPU:created", true, {
+                                    frame.isCreated || frame.isDestroyed
+                                }, {
                                     val image = GPUFrameImage(frame)
                                     image.flipY()
                                     callback.call(image, null)

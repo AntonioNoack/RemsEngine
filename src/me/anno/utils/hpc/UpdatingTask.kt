@@ -38,7 +38,7 @@ class UpdatingTask(val threadName: String) {
                     }
                 }// else another one started
             }
-        }, mightWork = false)
+        })
     }
 
     private fun freeThread() {

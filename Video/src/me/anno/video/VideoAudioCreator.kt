@@ -20,7 +20,9 @@ open class VideoAudioCreator(
         val videoTask = videoBackgroundTask
         videoTask.start()
         // wait for the task to finish
-        waitUntil(true, { videoTask.isDone || videoTask.isCancelled }, {
+        waitUntil("VideoAudioCreator:switchFromVideoToAudio", true, {
+            videoTask.isDone || videoTask.isCancelled
+        }, {
             if (isCancelled) {
                 onFinished()
             } else if (audioCreator.hasStreams()) {

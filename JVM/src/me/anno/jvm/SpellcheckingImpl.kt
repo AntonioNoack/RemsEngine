@@ -111,7 +111,7 @@ object SpellcheckingImpl {
     }
 
     private fun waitForDownload(dst: FileReference, callback: (FileReference) -> Unit) {
-        Sleep.waitUntil(true, { dst.exists }, { callback(dst) })
+        Sleep.waitUntil("Spellchecking:Download", true, { dst.exists }, { callback(dst) })
     }
 
     private fun download(dst: FileReference, callback: (FileReference) -> Unit) {

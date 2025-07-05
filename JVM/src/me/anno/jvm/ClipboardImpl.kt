@@ -101,7 +101,7 @@ object ClipboardImpl {
                             { ctr.incrementAndGet() },
                             { ctr.decrementAndGet() })
                         // wait for all copying to complete
-                        Sleep.waitUntil(true, { ctr.get() == 0 }, {
+                        Sleep.waitUntil("Clipboard",true, { ctr.get() == 0 }, {
                             copiedInternalFiles[tmp] = src
                             cb.ok(tmp)
                         })

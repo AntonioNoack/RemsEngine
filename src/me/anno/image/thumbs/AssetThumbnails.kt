@@ -154,7 +154,7 @@ object AssetThumbnails {
         val meshToMat = HashSet<FileReference>()
         val matToTex = HashSet<FileReference>()
 
-        waitUntil(true, {
+        waitUntil("AssetThumbnails:loadAll",true, {
             meshFiles.all2 { meshFile ->
                 checkAsset(MeshCache, meshFile, meshToMat) { mesh ->
                     materialFiles.addAll(mesh.materials.filter { it.exists })

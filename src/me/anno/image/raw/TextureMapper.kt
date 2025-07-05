@@ -73,9 +73,11 @@ object TextureMapper {
                 }
                 callback.ok(dst)
             } else if (!src.isDestroyed) {
-                Sleep.waitUntil(true, { src.isCreated() || src.isDestroyed }) {
+                Sleep.waitUntil("TextureMapper:isCreated", true, {
+                    src.isCreated() || src.isDestroyed
+                }, {
                     mapTexture(src, dst, mapping, type, callback)
-                }
+                })
             } else {
                 // todo this fails a few times for our Engine()-main-project until it succeeds...
                 //  - who is retrying???

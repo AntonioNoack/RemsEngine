@@ -130,7 +130,7 @@ object SearchAlgorithm {
     private fun createResultsImpl(self: FileExplorer, id: Int, whenDone: () -> Unit) {
         val childrenResult = AsyncCacheData<List<FileReference>>()
         self.folder.listChildren(childrenResult)
-        Sleep.waitUntil(true, {
+        Sleep.waitUntil("SearchAlgorithm",true, {
             childrenResult.retryHasValue() || id != self.searchTask.id.get()
         }) {
             if (id != self.searchTask.id.get()) {

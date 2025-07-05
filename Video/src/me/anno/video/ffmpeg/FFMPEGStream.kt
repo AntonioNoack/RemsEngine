@@ -171,11 +171,9 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         @JvmStatic
         fun devNull(name: String, stream: InputStream) {
             val name1 = "devNull-$name"
-            thread(name = name1) {
-                Sleep.waitUntil(name1, true, {// wait until we are done
-                    stream.available() > 0 && stream.read() < 0
-                }, { stream.close() }, mightWork = false)
-            }
+            Sleep.waitUntil(name1, true, {// wait until we are done
+                stream.available() > 0 && stream.read() < 0
+            }, { stream.close() })
         }
 
         @JvmStatic
@@ -218,8 +216,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 }
                 width != 0 && height != 0 && codec.isNotEmpty()
             }
-            // we disabled working here in the past... seems fine now, so I re-enabled it...
-        }, { thread(name = toString(), block = callback) }, mightWork = true)
+        }, { thread(name = toString(), block = callback) })
     }
 
     fun parseAsync(parser: FFMPEGMetaParser, stream: InputStream) {
@@ -239,7 +236,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     fun runAsync(threadName: String, arguments: List<String>, isLimited: Boolean = isProcessCountLimited) {
         if (isLimited) {
             var acquired = 0
-            Sleep.waitUntil(true, { // wait for running permission
+            Sleep.waitUntil("FFMPEGStream:runAsync",true, { // wait for running permission
                 if (processLimiter.tryAcquire()) acquired++
                 acquired > 0 || isDestroyed
             }, {
@@ -274,7 +271,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     }
 
     private fun waitForRelease(process: Process) {
-        Sleep.waitUntil(false, {
+        Sleep.waitUntil("FFMPEGStream:waitForRelease",false, {
             if (process.waitFor(0, TimeUnit.MILLISECONDS)) {
                 true
             } else if (Engine.shutdown) {

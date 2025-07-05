@@ -157,7 +157,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         @JvmStatic
         private val createMetadata: (FileKey, AsyncCacheData<MediaMetadata>) -> Unit = { key, result ->
             val meta = MediaMetadata(key.file, null, 0)
-            Sleep.waitUntil(true, { meta.isReady }) {
+            Sleep.waitUntil("MediaMetadata:create", true, { meta.isReady }) {
                 result.value = meta
             }
         }
@@ -179,7 +179,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         fun getMeta(file: FileReference, signature: String?): AsyncCacheData<MediaMetadata> {
             return metadataCache.getFileEntry(file, false, timeoutMillis) { key, result ->
                 val meta = createMetadata(key.file, signature)
-                Sleep.waitUntil(true, { meta.isReady }) {
+                Sleep.waitUntil("MediaMetadata:getMeta",true, { meta.isReady }) {
                     result.value = meta
                 }
             }
