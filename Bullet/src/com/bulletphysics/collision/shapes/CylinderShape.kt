@@ -87,7 +87,7 @@ open class CylinderShape(halfExtents: Vector3d, val upAxis: Axis) : BoxShape(hal
                 norm.set(-1.0)
             }
             norm.normalize()
-            out.setScaleAdd(margin, norm, out)
+            out.fma(margin, norm)
             Stack.subVec(1)
         }
         return out

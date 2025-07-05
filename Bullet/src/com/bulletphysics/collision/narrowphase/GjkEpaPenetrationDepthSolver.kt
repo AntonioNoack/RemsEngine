@@ -32,8 +32,8 @@ class GjkEpaPenetrationDepthSolver : ConvexPenetrationDepthSolver {
                 radialMargin, results
             )
         ) {
-            witnessOnA.set(results.witnesses[0])
-            witnessOnB.set(results.witnesses[1])
+            witnessOnA.set(results.witness0)
+            witnessOnB.set(results.witness1)
             return true
         }
 

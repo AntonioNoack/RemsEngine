@@ -54,15 +54,15 @@ class SolverBody {
      */
     fun internalApplyImpulse(linearComponent: Vector3d, angularComponent: Vector3d, impulseMagnitude: Double) {
         if (invMass != 0.0) {
-            linearVelocity.setScaleAdd(impulseMagnitude, linearComponent, linearVelocity)
-            angularVelocity.setScaleAdd(impulseMagnitude * angularFactor, angularComponent, angularVelocity)
+            linearVelocity.fma(impulseMagnitude, linearComponent)
+            angularVelocity.fma(impulseMagnitude * angularFactor, angularComponent)
         }
     }
 
     fun internalApplyPushImpulse(linearComponent: Vector3d, angularComponent: Vector3d, impulseMagnitude: Double) {
         if (invMass != 0.0) {
-            pushVelocity.setScaleAdd(impulseMagnitude, linearComponent, pushVelocity)
-            turnVelocity.setScaleAdd(impulseMagnitude * angularFactor, angularComponent, turnVelocity)
+            pushVelocity.fma(impulseMagnitude, linearComponent)
+            turnVelocity.fma(impulseMagnitude * angularFactor, angularComponent)
         }
     }
 

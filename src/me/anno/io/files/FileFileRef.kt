@@ -3,7 +3,6 @@ package me.anno.io.files
 import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
 import me.anno.cache.IgnoredException
 import me.anno.io.BufferedIO.useBuffered
-import me.anno.io.files.Reference.getReference
 import me.anno.utils.async.Callback
 import java.io.File
 import java.io.FileOutputStream
@@ -104,8 +103,12 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     override fun listChildren(callback: Callback<List<FileReference>>) {
         thread(name = "$absolutePath.listChildren") { // can be extremely slow
             if (exists && isDirectory) {
-                val answer = file.listFiles()?.map { getChild(it.name) }
-                if (answer != null) return@thread callback.ok(answer)
+                try {
+                    val answer = file.listFiles()?.map { getChild(it.name) }
+                    if (answer != null) return@thread callback.ok(answer)
+                } catch (_: Throwable) {
+                    // failed reading :/
+                }
             }
             super.listChildren(callback)
         }

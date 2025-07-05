@@ -5,8 +5,6 @@ import com.bulletphysics.linearmath.VectorUtil
 import com.bulletphysics.util.ArrayPool
 import org.joml.Vector3d
 import org.joml.Vector4d
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setScaleAdd
 
 /**
  * @author jezek2
@@ -15,14 +13,6 @@ internal object ClipPolygon {
     @JvmStatic
     fun distancePointPlane(plane: Vector4d, point: Vector3d): Double {
         return VectorUtil.dot3(point, plane) - plane.w
-    }
-
-    /**
-     * Vector blending. Takes two vectors a, b, blends them together.
-     */
-    fun vecBlend(vr: Vector3d, va: Vector3d, vb: Vector3d, f: Double) {
-        vr.setScale(1.0 - f, va)
-        vr.setScaleAdd(f, vb, vr)
     }
 
     /**
@@ -36,7 +26,7 @@ internal object ClipPolygon {
         val classIf = (dist1 > BulletGlobals.SIMD_EPSILON)
         if (classIf != prevClassIf) {
             val f = -dist0 / (dist1 - dist0)
-            vecBlend(clipped[clippedCount[0]], point0, point1, f)
+            point0.lerp(point1, f, clipped[clippedCount[0]])
             clippedCount[0]++
         }
         if (!classIf) {

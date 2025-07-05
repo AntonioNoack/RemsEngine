@@ -56,12 +56,12 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
     private val orderTmpConstraintPool = IntArrayList()
     private val orderFrictionConstraintPool = IntArrayList()
 
-    val contactDispatch = Array(MAX_CONTACT_SOLVER_TYPES) {
-        Array(MAX_CONTACT_SOLVER_TYPES) { ContactConstraint.resolveSingleCollision }
+    val contactDispatch = Array(MAX_CONTACT_SOLVER_TYPES * MAX_CONTACT_SOLVER_TYPES) {
+        ContactConstraint.resolveSingleCollision
     }
 
-    val frictionDispatch = Array(MAX_CONTACT_SOLVER_TYPES) {
-        Array(MAX_CONTACT_SOLVER_TYPES) { ContactConstraint.resolveSingleFriction }
+    val frictionDispatch = Array(MAX_CONTACT_SOLVER_TYPES * MAX_CONTACT_SOLVER_TYPES) {
+        ContactConstraint.resolveSingleFriction
     }
 
     // btSeed2 is used for re-arranging the constraint rows. improves convergence/quality of friction
@@ -939,8 +939,10 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
                 // Dependent on Rigidbody A and B types, fetch the contact/friction response func
                 // perhaps do a similar thing for friction/restutution combiner funcs...
-                cpd.frictionSolverFunc = frictionDispatch[body0.frictionSolverType][body1.frictionSolverType]
-                cpd.contactSolverFunc = contactDispatch[body0.contactSolverType][body1.contactSolverType]
+                cpd.frictionSolverFunc =
+                    frictionDispatch[body0.frictionSolverType * MAX_CONTACT_SOLVER_TYPES + body1.frictionSolverType]
+                cpd.contactSolverFunc =
+                    contactDispatch[body0.contactSolverType * MAX_CONTACT_SOLVER_TYPES + body1.contactSolverType]
 
                 body0.getVelocityInLocalPoint(relPos1, vel1)
                 body1.getVelocityInLocalPoint(relPos2, vel2)
@@ -1082,7 +1084,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
      */
     @Suppress("unused")
     fun setContactSolverFunc(func: ContactSolverFunc, type0: Int, type1: Int) {
-        contactDispatch[type0][type1] = func
+        contactDispatch[type0 * MAX_CONTACT_SOLVER_TYPES + type1] = func
     }
 
     /**
@@ -1091,7 +1093,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
      */
     @Suppress("unused")
     fun setFrictionSolverFunc(func: ContactSolverFunc, type0: Int, type1: Int) {
-        frictionDispatch[type0][type1] = func
+        frictionDispatch[type0 * MAX_CONTACT_SOLVER_TYPES + type1] = func
     }
 
     companion object {

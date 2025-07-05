@@ -226,8 +226,10 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
 
         // activate
         bulletBody.activationState =
-            if (rigidbody is DynamicBody) ActivationState.ACTIVE
-            else ActivationState.ALWAYS_ACTIVE
+            if (rigidbody is DynamicBody) { // mmhh..
+                if (rigidbody.activeByDefault) ActivationState.ACTIVE
+                else ActivationState.WANTS_DEACTIVATION
+            } else ActivationState.ALWAYS_ACTIVE
 
         bulletBody.collisionFlags = when (rigidbody) {
             // todo allow custom material response for per-triangle friction/restitution (terrain)

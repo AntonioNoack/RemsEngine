@@ -217,10 +217,10 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
             return
         }
 
-        linearVelocity.setScaleAdd(inverseMass * step, totalForce, linearVelocity)
+        linearVelocity.fma(inverseMass * step, totalForce)
         val tmp = Stack.newVec(totalTorque)
         invInertiaTensorWorld.transform(tmp)
-        angularVelocity.setScaleAdd(step, tmp, angularVelocity)
+        angularVelocity.fma(step, tmp)
         Stack.subVec(1)
 
         // clamp angular velocity. collision calculations will fail on higher angular velocities
@@ -252,17 +252,6 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
         totalForce.z += strength * force.z
     }
 
-    fun getInvInertiaDiagLocal(out: Vector3d): Vector3d {
-        out.set(invInertiaLocal)
-        return out
-    }
-
-    @Suppress("unused")
-    fun setInvInertiaDiagLocal(diagInvInertia: Vector3d) {
-        invInertiaLocal.set(diagInvInertia)
-    }
-
-    @Suppress("unused")
     fun setSleepingThresholds(linear: Double, angular: Double) {
         linearSleepingThreshold = linear
         angularSleepingThreshold = angular
@@ -272,19 +261,17 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
         totalTorque.add(torque)
     }
 
-    @Suppress("unused")
     fun applyForce(force: Vector3d, relPos: Vector3d) {
         applyCentralForce(force)
 
         val tmp = Stack.newVec()
-        tmp.setCross(relPos, force)
-        tmp.mul(angularFactor)
+        relPos.cross(force, tmp).mul(angularFactor)
         applyTorque(tmp)
         Stack.subVec(1)
     }
 
     fun applyCentralImpulse(impulse: Vector3d) {
-        linearVelocity.setScaleAdd(inverseMass, impulse, linearVelocity)
+        linearVelocity.fma(inverseMass, impulse)
     }
 
     fun applyTorqueImpulse(torque: Vector3d) {
@@ -298,8 +285,7 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
             applyCentralImpulse(impulse)
             if (angularFactor != 0.0) {
                 val tmp = Stack.newVec()
-                tmp.setCross(relPos, impulse)
-                tmp.mul(angularFactor)
+                relPos.cross(impulse, tmp).mul(angularFactor)
                 applyTorqueImpulse(tmp)
                 Stack.subVec(1)
             }
@@ -311,9 +297,9 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
      */
     fun internalApplyImpulse(linearComponent: Vector3d, angularComponent: Vector3d, impulseMagnitude: Double) {
         if (inverseMass != 0.0) {
-            linearVelocity.setScaleAdd(impulseMagnitude, linearComponent, linearVelocity)
+            linearVelocity.fma(impulseMagnitude,linearComponent)
             if (angularFactor != 0.0) {
-                angularVelocity.setScaleAdd(impulseMagnitude * angularFactor, angularComponent, angularVelocity)
+                angularVelocity.fma(impulseMagnitude * angularFactor, angularComponent)
             }
         }
     }
@@ -362,15 +348,6 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
 
         //for kinematic objects, we could also use use:
         //		return 	(m_worldTransform(rel_pos) - m_interpolationWorldTransform(rel_pos)) / m_kinematicTimeStep;
-    }
-
-    @Suppress("unused")
-    fun translate(v: Vector3d) {
-        worldTransform.origin.add(v)
-    }
-
-    fun getAabb(aabbMin: Vector3d, aabbMax: Vector3d) {
-        collisionShape!!.getBounds(worldTransform, aabbMin, aabbMax)
     }
 
     fun computeImpulseDenominator(pos: Vector3d, normal: Vector3d): Double {

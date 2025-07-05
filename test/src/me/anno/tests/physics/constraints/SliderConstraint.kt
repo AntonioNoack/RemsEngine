@@ -14,8 +14,9 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.types.Floats.toRadians
 
-// todo create and test slider constraint
-// -> why does it do nothing?
+// create and test slider constraint
+//  -> why does it do nothing?
+// todo why does it still not slide???
 fun main() {
 
     ECSRegistry.init()
@@ -28,16 +29,19 @@ fun main() {
     Entity("Static Cube", scene)
         .add(MeshComponent(flatCube))
         .add(BoxCollider())
-        .setRotation(5f.toRadians(), 0f, 0f)
-        .add(staticCubeBody)
+        .setRotation(0f, 0f, 20f.toRadians())
+        .add(staticCubeBody.apply {
+            friction = 0.0
+        })
 
     val sliding = SliderConstraint().apply {
-        enableLinearMotor = true
-        motorMaxForce = 10000.0
-        targetMotorVelocity = 0.0
+      //  enableLinearMotor = true
+      //  motorMaxForce = 10000.0
+      //  targetMotorVelocity = 0.0
         disableCollisionsBetweenLinked = true
-        lowerLimit = -0.01
-        upperLimit = +0.01
+        selfPosition.set(0.0, -1.05, 0.0)
+        otherPosition.set(0.0, 1.05, 0.0)
+
         other = staticCubeBody
     }
 
@@ -45,14 +49,18 @@ fun main() {
         .add(MeshComponent(flatCube))
         .add(BoxCollider())
         .setPosition(0.0, 2.3, 0.0)
-        .add(DynamicBody())
+        .add(DynamicBody().apply {
+            linearSleepingThreshold = 0.0
+            angularSleepingThreshold = 0.0
+            friction = 0.0
+        })
         .add(sliding)
 
     Entity("Floor", scene)
         .add(MeshComponent(flatCube, Material.diffuse(0x333333)))
         .add(BoxCollider())
-        .add(DynamicBody().apply {
-            friction = 1.0
+        .add(StaticBody().apply {
+            friction = 0.0
         })
         .setPosition(0.0, -22.0, 0.0)
         .setScale(20f)

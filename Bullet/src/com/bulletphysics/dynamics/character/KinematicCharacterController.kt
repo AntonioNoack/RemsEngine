@@ -314,7 +314,7 @@ class KinematicCharacterController(
                             touchingNormal.mul(directionSign)
                         }
 
-                        currentPosition.setScaleAdd(directionSign * dist * 0.2, pt.normalWorldOnB, currentPosition)
+                        currentPosition.fma(directionSign * dist * 0.2, pt.normalWorldOnB)
 
                         penetration = true
                     } // else printf("touching %f\n", dist);

@@ -103,7 +103,7 @@ class ConvexHullShape(val points: FloatArray, val triangles: IntArray?) :
                 vecNorm.set(-1.0, -1.0, -1.0)
             }
             vecNorm.normalize()
-            supVertex.setScaleAdd(margin, vecNorm, supVertex)
+            supVertex.fma(margin, vecNorm)
             Stack.subVec(1)
         }
         return out

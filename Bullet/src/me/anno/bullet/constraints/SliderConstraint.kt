@@ -6,6 +6,7 @@ import com.bulletphysics.dynamics.constraintsolver.SliderConstraint.Companion.SL
 import com.bulletphysics.dynamics.constraintsolver.SliderConstraint.Companion.SLIDER_CONSTRAINT_DEF_SOFTNESS
 import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.Vector3d
 
@@ -22,13 +23,14 @@ class SliderConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.
     val angularPosition
         get() = bulletInstance?.angularPosition ?: 0.0
 
-    var lowerLimit = -1.0
+    @Docs("Limit is deactivated if lowerLimit > upperLimit")
+    var lowerLimit = 0.0
         set(value) {
             field = value
             bulletInstance?.lowerLinearLimit = value
         }
 
-    var upperLimit = +1.0
+    var upperLimit = -1.0
         set(value) {
             field = value
             bulletInstance?.upperLinearLimit = value
@@ -41,7 +43,7 @@ class SliderConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.
             bulletInstance?.lowerAngularLimit = value
         }
 
-    var upperAngleLimit = 0.0
+    var upperAngleLimit = -1.0
         set(value) {
             field = value
             bulletInstance?.upperAngularLimit = value
@@ -163,7 +165,9 @@ class SliderConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.
     override fun createConstraint(
         a: RigidBody, b: RigidBody, ta: Transform, tb: Transform
     ): com.bulletphysics.dynamics.constraintsolver.SliderConstraint {
-        val instance = com.bulletphysics.dynamics.constraintsolver.SliderConstraint()
+        val instance = com.bulletphysics.dynamics.constraintsolver.SliderConstraint(
+            a, b, ta, tb, true
+        )
         instance.lowerLinearLimit = lowerLimit
         instance.upperLinearLimit = upperLimit
         instance.lowerAngularLimit = lowerAngleLimit
