@@ -141,13 +141,13 @@ object Sleep {
     @JvmStatic
     fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean, callback: () -> Unit) {
         val name = getCalleeName()
-        waitUntil(name, canBeKilled, isFinished, callback)
+        waitUntil(name, canBeKilled, isFinished, callback, false)
     }
 
     @JvmStatic
     fun waitUntil(
         name: String, canBeKilled: Boolean, isFinished: () -> Boolean, callback: () -> Unit,
-        mightWork: Boolean = true
+        mightWork: Boolean
     ) {
         val mode = if (mightWork) ShallWork.WORK_IF_IDLE else ShallWork.DONT_WORK
         if (mustWorkTasks(mode)) {
@@ -157,8 +157,8 @@ object Sleep {
             if (isFinished()) {
                 callback()
             } else if (shouldContinueWaiting(canBeKilled)) { // wait a little
-                addEvent(name, 0) {
-                    waitUntil(name, canBeKilled, isFinished, callback)
+                addEvent(name, 1) {
+                    waitUntil(name, canBeKilled, isFinished, callback, false)
                 }
             } // else cancelled
         }

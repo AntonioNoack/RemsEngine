@@ -144,7 +144,8 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
         if (index < 0 || scale < 1) return AsyncCacheData.empty()
         // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
         val getProxyFile = getProxyFile
-        if (getProxyFile != null && useProxy(scale, bufferLength0, MediaMetadata.getMeta(file).waitFor())) {
+        val maybeMeta = MediaMetadata.getMeta(file).value
+        if (getProxyFile != null && useProxy(scale, bufferLength0, maybeMeta)) {
             val slice0 = index / framesPerSlice
             val file2 = getProxyFile(file, slice0, true)
             if (file2 != null) {
@@ -152,6 +153,13 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
                 return getVideoFrame(file2, (scale + 2) / 4, sliceI, bufferLength0, fps, timeout)
             }
         }
+        return getVideoFrameImpl(file, scale, index, bufferLength0, fps, timeout)
+    }
+
+    fun getVideoFrameImpl(
+        file: FileReference, scale: Int, index: Int,
+        bufferLength0: Int, fps: Double, timeout: Long
+    ): AsyncCacheData<GPUFrame> {
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
         return getVideoFrame(file, scale, index, bufferIndex, bufferLength, fps, timeout)
