@@ -3,8 +3,11 @@ package me.anno.io.files
 import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
 import me.anno.cache.IgnoredException
 import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.VoidOutputStream
 import me.anno.utils.async.Callback
+import org.apache.logging.log4j.LogManager
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -14,6 +17,8 @@ import kotlin.concurrent.thread
 class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath)) {
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(FileFileRef::class)
 
         fun createTempFile(name: String, extension: String): FileReference {
             return FileFileRef(File.createTempFile(name.padEnd(5, '-'), if (extension.isEmpty()) "" else ".$extension"))
@@ -60,17 +65,26 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     }
 
     override fun outputStream(append: Boolean): OutputStream {
-        val ret = FileOutputStream(file, append).useBuffered()
-        // when writing is finished, this should be called again
-        LastModifiedCache.invalidate(file)
-        return ret
+        try {
+            val ret = FileOutputStream(file, append).useBuffered()
+            // when writing is finished, this should be called again
+            LastModifiedCache.invalidate(file)
+            return ret
+        } catch (_: Throwable) {
+            LOGGER.warn("Failed creating outputStream to '$this'")
+            return VoidOutputStream
+        }
     }
 
     override fun writeBytes(bytes: ByteArray, offset: Int, length: Int) {
-        FileOutputStream(file, false).use { stream ->
-            stream.write(bytes, offset, length)
+        try {
+            FileOutputStream(file, false).use { stream ->
+                stream.write(bytes, offset, length)
+            }
+            LastModifiedCache.invalidate(file)
+        } catch (e: Throwable) {
+            LOGGER.warn("Failed writing to '$this'", e)
         }
-        LastModifiedCache.invalidate(file)
     }
 
     override fun writeFile(

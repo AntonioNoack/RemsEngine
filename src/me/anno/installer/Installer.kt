@@ -3,6 +3,7 @@ package me.anno.installer
 import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.VoidOutputStream
 import me.anno.io.files.FileReference
 import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.maths.Maths.SECONDS_TO_NANOS
@@ -108,7 +109,15 @@ object Installer {
         if (contentLength > 0L) progress?.total = con.contentLength.toDouble()
         val input = con.inputStream.useBuffered()
         dstFile.getParent().tryMkdirs()
+
         val output = tmp.outputStream()
+        if (output == VoidOutputStream) {
+            LOGGER.warn("Failed downloading FFMPEG, because target file was invalid")
+            progress?.finish(false)
+            input.close()
+            return
+        }
+
         val totalLength = con.contentLength.toLong()
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
         var time0 = Time.nanoTime
@@ -130,6 +139,7 @@ object Installer {
             }
         }
         output.close()
+        input.close()
         tmp.renameTo(dstFile)
         progress?.finish(true)
         LOGGER.info(formatDownloadEnd(fileName, dstFile))

@@ -2,6 +2,7 @@ package org.apache.logging.log4j
 
 import me.anno.Time
 import me.anno.io.Streams.writeString
+import me.anno.io.VoidOutputStream
 import me.anno.io.config.ConfigBasics
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_NANOS
@@ -77,9 +78,11 @@ open class LoggerImpl(val name: String) : Logger, Log {
     }
 
     private fun print(prefix: String, msg: String) {
+        // should not be synchronized!
+        val logFile = getLogFileStream()
+        val time = getTimeStamp()
+        // printing should be synchronized to not mix messages
         synchronized(LogManager) {
-            val logFile = getLogFileStream()
-            val time = getTimeStamp()
             var i = 0
             while (i < msg.length) {
                 val ni = msg.indexOf2('\n', i)
@@ -350,13 +353,12 @@ open class LoggerImpl(val name: String) : Logger, Log {
         private val lastTimeStr = StringBuilder(16).append("hh:mm:ss.sss")
         private var logFileStream: OutputStream? = null
 
-        private val logStreamLock = Any()
         private fun getLogFileStream(): OutputStream? {
-            synchronized(logStreamLock) {
-                if (!OSFeatures.supportsContinuousLogFiles) return null
-                if (logFileStream != null) return logFileStream
-                return createFileLogStream()
-            }
+            if (logFileStream != null || !OSFeatures.supportsContinuousLogFiles) return null
+
+            logFileStream = VoidOutputStream
+            createFileLogStream()
+            return logFileStream
         }
 
         private fun createFileLogStream(): OutputStream? {
@@ -371,9 +373,16 @@ open class LoggerImpl(val name: String) : Logger, Log {
                 if (childCreated < deleteTime) child.delete()
             }
             val logFile = logFolder.getChild("$time.log")
-            logFileStream = logFile.outputStream(true)
-            // must use println, or we would create an infinite loop
-            println("[${getTimeStamp()},INFO:Logger] Writing log to $logFile")
+            logFileStream = try {
+                logFile.outputStream(true).apply {
+                    // must use println, or we would create an infinite loop
+                    println("[${getTimeStamp()},INFO:Logger] Writing log to $logFile")
+                }
+            } catch (e: IOException) {
+                VoidOutputStream.apply {
+                    println("[${getTimeStamp()},ERR:Logger] Failed creating log file, $e")
+                }
+            }
             return logFileStream
         }
 

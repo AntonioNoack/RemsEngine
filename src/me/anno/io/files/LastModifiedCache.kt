@@ -78,7 +78,7 @@ object LastModifiedCache {
         return values.getOrPut(absolutePath) {
             val r = Result(file)
             // randomness for random decay: from 0.75x to 1.5x
-            r.lastChecked = Time.gameTimeN + ((196 + (Maths.random() * 196).toInt()) * timeoutNanos ushr 8)
+            r.lastChecked = Time.gameTimeN + ((Maths.randomInt(196, 2 * 196) * timeoutNanos) ushr 8)
             values[absolutePath.replace('/', '\\')] = r
             values[absolutePath.replace('\\', '/')] = r
             r
@@ -89,9 +89,9 @@ object LastModifiedCache {
         return values.getOrPut(absolutePath) {
             val file = File(absolutePath)
             val exists = file.exists()
-            val dir = if (exists) file.isDirectory else false
-            val lm = if (exists) file.lastModified() else 0L
-            val result = Result(file, exists, dir, lm)
+            val isDirectory = if (exists) file.isDirectory else false
+            val lastModified = if (exists) file.lastModified() else 0L
+            val result = Result(file, exists, isDirectory, lastModified)
             if ('/' in absolutePath) values[absolutePath.replace('/', '\\')] = result
             if ('\\' in absolutePath) values[absolutePath.replace('\\', '/')] = result
             result

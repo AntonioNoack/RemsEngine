@@ -36,7 +36,13 @@ object OS {
     var isAndroid = false // set to true by my Android porting runtime
 
     @JvmStatic
-    val home by lazy { getReference(System.getProperty("user.home")) }
+    val home by lazy {
+        val home = System.getProperty("user.home").ifBlank {
+            System.err.println("Missing home directory! Define user.home, please!")
+            if (isLinux) "/tmp/RemsEngine" else "C:/tmp/RemsEngine"
+        }
+        getReference(home)
+    }
 
     @JvmStatic
     val downloads by lazy { home.getChild("Downloads") }
