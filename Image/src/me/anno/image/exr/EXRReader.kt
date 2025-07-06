@@ -4,7 +4,6 @@ import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IFloatImage
 import me.anno.utils.OS.desktop
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.float16ToFloat32
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
@@ -215,7 +214,7 @@ object EXRReader {
         val numChannels = image.num_channels()
 
         val channels = header.channels()
-        val channelNames = createList(numChannels) {
+        val channelNames = List(numChannels) {
             channels[it].nameString().lowercase()
         }
 
@@ -231,7 +230,7 @@ object EXRReader {
         )
 
         val images = image.images()!!
-        var floats: List<FloatBuffer> = createList(numChannels) { channelIndex ->
+        var floats: List<FloatBuffer> = List(numChannels) { channelIndex ->
             LOGGER.debug("Image[$channelIndex, ${channelNames[channelIndex]}]: @${images[channelIndex]}")
             val dst = ByteBuffer.allocateDirect(numPixels * 4).asFloatBuffer()
             val channel = channels[channelIndex]

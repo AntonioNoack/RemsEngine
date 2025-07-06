@@ -10,7 +10,6 @@ import me.anno.engine.debug.DebugShapes
 import me.anno.engine.debug.DebugTriangle
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -141,7 +140,7 @@ class ConvexHullShape(val points: FloatArray, val triangles: IntArray?) :
         get() = BroadphaseNativeType.CONVEX_HULL_SHAPE_PROXYTYPE
 
     override fun draw(drawMatrix: Matrix4x3?, color: Int) {
-        val vertices = createList(numVertices) { idx ->
+        val vertices = List(numVertices) { idx ->
             Vector3d(points, idx * 3)
         }
         if (drawMatrix != null) {

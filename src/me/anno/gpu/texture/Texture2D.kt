@@ -644,7 +644,7 @@ open class Texture2D(
     fun createBGR(data: ByteBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(3, data.remaining())
         if (checkRedundancy) checkRedundancyX3(data)
-        convertRGB2BGR3(data)
+        convertRGB2BGR(data)
         setWriteAlignment(3 * width)
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, data)
         Pools.byteBufferPool.returnBuffer(data)
@@ -687,7 +687,7 @@ open class Texture2D(
     fun createBGRA(buffer: ByteBuffer, checkRedundancy: Boolean): Texture2D {
         if (checkRedundancy) checkRedundancyX4(buffer)
         beforeUpload(4, buffer.remaining())
-        convertRGB2BGR4(buffer)
+        convertRGB2BGRA(buffer)
         upload(GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         Pools.byteBufferPool.returnBuffer(buffer)
         afterUpload(false, 4, 4)
@@ -1078,8 +1078,7 @@ open class Texture2D(
         }
 
         @JvmStatic
-        fun convertRGB2BGR3(values: ByteBuffer) {
-            // convert rgb to bgr
+        fun convertRGB2BGR(values: ByteBuffer) {
             val pos = values.position()
             for (i in pos until pos + values.remaining() step 3) {
                 val tmp = values[i]
@@ -1089,8 +1088,7 @@ open class Texture2D(
         }
 
         @JvmStatic
-        fun convertRGB2BGR4(values: ByteBuffer) {
-            // convert rgba to bgra
+        fun convertRGB2BGRA(values: ByteBuffer) {
             val pos = values.position()
             for (i in pos until pos + values.remaining() step 4) {
                 val tmp = values[i]

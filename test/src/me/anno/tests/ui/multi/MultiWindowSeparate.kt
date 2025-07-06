@@ -4,7 +4,6 @@ import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.OSWindow
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Vector4f
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
@@ -48,7 +47,7 @@ fun main() {
     check(GLFW.glfwInit()) { "Failed to initialize GLFW." }
     GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
     run = true
-    val threads = createList(titles.size) {
+    val threads = Array(titles.size) {
         val window = GLFW.glfwCreateWindow(200, 200, titles[it], 0L, 0L)
         check(window != MemoryUtil.NULL) { "Failed to create GLFW window." }
         GLFW.glfwSetKeyCallback(window) { windowHnd: Long, key: Int, _: Int, action: Int, _: Int ->

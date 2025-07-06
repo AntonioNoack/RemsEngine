@@ -1,5 +1,6 @@
 package me.anno.export
 
+import me.anno.cache.ThreadPool
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
 import me.anno.export.idea.IdeaProject
@@ -11,7 +12,6 @@ import me.anno.extensions.ExtensionInfo
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.saveable.NamedSaveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
@@ -25,7 +25,6 @@ import me.anno.ui.input.IntInput
 import me.anno.ui.input.TextInput
 import me.anno.utils.OS.documents
 import me.anno.utils.async.Callback.Companion.mapCallback
-import kotlin.concurrent.thread
 
 class ExportSettings : NamedSaveable() {
 
@@ -208,7 +207,7 @@ class ExportSettings : NamedSaveable() {
                 checkbox.setTooltip(file.toLocalPath())
                 modules.add(checkbox)
                 // load module info for ttt
-                thread(name = "extInfo(${file.nameWithoutExtension})") {
+                ThreadPool.start("extInfo(${file.nameWithoutExtension})") {
                     val extInfoTxt = file.getSibling("src").listChildren()
                         .firstOrNull { it.name.endsWith("-ext.info") }
                     val info = if (extInfoTxt != null) {

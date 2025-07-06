@@ -5,7 +5,6 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.Collections.filterIsInstance2
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Matrix4x3f
 
 /**
@@ -93,7 +92,7 @@ class ImportedAnimation : Animation() {
 
     private fun splitValues(values: FloatArray): List<Matrix4x3f> {
         val size = values.size / 12
-        return createList(size) { i ->
+        return List(size) { i ->
             val j = i * 12
             Matrix4x3f(
                 values[j + 0], values[j + 1], values[j + 2],

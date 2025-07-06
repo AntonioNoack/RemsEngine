@@ -25,7 +25,6 @@ import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -383,7 +382,7 @@ object BlenderMeshConverter {
                     // complex triangulation, because it may be more complicated than it seems, and
                     // we have to be correct
                     val vec2Index = HashMap<Vector3f, Int>()
-                    val vectors = createList(loopSize) {
+                    val vectors = List(loopSize) {
                         val index = (loopData[loopStart + it]).v
                         val vec = Vector3f(
                             positions[index * 3],
@@ -484,7 +483,7 @@ object BlenderMeshConverter {
                     // complex triangulation, because it may be more complicated than it seems, and
                     // we have to be correct
                     val vec2Index = HashMap<Vector3d, Int>()
-                    val vectors = createList(loopSize) {
+                    val vectors = List(loopSize) {
                         val index = loopData[loopStart + it].v
                         val vec = Vector3d(positions, index * 3)
                         vec2Index[vec] = index

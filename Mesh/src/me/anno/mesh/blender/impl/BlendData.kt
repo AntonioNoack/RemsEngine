@@ -5,7 +5,6 @@ import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.DNAField
 import me.anno.mesh.blender.DNAStruct
 import me.anno.utils.assertions.assertEquals
-import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import java.nio.ByteBuffer
@@ -48,7 +47,7 @@ open class BlendData(ptr: ConstructorData) {
         if (length == 0) return null
         val positionInFile = block.positionInFile
         val data = file.file.data
-        return createList(length) {
+        return List(length) {
             val posInFile = positionInFile + it * file.pointerSize
             val ptr = if (file.file.is64Bit) data.getLong(posInFile)
             else data.getInt(posInFile).toLong()
@@ -205,7 +204,7 @@ open class BlendData(ptr: ConstructorData) {
             if (length > 1000) LOGGER.warn("Instantiating $length ${struct.type.name} instances, use the BInstantList, if possible")
             file.getOrCreate(struct, className, block, address)
                 ?: return null // if no instance can be created, just return null
-            createList(length.toInt()) {
+            List(length.toInt()) {
                 val addressI = address + it * typeSize
                 file.getOrCreate(struct, className, block, addressI)
             }

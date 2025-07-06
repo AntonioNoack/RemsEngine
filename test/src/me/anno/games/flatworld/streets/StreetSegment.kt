@@ -7,7 +7,6 @@ import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.Distances.rayRayClosestTs
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.AABBd
 import org.joml.Vector2d
 import org.joml.Vector3d
@@ -96,7 +95,7 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
         return if (numSplits < 2) {
             distanceToRay(pos, dir, a, c)
         } else {
-            createList(numSplits) {
+            Array(numSplits) {
                 val t0 = (it) / numSplits.toDouble()
                 val t1 = (it + 1) / numSplits.toDouble()
                 val hit = distanceToRay(pos, dir, splits[it], splits[it + 1])
@@ -113,15 +112,15 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
     val splits by lazy {
         val numSplits = (angleRadians * 4.0).toInt()
         if (b != null && numSplits >= 2) {
-            createList(numSplits + 1) {
+            Array(numSplits + 1) {
                 interpolate(it / numSplits.toDouble())
             }
-        } else listOf(a, c)
+        } else arrayOf(a, c)
     }
 
     val bounds by lazy {
         val bounds = AABBd()
-        bounds.union(splits)
+        bounds.union(splits.asList())
         bounds.addMargin(3.0) // street radius
         bounds
     }

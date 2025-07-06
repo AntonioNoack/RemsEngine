@@ -22,7 +22,6 @@ import me.anno.utils.Logging.hash32
 import me.anno.utils.async.Callback
 import me.anno.utils.callbacks.I2U
 import me.anno.utils.hpc.WorkSplitter
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Vector4f
 import java.io.OutputStream
 import kotlin.math.floor
@@ -200,7 +199,7 @@ abstract class Image(
     }
 
     open fun split(numTilesX: Int, numTilesY: Int): List<Image> {
-        return createList(numTilesX * numTilesY) { tileId ->
+        return List(numTilesX * numTilesY) { tileId ->
             val ix = tileId % numTilesX
             val iy = tileId / numTilesX
             val x0 = WorkSplitter.partition(ix, width, numTilesX)

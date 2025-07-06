@@ -3,7 +3,6 @@ package me.anno.engine.raycast
 import me.anno.ecs.Component
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.bvh.HitType
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector2d
@@ -38,9 +37,9 @@ class RayHit(maxDistance: Double) {
 
     // collision algorithms require a bit of temporary storage for convenience
     // this pre-allocates the maximum, it will require
-    val tmpVector3fs = createList(16) { Vector3f() }
-    val tmpVector3ds = createList(10) { Vector3d() }
-    val tmpVector4fs = createList(3) { Vector4f() }
+    val tmpVector3fs = Array(16) { Vector3f() }
+    val tmpVector3ds = Array(10) { Vector3d() }
+    val tmpVector4fs = Array(3) { Vector4f() }
     val tmpMat4x3m = Matrix4x3()
     val tmpAABBd = AABBd()
 

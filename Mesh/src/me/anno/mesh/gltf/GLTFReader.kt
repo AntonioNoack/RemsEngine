@@ -51,7 +51,6 @@ import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.files.Files.nextName
 import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.structures.lists.Lists.sortedByTopology
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.AnyToDouble.getDouble
@@ -529,7 +528,7 @@ class GLTFReader(val src: FileReference) {
 
             val inverseBindMatrixId = getInt(src["inverseBindMatrices"], -1)
             val inverseBindMatrixData = loadFloatArray(inverseBindMatrixId, 16)!!
-            val inverseBindMatrices = createList(joints.size) { boneId ->
+            val inverseBindMatrices = Array(joints.size) { boneId ->
                 tmp.set(inverseBindMatrixData, boneId * 16)
                 Matrix4x3f().set(tmp)
             }

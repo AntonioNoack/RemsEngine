@@ -34,7 +34,6 @@ import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.arrayListOfNulls
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.structures.lists.Lists.sortByParent
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix3f
@@ -449,7 +448,7 @@ object AnimatedMeshesLoader {
         val numMeshes = aiScene.mNumMeshes()
         return if (numMeshes > 0) {
             val aiMeshes = aiScene.mMeshes()!!
-            createList(numMeshes) {
+            List(numMeshes) {
                 createMeshPrefab(AIMesh.create(aiMeshes[it]), materials, boneList, boneMap)
             }
         } else emptyList()
@@ -558,8 +557,8 @@ object AnimatedMeshesLoader {
         globalTransform: Matrix4x3f?,
         globalInverseTransform: Matrix4x3f?
     ): List<List<Matrix4x3f>> {
-        return createList(numFrames) { frameIndex ->
-            val animatedFrame = createList(boneMap.size) { Matrix4x3f() }
+        return List(numFrames) { frameIndex ->
+            val animatedFrame = List(boneMap.size) { Matrix4x3f() }
             loadAnimationFrame(
                 aiScene, rootNode, frameIndex * timeScale, animatedFrame,
                 globalTransform, globalInverseTransform, boneMap, animNodeCache

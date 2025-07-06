@@ -25,7 +25,7 @@ object RaycastMesh {
     fun raycastLocalMesh(
         mesh: Mesh, globalTransform: Matrix4x3?, inverse: Matrix4x3?,
         localSrt: Vector3f, localDir: Vector3f, localEnd: Vector3f,
-        extraDistance: Double, tmp0: List<Vector3f>, query: RayQuery,
+        extraDistance: Double, tmp0: Array<Vector3f>, query: RayQuery,
     ) {
 
         // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms

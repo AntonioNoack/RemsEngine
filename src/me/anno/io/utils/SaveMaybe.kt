@@ -2,10 +2,10 @@ package me.anno.io.utils
 
 import me.anno.Engine
 import me.anno.Time.nanoTime
+import me.anno.cache.ThreadPool
 import me.anno.engine.Events.addEvent
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.OSFeatures
-import kotlin.concurrent.thread
 
 class SaveMaybe {
     private val saveDelay = SECONDS_TO_NANOS
@@ -20,7 +20,7 @@ class SaveMaybe {
                     } else {
                         // delay in case it needs longer
                         lastSaveTime = nanoTime + 60 * SECONDS_TO_NANOS
-                        thread(name = "Saving $name") {
+                        ThreadPool.start("Saving $name") {
                             save()
                             lastSaveTime = nanoTime
                         }

@@ -2,7 +2,6 @@ package me.anno.ecs.components.mesh.utils
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
-import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import kotlin.math.min
 
@@ -42,7 +41,7 @@ object IndexGenerator {
         // in the future, we should maybe support all colors...
 
         // generate all points
-        val points = createList(positions.size / 3) {
+        val points = Array(positions.size / 3) {
             val i3 = it * 3
             UniquePoint(positions[i3], positions[i3 + 1], positions[i3 + 2])
         }

@@ -1,6 +1,5 @@
 package me.anno.utils.types
 
-import me.anno.utils.structures.lists.Lists.createList
 
 object Arrays {
 
@@ -26,7 +25,7 @@ object Arrays {
 
     @JvmStatic
     fun <V> ArrayList<V>.rotateRight(shift: Int) {
-        val wrapAround = createList(shift) { this[size - shift + it] }
+        val wrapAround = List(shift) { this[size - shift + it] }
         copyInto(this, shift, 0, size - shift)
         wrapAround.copyInto(this)
     }

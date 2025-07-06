@@ -14,7 +14,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.posMod
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.structures.lists.WeightedList
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
@@ -65,7 +64,7 @@ class SplineSpawner : MeshSpawner() {
         } else {
             val list = generateSplinePoints(controlPoints, pointsPerRadian, isClosed)
             val t = offsetX * 0.5 + 0.5
-            createList(list.size shr 1) { i ->
+            List(list.size shr 1) { i ->
                 list[i * 2].mix(list[i * 2 + 1], t)
             }
         }

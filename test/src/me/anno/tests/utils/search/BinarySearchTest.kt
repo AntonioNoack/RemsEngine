@@ -10,7 +10,7 @@ class BinarySearchTest {
 
     @Test
     fun testExistingElements() {
-        val list = Lists.createList(64) { it }
+        val list = Array(64) { it }
         for (i in list.indices) {
             assertEquals(i, BinarySearch.binarySearch(0, list.size) { list[it].compareTo(i) })
         }
@@ -29,7 +29,7 @@ class BinarySearchTest {
 
     @Test
     fun testDifferentSearchAreas() {
-        val list = Lists.createList(64) { it }
+        val list = IntArray(64) { it }
         for (i in list.indices) {
             assertEquals(i, BinarySearch.binarySearch(i / 2, i + 1) { list[it].compareTo(i) })
         }

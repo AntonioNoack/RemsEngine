@@ -4,7 +4,6 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix3f
 import org.joml.Quaterniond
@@ -81,7 +80,7 @@ class VOXNode {
         * */
         private val tmp = Matrix3f()
         private val rot0 = Quaterniond()
-        private val rotations = createList(128) { ry ->
+        private val rotations = Array(128) { ry ->
             // only decode valid rotations
             if (ry.and(3) != ry.shr(2).and(3) &&
                 ry.and(3) != 3 &&

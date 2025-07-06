@@ -2,6 +2,7 @@ package me.anno.ui.editor.files
 
 import me.anno.Time
 import me.anno.cache.IgnoredException
+import me.anno.cache.ThreadPool
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent
@@ -76,7 +77,6 @@ import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.structures.History
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -471,12 +471,12 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         // or just switch?
         return listOf(
             MenuOption(NameDesc("Move")) {
-                thread(name = "moving files") {
+                ThreadPool.start("Moving files") {
                     moveInto(files, folder)
                 }
             },
             MenuOption(NameDesc("Copy")) {
-                thread(name = "copying files") {
+                ThreadPool.start("Copying files") {
                     copyInto(files, folder)
                 }
             },
@@ -487,7 +487,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                 switchTo(files.first())
             }.setEnabled(files.size == 1 && !files.first().isDirectory),
             MenuOption(NameDesc("Create Links")) {
-                thread(name = "creating links") {
+                ThreadPool.start("Creating links") {
                     createLinksInto(files, folder)
                 }
             }
@@ -628,7 +628,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         folder ?: return
         if (GFX.isGFXThread() && OSFeatures.hasMultiThreading) {
             loading = Time.nanoTime
-            thread(name = "switchTo($folder)") {
+            ThreadPool.start("SwitchTo($folder)") {
                 try {
                     switchToImpl(folder)
                 } catch (_: IgnoredException) {

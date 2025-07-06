@@ -28,7 +28,6 @@ import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.async.Callback
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.nextName
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Strings.distance
 import me.anno.utils.types.Strings.isBlank2
@@ -409,7 +408,7 @@ object StaticMeshesLoader {
         val numMaterials = aiScene.mNumMaterials()
         val aiMaterials = aiScene.mMaterials()
         val textureLookup = createTextureLookup(missingFilesLookup)
-        return createList(numMaterials) {
+        return List(numMaterials) {
             val aiMaterial = AIMaterial.create(aiMaterials!![it])
             processMaterialPrefab(
                 aiScene, aiMaterial, loadedTextures, texturesDir,

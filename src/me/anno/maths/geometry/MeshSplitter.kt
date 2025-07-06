@@ -13,7 +13,6 @@ import me.anno.mesh.Triangulation
 import me.anno.utils.Color.mixARGB2
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.structures.arrays.FloatArrayListUtils.add
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -124,7 +123,7 @@ object MeshSplitter {
 
     class MeshSplitter(vc: VertexCreator) {
 
-        val result = createList(4) {
+        val result = List(4) {
             MeshBuilderImpl(vc.mesh)
         }
 

@@ -7,7 +7,6 @@ import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import java.util.LinkedList
 import kotlin.math.max
@@ -95,7 +94,7 @@ abstract class History<V : Any>(startState: V) : Saveable() {
         openMenu(
             GFX.someWindow.windowStack,
             NameDesc("Inspect History", "", "ui.inspectHistory"),
-            createList(states.size) {
+            List(states.size) {
                 val index = states.lastIndex - it
                 val change = states[index]
                 val title0 = getTitle(change)

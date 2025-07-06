@@ -18,7 +18,6 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Vector3d
 import kotlin.math.PI
 import kotlin.math.ceil
@@ -170,7 +169,7 @@ fun main() {
         val numStraights = max(ceil(0.5f * straightLength / straight.length).toInt(), 0)
         val halfNumRails = numStraights + 2
         val numRails = halfNumRails * 2
-        val pieces = createList(numRails) {
+        val pieces = List(numRails) {
             if (it < 2 || it >= halfNumRails && it < halfNumRails + 2) curve
             else straight
         }

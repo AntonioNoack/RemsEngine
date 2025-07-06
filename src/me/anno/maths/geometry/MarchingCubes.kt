@@ -7,7 +7,6 @@ import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.addUnsafe
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -268,7 +267,7 @@ object MarchingCubes {
 
         // there is at max 1 point per edge & they will always be on edges
 
-        val edges = createList(12) { Vector3f() }
+        val edges = Array(12) { Vector3f() }
 
         val invX = 1f / (sizeX - 1f)
         val invY = 1f / (sizeY - 1f)

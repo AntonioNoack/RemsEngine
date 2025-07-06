@@ -38,7 +38,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.TextureLib
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 
 object LightShaders {
@@ -97,8 +96,8 @@ object LightShaders {
         flat01.draw(shader)
     }
 
-    private val planarNames = createList(8) { "shadowMapPlanar$it" }
-    private val cubicNames = createList(8) { "shadowMapCubic$it" }
+    private val planarNames = Array(8) { "shadowMapPlanar$it" }
+    private val cubicNames = Array(8) { "shadowMapCubic$it" }
 
     fun bindNullDepthTextures(shader: Shader) {
         val depthTexture =

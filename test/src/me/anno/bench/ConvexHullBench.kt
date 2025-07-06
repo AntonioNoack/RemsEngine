@@ -4,7 +4,6 @@ import me.anno.maths.geometry.convexhull.HullDesc
 import me.anno.maths.geometry.convexhull.ConvexHulls
 import me.anno.utils.Clock
 import me.anno.utils.assertions.assertNotNull
-import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import java.util.Random
@@ -48,7 +47,7 @@ fun main() {
 
 fun createPoints(n: Int): List<Vector3d> {
     val random = Random(1234)
-    return createList(n) {
+    return List(n) {
         Vector3d(
             random.nextDouble(),
             random.nextDouble(),

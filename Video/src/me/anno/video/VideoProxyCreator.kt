@@ -1,5 +1,6 @@
 package me.anno.video
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.FileCache
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
@@ -28,11 +29,9 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
         return getEntryWithoutGenerator(getKey(src, sliceIndex))?.value
     }
 
-    fun getProxyFile(src: FileReference, sliceIndex: Int, async: Boolean = true): FileReference? {
+    fun getProxyFile(src: FileReference, sliceIndex: Int): AsyncCacheData<FileReference> {
         init()
-        val cacheValue = getEntry(getKey(src, sliceIndex), 10_000, ::generateFile)
-        if (!async && cacheValue != null) cacheValue.waitFor()
-        return cacheValue?.value
+        return getEntry(getKey(src, sliceIndex), 10_000, ::generateFile)
     }
 
     /**
@@ -67,7 +66,7 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
                 // devNull("error", process.errorStream)
                 devLog("error", process.errorStream)
                 devLog("input", process.inputStream)
-                waitUntil("VideoProxyCreator:waitForProcess",true, { !process.isAlive }) {
+                waitUntil("VideoProxyCreator:waitForProcess", true, { !process.isAlive }) {
                     onSuccess()
                     callback()
                 }

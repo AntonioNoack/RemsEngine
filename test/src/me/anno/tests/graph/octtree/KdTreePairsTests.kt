@@ -136,7 +136,7 @@ class KdTreePairsTests {
     fun testQueryPairsSelfRandomized() {
         val random = Random(42)
         val tree = KdTreeImpl()
-        val entities = List(1000) { i -> // todo replace createList with this function :)
+        val entities = List(1000) { i ->
             val point = Vector3d(
                 random.nextDouble(0.0, 10.0),
                 random.nextDouble(0.0, 10.0),

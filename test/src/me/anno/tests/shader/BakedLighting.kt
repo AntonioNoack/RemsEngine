@@ -95,7 +95,6 @@ import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.Pools
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.formatPercent
 import me.anno.utils.types.Triangles.getBarycentrics
@@ -391,7 +390,7 @@ fun rasterizeMeshOntoUVs(component: MeshComponent, dst: RaytracingInput, resolut
     val b = Vector2f()
     val c = Vector2f()
 
-    val materials = createList(mesh.numMaterials) {
+    val materials = Array(mesh.numMaterials) {
         val src = Materials.getMaterial(component.materials, mesh.materials, it)
         SimpleMaterial(
             ImageCache[src.diffuseMap].waitFor() ?: whiteImage, Vector3f(src.diffuseBase),

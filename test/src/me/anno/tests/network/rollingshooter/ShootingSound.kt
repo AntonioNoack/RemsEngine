@@ -3,7 +3,6 @@ package me.anno.tests.network.rollingshooter
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.io.files.inner.temporary.InnerTmpAudioFile
 import me.anno.maths.noise.FullNoise
-import me.anno.utils.structures.lists.Lists.createList
 import kotlin.math.exp
 import kotlin.random.Random
 
@@ -22,7 +21,7 @@ class ShootingSound(seed: Long) : InnerTmpAudioFile() {
 
     companion object {
         private val rnd = Random(1653)
-        val sounds = createList(10) {
+        val sounds = Array(10) {
             ShootingSound(rnd.nextLong())
         }
         val audios = sounds.map { source ->

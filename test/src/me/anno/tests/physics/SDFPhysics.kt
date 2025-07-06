@@ -16,7 +16,6 @@ import me.anno.sdf.SDFCollider
 import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
 import me.anno.ui.debug.TestEngine.Companion.testUI
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Vector3d
 import java.util.Random
 
@@ -62,7 +61,7 @@ fun main() {
     fun test1() {
 
         val random = Random(1234L)
-        val samples = createList(64) {
+        val samples = Array(64) {
             Vector3d(random.nextGaussian(), random.nextGaussian(), random.nextGaussian())
         }
 

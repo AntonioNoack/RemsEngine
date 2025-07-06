@@ -162,7 +162,7 @@ abstract class VideoBackgroundTask(val creator: VideoCreator, val samples: Int) 
                     }
                     if (!needsMoreSources) {
                         partialFrame.bindTrulyNearest(0)
-                        blendMode.use(BlendMode.PURE_ADD) {
+                        blendMode.use(BlendMode.ADD) {
                             depthMode.use(alwaysDepthMode) {
                                 // write with alpha 1/motionBlurSteps
                                 Blitting.copyColorWithSpecificAlpha(1f / motionBlurSteps, 1, true)

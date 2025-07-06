@@ -5,6 +5,7 @@ import me.anno.audio.AudioCache.playbackSampleRate
 import me.anno.audio.streams.AudioStream
 import me.anno.audio.streams.AudioStream.Companion.byteBufferPool
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
+import me.anno.cache.ThreadPool
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.writeBE16
 import me.anno.io.files.FileReference
@@ -84,7 +85,7 @@ abstract class AudioCreator(
         val process = builder.start()
         val targetFPS = 60.0
         val totalFrameCount = (targetFPS * durationSeconds).toInt()
-        thread(name = "AudioOutputListener") {
+        ThreadPool.start("AudioOutputListener") {
             processOutput(LOGGER, "Audio", startTime, targetFPS, totalFrameCount, process.errorStream) {
                 onFinished()
             }

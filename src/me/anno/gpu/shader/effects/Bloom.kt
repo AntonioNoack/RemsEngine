@@ -21,7 +21,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.iff
 import kotlin.math.exp
@@ -92,7 +91,7 @@ object Bloom {
 
     private fun backwardPass(steps: Int): ITexture2D {
         var previous = tmpForward[steps - 1]!!
-        GFXState.blendMode.use(BlendMode.PURE_ADD) {
+        GFXState.blendMode.use(BlendMode.ADD) {
             for (i in steps - 2 downTo 0) {// render onto that layer
                 val nextSrc = tmpForward[i]!! // large
                 GFXState.useFrame(nextSrc, Renderer.copyRenderer) {
@@ -177,7 +176,7 @@ object Bloom {
     private val forwardShaderY = createForwardShader(0, 1, false)
     private val forwardShader0 = createForwardShader(1, 0, true)
 
-    private val compositionShader = createList(2) {
+    private val compositionShader = Array(2) {
         val msIn = it > 0
         val shader = Shader(
             "composeBloom", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,

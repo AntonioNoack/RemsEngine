@@ -18,14 +18,14 @@ import me.anno.video.ffmpeg.FFMPEGStream
 class VideoPlugin : Plugin() {
     override fun onEnable() {
         super.onEnable()
-        registerProxyGen()
+        registerProxyCreator()
         registerVideoStream()
         registerImageReader()
         registerAudioStream()
         registerMediaMetadata()
     }
 
-    private fun registerProxyGen() {
+    private fun registerProxyCreator() {
         VideoCache.generateVideoFrames = VideoCacheImpl::generateVideoFrames
         VideoCache.getProxyFile = VideoProxyCreator::getProxyFile
         VideoCache.getProxyFileDontUpdate = VideoProxyCreator::getProxyFileDontUpdate

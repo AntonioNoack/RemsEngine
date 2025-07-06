@@ -257,7 +257,7 @@ abstract class KdTree<Point, Value>(
         } != null
     }
 
-    fun overlaps(other: KdTree<Point, Value>): Boolean {
+    fun overlaps(other: KdTree<Point, *>): Boolean {
         return overlaps(min, max, other.min, other.max)
     }
 

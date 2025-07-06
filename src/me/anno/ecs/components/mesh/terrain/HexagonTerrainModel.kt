@@ -6,7 +6,6 @@ import me.anno.maths.Maths.posMod
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2d
 
@@ -38,12 +37,12 @@ object HexagonTerrainModel {
 
         val positions = FloatArray((numPoints + numSkirtPoints) * 3)
 
-        val edge0 = createList(2 * n - 1) { y ->
+        val edge0 = Array(2 * n - 1) { y ->
             if (y < n) getEdgePoint(y, n, corners[1], corners[0])
             else getEdgePoint(2 * n - 2 - y, n, corners[5], corners[0])
         }
 
-        val edge1 = createList(2 * n - 1) { y ->
+        val edge1 = Array(2 * n - 1) { y ->
             if (y < n) getEdgePoint(y, n, corners[2], corners[3])
             else getEdgePoint(2 * n - 2 - y, n, corners[4], corners[3])
         }

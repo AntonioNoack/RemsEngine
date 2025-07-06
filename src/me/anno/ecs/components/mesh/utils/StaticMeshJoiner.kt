@@ -14,7 +14,6 @@ import me.anno.ecs.components.mesh.material.Materials.getMaterialRef
 import me.anno.io.files.FileReference
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Matrix4x3f
 
 object StaticMeshJoiner {
@@ -41,7 +40,7 @@ object StaticMeshJoiner {
     ) {
         if (mesh is Mesh && mesh.proceduralLength <= 0) {
             val meshMaterials = mesh.materials
-            val materials = createList(mesh.numMaterials) {
+            val materials = List(mesh.numMaterials) {
                 getMaterialRef(compMaterials, meshMaterials, it)
             }
             meshes.add(Triple(mesh, transform, materials))

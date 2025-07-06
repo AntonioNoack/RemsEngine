@@ -62,7 +62,6 @@ import me.anno.mesh.blender.impl.values.BNSVRGBA
 import me.anno.mesh.blender.impl.values.BNSVRotation
 import me.anno.mesh.blender.impl.values.BNSVVector
 import me.anno.utils.Color.rgba
-import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import speiger.primitivecollections.LongToObjectHashMap
 import java.io.IOException
@@ -125,7 +124,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     }
 
     // read struct dna
-    private val names = createList(file.readInt()) {
+    private val names = List(file.readInt()) {
         file.read0String()
     }
 
@@ -134,7 +133,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         file.consumeIdentifier('T', 'Y', 'P', 'E')
     }
 
-    private val typeNames = createList(file.readInt()) {
+    private val typeNames = Array(file.readInt()) {
         file.read0String()
     }
 
@@ -143,7 +142,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         file.consumeIdentifier('T', 'L', 'E', 'N')
     }
 
-    val types: List<DNAType> = createList(typeNames.size) { i ->
+    val types = Array(typeNames.size) { i ->
         val typeLength = file.readShort().toInt().and(0xffff)
         DNAType(typeNames[i], typeLength)
     }
@@ -155,12 +154,12 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         file.consumeIdentifier('S', 'T', 'R', 'C')
     }
 
-    private val structsWithIndices = createList(file.readInt()) { Struct(file) }
+    private val structsWithIndices = List(file.readInt()) { Struct(file) }
 
-    val structs = createList(structsWithIndices.size) { i ->
+    val structs = Array(structsWithIndices.size) { i ->
         val s = structsWithIndices[i]
         val type = types[s.type.toInt().and(0xffff)]
-        val fields = createList(s.fieldsAsTypeName.size shr 1) { j ->
+        val fields = Array(s.fieldsAsTypeName.size shr 1) { j ->
             val j2 = j * 2
             val typeIndex = s.fieldsAsTypeName[j2].toInt().and(0xffff)
             val nameIndex = s.fieldsAsTypeName[j2 + 1].toInt().and(0xffff)

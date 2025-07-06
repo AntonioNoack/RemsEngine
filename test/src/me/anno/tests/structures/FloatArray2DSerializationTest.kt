@@ -6,14 +6,13 @@ import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.structures.lists.Lists.createList
 import org.junit.jupiter.api.Test
 
 class FloatArray2DSerializationTest {
     @Test
     fun testSerialization() {
         val writer = JsonStringWriter(InvalidRef)
-        writer.writeFloatArray2D("x", createList(5) { FloatArray(5) { if (it < 3) it.toFloat() else 0f } })
+        writer.writeFloatArray2D("x", List(5) { FloatArray(5) { if (it < 3) it.toFloat() else 0f } })
         assertEquals("\"f[][]:x\":[5,[5,0,1,2],[5,0,1,2],[5,0,1,2],[5,0,1,2],[5,0,1,2]]", writer.toString())
 
         val reader = JsonStringReader(writer.toString(), InvalidRef)

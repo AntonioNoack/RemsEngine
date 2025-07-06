@@ -5,6 +5,7 @@ import me.anno.maths.geometry.convexhull.ConvexHulls.Companion.calculateConvexHu
 import me.anno.maths.geometry.convexhull.HullDesc
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
@@ -116,7 +117,7 @@ class ConvexHull3DTest {
         val rnd = Random(123)
         val pts = ArrayList<Vector3d>()
         repeat(100) {
-            pts.add(Vector3d(rnd.nextFloat().toDouble(), rnd.nextFloat().toDouble(), rnd.nextFloat().toDouble()))
+            pts.add(Vector3d(rnd.nextDouble(), rnd.nextDouble(), rnd.nextDouble()))
         }
 
         val hull1 = calculateConvexHullNaive(HullDesc(pts))!!
@@ -145,11 +146,17 @@ class ConvexHull3DTest {
 
     private fun generateSphereHull(n: Int): ConvexHull {
         val rnd = Random(123)
-        val pts = ArrayList<Vector3d>()
-        repeat(100) {
-            pts.add(Vector3d(rnd.nextFloat().toDouble(), rnd.nextFloat().toDouble(), rnd.nextFloat().toDouble()))
+        val pts = List(n) {
+            val p = Vector3d(1.0)
+            while (p.lengthSquared() > 0.25) {
+                p.set(
+                    rnd.nextDouble(),
+                    rnd.nextDouble(),
+                    rnd.nextDouble()
+                ).sub(0.5)
+            }
+            p
         }
-
         return calculateConvexHullNaive(HullDesc(pts))!!
     }
 
@@ -200,6 +207,33 @@ class ConvexHull3DTest {
             assertTrue(uniqueTriangles.add(v))
         }
         assertEquals(uniqueTriangles.size * 3, triangles.size)
+    }
+
+    @Test
+    fun testHullRoughlyContainsAllItsPoints() {
+        val rnd = Random(123)
+        repeat(10) {
+            val pts = ArrayList<Vector3d>()
+            repeat(20) {
+                val p = Vector3d(1.0)
+                while (p.lengthSquared() > 0.25) {
+                    p.set(
+                        rnd.nextDouble(),
+                        rnd.nextDouble(),
+                        rnd.nextDouble()
+                    ).sub(0.5)
+                }
+                pts.add(p)
+            }
+            val hull = calculateConvexHullNaive(HullDesc(pts))!!
+            val scaledPoint = Vector3d()
+            for (i in pts.indices) {
+                val point = pts[i]
+                assertTrue(hull.contains(point, 0.03))
+                point.normalize(0.501, scaledPoint)
+                assertFalse(hull.contains(scaledPoint))
+            }
+        }
     }
 
     private fun Vector3d.epsilonEquals(v: Vector3d, delta: Double): Boolean {

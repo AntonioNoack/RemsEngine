@@ -1,6 +1,7 @@
 package me.anno.engine.projects
 
 import me.anno.Engine
+import me.anno.cache.ThreadPool
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
@@ -31,7 +32,6 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.types.Floats.toLongOr
 import org.apache.logging.log4j.LogManager
-import kotlin.concurrent.thread
 
 class GameEngineProject() : NamedSaveable(), Inspectable {
 
@@ -217,7 +217,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
         // to do if is Web, provide mechanism to index files...
         // we can't really do that anyway...
         if (!OS.isWeb) {
-            thread(name = "Indexing Resources") {
+            ThreadPool.start("Indexing Resources") {
                 val progressBar = GFX.someWindow.addProgressBar(object : ProgressBar("Indexing Assets", "Files", 1.0) {
                     override fun formatProgress(): String {
                         return "$name: ${progress.toLongOr()} / ${total.toLongOr()} $unit"

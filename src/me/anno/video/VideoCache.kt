@@ -17,7 +17,7 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
     const val minSizeForScaling = scale * minSize
     var videoGenLimit = 16
 
-    var getProxyFile: ((file: FileReference, sliceIndex: Int, async: Boolean) -> FileReference?)? = null
+    var getProxyFile: ((file: FileReference, sliceIndex: Int) -> AsyncCacheData<FileReference>)? = null
     var getProxyFileDontUpdate: ((file: FileReference, sliceIndex: Int) -> FileReference?)? = null
     var generateVideoFrames: ((key: VideoFramesKey, result: AsyncCacheData<VideoSlice>) -> Unit)? = null
 
@@ -84,13 +84,14 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
         val getProxyFile = getProxyFile
         if (getProxyFile != null && useProxy(scale, bufferLength0, meta)) {
             val slice0 = index / framesPerSlice
-            val file2 = getProxyFile(file, slice0, true)
-            if (file2 != null) {
+            val proxyFile = getProxyFile(file, slice0).value
+            if (proxyFile != null) {
                 val sliceI = index % framesPerSlice
-                return getVideoFrame(
-                    file2, (scale + 2) / 4,
+                val proxyFrame = getVideoFrame(
+                    proxyFile, (scale + 2) / 4,
                     sliceI, bufferLength0, fps, timeout, meta
                 )
+                if (proxyFrame.hasValue) return proxyFrame
             }
         }
         return getVideoFrame(file, scale, index, bufferIndex, bufferLength, fps, timeout)
@@ -147,10 +148,11 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
         val maybeMeta = MediaMetadata.getMeta(file).value
         if (getProxyFile != null && useProxy(scale, bufferLength0, maybeMeta)) {
             val slice0 = index / framesPerSlice
-            val file2 = getProxyFile(file, slice0, true)
-            if (file2 != null) {
+            val proxyFile = getProxyFile(file, slice0).value
+            if (proxyFile != null) {
                 val sliceI = index % framesPerSlice
-                return getVideoFrame(file2, (scale + 2) / 4, sliceI, bufferLength0, fps, timeout)
+                val proxyFrame = getVideoFrame(proxyFile, (scale + 2) / 4, sliceI, bufferLength0, fps, timeout)
+                if (proxyFrame.hasValue) return proxyFrame
             }
         }
         return getVideoFrameImpl(file, scale, index, bufferLength0, fps, timeout)

@@ -5,6 +5,7 @@ import me.anno.Time
 import me.anno.audio.openal.SoundBuffer
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.IgnoredException
+import me.anno.cache.ThreadPool
 import me.anno.image.Image
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
@@ -220,7 +221,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     }
 
     fun parseAsync(parser: FFMPEGMetaParser, stream: InputStream) {
-        thread(name = "${file?.name}:error-stream") {
+        ThreadPool.start("${file?.name}:error-stream") {
             val out = stream.bufferedReader()
             try {
                 while (true) {
@@ -236,7 +237,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     fun runAsync(threadName: String, arguments: List<String>, isLimited: Boolean = isProcessCountLimited) {
         if (isLimited) {
             var acquired = 0
-            Sleep.waitUntil("FFMPEGStream:runAsync",true, { // wait for running permission
+            Sleep.waitUntil("FFMPEGStream:runAsync", true, { // wait for running permission
                 if (processLimiter.tryAcquire()) acquired++
                 acquired > 0 || isDestroyed
             }, {
@@ -248,7 +249,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 }
             })
         } else {
-            thread(name = threadName) {
+            ThreadPool.start(threadName) {
                 runUnlimited(arguments)
             }
         }
@@ -271,7 +272,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     }
 
     private fun waitForRelease(process: Process) {
-        Sleep.waitUntil("FFMPEGStream:waitForRelease",false, {
+        Sleep.waitUntil("FFMPEGStream:waitForRelease", false, {
             if (process.waitFor(0, TimeUnit.MILLISECONDS)) {
                 true
             } else if (Engine.shutdown) {

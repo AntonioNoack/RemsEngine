@@ -18,7 +18,6 @@ import me.anno.network.ResetByteArrayOutputStream
 import me.anno.sdf.shapes.SDFHeart
 import me.anno.utils.OS
 import me.anno.utils.structures.arrays.IntArrayList
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Vector2d
@@ -202,11 +201,11 @@ fun main2() {
 
     val rx = Maths.max(dst.width, dst.height).toDouble() * 5.0 / numLayers
     val rnd = Random()
-    val kernels = createList(numLayers) { li ->
+    val kernels = Array(numLayers) { li ->
         val i0 = li * totalSamples / numLayers
         val i1 = (li + 1) * totalSamples / numLayers
         val c = i1 - i0
-        createList(c) {
+        Array(c) {
             Sampler(
                 Vector2d(
                     rx * rnd.nextGaussian(),

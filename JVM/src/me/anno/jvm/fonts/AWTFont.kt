@@ -26,7 +26,6 @@ import me.anno.jvm.images.BIImage.toImage
 import me.anno.maths.Maths.clamp
 import me.anno.utils.async.Callback
 import me.anno.utils.structures.lists.LazyList
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.incrementTab
@@ -556,7 +555,7 @@ class AWTFont(
         private fun getStringWidth(group: TextGroup) = group.offsets.last() - group.offsets.first()
         private fun createGroup(font: me.anno.fonts.Font, text: CharSequence): TextGroup = TextGroup(font, text, 0.0)
 
-        private val asciiStrings = createList(128) { it.toChar().toString() }
+        private val asciiStrings = List(128) { it.toChar().toString() }
 
         private val splittingOrder: List<Collection<Int>> = listOf(
             listOf(' '.code),

@@ -5,7 +5,6 @@ import me.anno.maths.geometry.Polygons.getPolygonArea2f
 import me.anno.maths.geometry.Polygons.getPolygonArea3d
 import me.anno.maths.geometry.Polygons.getPolygonAreaVector3d
 import me.anno.utils.assertions.assertEquals
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Quaterniond
 import org.joml.Vector2d
 import org.joml.Vector2f
@@ -17,8 +16,8 @@ import kotlin.random.Random
 class PolygonsTests {
 
     companion object {
-        fun createNgon(n: Int): List<Vector2d> {
-            return createList(n) {
+        fun createNgon(n: Int): Array<Vector2d> {
+            return Array(n) {
                 Vector2d(1.0, 0.0).rotate(it * TAU / n)
             }
         }

@@ -2,7 +2,6 @@ package me.anno.maths.geometry.convexhull
 
 import me.anno.maths.Maths.max
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.toIntOr
 import org.joml.AABBd
 import org.joml.Vector3d
@@ -122,7 +121,7 @@ object PackedNormalsCompressor {
     fun compressVertices(vertices: FloatArray, gridSize: Int = 16): List<Vector3d> {
         if (vertices.size / 3 * 4 <= gridSize * gridSize) {
             // not worth compressing
-            return createList(vertices.size / 3) { i ->
+            return List(vertices.size / 3) { i ->
                 Vector3d(vertices, i * 3)
             }
         }

@@ -29,16 +29,16 @@ object KdTreePairs {
      *
      * Extra parameter, so you could overlap two trees, too.
      * */
-    fun <Point, Value> KdTree<Point, Value>.queryPairs(
-        flags: Int, other: KdTree<Point, Value>, hasFound: (Value, Value) -> Boolean
+    fun <Point, OwnValue, OtherValue> KdTree<Point, OwnValue>.queryPairs(
+        flags: Int, other: KdTree<Point, OtherValue>, hasFound: (OwnValue, OtherValue) -> Boolean
     ): Boolean {
         return Recursion.anyRecursivePairs(this, other) { self, other, remaining ->
             self.queryPairsStep(flags, other, hasFound, remaining)
         }
     }
 
-    private fun <Point, Value> KdTree<Point, Value>.queryPairsStep(
-        flags: Int, other: KdTree<Point, Value>, hasFound: (Value, Value) -> Boolean,
+    private fun <Point, OwnValue, OtherValue> KdTree<Point, OwnValue>.queryPairsStep(
+        flags: Int, other: KdTree<Point, OtherValue>, hasFound: (OwnValue, OtherValue) -> Boolean,
         remaining: ArrayList<Any?>
     ): Boolean {
 
@@ -60,8 +60,8 @@ object KdTreePairs {
                     for (j in jStart until otherChildren.size) {
 
                         val b = otherChildren[j]
-                        val bMin = getMin(b)
-                        val bMax = getMax(b)
+                        val bMin = other.getMin(b)
+                        val bMax = other.getMax(b)
 
                         // preventing returning (a,a)
                         if (!returnSelfPairs && a === b) continue
@@ -71,7 +71,10 @@ object KdTreePairs {
                                 // returning (a,b)
                                 return true
                             }
-                            if (returnSwappedPairs && a !== b && hasFound(b, a)) {
+                            @Suppress("UNCHECKED_CAST")
+                            if (returnSwappedPairs && a !== b &&
+                                hasFound(b as OwnValue, a as OtherValue)
+                            ) {
                                 // returning (b,a)
                                 return true
                             }

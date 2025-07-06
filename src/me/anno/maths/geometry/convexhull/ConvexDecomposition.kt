@@ -124,7 +124,7 @@ class ConvexDecomposition(
             maxValue = max(maxValue, value)
         }
         if (minValue == maxValue) return emptyList()
-        val result = Lists.createList(splitsPerAxis) {
+        val result = Array(splitsPerAxis) {
             ArrayList<Triangle>()
         }
         val scale = (splitsPerAxis * (1f - 1e-6f)) / (maxValue - minValue)

@@ -7,7 +7,6 @@ import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.structures.lists.Lists.createList
 import org.junit.jupiter.api.Test
 import kotlin.math.min
 
@@ -81,7 +80,7 @@ class FullNoiseTest {
         val noise = FullNoise(1234)
         val sy = 5
         val sx = 6
-        val grid = createList(sx + 1) { x ->
+        val grid = Array(sx + 1) { x ->
             FloatArray(sy + 1) { y ->
                 noise[x, y]
             }
@@ -174,8 +173,8 @@ class FullNoiseTest {
         val sz = 4
         val sy = 4
         val sx = 4
-        val grid = createList(sx + 1) { x ->
-            createList(sy + 1) { y ->
+        val grid = Array(sx + 1) { x ->
+            Array(sy + 1) { y ->
                 FloatArray(sz + 1) { z ->
                     noise[x, y, z]
                 }
@@ -231,8 +230,8 @@ class FullNoiseTest {
         val sz = 4
         val sy = 4
         val sx = 4
-        val grid = createList(sx + 1) { x ->
-            createList(sy + 1) { y ->
+        val grid = Array(sx + 1) { x ->
+            Array(sy + 1) { y ->
                 FloatArray(sz + 1) { z ->
                     noise[x, y, z]
                 }
@@ -311,9 +310,9 @@ class FullNoiseTest {
         val sz = 3
         val sy = 3
         val sx = 3
-        val grid = createList(sx + 1) { x ->
-            createList(sy + 1) { y ->
-                createList(sz + 1) { z ->
+        val grid = Array(sx + 1) { x ->
+            Array(sy + 1) { y ->
+                Array(sz + 1) { z ->
                     FloatArray(sw + 1) { w ->
                         noise[x, y, z, w]
                     }
@@ -400,9 +399,9 @@ class FullNoiseTest {
         val sz = 3
         val sy = 3
         val sx = 3
-        val grid = createList(sx + 1) { x ->
-            createList(sy + 1) { y ->
-                createList(sz + 1) { z ->
+        val grid = Array(sx + 1) { x ->
+            Array(sy + 1) { y ->
+                Array(sz + 1) { z ->
                     FloatArray(sw + 1) { w ->
                         noise[x, y, z, w]
                     }

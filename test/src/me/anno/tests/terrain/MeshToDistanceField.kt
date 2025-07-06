@@ -23,7 +23,6 @@ import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.assertions.assertNull
 import me.anno.utils.structures.arrays.IntArrayList
-import me.anno.utils.structures.lists.Lists.createList
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector3i
@@ -202,7 +201,7 @@ fun List<Vector3f>.flatten(fieldSize: Vector3i, bounds: AABBf): FloatArray {
 
 fun buildAdjacency(mesh: Mesh): List<IntArrayList> {
     val numVertices = mesh.positions!!.size / 3
-    val adjacency = createList(numVertices) {
+    val adjacency = List(numVertices) {
         IntArrayList(4)
     }
     mesh.forEachLineIndex { a, b ->
@@ -345,7 +344,7 @@ fun Mesh.generateIndicesV2(minVertexDistance: Float) {
     val positions = positions!!
 
     // generate all points
-    val points = createList(positions.size / 3) {
+    val points = Array(positions.size / 3) {
         val i3 = it * 3
         Vector3f(positions[i3], positions[i3 + 1], positions[i3 + 2])
     }

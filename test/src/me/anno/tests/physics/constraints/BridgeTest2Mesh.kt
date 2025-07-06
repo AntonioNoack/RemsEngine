@@ -10,7 +10,6 @@ import me.anno.mesh.Triangulation
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.add
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector2f
@@ -44,10 +43,10 @@ fun getBridgePoint(i: Int, dy: Float, n: Int): Vector2f {
     return getBridgePoint(i.toFloat(), dy, n)
 }
 
-fun createBridgeMeshes(n: Int, dx: Float, dy: Float, dxHalfOffset: Float): List<Pair<Mesh, Vector3d>> {
+fun createBridgeMeshes(n: Int, dx: Float, dy: Float, dxHalfOffset: Float): Array<Pair<Mesh, Vector3d>> {
     val m0 = Material.diffuse(0x808080)
     val m1 = Material.diffuse(0x707070)
-    return createList(n) { i ->
+    return Array(n) { i ->
         val dxI = if (i.hasFlag(1)) -dxHalfOffset else dxHalfOffset
         val center = getBridgePoint(i + 0.5f, dy * 0.5f, n)
         val mesh = extrudePolygonToMesh(

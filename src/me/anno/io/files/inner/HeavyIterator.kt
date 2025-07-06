@@ -1,7 +1,7 @@
 package me.anno.io.files.inner
 
+import me.anno.cache.ThreadPool
 import me.anno.io.files.FileReference
-import kotlin.concurrent.thread
 
 object HeavyIterator {
 
@@ -94,7 +94,7 @@ object HeavyIterator {
 
         if (waiting != null) {
             // new thread, because our original is finished anyway
-            thread(name = "HeavyIterator.process($source)") {
+            ThreadPool.start("HeavyIterator.process($source)") {
                 @Suppress("unchecked_cast")
                 process(source, waiting as List<IHeavyIterable<Item, Stream, Processable>>)
             }
