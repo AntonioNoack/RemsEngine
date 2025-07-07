@@ -11,8 +11,10 @@ class LRUCache<K, V>(val size: Int) {
     private var idx = 0
 
     fun clear() {
-        keys.fill(null)
-        values.fill(null)
+        synchronized(this) {
+            keys.fill(null)
+            values.fill(null)
+        }
     }
 
     /**
@@ -39,7 +41,7 @@ class LRUCache<K, V>(val size: Int) {
         }
     }
 
-    fun register(): LRUCache<K,V> {
+    fun register(): LRUCache<K, V> {
         CacheSection.registerCache(::clear, ::clear)
         return this
     }

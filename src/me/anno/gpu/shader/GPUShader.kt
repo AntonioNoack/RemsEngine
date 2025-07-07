@@ -255,6 +255,7 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
         // Frame.bindMaybe()
         GFX.check()
         if (program == 0 || session != GFXState.session) {
+            clearState()
             compile()
         }
         if (program == 0) throw IllegalStateException("Program is 0 after compilation")
@@ -264,6 +265,11 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
             lastProgram = program
             true
         } else false
+    }
+
+    fun clearState() {
+        uniformCache.fill(0f)
+        uniformLocations.clear()
     }
 
     fun checkIsUsed() {

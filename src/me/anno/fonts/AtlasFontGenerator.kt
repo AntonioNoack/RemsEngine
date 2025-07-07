@@ -21,7 +21,7 @@ import kotlin.math.min
  * generates a fallback font when other text sources are unavailable using a pre-generated texture;
  * a little blurry, but much better readable than the generator, which only uses lines
  * */
-class AtlasFontGenerator(val key: FontKey) : TextGenerator {
+class AtlasFontGenerator(override val fontKey: FontKey) : TextGenerator {
 
     companion object {
         private const val NUM_TILES_X = 16
@@ -29,7 +29,7 @@ class AtlasFontGenerator(val key: FontKey) : TextGenerator {
         private val cache = CacheSection<Int, List<IntImage>>("FallbackFontGenerator")
     }
 
-    private val fontSize = FontManager.getAvgFontSize(key.sizeIndex)
+    private val fontSize = FontManager.getAvgFontSize(fontKey.sizeIndex)
     private val charSizeY = fontSize.roundToIntOr()
     private val charSizeX = charSizeY * 7 / 12
     private val baselineY = charSizeY * 0.73f // measured in Gimp
@@ -45,7 +45,7 @@ class AtlasFontGenerator(val key: FontKey) : TextGenerator {
     }
 
     private fun getImageStack(callback: Callback<List<IntImage>>) {
-        cache.getEntry(key.sizeIndex, 10_000) { sizeIndex, result ->
+        cache.getEntry(fontKey.sizeIndex, 10_000) { sizeIndex, result ->
             val source = res.getChild("textures/ASCIIAtlas.png")
             ImageCache[source, 50].mapResult(result) { image ->
                 image.split(NUM_TILES_X, NUM_TILES_Y).map { tileImage ->

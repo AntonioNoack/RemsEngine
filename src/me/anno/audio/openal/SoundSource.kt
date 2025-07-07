@@ -74,6 +74,7 @@ class SoundSource(val loop: Boolean, var relativePositionsToListener: Boolean) {
         alSourcef(sourcePtr, AL_MAX_DISTANCE, max(maxDistance, 1e-38f))
     }
 
+    @Suppress("unused")
     fun setBuffer(buffer: Int) {
         if (sourcePtr < 0) return
         stop()
@@ -104,7 +105,7 @@ class SoundSource(val loop: Boolean, var relativePositionsToListener: Boolean) {
         alSource3f(sourcePtr, AL_VELOCITY, nx, ny, nz)
     }
 
-    fun setGain(value: Float) {
+    fun setVolume(value: Float) {
         if (sourcePtr < 0) return
         alSourcef(sourcePtr, AL_GAIN, value)
     }
@@ -138,7 +139,9 @@ class SoundSource(val loop: Boolean, var relativePositionsToListener: Boolean) {
         alSourceStop(sourcePtr)
     }
 
-    val isPlaying get() = alGetSourcei(sourcePtr, AL_SOURCE_STATE) == AL_PLAYING
+    @Suppress("unused")
+    val isPlaying: Boolean
+        get() = alGetSourcei(sourcePtr, AL_SOURCE_STATE) == AL_PLAYING
 
     fun destroy() {
         if (sourcePtr < 0) return

@@ -3,13 +3,13 @@ package me.anno.jvm.fonts
 import me.anno.config.DefaultConfig
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.FontManager
-import me.anno.fonts.FontManager.spaceBetweenLines
-import me.anno.fonts.PartResult
+import me.anno.fonts.LineSplitter
 import me.anno.fonts.StringPart
 import me.anno.fonts.TextGenerator
 import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_H
 import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_W
 import me.anno.fonts.TextGroup
+import me.anno.fonts.keys.FontKey
 import me.anno.fonts.mesh.CharacterOffsetCache
 import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks.addGPUTask
@@ -25,10 +25,8 @@ import me.anno.jvm.images.BIImage.createFromBufferedImage
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.maths.Maths.clamp
 import me.anno.utils.async.Callback
-import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
-import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import me.anno.utils.types.Strings.shorten
@@ -43,12 +41,14 @@ import kotlin.math.max
 import kotlin.math.min
 
 class AWTFont(
-    val font: me.anno.fonts.Font, // used in Rem's Studio -> don't make it private
+    override val fontKey: FontKey,
     val awtFont: Font
-) : TextGenerator {
+) : LineSplitter<AWTFont>(), TextGenerator {
+
+    val engineFont = fontKey.toFont()
 
     private val fontMetrics = run {
-        val unused = BufferedImage(1, 1, 1).graphics as Graphics2D
+        val unused = BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).graphics as Graphics2D
         unused.prepareGraphics(awtFont, false)
         unused.fontMetrics
     }
@@ -62,6 +62,21 @@ class AWTFont(
         return false
     }
 
+    private val renderContext by lazy {
+        FontRenderContext(null, true, true)
+    }
+
+    // used in Rem's Studio
+    val exampleLayout by lazy {
+        TextLayout("o", awtFont, renderContext)
+    }
+
+    override fun getSelfFont(): AWTFont = this
+    override fun getFallbackFonts(size: Float) = getFallback(size)
+    override fun getExampleAdvance(): Float = exampleLayout.advance
+    override fun getAdvance(text: CharSequence, font: AWTFont): Float =
+        TextLayout(text.toString(), font.awtFont, renderContext).advance
+
     /**
      * like gfx.drawText, however this method is respecting the ideal character distances,
      * so there are no awkward spaces between T and e
@@ -74,7 +89,7 @@ class AWTFont(
      * so there are no awkward spaces between T and e
      * */
     private fun drawString(gfx: Graphics2D, text: CharSequence, group: TextGroup?, x: Float, y: Float) {
-        val group2 = group ?: createGroup(font, text)
+        val group2 = group ?: createGroup(engineFont, text)
         // some distances still are awkward, because it is using the closest position, not float
         // (useful for "I"s)
         // maybe we could implement detecting, which sections need int positions, and which don't...
@@ -100,14 +115,14 @@ class AWTFont(
         if (text.isEmpty()) return GFXx2D.getSize(0, fontMetrics.height)
         return if (text.containsSpecialChar() || (widthLimit in 0 until GFX.maxTextureSize)) {
             val parts = splitParts(
-                text, font.size, 4f, 0f,
+                text, engineFont.size, 4f, 0f,
                 widthLimit.toFloat(), heightLimit.toFloat()
             )
             val width = min(ceil(parts.width).toInt(), widthLimit)
             val height = min(ceil(parts.height).toInt(), heightLimit)
             return GFXx2D.getSize(width, height)
         } else {
-            val baseWidth = getStringWidth(createGroup(font, text))
+            val baseWidth = getStringWidth(createGroup(engineFont, text))
             val width = clamp(baseWidth.roundToIntOr() + 1, 0, GFX.maxTextureSize)
             val height = min(fontMetrics.height, GFX.maxTextureSize)
             GFXx2D.getSize(width, height)
@@ -128,14 +143,14 @@ class AWTFont(
             return callback.ok(TextureLib.blackTexture)
         }
 
-        if (text.containsSpecialChar() || widthLimit < text.length * font.size * 2f) {
+        if (text.containsSpecialChar() || widthLimit < text.length * engineFont.size * 2f) {
             return generateTextureV3(
-                text, font.size, widthLimit, heightLimit, portableImages,
+                text, engineFont.size, widthLimit, heightLimit, portableImages,
                 textColor, backgroundColor, callback
             )
         }
 
-        val group = createGroup(font, text)
+        val group = createGroup(engineFont, text)
         val width = min(widthLimit, ceil(getStringWidth(group)).toIntOr() + TEXTURE_PADDING_W)
 
         val lineCount = 1
@@ -149,7 +164,7 @@ class AWTFont(
             return callback.err(
                 IllegalArgumentException(
                     "Texture for text is too large! $width x $height > ${GFX.maxTextureSize}, " +
-                            "${text.length} chars, $lineCount lines, ${awtFont.name} ${font.size} px, ${
+                            "${text.length} chars, $lineCount lines, ${awtFont.name} ${engineFont.size} px, ${
                                 text.toString().shorten(200)
                             }"
                 )
@@ -194,7 +209,7 @@ class AWTFont(
         val widthLimit = GFX.maxTextureSize
         val heightLimit = GFX.maxTextureSize
 
-        val alignment = CharacterOffsetCache.getOffsetCache(font)
+        val alignment = CharacterOffsetCache.getOffsetCache(engineFont)
         val size = alignment.getOffset('w'.code, 'w'.code)
         val width = min(widthLimit, ceil(size).toIntOr() + 1)
         val height = min(heightLimit, fontMetrics.height)
@@ -224,7 +239,7 @@ class AWTFont(
         textColor: Int, backgroundColor: Int,
         text: CharSequence, group: TextGroup?,
     ): BufferedImage {
-        val image = BufferedImage(width, height, 1)
+        val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
         val gfx = image.graphics as Graphics2D
         gfx.prepareGraphics(awtFont, portableImages)
 
@@ -243,217 +258,12 @@ class AWTFont(
         return image
     }
 
-    private val renderContext by lazy {
-        FontRenderContext(null, true, true)
-    }
-
-    // used in Rem's Studio
-    val exampleLayout by lazy {
-        TextLayout("o", awtFont, renderContext)
-    }
-
-    private val actualFontSize by lazy {
-        exampleLayout.ascent + exampleLayout.descent
-    }
-
-    // used in Rem's Studio
-    fun splitParts(
-        text: CharSequence,
-        fontSize: Float,
-        relativeTabSize: Float,
-        relativeCharSpacing: Float,
-        lineBreakWidth: Float,
-        textBreakHeight: Float
-    ): PartResult {
-
-        val fallback = getFallback(fontSize)
-        val fonts = ArrayList<AWTFont>(fallback.size + 1)
-
-        fonts += this
-        fonts += fallback
-
-        val lineCountLimit = if (textBreakHeight < 0f) Int.MAX_VALUE
-        else (textBreakHeight / (fontSize + spaceBetweenLines(fontSize))).roundToIntOr()
-
-        var lines = text.split('\n')
-        if (lines.size > lineCountLimit) lines = lines.subList(0, lineCountLimit)
-
-        val splitLines = lines.map {
-            if (it.isBlank2()) null
-            else splitLine(fonts, it, fontSize, relativeTabSize, relativeCharSpacing, lineBreakWidth)
-        }
-
-        val width = splitLines.maxByOrNull { it?.width ?: 0f }?.width ?: 0f
-
-        var lineCount = 0
-        val parts = ArrayList<StringPart>(splitLines.sumOf { it?.parts?.size ?: 0 })
-        for (i in splitLines.indices) {
-            val partResult = splitLines[i]
-            lineCount += if (partResult != null) {
-                if (lineCount == 0) {
-                    parts.addAll(partResult.parts)
-                } else {
-                    val offsetY = actualFontSize * lineCount
-                    parts.addAll(partResult.parts.map { it.plus(offsetY) })
-                }
-                partResult.lineCount
-            } else 1
-        }
-        val height = lineCount * actualFontSize
-        return PartResult(parts, width, height, lineCount)
-    }
-
-    private fun getSupportLevel(fonts: List<AWTFont>, char: Int, lastSupportLevel: Int): Int {
+    override fun getSupportLevel(fonts: List<AWTFont>, char: Int, lastSupportLevel: Int): Int {
         for (index in fonts.indices) {
             val font = fonts[index]
             if (font.awtFont.canDisplay(char)) return index
         }
         return lastSupportLevel
-    }
-
-    private fun findSplitIndex(
-        chars: IntArray, index0: Int, index1: Int,
-        charSpacing: Float, lineBreakWidth: Float, currentX: Float
-    ): Int {
-        // find the best index, where nextX <= lineBreakWidth
-        val firstSplitIndex = index0 + 1
-        val lastSplitIndex = index1 - 1
-        return if (firstSplitIndex == lastSplitIndex) firstSplitIndex else {
-
-            // calculation is expensive
-            val listOfWidths = LazyList(lastSplitIndex - firstSplitIndex) {
-                val splitIndex = firstSplitIndex + it
-                val substring2 = chars.joinChars(index0, splitIndex)
-                val advance2 = TextLayout(substring2.toString(), awtFont, renderContext).advance
-                advance2 + (splitIndex - index0) * charSpacing // width
-            }
-
-            val delta = lineBreakWidth - currentX
-            var lastValidSplitIndex = listOfWidths.binarySearch { it.compareTo(delta) }
-            if (lastValidSplitIndex < 0) lastValidSplitIndex = -1 - lastValidSplitIndex
-            lastValidSplitIndex = max(0, lastValidSplitIndex - 1)
-
-            val charsOfInterest = firstSplitIndex + lastValidSplitIndex downTo firstSplitIndex
-            var foundSolution = false
-            search@ for (splittingChars in splittingOrder) {
-                for (index in charsOfInterest) {
-                    if (chars[index] in splittingChars) {
-                        // found the best splitting char <3
-                        lastValidSplitIndex = min(index + 1, lastValidSplitIndex)
-                        foundSolution = true
-                        break@search
-                    }
-                }
-            }
-
-            if (!foundSolution) {// prefer to split upper case characters
-                search@ for (index in charsOfInterest) {
-                    val char = chars[index].toChar()
-                    if (char.isUpperCase()) {
-                        lastValidSplitIndex = min(index, lastValidSplitIndex)
-                        break@search
-                    }
-                }
-            }
-
-            firstSplitIndex + lastValidSplitIndex
-        }
-    }
-
-    private fun splitLine(
-        fonts: List<AWTFont>,
-        line: String,
-        fontSize: Float,
-        relativeTabSize: Float,
-        relativeCharSpacing: Float,
-        lineBreakWidth: Float
-    ): PartResult {
-
-        val hasAutomaticLineBreak = lineBreakWidth > 0f
-        val result = ArrayList<StringPart>()
-        val tabSize = exampleLayout.advance * relativeTabSize
-        val charSpacing = fontSize * relativeCharSpacing
-        var widthF = 0f
-        var currentX = 0f
-        var currentY = 0f
-        val fontHeight = actualFontSize
-        var startResultIndex = 0
-
-        val chars = line.codepoints()
-        var index0 = 0
-        var index1 = 0
-        var lastSupportLevel = 0
-
-        lateinit var nextLine: () -> Unit
-
-        fun display() {
-            while (true) {
-                if (index1 > index0) {
-                    val font = fonts[lastSupportLevel]
-                    val filtered = chars.joinChars(index0, index1) {
-                        it !in 0xfe00..0xfe0f // Emoji variations; having no width, even if Java thinks so
-                    }
-                    val advance = if (filtered.isNotEmpty())
-                        TextLayout(filtered.toString(), font.awtFont, renderContext).advance else 0f
-                    // if multiple chars and advance > lineWidth, then break line
-                    val nextX = currentX + advance + (index1 - index0) * charSpacing
-                    if (hasAutomaticLineBreak && index0 + 1 < index1 && currentX == 0f && nextX > lineBreakWidth) {
-                        val tmp1 = index1
-                        val splitIndex = findSplitIndex(chars, index0, index1, charSpacing, lineBreakWidth, currentX)
-                        /*LOGGER.info("split [$line $fontSize $lineBreakWidth] $substring into " +
-                                chars.subList(index0,splitIndex).joinChars() +
-                                " + " +
-                                chars.subList(splitIndex,index1).joinChars()
-                        )*/
-                        index1 = splitIndex
-                        if (index1 > index0 && chars[index1 - 1] == ' '.code && chars[index1 - 2] != ' '.code) index1-- // cut off last space
-                        nextLine()
-                        index0 = splitIndex
-                        if (index1 == splitIndex && chars[index0] == ' '.code) index0++ // cut off first space
-                        index1 = tmp1
-                    } else {
-                        result += StringPart(currentX, currentY, font, chars.joinChars(index0, index1), 0f)
-                        currentX = nextX
-                        widthF = max(widthF, currentX)
-                        index0 = index1
-                        break
-                    }
-                } else break
-            }
-        }
-
-        nextLine = {
-            display()
-            val lineWidth = max(0f, currentX - charSpacing)
-            for (i in startResultIndex until result.size) {
-                result[i].lineWidth = lineWidth
-            }
-            startResultIndex = result.size
-            currentY += fontHeight
-            currentX = 0f
-        }
-
-        while (index1 < chars.size) {
-            when (val char = chars[index1]) {
-                '\t'.code -> {
-                    display()
-                    index0++ // skip \t too
-                    currentX = incrementTab(currentX, tabSize, relativeTabSize)
-                }
-                else -> {
-                    val supportLevel = getSupportLevel(fonts, char, lastSupportLevel)
-                    if (supportLevel != lastSupportLevel) {
-                        display()
-                        lastSupportLevel = supportLevel
-                    }
-                }
-            }
-            index1++
-        }
-        nextLine()
-
-        val lineCount = max((currentY / actualFontSize).roundToIntOr(), 1)
-        return PartResult(result, widthF, currentY, lineCount)
     }
 
     private fun generateTextureV3(
@@ -494,7 +304,7 @@ class AWTFont(
         texture: Texture2D, portableImages: Boolean, textColor: Int, backgroundColor: Int,
         result: List<StringPart>
     ) {
-        val image = BufferedImage(texture.width, texture.height, 1)
+        val image = BufferedImage(texture.width, texture.height, BufferedImage.TYPE_INT_RGB)
         // for (i in width-10 until width) image.setRGB(i, 0, 0xff0000)
 
         val gfx = image.graphics as Graphics2D
@@ -525,7 +335,7 @@ class AWTFont(
         textColor: Int,
         backgroundColor: Int
     ) {
-        val image = BufferedImage(texture.width, texture.height * texture.layers, 1)
+        val image = BufferedImage(texture.width, texture.height * texture.layers, BufferedImage.TYPE_INT_RGB)
         val gfx = image.graphics as Graphics2D
         gfx.prepareGraphics(awtFont, portableImages)
         if (backgroundColor != 0) {
@@ -546,9 +356,7 @@ class AWTFont(
         texture.create(image.toImage(), sync = true)
     }
 
-    override fun toString(): String {
-        return font.toString()
-    }
+    override fun toString(): String = engineFont.toString()
 
     companion object {
 
@@ -557,20 +365,13 @@ class AWTFont(
 
         private val asciiStrings = List(128) { it.toChar().toString() }
 
-        private val splittingOrder: List<Collection<Int>> = listOf(
-            listOf(' '.code),
-            listOf('-'.code),
-            listOf('/', '\\', ':', '-', '*', '?', '=', '&', '|', '!', '#').map { it.code }.toSortedSet(),
-            listOf(','.code, '.'.code)
-        )
-
         private val fallbackFontList = DefaultConfig[
             "ui.font.fallbacks",
             "Segoe UI Emoji,Segoe UI Symbol,DejaVu Sans,FreeMono,Unifont,Symbola"
         ].split(',').mapNotNull { if (it.isBlank2()) null else it.trim() }
 
         private val fallbackFonts = HashMap<Float, List<AWTFont>>()
-        private fun getFallback(size: Float): List<AWTFont> {
+        fun getFallback(size: Float): List<AWTFont> {
             val cached = fallbackFonts[size]
             if (cached != null) return cached
             val fonts = fallbackFontList.mapNotNull {

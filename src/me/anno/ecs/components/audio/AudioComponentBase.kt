@@ -15,7 +15,6 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderState
 import me.anno.io.MediaMetadata
 import me.anno.utils.types.Floats.toLongOr
-import org.joml.Vector3d
 import org.joml.Vector3f
 import org.lwjgl.openal.AL11.AL_EXPONENT_DISTANCE_CLAMPED
 import org.lwjgl.openal.AL11.AL_INVERSE_DISTANCE_CLAMPED
@@ -90,8 +89,8 @@ abstract class AudioComponentBase : Component(), OnUpdate {
             if (field != v) {
                 field = v
                 if (stream0 != null) addAudioTask("volume", 1) {
-                    stream0?.alSource?.setGain(volume)
-                    stream1?.alSource?.setGain(volume)
+                    stream0?.alSource?.setVolume(volume)
+                    stream1?.alSource?.setVolume(volume)
                 }
             }
         }
@@ -155,11 +154,11 @@ abstract class AudioComponentBase : Component(), OnUpdate {
                     updatePosition()
                     val src0 = stream0.alSource
                     val src1 = stream1.alSource
-                    src0.setGain(volume)
+                    src0.setVolume(volume)
                     src0.setSpeed(speed)
                     src0.setPosition(lastPosition0)
                     src0.setVelocity(lastVelocity0)
-                    src1.setGain(volume)
+                    src1.setVolume(volume)
                     src1.setSpeed(speed)
                     src1.setPosition(lastPosition1)
                     src1.setVelocity(lastVelocity1)
@@ -174,7 +173,7 @@ abstract class AudioComponentBase : Component(), OnUpdate {
                     stream1 = null
                     updateDistanceModel()
                     updatePosition()
-                    stream.alSource.setGain(volume)
+                    stream.alSource.setVolume(volume)
                     stream.alSource.setSpeed(speed)
                     stream.alSource.setPosition(lastPosition0)
                     stream.alSource.setVelocity(lastVelocity0)

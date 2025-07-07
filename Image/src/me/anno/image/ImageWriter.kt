@@ -117,7 +117,8 @@ object ImageWriter {
             return writeImageFloat(w, h, name, normalize, colorMap, values)
         }
         val cm = if (normalize) colorMap.normalized(values) else colorMap
-        val img = BufferedImage(w, h, if (colorMap.hasAlpha) 2 else 1)
+        val imgType = if (colorMap.hasAlpha) BufferedImage.TYPE_INT_ARGB else BufferedImage.TYPE_INT_RGB
+        val img = BufferedImage(w, h, imgType)
         val buffer = img.raster.dataBuffer
         val alpha = if (colorMap.hasAlpha) 0 else (0xff shl 24)
         for (i in 0 until w * h) {
@@ -437,7 +438,7 @@ object ImageWriter {
         val ox = bounds.centerX - (size / 2f) / s
         val oy = bounds.centerY - (size / 2f) / s
 
-        val bi = BufferedImage(size, size, 1)
+        val bi = BufferedImage(size, size, BufferedImage.TYPE_INT_RGB)
         val gfx = bi.graphics as Graphics2D
         val random = Random(1234L)
         gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
@@ -497,7 +498,7 @@ object ImageWriter {
         val ox = bounds.centerX - (size / 2f) / s
         val oy = bounds.centerY - (size / 2f) / s
 
-        val bi = BufferedImage(size, size, 1)
+        val bi = BufferedImage(size, size, BufferedImage.TYPE_INT_RGB)
         val gfx = bi.graphics as Graphics2D
         gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         // draw all points

@@ -24,7 +24,7 @@ fun main() {
 
     val fs = w / 5f
     val font = (FontManager.getFont("Verdana", fs, bold = false, italic = false) as AWTFont).awtFont
-    val img = BufferedImage(w, w, 1)
+    val img = BufferedImage(w, w, BufferedImage.TYPE_INT_RGB)
     val gfx = img.graphics as Graphics2D
     gfx.prepareGraphics(font, false) // yes, values are changing: single letters are assigned fraction widths now too
 

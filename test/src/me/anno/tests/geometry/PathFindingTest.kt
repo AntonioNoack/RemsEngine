@@ -286,7 +286,7 @@ fun main() {
     val h = ((w - padding) * bounds.deltaY / bounds.deltaX + padding).toInt()
 
     // display nodes & result
-    val image = BufferedImage(w, h, 1)
+    val image = BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
     val gfx = image.graphics as Graphics2D
     gfx.prepareGraphics(true)
     gfx.font = Font.getFont("Roboto")?.run { deriveFont(h * 0.2f) }

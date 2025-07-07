@@ -32,7 +32,7 @@ object ThumbsImpl {
             }
         }, { icon, exc ->
             if (icon != null) {
-                val image = BufferedImage(icon.iconWidth + 2, icon.iconHeight + 2, 2)
+                val image = BufferedImage(icon.iconWidth + 2, icon.iconHeight + 2, BufferedImage.TYPE_INT_ARGB)
                 val gfx = image.createGraphics()
                 icon.paintIcon(null, gfx, 1, 1)
                 gfx.dispose()

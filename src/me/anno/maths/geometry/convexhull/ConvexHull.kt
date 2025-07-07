@@ -32,7 +32,7 @@ class ConvexHull(val vertices: ArrayList<Vector3d>, val triangles: IntArray) {
             val b = vertices[triangles[i + 1]]
             val c = vertices[triangles[i + 2]]
 
-            // Compute face normal (right-handed system)
+            // Compute face normal
             subCross(a, b, c, normal).safeNormalize()
 
             // Vector from a vertex of the triangle to the point

@@ -12,7 +12,7 @@ import kotlin.math.max
 object SubpixelOffsets {
 
     fun calculateSubpixelOffsets() { // ~22 ms
-        val img = BufferedImage(16, 16, 1)
+        val img = BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB)
         val gfx = img.graphics as Graphics2D
         val font = gfx.font.deriveFont(16f)
         gfx.prepareGraphics(font, false)

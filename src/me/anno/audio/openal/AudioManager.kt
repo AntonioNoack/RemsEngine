@@ -71,7 +71,7 @@ object AudioManager {
                     checkIsDestroyed()
                 }
                 destroy()
-            } catch (e: InterruptedException) {
+            } catch (_: InterruptedException) {
                 // ignore
             }
         }

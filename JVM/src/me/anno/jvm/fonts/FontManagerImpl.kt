@@ -39,9 +39,7 @@ object FontManagerImpl {
     }
 
     private fun getTextGenerator(key: FontKey): TextGenerator {
-        val name = key.name
-        val size = getAvgFontSize(key.sizeIndex)
-        return AWTFont(me.anno.fonts.Font(name, size, key.bold, key.italic), getAWTFont(key))
+        return AWTFont(key, getAWTFont(key))
     }
 
     fun getAWTFont(key: FontKey): Font {

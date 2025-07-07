@@ -1,10 +1,14 @@
 package me.anno.fonts
 
+import me.anno.fonts.keys.FontKey
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.utils.async.Callback
 
 interface TextGenerator {
+
+    val fontKey: FontKey
+
     fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int
     fun generateTexture(
         text: CharSequence,

@@ -173,7 +173,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 shader.v4f("color", barColor)
                 shader.v4f("background", background)
                 noTiling(shader)
-                texture.bindTrulyNearest(0)
+                texture.bindTrulyNearest(shader, "tex")
                 SimpleBuffer.flat01.draw(shader)
                 GFX.check()
 

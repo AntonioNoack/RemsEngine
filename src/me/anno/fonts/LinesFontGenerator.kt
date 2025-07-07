@@ -19,7 +19,7 @@ import kotlin.math.min
 /**
  * generates a fallback font when other text sources are unavailable using 7-segment-style lines
  * */
-class LinesFontGenerator(val key: FontKey) : TextGenerator {
+class LinesFontGenerator(override val fontKey: FontKey) : TextGenerator {
 
     companion object {
         // - 4 -
@@ -55,7 +55,7 @@ class LinesFontGenerator(val key: FontKey) : TextGenerator {
         }
     }
 
-    private val sz = getSz(getAvgFontSize(key.sizeIndex).toInt())
+    private val sz = getSz(getAvgFontSize(fontKey.sizeIndex).toInt())
     private val charWidth = getWidth(sz)
     private val charHeight = getHeight(sz)
 
