@@ -1,14 +1,19 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.cache.FileCacheList
 import me.anno.ecs.Transform
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.DefaultAssets
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.InternalAPI
 import org.joml.AABBf
 
 /**
@@ -21,7 +26,17 @@ class LineMesh(var meshFile: FileReference) : PrefabSaveable(), IMesh {
     constructor() : this(InvalidRef)
     constructor(mesh: Mesh) : this(mesh.ref)
 
-    var materialOverrides: List<FileReference>? = null
+    var materialOverrides: List<FileReference>
+        get() = cachedMaterialOverrides
+        set(value) {
+            if (cachedMaterialOverrides != value) {
+                cachedMaterialOverrides = FileCacheList(value, MaterialCache::getEntry)
+            }
+        }
+
+    @InternalAPI
+    @NotSerializedProperty
+    var cachedMaterialOverrides = FileCacheList.empty<Material>()
 
     val mesh get() = MeshCache.getEntry(meshFile).waitFor() ?: DefaultAssets.flatCube
 
@@ -52,7 +67,7 @@ class LineMesh(var meshFile: FileReference) : PrefabSaveable(), IMesh {
     }
 
     override fun fill(pipeline: Pipeline, transform: Transform) {
-        pipeline.addMesh(this, Pipeline.sampleMeshComponent, materialOverrides, transform)
+        pipeline.addMesh(this, Pipeline.sampleMeshComponent, cachedMaterialOverrides, transform)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

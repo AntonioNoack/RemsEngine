@@ -1,8 +1,8 @@
 package me.anno.experiments
 
 import me.anno.Time
+import me.anno.experiments.sudoku.Done
 import me.anno.maths.Maths.ceilDiv
-import me.anno.utils.Done
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Booleans.toInt
 import kotlin.random.Random

@@ -60,9 +60,9 @@ fun main() {
         }
 
         // todo use AABB for calculation
-        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+        /*override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
             return super.fillSpace(globalTransform, dstUnion)
-        }
+        }*/
 
         override fun generateMesh(mesh: Mesh) {
             val aabb = mesh.getBounds() // todo this is dirty!

@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.createEndPiece
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.generateSplineMesh
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.merge
+import me.anno.ecs.systems.OnChangeStructure
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.posMod
 import me.anno.mesh.Triangulation
@@ -18,7 +19,7 @@ import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3d
 import kotlin.math.atan2
 
-class SplineCrossing : ProceduralMesh() {
+class SplineCrossing : ProceduralMesh(), OnChangeStructure {
 
     var autoSort = true
         set(value) {

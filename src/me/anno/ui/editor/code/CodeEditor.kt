@@ -370,7 +370,7 @@ open class CodeEditor(style: Style) : Panel(style) {
             }
             val variable = spellcheckedSections.getOrNull(varIndex)
             val isIncorrectlySpelled = variable != null && charIndex in variable
-                    && variable.spellcheck()
+                    && variable.spellcheck().value
                 ?.any { suggestion -> (charIndex - variable.startIndex) in suggestion } == true
             val xi = getCharX(cn + indexInLine)
             val yi = getCharY(lineIndex)
@@ -713,7 +713,7 @@ open class CodeEditor(style: Style) : Panel(style) {
                 val variable = spellcheckedSections[variableIndex]
                 if (charIndex in variable) {
                     // check if there is a correction for it
-                    val suggestions = variable.spellcheck()
+                    val suggestions = variable.spellcheck().value
                     if (suggestions != null) {
                         val localIndex = charIndex - variable.startIndex
                         val s = suggestions.firstOrNull { s -> localIndex in s }

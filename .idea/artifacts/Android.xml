@@ -5,6 +5,7 @@
       <element id="module-output" name="Engine" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/FABRIK-IK.jar" path-in-jar="/" />
       <element id="module-output" name="KOML" />
+      <element id="module-output" name="Video" />
     </root>
   </artifact>
 </component>

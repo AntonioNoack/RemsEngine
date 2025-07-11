@@ -8,6 +8,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.components.player.Player
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.components.FillSpace
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.LineShapes.drawLine
@@ -26,7 +27,7 @@ import kotlin.math.tan
 
 // like the studio camera,
 // a custom state, which stores all related rendering information
-class Camera : Component(), OnDrawGUI {
+class Camera : Component(), OnDrawGUI, FillSpace {
 
     var isPerspective = true
 
@@ -74,9 +75,8 @@ class Camera : Component(), OnDrawGUI {
         }
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         dstUnion.union(globalTransform.getTranslation(Vector3d()))
-        return true
     }
 
     private fun defineRect(

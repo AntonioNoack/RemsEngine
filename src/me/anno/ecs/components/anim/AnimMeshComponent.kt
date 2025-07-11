@@ -31,6 +31,7 @@ import me.anno.image.thumbs.AssetThumbnails
 import me.anno.io.files.InvalidRef
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.Color.black
+import me.anno.utils.GFXFeatures
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Matrix4x3
 import org.joml.Matrix4x3f

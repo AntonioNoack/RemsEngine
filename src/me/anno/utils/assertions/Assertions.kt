@@ -16,16 +16,32 @@ inline fun assertTrue(condition: Boolean, message: () -> String) {
     if (!condition) assertFail(message())
 }
 
+fun assertLessThan(value: Int, maxValue: Int, message: String = "compare failed") {
+    assertTrue(value < maxValue) { "$value >= $maxValue, $message" }
+}
+
 fun <V : Comparable<V>> assertLessThan(value: V, maxValue: V, message: String = "compare failed") {
     assertTrue(value < maxValue) { "$value >= $maxValue, $message" }
+}
+
+fun assertLessThanEquals(value: Int, maxValue: Int, message: String = "compare failed") {
+    assertTrue(value <= maxValue) { "$value > $maxValue, $message" }
 }
 
 fun <V : Comparable<V>> assertLessThanEquals(value: V, maxValue: V, message: String = "compare failed") {
     assertTrue(value <= maxValue) { "$value > $maxValue, $message" }
 }
 
+fun assertGreaterThan(value: Int, minValue: Int, message: String = "compare failed") {
+    assertTrue(value > minValue) { "$value <= $minValue, $message" }
+}
+
 fun <V : Comparable<V>> assertGreaterThan(value: V, minValue: V, message: String = "compare failed") {
     assertTrue(value > minValue) { "$value <= $minValue, $message" }
+}
+
+fun assertGreaterThanEquals(value: Int, minValue: Int, message: String = "compare failed") {
+    assertTrue(value >= minValue) { "$value < $minValue, $message" }
 }
 
 fun <V : Comparable<V>> assertGreaterThanEquals(value: V, minValue: V, message: String = "compare failed") {

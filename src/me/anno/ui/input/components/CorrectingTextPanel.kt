@@ -39,7 +39,7 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
 
     var suggestionSquiggleColor = 0xffff00 or black
     fun drawSuggestionLines(x0: Int, x1: Int) {
-        val suggestions = suggestions
+        val suggestions = suggestions?.value
         if (!suggestions.isNullOrEmpty()) {
             // display all suggestions
             val offset = x + padding.left + drawingOffset
@@ -63,7 +63,7 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
     // todo on tab or keys, open a menu with the options
     private var lastSuggestion: Suggestion? = null
     override fun getTooltipText(x: Float, y: Float): String? {
-        val suggestions = suggestions
+        val suggestions = suggestions?.value
         if (suggestions != null) {
             for (s in suggestions) {
                 val x0 = this.x + padding.left + drawingOffset

@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.cache.FileCacheList
 import me.anno.cache.ICacheData
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
@@ -22,6 +23,8 @@ import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import me.anno.ecs.components.mesh.TransformMesh.rotateX90DegreesImpl
 import me.anno.ecs.components.mesh.TransformMesh.rotateY90DegreesImpl
 import me.anno.ecs.components.mesh.TransformMesh.scale
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.utils.IndexGenerator.generateIndices
 import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.components.mesh.utils.NormalCalculator
@@ -163,7 +166,17 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     @SerializedProperty
     @Type("List<Material/Reference>")
-    override var materials: List<FileReference> = defaultMaterials
+    override var materials: List<FileReference>
+        get() = cachedMaterials
+        set(value) {
+            if (cachedMaterials != value) {
+                cachedMaterials = FileCacheList(value, MaterialCache::getEntry)
+            }
+        }
+
+    @InternalAPI
+    @NotSerializedProperty
+    override var cachedMaterials = FileCacheList.empty<Material>()
 
     /**
      * one index per triangle;
@@ -552,7 +565,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         val drawDebugLines: Boolean
             get() = drawDebugLines(RenderView.currentInstance?.renderMode)
 
-        private val defaultMaterials = emptyList<FileReference>()
         private val LOGGER = LogManager.getLogger(Mesh::class)
 
         // custom attributes for shaders? idk...

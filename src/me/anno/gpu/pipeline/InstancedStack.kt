@@ -31,15 +31,18 @@ open class InstancedStack {
         }
 
         const val CLEAR_SIZE = 64
+
+        private val arrayPool = Pools.arrayPool
+        private val intArrayPool = Pools.intArrayPool
     }
 
-    var transforms = Pools.arrayPool[CLEAR_SIZE, false, false]
-    var gfxIds = Pools.intArrayPool[CLEAR_SIZE, false, false]
+    var transforms = arrayPool[CLEAR_SIZE, false, false]
+    var gfxIds = intArrayPool[CLEAR_SIZE, false, false]
     var size = 0
 
     open fun clear() {
-        transforms = Pools.arrayPool.shrink(transforms, CLEAR_SIZE)
-        gfxIds = Pools.intArrayPool.shrink(gfxIds, CLEAR_SIZE)
+        transforms = arrayPool.shrink(transforms, CLEAR_SIZE)
+        gfxIds = intArrayPool.shrink(gfxIds, CLEAR_SIZE)
         size = 0
     }
 
@@ -47,8 +50,8 @@ open class InstancedStack {
     fun isEmpty() = size == 0
 
     open fun resize(newSize: Int) {
-        transforms = Pools.arrayPool.grow(transforms, newSize)
-        gfxIds = Pools.intArrayPool.grow(gfxIds, newSize)
+        transforms = arrayPool.grow(transforms, newSize)
+        gfxIds = intArrayPool.grow(gfxIds, newSize)
     }
 
     open fun add(transform: Transform, gfxId: Int) {

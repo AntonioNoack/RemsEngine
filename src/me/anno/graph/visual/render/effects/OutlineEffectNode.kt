@@ -17,11 +17,12 @@ import me.anno.graph.visual.render.Texture.Companion.mask
 import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
-import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.LazyList
+import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 import kotlin.math.min
+import kotlin.reflect.KClass
 
 class OutlineEffectNode : RenderViewNode(
     "OutlineEffect",
@@ -56,11 +57,9 @@ class OutlineEffectNode : RenderViewNode(
         val idsTex = getInput(8) as? Texture ?: return
         val colorTex = getInput(7) as? Texture ?: return
         val groupIds = getInput(4) as? IntArray ?: return
-        val fillColors = getInput(5) as? List<*> ?: return
-        val lineColors = getInput(6) as? List<*> ?: return
-        val fillColors1 = fillColors.filterIsInstance2(Vector4f::class)
-        val lineColors1 = lineColors.filterIsInstance2(Vector4f::class)
-        val numGroupsI = min(groupIds.size, min(fillColors1.size, lineColors1.size))
+        val fillColors = checkList(getInput(5) as? List<*>, Vector4f::class)
+        val lineColors = checkList(getInput(6) as? List<*>, Vector4f::class)
+        val numGroupsI = min(groupIds.size, min(fillColors.size, lineColors.size))
         if (radius >= 0 && numGroupsI > 0) {
             timeRendering(name, timer) {
                 val hdr = colorTex.tex.isHDR
@@ -69,13 +68,19 @@ class OutlineEffectNode : RenderViewNode(
                 GFXState.useFrame(framebuffer) {
                     render(
                         colorTex, idsTex,
-                        min(groupIds.size, min(fillColors1.size, lineColors1.size)),
-                        radius, groupIds, fillColors1, lineColors1
+                        min(groupIds.size, min(fillColors.size, lineColors.size)),
+                        radius, groupIds, fillColors, lineColors
                     )
                 }
                 setOutput(1, Texture.texture(framebuffer, 0))
             }
         } else setOutput(1, colorTex)
+    }
+
+    private fun <V : Any> checkList(list: List<*>?, clazz: KClass<V>): List<V> {
+        @Suppress("UNCHECKED_CAST")
+        return if (list != null && list.all2 { clazz.isInstance(it) }) list as List<V>
+        else emptyList()
     }
 
     companion object {
@@ -93,7 +98,7 @@ class OutlineEffectNode : RenderViewNode(
             v[i + 3] = color.w
         }
 
-        fun render(
+        private fun render(
             color: Texture, ids: Texture, numGroups: Int, radius: Int,
             groupIds: IntArray, fillColors: List<Vector4f>, lineColors: List<Vector4f>
         ) {

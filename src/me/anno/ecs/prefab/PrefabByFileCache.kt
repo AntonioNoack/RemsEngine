@@ -4,7 +4,6 @@ import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.cache.ICacheData
-import me.anno.cache.LRUCache
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.FileKey
@@ -33,8 +32,6 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
         }
     }
 
-    private val lru = LRUCache<FileKey, V>(16).register()
-
     var timeoutMillis = 10_000L
     var allowDirectories = false
 
@@ -43,20 +40,12 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
      * */
     operator fun get(ref: FileReference?): V? {
         if (ref == null || ref == InvalidRef) return null
-        val fileKey = ref.getFileKey()
-        val i0 = lru[fileKey]
-        if (i0 !== Unit) {
-            return clazz.safeCast(i0)
-        }
         // avoid the CacheSection, so our values don't get destroyed
         if (ref is InnerTmpPrefabFile) {
             val safeCast = clazz.safeCast(ref.prefab._sampleInstance)
             if (safeCast != null) return safeCast
         }
-        val data = getFileEntry(ref, allowDirectories, timeoutMillis, generator)
-        val value = data.value
-        if (data.hasValue) lru[fileKey] = value // else keep hammering the cache about it
-        return value
+        return getFileEntry(ref, allowDirectories, timeoutMillis, generator).value
     }
 
     fun getEntry(ref: FileReference?): AsyncCacheData<V> {

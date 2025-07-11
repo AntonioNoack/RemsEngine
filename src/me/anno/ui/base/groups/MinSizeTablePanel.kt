@@ -55,6 +55,7 @@ open class MinSizeTablePanel(sizeX: Int, sizeY: Int, style: Style) :
 
         // ensure we don't access out of bounds
         dst.size = sizeI + 1
+        minSize.size = sizeI + 1
 
         val spacing = spacing
         val availableW = totalSize - (sizeI - 1) * spacing - (paddingLeft + paddingRight)

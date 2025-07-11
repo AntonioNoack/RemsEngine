@@ -38,4 +38,10 @@ object GFXFeatures {
      * Not supported in WebGL.
      * */
     var supportsBorderColors = true
+
+    /**
+     * Only supported in OpenGL ES 3.1 and newer.
+     * WebGL not tested, but probably not supported.
+     * */
+    var supportsShaderStorageBuffers = true
 }

@@ -164,7 +164,7 @@ fun waitForResults(timeoutMillis: Long = 30_000) {
     var lastPrint = Time.nanoTime
     while (processed.isNotEmpty()) {
         for (word in processed) {
-            val list = Spellchecking.check(word, true)
+            val list = Spellchecking.check(word, true).waitFor()
             if (list != null) {
                 // found answer :)
                 done.add(word)

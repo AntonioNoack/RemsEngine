@@ -32,11 +32,6 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
     private val audioDataCache = CacheSection<PipelineKey, AudioData>("AudioDataCache")
     private val rangeCache = CacheSection<RangeKey, ShortData>("AudioFXRanges")
 
-    // limit the number of requests for performance,
-    // and accumulating many for the future is useless,
-    // when the user is just scrolling through time
-    private const val rangeRequestLimit = 8
-
     val SPLITS = 256
 
     data class PipelineKey(
@@ -141,9 +136,6 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
         return getTime(index, bufferSize, playbackSampleRate)
     }
 
-    private val rangingProcessing = ProcessingQueue("AudioFX")
-    private val rangingProcessing2 = ProcessingQueue("AudioFX-2")
-
     data class RangeKey(val i0: Long, val i1: Long, val identifier: String) {
 
         override fun equals(other: Any?): Boolean {
@@ -187,22 +179,17 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
         repeat: LoopingState, identifier: String
     ): AsyncCacheData<ShortData> {
         if (!bufferSize.isPowerOf2()) return AsyncCacheData.empty()
-        val queue = rangingProcessing2
-        return rangeCache.getEntryLimitedWithRetry(
-            RangeKey(index0, index1, identifier),
-            10000, queue, rangeRequestLimit
-        ) { key, result ->
-            rangingProcessing += {
-                val splits = SPLITS
-                val values = SAPool[splits * 2, false, true]
-                try {
-                    fillRange(file, bufferSize, index0, index1, repeat, values)
-                } catch (e: Exception) {
-                    // :(
-                    e.printStackTrace()
-                }
-                result.value = ShortData(values)
+        val key = RangeKey(index0, index1, identifier)
+        return rangeCache.getEntryLimitedWithRetry(key, timeoutMillis, 4) { key, result ->
+            val splits = SPLITS
+            val values = SAPool[splits * 2, false, true]
+            try {
+                fillRange(file, bufferSize, index0, index1, repeat, values)
+            } catch (e: Exception) {
+                // :(
+                e.printStackTrace()
             }
+            result.value = ShortData(values)
         }
     }
 

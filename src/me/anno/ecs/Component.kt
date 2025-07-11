@@ -5,12 +5,11 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnEnable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.EditorState
 import me.anno.io.base.BaseWriter
-import org.joml.AABBd
-import org.joml.Matrix4x3
 
 abstract class Component : PrefabSaveable() {
 
@@ -20,8 +19,10 @@ abstract class Component : PrefabSaveable() {
             if (super.isEnabled != value) {
                 super.isEnabled = value
                 entity?.onChangeComponent(this, value)
-                if (value) onEnable()
-                else onDisable()
+                if (this is OnEnable) {
+                    if (value) onEnable()
+                    else onDisable()
+                }
             }
         }
 
@@ -61,27 +62,9 @@ abstract class Component : PrefabSaveable() {
             gfxId = (value shl 24) or (gfxId and 0xffffff)
         }
 
-    /**
-     * returns whether it needs any space in the AABBs for visibility updates / rendering
-     * if so, it fills the global transform with its bounds
-     * */
-    open fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean = false
-
     open fun invalidateBounds() {
         entity?.invalidateOwnAABB()
     }
-
-    // todo make this an interface?
-    open fun onCreate() {}
-
-    override fun destroy() {}
-
-    // todo make these interfaces?
-    open fun onEnable() {}
-    open fun onDisable() {}
-
-    // todo make this an interface?
-    open fun onChangeStructure(entity: Entity) {}
 
     override fun isDefaultValue(): Boolean = false
 

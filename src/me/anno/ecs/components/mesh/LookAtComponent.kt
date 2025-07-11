@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.components.FillSpace
 import me.anno.ecs.systems.OnBeforeDraw
 import me.anno.engine.ui.render.RenderState
 import me.anno.maths.Maths.clamp
@@ -13,7 +14,7 @@ import org.joml.Matrix4x3
 import kotlin.math.abs
 
 @Docs("rotates and scales the entity parallel to the camera; only works well with a single local player")
-open class LookAtComponent : Component(), OnBeforeDraw {
+open class LookAtComponent : Component(), OnBeforeDraw, FillSpace {
 
     @Docs("Minimum scale; set this to maximum scale to disable scaling in screen space")
     var minSize = 0.0
@@ -31,9 +32,8 @@ open class LookAtComponent : Component(), OnBeforeDraw {
     @Docs("Needs to be enabled, if the base entity of this may rotate or scale; disabled is faster")
     var useGlobalTransform = true
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         dstUnion.all()
-        return true
     }
 
     override fun onBeforeDraw() {

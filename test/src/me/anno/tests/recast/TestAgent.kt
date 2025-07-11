@@ -1,5 +1,6 @@
 package me.anno.tests.recast
 
+import me.anno.ecs.components.FillSpace
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes
 import me.anno.recast.NavMeshAgent
@@ -16,11 +17,10 @@ class TestAgent(
     data: NavMeshData,
     val start: Vector3f,
     val target: Vector3f
-) : NavMeshAgent(data) {
+) : NavMeshAgent(data), FillSpace {
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         dstUnion.all()
-        return true
     }
 
     override fun onUpdate() {

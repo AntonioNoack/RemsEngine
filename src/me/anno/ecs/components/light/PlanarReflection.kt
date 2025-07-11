@@ -80,10 +80,9 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         instance.setRenderState()
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
-        (if (bothSided) fullCubeBounds else halfCubeBounds)
-            .transformUnion(globalTransform, dstUnion)
-        return true
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
+        val localBounds = if (bothSided) fullCubeBounds else halfCubeBounds
+        localBounds.transformUnion(globalTransform, dstUnion)
     }
 
     @DebugProperty

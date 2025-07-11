@@ -3,18 +3,18 @@ package me.anno.ecs.components.light
 import me.anno.ecs.Component
 import me.anno.ecs.Transform
 import me.anno.ecs.interfaces.Renderable
+import me.anno.ecs.components.FillSpace
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.pipeline.LightData
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.AABBd
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 
-abstract class LightSpawner : Component(), Renderable {
+abstract class LightSpawner : Component(), Renderable, FillSpace {
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         dstUnion.all()
-        return true
     }
 
     override fun fill(pipeline: Pipeline, transform: Transform) {

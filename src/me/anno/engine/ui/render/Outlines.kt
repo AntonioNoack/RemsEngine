@@ -103,7 +103,7 @@ object Outlines {
             useFrame(whiteRenderer) {
                 val cullMode = if (mesh is Mesh && mesh.inverseOutline) CullMode.BACK else CullMode.FRONT
                 GFXState.cullMode.use(cullMode) {
-                    val material = Materials.getMaterial(comp.materials, mesh.materials, 0)
+                    val material = Materials.getMaterial(comp.cachedMaterials, mesh.cachedMaterials, 0)
                     val baseShader = material.shader ?: pbrModelShader
                     val animated = comp.hasAnimation(mesh)
                     if (!material.isDoubleSided) GFXState.animated.use(animated) {

@@ -5,20 +5,20 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.anim.AnimMeshComponent
+import me.anno.ecs.systems.OnChangeStructure
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.serialization.NotSerializedProperty
 
 // todo define a multi-dimensional blend-space for animations (idle, walk, run; jump on second dimension):
 //  - keys (vectors, 2d?), and values (animations)
 //  - auto-define speed by the current animation being played
-class AnimBlendSpaceController : Component(), OnUpdate {
+class AnimBlendSpaceController : Component(), OnChangeStructure, OnUpdate {
 
     @DebugProperty
     @NotSerializedProperty
     private var renderer: AnimMeshComponent? = null
 
     override fun onChangeStructure(entity: Entity) {
-        super.onChangeStructure(entity)
         renderer = entity.getComponent(AnimMeshComponent::class)
     }
 

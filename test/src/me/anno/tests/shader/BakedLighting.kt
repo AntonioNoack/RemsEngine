@@ -391,7 +391,7 @@ fun rasterizeMeshOntoUVs(component: MeshComponent, dst: RaytracingInput, resolut
     val c = Vector2f()
 
     val materials = Array(mesh.numMaterials) {
-        val src = Materials.getMaterial(component.materials, mesh.materials, it)
+        val src = Materials.getMaterial(component.cachedMaterials, mesh.cachedMaterials, it)
         SimpleMaterial(
             ImageCache[src.diffuseMap].waitFor() ?: whiteImage, Vector3f(src.diffuseBase),
             ImageCache[src.emissiveMap].waitFor() ?: whiteImage, src.emissiveBase,

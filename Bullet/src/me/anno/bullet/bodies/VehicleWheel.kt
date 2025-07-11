@@ -5,6 +5,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.components.FillSpace
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
@@ -13,7 +14,7 @@ import me.anno.gpu.pipeline.Pipeline
 import org.joml.AABBd
 import org.joml.Matrix4x3
 
-class VehicleWheel : Component(), OnDrawGUI {
+class VehicleWheel : Component(), OnDrawGUI, FillSpace {
 
     /*// raycast direction, e.g. down = -y axis
     @SerializedProperty
@@ -137,13 +138,12 @@ class VehicleWheel : Component(), OnDrawGUI {
     @NotSerializedProperty
     val lockedTransform = Matrix4x3()
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         val tmp = AABBd()
         val r = radius
         tmp.setMin(0.0, -r, -r)
         tmp.setMax(0.0, +r, +r)
         tmp.transformUnion(globalTransform, dstUnion)
-        return true
     }
 
     override fun copyInto(dst: PrefabSaveable) {

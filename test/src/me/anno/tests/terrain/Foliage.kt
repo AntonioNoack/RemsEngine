@@ -285,11 +285,10 @@ fun main() {
         }.ref.wrap()
 
         class AllMeshComp(mesh: Mesh) : MeshComponent(mesh) {
-            override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+            override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
                 localAABB.all()
                 globalAABB.all()
                 dstUnion.all()
-                return true
             }
         }
         scene.add(AllMeshComp(mesh0))

@@ -2,10 +2,8 @@ package me.anno.ecs
 
 import me.anno.ecs.EntityPhysics.invalidatePhysicsIfEnabled
 import me.anno.ecs.EntityPhysics.invalidatePhysicsTransform
-import me.anno.ecs.EntityQuery.anyComponent
 import me.anno.ecs.EntityQuery.forAllChildren
 import me.anno.ecs.EntityQuery.forAllComponents
-import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.EntityStats.sizeOfHierarchy
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
@@ -16,6 +14,9 @@ import me.anno.ecs.annotations.ScaleType
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.components.FillSpace
+import me.anno.ecs.systems.OnChangeStructure
+import me.anno.ecs.systems.OnEnable
 import me.anno.ecs.systems.Systems
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.serialization.NotSerializedProperty
@@ -25,7 +26,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.algorithms.Recursion
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AnyToBool
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
@@ -55,27 +55,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     @DebugProperty
     @NotSerializedProperty
-    var hasValidCollisionMask: Boolean
+    var hasValidMasks: Boolean
         get() = flags.hasFlag(VALID_COLLISION_MASK_FLAG)
         set(value) {
             flags = flags.withFlag(VALID_COLLISION_MASK_FLAG, value)
-        }
-
-    @DebugProperty
-    @NotSerializedProperty
-    var hasSpaceFillingComponents: Boolean
-        get() = flags.hasFlag(SPACE_FILLING_FLAG)
-        set(value) {
-            flags = flags.withFlag(SPACE_FILLING_FLAG, value)
-        }
-
-    // renderable-cache for faster rendering
-    @DebugProperty
-    @NotSerializedProperty
-    var hasRenderables: Boolean
-        get() = flags.hasFlag(RENDERABLES_FLAG)
-        set(value) {
-            flags = flags.withFlag(RENDERABLES_FLAG, value)
         }
 
     @DebugProperty
@@ -93,7 +76,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         invalidateAABBsCompletely()
         isCreated = true
         forAllChildren(true, Entity::create)
-        forAllComponents(true, Component::onCreate)
+        forAllComponents(OnEnable::class, true, OnEnable::onEnable)
     }
 
     val transform: Transform = Transform(this)
@@ -293,13 +276,13 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     @DebugAction
-    fun invalidateCollisionMask() {
-        parentEntity?.invalidateCollisionMask()
-        hasValidCollisionMask = false
+    fun invalidateMasks() {
+        parentEntity?.invalidateMasks()
+        hasValidMasks = false
     }
 
     fun validateMasks() {
-        if (hasValidCollisionMask) return
+        if (hasValidMasks) return
         var collisionMask = 0
         forAllComponents(CollidingComponent::class, false) { component ->
             collisionMask = collisionMask or component.collisionMask
@@ -309,7 +292,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             collisionMask = collisionMask or child.collisionBits
         }
         this.collisionBits = collisionMask
-        hasValidCollisionMask = true
+        hasValidMasks = true
     }
 
     override fun getGlobalBounds(): AABBd {
@@ -330,11 +313,9 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         forAllChildren(false) { child ->
             aabb.union(child.getGlobalBounds())
         }
-        if (hasSpaceFillingComponents) {
-            val globalTransform = transform.globalTransform
-            forAllComponents(false) { component ->
-                component.fillSpace(globalTransform, aabb)
-            }
+        val globalTransform = transform.globalTransform
+        forAllComponents(FillSpace::class, false) { component ->
+            component.fillSpace(globalTransform, aabb)
         }
         hasValidAABB = true
     }
@@ -344,7 +325,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         set(value) {
             if (super.isEnabled != value) {
                 super.isEnabled = value
-                getSystems()?.addOrRemoveRecursively(this, value)
+                getSystems()?.setContainsRecursively(this, value)
             }
         }
 
@@ -454,7 +435,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         if (oldParent != null) {
             oldParent.remove(this)
             oldParent.invalidateAABBsCompletely()
-            oldParent.invalidateCollisionMask()
+            oldParent.invalidateMasks()
         }
 
         if (index !in parent.internalChildren.indices) parent.internalChildren.add(this)
@@ -464,12 +445,12 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         // transform
         transformUpdate(keepWorldTransform)
         // collision mask
-        parent.invalidateCollisionMask()
+        parent.invalidateMasks()
         invalidateAABBsCompletely()
 
         invalidatePhysicsIfEnabled()
 
-        getSystems()?.addOrRemoveRecursively(this, true)
+        getSystems()?.setContainsRecursively(this, true)
         parent.setChildPath(this, index, 'e')
     }
 
@@ -485,12 +466,9 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         }
         val parent = parent as? Entity
         if (parent != null) {
-            getSystems()?.addOrRemoveRecursively(this, false)
+            getSystems()?.setContainsRecursively(this, false)
             parent.internalChildren.remove(this)
-            val tmpAABBd = JomlPools.aabbd.borrow()
-            if (anyComponent { it.fillSpace(transform.globalTransform, tmpAABBd) }) {
-                parent.invalidateCollisionMask()
-            }
+            parent.invalidateMasks()
             parent.invalidateOwnAABB()
         }
     }
@@ -504,7 +482,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         else internalComponents.add(index, component)
         component.entity = this
         onChangeComponent(component, true)
-        getSystems()?.addOrRemoveRecursively(component, true)
+        getSystems()?.setContainsRecursively(component, true)
         setChildPath(component, index, 'c')
         return this
     }
@@ -514,29 +492,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     fun onChangeComponent(component: Component, wasAdded: Boolean) {
-        val isRenderable = component is Renderable
-        if (isRenderable) {
-            hasRenderables = hasComponent(Renderable::class, false)
-        }
-        if (wasAdded) {
-            if (component.fillSpace(transform.globalTransform, aabb)) {
-                hasSpaceFillingComponents = true
-                onExtendAABB()
-            } // else AABBs not affected
-        } else {
-            val tmpAABB = JomlPools.aabbd.create().clear()
-            val fillsSpace = component.fillSpace(transform.globalTransform, tmpAABB)
-            if (fillsSpace) invalidateOwnAABB()
-            if (isRenderable || fillsSpace) {
-                hasSpaceFillingComponents = hasRenderables || anyComponent {
-                    it !is Renderable /* skip already covered cases */ &&
-                            it.fillSpace(transform.globalTransform, tmpAABB)
-                }
-            }
-            JomlPools.aabbd.sub(1)
-        }
-        getSystems()?.addOrRemoveRecursively(component, wasAdded)
-        forAllComponents(false) { comp ->
+        invalidateOwnAABB()
+        invalidateMasks()
+        getSystems()?.setContainsRecursively(component, wasAdded)
+        forAllComponents(OnChangeStructure::class, false) { comp ->
             comp.onChangeStructure(this)
         }
     }
@@ -563,7 +522,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         val found = internalComponents.remove(component)
         if (!found) return false
         onChangeComponent(component, false)
-        getSystems()?.addOrRemoveRecursively(component, false)
+        getSystems()?.setContainsRecursively(component, false)
         return true
     }
 
@@ -579,7 +538,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             internalComponents[index] = internalComponents.last()
             internalComponents.removeLast()
             onChangeComponent(component, false)
-            getSystems()?.addOrRemoveRecursively(component, false)
+            getSystems()?.setContainsRecursively(component, false)
         }
     }
 
@@ -608,7 +567,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         if (child.parent !== this) return false
         val found = internalChildren.remove(child) // should be true
         if (!found) LOGGER.warn("Weird removal, where child.parent === this, but not found in children list")
-        getSystems()?.addOrRemoveRecursively(child, false)
+        getSystems()?.setContainsRecursively(child, false)
         child.parent = null
         return found
     }
@@ -662,9 +621,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         super.copyInto(dst)
         if (dst !is Entity) return
         // copy all properties
-        dst.hasRenderables = hasRenderables
-        dst.hasValidCollisionMask = hasValidCollisionMask
-        dst.hasSpaceFillingComponents = hasSpaceFillingComponents
+        dst.hasValidMasks = hasValidMasks
         dst.hasValidAABB = hasValidAABB
         dst.aabb.set(aabb)
         dst.transform.set(transform)

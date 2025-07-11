@@ -5,6 +5,7 @@ import me.anno.ecs.EntityPhysics.invalidatePhysics
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnChangeStructure
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RayQueryLocal
@@ -21,7 +22,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
 
-abstract class Collider : CollidingComponent(), OnDrawGUI {
+abstract class Collider : CollidingComponent(), OnChangeStructure, OnDrawGUI {
 
     @Range(0.0, 1e38)
     @SerializedProperty
@@ -39,16 +40,14 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
     }
 
     override fun onChangeStructure(entity: Entity) {
-        super.onChangeStructure(entity)
         entity.invalidatePhysics()
-        entity.invalidateCollisionMask()
+        entity.invalidateMasks()
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         val tmp = JomlPools.vec3d.create()
         union(globalTransform, dstUnion, tmp)
         JomlPools.vec3d.sub(1)
-        return true
     }
 
     override fun copyInto(dst: PrefabSaveable) {

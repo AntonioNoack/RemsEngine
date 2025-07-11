@@ -297,8 +297,6 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         dst.prefabPath = prefabPath
     }
 
-    override fun destroy() {}
-
     @NotSerializedProperty
     override val symbol: String
         get() = ""

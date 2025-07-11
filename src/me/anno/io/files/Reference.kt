@@ -80,6 +80,12 @@ object Reference {
             .waitFor() ?: createReference(path)
     }
 
+    @JvmStatic
+    fun getRealReferenceOrNull(path: String): FileReference? {
+        val fromCache = fileCache.getEntry(path, fileTimeout, generator).value
+        return if (fromCache != null && fromCache.absolutePath == path) fromCache else null
+    }
+
     private val generator = { path: String, result: AsyncCacheData<FileReference> ->
         result.value = createReference(path)
     }

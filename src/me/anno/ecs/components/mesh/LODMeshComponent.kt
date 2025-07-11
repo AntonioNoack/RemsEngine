@@ -51,7 +51,7 @@ class LODMeshComponent() : MeshComponentBase() {
     @NotSerializedProperty
     private var lodScale = 0.5f / log2(scalePerLOD)
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         if (aabbIndex < 0) {
             fillSpaceStart()
             for (index in meshes.indices) {
@@ -63,7 +63,6 @@ class LODMeshComponent() : MeshComponentBase() {
             val mesh = MeshCache.getEntry(meshes[index]).waitFor()
             if (mesh != null) fillSpaceSet(mesh, globalTransform, dstUnion)
         }
-        return true
     }
 
     @DebugProperty

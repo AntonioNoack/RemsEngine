@@ -81,7 +81,7 @@ abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
     private val boundsF = AABBf()
     override fun getBounds(): AABBf = boundsF
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         // calculate local aabb
         val local = boundsF
         local.clear()
@@ -97,7 +97,6 @@ abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
 
         // add the result to the output
         dstUnion.union(global)
-        return true
     }
 
     val clock = Clock(LOGGER)

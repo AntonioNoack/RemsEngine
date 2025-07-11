@@ -62,7 +62,7 @@ abstract class BufferPool<V>(
     fun resizeTo(buffer: V, newSize: Int): V {
         val oldSize = implGetSize(buffer)
         return if (oldSize != newSize) {
-            val newBuffer = this[newSize, false, true]
+            val newBuffer = get(newSize, clear = false, exactMatchesOnly = true)
             implCopyTo(buffer, newBuffer, min(oldSize, newSize))
             returnBuffer(buffer)
             newBuffer

@@ -70,7 +70,7 @@ class SDFTextComponent(
 
     private val materials = ArrayList<Material>()
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
 
         // effectively just the same code as TextureTextComponent
         val size = FontManager.getSize(font, text, -1, -1).waitFor() ?: 0
@@ -90,8 +90,6 @@ class SDFTextComponent(
         local.transform(globalTransform, global)
         // add the result to the output
         dstUnion.union(global)
-        // yes, we calculated stuff
-        return true
     }
 
     private fun getOrCreateMeshGroup(): TextSDFGroup {

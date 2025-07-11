@@ -1,17 +1,19 @@
 package me.anno.ecs.components.anim
 
 import me.anno.ecs.Component
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnChangeStructure
 import me.anno.ecs.systems.OnUpdate
 import me.anno.utils.pooling.JomlPools
 
 /**
  * Controls its entity such that it follows the bone of another entity's AnimMeshComponent.
  * */
-class BoneAttachmentComponent() : Component(), OnUpdate {
+class BoneAttachmentComponent() : Component(), OnUpdate, OnChangeStructure {
 
     constructor(boneName: String, animMeshComponent: AnimMeshComponent) : this() {
         this.boneName = boneName
@@ -28,8 +30,7 @@ class BoneAttachmentComponent() : Component(), OnUpdate {
     @HideInInspector
     var bone: Bone? = null
 
-    override fun onCreate() {
-        super.onCreate()
+    override fun onChangeStructure(entity: Entity) {
         findBone()
     }
 

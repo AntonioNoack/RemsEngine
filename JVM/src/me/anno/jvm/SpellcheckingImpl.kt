@@ -1,6 +1,7 @@
 package me.anno.jvm
 
 import me.anno.Engine
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
@@ -17,6 +18,7 @@ import me.anno.language.spellcheck.Suggestion
 import me.anno.utils.Color
 import me.anno.utils.OS
 import me.anno.utils.Sleep
+import me.anno.utils.structures.lists.PairArrayList
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.titlecase
@@ -24,50 +26,69 @@ import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.util.Queue
-import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.concurrent.thread
 
 object SpellcheckingImpl {
 
     private val path = DefaultConfig["spellchecking.path", OS.downloads.getChild("lib/spellchecking")]
-
     private val language: Language? get() = EngineBase.instance?.language ?: defaultLanguage
 
-    fun check(sentence: CharSequence, allowFirstLowercase: Boolean, async: Boolean): List<Suggestion>? {
+    private val queues = HashMap<Language, TaskQueue>()
+    private val LOGGER = LogManager.getLogger(Spellchecking::class)
+
+    private const val timeout = 600_000L // 10 min
+
+    fun check(sentence: CharSequence, allowFirstLowercase: Boolean): AsyncCacheData<List<Suggestion>> {
+
         val language = language
-        if (language == null || sentence.isBlank2()) return null
+        if (language == null || sentence.isBlank2()) {
+            return AsyncCacheData.empty()
+        }
+
         var sentence2 = sentence.trim()
         if (allowFirstLowercase) sentence2 = sentence2.toString().titlecase()
-        if (sentence2 == "#quit") return null
-        val value = Spellchecking.getDualEntry(sentence2, language, timeout) { seq, lang, answer ->
-            getValue(seq, lang) { rawSuggestions ->
-                answer.value = rawSuggestions
-            }
-        }.waitFor(async) ?: return null
+        if (sentence2 == "#quit") {
+            return AsyncCacheData.empty()
+        }
+
+        val value = Spellchecking.getDualEntry(sentence2, language, timeout) { seq, lang, result ->
+            getValue(seq, lang, result)
+        }
 
         return if (sentence != sentence2) {
             val offset = sentence
                 .withIndex()
                 .indexOfFirst { (index, _) -> !sentence.substring(0, index + 1).isBlank2() }
-            if (offset > 0) value.map {
-                Suggestion(
-                    it.start + offset,
-                    it.end + offset,
-                    it.message,
-                    it.shortMessage,
-                    it.improvements
-                )
+            if (offset > 0) value.mapNext { entry ->
+                entry.map { s0 ->
+                    Suggestion(
+                        s0.start + offset,
+                        s0.end + offset,
+                        s0.message,
+                        s0.shortMessage,
+                        s0.improvements
+                    )
+                }
             } else value
         } else value
     }
 
-    private fun getValue(sentence: CharSequence, language: Language, callback: (List<Suggestion>) -> Unit) {
-        synchronized(this) {
-            val queue = queues.getOrPut(language) { start(language) }
-            synchronized(queue) { // should be ok ^^
-                queue.add(sentence)
-                queue.add(callback)
+    class TaskQueue {
+
+        val queue = PairArrayList<CharSequence, AsyncCacheData<List<Suggestion>>>()
+        var restart: (() -> Unit)? = null
+
+        fun add(sentence: CharSequence, callback: AsyncCacheData<List<Suggestion>>) {
+            synchronized(this) {
+                queue.add(sentence, callback)
+                restart?.invoke()
             }
+        }
+    }
+
+    private fun getValue(sentence: CharSequence, language: Language, callback: AsyncCacheData<List<Suggestion>>) {
+        synchronized(this) {
+            queues.getOrPut(language) { start(language) }.add(sentence, callback)
         }
     }
 
@@ -134,14 +155,27 @@ object SpellcheckingImpl {
      * then it will spellcheck all following lines individually.
      * \n and non-ascii symbols should be escaped with \\n or \Uxxxx
      * */
-    private fun start(language: Language): Queue<Any> {
-        val queue: Queue<Any> = ConcurrentLinkedQueue()
+    private fun start(language: Language): TaskQueue {
+        val queue = TaskQueue()
+        start(language, queue)
+        return queue
+    }
+
+    /**
+     * each instance handles a single language only
+     * the first argument of the executable can be used to define the language
+     * then it will spellcheck all following lines individually.
+     * \n and non-ascii symbols should be escaped with \\n or \Uxxxx
+     * */
+    private fun start(language: Language, queue: TaskQueue) {
+        queue.restart = null // restart no longer needed
         thread(name = "Spellchecking ${language.code}") {
             if (!OS.isAndroid && !OS.isWeb) {
                 getExecutable(language) { executable ->
                     val process = createProcess(executable, language)
                     runProcess(process, language, queue)
                     process.destroy()
+                    queue.restart = { start(language, queue) }
                 }
             } else {
                 // we cannot execute jar files -> have to have the library bundled
@@ -149,12 +183,13 @@ object SpellcheckingImpl {
                     val clazz = javaClass.classLoader.loadClass("me.anno.language.spellcheck.BundledSpellcheck")
                     val method = clazz.getMethod("runInstance", Language::class.java, Queue::class.java)
                     method.invoke(null, language, queue)
+                    // might be a bad idea...
+                    queue.restart = { start(language, queue) }
                 } catch (e: ClassNotFoundException) {
                     LOGGER.warn(e)
                 }
             }
         }
-        return queue
     }
 
     private fun createProcess(executable: FileReference, language: Language): Process {
@@ -166,7 +201,7 @@ object SpellcheckingImpl {
         return builder.start()
     }
 
-    private fun runProcess(process: Process, language: Language, queue: Queue<Any>) {
+    private fun runProcess(process: Process, language: Language, queue: TaskQueue) {
         val input = process.inputStream
         val reader = input.bufferedReader()
         process.errorStream.listen("Spellchecking-Listener ${language.code}") { msg -> LOGGER.warn(msg) }
@@ -175,22 +210,37 @@ object SpellcheckingImpl {
         if (startMessage != null) LOGGER.info(startMessage)
         try {
             while (!Engine.shutdown) {
-                if (queue.isEmpty()) Sleep.sleepShortly(true)
+                if (queue.queue.isEmpty()) Sleep.sleepShortly(true)
                 else processRequest(queue, reader, writer)
             }
         } catch (_: IgnoredException) {
         }
     }
 
-    private fun processRequest(queue: Queue<Any>, reader: BufferedReader, writer: BufferedWriter) {
 
-        val sentence = queue.poll() as CharSequence
+    private fun processRequest(queue: TaskQueue, reader: BufferedReader, writer: BufferedWriter) {
 
-        @Suppress("unchecked_cast")
-        val callback = queue.poll() as ((List<Suggestion>) -> Unit)
+        val sentence: CharSequence
+        val callback: AsyncCacheData<List<Suggestion>>
+        synchronized(queue) {
+            val queue = queue.queue
+            sentence = queue.lastFirst()
+            callback = queue.lastSecond()
+            queue.removeLast()
+        }
+
+        processRequest(sentence, callback, reader, writer)
+    }
+
+    private fun processRequest(
+        sentence: CharSequence, callback: AsyncCacheData<List<Suggestion>>,
+        reader: BufferedReader, writer: BufferedWriter
+    ) {
+
         writer.write(formatSentence(sentence))
         writer.write('\n'.code)
         writer.flush()
+
         var suggestionsString = ""
         while ((suggestionsString.isEmpty() || !suggestionsString.startsWith("[")) && !Engine.shutdown) {
             suggestionsString = reader.readLine() ?: break
@@ -199,11 +249,13 @@ object SpellcheckingImpl {
                 suggestionsString = "[" + (reader.readLine() ?: break)
             }
         }
-        try {
-            callback(translateSuggestions(suggestionsString))
+
+        callback.value = try {
+            translateSuggestions(suggestionsString)
         } catch (e: Exception) {
             LOGGER.error(suggestionsString)
             e.printStackTrace()
+            null
         }
     }
 
@@ -235,9 +287,4 @@ object SpellcheckingImpl {
             result
         }
     }
-
-    private val queues = HashMap<Language, Queue<Any>>()
-    private val LOGGER = LogManager.getLogger(Spellchecking::class)
-
-    private const val timeout = 600_000L // 10 min
 }

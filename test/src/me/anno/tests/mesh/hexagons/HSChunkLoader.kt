@@ -69,11 +69,10 @@ class HSChunkLoader(
 
     override val materials: List<FileReference> = listOf(material.ref)
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         globalAABB.all()
         localAABB.all()
         dstUnion.all()
-        return true
     }
 
     override fun getData(key: HexagonSphere.Chunk, mesh: Mesh): StaticBuffer? {

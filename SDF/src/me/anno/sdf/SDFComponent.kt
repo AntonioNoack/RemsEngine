@@ -291,9 +291,9 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         return super.getMeshOrNull()
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         ensureValidBounds()
-        return super.fillSpace(globalTransform, dstUnion)
+        super.fillSpace(globalTransform, dstUnion)
     }
 
     @DebugAction
@@ -519,7 +519,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     override fun getChildListByType(type: Char): List<PrefabSaveable> = when (type) {
         'p' -> positionMappers
         'd' -> distanceMappers
-        'x' -> components
+        'x' -> internalComponents
         else -> super.getChildListByType(type)
     }
 

@@ -6,6 +6,7 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnEnable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.lua.ScriptComponent.Companion.getFunction
 import me.anno.lua.ScriptComponent.Companion.toLua
@@ -14,10 +15,10 @@ import org.luaj.vm2.LuaError
 import org.luaj.vm2.LuaValue
 
 @Suppress("MemberVisibilityCanBePrivate")
-open class QuickScriptComponent : Component(), OnUpdate {
+open class QuickScriptComponent : Component(), OnUpdate, OnEnable {
 
     @Type("Lua/Code")
-    var createScript = ""
+    var enableScript = ""
 
     @Type("Lua/Code")
     var updateScript = ""
@@ -25,10 +26,8 @@ open class QuickScriptComponent : Component(), OnUpdate {
     @Type("Lua/Code")
     var destroyScript = ""
 
-    @DebugAction
-    override fun onCreate() {
-        super.onCreate()
-        callFunction(createScript)
+    override fun onEnable() {
+        callFunction(enableScript)
     }
 
     @DebugAction
@@ -45,7 +44,7 @@ open class QuickScriptComponent : Component(), OnUpdate {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is QuickScriptComponent) return
-        dst.createScript = createScript
+        dst.enableScript = enableScript
         dst.updateScript = updateScript
         dst.destroyScript = destroyScript
     }

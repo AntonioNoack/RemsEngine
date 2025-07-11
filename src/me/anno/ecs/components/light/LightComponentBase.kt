@@ -5,6 +5,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Transform
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.components.FillSpace
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
@@ -13,7 +14,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.posMod
 
 // a light component, of which there can be multiple per object
-abstract class LightComponentBase : Component(), Renderable, OnUpdate {
+abstract class LightComponentBase : Component(), Renderable, OnUpdate, FillSpace {
 
     @SerializedProperty
     var ditherMode = DitherMode.DITHER2X2

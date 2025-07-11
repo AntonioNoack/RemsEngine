@@ -123,7 +123,7 @@ class FlagMesh : MeshComponent(), OnUpdate {
     // doesn't work yet :/
     var useCustomMesh = false
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         val mesh = getMesh()
         if (mesh != null) {
             localAABB.setMin(-1.0, -1.0, -1.0).setMax(1.0, 2.0, 1.0)
@@ -131,7 +131,6 @@ class FlagMesh : MeshComponent(), OnUpdate {
             localAABB.transformUnion(globalTransform, globalAABB, globalAABB)
             dstUnion.union(globalAABB)
         }
-        return true
     }
 
     override fun onUpdate() {

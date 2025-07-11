@@ -64,12 +64,13 @@ fun main() {
         val maxCount = 30
         val count get() = ((sin(Time.gameTime) * 0.5 + 0.5) * maxCount).roundToIntOr()
 
-        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
             // the size is changing constantly, so it would be best to calculate the maximum size
             // if you're too lazy, use aabb.all()
-            dstUnion.setMin(-width.toDouble(), -height.toDouble(), -thickness.toDouble())
-            dstUnion.setMax(+width.toDouble(), +height.toDouble(), (maxCount - 1) * space + thickness.toDouble())
-            return true
+            val dx = width.toDouble()
+            val dy = height.toDouble()
+            dstUnion.setMin(-dx, -dy, -thickness.toDouble())
+            dstUnion.setMax(+dx, +dy, (maxCount - 1) * space + thickness.toDouble())
         }
 
         override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {

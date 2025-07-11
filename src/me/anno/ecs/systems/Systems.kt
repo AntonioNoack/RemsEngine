@@ -57,7 +57,7 @@ object Systems : PrefabSaveable() {
         }
         prevSystem?.clear()
         val world = world
-        if (world != null) addOrRemoveRecursively(world, true, system)
+        if (world != null) setContainsRecursively(world, true, system)
         return true
     }
 
@@ -94,7 +94,7 @@ object Systems : PrefabSaveable() {
                     systems[i].clear()
                 }
                 if (value != null) {
-                    addOrRemoveRecursively(value, true)
+                    setContainsRecursively(value, true)
                 }
                 field = value
             }
@@ -123,7 +123,7 @@ object Systems : PrefabSaveable() {
         }
     }
 
-    fun addOrRemoveRecursively(root: PrefabSaveable, add: Boolean, system: System) {
+    fun setContainsRecursively(root: PrefabSaveable, add: Boolean, system: System) {
         Recursion.processRecursive(root) { element, remaining ->
             if (element.isEnabled or (root === element)) {
                 for (type in element.listChildTypes()) {
@@ -137,7 +137,7 @@ object Systems : PrefabSaveable() {
         }
     }
 
-    fun addOrRemoveRecursively(root: PrefabSaveable, add: Boolean) {
+    fun setContainsRecursively(root: PrefabSaveable, add: Boolean) {
         Recursion.processRecursive(root) { element, remaining ->
             if (element.isEnabled or (root === element)) {
                 for (type in element.listChildTypes()) {

@@ -62,9 +62,8 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
 
     val timer = GPUClockNanos()
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         Shapes.cube11Smooth.getBounds().transformUnion(globalTransform, dstUnion)
-        return true
     }
 
     override fun fill(pipeline: Pipeline, transform: Transform) {

@@ -10,6 +10,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnChangeStructure
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.PlayMode
@@ -19,7 +20,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 
 @Docs("Controls animations using a state machine like in Unity")
-class AnimGraphController : Component(), OnUpdate {
+class AnimGraphController : Component(), OnUpdate, OnChangeStructure {
 
     @Docs("Source file for animation graph")
     @Type("StateMachine/Reference")
@@ -45,13 +46,7 @@ class AnimGraphController : Component(), OnUpdate {
         ECSSceneTabs.open(graphSource, PlayMode.EDITING, true)
     }
 
-    override fun onEnable() {
-        super.onEnable()
-        onChangeStructure(entity ?: return)
-    }
-
     override fun onChangeStructure(entity: Entity) {
-        super.onChangeStructure(entity)
         renderer = entity.getComponent(AnimMeshComponent::class)
     }
 

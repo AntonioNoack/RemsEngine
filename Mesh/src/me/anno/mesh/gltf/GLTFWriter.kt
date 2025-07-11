@@ -1,5 +1,6 @@
 package me.anno.mesh.gltf
 
+import me.anno.cache.FileCacheList
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllChildren
@@ -619,7 +620,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                 } else null
 
                 fun getMaterial(i: Int): Material {
-                    return Materials.getMaterial(materialOverrides, mesh.materials, i)
+                    return Materials.getMaterial(materialOverrides, mesh.cachedMaterials, i)
                 }
                 if (helpers != null) {
                     for ((i, helper) in helpers.withIndex()) {
@@ -845,7 +846,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         val animations = if (scene is AnimMeshComponent && SkeletonCache.getEntry(mesh.skeleton).waitFor() != null) {
             scene.animations.map { it.source }.filter { it.exists }
         } else emptyList()
-        return MeshData(mesh, scene.materials, animations)
+        return MeshData(mesh, scene.cachedMaterials, animations)
     }
 
     private fun defineSceneHierarchy(scene: Saveable, callback: (Exception?) -> Unit) {
@@ -859,7 +860,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             is Mesh -> {
                 nodes.add(MeshComponent(scene))
                 children.add(IntArrayList(0))
-                meshes[MeshData(scene, emptyList(), emptyList())] = 0
+                meshes[MeshData(scene, FileCacheList.empty(), emptyList())] = 0
 
                 callback(null)
             }

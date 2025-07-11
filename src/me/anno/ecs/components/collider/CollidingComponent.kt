@@ -4,11 +4,10 @@ import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.components.FillSpace
 import me.anno.engine.raycast.RayQuery
-import org.joml.AABBd
-import org.joml.Matrix4x3
 
-abstract class CollidingComponent : Component() {
+abstract class CollidingComponent : Component(), FillSpace {
 
     @DebugProperty
     @Docs("Which collisionGroups to interact with")
@@ -23,8 +22,6 @@ abstract class CollidingComponent : Component() {
      * returns whether the object was hit
      * */
     open fun raycast(query: RayQuery): Boolean = false
-
-    abstract override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

@@ -17,9 +17,9 @@ import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
 
-open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection<*, *>> {
+open class CacheSection<K, V : Any>(val name: String) : Comparable<CacheSection<*, *>> {
 
-    val cache = HashMap<K1, AsyncCacheData<V>>(512)
+    val cache = HashMap<K, AsyncCacheData<V>>(512)
 
     override fun compareTo(other: CacheSection<*, *>): Int {
         return name.compareTo(other.name)
@@ -33,7 +33,7 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
         }
     }
 
-    fun remove(filter: (K1, AsyncCacheData<V>) -> Boolean): Int {
+    fun remove(filter: (K, AsyncCacheData<V>) -> Boolean): Int {
         return synchronized(cache) {
             cache.removeIf { (k, v) ->
                 if (filter(k, v)) {
@@ -44,7 +44,7 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
         }
     }
 
-    fun removeEntry(key: K1, delete: Boolean = true): AsyncCacheData<V>? {
+    fun removeEntry(key: K, delete: Boolean = true): AsyncCacheData<V>? {
         return synchronized(cache) {
             val v = cache.remove(key)
             if (delete) v?.destroy()
@@ -56,7 +56,7 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
      * get the value, without generating it if it doesn't exist;
      * delta is added to its timeout, when necessary, so it stays loaded
      * */
-    fun getEntryWithoutGenerator(key: K1, delta: Long = 1L): AsyncCacheData<V>? {
+    fun getEntryWithoutGenerator(key: K, delta: Long = 1L): AsyncCacheData<V>? {
         val entry = synchronized(cache) { cache[key] } ?: return null
         if (delta > 0L) entry.update(delta)
         return entry
@@ -65,13 +65,13 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
     /**
      * returns whether a value is present
      * */
-    fun hasEntry(key: K1, delta: Long = 1L): Boolean {
+    fun hasEntry(key: K, delta: Long = 1L): Boolean {
         val entry = synchronized(cache) { cache[key] } ?: return false
         if (delta > 0L) entry.update(delta)
         return entry.hasValue
     }
 
-    fun override(key: K1, newValue: V, timeoutMillis: Long) {
+    fun override(key: K, newValue: V, timeoutMillis: Long) {
         checkKey(key)
         val oldValue = synchronized(cache) {
             val entry = AsyncCacheData<V>()
@@ -83,7 +83,7 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
     }
 
     private val limiter = AtomicInteger()
-    fun <K1S : K1> getEntryLimited(
+    fun <K1S : K> getEntryLimited(
         key: K1S, timeout: Long,
         limit: Int, generator: (K1S, AsyncCacheData<V>) -> Unit
     ): AsyncCacheData<V>? {
@@ -101,7 +101,7 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
         }
     }
 
-    fun <K1S : K1> getEntryLimitedWithRetry(
+    fun <K1S : K> getEntryLimitedWithRetry(
         key: K1S, timeout: Long,
         limit: Int, generator: (K1S, AsyncCacheData<V>) -> Unit
     ): AsyncCacheData<V> {
@@ -116,7 +116,7 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
         }
     }
 
-    fun <K1S : K1> getEntryLimited(
+    fun <K1S : K> getEntryLimited(
         key: K1S, timeout: Long, queue: ProcessingQueue?,
         limit: Int, generator: (K1S, AsyncCacheData<V>) -> Unit
     ): AsyncCacheData<V>? {
@@ -134,7 +134,7 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
         }
     }
 
-    fun <K1S : K1> getEntryLimitedWithRetry(
+    fun <K1S : K> getEntryLimitedWithRetry(
         key: K1S, timeout: Long, queue: ProcessingQueue?,
         limit: Int, generator: (K1S, AsyncCacheData<V>) -> Unit
     ): AsyncCacheData<V> {
@@ -149,7 +149,7 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
         }
     }
 
-    fun <K1S : K1> getEntryWithIfNotGeneratingCallback(
+    fun <K1S : K> getEntryWithIfNotGeneratingCallback(
         key: K1S, timeoutMillis: Long,
         generator: (K1S, AsyncCacheData<V>) -> Unit,
         ifNotGenerating: (() -> Unit)?
@@ -158,15 +158,15 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
     }
 
     fun getEntryAsync(
-        key: K1, timeoutMillis: Long,
-        generator: (K1, AsyncCacheData<V>) -> Unit,
+        key: K, timeoutMillis: Long,
+        generator: (K, AsyncCacheData<V>) -> Unit,
         resultCallback: Callback<V>
     ) {
         getEntry(key, timeoutMillis, generator)
             .waitFor(resultCallback)
     }
 
-    fun <K1S : K1> getEntryWithIfNotGeneratingCallback(
+    fun <K1S : K> getEntryWithIfNotGeneratingCallback(
         key: K1S, timeoutMillis: Long,
         queue: ProcessingQueue?,
         generator: (K1S, AsyncCacheData<V>) -> Unit,
@@ -204,12 +204,12 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
         return entry
     }
 
-    fun <K1S : K1> getEntry(
+    fun <K1S : K> getEntry(
         key: K1S, timeoutMillis: Long,
         generator: (K1S, AsyncCacheData<V>) -> Unit
     ): AsyncCacheData<V> = getEntryWithIfNotGeneratingCallback(key, timeoutMillis, generator, null)
 
-    fun <K1S : K1> getEntry(
+    fun <K1S : K> getEntry(
         key: K1S, timeoutMillis: Long,
         queue: ProcessingQueue?, generator: (K1S, AsyncCacheData<V>) -> Unit
     ): AsyncCacheData<V> = getEntryWithIfNotGeneratingCallback(key, timeoutMillis, queue, generator, null)

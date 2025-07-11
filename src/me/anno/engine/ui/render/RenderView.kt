@@ -10,6 +10,7 @@ import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.components.FillSpace
 import me.anno.ecs.systems.OnBeforeDraw
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.ecs.systems.Systems
@@ -709,13 +710,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 val aabb1 = entity.getGlobalBounds()
                 val hit1 = aabb1.testLine(mousePosition, mouseDirection, 1e10)
                 drawAABB(aabb1, if (hit1) aabbColorHovered else aabbColorDefault)
-                if (entity.hasRenderables) {
-                    entity.forAllComponents(Renderable::class, false) { component ->
-                        val aabb2 = component.getGlobalBounds()
-                        if (aabb2 != null) {
-                            val hit2 = aabb2.testLine(mousePosition, mouseDirection, 1e10)
-                            drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
-                        }
+                entity.forAllComponents(Renderable::class, false) { component ->
+                    val aabb2 = component.getGlobalBounds()
+                    if (aabb2 != null) {
+                        val hit2 = aabb2.testLine(mousePosition, mouseDirection, 1e10)
+                        drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
                     }
                 }
                 LineBuffer.drawIf1M(cameraMatrix)
@@ -903,7 +902,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 // also somehow calculate the required bounds, and calculate shadows for the default sun
                 val bounds = when (world) {
                     is Entity -> world.getGlobalBounds()
-                    is Component -> {
+                    is FillSpace -> {
                         val bounds = AABBd()
                         world.fillSpace(Matrix4x3(), bounds)
                         bounds

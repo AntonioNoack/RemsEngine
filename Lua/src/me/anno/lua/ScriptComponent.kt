@@ -9,6 +9,7 @@ import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.ecs.Component
 import me.anno.ecs.EntityQuery
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnEnable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
@@ -38,22 +39,29 @@ import java.util.WeakHashMap
  * todo make using Lua as similar as possible to Kotlin, and make it was easy as possible, too
  *  -> to make conversions to Kotlin easy
  * */
-open class ScriptComponent : Component(), OnUpdate {
+open class ScriptComponent : Component(), OnUpdate, OnEnable {
 
     var source: FileReference = InvalidRef
 
-    override fun onCreate() {
-        super.onCreate()
-        callFunction("onCreate", source, this)
+    override fun onEnable() {
+        callFunction("onEnable")
+    }
+
+    override fun onDisable() {
+        callFunction("onDisable")
     }
 
     override fun onUpdate() {
-        callFunction("onUpdate", source, this)
+        callFunction("onUpdate")
     }
 
     override fun destroy() {
         super.destroy()
-        callFunction("destroy", source, this)
+        callFunction("destroy")
+    }
+
+    private fun callFunction(name: String) {
+        callFunction(name, source, this)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

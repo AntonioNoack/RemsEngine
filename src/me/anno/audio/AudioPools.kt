@@ -8,4 +8,9 @@ object AudioPools {
     // maybe I should use a capacity limit relative to the total RAM (?)
     val FAPool = FloatArrayPool(128)
     val SAPool = ShortArrayPool(64)
+
+    fun gc() {
+        FAPool.gc()
+        SAPool.gc()
+    }
 }

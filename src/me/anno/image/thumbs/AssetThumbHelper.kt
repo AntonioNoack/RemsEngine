@@ -89,8 +89,8 @@ object AssetThumbHelper {
             if (centerMesh) centerMesh(cameraMatrix, modelMatrix, this)
         }
 
-        val materials0 = materials
-        val materials1 = comp?.materials
+        val materials0 = cachedMaterials
+        val materials1 = comp?.cachedMaterials
 
         for (index in 0 until numMaterials) {
             val material =

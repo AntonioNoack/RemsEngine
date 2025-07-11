@@ -432,6 +432,12 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         } else emptyList()
     }
 
+    fun hasChildren(element: Saveable): Boolean {
+        if (element !is PrefabSaveable) return false
+        val types = element.listChildTypes()
+        return types.any { type -> element.getChildListByType(type).isNotEmpty() }
+    }
+
     override fun isCollapsed(element: Saveable): Boolean {
         return if (element is PrefabSaveable) element.isCollapsed else false
     }
@@ -470,7 +476,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
 
     override fun getSymbol(element: Saveable): String {
         return when {
-            isCollapsed(element) && getChildren(element).isNotEmpty() -> "📁"
+            isCollapsed(element) && hasChildren(element) -> "📁"
             element is PrefabSaveable && element.root.prefab?.isWritable == false -> "🔒" // lock
             element is Systems -> "⚙" // gear
             element is System -> "🛠" // tools

@@ -280,7 +280,7 @@ fun main2() {
 class Sampler(val position: Vector2d, var weight: Double) {
     override fun toString() = "[(${position.x},${position.y})x$weight]"
 }
-typealias SparseKernel = List<Sampler>
+typealias SparseKernel = Array<Sampler>
 
 fun error(src: FloatImage, dst: FloatImage): Double {
     val w = Maths.max(src.width, dst.width)
@@ -307,7 +307,7 @@ fun pad(src: FloatImage, w: Int, h: Int): FloatArray {
     return dst
 }
 
-fun sparseConvolve(kernels: List<SparseKernel>, write: Boolean): FloatImage {
+fun sparseConvolve(kernels: Array<SparseKernel>, write: Boolean): FloatImage {
     // convolve
     val bounds = AABBd()
     val numLayers = kernels.size
@@ -329,7 +329,7 @@ fun sparseConvolve(kernels: List<SparseKernel>, write: Boolean): FloatImage {
         // convolve actually
         sparseConvolve(image, tmp, k)
         if (write) {
-            sparseConvolve(listOf(k), false).normalize().write(OS.desktop.getChild("img/krn$i.png"))
+            sparseConvolve(arrayOf(k), false).normalize().write(OS.desktop.getChild("img/krn$i.png"))
             tmp.normalize().write(OS.desktop.getChild("img/img$i.png"))
         }
         image = tmp

@@ -16,8 +16,8 @@ fun main() {
 
     val qs = QuickScriptComponent()
     e.add(qs)
-    qs.createScript = "print(entity)"
-    qs.onCreate()
+    qs.enableScript = "print(entity)"
+    qs.onEnable()
 
     Engine.requestShutdown()
 }

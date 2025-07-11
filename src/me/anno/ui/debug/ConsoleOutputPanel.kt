@@ -1,5 +1,6 @@
 package me.anno.ui.debug
 
+import me.anno.audio.AudioPools
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine
 import me.anno.engine.WindowRenderFlags
@@ -109,6 +110,50 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
         }
 
         @JvmStatic
+        fun executeGC() {
+            Pools.gc()
+            AudioPools.gc()
+            System.gc()
+        }
+
+        @JvmStatic
+        fun runGC() {
+            val runtime = Runtime.getRuntime()
+            val oldMemory = runtime.totalMemory() - runtime.freeMemory()
+            executeGC()
+            addEvent(16) {// System.gc() is just a hint, so we wait a short moment, and then see whether sth changed
+                val newMemory = runtime.totalMemory() - runtime.freeMemory()
+                LOGGER.info(
+                    "" +
+                            "Called Garbage Collector:\n" +
+                            "  old:   ${oldMemory.formatFileSize()}\n" +
+                            "  new:   ${newMemory.formatFileSize()}\n" +
+                            "  freed: ${max(0L, oldMemory - newMemory).formatFileSize()}"
+                )
+            }
+        }
+
+        @JvmStatic
+        private fun openMenu(it: Panel) {
+            Menu.openMenu(
+                it.windowStack, listOf(
+                    MenuOption(NameDesc("Edit Config")) {
+                        RemsEngine.openConfigWindow(it.windowStack)
+                    },
+                    MenuOption(NameDesc("Edit Style")) {
+                        RemsEngine.openStylingWindow(it.windowStack)
+                    },
+                    MenuOption(NameDesc("Edit Keymap")) {
+                        RemsEngine.openKeymapWindow(it.windowStack)
+                    },
+                    MenuOption(NameDesc("Toggle VSync"), WindowRenderFlags::toggleVsync),
+                    MenuOption(NameDesc("Print Memory Report"), RuntimeInfoPanel::printDetailedReport),
+                    MenuOption(NameDesc("Run GC"), ::runGC),
+                )
+            )
+        }
+
+        @JvmStatic
         fun createConsoleWithStats(bottom: Boolean = true, style: Style): Panel {
 
             val group = PanelStack(style)
@@ -118,43 +163,9 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             val info = RuntimeInfoPanel(style)
             info.alignmentX = AxisAlignment.MAX
             info.tooltip = "Click to invoke garbage collector"
-            fun runGC() {
-                val runtime = Runtime.getRuntime()
-                val oldMemory = runtime.totalMemory() - runtime.freeMemory()
-                Pools.gc()
-                System.gc()
-                addEvent(16) {// System.gc() is just a hint, so we wait a short moment, and then see whether sth changed
-                    val newMemory = runtime.totalMemory() - runtime.freeMemory()
-                    LOGGER.info(
-                        "" +
-                                "Called Garbage Collector:\n" +
-                                "  old:   ${oldMemory.formatFileSize()}\n" +
-                                "  new:   ${newMemory.formatFileSize()}\n" +
-                                "  freed: ${max(0L, oldMemory - newMemory).formatFileSize()}"
-                    )
-                }
-            }
-            info.addLeftClickListener {
-                runGC()
-            }
-            info.addRightClickListener {
-                Menu.openMenu(
-                    it.windowStack, listOf(
-                        MenuOption(NameDesc("Edit Config")) {
-                            RemsEngine.openConfigWindow(it.windowStack)
-                        },
-                        MenuOption(NameDesc("Edit Style")) {
-                            RemsEngine.openStylingWindow(it.windowStack)
-                        },
-                        MenuOption(NameDesc("Edit Keymap")) {
-                            RemsEngine.openKeymapWindow(it.windowStack)
-                        },
-                        MenuOption(NameDesc("Toggle VSync"), WindowRenderFlags::toggleVsync),
-                        MenuOption(NameDesc("Print Memory Report"), RuntimeInfoPanel::printDetailedReport),
-                        MenuOption(NameDesc("Run GC"), ::runGC),
-                    )
-                )
-            }
+
+            info.addLeftClickListener { runGC() }
+            info.addRightClickListener(::openMenu)
 
             if (bottom) {
                 // adds conditional spacing for FPS panel

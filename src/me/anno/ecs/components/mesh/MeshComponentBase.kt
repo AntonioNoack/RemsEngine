@@ -1,11 +1,13 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.ecs.Entity
+import me.anno.cache.FileCacheList
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.collider.CollidingComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
@@ -20,6 +22,7 @@ import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
+import me.anno.utils.InternalAPI
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Matrix4x3d
@@ -55,7 +58,17 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @Docs("Overrides the mesh materials")
     @Type("List<Material/Reference>")
     @SerializedProperty
-    var materials: List<FileReference> = emptyList()
+    var materials: List<FileReference>
+        get() = cachedMaterials
+        set(value) {
+            if (cachedMaterials != value) {
+                cachedMaterials = FileCacheList(value, MaterialCache::getEntry)
+            }
+        }
+
+    @InternalAPI
+    @NotSerializedProperty
+    var cachedMaterials = FileCacheList.empty<Material>()
 
     @Docs("For displaying random triangle colors")
     @NotSerializedProperty
@@ -90,12 +103,6 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         } else false
     }
 
-    override fun onChangeStructure(entity: Entity) {
-        super.onChangeStructure(entity)
-        entity.invalidateCollisionMask()
-        getMesh()
-    }
-
     /**
      * set this parameter, if you want this object to be only drawn, if it is really visible;
      * visibility is checked every <everyNthFrame> frames
@@ -127,12 +134,9 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         return if (clickId == searchedId) this else null
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         val mesh = getMesh()
-        if (mesh != null) {
-            fillSpaceSet(mesh, globalTransform, dstUnion)
-        }
-        return true
+        if (mesh != null) fillSpaceSet(mesh, globalTransform, dstUnion)
     }
 
     fun fillSpaceStart() {
@@ -186,7 +190,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is MeshComponentBase) return
-        dst.materials = materials
+        dst.cachedMaterials = cachedMaterials
         dst.castShadows = castShadows
         dst.receiveShadows = receiveShadows
         dst.isInstanced = isInstanced

@@ -162,7 +162,7 @@ class ComputeShaderMesh(val mesh: Mesh) : IMesh {
         instanceData: Buffer?, target: IFramebuffer,
         numPrimitives: Int,
     ) {
-        val material = Materials.getMaterial(null, mesh.materials, materialIndex)
+        val material = Materials.getMaterial(mesh.cachedMaterials, materialIndex)
         material.bind(shader)
         bindCameraUniforms(shader, false)
         bindJitterUniforms(shader)

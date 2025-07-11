@@ -14,8 +14,9 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.WindowRenderFlags
+import me.anno.ecs.components.FillSpace
 import me.anno.engine.OfficialExtensions
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
@@ -253,7 +254,7 @@ fun main() {
         val camEntity = Entity()
         val camBase = Entity()
 
-        val controls = object : OrbitControls(), Renderable {
+        val controls = object : OrbitControls(), Renderable, FillSpace {
             var file: FileReference = InvalidRef
 
             var hitEntity: Entity? = null
@@ -273,9 +274,8 @@ fun main() {
                 if (mesh != null) pipeline.addMesh(mesh, this, placingTransform)
             }
 
-            override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+            override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
                 dstUnion.all()
-                return true
             }
 
             fun updateSampleInstance() {

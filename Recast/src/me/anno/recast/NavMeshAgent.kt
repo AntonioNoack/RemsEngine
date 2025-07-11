@@ -1,6 +1,7 @@
 package me.anno.recast
 
 import me.anno.ecs.Component
+import me.anno.ecs.systems.OnEnable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.serialization.NotSerializedProperty
 import org.joml.Vector3f
@@ -9,7 +10,7 @@ import org.recast4j.detour.crowd.CrowdAgent
 import org.recast4j.detour.crowd.CrowdAgentParams
 import kotlin.random.Random
 
-open class NavMeshAgent(val data: NavMeshData) : Component(), OnUpdate {
+open class NavMeshAgent(val data: NavMeshData) : Component(), OnUpdate, OnEnable {
 
     @NotSerializedProperty
     val params = CrowdAgentParams()
@@ -29,6 +30,10 @@ open class NavMeshAgent(val data: NavMeshData) : Component(), OnUpdate {
         // other params?
         crowdAgent = data.crowd.addAgent(Vector3f(position), params)
         return true
+    }
+
+    override fun onEnable() {
+        if (crowdAgent == null) init() // correct???
     }
 
     override fun onDisable() {

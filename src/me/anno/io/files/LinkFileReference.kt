@@ -2,6 +2,7 @@ package me.anno.io.files
 
 import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.Reference.getRealReference
+import me.anno.io.files.Reference.getRealReferenceOrNull
 import me.anno.io.files.Reference.getReference
 import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
@@ -31,6 +32,9 @@ class LinkFileReference(absolutePath: String) : FileReference(absolutePath) {
             }
             return file
         }
+
+    val originalOrNull: FileReference?
+        get() = getRealReferenceOrNull(absolutePath)
 
     override fun getChildImpl(name: String): FileReference {
         return getReference(appendPath(absolutePath, name))

@@ -15,7 +15,7 @@ fun main() {
         err?.printStackTrace()
 
         val qs = QuickScriptComponent()
-        qs.createScript = txt ?: ""
+        qs.enableScript = txt ?: ""
 
         testSceneWithUI("LuaScene", Entity().add(qs))
     }

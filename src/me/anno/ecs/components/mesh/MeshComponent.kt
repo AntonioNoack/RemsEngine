@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.cache.FileCacheValue
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabSaveable
@@ -31,16 +32,19 @@ open class MeshComponent() : MeshComponentBase() {
 
     @SerializedProperty
     @Type("Mesh/Reference")
-    var meshFile: FileReference = defaultMeshRef
+    var meshFile: FileReference
+        get() = cachedMesh.file
         set(value) {
-            if (field != value) {
-                field = value
+            if (cachedMesh.file != value) {
+                cachedMesh.file = value
                 invalidateBounds()
             }
         }
 
-    override fun getMeshOrNull(): IMesh? = MeshCache[meshFile]
-    override fun getMesh(): IMesh? = MeshCache.getEntry(meshFile).waitFor()
+    private val cachedMesh = FileCacheValue(defaultMeshRef, MeshCache::getEntry)
+
+    override fun getMeshOrNull(): IMesh? = cachedMesh.value
+    override fun getMesh(): IMesh? = cachedMesh.waitFor().waitFor()
 
     override fun destroy() {
         super.destroy()

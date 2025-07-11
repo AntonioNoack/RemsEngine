@@ -150,9 +150,8 @@ object AudioManager {
         alcMakeContextCurrent(context)
         AL.createCapabilities(deviceCaps)
         ALBase.check()
-        if (hasWarned) {
-            LOGGER.info("Succeeded creating audio context")
-        }
+
+        LOGGER.info("Successfully created audio context")
     }
 
     fun destroy() {

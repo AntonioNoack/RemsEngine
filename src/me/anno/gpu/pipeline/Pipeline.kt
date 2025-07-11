@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.cache.FileCacheList
 import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -40,7 +41,6 @@ import me.anno.gpu.pipeline.transparency.AlphaBlendPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.texture.TextureLib
-import me.anno.io.files.FileReference
 import me.anno.maths.Maths.PIf
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.pooling.JomlPools
@@ -147,13 +147,13 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun addMesh(mesh: IMesh, renderer: Component, transform: Transform) {
-        val materialOverrides = (renderer as? MeshComponentBase)?.materials
+        val materialOverrides = (renderer as? MeshComponentBase)?.cachedMaterials
         addMesh(mesh, renderer, materialOverrides, transform)
     }
 
-    fun addMesh(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, transform: Transform) {
+    fun addMesh(mesh: IMesh, renderer: Component, materialOverrides: FileCacheList<Material>?, transform: Transform) {
         mesh.ensureBuffer()
-        val materials = mesh.materials
+        val materials = mesh.cachedMaterials
         val superMaterial = superMaterial
         for (index in 0 until mesh.numMaterials) {
             val material = getMaterial(superMaterial, materialOverrides, materials, index)
@@ -163,18 +163,18 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun addMeshInstanced(mesh: IMesh, renderer: Component, transform: Transform) {
-        val materialOverrides = (renderer as? MeshComponentBase)?.materials
+        val materialOverrides = (renderer as? MeshComponentBase)?.cachedMaterials
         addMeshInstanced(mesh, renderer, materialOverrides, transform)
     }
 
     fun addMeshInstanced(
         mesh: IMesh,
         renderer: Component,
-        materialOverrides: List<FileReference>?,
+        materialOverrides: FileCacheList<Material>?,
         transform: Transform
     ) {
         mesh.ensureBuffer()
-        val materials = mesh.materials
+        val materials = mesh.cachedMaterials
         val superMaterial = superMaterial
         for (index in 0 until mesh.numMaterials) {
             val material = getMaterial(superMaterial, materialOverrides, materials, index)

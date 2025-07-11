@@ -30,6 +30,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.min
 import me.anno.utils.Color.convertABGR2ARGB
+import me.anno.utils.GFXFeatures
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.structures.tuples.LongTriple
@@ -102,9 +103,9 @@ class InstancedStackImpl(capacity: Int = 512) : DrawableStack(MeshInstanceData.D
             // todo useAttributeLayout in non-instanced meshes, too (?)
             // todo test with lots and lots of attributes
             //  (whether we still fail before this)
-            // todo test this on WebGL!!!
             // Android works :)
-            val useAttributeLayout = mesh is Mesh && mesh.helperMeshes == null && mesh.buffer != null
+            val useAttributeLayout = mesh is Mesh && mesh.helperMeshes == null && mesh.buffer != null &&
+                    GFXFeatures.supportsShaderStorageBuffers
 
             val tmpShader = stage.getShader(material)
             // to enable this mode, your vertex shader needs to be adjusted; motion vectors will only work with static meshes properly
@@ -314,7 +315,7 @@ class InstancedStackImpl(capacity: Int = 512) : DrawableStack(MeshInstanceData.D
         prevCameraPosition: Vector3d, cameraPosition: Vector3d,
         motionVectors: Boolean, useAnimations: Boolean,
         anim: FloatArray?, overrideGfxId: Boolean,
-        gfxIds: IntArray, drawCallId: Int,
+        gfxIds: IntArray, newGfxId: Int,
     ) {
         for (index in baseIndex until endIndex) {
             val transform = transforms[index] as Transform
@@ -335,7 +336,7 @@ class InstancedStackImpl(capacity: Int = 512) : DrawableStack(MeshInstanceData.D
             }
             nioBuffer.putInt(
                 convertABGR2ARGB(
-                    if (overrideGfxId) drawCallId
+                    if (overrideGfxId) newGfxId
                     else gfxIds[index]
                 )
             )

@@ -201,5 +201,5 @@ object Recursion {
         assertEquals(startIndex, remaining.size)
     }
 
-    private const val TRIM_SIZE = 500
+    private const val TRIM_SIZE = 25_000
 }

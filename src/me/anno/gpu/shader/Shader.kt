@@ -156,8 +156,7 @@ open class Shader(
             builder.append(";\n")
         }
 
-        if ("#extension" in vertexShader) builder.append(vertexShader.replace("#extension ", "// #extension "))
-        else builder.append(vertexShader)
+        builder.append(vertexShader.replace("#extension ", "// #extension "))
 
         vertexSource = builder.toString()
         builder.clear()
@@ -205,8 +204,7 @@ open class Shader(
         ) "out vec4 glFragColor;\n" + fragmentShader.replace("gl_FragColor", "glFragColor")
         else fragmentShader
 
-        if ("#extension" in base) builder.append(base.replace("#extension ", "// #extension "))
-        else builder.append(base)
+        builder.append(base.replace("#extension ", "// #extension "))
 
         fragmentSource = builder.toString()
         builder.clear()

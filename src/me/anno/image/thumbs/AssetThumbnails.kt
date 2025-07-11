@@ -27,6 +27,7 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.components.FillSpace
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView0
@@ -88,7 +89,7 @@ object AssetThumbnails {
                 if (entityI != null) {
                     entityI.validateTransform()
                     val transform = entityI.transform.globalTransform
-                    it.fillSpace(transform, dst)
+                    (it as? FillSpace)?.fillSpace(transform, dst)
                 }
             }
         }
@@ -154,7 +155,7 @@ object AssetThumbnails {
         val meshToMat = HashSet<FileReference>()
         val matToTex = HashSet<FileReference>()
 
-        waitUntil("AssetThumbnails:loadAll",true, {
+        waitUntil("AssetThumbnails:loadAll", true, {
             meshFiles.all2 { meshFile ->
                 checkAsset(MeshCache, meshFile, meshToMat) { mesh ->
                     materialFiles.addAll(mesh.materials.filter { it.exists })
@@ -517,9 +518,7 @@ object AssetThumbnails {
             is Renderable -> generateRenderableFrame(srcFile, dstFile, size, asset, callback)
             is Collider -> generateColliderFrame(srcFile, dstFile, size, asset, callback)
             is Component -> {
-                val gt = JomlPools.mat4x3m.borrow()
-                val ab = JomlPools.aabbd.borrow()
-                if (asset.fillSpace(gt, ab)) {
+                if (asset is FillSpace) {
                     // todo render debug ui :)
                     LOGGER.warn("UI rendering for components not yet implemented")
                 }

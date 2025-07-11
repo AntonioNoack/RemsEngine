@@ -1,5 +1,7 @@
 package me.anno.ecs.components.light.sky
 
+import me.anno.cache.AsyncCacheData
+import me.anno.cache.FileCacheList
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.collider.CollidingComponent
@@ -16,7 +18,6 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
-import me.anno.io.files.FileReference
 import me.anno.mesh.Shapes
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.AABBd
@@ -49,7 +50,7 @@ open class SkyboxBase : CollidingComponent(), Renderable {
             field.set(value)
         }
 
-    val materials: List<FileReference>
+    val materials: FileCacheList<Material>
 
     init {
         // rendering properties
@@ -59,7 +60,7 @@ open class SkyboxBase : CollidingComponent(), Renderable {
         material.shaderOverrides["reversedDepth"] =
             TypeValue(GLSLType.V1B, { GFXState.depthMode.currentValue.reversedDepth })
         material.shaderOverrides["isPerspective"] = TypeValue(GLSLType.V1B, { RenderState.isPerspective })
-        materials = listOf(material.ref)
+        materials = FileCacheList(listOf(material.ref)) { AsyncCacheData(material) }
     }
 
     override fun hasRaycastType(typeMask: Int) = typeMask.hasFlag(Raycast.SKY)
@@ -80,9 +81,8 @@ open class SkyboxBase : CollidingComponent(), Renderable {
 
     open fun getMesh() = mesh
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         dstUnion.all() // skybox is visible everywhere
-        return true
     }
 
     override fun copyInto(dst: PrefabSaveable) {

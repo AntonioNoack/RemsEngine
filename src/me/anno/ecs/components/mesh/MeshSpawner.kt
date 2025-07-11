@@ -58,7 +58,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             mesh.getBounds().transformUnion(transform.globalTransform, tmpAABB)
             if (pipeline.frustum.contains(tmpAABB)) {
                 for (matIndex in 0 until mesh.numMaterials) {
-                    val material0 = materialOverride ?: Materials.getMaterial(null, mesh.materials, matIndex)
+                    val material0 = materialOverride ?: Materials.getMaterial(mesh.cachedMaterials, matIndex)
                     val material = Materials.getMaterial(pipeline.superMaterial, material0)
                     val stage = pipeline.findStage(material)
                     if (mesh.proceduralLength <= 0) {
@@ -176,7 +176,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
 
     override fun getGlobalBounds(): AABBd? = globalAABB
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         // calculate local aabb
         val local = localAABB
         local.clear()
@@ -195,9 +195,6 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
 
         // add the result to the output
         dstUnion.union(global)
-
-        // yes, we calculated stuff
-        return true
     }
 
     /**

@@ -141,12 +141,11 @@ class DuckComponent : MeshComponent() {
     lateinit var sim: FluidSimulation
 
     // extend theoretical bounds
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         localAABB.setMin(-sim.width * 0.5 * cellSize, 0.0, -sim.height * 0.5 * cellSize)
         localAABB.setMax(+sim.width * 0.5 * cellSize, waveHeight.toDouble(), +sim.height * 0.5 * cellSize)
         localAABB.transform(globalTransform, globalAABB)
         dstUnion.union(globalAABB)
-        return true
     }
 }
 
@@ -240,13 +239,12 @@ fun main() {
             step(ci, lx, ly, 0.2f * dist.toFloat() / (max(w, h) * cellSize), sim)
         }
 
-        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
             localAABB.set(mesh.getBounds())
             localAABB.minY = -50.0
             localAABB.maxY = +50.0
             localAABB.transform(globalTransform, globalAABB)
             dstUnion.union(globalAABB)
-            return true
         }
     }
     scene.add(comp)

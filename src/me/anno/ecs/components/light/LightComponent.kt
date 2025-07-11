@@ -104,9 +104,8 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         return super.fill(pipeline, transform)
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         getLightPrimitive().getBounds().transformUnion(globalTransform, dstUnion)
-        return true
     }
 
     open fun invalidateShadows() {

@@ -1,6 +1,8 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.cache.FileCacheList
 import me.anno.cache.ICacheData
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.CullMode
@@ -17,7 +19,9 @@ import org.joml.AABBf
 interface IMesh : Renderable, ICacheData {
 
     val numMaterials: Int get() = 1
-    val materials: List<FileReference> get() = emptyList()
+    val materials: List<FileReference> get() = cachedMaterials
+    val cachedMaterials: FileCacheList<Material> get() = FileCacheList.empty()
+
     val vertexData: MeshVertexData get() = MeshVertexData.DEFAULT
     val skeleton: FileReference get() = InvalidRef
 

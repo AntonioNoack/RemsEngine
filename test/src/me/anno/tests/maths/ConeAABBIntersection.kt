@@ -7,6 +7,7 @@ import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.FillSpace
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.LineShapes
@@ -43,7 +44,7 @@ fun main() {
         }
     }
 
-    val tested = object : Component(), OnDrawGUI, OnUpdate {
+    val tested = object : Component(), OnDrawGUI, OnUpdate, FillSpace {
 
         @Group("Points")
         var start = Vector3f(0f, 0f, 0f)
@@ -57,9 +58,8 @@ fun main() {
         @Group("Radius")
         var radiusPerUnit = 0.5f
 
-        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
             dstUnion.all()
-            return true
         }
 
         override fun onUpdate() {
