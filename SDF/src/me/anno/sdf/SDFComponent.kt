@@ -64,8 +64,8 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import org.joml.Planef
 import org.joml.Quaternionf
 import org.joml.Vector2f
@@ -358,17 +358,27 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         } else {
             // raycast
             val result = query.result
-            val globalTransform = transform?.globalTransform ?: Matrix4x3() // local -> global
-            val globalInv = result.tmpMat4x3m.set(globalTransform).invert()
+            val globalTransform = transform?.globalTransform  // local -> global
+            val globalInv =
+                if (globalTransform != null) result.tmpMat4x3m.set(globalTransform).invert()
+                else result.tmpMat4x3m.identity()
+
             val vec3f = result.tmpVector3fs
             val vec3d = result.tmpVector3ds
             val vec4f = result.tmpVector4fs
+
             // compute ray positions in the wild
             val localSrt0 = globalInv.transformPosition(query.start, vec3d[0])
             val localDir0 = globalInv.transformDirection(query.direction, vec3f[4])
             val localDir1 = vec3d[1].set(localDir0).safeNormalize()
             val localEnd0 = globalInv.transformPosition(query.end, vec3d[2])
+
             // project start & end onto aabb for better results in single precision
+            if (localAABB.isEmpty()) {
+                globalAABB.clear()
+                fillSpace(globalTransform ?: Matrix4x3(), globalAABB)
+            }
+
             val maxLocalDistanceSq0 = localSrt0.distanceSquared(localEnd0)
             val startOffset = projectRayToAABBFront(localSrt0, localDir1, localAABB, dst = localSrt0)
             projectRayToAABBBack(localEnd0, localDir1, localAABB, dst = localEnd0)
@@ -377,7 +387,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
             val localEnd = vec3f[2].set(localEnd0)
             val near = 0f
             val far = localSrt.distance(localEnd)
-            val maxSteps = max(maxSteps, 250)
+
             // todo if already inside body, return it?
             // we could use different parameters for higher accuracy...
             val seeds = IntArrayList(8)

@@ -14,7 +14,7 @@ class IntToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = DEFAULT_L
     val size get() = content.size
     fun isEmpty() = size == 0
 
-    operator fun set(key: Int, value: V?) {
+    operator fun set(key: Int, value: V) {
         put(key, value)
     }
 
@@ -26,7 +26,7 @@ class IntToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = DEFAULT_L
         return newValue
     }
 
-    fun put(key: Int, value: V?): V? {
+    fun put(key: Int, value: V): V? {
         return content.put(key.toLong(), value)
     }
 
@@ -34,7 +34,7 @@ class IntToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = DEFAULT_L
         return content.remove(key.toLong())
     }
 
-    fun remove(key: Int, value: V?): Boolean {
+    fun remove(key: Int, value: V): Boolean {
         return content.remove(key.toLong(), value)
     }
 
@@ -46,11 +46,11 @@ class IntToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = DEFAULT_L
         return content.containsKey(key.toLong())
     }
 
-    fun replace(key: Int, oldValue: V?, newValue: V?): Boolean {
+    fun replace(key: Int, oldValue: V, newValue: V): Boolean {
         return content.replace(key.toLong(), oldValue, newValue)
     }
 
-    fun replace(key: Int, value: V?): V? {
+    fun replace(key: Int, value: V): V? {
         return content.replace(key.toLong(), value)
     }
 

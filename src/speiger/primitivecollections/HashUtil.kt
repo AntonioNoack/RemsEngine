@@ -52,13 +52,13 @@ object HashUtil {
 
     @JvmStatic
     fun arraySize(size: Int, loadFactor: Float): Int {
-        return min(
-            1073741824L,
-            max(2L, nextPowerOfTwo(ceil((size.toFloat() / loadFactor).toDouble()).toLong()))
-        ).toInt()
+        val v0 = initialSize(size, loadFactor)
+        val v1 = max(2L, nextPowerOfTwo(v0.toLong()))
+        return min(1L shl 30, v1).toInt()
     }
 
     fun initialSize(usedSize: Int, loadFactor: Float = DEFAULT_LOAD_FACTOR): Int {
-        return max(ceil(usedSize / loadFactor).toIntOr(), 4)
+        val rawValue = ceil(max(usedSize, 0) / loadFactor)
+        return max(min(rawValue, 2e9f).toIntOr(), 4)
     }
 }

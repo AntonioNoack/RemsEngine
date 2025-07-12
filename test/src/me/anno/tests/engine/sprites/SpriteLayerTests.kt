@@ -24,7 +24,6 @@ import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGB
 import me.anno.utils.OS
-import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector2i
@@ -110,9 +109,10 @@ class SpriteLayerTests {
 
         val layerTexture = createLayerTextureRef()
         val layerTextureRef = layerTexture.ref
-        Sleep.waitUntilDefined(true) { // ensure texture atlas is created
-            TextureCache.getTextureArray(layerTextureRef, Vector2i(7, 7))
-        }
+
+        // ensure texture atlas is created
+        TextureCache.getTextureArrayEntry(layerTextureRef, Vector2i(7, 7))
+            .waitFor()
 
         val layer = createLayer()
         layer.material.diffuseMap = layerTextureRef

@@ -1,6 +1,7 @@
 package me.anno.sdf.shapes
 
 import me.anno.ecs.annotations.Docs
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
@@ -20,13 +21,21 @@ open class SDFCone : SDFShape() {
 
     private val params = Vector2f(1f, 2f)
 
+    var axis = Axis.Y
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateShader()
+            }
+        }
+
     var radius
         get() = params.x
         set(value) {
             if (params.x != value) {
+                params.x = value
                 if (dynamicSize || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
-                params.x = value
             }
         }
 
@@ -34,17 +43,19 @@ open class SDFCone : SDFShape() {
         get() = params.y
         set(value) {
             if (params.y != value) {
+                params.y = value
                 if (dynamicSize || globalDynamic) invalidateShaderBounds()
                 else invalidateShader()
-                params.y = value
             }
         }
 
     override fun calculateBaseBounds(dst: AABBf) {
-        val h = height * 0.5f
+        val h = height * 0.5
         val r = radius
-        dst.setMin(-r, -h, -r)
-        dst.setMax(+r, +h, +r)
+        dst.setMin(-r, -r, -r)
+        dst.setMax(+r, +r, +r)
+        dst.setComp(axis.id, -h)
+        dst.setComp(axis.id + 3, +h)
     }
 
     override fun buildShader(
@@ -59,7 +70,13 @@ open class SDFCone : SDFShape() {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdCone)
         smartMinBegin(builder, dstIndex)
-        builder.append("sdCone(pos").append(trans.posIndex).append(',')
+        builder.append("sdCone(pos").append(trans.posIndex)
+        when (axis) {
+            Axis.X -> builder.append(".yxz")
+            Axis.Z -> builder.append(".yzx")
+            else -> {}
+        }
+        builder.append(',')
         val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) builder.appendUniform(uniforms, params)
         else builder.appendVec(params)
@@ -71,8 +88,12 @@ open class SDFCone : SDFShape() {
         val q = params
         val qx = q.x
         val qy = q.y
-        val wx = length(pos.x, pos.z)
-        val wy = qy * 0.5f - pos.y
+        val wx = when (axis) {
+            Axis.X -> length(pos.y, pos.z)
+            Axis.Y -> length(pos.x, pos.z)
+            Axis.Z -> length(pos.x, pos.y)
+        }
+        val wy = qy * 0.5f - pos[axis.id]
         val af = clamp((wx * q.x + wy * q.y) / q.lengthSquared())
         val ax = wx - qx * af
         val ay = wy - qy * af
@@ -88,6 +109,7 @@ open class SDFCone : SDFShape() {
         super.copyInto(dst)
         if (dst !is SDFCone) return
         dst.params.set(params)
+        dst.axis = axis
     }
 
     companion object {

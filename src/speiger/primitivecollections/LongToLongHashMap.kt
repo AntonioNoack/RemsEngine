@@ -122,10 +122,9 @@ class LongToLongHashMap(
             values[pos] = missingValue
             --size
             shiftKeys(pos)
-            if (nullIndex > minCapacity && size < maxFill / 4 && nullIndex > 16) {
-                rehash(nullIndex / 2)
+            if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
+                rehash(nullIndex shr 1)
             }
-
             return value
         }
     }
@@ -136,10 +135,9 @@ class LongToLongHashMap(
         keys[nullIndex] = 0L
         values[nullIndex] = missingValue
         --size
-        if (nullIndex > minCapacity && size < maxFill / 4 && nullIndex > 16) {
-            rehash(nullIndex / 2)
+        if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
+            rehash(nullIndex shr 1)
         }
-
         return value
     }
 

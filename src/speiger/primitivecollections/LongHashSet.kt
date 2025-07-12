@@ -48,8 +48,8 @@ class LongHashSet(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
             keys[pos] = 0L
             --size
             shiftKeys(pos)
-            if (nullIndex > minCapacity && size < maxFill / 4 && nullIndex > 16) {
-                rehash(nullIndex / 2)
+            if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
+                rehash(nullIndex shr 1)
             }
         }
     }
@@ -58,8 +58,8 @@ class LongHashSet(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
         containsNull = false
         keys[nullIndex] = 0L
         --size
-        if (nullIndex > minCapacity && size < maxFill / 4 && nullIndex > 16) {
-            rehash(nullIndex / 2)
+        if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
+            rehash(nullIndex shr 1)
         }
     }
 

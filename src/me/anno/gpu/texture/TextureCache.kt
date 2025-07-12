@@ -101,9 +101,16 @@ object TextureCache {
         file: FileReference, numTiles: Vector2i,
         timeoutMillis: Long = TextureCache.timeoutMillis
     ): Texture2DArray? {
+        return getTextureArrayEntry(file, numTiles, timeoutMillis)
+            .waitFor()?.createdOrNull() as? Texture2DArray
+    }
+
+    fun getTextureArrayEntry(
+        file: FileReference, numTiles: Vector2i,
+        timeoutMillis: Long = TextureCache.timeoutMillis
+    ): AsyncCacheData<Texture2DArray> {
         val key = FileTriple(file, numTiles)
-        val texture = textureArrays2.getEntry(key, timeoutMillis, TextureCache::generateTextureArray)
-        return texture.waitFor()?.createdOrNull() as? Texture2DArray
+        return textureArrays2.getEntry(key, timeoutMillis, TextureCache::generateTextureArray)
     }
 
     private data class ArrayKey(val files: List<FileReference>, val width: Int, val height: Int) {

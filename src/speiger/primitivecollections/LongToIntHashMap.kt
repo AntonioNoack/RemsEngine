@@ -7,7 +7,7 @@ import speiger.primitivecollections.callbacks.LongIntCallback
  * Wrapper around LongToLongHashMap
  * */
 class LongToIntHashMap(
-    val missingValue: Int,
+    missingValue: Int,
     minCapacity: Int = 16,
     loadFactor: Float = 0.75f
 ) {
@@ -16,8 +16,14 @@ class LongToIntHashMap(
     val content = LongToLongHashMap(missingValue.toLong(), minCapacity, loadFactor)
 
     val size get() = content.size
+    val maxFill get() = content.maxFill
+
     fun isEmpty() = size == 0
     fun isNotEmpty() = !isEmpty()
+
+    @Suppress("unused")
+    val missingValue: Int
+        get() = content.missingValue.toInt()
 
     operator fun set(key: Long, value: Int) {
         put(key, value)
@@ -73,4 +79,6 @@ class LongToIntHashMap(
             callback.callback(k, v.toInt())
         }
     }
+
+    fun keysToHashSet() = content.keysToHashSet()
 }

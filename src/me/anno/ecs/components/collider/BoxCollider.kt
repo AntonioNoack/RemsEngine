@@ -55,14 +55,16 @@ class BoxCollider : Collider() {
     override fun raycast(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
         val pos = query.start
         val dir = query.direction
-        val invDir = JomlPools.vec3f.borrow()
-            .set(1f / dir.x, 1f / dir.y, 1f / dir.z)
-        val max = query.maxDistance
         val halfExtents = halfExtents
         val distance = JomlPools.aabbf.borrow()
-            .setMin(-halfExtents.x, -halfExtents.y, -halfExtents.z).setMax(halfExtents)
-            .whereIsRayIntersecting(pos, invDir, 0f)
-        if (distance < max && surfaceNormal != null) {
+            .setMin(-halfExtents.x, -halfExtents.y, -halfExtents.z)
+            .setMax(halfExtents)
+            .whereIsRayIntersecting(
+                pos.x, pos.y, pos.z,
+                1f / dir.x, 1f / dir.y, 1f / dir.z,
+                0f
+            )
+        if (distance < query.maxDistance && surfaceNormal != null) {
             val px = pos.x + dir.x * distance
             val py = pos.y + dir.y * distance
             val pz = pos.z + dir.z * distance

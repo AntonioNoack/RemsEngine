@@ -1,6 +1,7 @@
 package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
+import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.callbacks.LongCallback
 import kotlin.math.ceil
 import kotlin.math.max
@@ -61,20 +62,25 @@ abstract class LongToHashMap<AV>(
     val loadFactor: Float
 
     init {
-        check(minCapacity >= 0) { "Minimum Capacity is negative. This is not allowed" }
-        if (loadFactor in 1e-3f..1f) {
-            this.loadFactor = loadFactor
-            nullIndex = HashUtil.arraySize(minCapacity, loadFactor)
-            this.minCapacity = nullIndex
-            mask = nullIndex - 1
-            maxFill = min(ceil((nullIndex.toFloat() * loadFactor).toDouble()).toInt(), nullIndex - 1)
-            keys = LongArray(nullIndex + 1)
-            values = createArray(nullIndex + 1)
-        } else {
-            throw IllegalStateException("Load Factor is not between 0 and 1")
-        }
+        val loadFactor = if (loadFactor in 0.1f..1f) loadFactor else DEFAULT_LOAD_FACTOR
+        this.loadFactor = loadFactor
+        nullIndex = HashUtil.arraySize(minCapacity, loadFactor)
+        this.minCapacity = nullIndex
+        mask = nullIndex - 1
+        maxFill = min(sizeToCapacity(nullIndex), nullIndex - 1)
+        keys = LongArray(nullIndex + 1)
+        values = createArray(nullIndex + 1)
     }
 
+    val minFill get() = maxFill shr 2
+
+    private fun sizeToCapacity(size: Int): Int {
+        return ceil(size.toDouble() * loadFactor).toInt()
+    }
+
+    private fun sizeToPower2Capacity(size: Int): Int {
+        return HashUtil.nextPowerOfTwo(sizeToCapacity(size))
+    }
 
     fun clear() {
         if (size != 0) {
@@ -86,38 +92,26 @@ abstract class LongToHashMap<AV>(
     }
 
     fun trim(size: Int): Boolean {
-        val request = max(
-            minCapacity,
-            HashUtil.nextPowerOfTwo(ceil((size.toFloat() / loadFactor).toDouble()).toInt())
-        )
-        if (request < nullIndex && this.size < min(
-                ceil((request.toFloat() * loadFactor).toDouble()).toInt(),
-                request - 1
-            )
-        ) {
+        val request = max(minCapacity, sizeToPower2Capacity(size))
+        return if (request < nullIndex && this.size < min(sizeToCapacity(request), request - 1)) {
             try {
                 rehash(request)
-                return true
+                true
             } catch (_: OutOfMemoryError) {
-                return false
+                false
             }
-        } else {
-            return false
-        }
+        } else false
     }
 
     @Suppress("unused")
     fun clearAndTrim(size: Int) {
-        val request = max(
-            minCapacity,
-            HashUtil.nextPowerOfTwo(ceil((size.toFloat() / loadFactor).toDouble()).toInt())
-        )
+        val request = max(minCapacity, sizeToPower2Capacity(size))
         if (request >= nullIndex) {
             clear()
         } else {
             nullIndex = request
             mask = request - 1
-            maxFill = min(ceil((nullIndex.toFloat() * loadFactor).toDouble()).toInt(), nullIndex - 1)
+            maxFill = min(ceil(nullIndex.toDouble() * loadFactor).toInt(), nullIndex - 1)
             keys = LongArray(request + 1)
             values = createArray(request + 1)
             this.size = 0
@@ -182,7 +176,7 @@ abstract class LongToHashMap<AV>(
         nullIndex = newSize
 
         mask = newMask
-        maxFill = min(ceil((nullIndex.toFloat() * loadFactor).toDouble()).toInt(), nullIndex - 1)
+        maxFill = min(sizeToCapacity(nullIndex), nullIndex - 1)
         keys = newKeys
         values = newValues
     }

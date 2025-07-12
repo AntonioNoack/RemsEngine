@@ -2,10 +2,11 @@ package me.anno.sdf.shapes
 
 import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.mesh.material.utils.TypeValue
-import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
+import org.joml.Vector3f
 import org.joml.Vector4f
 
 /**
@@ -48,7 +49,6 @@ open class SDFPlane : SDFShape() {
                 dst.maxZ = 0f
             }
         }
-
     }
 
     override fun buildShader(
@@ -64,12 +64,24 @@ open class SDFPlane : SDFShape() {
         smartMinBegin(builder, dstIndex)
         builder.append("pos")
         builder.append(trans.posIndex)
-        builder.append('.').append("xyz"[axis.id])
+        builder.append('.').append('x' + axis.id)
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
-        return pos.y
+        return pos[axis.id]
+    }
+
+    override fun raycast(
+        origin: Vector3f, direction: Vector3f,
+        near: Float, far: Float,
+        maxSteps: Int,
+        sdfReliability: Float,
+        maxRelativeError: Float,
+        seeds: IntArrayList
+    ): Float {
+        val t = origin[axis.id] / direction[axis.id]
+        return if (t in near..far) t else Float.POSITIVE_INFINITY
     }
 
     override fun copyInto(dst: PrefabSaveable) {

@@ -7,7 +7,7 @@ import speiger.primitivecollections.callbacks.LongDoubleCallback
  * Wrapper around LongToLongHashMap
  * */
 class LongToDoubleHashMap(
-    val missingValue: Double,
+    missingValue: Double,
     minCapacity: Int = 16,
     loadFactor: Float = 0.75f
 ) {
@@ -16,8 +16,14 @@ class LongToDoubleHashMap(
     val content = LongToLongHashMap(missingValue.toRawBits(), minCapacity, loadFactor)
 
     val size get() = content.size
+    val maxFill get() = content.maxFill
+
     fun isEmpty() = size == 0
     fun isNotEmpty() = !isEmpty()
+
+    @Suppress("unused")
+    val missingValue: Double
+        get() = Double.fromBits(content.missingValue)
 
     operator fun set(key: Long, value: Double) {
         put(key, value)
@@ -51,10 +57,7 @@ class LongToDoubleHashMap(
     }
 
     fun replace(key: Long, oldValue: Double, newValue: Double): Boolean {
-        return if (this[key] == oldValue) {
-            this[key] = newValue
-            true
-        } else false
+        return content.replace(key, oldValue.toRawBits(), newValue.toRawBits())
     }
 
     fun replace(key: Long, value: Double): Double {
@@ -79,4 +82,6 @@ class LongToDoubleHashMap(
             callback.callback(k, Double.fromBits(v))
         }
     }
+
+    fun keysToHashSet() = content.keysToHashSet()
 }

@@ -8,10 +8,8 @@ import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ScenePrefab
-import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.sdf.modifiers.SDFHalfSpace
 import me.anno.sdf.shapes.SDFBox
@@ -32,9 +30,7 @@ class HierarchyTests {
 
     @BeforeEach
     fun init() {
-        OfficialExtensions.register()
-        ExtensionLoader.load()
-        ECSRegistry.init()
+        OfficialExtensions.initForTests()
     }
 
     @Test
@@ -180,8 +176,6 @@ class HierarchyTests {
 
     @Test
     fun testAddSimpleChild() {
-        OfficialExtensions.register()
-        ExtensionLoader.load()
         val scene = Prefab("Entity")
         val added = PrefabCache[res.getChild("meshes/CuteGhost.fbx")].waitFor()!!.prefab!!
         val ca = scene.adds.values.sumOf { it.size }

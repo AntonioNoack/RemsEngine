@@ -19,6 +19,7 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.TAUf
 import me.anno.tests.FlakyTest
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertSame
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector2f
@@ -477,9 +478,10 @@ class Box2dTest {
         setupGravityTest(-10f)
 
         val world = Entity()
+        val fallingBody = DynamicBody2d()
         Entity("Falling", world)
             .setPosition(0.0, 5.0, 0.0)
-            .add(DynamicBody2d())
+            .add(fallingBody)
             .add(CircleCollider())
 
         val ghost = GhostBody2d()
@@ -494,7 +496,11 @@ class Box2dTest {
         for (i in 0 until 10) {
             physics.step((1.0 / 5.0 * SECONDS_TO_NANOS).toLong(), false)
             if (i == 0 || i == 9) assertTrue(ghost.overlappingBodies.isEmpty())
-            if (i == 5) assertEquals(1, ghost.overlappingBodies.size)
+            if (i == 5) {
+                assertEquals(1, ghost.overlappingBodies.size)
+                assertTrue(fallingBody in ghost.overlappingBodies)
+                assertSame(fallingBody, ghost.overlappingBodies[0])
+            }
             // println("$i: ${ghost.numOverlaps}")
         }
     }

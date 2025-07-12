@@ -14,7 +14,7 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
 
     override fun createArray(size: Int): Array<V?> {
         @Suppress("UNCHECKED_CAST")
-        return (arrayOfNulls<Any>(size)) as Array<V?>
+        return arrayOfNulls<Any>(size) as Array<V?>
     }
 
     override fun fillNulls(values: Array<V?>) {
@@ -100,9 +100,9 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
         return if (slot < 0) null else values[slot]
     }
 
-    fun replace(key: Long, oldValue: V?, newValue: V?): Boolean {
+    fun replace(key: Long, oldValue: V, newValue: V): Boolean {
         val index = findIndex(key)
-        if (index >= 0 && values[index] === oldValue) {
+        if (index >= 0 && values[index] == oldValue) {
             values[index] = newValue
             return true
         } else {
@@ -130,8 +130,8 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
             values[pos] = null
             --size
             shiftKeys(pos)
-            if (nullIndex > minCapacity && size < maxFill / 4 && nullIndex > 16) {
-                rehash(nullIndex / 2)
+            if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
+                rehash(nullIndex shr 1)
             }
 
             return value
@@ -144,8 +144,8 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
         keys[nullIndex] = 0L
         values[nullIndex] = null
         --size
-        if (nullIndex > minCapacity && size < maxFill / 4 && nullIndex > 16) {
-            rehash(nullIndex / 2)
+        if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
+            rehash(nullIndex shr 1)
         }
 
         return value
@@ -165,16 +165,15 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
     }
 
     fun removeIf(predicate: (Long, V) -> Boolean): Int {
-        var numRemoved = 0
+        val oldSize = size
         keysToHashSet().forEach { key ->
             val slot = findIndex(key)
             @Suppress("UNCHECKED_CAST")
             if (slot >= 0 && predicate(key, (values[slot]) as V)) {
                 removeIndex(slot)
-                numRemoved++
             }
         }
-        return numRemoved
+        return oldSize - size
     }
 
     fun forEach(callback: LongObjectCallback<V>) {

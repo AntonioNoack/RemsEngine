@@ -1,8 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.cache.ICacheData
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.sq
 import me.anno.mesh.vox.meshing.BlockSide
@@ -52,12 +50,11 @@ fun main() {
 
     val testAsync = true
     val timeout = 10_000L
-    val simple = ConcurrentSkipListMap<ComparableKey, ICacheData>()
+    val simple = ConcurrentSkipListMap<ComparableKey, Unit>()
     fun getOrCreate(i: Vector3i, callback: () -> Unit) {
         if (true) {
             simple.getOrPut(ComparableKey(i.x, i.y, i.z)) {
                 runTask()
-                CacheData(1)
             }
             callback()
         } else if (testAsync) {
