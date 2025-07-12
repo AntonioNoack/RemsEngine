@@ -215,6 +215,7 @@ class GImpactBvh {
         get() = bvhTree.nodePointer
 
     companion object {
+
         private fun nodeCollision(
             boxset0: GImpactBvh, boxset1: GImpactBvh,
             transCache1to0: BoxBoxTransformCache,
@@ -225,10 +226,7 @@ class GImpactBvh {
             boxset0.getNodeBound(node0, box0)
             val box1 = AABB()
             boxset1.getNodeBound(node1, box1)
-
             return box0.overlappingTransCache(box1, transCache1to0, completePrimitiveTests)
-            //box1.appy_transform_trans_cache(trans_cache_1to0);
-            //return box0.has_collision(box1);
         }
 
         /**

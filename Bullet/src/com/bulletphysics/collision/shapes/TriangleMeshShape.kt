@@ -64,7 +64,7 @@ abstract class TriangleMeshShape constructor(val meshInterface: StridingMeshInte
     override fun processAllTriangles(callback: TriangleCallback, aabbMin: Vector3d, aabbMax: Vector3d) {
         val filterCallback = FilteredCallback(callback, aabbMin, aabbMax)
 
-        meshInterface!!.internalProcessAllTriangles(filterCallback, aabbMin, aabbMax)
+        meshInterface!!.internalProcessAllTriangles(filterCallback)
     }
 
     override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {

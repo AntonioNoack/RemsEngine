@@ -7,15 +7,12 @@ import org.joml.Matrix3d
 import kotlin.math.abs
 
 class BoxBoxTransformCache {
+
     val T1to0: Vector3d = Vector3d() // Transforms translation of model1 to model 0
-    val R1to0: Matrix3d = Matrix3d() // Transforms Rotation of model1 to model 0, equal  to R0' * R1
+    val R1to0: Matrix3d = Matrix3d() // Transforms Rotation of model1 to model 0, equal to R0' * R1
     val AR: Matrix3d = Matrix3d() // Absolute value of m_R1to0
 
     fun calcAbsoluteMatrix() {
-        //static const btVector3 vepsi(1e-6f,1e-6f,1e-6f);
-        //m_AR[0] = vepsi + m_R1to0[0].absolute();
-        //m_AR[1] = vepsi + m_R1to0[1].absolute();
-        //m_AR[2] = vepsi + m_R1to0[2].absolute();
         val eps = 1e-6
         AR.m00 = eps + abs(R1to0.m00)
         AR.m01 = eps + abs(R1to0.m01)

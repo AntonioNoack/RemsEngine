@@ -27,12 +27,12 @@ class AABB {
 
     constructor()
 
-    constructor(V1: Vector3d, V2: Vector3d, V3: Vector3d) {
-        calcFromTriangle(V1, V2, V3)
+    constructor(a: Vector3d, b: Vector3d, c: Vector3d) {
+        calcFromTriangle(a, b, c)
     }
 
-    constructor(V1: Vector3d, V2: Vector3d, V3: Vector3d, margin: Double) {
-        calcFromTriangleMargin(V1, V2, V3, margin)
+    constructor(a: Vector3d, b: Vector3d, c: Vector3d, margin: Double) {
+        calcFromTriangleMargin(a, b, c, margin)
     }
 
     constructor(other: AABB) {
@@ -46,10 +46,6 @@ class AABB {
         max.x += margin
         max.y += margin
         max.z += margin
-    }
-
-    fun init(V1: Vector3d, V2: Vector3d, V3: Vector3d, margin: Double) {
-        calcFromTriangleMargin(V1, V2, V3, margin)
     }
 
     fun set(other: AABB) {
@@ -71,18 +67,18 @@ class AABB {
         max.z += margin
     }
 
-    fun calcFromTriangle(V1: Vector3d, V2: Vector3d, V3: Vector3d) {
-        min.x = min(V1.x, V2.x, V3.x)
-        min.y = min(V1.y, V2.y, V3.y)
-        min.z = min(V1.z, V2.z, V3.z)
+    fun calcFromTriangle(a: Vector3d, b: Vector3d, c: Vector3d) {
+        min.x = min(a.x, b.x, c.x)
+        min.y = min(a.y, b.y, c.y)
+        min.z = min(a.z, b.z, c.z)
 
-        max.x = max(V1.x, V2.x, V3.x)
-        max.y = max(V1.y, V2.y, V3.y)
-        max.z = max(V1.z, V2.z, V3.z)
+        max.x = max(a.x, b.x, c.x)
+        max.y = max(a.y, b.y, c.y)
+        max.z = max(a.z, b.z, c.z)
     }
 
-    fun calcFromTriangleMargin(V1: Vector3d, V2: Vector3d, V3: Vector3d, margin: Double) {
-        calcFromTriangle(V1, V2, V3)
+    fun calcFromTriangleMargin(a: Vector3d, b: Vector3d, c: Vector3d, margin: Double) {
+        calcFromTriangle(a, b, c)
         min.x -= margin
         min.y -= margin
         min.z -= margin
@@ -225,7 +221,7 @@ class AABB {
     /**
      * transcache is the transformation cache from box to this AABB.
      */
-    fun overlappingTransCache(box: AABB, transcache: BoxBoxTransformCache, fulltest: Boolean): Boolean {
+    fun overlappingTransCache(box: AABB, transformCache: BoxBoxTransformCache, allowFullTest: Boolean): Boolean {
         val tmp = Stack.newVec()
 
         // Taken from OPCODE
@@ -237,31 +233,31 @@ class AABB {
         box.getCenterExtend(cb, eb)
 
         val T = Stack.newVec()
-        var t: Double
+        var t1: Double
         var t2: Double
 
         try {
             // Class I : A's basis vectors
             for (i in 0..2) {
-                transcache.R1to0.getRow(i, tmp)
-                setCoord(T, i, tmp.dot(cb) + getCoord(transcache.T1to0, i) - getCoord(ca, i))
+                transformCache.R1to0.getRow(i, tmp)
+                setCoord(T, i, tmp.dot(cb) + getCoord(transformCache.T1to0, i) - getCoord(ca, i))
 
-                transcache.AR.getRow(i, tmp)
-                t = tmp.dot(eb) + getCoord(ea, i)
-                if (absGreater(getCoord(T, i), t)) {
+                transformCache.AR.getRow(i, tmp)
+                t1 = tmp.dot(eb) + getCoord(ea, i)
+                if (absGreater(getCoord(T, i), t1)) {
                     return false
                 }
             }
             // Class II : B's basis vectors
             for (i in 0..2) {
-                t = matXVec(transcache.R1to0, T, i)
-                t2 = matXVec(transcache.AR, ea, i) + getCoord(eb, i)
-                if (absGreater(t, t2)) {
+                t1 = matXVec(transformCache.R1to0, T, i)
+                t2 = matXVec(transformCache.AR, ea, i) + getCoord(eb, i)
+                if (absGreater(t1, t2)) {
                     return false
                 }
             }
             // Class III : 9 cross products
-            if (fulltest) {
+            if (allowFullTest) {
                 for (i in 0..2) {
                     val m = (i + 1) % 3
                     val n = (i + 2) % 3
@@ -270,15 +266,15 @@ class AABB {
                     for (j in 0..2) {
                         val q = if (j == 2) 1 else 2
                         val r = if (j == 0) 1 else 0
-                        val r1to0 = transcache.R1to0
-                        t = getCoord(T, n) * r1to0.getElement(m, j) -
+                        val r1to0 = transformCache.R1to0
+                        t1 = getCoord(T, n) * r1to0.getElement(m, j) -
                                 getCoord(T, m) * r1to0.getElement(n, j)
-                        val ar = transcache.AR
+                        val ar = transformCache.AR
                         t2 = getCoord(ea, o) * ar.getElement(p, j) +
                                 getCoord(ea, p) * ar.getElement(o, j) +
                                 getCoord(eb, r) * ar.getElement(i, q) +
                                 getCoord(eb, q) * ar.getElement(i, r)
-                        if (absGreater(t, t2)) {
+                        if (absGreater(t1, t2)) {
                             return false
                         }
                     }

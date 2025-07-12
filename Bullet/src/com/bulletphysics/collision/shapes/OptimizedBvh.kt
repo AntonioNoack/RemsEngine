@@ -245,7 +245,7 @@ class OptimizedBvh : Serializable {
 
             val callback = QuantizedNodeTriangleCallback(quantizedLeafNodes, this)
 
-            triangles.internalProcessAllTriangles(callback, bvhAabbMin, bvhAabbMax)
+            triangles.internalProcessAllTriangles(callback)
 
             // now we have an array of leafnodes in m_leafNodes
             numLeafNodes = quantizedLeafNodes.size()
@@ -259,7 +259,7 @@ class OptimizedBvh : Serializable {
             aabbMin.set(-1e308, -1e308, -1e308)
             aabbMax.set(1e308, 1e308, 1e308)
 
-            triangles.internalProcessAllTriangles(callback, aabbMin, aabbMax)
+            triangles.internalProcessAllTriangles(callback)
             Stack.subVec(2)
 
             // now we have an array of leafnodes in m_leafNodes

@@ -22,7 +22,7 @@ class TriangleShapeEx : TriangleShape {
         t.transform(tv2)
 
         val triangleBox = AABB()
-        triangleBox.init(tv0, tv1, tv2, margin)
+        triangleBox.calcFromTriangleMargin(tv0, tv1, tv2, margin)
 
         aabbMin.set(triangleBox.min)
         aabbMax.set(triangleBox.max)

@@ -1,7 +1,7 @@
 package com.bulletphysics.collision.shapes
 
-import com.bulletphysics.linearmath.VectorUtil
 import cz.advel.stack.Stack
+import org.joml.AABBd
 import org.joml.Vector3d
 
 /**
@@ -14,9 +14,9 @@ import org.joml.Vector3d
 abstract class StridingMeshInterface {
     val scaling: Vector3d = Vector3d(1.0, 1.0, 1.0)
 
-    fun internalProcessAllTriangles(callback: InternalTriangleIndexCallback, aabbMin: Vector3d, aabbMax: Vector3d) {
+    fun internalProcessAllTriangles(callback: InternalTriangleIndexCallback) {
         val graphicsSubParts = this.numSubParts
-        val triangle = arrayOf<Vector3d>(Stack.newVec(), Stack.newVec(), Stack.newVec())
+        val triangle = arrayOf(Stack.newVec(), Stack.newVec(), Stack.newVec())
 
         val meshScaling = getScaling(Stack.newVec())
 
@@ -34,28 +34,24 @@ abstract class StridingMeshInterface {
     }
 
     private class AabbCalculationCallback : InternalTriangleIndexCallback {
-        val aabbMin: Vector3d = Vector3d(1e308, 1e308, 1e308)
-        val aabbMax: Vector3d = Vector3d(-1e308, -1e308, -1e308)
+        val bounds = AABBd()
 
         override fun internalProcessTriangleIndex(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
-            VectorUtil.setMin(aabbMin, triangle[0])
-            VectorUtil.setMax(aabbMax, triangle[0])
-            VectorUtil.setMin(aabbMin, triangle[1])
-            VectorUtil.setMax(aabbMax, triangle[1])
-            VectorUtil.setMin(aabbMin, triangle[2])
-            VectorUtil.setMax(aabbMax, triangle[2])
+            bounds.union(triangle[0])
+            bounds.union(triangle[1])
+            bounds.union(triangle[2])
         }
     }
 
     fun calculateAabbBruteForce(aabbMin: Vector3d, aabbMax: Vector3d) {
         // first calculate the total aabb for all triangles
-        val aabbCallback = AabbCalculationCallback()
+        val helper = AabbCalculationCallback()
         aabbMin.set(-1e308, -1e308, -1e308)
         aabbMax.set(1e308, 1e308, 1e308)
-        internalProcessAllTriangles(aabbCallback, aabbMin, aabbMax)
+        internalProcessAllTriangles(helper)
 
-        aabbMin.set(aabbCallback.aabbMin)
-        aabbMax.set(aabbCallback.aabbMax)
+        helper.bounds.getMin(aabbMin)
+        helper.bounds.getMax(aabbMax)
     }
 
     /**
