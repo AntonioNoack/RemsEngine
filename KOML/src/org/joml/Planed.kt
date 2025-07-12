@@ -1,7 +1,5 @@
 package org.joml
 
-import org.joml.JomlMath.hash
-
 open class Planed(
     @JvmField var dirX: Double,
     @JvmField var dirY: Double,
@@ -70,10 +68,10 @@ open class Planed(
     }
 
     override fun hashCode(): Int {
-        var hash = hash(dirX)
-        hash = hash * 31 + hash(dirY)
-        hash = hash * 31 + hash(dirZ)
-        hash = hash * 31 + hash(distance)
+        var hash = dirX.hashCode()
+        hash = hash * 31 + dirY.hashCode()
+        hash = hash * 31 + dirZ.hashCode()
+        hash = hash * 31 + distance.hashCode()
         return hash
     }
 

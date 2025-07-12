@@ -1,7 +1,6 @@
 package org.joml
 
 import org.joml.JomlMath.addSigns
-import org.joml.JomlMath.hash
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
@@ -174,7 +173,7 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
             3 -> m11
             4 -> m20
             else -> m21
-        }.toDouble()
+        }
     }
 
     override operator fun set(column: Int, row: Int, value: Double): Matrix3x2d {
@@ -735,13 +734,12 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
     }
 
     override fun hashCode(): Int {
-        var result = 1
-        result = 31 * result + hash(m00)
-        result = 31 * result + hash(m01)
-        result = 31 * result + hash(m10)
-        result = 31 * result + hash(m11)
-        result = 31 * result + hash(m20)
-        result = 31 * result + hash(m21)
+        var result = m00.hashCode()
+        result = 31 * result + m01.hashCode()
+        result = 31 * result + m10.hashCode()
+        result = 31 * result + m11.hashCode()
+        result = 31 * result + m20.hashCode()
+        result = 31 * result + m21.hashCode()
         return result
     }
 

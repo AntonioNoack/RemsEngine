@@ -7,7 +7,6 @@ import kotlin.math.max
 import kotlin.math.sqrt
 
 object JomlMath {
-    const val MIN_DOUBLE = 1.0 / Double.MAX_VALUE
 
     @JvmStatic
     fun String.addSigns(): String {
@@ -75,30 +74,21 @@ object JomlMath {
     fun absEqualsOne(x: Double): Boolean = abs(x) == 1.0
 
     @JvmStatic
-    fun hash(f: Float): Int {
-        return f.toRawBits()
-    }
-
-    @JvmStatic
-    fun hash(d: Double): Int {
-        val tmp = d.toRawBits()
-        return tmp.toInt() xor (tmp shr 32).toInt()
-    }
-
-    @JvmStatic
     fun satAdd(a: Int, b: Int): Int {
         val tmp = a.toLong() + b.toLong()
-        return clamp(tmp, Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt()
+        return satClamp(tmp).toInt()
     }
 
     @JvmStatic
     fun satSub(a: Int, b: Int): Int {
         val tmp = a.toLong() - b.toLong()
-        return clamp(tmp, Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt()
+        return satClamp(tmp).toInt()
     }
 
     @JvmStatic
-    private fun clamp(x: Long, min: Long, max: Long): Long {
+    private fun satClamp(x: Long): Long {
+        val min = Int.MIN_VALUE.toLong()
+        val max = Int.MAX_VALUE.toLong()
         return if (x < min) min else if (x > max) max else x
     }
 

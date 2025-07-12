@@ -1,6 +1,5 @@
 package org.joml
 
-import org.joml.JomlMath.hash
 import org.joml.Vector3d.Companion.length
 import kotlin.math.max
 import kotlin.math.min
@@ -162,6 +161,11 @@ class AABBd(
     ): Boolean {
         return maxX >= otherMinX && maxY >= otherMinY && maxZ >= otherMinZ &&
                 minX <= otherMaxX && minY <= otherMaxY && minZ <= otherMaxZ
+    }
+
+    fun contains(other: AABBd): Boolean {
+        return minX <= other.minX && minY <= other.minY && minZ <= other.minZ &&
+                maxX >= other.maxX && maxY >= other.maxY && maxZ >= other.maxZ
     }
 
     fun translate(dx: Double, dy: Double, dz: Double, dst: AABBd = this): AABBd {
@@ -559,12 +563,12 @@ class AABBd(
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + hash(minX)
-        result = 31 * result + hash(minY)
-        result = 31 * result + hash(minZ)
-        result = 31 * result + hash(maxX)
-        result = 31 * result + hash(maxY)
-        result = 31 * result + hash(maxZ)
+        result = 31 * result + minX.hashCode()
+        result = 31 * result + minY.hashCode()
+        result = 31 * result + minZ.hashCode()
+        result = 31 * result + maxX.hashCode()
+        result = 31 * result + maxY.hashCode()
+        result = 31 * result + maxZ.hashCode()
         return result
     }
 }

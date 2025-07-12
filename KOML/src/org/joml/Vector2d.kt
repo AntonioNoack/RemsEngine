@@ -1,6 +1,5 @@
 package org.joml
 
-import org.joml.JomlMath.hash
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.ceil
@@ -223,7 +222,7 @@ open class Vector2d(
     }
 
     override fun hashCode(): Int {
-        return 31 * hash(x) + hash(y)
+        return 31 * x.hashCode() + y.hashCode()
     }
 
     override fun equals(other: Any?): Boolean {

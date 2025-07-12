@@ -18,8 +18,8 @@ class DefaultNearCallback : NearCallback {
         dispatcher: CollisionDispatcher,
         dispatchInfo: DispatcherInfo
     ) {
-        val colObj0 = collisionPair.proxy0?.clientObject as CollisionObject
-        val colObj1 = collisionPair.proxy1?.clientObject as CollisionObject
+        val colObj0 = collisionPair.proxy0!!.clientObject as CollisionObject
+        val colObj1 = collisionPair.proxy1!!.clientObject as CollisionObject
 
         if (dispatcher.needsCollision(colObj0, colObj1)) {
             // dispatcher will keep algorithms persistent in the collision pair

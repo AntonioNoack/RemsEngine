@@ -1,7 +1,6 @@
 package org.joml
 
 import org.joml.JomlMath.addSigns
-import org.joml.JomlMath.hash
 import org.joml.Runtime.f
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -402,11 +401,10 @@ open class Matrix2d : Matrix<Matrix2d, Vector2d, Vector2d> {
     }
 
     override fun hashCode(): Int {
-        var result = 1
-        result = 31 * result + hash(m00)
-        result = 31 * result + hash(m01)
-        result = 31 * result + hash(m10)
-        result = 31 * result + hash(m11)
+        var result = m00.hashCode()
+        result = 31 * result + m01.hashCode()
+        result = 31 * result + m10.hashCode()
+        result = 31 * result + m11.hashCode()
         return result
     }
 

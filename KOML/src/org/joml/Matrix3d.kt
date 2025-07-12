@@ -1,7 +1,6 @@
 package org.joml
 
 import org.joml.JomlMath.addSigns
-import org.joml.JomlMath.hash
 import org.joml.Runtime.f
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -1287,16 +1286,15 @@ open class Matrix3d : Matrix<Matrix3d, Vector3d, Vector3d> {
     }
 
     override fun hashCode(): Int {
-        var result = 1
-        result = 31 * result + hash(m00)
-        result = 31 * result + hash(m01)
-        result = 31 * result + hash(m02)
-        result = 31 * result + hash(m10)
-        result = 31 * result + hash(m11)
-        result = 31 * result + hash(m12)
-        result = 31 * result + hash(m20)
-        result = 31 * result + hash(m21)
-        result = 31 * result + hash(m22)
+        var result = m00.hashCode()
+        result = 31 * result + m01.hashCode()
+        result = 31 * result + m02.hashCode()
+        result = 31 * result + m10.hashCode()
+        result = 31 * result + m11.hashCode()
+        result = 31 * result + m12.hashCode()
+        result = 31 * result + m20.hashCode()
+        result = 31 * result + m21.hashCode()
+        result = 31 * result + m22.hashCode()
         return result
     }
 

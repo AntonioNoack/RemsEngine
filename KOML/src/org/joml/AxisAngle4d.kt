@@ -1,6 +1,5 @@
 package org.joml
 
-import org.joml.JomlMath.hash
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -236,10 +235,10 @@ class AxisAngle4d(
     }
 
     override fun hashCode(): Int {
-        var result = hash(posMod(angle))
-        result = 31 * result + hash(x)
-        result = 31 * result + hash(y)
-        result = 31 * result + hash(z)
+        var result = posMod(angle).hashCode()
+        result = 31 * result + x.hashCode()
+        result = 31 * result + y.hashCode()
+        result = 31 * result + z.hashCode()
         return result
     }
 

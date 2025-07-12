@@ -1,5 +1,7 @@
 package com.bulletphysics.collision.broadphase
 
+import org.joml.AABBd
+
 /**
  * Dbvt implementation by Nathanael Presson
  * @author jezek2
@@ -7,7 +9,7 @@ package com.bulletphysics.collision.broadphase
 class DbvtProxy(userPtr: Any?, collisionFilter: Int) :
     BroadphaseProxy(userPtr, collisionFilter) {
 
-    val aabb: DbvtAabbMm = DbvtAabbMm()
+    val aabb = AABBd()
     var leaf: DbvtNode? = null
 
     var stage: Int = 0

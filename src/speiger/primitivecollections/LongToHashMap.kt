@@ -40,6 +40,7 @@ abstract class LongToHashMap<AV>(
     @InternalAPI
     var containsNull: Boolean = false
 
+    // first size when being created
     @InternalAPI
     var minCapacity = 0
 
@@ -73,6 +74,18 @@ abstract class LongToHashMap<AV>(
     }
 
     val minFill get() = maxFill shr 2
+
+    fun shrinkMaybe() {
+        if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
+            rehash(nullIndex shr 1)
+        }
+    }
+
+    fun growMaybe() {
+        if (size >= maxFill) {
+            rehash(HashUtil.arraySize(size + 1, loadFactor))
+        }
+    }
 
     private fun sizeToCapacity(size: Int): Int {
         return ceil(size.toDouble() * loadFactor).toInt()
@@ -189,7 +202,8 @@ abstract class LongToHashMap<AV>(
 
             var current: Long
             while (true) {
-                if ((keys[startPos].also { current = it }) == 0L) {
+                current = keys[startPos]
+                if (current == 0L) {
                     keys[last] = 0L
                     setNull(values, last)
                     return

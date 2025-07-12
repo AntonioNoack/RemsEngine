@@ -48,9 +48,7 @@ class LongHashSet(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
             keys[pos] = 0L
             --size
             shiftKeys(pos)
-            if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
-                rehash(nullIndex shr 1)
-            }
+            shrinkMaybe()
         }
     }
 
@@ -58,9 +56,7 @@ class LongHashSet(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
         containsNull = false
         keys[nullIndex] = 0L
         --size
-        if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
-            rehash(nullIndex shr 1)
-        }
+        shrinkMaybe()
     }
 
     private fun insert(slot: Int, key: Long) {
@@ -69,9 +65,8 @@ class LongHashSet(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
         }
 
         keys[slot] = key
-        if (size++ >= maxFill) {
-            rehash(HashUtil.arraySize(size + 1, loadFactor))
-        }
+        size++
+        growMaybe()
     }
 
     fun forEach(callback: LongCallback) {

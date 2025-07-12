@@ -32,7 +32,7 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
         dstValues[dstIndex] = null
     }
 
-    operator fun set(key: Long, value: V?) {
+    operator fun set(key: Long, value: V) {
         put(key, value)
     }
 
@@ -47,7 +47,7 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
         return newValue
     }
 
-    fun put(key: Long, value: V?): V? {
+    fun put(key: Long, value: V): V? {
         val slot = findIndex(key)
         if (slot < 0) {
             insert(-slot - 1, key, value)
@@ -110,7 +110,7 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
         }
     }
 
-    fun replace(key: Long, value: V?): V? {
+    fun replace(key: Long, value: V): V? {
         val index = findIndex(key)
         if (index < 0) {
             return null
@@ -130,10 +130,7 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
             values[pos] = null
             --size
             shiftKeys(pos)
-            if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
-                rehash(nullIndex shr 1)
-            }
-
+            shrinkMaybe()
             return value
         }
     }
@@ -144,24 +141,20 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
         keys[nullIndex] = 0L
         values[nullIndex] = null
         --size
-        if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
-            rehash(nullIndex shr 1)
-        }
-
+        shrinkMaybe()
         return value
     }
 
     @InternalAPI
-    fun insert(slot: Int, key: Long, value: V?) {
+    fun insert(slot: Int, key: Long, value: V) {
         if (slot == nullIndex) {
             containsNull = true
         }
 
         keys[slot] = key
         values[slot] = value
-        if (size++ >= maxFill) {
-            rehash(HashUtil.arraySize(size + 1, loadFactor))
-        }
+        size++
+        growMaybe()
     }
 
     fun removeIf(predicate: (Long, V) -> Boolean): Int {
@@ -169,7 +162,7 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
         keysToHashSet().forEach { key ->
             val slot = findIndex(key)
             @Suppress("UNCHECKED_CAST")
-            if (slot >= 0 && predicate(key, (values[slot]) as V)) {
+            if (slot >= 0 && predicate(key, values[slot] as V)) {
                 removeIndex(slot)
             }
         }

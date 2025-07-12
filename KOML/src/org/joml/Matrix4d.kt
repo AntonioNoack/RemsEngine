@@ -1,7 +1,6 @@
 package org.joml
 
 import org.joml.JomlMath.addSigns
-import org.joml.JomlMath.hash
 import org.joml.Runtime.f
 import kotlin.math.acos
 import kotlin.math.atan2
@@ -410,7 +409,25 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         return if (flags and 4 != 0) {
             dst.set(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33)
         } else {
-            if (flags and 2 != 0) mulAffineL(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33, dst)
+            if (flags and 2 != 0) mulAffineL(
+                r00,
+                r01,
+                r02,
+                r03,
+                r10,
+                r11,
+                r12,
+                r13,
+                r20,
+                r21,
+                r22,
+                r23,
+                r30,
+                r31,
+                r32,
+                r33,
+                dst
+            )
             else this.mulGeneric(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33, dst)
         }
     }
@@ -5886,23 +5903,22 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
     }
 
     override fun hashCode(): Int {
-        var result = 1
-        result = 31 * result + hash(m00)
-        result = 31 * result + hash(m01)
-        result = 31 * result + hash(m02)
-        result = 31 * result + hash(m03)
-        result = 31 * result + hash(m10)
-        result = 31 * result + hash(m11)
-        result = 31 * result + hash(m12)
-        result = 31 * result + hash(m13)
-        result = 31 * result + hash(m20)
-        result = 31 * result + hash(m21)
-        result = 31 * result + hash(m22)
-        result = 31 * result + hash(m23)
-        result = 31 * result + hash(m30)
-        result = 31 * result + hash(m31)
-        result = 31 * result + hash(m32)
-        result = 31 * result + hash(m33)
+        var result = m00.hashCode()
+        result = 31 * result + m01.hashCode()
+        result = 31 * result + m02.hashCode()
+        result = 31 * result + m03.hashCode()
+        result = 31 * result + m10.hashCode()
+        result = 31 * result + m11.hashCode()
+        result = 31 * result + m12.hashCode()
+        result = 31 * result + m13.hashCode()
+        result = 31 * result + m20.hashCode()
+        result = 31 * result + m21.hashCode()
+        result = 31 * result + m22.hashCode()
+        result = 31 * result + m23.hashCode()
+        result = 31 * result + m30.hashCode()
+        result = 31 * result + m31.hashCode()
+        result = 31 * result + m32.hashCode()
+        result = 31 * result + m33.hashCode()
         return result
     }
 

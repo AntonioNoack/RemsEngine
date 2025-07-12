@@ -1,7 +1,6 @@
 package org.joml
 
 import org.joml.JomlMath.addSigns
-import org.joml.JomlMath.hash
 import org.joml.Runtime.f
 import org.joml.Vector3d.Companion.lengthSquared
 import java.nio.FloatBuffer
@@ -3756,19 +3755,18 @@ open class Matrix4x3 : Matrix<Matrix4x3, Vector3d, Vector4d> {
     }
 
     override fun hashCode(): Int {
-        var result = 1
-        result = 31 * result + m00.toRawBits()
-        result = 31 * result + m01.toRawBits()
-        result = 31 * result + m02.toRawBits()
-        result = 31 * result + m10.toRawBits()
-        result = 31 * result + m11.toRawBits()
-        result = 31 * result + m12.toRawBits()
-        result = 31 * result + m20.toRawBits()
-        result = 31 * result + m21.toRawBits()
-        result = 31 * result + m22.toRawBits()
-        result = 31 * result + hash(m30)
-        result = 31 * result + hash(m31)
-        result = 31 * result + hash(m32)
+        var result = m00.hashCode()
+        result = 31 * result + m01.hashCode()
+        result = 31 * result + m02.hashCode()
+        result = 31 * result + m10.hashCode()
+        result = 31 * result + m11.hashCode()
+        result = 31 * result + m12.hashCode()
+        result = 31 * result + m20.hashCode()
+        result = 31 * result + m21.hashCode()
+        result = 31 * result + m22.hashCode()
+        result = 31 * result + m30.hashCode()
+        result = 31 * result + m31.hashCode()
+        result = 31 * result + m32.hashCode()
         return result
     }
 

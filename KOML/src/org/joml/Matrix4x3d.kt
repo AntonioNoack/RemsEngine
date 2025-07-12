@@ -1,7 +1,6 @@
 package org.joml
 
 import org.joml.JomlMath.addSigns
-import org.joml.JomlMath.hash
 import org.joml.Runtime.f
 import org.joml.Vector3d.Companion.lengthSquared
 import kotlin.math.atan2
@@ -4134,19 +4133,18 @@ open class Matrix4x3d : Matrix<Matrix4x3d, Vector3d, Vector4d> {
     }
 
     override fun hashCode(): Int {
-        var result = 1
-        result = 31 * result + hash(m00)
-        result = 31 * result + hash(m01)
-        result = 31 * result + hash(m02)
-        result = 31 * result + hash(m10)
-        result = 31 * result + hash(m11)
-        result = 31 * result + hash(m12)
-        result = 31 * result + hash(m20)
-        result = 31 * result + hash(m21)
-        result = 31 * result + hash(m22)
-        result = 31 * result + hash(m30)
-        result = 31 * result + hash(m31)
-        result = 31 * result + hash(m32)
+        var result = m00.hashCode()
+        result = 31 * result + m01.hashCode()
+        result = 31 * result + m02.hashCode()
+        result = 31 * result + m10.hashCode()
+        result = 31 * result + m11.hashCode()
+        result = 31 * result + m12.hashCode()
+        result = 31 * result + m20.hashCode()
+        result = 31 * result + m21.hashCode()
+        result = 31 * result + m22.hashCode()
+        result = 31 * result + m30.hashCode()
+        result = 31 * result + m31.hashCode()
+        result = 31 * result + m32.hashCode()
         return result
     }
 

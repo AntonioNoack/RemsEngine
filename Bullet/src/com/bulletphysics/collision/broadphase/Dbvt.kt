@@ -2,6 +2,7 @@
 package com.bulletphysics.collision.broadphase
 
 import cz.advel.stack.Stack
+import org.joml.AABBd
 import org.joml.Vector3d
 
 /**
@@ -11,7 +12,6 @@ class Dbvt {
 
     var root: DbvtNode? = null
     var free: DbvtNode? = null
-    var lkhd: Int = -1
     var leaves: Int = 0
     /*unsigned*/var oPath: Int = 0
 
@@ -51,7 +51,7 @@ class Dbvt {
         }
     }
 
-    fun insert(box: DbvtAabbMm, data: Any?): DbvtNode {
+    fun insert(box: AABBd, data: DbvtProxy): DbvtNode {
         val leaf: DbvtNode = createNode(this, null, box, data)
         insertLeaf(this, root, leaf)
         leaves++
@@ -75,37 +75,24 @@ class Dbvt {
         insertLeaf(this, root, leaf)
     }
 
-    fun update(leaf: DbvtNode, volume: DbvtAabbMm) {
-        var root: DbvtNode? = removeLeaf(this, leaf)
-        if (root != null) {
-            if (lkhd >= 0) {
-                var i = 0
-                while ((i < lkhd) && root!!.parent != null) {
-                    root = root.parent
-                    i++
-                }
-            } else {
-                root = this.root
-            }
-        }
-        leaf.volume.set(volume)
+    fun update(leaf: DbvtNode, volume: AABBd) {
+        val root = removeLeaf(this, leaf) ?: this.root
+        leaf.bounds.set(volume)
         insertLeaf(this, root, leaf)
     }
 
-    fun update(leaf: DbvtNode, volume: DbvtAabbMm, velocity: Vector3d, margin: Double): Boolean {
-        if (leaf.volume.contains(volume)) {
+    fun update(leaf: DbvtNode, volume: AABBd, velocity: Vector3d, margin: Double): Boolean {
+        if (leaf.bounds.contains(volume)) {
             return false
         }
-        val tmp = Stack.newVec()
-        tmp.set(margin, margin, margin)
-        volume.addMargin(tmp)
+        volume.addMargin(margin)
         volume.addSignedMargin(velocity)
         update(leaf, volume)
         return true
     }
 
-    fun update(leaf: DbvtNode, volume: DbvtAabbMm, velocity: Vector3d): Boolean {
-        if (leaf.volume.contains(volume)) {
+    fun update(leaf: DbvtNode, volume: AABBd, velocity: Vector3d): Boolean {
+        if (leaf.bounds.contains(volume)) {
             return false
         }
         volume.addSignedMargin(velocity)
@@ -113,13 +100,11 @@ class Dbvt {
         return true
     }
 
-    fun update(leaf: DbvtNode, volume: DbvtAabbMm, margin: Double): Boolean {
-        if (leaf.volume.contains(volume)) {
+    fun update(leaf: DbvtNode, volume: AABBd, margin: Double): Boolean {
+        if (leaf.bounds.contains(volume)) {
             return false
         }
-        val tmp = Stack.newVec()
-        tmp.set(margin, margin, margin)
-        volume.addMargin(tmp)
+        volume.addMargin(margin)
         update(leaf, volume)
         return true
     }
@@ -131,9 +116,8 @@ class Dbvt {
     }
 
     /** ///////////////////////////////////////////////////////////////////////// */
-    open class ICollide {
-        open fun process(n1: DbvtNode, n2: DbvtNode) {
-        }
+    interface ICollide {
+        fun process(n1: DbvtNode, n2: DbvtNode)
     }
 
     companion object {
@@ -158,7 +142,7 @@ class Dbvt {
                         addBranch(remaining, pa.child1, pa.child1)
                         addBranch(remaining, pa.child0, pa.child1)
                     }
-                } else if (DbvtAabbMm.Companion.intersect(pa.volume, pb.volume)) {
+                } else if (pa.bounds.testAABB(pb.bounds)) {
                     if (pa.isInternal) {
                         if (pb.isInternal) {
                             addBranch(remaining, pa.child0, pb.child0)
@@ -187,11 +171,6 @@ class Dbvt {
             return if (node.parent!!.child1 == node) 1 else 0
         }
 
-        private fun merge(a: DbvtAabbMm, b: DbvtAabbMm, out: DbvtAabbMm): DbvtAabbMm {
-            DbvtAabbMm.Companion.union(a, b, out)
-            return out
-        }
-
         private fun deleteNode(pdbvt: Dbvt, node: DbvtNode?) {
             pdbvt.free = node
         }
@@ -207,7 +186,7 @@ class Dbvt {
             deleteNode(pdbvt, node)
         }
 
-        private fun createNode(pdbvt: Dbvt, parent: DbvtNode?, volume: DbvtAabbMm, data: Any?): DbvtNode {
+        private fun createNode(pdbvt: Dbvt, parent: DbvtNode?, volume: AABBd, data: DbvtProxy?): DbvtNode {
             val node: DbvtNode?
             if (pdbvt.free != null) {
                 node = pdbvt.free
@@ -216,7 +195,7 @@ class Dbvt {
                 node = DbvtNode()
             }
             node!!.parent = parent
-            node.volume.set(volume)
+            node.bounds.set(volume)
             node.data = data
             node.child1 = null
             return node
@@ -229,39 +208,31 @@ class Dbvt {
                 leaf.parent = null
             } else {
                 while (root!!.isBranch) {
-                    root = if (DbvtAabbMm.Companion.proximity(
-                            root.child0!!.volume,
-                            leaf.volume
-                        ) < DbvtAabbMm.Companion.proximity(
-                            root.child1!!.volume, leaf.volume
-                        )
-                    ) {
-                        root.child0!!
-                    } else {
-                        root.child1!!
-                    }
+                    val ch0 = root.child0!!
+                    val ch1 = root.child1!!
+                    root = if (ch0.bounds.proximity(leaf.bounds) < ch1.bounds.proximity(leaf.bounds)) ch0 else ch1
                 }
-                var prev = root.parent
-                val volume: DbvtAabbMm = merge(leaf.volume, root.volume, Stack.newDbvtAabbMm())
-                var node: DbvtNode? = createNode(pdbvt, prev, volume, null)
-                Stack.subDbvtAabbMm(1) // volume
+                val prev = root.parent
+                val volume: AABBd = leaf.bounds.union(root.bounds, Stack.newAabb())
+                var node: DbvtNode = createNode(pdbvt, prev, volume, null)
+                Stack.subAabb(1) // volume
                 if (prev != null) {
+                    var prev: DbvtNode = prev
                     if (indexOf(root) == 0) prev.child0 = node
                     else prev.child1 = node
-                    node!!.child0 = root
+                    node.child0 = root
                     root.parent = node
                     node.child1 = leaf
                     leaf.parent = node
-                    do {
-                        if (!prev!!.volume.contains(node!!.volume)) {
-                            DbvtAabbMm.Companion.union(prev.child0!!.volume, prev.child1!!.volume, prev.volume)
-                        } else {
-                            break
-                        }
+                    while (true) {
+                        if (!prev.bounds.contains(node.bounds)) {
+                            prev.child0!!.bounds.union(prev.child1!!.bounds, prev.bounds)
+                        } else break
                         node = prev
-                    } while (null != (node.parent.also { prev = it }))
+                        prev = node.parent ?: break
+                    }
                 } else {
-                    node!!.child0 = root
+                    node.child0 = root
                     root.parent = node
                     node.child1 = leaf
                     leaf.parent = node
@@ -275,23 +246,22 @@ class Dbvt {
                 pdbvt.root = null
                 return null
             } else {
-                val parent = leaf.parent
-                var prev = parent!!.parent
+                val parent = leaf.parent!!
+                var prev = parent.parent
                 val sibling = if (indexOf(leaf) == 0) parent.child1 else parent.child0
                 if (prev != null) {
                     if (indexOf(parent) == 0) prev.child0 = sibling
                     else prev.child1 = sibling
                     sibling!!.parent = prev
                     deleteNode(pdbvt, parent)
+                    val tmp = Stack.newAabb()
                     while (prev != null) {
-                        val pb = prev.volume
-                        DbvtAabbMm.union(prev.child0!!.volume, prev.child1!!.volume, prev.volume)
-                        if (DbvtAabbMm.notEqual(pb, prev.volume)) {
+                        prev.child0!!.bounds.union( prev.child1!!.bounds, tmp)
+                        if (tmp != prev.bounds) {
                             prev = prev.parent
-                        } else {
-                            break
-                        }
+                        } else break
                     }
+                    Stack.subAabb(1)
                     return (prev ?: pdbvt.root)
                 } else {
                     pdbvt.root = sibling
@@ -334,7 +304,9 @@ class Dbvt {
                     n.child1 = p
                 }
 
-                DbvtAabbMm.Companion.swap(p.volume, n.volume)
+                val tmp = p.bounds
+                p.bounds = n.bounds
+                n.bounds = tmp
                 return p
             }
             return n

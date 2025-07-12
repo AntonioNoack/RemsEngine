@@ -1,6 +1,5 @@
 package org.joml
 
-import org.joml.JomlMath.hash
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.acos
@@ -818,11 +817,10 @@ open class Quaterniond(
     }
 
     override fun hashCode(): Int {
-        var result = 1
-        result = 31 * result + hash(x)
-        result = 31 * result + hash(y)
-        result = 31 * result + hash(z)
-        result = 31 * result + hash(w)
+        var result = x.hashCode()
+        result = 31 * result + y.hashCode()
+        result = 31 * result + z.hashCode()
+        result = 31 * result + w.hashCode()
         return result
     }
 

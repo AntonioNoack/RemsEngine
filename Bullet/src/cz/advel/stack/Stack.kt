@@ -1,14 +1,14 @@
 package cz.advel.stack
 
-import com.bulletphysics.collision.broadphase.DbvtAabbMm
 import com.bulletphysics.collision.narrowphase.CastResult
 import com.bulletphysics.collision.narrowphase.GjkConvexCast
 import com.bulletphysics.collision.narrowphase.PointCollector
 import com.bulletphysics.collision.narrowphase.VoronoiSimplexSolver
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
-import org.joml.Quaterniond
+import org.joml.AABBd
 import org.joml.Matrix3d
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import java.nio.BufferUnderflowException
 
@@ -114,13 +114,13 @@ class Stack {
 
     companion object {
 
-        private val DOUBLE_PTRS = GenericStack<DoubleArray>({ DoubleArray(1) }, "double*")
-        private val ARRAY_LISTS = GenericStack<ArrayList<*>>({ ArrayList<Any?>(16) }, "ObjectArrayList")
-        private val AABB_MMs = GenericStack<DbvtAabbMm>({ DbvtAabbMm() }, "DbvtAabbMm")
-        private val VSSs = GenericStack<VoronoiSimplexSolver>({ VoronoiSimplexSolver() }, "VoronoiSimplexSolver")
-        private val CAST_RESULTS = GenericStack<CastResult>({ CastResult() }, "CastResult")
-        private val POINT_COLLECTORS = GenericStack<PointCollector>({ PointCollector() }, "PointCollector")
-        private val GJK_CONVEX_CAST = GenericStack<GjkConvexCast>({ GjkConvexCast() }, "GjkConvexCast")
+        private val DOUBLE_PTRS = GenericStack({ DoubleArray(1) }, "double*")
+        private val ARRAY_LISTS = GenericStack({ ArrayList<Any?>(16) }, "ObjectArrayList")
+        private val AABBs = GenericStack({ AABBd() }, "AABBd")
+        private val VSSs = GenericStack({ VoronoiSimplexSolver() }, "VoronoiSimplexSolver")
+        private val CAST_RESULTS = GenericStack({ CastResult() }, "CastResult")
+        private val POINT_COLLECTORS = GenericStack({ PointCollector() }, "PointCollector")
+        private val GJK_CONVEX_CAST = GenericStack({ GjkConvexCast() }, "GjkConvexCast")
 
         var limit: Int = 65536
 
@@ -347,12 +347,12 @@ class Stack {
             ARRAY_LISTS.release(delta)
         }
 
-        fun newDbvtAabbMm(): DbvtAabbMm {
-            return AABB_MMs.create()
+        fun newAabb(): AABBd {
+            return AABBs.create()
         }
 
-        fun subDbvtAabbMm(delta: Int) {
-            AABB_MMs.release(delta)
+        fun subAabb(delta: Int) {
+            AABBs.release(delta)
         }
 
         fun newVSS(): VoronoiSimplexSolver {

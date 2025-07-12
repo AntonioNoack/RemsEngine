@@ -1,9 +1,11 @@
 package com.bulletphysics.collision.broadphase
 
+import org.joml.AABBd
+
 class DbvtNode {
 
     @JvmField
-    val volume: DbvtAabbMm = DbvtAabbMm()
+    var bounds = AABBd()
 
     @JvmField
     var parent: DbvtNode? = null
@@ -15,7 +17,7 @@ class DbvtNode {
     var child1: DbvtNode? = null
 
     @JvmField
-    var data: Any? = null
+    var data: DbvtProxy? = null
 
     val isLeaf: Boolean get() = child1 == null
     val isBranch: Boolean get() = child1 != null

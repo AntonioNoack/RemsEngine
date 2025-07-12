@@ -122,9 +122,7 @@ class LongToLongHashMap(
             values[pos] = missingValue
             --size
             shiftKeys(pos)
-            if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
-                rehash(nullIndex shr 1)
-            }
+            shrinkMaybe()
             return value
         }
     }
@@ -135,9 +133,7 @@ class LongToLongHashMap(
         keys[nullIndex] = 0L
         values[nullIndex] = missingValue
         --size
-        if (nullIndex > minCapacity && size < minFill && nullIndex > 16) {
-            rehash(nullIndex shr 1)
-        }
+        shrinkMaybe()
         return value
     }
 
@@ -148,9 +144,8 @@ class LongToLongHashMap(
 
         keys[slot] = key
         values[slot] = value
-        if (size++ >= maxFill) {
-            rehash(HashUtil.arraySize(size + 1, loadFactor))
-        }
+        size++
+        growMaybe()
     }
 
     fun forEach(callback: LongLongCallback) {

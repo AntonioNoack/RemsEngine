@@ -9,10 +9,11 @@ import org.joml.Vector3d
  */
 class DbvtBroadphase() : BroadphaseInterface() {
 
-    val sets = Array(2) { Dbvt() } // Dbvt sets
-    var stageRoots: Array<DbvtProxy?> = arrayOfNulls(STAGE_COUNT + 1) // Stages list
+    val dynamicSet = Dbvt()
+    val staticSet = Dbvt()
+    val stageRoots = arrayOfNulls<DbvtProxy>(STAGE_COUNT + 1) // Stages list
 
-    override var overlappingPairCache: OverlappingPairCache =HashedOverlappingPairCache() // Pair cache
+    override var overlappingPairCache: OverlappingPairCache = HashedOverlappingPairCache() // Pair cache
 
     var predictedFrames: Double = 2.0 // Frames predicted
     var stageCurrent: Int = 0// Current stage
@@ -26,8 +27,8 @@ class DbvtBroadphase() : BroadphaseInterface() {
 
         // optimize:
 
-        sets[0].optimizeIncremental(1 + (sets[0].leaves * dynamicUpdatesPerFrame) / 100)
-        sets[1].optimizeIncremental(1 + (sets[1].leaves * fixedUpdatesPerFrame) / 100)
+        dynamicSet.optimizeIncremental(1 + (dynamicSet.leaves * dynamicUpdatesPerFrame) / 100)
+        staticSet.optimizeIncremental(1 + (staticSet.leaves * fixedUpdatesPerFrame) / 100)
 
         // dynamic -> fixed set:
         stageCurrent = (stageCurrent + 1) % STAGE_COUNT
@@ -38,20 +39,18 @@ class DbvtBroadphase() : BroadphaseInterface() {
                 val next = current!!.link1
                 stageRoots[current.stage] = listRemove(current, stageRoots[current.stage])
                 stageRoots[STAGE_COUNT] = listAppend(current, stageRoots[STAGE_COUNT])
-                Dbvt.Companion.collideTT(sets[1].root, current.leaf, collider)
-                sets[0].remove(current.leaf!!)
-                current.leaf = sets[1].insert(current.aabb, current)
+                Dbvt.collideTT(staticSet.root, current.leaf, collider)
+                dynamicSet.remove(current.leaf!!)
+                current.leaf = staticSet.insert(current.aabb, current)
                 current.stage = STAGE_COUNT
                 current = next
             } while (current != null)
         }
 
         // collide dynamics:
-        run {
-            val collider = DbvtTreeCollider(this)
-            Dbvt.Companion.collideTT(sets[0].root, sets[1].root, collider)
-            Dbvt.Companion.collideTT(sets[0].root, sets[0].root, collider)
-        }
+        val collider = DbvtTreeCollider(this)
+        Dbvt.collideTT(dynamicSet.root, staticSet.root, collider) // static-dynamic
+        Dbvt.collideTT(dynamicSet.root, dynamicSet.root, collider) // dynamic-dynamic
 
         collideCleanup(dispatcher)
         parseId++
@@ -65,7 +64,7 @@ class DbvtBroadphase() : BroadphaseInterface() {
             val p = pairs[i]!!
             var pa = p.proxy0 as DbvtProxy
             var pb = p.proxy1 as DbvtProxy
-            if (!DbvtAabbMm.Companion.intersect(pa.aabb, pb.aabb)) {
+            if (!pa.aabb.testAABB(pb.aabb)) {
                 //if(pa>pb) btSwap(pa,pb);
                 if (pa.hashCode() > pb.hashCode()) {
                     val tmp = pa
@@ -85,8 +84,9 @@ class DbvtBroadphase() : BroadphaseInterface() {
         collisionFilter: Int, dispatcher: Dispatcher, multiSapProxy: Any?
     ): BroadphaseProxy {
         val proxy = DbvtProxy(userPtr, collisionFilter)
-        DbvtAabbMm.Companion.fromMinMax(aabbMin, aabbMax, proxy.aabb)
-        proxy.leaf = sets[0].insert(proxy.aabb, proxy)
+        proxy.aabb.setMin(aabbMin)
+        proxy.aabb.setMax(aabbMax)
+        proxy.leaf = dynamicSet.insert(proxy.aabb, proxy)
         proxy.stage = stageCurrent
         proxy.uid = ++nextUId
         stageRoots[stageCurrent] = listAppend(proxy, stageRoots[stageCurrent])
@@ -96,9 +96,9 @@ class DbvtBroadphase() : BroadphaseInterface() {
     override fun destroyProxy(proxy: BroadphaseProxy, dispatcher: Dispatcher) {
         val proxy = proxy as DbvtProxy
         if (proxy.stage == STAGE_COUNT) {
-            sets[1].remove(proxy.leaf!!)
+            staticSet.remove(proxy.leaf!!)
         } else {
-            sets[0].remove(proxy.leaf!!)
+            dynamicSet.remove(proxy.leaf!!)
         }
         stageRoots[proxy.stage] = listRemove(proxy, stageRoots[proxy.stage])
         overlappingPairCache.removeOverlappingPairsContainingProxy(proxy, dispatcher)
@@ -112,28 +112,30 @@ class DbvtBroadphase() : BroadphaseInterface() {
         dispatcher: Dispatcher
     ) {
         val proxy = proxy as DbvtProxy
-        val aabb: DbvtAabbMm = DbvtAabbMm.Companion.fromMinMax(aabbMin, aabbMax, Stack.newDbvtAabbMm())
+        val aabb = Stack.newAabb()
+        aabb.setMin(aabbMin)
+        aabb.setMax(aabbMax)
 
         if (proxy.stage == STAGE_COUNT) {
             // fixed -> dynamic set
-            sets[1].remove(proxy.leaf!!)
-            proxy.leaf = sets[0].insert(aabb, proxy)
+            staticSet.remove(proxy.leaf!!)
+            proxy.leaf = dynamicSet.insert(aabb, proxy)
         } else {
             // dynamic set:
-            if (DbvtAabbMm.Companion.intersect(proxy.leaf!!.volume, aabb)) { /* Moving				*/
-                val delta = Stack.newVec()
+            if (proxy.leaf!!.bounds.testAABB(aabb)) { /* Moving				*/
+                val delta = Stack.newVec() // this.center - proxy.center
                 aabbMin.add(aabbMax, delta).mul(0.5)
                 delta.sub(proxy.aabb.getCenter(Stack.newVec()))
                 //#ifdef DBVT_BP_MARGIN
                 delta.mul(predictedFrames)
-                sets[0].update(proxy.leaf!!, aabb, delta, DBVT_BP_MARGIN)
+                dynamicSet.update(proxy.leaf!!, aabb, delta, DBVT_BP_MARGIN)
                 Stack.subVec(2)
                 //#else
                 //m_sets[0].update(proxy->leaf,aabb,delta*m_predictedframes);
                 //#endif
             } else {
                 // teleporting:
-                sets[0].update(proxy.leaf!!, aabb)
+                dynamicSet.update(proxy.leaf!!, aabb)
             }
         }
 
@@ -141,7 +143,7 @@ class DbvtBroadphase() : BroadphaseInterface() {
         proxy.aabb.set(aabb)
         proxy.stage = stageCurrent
         stageRoots[stageCurrent] = listAppend(proxy, stageRoots[stageCurrent])
-        Stack.subDbvtAabbMm(1)
+        Stack.subAabb(1)
     }
 
     override fun calculateOverlappingPairs(dispatcher: Dispatcher) {
@@ -149,22 +151,21 @@ class DbvtBroadphase() : BroadphaseInterface() {
     }
 
     override fun getBroadphaseAabb(aabbMin: Vector3d, aabbMax: Vector3d) {
-        val bounds = Stack.newDbvtAabbMm()
-        if (!sets[0].isEmpty) {
-            if (!sets[1].isEmpty) {
-                DbvtAabbMm.Companion.union(sets[0].root!!.volume, sets[1].root!!.volume, bounds)
+        val bounds = Stack.newAabb()
+        if (!dynamicSet.isEmpty) {
+            if (!staticSet.isEmpty) {
+                dynamicSet.root!!.bounds.union(staticSet.root!!.bounds, bounds)
             } else {
-                bounds.set(sets[0].root!!.volume)
+                bounds.set(dynamicSet.root!!.bounds)
             }
-        } else if (!sets[1].isEmpty) {
-            bounds.set(sets[1].root!!.volume)
+        } else if (!staticSet.isEmpty) {
+            bounds.set(staticSet.root!!.bounds)
         } else {
-            DbvtAabbMm.Companion.fromCenterRadius(Stack.newVec(), 0.0, bounds)
-            Stack.subVec(1)
+            bounds.set(0.0, 0.0, 0.0)
         }
-        aabbMin.set(bounds.min)
-        aabbMax.set(bounds.max)
-        Stack.subDbvtAabbMm(1)
+        bounds.getMin(aabbMin)
+        bounds.getMax(aabbMax)
+        Stack.subAabb(1)
     }
 
     companion object {
