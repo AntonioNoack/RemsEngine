@@ -185,8 +185,12 @@ class HexagonSpherePhysics(
     var debugMeshInactiveColor = 0
 
     fun measureCollisionDepth(localTransform: Transform): Double {
-        return if (solver.collide(shape, localTransform, triangle, nullTransform, 0.0, results))
-            results.depth else 0.0
+        return if (solver.collide(
+                shape, localTransform,
+                triangle, nullTransform,
+                0.0, results
+            )
+        ) results.depth else 0.0
     }
 
     fun ensureNeighbors(hex: Hexagon) {

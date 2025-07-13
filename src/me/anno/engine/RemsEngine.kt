@@ -23,6 +23,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.tryStartVR
 import me.anno.extensions.events.EventBroadcasting.callEvent
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.Perspective
@@ -174,21 +175,23 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
             private val pipeline = Pipeline(null)
             override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 useFrame(previewRenderer) {
-                    sky.nadirSharpness = 10f
-                    val shader = sky.shader!!.value
-                    shader.use()
-                    shader.v1f("meshScale", 1f)
-                    shader.v1b("isPerspective", true)
-                    shader.v1b("reverseDepth", false)
-                    Perspective.setPerspective(
-                        cameraMatrix,
-                        0.7f,
-                        (x1 - x0) * 1f / (y1 - y0),
-                        0.001f, 10f, 0f, 0f
-                    )
-                    AssetThumbHelper.bindShader(shader, cameraMatrix, modelMatrix)
-                    sky.material.bind(shader)
-                    sky.getMesh().draw(pipeline, shader, 0)
+                    GFXState.drawingSky.use(true) {
+                        sky.nadirSharpness = 10f
+                        val shader = sky.shader!!.value
+                        shader.use()
+                        shader.v1f("meshScale", 1f)
+                        shader.v1b("isPerspective", true)
+                        shader.v1b("reverseDepth", false)
+                        Perspective.setPerspective(
+                            cameraMatrix,
+                            0.7f,
+                            (x1 - x0) * 1f / (y1 - y0),
+                            0.001f, 10f, 0f, 0f
+                        )
+                        AssetThumbHelper.bindShader(shader, cameraMatrix, modelMatrix)
+                        sky.material.bind(shader)
+                        sky.getMesh().draw(pipeline, shader, 0)
+                    }
                 }
             }
         }

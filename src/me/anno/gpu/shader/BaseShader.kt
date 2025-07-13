@@ -171,6 +171,7 @@ open class BaseShader(
         if (flags.hasFlag(IS_DEFERRED)) dst.append("#define DEFERRED\n")
         if (flags.hasFlag(NEEDS_COLORS)) dst.append("#define COLORS\n")
         if (flags.hasFlag(NEEDS_MOTION_VECTORS)) dst.append("#define MOTION_VECTORS\n")
+        if (flags.hasFlag(DRAWING_SKY)) dst.append("#define DRAWING_SKY\n")
         return dst
     }
 
@@ -188,6 +189,7 @@ open class BaseShader(
 
         const val NEEDS_COLORS = 8
         const val NEEDS_MOTION_VECTORS = 16
+        const val DRAWING_SKY = 32
 
         val motionVectors
             get(): Boolean {
@@ -217,6 +219,7 @@ open class BaseShader(
                     renderer == Renderer.depthRenderer ||
                     renderer == rawAttributeRenderers.getOrNull(DeferredLayerType.DEPTH) ||
                     renderer == attributeRenderers.getOrNull(DeferredLayerType.DEPTH)
+            val sky = GFXState.drawingSky.currentValue
             return animated.toInt(IS_ANIMATED) or
                     motionVectors.toInt(NEEDS_MOTION_VECTORS) or
                     (!isDepth).toInt(NEEDS_COLORS) or
@@ -224,7 +227,8 @@ open class BaseShader(
                     (renderer.deferredSettings != null && // we probably should make this explicit...
                             renderer.deferredSettings.layerTypes.any2 {
                                 it != DeferredLayerType.COLOR && it != DeferredLayerType.DEPTH
-                            }).toInt(IS_DEFERRED)
+                            }).toInt(IS_DEFERRED) or
+                    sky.toInt(DRAWING_SKY)
         }
     }
 }

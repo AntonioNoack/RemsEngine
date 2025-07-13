@@ -83,14 +83,6 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
     override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d) =
         localGetSupportingVertex(dir, out, 0.0)
 
-    override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        dirs: Array<Vector3d>, outs: Array<Vector3d>, numVectors: Int
-    ) {
-        for (i in 0 until numVectors) {
-            localGetSupportingVertex(dirs[i], outs[i], 0.0)
-        }
-    }
-
     override fun getAabbSlow(
         t: Transform, aabbMin: Vector3d, aabbMax: Vector3d
     ) {

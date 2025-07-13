@@ -280,6 +280,11 @@ object GFXState {
      * */
     val cullMode = SecureStack(CullMode.BOTH)
 
+    /**
+     * whether sky is currently being drawn; necessary for previewRenderer
+     * */
+    val drawingSky = SecureStack(false)
+
     @Suppress("unused")
     val stencilTest = object : SecureStack<Boolean>(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {

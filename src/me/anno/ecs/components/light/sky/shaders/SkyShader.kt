@@ -38,6 +38,21 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 "  return f;\n" +
                 "}\n" +
                 "float fbm(vec2 p){ return fbm(vec3(p, 0.0)); }\n"
+        val approxExponents = "" +
+                "float approx1(float x){\n" + // x in [-1,0]
+                // approximate exp(x * exp(x * 8.0) * 4.0)
+                // "   return exp(x * exp(x * 8.0) * 4.0);\n" +
+                "   return 1.0 + 3.0 * pow(x + 1.0, 6.0) * x;\n" +
+                "}\n" +
+                "float approxExp16(float x){\n" + // x in [-1,0]
+                // difference not measurable on RTX 3070 :/
+                // "   return exp(x * 16.0);\n" +
+                "   return pow(x+1.0,16.0);\n" +
+                "}\n" +
+                "float approxExp2x4(float x){\n" +
+                // "   return exp(negPosY * 2.0) * 4.0;\n" +
+                "   return pow(x+1.0,2.0)*3.46+0.54;\n" +
+                "}\n"
     }
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
@@ -109,20 +124,7 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
         val inv80Br = -1.0 / (80.0 * Br)
         return "" +
                 "float fbm(vec3); float fbm(vec2);\n" + // imports
-                "float approx1(float x){\n" + // x in [-1,0]
-                // approximate exp(x * exp(x * 8.0) * 4.0)
-                // "   return exp(x * exp(x * 8.0) * 4.0);\n" +
-                "   return 1.0 + 3.0 * pow(x + 1.0, 6.0) * x;\n" +
-                "}\n" +
-                "float approxExp16(float x){\n" + // x in [-1,0]
-                // difference not measurable on RTX 3070 :/
-                // "   return exp(x * 16.0);\n" +
-                "   return pow(x+1.0,16.0);\n" +
-                "}\n" +
-                "float approxExp2x4(float x){\n" +
-                // "   return exp(negPosY * 2.0) * 4.0;\n" +
-                "   return pow(x+1.0,2.0)*3.46+0.54;\n" +
-                "}\n" +
+                approxExponents +
                 "vec3 getSkyColor(vec3 pos){\n" +
                 "vec3 pos0 = pos;\n" +
                 "pos.y = max(pos.y, 0.0);\n" +

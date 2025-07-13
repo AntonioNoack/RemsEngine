@@ -49,36 +49,6 @@ class MinkowskiSumShape @Suppress("unused") constructor(
         return out
     }
 
-    override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        dirs: Array<Vector3d>,
-        outs: Array<Vector3d>,
-        numVectors: Int
-    ) {
-        val tmp = Stack.newVec()
-        val supVertexA = Stack.newVec()
-        val supVertexB = Stack.newVec()
-
-        for (i in 0 until numVectors) {
-            val vec = dirs[i]
-            val out = outs[i]
-
-            // btVector3 supVertexA = m_transA(m_shapeA->localGetSupportingVertexWithoutMargin(-vec*m_transA.getBasis()));
-            tmp.setNegate(vec)
-            MatrixUtil.transposeTransform(tmp, tmp, transA.basis)
-            shapeA.localGetSupportingVertexWithoutMargin(tmp, supVertexA)
-            transA.transform(supVertexA)
-
-            // btVector3 supVertexB = m_transB(m_shapeB->localGetSupportingVertexWithoutMargin(vec*m_transB.getBasis()));
-            MatrixUtil.transposeTransform(tmp, vec, transB.basis)
-            shapeB.localGetSupportingVertexWithoutMargin(tmp, supVertexB)
-            transB.transform(supVertexB)
-
-            out.setSub(supVertexA, supVertexB)
-        }
-
-        Stack.subVec(3)
-    }
-
     override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         throw UnsupportedOperationException("Not supported yet.")
     }

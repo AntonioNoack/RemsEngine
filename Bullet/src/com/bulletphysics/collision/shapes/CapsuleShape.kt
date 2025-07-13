@@ -101,15 +101,6 @@ open class CapsuleShape(radius: Double, height: Double, val upAxis: Axis) : Conv
         return out
     }
 
-    override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        dirs: Array<Vector3d>,
-        outs: Array<Vector3d>,
-        numVectors: Int
-    ) {
-        // TODO: implement
-        throw UnsupportedOperationException("Not supported yet.")
-    }
-
     override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         // as an approximation, take the inertia of the box that bounds the spheres
 

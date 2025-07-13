@@ -49,7 +49,9 @@ object DrawSky {
 
     fun drawSky0(pipeline: Pipeline) {
         timeRendering("DrawSky", pipeline.skyTimer) {
-            drawSky1(pipeline)
+            GFXState.drawingSky.use(true) {
+                drawSky1(pipeline)
+            }
         }
     }
 
@@ -103,7 +105,9 @@ object DrawSky {
 
     fun bakeSkybox(pipeline: Pipeline, resolution: Int) {
         timeRendering("BakeSkybox", pipeline.skyboxTimer) {
-            bakeSkybox0(pipeline, resolution)
+            GFXState.drawingSky.use(true) {
+                bakeSkybox0(pipeline, resolution)
+            }
         }
     }
 

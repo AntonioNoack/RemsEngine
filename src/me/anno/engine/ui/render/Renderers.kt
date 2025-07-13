@@ -1,5 +1,9 @@
 package me.anno.engine.ui.render
 
+import me.anno.ecs.components.light.sky.shaders.FixedSkyShader.fixedSkyCode
+import me.anno.ecs.components.light.sky.shaders.SkyShader.Companion.funcFBM
+import me.anno.ecs.components.light.sky.shaders.SkyShader.Companion.funcHash
+import me.anno.ecs.components.light.sky.shaders.SkyShader.Companion.funcNoise
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.combineLightCode
@@ -10,9 +14,9 @@ import me.anno.engine.ui.render.RendererLib.skyMapCode
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
+import me.anno.gpu.shader.BaseShader.Companion.DRAWING_SKY
 import me.anno.gpu.shader.BaseShader.Companion.IS_DEFERRED
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -124,7 +128,8 @@ object Renderers {
             return ShaderStage(
                 "overdraw", listOf(
                     Variable(GLSLType.V3F, "uvw"),
-                    Variable(GLSLType.V4F, "finalOverdraw", VariableMode.OUT)),
+                    Variable(GLSLType.V4F, "finalOverdraw", VariableMode.OUT)
+                ),
                 "" +
                         "int usage = 0;\n" +
                         "vec3 dx = dFdx(uvw), dy = dFdy(uvw);\n" +
@@ -242,13 +247,6 @@ object Renderers {
     @JvmField
     val previewRenderer = object : Renderer("preview") {
 
-        val previewLights = listOf(
-            // direction, strength
-            Vector4f(-.5f, +1f, .5f, 1f),
-            Vector4f(1f, 1f, 0f, 0.5f),
-            Vector4f(0f, 0f, 1f, 0.2f)
-        )
-
         override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
             return listOf(
                 ShaderStage(
@@ -267,48 +265,50 @@ object Renderers {
                         Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
                     ), "" +
                             colorToLinear +
+
                             // shared pbr data
                             "vec3 V = normalize(-finalPosition);\n" +
+
                             // light calculations
                             "float NdotV = abs(dot(finalNormal,V));\n" +
+
                             // precalculate sheen
                             "float sheenFresnel = 1.0 - abs(dot(finalSheenNormal,V));\n" +
                             "float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
+
                             // light calculation
                             // model ambient light using simple sky model
-                            "vec3 ambientLight = vec3(0.81);\n" +
-                            "vec3 diffuseLight = ambientLight, specularLight = ambientLight;\n" +
                             "float reflectivity = finalReflectivity;\n" +
                             "vec3 diffuseColor  = finalColor * (1.0-reflectivity);\n" +
                             "vec3 specularColor = finalColor * reflectivity;\n" +
                             "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +
-                            specularBRDFv2NoDivInlined2Start +
-                            "// [loop]\n" + // hlsl instruction
-                            "for(int i=0;i<${previewLights.size};i++){\n" +
-                            "   vec4 data = ${
-                                previewLights.withIndex().joinToString("") { (idx, v) ->
-                                    if (idx < previewLights.lastIndex) "i == $idx ? vec4(${v.x},${v.y},${v.z},${v.w}) :\n"
-                                    else "vec4(${v.x},${v.y},${v.z},${v.w})"
-                                }
-                            };\n" +
-                            "   vec3 lightDirection = data.xyz, lightColor = vec3(data.w);\n" +
-                            "   float NdotL = dot(finalNormal, lightDirection);\n" +
-                            "   if(NdotL > 0.0){\n" +
-                            "       if(hasSpecular) {\n" +
-                            "           vec3 H = normalize(V + lightDirection);\n" +
-                            specularBRDFv2NoDivInlined2 +
-                            "           specularLight += lightColor * computeSpecularBRDF;\n" +
-                            "       }\n" +
-                            "       diffuseLight += lightColor * NdotL;\n" +
-                            "   }\n" +
+                            "vec3 baseAmbient = vec3(exp(dot(finalNormal,vec3(0.4,0.7,0.2))) * 3.0);\n" +
+
+                            "#ifndef DRAWING_SKY\n" +
+                            "   vec3 ambientLight = hasSpecular ? getSkyColor(finalNormal) : baseAmbient;\n" +
+                            "#else\n" +
+                            "   vec3 ambientLight = baseAmbient;\n" +
+                            "#endif\n" +
+
+                            "ambientLight = mix(baseAmbient, ambientLight, reflectivity);\n" +
+                            "vec3 diffuseLight = ambientLight, specularLight = ambientLight;\n" +
+                            "if (hasSpecular) {\n" +
+                            "   vec3 reflectedV = -reflect(V,finalNormal);\n" +
+                            "   specularLight = mix(specularLight, getSkyColor(reflectedV), reflectivity);\n" +
                             "}\n" +
+
+                            specularBRDFv2NoDivInlined2Start +
                             specularBRDFv2NoDivInlined2End +
                             "finalColor = diffuseColor * diffuseLight + specularLight * specularColor;\n" +
                             "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
                             "finalColor = tonemapLinear(finalColor);\n" +
                             colorToSRGB +
                             "finalResult = vec4(finalColor, finalAlpha);\n"
-                ).add(randomGLSL).add(tonemapGLSL).add(getReflectivity), finalResultStage
+                ).add(randomGLSL).add(tonemapGLSL).add(getReflectivity).apply {
+                    if (!flags.hasFlag(DRAWING_SKY)) {
+                        add(fixedSkyCode).add(funcHash).add(funcNoise).add(funcFBM)
+                    }
+                }, finalResultStage
             )
         }
     }

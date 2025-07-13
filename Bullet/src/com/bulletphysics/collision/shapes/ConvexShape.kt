@@ -16,9 +16,13 @@ abstract class ConvexShape : CollisionShape() {
     abstract fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d
 
     //notice that the vectors should be unit length
-    abstract fun batchedUnitVectorGetSupportingVertexWithoutMargin(
+    open fun batchedUnitVectorGetSupportingVertexWithoutMargin(
         dirs: Array<Vector3d>, outs: Array<Vector3d>, numVectors: Int
-    )
+    ) {
+        for (i in 0 until numVectors) {
+            localGetSupportingVertexWithoutMargin(dirs[i], outs[i])
+        }
+    }
 
     abstract fun getAabbSlow(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d)
 

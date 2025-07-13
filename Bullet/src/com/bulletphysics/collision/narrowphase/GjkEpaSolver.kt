@@ -4,7 +4,6 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.util.ArrayPool
 import com.bulletphysics.util.ObjectStackList
 import com.bulletphysics.util.setCross
 import com.bulletphysics.util.setNegate
@@ -12,7 +11,6 @@ import com.bulletphysics.util.setNormalize
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
-import org.joml.Matrix3d
 import org.joml.Vector3d
 import java.util.Arrays
 import kotlin.math.abs
@@ -24,8 +22,6 @@ import kotlin.math.max
  * @author jezek2
  */
 class GjkEpaSolver {
-    val floatArrays: ArrayPool<DoubleArray?> =
-        ArrayPool.Companion.get(Double::class.javaPrimitiveType!!)
 
     val stackMkv = ObjectStackList<Ray>(Ray::class.java)
     val stackHe = ObjectStackList<Vec3Node>(Vec3Node::class.java)
@@ -83,12 +79,18 @@ class GjkEpaSolver {
     }
 
     inner class GJK {
+
         //public btStackAlloc sa;
         //public Block sablock;
+
         val table = arrayOfNulls<Vec3Node>(GJK_HASH_SIZE)
-        val wrotations /*[2]*/ = arrayOf(Matrix3d(), Matrix3d())
-        val positions /*[2]*/ = arrayOf(Vector3d(), Vector3d())
-        val shapes: Array<ConvexShape?> = arrayOfNulls(2)
+
+        lateinit var transform0: Transform
+        lateinit var transform1: Transform
+
+        lateinit var shape0: ConvexShape
+        lateinit var shape1: ConvexShape
+
         val simplex = Array(5) { Ray() }
         val ray: Vector3d = Vector3d()
         /*unsigned*/var order: Int = 0
@@ -96,32 +98,17 @@ class GjkEpaSolver {
         var margin: Double = 0.0
         var failed: Boolean = false
 
-        constructor()
-
-        @JvmOverloads
-        constructor(
-            wrot0: Matrix3d, pos0: Vector3d, shape0: ConvexShape?,
-            wrot1: Matrix3d, pos1: Vector3d, shape1: ConvexShape?,
-            pmargin: Double = 0.0
-        ) {
-            init(wrot0, pos0, shape0, wrot1, pos1, shape1, pmargin)
-        }
-
-        fun init( /*StackAlloc psa,*/
-                  wrot0: Matrix3d, pos0: Vector3d, shape0: ConvexShape?,
-                  wrot1: Matrix3d, pos1: Vector3d, shape1: ConvexShape?,
-                  pmargin: Double
+        fun init(
+            transform0: Transform, shape0: ConvexShape,
+            transform1: Transform, shape1: ConvexShape,
+            margin: Double
         ) {
             pushStack()
-            wrotations[0].set(wrot0)
-            positions[0].set(pos0)
-            shapes[0] = shape0
-            wrotations[1].set(wrot1)
-            positions[1].set(pos1)
-            shapes[1] = shape1
-            //sa		=psa;
-            //sablock	=sa->beginBlock();
-            margin = pmargin
+            this.transform0 = transform0
+            this.transform1 = transform1
+            this.shape0 = shape0
+            this.shape1 = shape1
+            this.margin = margin
             failed = false
         }
 
@@ -130,22 +117,22 @@ class GjkEpaSolver {
         }
 
         // vdh: very dummy hash
-        /*unsigned*/ fun Hash(v: Vector3d): Int {
+        fun hash(v: Vector3d): Int {
             val h = (v.x * 15461).toInt() xor (v.y * 83003).toInt() xor (v.z * 15473).toInt()
             return (h * 169639) and GJK_HASH_MASK
         }
 
-        fun localSupport(
-            d: Vector3d, /*unsigned*/i: Int, out: Vector3d
-        ): Vector3d {
+        fun localSupport(d: Vector3d, i: Int, out: Vector3d): Vector3d {
             val dir = Stack.newVec()
-            MatrixUtil.transposeTransform(dir, d, wrotations[i])
+            val transform = if(i == 0) transform0 else transform1
+            val rotation = transform.basis
+            MatrixUtil.transposeTransform(dir, d, rotation)
 
-            shapes[i]!!.localGetSupportingVertex(dir, out)
-            wrotations[i].transform(out)
-            out.add(positions[i])
+            val shape = if (i == 0) shape0 else shape1
+            shape.localGetSupportingVertex(dir, out)
+            rotation.transform(out)
+            out.add(transform.origin)
             Stack.subVec(1)
-
             return out
         }
 
@@ -165,7 +152,7 @@ class GjkEpaSolver {
         }
 
         fun fetchSupport(): Boolean {
-            val h = Hash(ray)
+            val h = hash(ray)
             var e = table[h]
             while (e != null) {
                 if (e.v == ray) {
@@ -448,7 +435,10 @@ class GjkEpaSolver {
         var nfaces: Int = 0
         var iterations: Int = 0
         val features = Array(6) { Vector3d() }
-        val nearest /*[2]*/ = arrayOf(Vector3d(), Vector3d())
+
+        val nearest0 = Vector3d()
+        val nearest1 = Vector3d()
+
         val normal: Vector3d = Vector3d()
         var depth: Double = 0.0
         var failed: Boolean = false
@@ -461,29 +451,26 @@ class GjkEpaSolver {
             val o = Stack.newVec()
             o.setScale(-face.depth, face.n)
 
-            val a = floatArrays.getFixed(3)
-
             tmp1.setSub(face.vertices[0]!!.origin, o)
             tmp2.setSub(face.vertices[1]!!.origin, o)
             tmp.setCross(tmp1, tmp2)
-            a!![0] = tmp.length()
+            val a0 = tmp.length()
 
             tmp1.setSub(face.vertices[1]!!.origin, o)
             tmp2.setSub(face.vertices[2]!!.origin, o)
             tmp.setCross(tmp1, tmp2)
-            a[1] = tmp.length()
+            val a1 = tmp.length()
 
             tmp1.setSub(face.vertices[2]!!.origin, o)
             tmp2.setSub(face.vertices[0]!!.origin, o)
             tmp.setCross(tmp1, tmp2)
-            a[2] = tmp.length()
+            val a2 = tmp.length()
 
-            val sm = a[0] + a[1] + a[2]
+            val sm = a0 + a1 + a2
 
-            out.set(a[1], a[2], a[0])
+            out.set(a1, a2, a0)
             out.mul(1.0 / (if (sm > 0.0) sm else 1.0))
 
-            floatArrays.release(a)
             Stack.subVec(4)
 
             return out
@@ -705,6 +692,7 @@ class GjkEpaSolver {
                     val bary = getCoordinates(bestFace, Stack.newVec())
                     normal.set(bestFace.n)
                     depth = max(0.0, bestFace.depth)
+
                     for (i in 0..1) {
                         val s = if (i != 0) -1.0 else 1.0
                         for (j in 0..2) {
@@ -713,8 +701,8 @@ class GjkEpaSolver {
                         }
                     }
 
-                    barycentricInterpolation(nearest[0], features[0], features[1], features[2], bary)
-                    barycentricInterpolation(nearest[1], features[3], features[4], features[5], bary)
+                    barycentricInterpolation(nearest0, features[0], features[1], features[2], bary)
+                    barycentricInterpolation(nearest1, features[3], features[4], features[5], bary)
                     Stack.subVec(1)
                 } else {
                     failed = true
@@ -739,27 +727,27 @@ class GjkEpaSolver {
     private val gjk = GJK()
 
     fun collide(
-        shape0: ConvexShape?, wtrs0: Transform,
-        shape1: ConvexShape?, wtrs1: Transform,
-        radialMargin: Double,  /*,
-			btStackAlloc* stackAlloc*/
+        shape0: ConvexShape, transform0: Transform,
+        shape1: ConvexShape, transform1: Transform,
+        radialMargin: Double,
         results: Results
     ): Boolean {
-        // Initialize
 
-        results.witness0.set(0.0, 0.0, 0.0)
-        results.witness1.set(0.0, 0.0, 0.0)
-        results.normal.set(0.0, 0.0, 0.0)
+        results.witness0.set(0.0)
+        results.witness1.set(0.0)
+        results.normal.set(0.0)
         results.depth = 0.0
         results.status = ResultsStatus.SEPARATED
         results.epaIterations = 0
         results.gjkIterations = 0
-        /* Use GJK to locate origin		*/
+
+        /* Use GJK to locate origin */
         gjk.init(
-            wtrs0.basis, wtrs0.origin, shape0,
-            wtrs1.basis, wtrs1.origin, shape1,
+            transform0, shape0,
+            transform1, shape1,
             radialMargin + EPA_ACCURACY
         )
+
         try {
             val collide = gjk.searchOrigin()
             results.gjkIterations = gjk.iterations + 1
@@ -772,8 +760,8 @@ class GjkEpaSolver {
                     results.status = ResultsStatus.PENETRATING
                     results.normal.set(epa.normal)
                     results.depth = pd
-                    results.witness0.set(epa.nearest[0])
-                    results.witness1.set(epa.nearest[1])
+                    results.witness0.set(epa.nearest0)
+                    results.witness1.set(epa.nearest1)
                     return true
                 } else {
                     if (epa.failed) {

@@ -53,35 +53,6 @@ abstract class PolyhedralConvexShape : ConvexInternalShape() {
         return out
     }
 
-    override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        dirs: Array<Vector3d>, outs: Array<Vector3d>, numVectors: Int
-    ) {
-        val vtx = Stack.newVec()
-        var newDot: Double
-
-        // JAVA NOTE: rewritten as code used W coord for temporary usage in Vector3
-        val wcoords: DoubleArray = W_POOL.getFixed(numVectors)
-        Arrays.fill(wcoords, -1e308)
-
-        for (j in 0 until numVectors) {
-            val vec = dirs[j]
-
-            for (i in 0 until this.numVertices) {
-                getVertex(i, vtx)
-                newDot = vec.dot(vtx)
-                //if (newDot > supportVerticesOut[j].w)
-                if (newDot > wcoords[j]) {
-                    //WARNING: don't swap next lines, the w component would get overwritten!
-                    outs[j].set(vtx)
-                    //supportVerticesOut[j].w = newDot;
-                    wcoords[j] = newDot
-                }
-            }
-        }
-
-        W_POOL.release(wcoords)
-    }
-
     override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         // not yet, return box inertia
 
@@ -129,27 +100,17 @@ abstract class PolyhedralConvexShape : ConvexInternalShape() {
 
     fun recalculateLocalAabb() {
         isLocalAabbValid = true
-
-        //#if 1
         batchedUnitVectorGetSupportingVertexWithoutMargin(directions, supporting, 6)
-
-        for (i in 0..2) {
-            setCoord(localAabbMax, i, VectorUtil.getCoord(supporting[i], i) + margin)
-            setCoord(localAabbMin, i, VectorUtil.getCoord(supporting[i + 3], i) - margin)
-        }
-
-        //#else
-        //for (int i=0; i<3; i++) {
-        //	Vector3d vec = Stack.newVec();
-        //	vec.set(0.0, 0.0, 0.0);
-        //	VectorUtil.setCoord(vec, i, 1.0);
-        //	Vector3d tmp = localGetSupportingVertex(vec, Stack.newVec());
-        //	VectorUtil.setCoord(localAabbMax, i, VectorUtil.getCoord(tmp, i) + collisionMargin);
-        //	VectorUtil.setCoord(vec, i, -1.0);
-        //	localGetSupportingVertex(vec, tmp);
-        //	VectorUtil.setCoord(localAabbMin, i, VectorUtil.getCoord(tmp, i) - collisionMargin);
-        //}
-        //#endif
+        localAabbMin.set(
+            supporting[0].x,
+            supporting[1].y,
+            supporting[2].z,
+        ).sub(margin)
+        localAabbMax.set(
+            supporting[3].x,
+            supporting[4].y,
+            supporting[5].z,
+        ).add(margin)
     }
 
     override fun setLocalScaling(scaling: Vector3d) {
@@ -169,15 +130,16 @@ abstract class PolyhedralConvexShape : ConvexInternalShape() {
     abstract fun isInside(pt: Vector3d, tolerance: Double): Boolean
 
     companion object {
+
         private val W_POOL = ArrayPool<DoubleArray>(Double::class.javaPrimitiveType!!)
 
         private val directions = arrayOf<Vector3d>(
+            Vector3d(-1.0, 0.0, 0.0),
+            Vector3d(0.0, -1.0, 0.0),
+            Vector3d(0.0, 0.0, -1.0),
             Vector3d(1.0, 0.0, 0.0),
             Vector3d(0.0, 1.0, 0.0),
             Vector3d(0.0, 0.0, 1.0),
-            Vector3d(-1.0, 0.0, 0.0),
-            Vector3d(0.0, -1.0, 0.0),
-            Vector3d(0.0, 0.0, -1.0)
         )
 
         private val supporting = arrayOf<Vector3d>(

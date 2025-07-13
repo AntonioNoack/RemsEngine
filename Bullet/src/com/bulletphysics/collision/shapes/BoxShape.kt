@@ -73,22 +73,6 @@ open class BoxShape(boxHalfExtents: Vector3d) : PolyhedralConvexShape() {
         return out
     }
 
-    override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        dirs: Array<Vector3d>,
-        outs: Array<Vector3d>,
-        numVectors: Int
-    ) {
-        val halfExtents = getHalfExtentsWithoutMargin(Stack.newVec())
-        for (i in 0 until numVectors) {
-            val vec = dirs[i]
-            outs[i].set(
-                ScalarUtil.select(vec.x, halfExtents.x, -halfExtents.x),
-                ScalarUtil.select(vec.y, halfExtents.y, -halfExtents.y),
-                ScalarUtil.select(vec.z, halfExtents.z, -halfExtents.z)
-            )
-        }
-    }
-
     override var margin: Double
         get() = super.margin
         set(value) {

@@ -32,14 +32,6 @@ class SphereShape(radius: Double) : ConvexInternalShape() {
         return out.set(0.0)
     }
 
-    override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        dirs: Array<Vector3d>, outs: Array<Vector3d>, numVectors: Int
-    ) {
-        for (i in 0 until numVectors) {
-            outs[i].set(0.0)
-        }
-    }
-
     override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         val center = t.origin
         val margin = margin

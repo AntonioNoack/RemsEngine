@@ -61,38 +61,6 @@ class ConvexHullShape(val points: FloatArray, val triangles: IntArray?) :
         return out
     }
 
-    override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        dirs: Array<Vector3d>, outs: Array<Vector3d>, numVectors: Int
-    ) {
-        var newDot: Double
-
-        // JAVA NOTE: rewritten as code used W coord for temporary usage in Vector3
-        // TODO: optimize it
-        val wCoords = DoubleArray(numVectors)
-
-        // use 'w' component of supportVerticesOut?
-        Arrays.fill(wCoords, Double.NEGATIVE_INFINITY)
-
-        var i = 0
-        val l = points.size
-        while (i < l) {
-            val x = points[i] * localScaling.x
-            val y = points[i + 1] * localScaling.y
-            val z = points[i + 2] * localScaling.z
-
-            for (j in 0 until numVectors) {
-                val vec = dirs[j]
-                newDot = vec.x * x + vec.y * y + vec.z * z
-                if (newDot > wCoords[j]) {
-                    // WARNING: don't swap next lines, the w component would get overwritten!
-                    outs[j].set(x, y, z)
-                    wCoords[j] = newDot
-                }
-            }
-            i += 3
-        }
-    }
-
     override fun localGetSupportingVertex(dir: Vector3d, out: Vector3d): Vector3d {
         val supVertex = localGetSupportingVertexWithoutMargin(dir, out)
 

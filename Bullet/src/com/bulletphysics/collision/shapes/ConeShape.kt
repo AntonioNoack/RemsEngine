@@ -57,15 +57,6 @@ open class ConeShape(val radius: Double, val height: Double, val upAxis: Axis) :
         return coneLocalSupport(dir, out)
     }
 
-    override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        dirs: Array<Vector3d>, outs: Array<Vector3d>, numVectors: Int
-    ) {
-        for (i in 0 until numVectors) {
-            val vec = dirs[i]
-            coneLocalSupport(vec, outs[i])
-        }
-    }
-
     override fun localGetSupportingVertex(dir: Vector3d, out: Vector3d): Vector3d {
         val supVertex = coneLocalSupport(dir, out)
         if (margin != 0.0) {
