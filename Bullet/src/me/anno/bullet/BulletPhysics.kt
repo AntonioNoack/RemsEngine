@@ -471,8 +471,11 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         get() {
             var sum = 0
             val dispatcher = bulletInstance.dispatcher
-            for (i in 0 until dispatcher.numManifolds) {
-                sum += dispatcher.getManifold(i).numContacts
+            try {
+                for (i in 0 until dispatcher.numManifolds) {
+                    sum += dispatcher.getManifold(i).numContacts
+                }
+            } catch (_: Exception) {
             }
             return sum
         }

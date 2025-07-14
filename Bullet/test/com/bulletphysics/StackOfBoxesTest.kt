@@ -1,7 +1,6 @@
 package com.bulletphysics
 
-import com.bulletphysics.collision.broadphase.AxisSweep3
-import com.bulletphysics.collision.broadphase.AxisSweep3_32
+import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration
 import com.bulletphysics.collision.shapes.BoxShape
@@ -163,9 +162,7 @@ class StackOfBoxesTest {
             // Physics setup
             val collisionConfig = DefaultCollisionConfiguration()
             val dispatcher = CollisionDispatcher(collisionConfig)
-            val worldAabbMin = Vector3d(-1000.0, -1000.0, -1000.0)
-            val worldAabbMax = Vector3d(1000.0, 1000.0, 1000.0)
-            val broadphase = AxisSweep3(worldAabbMin, worldAabbMax)
+            val broadphase = DbvtBroadphase()
             val solver = SequentialImpulseConstraintSolver()
             val world = DiscreteDynamicsWorld(dispatcher, broadphase, solver)
 

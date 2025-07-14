@@ -6,7 +6,7 @@ package com.bulletphysics.collision.broadphase
  * @author jezek2
  * @see OverlappingPairCache.processAllOverlappingPairs
  */
-interface OverlapCallback {
+fun interface OverlapCallback {
     /**
      * return true for deletion of the pair
      */

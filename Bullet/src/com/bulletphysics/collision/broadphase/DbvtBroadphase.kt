@@ -1,10 +1,13 @@
 // Dbvt implementation by Nathanael Presson
 package com.bulletphysics.collision.broadphase
 
+import com.bulletphysics.collision.dispatch.CollisionObject
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 
 /**
+ * Dynamic Bounding Volume Tree Broadphase
+ * Detect potential collisions between dynamic-dynamic and dynamic-static objects based on their moving bounding boxes.
  * @author jezek2
  */
 class DbvtBroadphase() : BroadphaseInterface() {
@@ -13,20 +16,18 @@ class DbvtBroadphase() : BroadphaseInterface() {
     val staticSet = Dbvt()
     val stageRoots = arrayOfNulls<DbvtProxy>(STAGE_COUNT + 1) // Stages list
 
-    override var overlappingPairCache: OverlappingPairCache = HashedOverlappingPairCache() // Pair cache
+    // this needs the consistent order 🤔
+    override var overlappingPairCache = HashedOverlappingPairCache() // Pair cache
 
     var predictedFrames: Double = 2.0 // Frames predicted
     var stageCurrent: Int = 0// Current stage
     var fixedUpdatesPerFrame: Int = 1 // % of fixed updates per frame
     var dynamicUpdatesPerFrame: Int = 1 // % of dynamic updates per frame
-    var parseId: Int = 0 // Parse id
     var nextUId: Int = 0 // Gen id
 
     fun collide(dispatcher: Dispatcher) {
-        //SPC(m_profiling.m_total);
 
         // optimize:
-
         dynamicSet.optimizeIncremental(1 + (dynamicSet.leaves * dynamicUpdatesPerFrame) / 100)
         staticSet.optimizeIncremental(1 + (staticSet.leaves * fixedUpdatesPerFrame) / 100)
 
@@ -39,7 +40,7 @@ class DbvtBroadphase() : BroadphaseInterface() {
                 val next = current!!.link1
                 stageRoots[current.stage] = listRemove(current, stageRoots[current.stage])
                 stageRoots[STAGE_COUNT] = listAppend(current, stageRoots[STAGE_COUNT])
-                Dbvt.collideTT(staticSet.root, current.leaf, collider)
+                Dbvt.forEachPair(staticSet.root, current.leaf, collider)
                 dynamicSet.remove(current.leaf!!)
                 current.leaf = staticSet.insert(current.aabb, current)
                 current.stage = STAGE_COUNT
@@ -49,39 +50,23 @@ class DbvtBroadphase() : BroadphaseInterface() {
 
         // collide dynamics:
         val collider = DbvtTreeCollider(this)
-        Dbvt.collideTT(dynamicSet.root, staticSet.root, collider) // static-dynamic
-        Dbvt.collideTT(dynamicSet.root, dynamicSet.root, collider) // dynamic-dynamic
+        Dbvt.forEachPair(dynamicSet.root, staticSet.root, collider) // static-dynamic
+        Dbvt.forEachPair(dynamicSet.root, dynamicSet.root, collider) // dynamic-dynamic
 
         collideCleanup(dispatcher)
-        parseId++
     }
 
     private fun collideCleanup(dispatcher: Dispatcher) {
-        val pairs = overlappingPairCache.overlappingPairs
-        var i = 0
-        var ni = pairs.size
-        while (i < ni) {
-            val p = pairs[i]!!
-            var pa = p.proxy0 as DbvtProxy
-            var pb = p.proxy1 as DbvtProxy
-            if (!pa.aabb.testAABB(pb.aabb)) {
-                //if(pa>pb) btSwap(pa,pb);
-                if (pa.hashCode() > pb.hashCode()) {
-                    val tmp = pa
-                    pa = pb
-                    pb = tmp
-                }
-                overlappingPairCache.removeOverlappingPair(pa, pb, dispatcher)
-                ni--
-                i--
-            }
-            i++
-        }
+        overlappingPairCache.processAllOverlappingPairs({ p ->
+            val pa = p.proxy0 as DbvtProxy
+            val pb = p.proxy1 as DbvtProxy;
+            !pa.aabb.testAABB(pb.aabb)
+        }, dispatcher)
     }
 
     override fun createProxy(
-        aabbMin: Vector3d, aabbMax: Vector3d, shapeType: BroadphaseNativeType, userPtr: Any?,
-        collisionFilter: Int, dispatcher: Dispatcher, multiSapProxy: Any?
+        aabbMin: Vector3d, aabbMax: Vector3d, shapeType: BroadphaseNativeType, userPtr: CollisionObject,
+        collisionFilter: Int, dispatcher: Dispatcher
     ): BroadphaseProxy {
         val proxy = DbvtProxy(userPtr, collisionFilter)
         proxy.aabb.setMin(aabbMin)
@@ -90,7 +75,7 @@ class DbvtBroadphase() : BroadphaseInterface() {
         proxy.stage = stageCurrent
         proxy.uid = ++nextUId
         stageRoots[stageCurrent] = listAppend(proxy, stageRoots[stageCurrent])
-        return (proxy)
+        return proxy
     }
 
     override fun destroyProxy(proxy: BroadphaseProxy, dispatcher: Dispatcher) {
@@ -102,7 +87,6 @@ class DbvtBroadphase() : BroadphaseInterface() {
         }
         stageRoots[proxy.stage] = listRemove(proxy, stageRoots[proxy.stage])
         overlappingPairCache.removeOverlappingPairsContainingProxy(proxy, dispatcher)
-        //btAlignedFree(proxy);
     }
 
     override fun setAabb(
@@ -122,17 +106,13 @@ class DbvtBroadphase() : BroadphaseInterface() {
             proxy.leaf = dynamicSet.insert(aabb, proxy)
         } else {
             // dynamic set:
-            if (proxy.leaf!!.bounds.testAABB(aabb)) { /* Moving				*/
+            if (proxy.leaf!!.bounds.testAABB(aabb)) { /* Moving */
                 val delta = Stack.newVec() // this.center - proxy.center
                 aabbMin.add(aabbMax, delta).mul(0.5)
                 delta.sub(proxy.aabb.getCenter(Stack.newVec()))
-                //#ifdef DBVT_BP_MARGIN
                 delta.mul(predictedFrames)
                 dynamicSet.update(proxy.leaf!!, aabb, delta, DBVT_BP_MARGIN)
                 Stack.subVec(2)
-                //#else
-                //m_sets[0].update(proxy->leaf,aabb,delta*m_predictedframes);
-                //#endif
             } else {
                 // teleporting:
                 dynamicSet.update(proxy.leaf!!, aabb)
@@ -148,24 +128,6 @@ class DbvtBroadphase() : BroadphaseInterface() {
 
     override fun calculateOverlappingPairs(dispatcher: Dispatcher) {
         collide(dispatcher)
-    }
-
-    override fun getBroadphaseAabb(aabbMin: Vector3d, aabbMax: Vector3d) {
-        val bounds = Stack.newAabb()
-        if (!dynamicSet.isEmpty) {
-            if (!staticSet.isEmpty) {
-                dynamicSet.root!!.bounds.union(staticSet.root!!.bounds, bounds)
-            } else {
-                bounds.set(dynamicSet.root!!.bounds)
-            }
-        } else if (!staticSet.isEmpty) {
-            bounds.set(staticSet.root!!.bounds)
-        } else {
-            bounds.set(0.0, 0.0, 0.0)
-        }
-        bounds.getMin(aabbMin)
-        bounds.getMax(aabbMax)
-        Stack.subAabb(1)
     }
 
     companion object {

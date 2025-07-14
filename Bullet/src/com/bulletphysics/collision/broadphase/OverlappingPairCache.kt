@@ -1,20 +1,12 @@
 package com.bulletphysics.collision.broadphase
 
-import com.bulletphysics.util.ObjectArrayList
-
 /**
- * OverlappingPairCache provides an interface for overlapping pair management (add,
- * remove, storage), used by the [BroadphaseInterface] broadphases.
+ * OverlappingPairCache provides an interface for overlapping pair management (add, remove, storage),
+ * used by the [BroadphaseInterface] broadphases.
  *
  * @author jezek2
  */
 interface OverlappingPairCache : OverlappingPairCallback {
-
-    val overlappingPairs: ObjectArrayList<BroadphasePair?>
-
-    fun cleanOverlappingPair(pair: BroadphasePair, dispatcher: Dispatcher)
-
-    val numOverlappingPairs: Int
 
     fun cleanProxyFromPairs(proxy: BroadphaseProxy, dispatcher: Dispatcher)
 
@@ -22,9 +14,9 @@ interface OverlappingPairCache : OverlappingPairCallback {
 
     fun processAllOverlappingPairs(callback: OverlapCallback, dispatcher: Dispatcher)
 
-    fun findPair(proxy0: BroadphaseProxy, proxy1: BroadphaseProxy): BroadphasePair?
+    fun processAllOverlappingPairs(callback: (BroadphasePair) -> Unit)
 
-    fun hasDeferredRemoval(): Boolean
+    fun findPair(proxy0: BroadphaseProxy, proxy1: BroadphaseProxy): BroadphasePair?
 
     fun setInternalGhostPairCallback(ghostPairCallback: OverlappingPairCallback)
 }

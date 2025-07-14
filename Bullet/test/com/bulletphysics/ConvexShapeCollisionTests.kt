@@ -148,24 +148,9 @@ class ConvexShapeCollisionTests {
 
     private fun isColliding(world: DiscreteDynamicsWorld, bodyA: RigidBody?, bodyB: RigidBody?): Boolean {
         // Check for collision between A and B
-
-        val pairArray = world.broadphase.overlappingPairCache.overlappingPairs
-
-        for (i in pairArray.indices) {
-            val pair = pairArray[i]!!
-            if ((pair.proxy0!!.clientObject === bodyA && pair.proxy1!!.clientObject === bodyB) ||
-                (pair.proxy0!!.clientObject === bodyB && pair.proxy1!!.clientObject === bodyA)
-            ) {
-                /* ObjectArrayList<PersistentManifold> manifoldArray = world.getDispatcher().getInternalManifoldPointer();
-                               for (int j = 0; j < manifoldArray.size; j++) {
-                                   PersistentManifold manifold = manifoldArray.getQuick(j);
-                                   if (manifold.getNumContacts() > 0) {*/
-
-                return true
-            }
-        }
-
-        return false
+        val ha = bodyA?.broadphaseHandle ?: return false
+        val hb = bodyB?.broadphaseHandle ?: return false
+        return world.broadphase.overlappingPairCache.findPair(ha, hb) != null
     }
 
     @Suppress("SameParameterValue")

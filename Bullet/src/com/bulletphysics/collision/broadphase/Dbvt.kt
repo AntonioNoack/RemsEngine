@@ -6,6 +6,7 @@ import org.joml.AABBd
 import org.joml.Vector3d
 
 /**
+ * Dynamic Bounding Volume Tree aka OctTree for dynamic bounding boxes
  * @author jezek2
  */
 class Dbvt {
@@ -19,7 +20,6 @@ class Dbvt {
         if (root != null) {
             recurseDeleteNode(this, root!!)
         }
-        //btAlignedFree(m_free);
         free = null
     }
 
@@ -127,7 +127,7 @@ class Dbvt {
             remaining.add(na!!)
         }
 
-        fun collideTT(root0: DbvtNode?, root1: DbvtNode?, policy: ICollide) {
+        fun forEachPair(root0: DbvtNode?, root1: DbvtNode?, policy: ICollide) {
             //DBVT_CHECKTYPE
             if (root0 == null || root1 == null) return
 

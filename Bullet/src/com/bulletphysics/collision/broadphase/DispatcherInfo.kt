@@ -11,9 +11,7 @@ class DispatcherInfo {
     @JvmField
     var timeStep: Double = 0.0
 
-    @JvmField
-    var stepCount: Int = 0
-    var dispatchFunc = DispatchFunc.DISPATCH_DISCRETE
+    var discreteDispatch = true
     var timeOfImpact: Double = 1.0
 
     @JvmField

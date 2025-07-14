@@ -197,7 +197,6 @@ class DiscreteDynamicsWorld(
             val dispatchInfo = dispatchInfo
 
             dispatchInfo.timeStep = timeStep
-            dispatchInfo.stepCount = 0
             dispatchInfo.debugDraw = debugDrawer
 
             // perform collision detection
@@ -495,9 +494,7 @@ class DiscreteDynamicsWorld(
         try {
             simulationIslandManager.updateActivationState(this)
 
-            var i = 0
-            val l = constraints.size
-            while (i < l) {
+            for (i in constraints.indices) {
                 val constraint = constraints[i]
 
                 val colObj0 = constraint.rigidBodyA
@@ -506,10 +503,9 @@ class DiscreteDynamicsWorld(
                 if (!colObj0.isStaticOrKinematicObject && !colObj1.isStaticOrKinematicObject) {
                     if (colObj0.isActive || colObj1.isActive) {
                         simulationIslandManager.unionFind
-                            .combineIslands((colObj0).islandTag, (colObj1).islandTag)
+                            .combineIslands(colObj0.islandTag, colObj1.islandTag)
                     }
                 }
-                i++
             }
 
             // Store the island id in each body
@@ -697,7 +693,7 @@ class DiscreteDynamicsWorld(
                 return false
             }
 
-            val otherObj = proxy0.clientObject as CollisionObject
+            val otherObj = proxy0.clientObject
 
             // call needsResponse, see http://code.google.com/p/bullet/issues/detail?id=179
             if (!dispatcher.needsResponse(me, otherObj)) return true
@@ -705,22 +701,20 @@ class DiscreteDynamicsWorld(
             // don't do CCD when there are already contact points (touching contact/penetration)
             val manifoldArray = Stack.newList<PersistentManifold>()
             val collisionPair = pairCache.findPair(me.broadphaseHandle!!, proxy0)
-            if (collisionPair != null) {
-                if (collisionPair.algorithm != null) {
-                    //manifoldArray.resize(0);
-                    collisionPair.algorithm!!.getAllContactManifolds(manifoldArray)
-                    for (j in manifoldArray.indices) {
-                        val manifold = manifoldArray[j]
-                        if (manifold.numContacts > 0) {
-                            // cleanup
-                            manifoldArray.clear()
-                            Stack.subList(1)
-                            return false
-                        }
+            val algorithm = collisionPair?.algorithm
+            if (algorithm != null) {
+                algorithm.getAllContactManifolds(manifoldArray)
+                for (j in manifoldArray.indices) {
+                    val manifold = manifoldArray[j]
+                    if (manifold.numContacts > 0) {
+                        // cleanup
+                        manifoldArray.clear()
+                        Stack.subList(1)
+                        return false
                     }
-                    // cleanup
-                    manifoldArray.clear()
                 }
+                // cleanup
+                manifoldArray.clear()
             }
             Stack.subList(1)
 

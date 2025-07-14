@@ -3,9 +3,8 @@ package com.bulletphysics.dynamics.constraintsolver
 import org.joml.Vector3d
 
 /**
- * Stores some extra information to each contact point. It is not in the contact
- * point, because that want to keep the collision detection independent from the
- * constraint solver.
+ * Stores some extra information to each contact point. It is not in the contact point,
+ * because that want to keep the collision detection independent of the constraint solver.
  *
  * @author jezek2
  */

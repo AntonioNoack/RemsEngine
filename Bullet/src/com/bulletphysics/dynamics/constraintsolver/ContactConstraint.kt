@@ -268,8 +268,8 @@ object ContactConstraint {
         val Kerp = solverInfo.erp
         val Kcor = Kerp * Kfps
 
-        val cpd: ConstraintPersistentData? = checkNotNull(contactPoint.userPersistentData as ConstraintPersistentData?)
-        val distance = cpd!!.penetration
+        val cpd = contactPoint.userPersistentData as ConstraintPersistentData
+        val distance = cpd.penetration
         val positionalError = Kcor * -distance
         val velocityError = cpd.restitution - relVel // * damping;
 

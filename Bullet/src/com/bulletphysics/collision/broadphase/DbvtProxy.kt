@@ -1,12 +1,13 @@
 package com.bulletphysics.collision.broadphase
 
+import com.bulletphysics.collision.dispatch.CollisionObject
 import org.joml.AABBd
 
 /**
  * Dbvt implementation by Nathanael Presson
  * @author jezek2
  */
-class DbvtProxy(userPtr: Any?, collisionFilter: Int) :
+class DbvtProxy(userPtr: CollisionObject, collisionFilter: Int) :
     BroadphaseProxy(userPtr, collisionFilter) {
 
     val aabb = AABBd()

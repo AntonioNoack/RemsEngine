@@ -1,7 +1,6 @@
 package com.bulletphysics.collision.dispatch
 
 import com.bulletphysics.collision.broadphase.BroadphasePair
-import com.bulletphysics.collision.broadphase.DispatchFunc
 import com.bulletphysics.collision.broadphase.DispatcherInfo
 
 /**
@@ -18,8 +17,8 @@ class DefaultNearCallback : NearCallback {
         dispatcher: CollisionDispatcher,
         dispatchInfo: DispatcherInfo
     ) {
-        val colObj0 = collisionPair.proxy0!!.clientObject as CollisionObject
-        val colObj1 = collisionPair.proxy1!!.clientObject as CollisionObject
+        val colObj0 = collisionPair.proxy0.clientObject
+        val colObj1 = collisionPair.proxy1.clientObject
 
         if (dispatcher.needsCollision(colObj0, colObj1)) {
             // dispatcher will keep algorithms persistent in the collision pair
@@ -29,7 +28,7 @@ class DefaultNearCallback : NearCallback {
 
             val algorithm = collisionPair.algorithm ?: return
             contactPointResult.init(colObj0, colObj1)
-            if (dispatchInfo.dispatchFunc == DispatchFunc.DISPATCH_DISCRETE) {
+            if (dispatchInfo.discreteDispatch) {
                 // discrete collision detection query
                 algorithm.processCollision(colObj0, colObj1, dispatchInfo, contactPointResult)
             } else {

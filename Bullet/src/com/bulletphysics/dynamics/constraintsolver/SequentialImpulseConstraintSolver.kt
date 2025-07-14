@@ -68,8 +68,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
     var randSeed: Long = 0L
 
     init {
-        BulletGlobals.contactDestroyedCallback = ContactDestroyedCallback { userPersistentData: Any? ->
-            checkNotNull(userPersistentData)
+        BulletGlobals.contactDestroyedCallback = ContactDestroyedCallback {
             true
         }
     }

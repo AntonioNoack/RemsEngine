@@ -187,7 +187,7 @@ class ConvexHulls {
         val dir = newVec()
 
         for (j in triangles.indices) {
-            val triangle = checkNotNull(triangles[j])
+            val triangle = triangles[j]!!
             assertLessThan(triangle.maxValue, 0)
             triNormal(vertices[triangle.x], vertices[triangle.y], vertices[triangle.z], dir)
             triangle.maxValue = findVertexForSimplex(vertices, dir, isUsed)

@@ -294,11 +294,10 @@ class KinematicCharacterController(
         currentPosition.set(ghostObject.getWorldTransform(Stack.newTrans()).origin)
 
         var maxPen = 0.0
-        for (i in 0 until ghostObject.overlappingPairCache.numOverlappingPairs) {
-            manifoldArray.clear()
+        ghostObject.overlappingPairCache.processAllOverlappingPairs { collisionPair ->
 
-            val collisionPair = ghostObject.overlappingPairCache.overlappingPairs.getQuick(i)
-            collisionPair?.algorithm?.getAllContactManifolds(manifoldArray)
+            manifoldArray.clear()
+            collisionPair.algorithm?.getAllContactManifolds(manifoldArray)
 
             for (j in manifoldArray.indices) {
                 val manifold = manifoldArray[j]

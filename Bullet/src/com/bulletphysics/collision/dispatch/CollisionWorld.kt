@@ -5,8 +5,6 @@ import com.bulletphysics.BulletStats.popProfile
 import com.bulletphysics.BulletStats.pushProfile
 import com.bulletphysics.collision.broadphase.BroadphaseInterface
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
-import me.anno.ecs.components.collider.CollisionFilters
-import me.anno.ecs.components.collider.CollisionFilters.collides
 import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.broadphase.DispatcherInfo
 import com.bulletphysics.collision.broadphase.OverlappingPairCache
@@ -30,6 +28,8 @@ import com.bulletphysics.linearmath.VectorUtil.setMax
 import com.bulletphysics.linearmath.VectorUtil.setMin
 import com.bulletphysics.util.setMul
 import cz.advel.stack.Stack
+import me.anno.ecs.components.collider.CollisionFilters
+import me.anno.ecs.components.collider.CollisionFilters.collides
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.structures.lists.Lists.swapRemove
 import org.joml.Vector3d
@@ -76,8 +76,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         val type = shape.shapeType
         collisionObject.broadphaseHandle = broadphase.createProxy(
             minAabb, maxAabb, type,
-            collisionObject, collisionFilter,
-            dispatcher, null
+            collisionObject, collisionFilter, dispatcher
         )
 
         Stack.subVec(2)
@@ -124,56 +123,34 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
     fun updateSingleAabb(colObj: CollisionObject) {
         val minAabb = Stack.newVec()
         val maxAabb = Stack.newVec()
-        val tmp = Stack.newVec()
-        val tmpTrans = Stack.newTrans()
 
-        colObj.collisionShape!!.getBounds(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
+        val shape = colObj.collisionShape!!
+        shape.getBounds(colObj.worldTransform, minAabb, maxAabb)
+
         // need to increase the aabb for contact thresholds
-        val contactThreshold = Stack.newVec()
-        contactThreshold.set(
-            BulletGlobals.contactBreakingThreshold,
-            BulletGlobals.contactBreakingThreshold,
-            BulletGlobals.contactBreakingThreshold
-        )
-        minAabb.sub(contactThreshold)
-        maxAabb.add(contactThreshold)
 
-        // moving objects should be moderately sized, probably something wrong if not
-        maxAabb.sub(minAabb, tmp)
+        // Should be greater than or equal to the collision margin of the objects involved.
+        // Too small: Contacts break too early → jittery or unstable simulation.
+        // Too large: Contacts persist unrealistically → ghost contacts or sticking.
+        val margin = BulletGlobals.contactBreakingThreshold
+        minAabb.sub(margin)
+        maxAabb.add(margin)
 
-        // TODO: optimize
-        if (colObj.isStaticObject || (tmp.lengthSquared() < 1e12f)) {
+        if (colObj.isStaticOrKinematicObject || (minAabb.isFinite && maxAabb.isFinite)) {
             broadphase.setAabb(colObj.broadphaseHandle!!, minAabb, maxAabb, dispatcher)
-        } else {
-            // something went wrong, investigate
-            // this assert is unwanted in 3D modelers (danger of loosing work)
-            colObj.setActivationStateMaybe(ActivationState.DISABLE_SIMULATION)
-
-            val debugDrawer = debugDrawer
-            if (updateAabbsReportMe && debugDrawer != null) {
-                updateAabbsReportMe = false
-                debugDrawer.reportErrorWarning("Overflow in AABB, object removed from simulation")
-                debugDrawer.reportErrorWarning("If you can reproduce this, please email bugs@continuousphysics.com\n")
-                debugDrawer.reportErrorWarning("Please include above information, your Platform, version of OS.\n")
-                debugDrawer.reportErrorWarning("Thanks.\n")
-            }
         }
-        Stack.subVec(4)
-        Stack.subTrans(1)
+
+        Stack.subVec(2)
     }
 
     fun updateAabbs() {
         pushProfile("updateAabbs")
         try {
-            var stackPos: IntArray? = null
             for (i in collisionObjects.indices) {
                 val colObj = collisionObjects[i]
-                // only update aabb of active objects
-                if (colObj.isActive) {
-                    stackPos = Stack.getPosition(stackPos)
-                    updateSingleAabb(colObj)
-                    Stack.reset(stackPos)
-                }
+                // todo this can be skipped if the object is inactive AND
+                //  only iff we update it manually if we transform an object (editor)
+                updateSingleAabb(colObj)
             }
         } finally {
             popProfile()
@@ -183,7 +160,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
     private class BridgeTriangleConvexCastCallback(
         castShape: ConvexShape, from: Transform, to: Transform,
         var resultCallback: ConvexResultCallback,
-        var collisionObject: CollisionObject?,
+        val collisionObject: CollisionObject,
         triangleMesh: TriangleMeshShape, triangleToWorld: Transform
     ) : TriangleConvexCastCallback(
         castShape, from, to,

@@ -1,5 +1,6 @@
 package com.bulletphysics.collision.broadphase
 
+import com.bulletphysics.collision.dispatch.CollisionObject
 import org.joml.Vector3d
 
 /**
@@ -13,10 +14,9 @@ abstract class BroadphaseInterface {
         aabbMin: Vector3d,
         aabbMax: Vector3d,
         shapeType: BroadphaseNativeType,
-        userPtr: Any?,
+        userPtr: CollisionObject,
         collisionFilter: Int,
-        dispatcher: Dispatcher,
-        multiSapProxy: Any?
+        dispatcher: Dispatcher
     ): BroadphaseProxy
 
     abstract fun destroyProxy(proxy: BroadphaseProxy, dispatcher: Dispatcher)
@@ -28,10 +28,4 @@ abstract class BroadphaseInterface {
 
     abstract val overlappingPairCache: OverlappingPairCache
 
-    /**
-     * returns the axis aligned bounding box in the 'global' coordinate frame
-     * will add some transform later
-     */
-    @Suppress("unused")
-    abstract fun getBroadphaseAabb(aabbMin: Vector3d, aabbMax: Vector3d)
 }

@@ -1,5 +1,7 @@
 package com.bulletphysics.collision.broadphase
 
+import com.bulletphysics.collision.dispatch.CollisionObject
+
 /**
  * BroadphaseProxy is the main class that can be used with the Bullet broadphases.
  * It stores collision shape type information, collision filter information and
@@ -11,31 +13,22 @@ open class BroadphaseProxy {
     /**
      * Usually the client CollisionObject or Rigidbody class
      */
-	@JvmField
-	var clientObject: Any? = null
-
-	@JvmField
-	var collisionFilter = 0
+    @JvmField
+    var clientObject: CollisionObject
 
     @JvmField
-	var multiSapParentProxy: Any? = null
+    var collisionFilter = 0
 
     /**
      * uniqueId is introduced for HashedOverlappingPairCache.
-     * Could get rid of this, by calculating the address offset etc.
      */
     var uid: Int = 0
 
-    constructor()
-
-    @JvmOverloads
     constructor(
-        userPtr: Any?,
+        userPtr: CollisionObject,
         collisionFilter: Int,
-        multiSapParentProxy: Any? = null
     ) {
         this.clientObject = userPtr
         this.collisionFilter = collisionFilter
-        this.multiSapParentProxy = multiSapParentProxy
     }
 }
