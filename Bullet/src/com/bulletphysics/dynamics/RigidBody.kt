@@ -10,9 +10,6 @@ import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.TransformUtil.calculateAngularVelocity
 import com.bulletphysics.linearmath.TransformUtil.calculateLinearVelocity
 import com.bulletphysics.linearmath.TransformUtil.integrateTransform
-import com.bulletphysics.util.setCross
-import com.bulletphysics.util.setScaleAdd
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import me.anno.maths.Maths.clamp
 import org.joml.Matrix3d
@@ -297,7 +294,7 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
      */
     fun internalApplyImpulse(linearComponent: Vector3d, angularComponent: Vector3d, impulseMagnitude: Double) {
         if (inverseMass != 0.0) {
-            linearVelocity.fma(impulseMagnitude,linearComponent)
+            linearVelocity.fma(impulseMagnitude, linearComponent)
             if (angularFactor != 0.0) {
                 angularVelocity.fma(impulseMagnitude * angularFactor, angularComponent)
             }
@@ -342,7 +339,7 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
 
     fun getVelocityInLocalPoint(relPos: Vector3d, out: Vector3d): Vector3d {
         // we also calculate lin/ang velocity for kinematic objects
-        out.setCross(angularVelocity, relPos)
+        angularVelocity.cross(relPos, out)
         out.add(linearVelocity)
         return out
 
@@ -352,7 +349,7 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
 
     fun computeImpulseDenominator(pos: Vector3d, normal: Vector3d): Double {
         val r0 = Stack.newVec()
-        r0.setSub(pos, getCenterOfMassPosition(Stack.newVec()))
+        pos.sub(getCenterOfMassPosition(Stack.newVec()), r0)
 
         val c0 = Stack.newVec()
         r0.cross(normal, c0)

@@ -16,12 +16,12 @@ class GjkConvexCast : ConvexCast {
     val pointInputsPool = ObjectPool.Companion.get(ClosestPointInput::class.java)
 
     private val simplexSolver: SimplexSolverInterface = VoronoiSimplexSolver()
-    private var convexA: ConvexShape? = null
-    private var convexB: ConvexShape? = null
+    private lateinit var convexA: ConvexShape
+    private lateinit var convexB: ConvexShape
 
     private val gjk = GjkPairDetector()
 
-    fun init(convexA: ConvexShape?, convexB: ConvexShape?) {
+    fun init(convexA: ConvexShape, convexB: ConvexShape) {
         this.convexA = convexA
         this.convexB = convexB
     }
@@ -68,7 +68,8 @@ class GjkConvexCast : ConvexCast {
         gjk.init(convexA, convexB, simplexSolver, null) // penetrationDepthSolver);
         val input = pointInputsPool.get()
         input.init()
-        try {
+        try { // not to catch exceptions, just for cleanup
+
             // we don't use margins during CCD
             //	gjk.setIgnoreMargin(true);
 
@@ -80,8 +81,7 @@ class GjkConvexCast : ConvexCast {
             c.set(pointCollector.pointInWorld)
 
             if (hasResult) {
-                var dist: Double
-                dist = pointCollector.distance
+                var dist = pointCollector.distance
                 n.set(pointCollector.normalOnBInWorld)
 
                 // not close enough
@@ -92,21 +92,14 @@ class GjkConvexCast : ConvexCast {
                     }
 
                     val projectedLinearVelocity = r.dot(n)
+                    lambda = lambda - dist / projectedLinearVelocity
 
-                    val dLambda = dist / (projectedLinearVelocity)
-
-                    lambda = lambda - dLambda
-
-                    if (lambda > 1.0) {
-                        return false
-                    }
+                    if (lambda > 1.0) return false
                     if (lambda < 0.0) {
                         return false // todo: next check with relative epsilon
                     }
 
-                    if (lambda <= lastLambda) {
-                        return false
-                    }
+                    if (lambda <= lastLambda) return false
                     lastLambda = lambda
 
                     // interpolate to next lambda

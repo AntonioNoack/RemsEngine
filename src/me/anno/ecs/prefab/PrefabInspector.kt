@@ -2,6 +2,7 @@ package me.anno.ecs.prefab
 
 import me.anno.cache.FileCacheSection.removeFileEntry
 import me.anno.ecs.Entity
+import me.anno.ecs.System
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.change.Path
@@ -173,7 +174,7 @@ class PrefabInspector(var prefabSource: FileReference) {
 
         val prefab = prefab
         for (instance in instances) {
-            if (instance.prefab !== prefab && instance.prefab != null)
+            if (instance.prefab !== prefab && instance.prefab != null && instance !is System)
                 LOGGER.warn(
                     "Component ${instance.name}:${instance.className} " +
                             "is not part of tree ${root.name}:${root.className}, " +

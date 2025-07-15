@@ -11,15 +11,26 @@ import org.joml.Vector3d
  * @author jezek2
  */
 interface SimplexSolverInterface {
+
     fun reset()
 
+    /**
+     * Add vertex to solver;
+     * p = vertex in A, q = vertex in B, w = p - q
+     * */
     fun addVertex(w: Vector3d, p: Vector3d, q: Vector3d)
 
-    fun closest(v: Vector3d): Boolean
+    /**
+     * Return/calculate the closest vertex.
+     * Returns false if no vertex was ever added.
+     */
+    fun closest(dst: Vector3d): Boolean
 
     fun fullSimplex(): Boolean
 
     fun inSimplex(w: Vector3d): Boolean
+
+    fun isSimplex4Full(): Boolean = numVertices() == 4
 
     fun backupClosest(v: Vector3d)
 

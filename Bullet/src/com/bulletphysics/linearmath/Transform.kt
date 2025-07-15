@@ -1,8 +1,6 @@
 package com.bulletphysics.linearmath
 
 import com.bulletphysics.linearmath.MatrixUtil.getRotation
-import com.bulletphysics.util.setMul
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Matrix3d
 import org.joml.Quaterniond
@@ -58,25 +56,22 @@ class Transform {
     fun inverse() {
         basis.transpose() // no scale -> transpose = inverse
         basis.transform(origin.negate())
-
-       /* basis.transpose()
-        origin.negate()
-        basis.transform(origin)*/
     }
 
     fun setInverse(tr: Transform) {
-        set(tr)
-        inverse()
+        tr.basis.transpose(basis)
+        basis.transform(tr.origin.negate(origin))
     }
 
     fun invXform(inVec: Vector3d, out: Vector3d) {
-        out.setSub(inVec, origin)
+        inVec.sub(origin, out)
         val mat = Stack.borrowMat(basis)
         mat.transpose()
         mat.transform(out)
     }
 
     fun mul(tr: Transform) {
+        // can only be simplified, if tr !== this
         val vec = Stack.borrowVec(tr.origin)
         transform(vec)
         basis.mul(tr.basis)
@@ -86,7 +81,7 @@ class Transform {
     fun setMul(tr1: Transform, tr2: Transform) {
         val vec = Stack.borrowVec(tr2.origin)
         tr1.transform(vec)
-        basis.setMul(tr1.basis, tr2.basis)
+        tr1.basis.mul(tr2.basis, basis)
         origin.set(vec)
     }
 
@@ -114,10 +109,7 @@ class Transform {
     }
 
     override fun hashCode(): Int {
-        var hash = 3
-        hash = 41 * hash + basis.hashCode()
-        hash = 41 * hash + origin.hashCode()
-        return hash
+        return basis.hashCode() * 31 + origin.hashCode()
     }
 
     override fun toString(): String {

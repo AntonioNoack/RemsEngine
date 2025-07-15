@@ -1,9 +1,5 @@
 package com.bulletphysics.linearmath
 
-import com.bulletphysics.linearmath.VectorUtil.getCoord
-import com.bulletphysics.linearmath.VectorUtil.setCoord
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -45,14 +41,14 @@ object AabbUtil {
         val r = Stack.newVec()
         val hitNormal = Stack.newVec()
 
-        aabbHalfExtent.setSub(aabbMax, aabbMin)
+        aabbMax.sub(aabbMin, aabbHalfExtent)
         aabbHalfExtent.mul(0.5)
 
-        aabbCenter.setAdd(aabbMax, aabbMin)
+        aabbMax.add(aabbMin, aabbCenter)
         aabbCenter.mul(0.5)
 
-        source.setSub(rayFrom, aabbCenter)
-        target.setSub(rayTo, aabbCenter)
+        rayFrom.sub(aabbCenter, source)
+        rayTo.sub(aabbCenter, target)
 
         val sourceOutcode = outcode(source, aabbHalfExtent)
         val targetOutcode = outcode(target, aabbHalfExtent)
@@ -60,23 +56,23 @@ object AabbUtil {
         if ((sourceOutcode and targetOutcode) == 0x0) {
             var lambdaEnter = 0.0
             var lambdaExit = param[0]
-            r.setSub(target, source)
+            target.sub(source, r)
 
             var normSign = 1.0
-            hitNormal.set(0.0, 0.0, 0.0)
+            hitNormal.set(0.0)
             var bit = 1
 
             repeat(2) {
                 for (i in 0..2) {
                     if ((sourceOutcode and bit) != 0) {
-                        val lambda = (-getCoord(source, i) - getCoord(aabbHalfExtent, i) * normSign) / getCoord(r, i)
+                        val lambda = (-source[i] - aabbHalfExtent[i] * normSign) / r[i]
                         if (lambdaEnter <= lambda) {
                             lambdaEnter = lambda
-                            hitNormal.set(0.0, 0.0, 0.0)
-                            setCoord(hitNormal, i, normSign)
+                            hitNormal.set(0.0)
+                            hitNormal[i] = normSign
                         }
                     } else if ((targetOutcode and bit) != 0) {
-                        val lambda = (-getCoord(source, i) - getCoord(aabbHalfExtent, i) * normSign) / getCoord(r, i)
+                        val lambda = (-source[i] - aabbHalfExtent[i] * normSign) / r[i]
                         lambdaExit = min(lambdaExit, lambda)
                     }
                     bit = bit shl 1
@@ -156,7 +152,7 @@ object AabbUtil {
         assert(localAabbMin.z <= localAabbMax.z)
 
         val center = Stack.newVec()
-        center.setAdd(localAabbMax, localAabbMin)
+        localAabbMax.add(localAabbMin, center)
         center.mul(0.5)
         trans.transform(center)
 

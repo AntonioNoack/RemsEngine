@@ -16,9 +16,6 @@ abstract class CollisionAlgorithm {
     private var createFunc: CollisionAlgorithmCreateFunc? = null
     lateinit var dispatcher: Dispatcher
 
-    fun init() {
-    }
-
     open fun init(ci: CollisionAlgorithmConstructionInfo) {
         dispatcher = ci.dispatcher1
     }

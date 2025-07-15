@@ -10,7 +10,6 @@ import com.bulletphysics.dynamics.constraintsolver.HingeConstraint
 import com.bulletphysics.dynamics.constraintsolver.Point2PointConstraint
 import com.bulletphysics.dynamics.constraintsolver.SliderConstraint
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.util.setSub
 import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -37,7 +36,7 @@ class ConstraintTest {
         simulate(world, 240)
 
         val delta = Vector3d()
-        delta.setSub(bodyA.getCenterOfMassPosition(Vector3d()), bodyB.getCenterOfMassPosition(Vector3d()))
+        bodyA.worldTransform.origin.sub(bodyB.worldTransform.origin, delta)
         val dist = delta.length()
         println("P2P distance: $dist")
         Assertions.assertTrue(dist < 1.2f, "Bodies should remain close due to point2point constraint")

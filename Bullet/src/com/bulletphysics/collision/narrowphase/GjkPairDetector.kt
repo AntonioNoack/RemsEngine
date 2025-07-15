@@ -5,13 +5,8 @@ import com.bulletphysics.BulletStats
 import com.bulletphysics.collision.narrowphase.DiscreteCollisionDetectorInterface.ClosestPointInput
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.IDebugDraw
-import com.bulletphysics.linearmath.MatrixUtil
 import cz.advel.stack.Stack
 import org.joml.Vector3d
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setNegate
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setSub
 import kotlin.math.sqrt
 
 /**
@@ -22,9 +17,9 @@ import kotlin.math.sqrt
 class GjkPairDetector : DiscreteCollisionDetectorInterface {
     private val cachedSeparatingAxis = Vector3d()
     private var penetrationDepthSolver: ConvexPenetrationDepthSolver? = null
-    private var simplexSolver: SimplexSolverInterface? = null
-    var minkowskiA: ConvexShape? = null
-    var minkowskiB: ConvexShape? = null
+    private lateinit var simplexSolver: SimplexSolverInterface
+    lateinit var minkowskiA: ConvexShape
+    lateinit var minkowskiB: ConvexShape
     private var ignoreMargin = false
 
     // some debugging to fix degeneracy problems
@@ -34,8 +29,7 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
     var catchDegeneracies: Int = 0
 
     fun init(
-        objectA: ConvexShape?,
-        objectB: ConvexShape?,
+        objectA: ConvexShape, objectB: ConvexShape,
         simplexSolver: SimplexSolverInterface,
         penetrationDepthSolver: ConvexPenetrationDepthSolver?
     ) {
@@ -66,13 +60,13 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
         val localTransA = Stack.newTrans(input.transformA)
         val localTransB = Stack.newTrans(input.transformB)
         val positionOffset = Stack.newVec()
-        positionOffset.setAdd(localTransA.origin, localTransB.origin)
+        localTransA.origin.add(localTransB.origin, positionOffset)
         positionOffset.mul(0.5)
         localTransA.origin.sub(positionOffset)
         localTransB.origin.sub(positionOffset)
 
-        var marginA = minkowskiA!!.margin
-        var marginB = minkowskiB!!.margin
+        var marginA = minkowskiA.margin
+        var marginB = minkowskiB.margin
 
         BulletStats.numGjkChecks++
 
@@ -98,13 +92,10 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
 
         val margin = marginA + marginB
 
-        simplexSolver!!.reset()
+        simplexSolver.reset()
 
         val separatingAxisInA = Stack.newVec()
         val separatingAxisInB = Stack.newVec()
-
-        val pInA = Stack.newVec()
-        val qInB = Stack.newVec()
 
         val pWorld = Stack.newVec()
         val qWorld = Stack.newVec()
@@ -115,23 +106,19 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
         val tmpNormalInB = Stack.newVec()
 
         while (true) {
-            separatingAxisInA.setNegate(cachedSeparatingAxis)
-            MatrixUtil.transposeTransform(separatingAxisInA, separatingAxisInA, input.transformA.basis)
 
-            separatingAxisInB.set(cachedSeparatingAxis)
-            MatrixUtil.transposeTransform(separatingAxisInB, separatingAxisInB, input.transformB.basis)
+            // basic plane separating test
+            cachedSeparatingAxis.negate(separatingAxisInA)
+            input.transformA.basis.transformTranspose(separatingAxisInA, separatingAxisInA)
+            input.transformB.basis.transformTranspose(cachedSeparatingAxis, separatingAxisInB)
 
-            minkowskiA!!.localGetSupportingVertexWithoutMargin(separatingAxisInA, pInA)
-            minkowskiB!!.localGetSupportingVertexWithoutMargin(separatingAxisInB, qInB)
+            minkowskiA.localGetSupportingVertexWithoutMargin(separatingAxisInA, pWorld)
+            minkowskiB.localGetSupportingVertexWithoutMargin(separatingAxisInB, qWorld)
 
-            pWorld.set(pInA)
             localTransA.transform(pWorld)
-
-            qWorld.set(qInB)
             localTransB.transform(qWorld)
 
-            w.setSub(pWorld, qWorld)
-
+            pWorld.sub(qWorld, w)
             delta = cachedSeparatingAxis.dot(w)
 
             // potential exit, they don't overlap
@@ -141,11 +128,12 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
             }
 
             // exit 0: the new point is already in the simplex, or we didn't come any closer
-            if (simplexSolver!!.inSimplex(w)) {
+            if (simplexSolver.inSimplex(w)) {
                 degenerateSimplex = 1
                 checkSimplex = true
                 break
             }
+
             // are we getting any closer ?
             val f0 = squaredDistance - delta
             val f1: Double = squaredDistance * REL_ERROR2
@@ -157,11 +145,12 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
                 checkSimplex = true
                 break
             }
+
             // add current vertex to simplex
-            simplexSolver!!.addVertex(w, pWorld, qWorld)
+            simplexSolver.addVertex(w, pWorld, qWorld)
 
             // calculate the closest point to the origin (update vector v)
-            if (!simplexSolver!!.closest(cachedSeparatingAxis)) {
+            if (!simplexSolver.closest(cachedSeparatingAxis)) {
                 degenerateSimplex = 3
                 checkSimplex = true
                 break
@@ -180,58 +169,54 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
 
             // are we getting any closer ?
             if (previousSquaredDistance - squaredDistance <= BulletGlobals.FLT_EPSILON * previousSquaredDistance) {
-                simplexSolver!!.backupClosest(cachedSeparatingAxis)
+                simplexSolver.backupClosest(cachedSeparatingAxis)
                 checkSimplex = true
                 break
             }
 
-            // degeneracy, this is typically due to invalid/uninitialized worldtransforms for a CollisionObject
+            // degeneracy, this is typically due to invalid/uninitialized worldTransforms for a CollisionObject
             if (curIter++ > gGjkMaxIter) {
-                //#if defined(DEBUG) || defined (_DEBUG)
                 if (BulletGlobals.DEBUG) {
                     System.err.printf("btGjkPairDetector maxIter exceeded: %d\n", curIter)
                     System.err.printf(
                         "sepAxis=(%f,%f,%f), squaredDistance = %f, shapeTypeA=%s,shapeTypeB=%s\n",
                         cachedSeparatingAxis.x, cachedSeparatingAxis.y, cachedSeparatingAxis.z,
-                        squaredDistance, minkowskiA!!.shapeType, minkowskiB!!.shapeType
+                        squaredDistance, minkowskiA.shapeType, minkowskiB.shapeType
                     )
                 }
-                //#endif
                 break
             }
 
-            val check = (!simplexSolver!!.fullSimplex())
-
+            val check = !simplexSolver.isSimplex4Full()
             //bool check = (!m_simplexSolver->fullSimplex() && squaredDistance > SIMD_EPSILON * m_simplexSolver->maxVertex());
             if (!check) {
                 // do we need this backup_closest here ?
-                simplexSolver!!.backupClosest(cachedSeparatingAxis)
+                simplexSolver.backupClosest(cachedSeparatingAxis)
                 break
             }
         }
 
         if (checkSimplex) {
-            simplexSolver!!.computePoints(pointOnA, pointOnB)
-            normalInB.setSub(pointOnA, pointOnB)
+
+            simplexSolver.computePoints(pointOnA, pointOnB)
+
+            pointOnA.sub(pointOnB, normalInB)
             val lenSqr = cachedSeparatingAxis.lengthSquared()
             // valid normal
-            if (lenSqr < 0.0001f) {
+            if (lenSqr < 0.0001) {
                 degenerateSimplex = 5
             }
-            if (lenSqr > BulletGlobals.FLT_EPSILON * BulletGlobals.FLT_EPSILON) {
+            if (lenSqr > BulletGlobals.FLT_EPSILON_SQ) {
                 val rlen = 1.0 / sqrt(lenSqr)
                 normalInB.mul(rlen) // normalize
                 val s = sqrt(squaredDistance)
 
                 assert(s > 0.0)
 
-                tmp.setScale((marginA / s), cachedSeparatingAxis)
-                pointOnA.sub(tmp)
+                cachedSeparatingAxis.mulAdd(-marginA / s, pointOnA, pointOnA)
+                cachedSeparatingAxis.mulAdd(+marginB / s, pointOnB, pointOnB)
 
-                tmp.setScale((marginB / s), cachedSeparatingAxis)
-                pointOnB.add(tmp)
-
-                distance = ((1.0 / rlen) - margin)
+                distance = 1.0 / rlen - margin
                 isValid = true
 
                 lastUsedMethod = 1
@@ -240,6 +225,7 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
             }
         }
 
+        val penetrationDepthSolver = penetrationDepthSolver
         val catchDegeneratePenetrationCase =
             (catchDegeneracies != 0 && penetrationDepthSolver != null && degenerateSimplex != 0 && ((distance + margin) < 0.01))
 
@@ -253,18 +239,18 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
                 // Penetration depth case.
                 BulletStats.numDeepPenetrationChecks++
 
-                val isValid2 = penetrationDepthSolver!!.calculatePenetrationDepth(
-                    simplexSolver!!, minkowskiA!!, minkowskiB!!, localTransA, localTransB,
+                val isValid2 = penetrationDepthSolver.calculatePenetrationDepth(
+                    simplexSolver, minkowskiA, minkowskiB, localTransA, localTransB,
                     cachedSeparatingAxis, tmpPointOnA, tmpPointOnB, debugDraw /*,input.stackAlloc*/
                 )
 
                 if (isValid2) {
-                    tmpNormalInB.setSub(tmpPointOnB, tmpPointOnA)
+                    tmpPointOnB.sub(tmpPointOnA, tmpNormalInB)
 
                     val lenSqr = tmpNormalInB.lengthSquared()
-                    if (lenSqr > (BulletGlobals.FLT_EPSILON * BulletGlobals.FLT_EPSILON)) {
+                    if (lenSqr > BulletGlobals.FLT_EPSILON_SQ) {
                         tmpNormalInB.mul(1.0 / sqrt(lenSqr))
-                        tmp.setSub(tmpPointOnA, tmpPointOnB)
+                        tmpPointOnA.sub(tmpPointOnB, tmp)
                         val distance2 = -tmp.length()
                         // only replace valid penetrations when the result is deeper (check)
                         if (!isValid || (distance2 < distance)) {
@@ -286,11 +272,11 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
         }
 
         if (isValid) {
-            tmp.setAdd(pointOnB, positionOffset)
+            pointOnB.add(positionOffset, tmp)
             output.addContactPoint(normalInB, tmp, distance)
         }
 
-        Stack.subVec(15)
+        Stack.subVec(13)
         Stack.subTrans(2)
     }
 

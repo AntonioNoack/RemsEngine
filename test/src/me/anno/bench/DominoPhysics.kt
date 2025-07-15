@@ -14,6 +14,7 @@ import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.Systems
 import me.anno.engine.OfficialExtensions
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.mesh.Shapes.flatCube
@@ -28,9 +29,9 @@ private val LOGGER = LogManager.getLogger("DominoPhysics")
 fun main() {
     init()
     val clock = Clock(LOGGER)
-    val numSteps = 1000
+    val numSteps = 100_000
     LOGGER.info("NumSteps: $numSteps")
-    runDominoTest(2, 2) // warmup
+    // runDominoTest(2, 2) // warmup
 
     // todo test performance debugging
     BulletStats.isProfileEnabled = true
@@ -123,6 +124,8 @@ fun runDominoTest(numDominos: Int, numSteps: Int) {
     add(0f, spacingZ * (numDominos - 1)).apply {
         rotation = rotation.rotateX((-20f).toRadians())
     }
+
+    if (false) testSceneWithUI("DominoPhysics-Bench", scene)
 
     var thisTime = 0L
     val dt = 1.0 / 60.0

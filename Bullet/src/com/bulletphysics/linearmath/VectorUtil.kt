@@ -3,8 +3,6 @@ package com.bulletphysics.linearmath
 import org.joml.Vector3d
 import org.joml.Vector4d
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Utility functions for vectors.
@@ -63,46 +61,12 @@ object VectorUtil {
     }
 
     @JvmStatic
-    fun getCoord(vec: Vector3d, num: Int): Double {
-        when (num) {
-            0 -> return vec.x
-            1 -> return vec.y
-            else -> return vec.z
-        }
-    }
-
-    @JvmStatic
-    fun setCoord(vec: Vector3d, num: Int, value: Double) {
-        when (num) {
-            0 -> vec.x = value
-            1 -> vec.y = value
-            else -> vec.z = value
-        }
-    }
-
-    @JvmStatic
-    fun mulCoord(vec: Vector3d, num: Int, value: Double) {
-        when (num) {
-            0 -> vec.x *= value
-            1 -> vec.y *= value
-            else -> vec.z *= value
-        }
-    }
-
-    @JvmStatic
     fun setInterpolate3(dst: Vector3d, v0: Vector3d, v1: Vector3d, rt: Double) {
-        val s = 1.0 - rt
-        dst.x = s * v0.x + rt * v1.x
-        dst.y = s * v0.y + rt * v1.y
-        dst.z = s * v0.z + rt * v1.z
-        // don't do the unused w component
-        //		m_co[3] = s * v0[3] + rt * v1[3];
+        v0.lerp(v1, rt, dst)
     }
 
     fun add(dst: Vector3d, v1: Vector3d, v2: Vector3d) {
-        dst.x = v1.x + v2.x
-        dst.y = v1.y + v2.y
-        dst.z = v1.z + v2.z
+        v1.add(v2, dst)
     }
 
     @JvmStatic
@@ -121,16 +85,12 @@ object VectorUtil {
 
     @JvmStatic
     fun mul(dst: Vector3d, v1: Vector3d, v2: Vector3d) {
-        dst.x = v1.x * v2.x
-        dst.y = v1.y * v2.y
-        dst.z = v1.z * v2.z
+        v1.mul(v2, dst)
     }
 
     @JvmStatic
     fun div(dst: Vector3d, v1: Vector3d, v2: Vector3d) {
-        dst.x = v1.x / v2.x
-        dst.y = v1.y / v2.y
-        dst.z = v1.z / v2.z
+        v1.div(v2, dst)
     }
 
     @JvmStatic
@@ -145,16 +105,12 @@ object VectorUtil {
 
     @JvmStatic
     fun setMin(dst: Vector3d, a: Vector3d, b: Vector3d) {
-        dst.x = min(a.x, b.x)
-        dst.y = min(a.y, b.y)
-        dst.z = min(a.z, b.z)
+        a.min(b, dst)
     }
 
     @JvmStatic
     fun setMax(dst: Vector3d, a: Vector3d, b: Vector3d) {
-        dst.x = max(a.x, b.x)
-        dst.y = max(a.y, b.y)
-        dst.z = max(a.z, b.z)
+        a.max(b, dst)
     }
 
     @JvmStatic

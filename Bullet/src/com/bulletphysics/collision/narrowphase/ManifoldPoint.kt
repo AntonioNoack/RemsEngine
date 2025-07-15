@@ -69,10 +69,6 @@ class ManifoldPoint {
         this.lifeTime = 0
     }
 
-    constructor(pointA: Vector3d, pointB: Vector3d, normal: Vector3d, distance: Double) {
-        init(pointA, pointB, normal, distance)
-    }
-
     fun init(pointA: Vector3d, pointB: Vector3d, normal: Vector3d, distance: Double) {
         this.localPointA.set(pointA)
         this.localPointB.set(pointB)

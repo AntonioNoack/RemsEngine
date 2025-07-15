@@ -26,15 +26,11 @@ interface DiscreteCollisionDetectorInterface {
 
     class ClosestPointInput {
         @JvmField
-		val transformA: Transform = Transform()
+		val transformA = Transform()
         @JvmField
-		val transformB: Transform = Transform()
+		val transformB = Transform()
         @JvmField
-		var maximumDistanceSquared: Double = 0.0
-
-        init {
-            init()
-        }
+		var maximumDistanceSquared = Double.MAX_VALUE
 
         fun init() {
             maximumDistanceSquared = Double.MAX_VALUE

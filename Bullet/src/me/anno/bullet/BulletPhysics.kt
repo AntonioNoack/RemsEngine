@@ -59,20 +59,6 @@ import kotlin.math.max
 
 open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody::class), OnDrawGUI {
 
-    // I use jBullet2, however I have modified it to use doubles for everything
-    // this may be bad for performance, but it also allows our engine to run much larger worlds
-    // if we need top-notch-performance, I just should switch to a native implementation
-
-    // todo ideally for bullet, we would need a non-symmetric collision matrix:
-    // this would allow for pushing, ignoring, and such
-    //
-    //   t y p e s
-    // t
-    // y
-    // p  whether it can be moved by the other
-    // e
-    // s
-
     @NotSerializedProperty
     var bulletInstance: DiscreteDynamicsWorld = createBulletWorldWithGravity()
 
@@ -382,10 +368,15 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
 
     var maxSubSteps = 16
     var fixedStep = 1.0 / 120.0 // 0.0 for flexible steps
+    var deactivationTime = 0.1
 
     override fun worldStepSimulation(step: Double) {
         try {
             Stack.reset(false)
+
+            // define all thread-local constants
+            BulletGlobals.deactivationTime = deactivationTime
+
             bulletInstance.stepSimulation(step, maxSubSteps, if (fixedStep <= 0.0) step else fixedStep)
         } catch (e: Exception) {
             warnCrash(e)
@@ -559,11 +550,6 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
     }
 
     companion object {
-
-        init {
-            // todo this is a thread-local value, so we need to configure it for every thread!!!
-            BulletGlobals.deactivationTime = 1.0
-        }
 
         fun createBulletWorld(): DiscreteDynamicsWorld {
             val collisionConfig = DefaultCollisionConfiguration()

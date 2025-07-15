@@ -12,12 +12,6 @@ import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.dynamics.ActionInterface
 import com.bulletphysics.linearmath.IDebugDraw
-import com.bulletphysics.util.revTransform
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setInterpolate
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setScaleAdd
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.Axis
 import org.joml.Vector3d
@@ -216,7 +210,7 @@ class KinematicCharacterController(
 
             // how far will we move while we are moving?
             val move = Stack.newVec()
-            move.setScale(dtMoving, walkDirection)
+            walkDirection.mul(dtMoving, move)
 
             //printf("  dtMoving: %f", dtMoving);
 
@@ -340,18 +334,18 @@ class KinematicCharacterController(
         // phase 1: up
         val start = Stack.newTrans()
         val end = Stack.newTrans()
-        targetPosition.setScaleAdd(stepHeight + max(verticalOffset, 0.0), upAxisValue, currentPosition)
+        upAxisValue.mulAdd(stepHeight + max(verticalOffset, 0.0), currentPosition, targetPosition)
 
         start.setIdentity()
         end.setIdentity()
 
         /* FIXME: Handle penetration properly */
-        start.origin.setScaleAdd(convexShape.margin + addedMargin, upAxisValue, currentPosition)
+        upAxisValue.mulAdd(convexShape.margin + addedMargin, currentPosition, start.origin)
         end.setTranslation(targetPosition)
 
         // Find only sloped/flat surface hits, avoid wall and ceiling hits...
         val up = Stack.newVec()
-        up.setScale(-1.0, upAxisValue)
+        upAxisValue.negate(up)
 
         val ghostObject = ghostObject
         val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, up, 0.0)
@@ -372,7 +366,7 @@ class KinematicCharacterController(
         if (callback.hasHit()) {
             // we moved up only a fraction of the step height
             currentStepOffset = stepHeight * callback.closestHitFraction
-            currentPosition.setInterpolate(currentPosition, targetPosition, callback.closestHitFraction)
+            currentPosition.lerp(targetPosition, callback.closestHitFraction)
             verticalVelocity = 0.0
             verticalOffset = 0.0
         } else {
@@ -387,7 +381,7 @@ class KinematicCharacterController(
         normalMag: Double = 1.0
     ) {
         val movementDirection = Stack.newVec()
-        movementDirection.setSub(targetPosition, currentPosition)
+        targetPosition.sub(currentPosition, movementDirection)
         val movementLength = movementDirection.length()
         if (movementLength > BulletGlobals.SIMD_EPSILON) {
             movementDirection.normalize()
@@ -396,20 +390,20 @@ class KinematicCharacterController(
             reflectDir.normalize()
 
             val parallelDir = parallelComponent(reflectDir, hitNormal, Stack.newVec())
-            val perpindicularDir = perpendicularComponent(reflectDir, hitNormal, Stack.newVec())
+            val perpendicularDir = perpendicularComponent(reflectDir, hitNormal, Stack.newVec())
 
             targetPosition.set(currentPosition)
             if (false)  //tangentMag != 0.0)
             {
                 val parComponent = Stack.newVec()
-                parComponent.setScale(tangentMag * movementLength, parallelDir)
+                parallelDir.mul(tangentMag * movementLength, parComponent)
                 //printf("parComponent=%f,%f,%f\n",parComponent[0],parComponent[1],parComponent[2]);
                 targetPosition.add(parComponent)
             }
 
             if (normalMag != 0.0) {
                 val perpComponent = Stack.newVec()
-                perpComponent.setScale(normalMag * movementLength, perpindicularDir)
+                perpendicularDir.mul(normalMag * movementLength, perpComponent)
                 //printf("perpComponent=%f,%f,%f\n",perpComponent[0],perpComponent[1],perpComponent[2]);
                 targetPosition.add(perpComponent)
             }
@@ -422,13 +416,13 @@ class KinematicCharacterController(
         // phase 2: forward and strafe
         val start = Stack.newTrans()
         val end = Stack.newTrans()
-        targetPosition.setAdd(currentPosition, walkMove)
+        currentPosition.add(walkMove, targetPosition)
         start.setIdentity()
         end.setIdentity()
 
         var fraction = 1.0
         val distance2Vec = Stack.newVec()
-        distance2Vec.setSub(currentPosition, targetPosition)
+        currentPosition.sub(targetPosition, distance2Vec)
         // var distance2 = distance2Vec.lengthSquared()
 
         //printf("distance2=%f\n",distance2);
@@ -468,7 +462,7 @@ class KinematicCharacterController(
 
             if (callback.hasHit()) {
                 // we moved only a fraction
-                hitDistanceVec.setSub(callback.hitPointWorld, currentPosition)
+                callback.hitPointWorld.sub(currentPosition, hitDistanceVec)
 
                 //double hitDistance = hitDistanceVec.length();
 
@@ -479,7 +473,7 @@ class KinematicCharacterController(
                 //}
                 updateTargetPositionBasedOnCollision(callback.hitNormalWorld)
 
-                currentDir.setSub(targetPosition, currentPosition)
+                targetPosition.sub(currentPosition, currentDir)
                 val distance2 = currentDir.lengthSquared()
                 if (distance2 > BulletGlobals.SIMD_EPSILON) {
                     currentDir.normalize()
@@ -511,10 +505,10 @@ class KinematicCharacterController(
         // phase 3: down
         val additionalDownStep = if (wasOnGround /*&& !onGround()*/) stepHeight else 0.0
         val stepDrop = Stack.newVec()
-        stepDrop.setScale(currentStepOffset + additionalDownStep, upAxisValue)
+        upAxisValue.mul(currentStepOffset + additionalDownStep, stepDrop)
         val downVelocity = (if (additionalDownStep == 0.0 && verticalVelocity < 0.0) -verticalVelocity else 0.0) * dt
         val gravityDrop = Stack.newVec()
-        gravityDrop.setScale(downVelocity, upAxisValue)
+        upAxisValue.mul(downVelocity, gravityDrop)
         targetPosition.sub(stepDrop)
         targetPosition.sub(gravityDrop)
 
@@ -542,7 +536,7 @@ class KinematicCharacterController(
 
         if (callback.hasHit()) {
             // we dropped a fraction of the height -> hit floor
-            currentPosition.setInterpolate(currentPosition, targetPosition, callback.closestHitFraction)
+            currentPosition.lerp(targetPosition, callback.closestHitFraction)
             verticalVelocity = 0.0
             verticalOffset = 0.0
         } else {
@@ -585,18 +579,25 @@ class KinematicCharacterController(
             val hitNormalWorld: Vector3d?
             if (normalInWorldSpace) {
                 hitNormalWorld = convexResult.hitNormalLocal
+
+                val dotUp = up.dot(hitNormalWorld)
+                if (dotUp < minSlopeDot) {
+                    return 1.0
+                }
             } else {
                 //need to transform normal into worldspace
                 hitNormalWorld = Stack.newVec()
-                hitCollisionObject!!.getWorldTransform(Stack.newTrans()).basis.revTransform(
+                hitCollisionObject!!.worldTransform.basis.transform(
                     convexResult.hitNormalLocal,
                     hitNormalWorld
                 )
-            }
 
-            val dotUp = up.dot(hitNormalWorld)
-            if (dotUp < minSlopeDot) {
-                return 1.0
+                val dotUp = up.dot(hitNormalWorld)
+                if (dotUp < minSlopeDot) {
+                    return 1.0
+                }
+
+                Stack.subVec(1)
             }
 
             return super.addSingleResult(convexResult, normalInWorldSpace)

@@ -39,13 +39,9 @@ class HashedOverlappingPairCache : OverlappingPairCache {
         if (oldPair != null) return oldPair
 
         val pair = pairPool.get()
-        if (proxy0.uid <= proxy1.uid) {
-            pair.proxy0 = proxy0
-            pair.proxy1 = proxy1
-        } else {
-            pair.proxy1 = proxy0
-            pair.proxy0 = proxy1
-        }
+        val swap = proxy0.uid > proxy1.uid
+        pair.proxy0 = if (swap) proxy1 else proxy0
+        pair.proxy1 = if (swap) proxy0 else proxy1
         pairs[hash] = pair
         ghostPairCallback?.addOverlappingPair(proxy0, proxy1)
         return pair

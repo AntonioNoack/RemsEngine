@@ -1,14 +1,10 @@
 package com.bulletphysics.linearmath
 
 import com.bulletphysics.BulletGlobals
-import com.bulletphysics.linearmath.VectorUtil.getCoord
-import com.bulletphysics.linearmath.VectorUtil.setCoord
 import cz.advel.stack.Stack
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Matrix3d
-import com.bulletphysics.util.getElement
-import com.bulletphysics.util.setElement
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -71,8 +67,8 @@ object MatrixUtil {
             }
 
             // compute Jacobi rotation J which leads to a zero for element [p][q]
-            val mpq = mat.getElement(p, q)
-            val theta = (mat.getElement(q, q) - mat.getElement(p, p)) / (2 * mpq)
+            val mpq = mat[q, p]
+            val theta = (mat[q, q] - mat[p, p]) / (2 * mpq)
             val theta2 = theta * theta
             val cos: Double
             if ((theta2 * theta2) < (10f / BulletGlobals.SIMD_EPSILON)) {
@@ -89,25 +85,25 @@ object MatrixUtil {
             val sin = cos * t
 
             // apply rotation to matrix (this = J^T * this * J)
-            mat.setElement(p, q, 0.0)
-            mat.setElement(q, p, 0.0)
-            mat.setElement(p, p, mat.getElement(p, p) - t * mpq)
-            mat.setElement(q, q, mat.getElement(q, q) + t * mpq)
-            var mrp = mat.getElement(r, p)
-            var mrq = mat.getElement(r, q)
-            mat.setElement(r, p, cos * mrp - sin * mrq)
-            mat.setElement(p, r, cos * mrp - sin * mrq)
-            mat.setElement(r, q, cos * mrq + sin * mrp)
-            mat.setElement(q, r, cos * mrq + sin * mrp)
+            mat[q, p] = 0.0
+            mat[p, q] = 0.0
+            mat[p, p] = mat[p, p] - t * mpq
+            mat[q, q] = mat[q, q] + t * mpq
+            val mrp = mat[p, r]
+            val mrq = mat[q, r]
+            mat[p, r] = cos * mrp - sin * mrq
+            mat[r, p] = cos * mrp - sin * mrq
+            mat[q, r] = cos * mrq + sin * mrp
+            mat[r, q] = cos * mrq + sin * mrp
 
             // apply rotation to rot (rot = rot * J)
             for (i in 0..2) {
                 rot.getRow(i, row)
 
-                mrp = getCoord(row, p)
-                mrq = getCoord(row, q)
-                setCoord(row, p, cos * mrp - sin * mrq)
-                setCoord(row, q, cos * mrq + sin * mrp)
+                val mrp = row[p]
+                val mrq = row[q]
+                row[p] = cos * mrp - sin * mrq
+                row[q] = cos * mrq + sin * mrp
                 rot.setRow(i, row)
             }
             step--

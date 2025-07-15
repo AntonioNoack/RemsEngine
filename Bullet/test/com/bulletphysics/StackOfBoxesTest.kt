@@ -13,15 +13,24 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
 import com.bulletphysics.dynamics.constraintsolver.SliderConstraint
 import com.bulletphysics.linearmath.Transform
+import me.anno.ecs.Component
+import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugAction
+import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.debug.DebugLine
+import me.anno.engine.debug.DebugShapes
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.ui.UIColors
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 
 class StackOfBoxesTest {
+
     @Test
     fun testStackDoesNotFall() {
-        val world: DiscreteDynamicsWorld = createWorld()
+        val world = createWorld()
         createGround(world)
 
         val boxes = createBoxTower(world, 0f)
@@ -151,6 +160,12 @@ class StackOfBoxesTest {
     }
 
     companion object {
+
+        @JvmStatic
+        fun main(args: Array<String>) {
+            StackOfBoxesTest().testHeavySphereKnocksOverTower()
+        }
+
         fun createGround(dynamicsWorld: DiscreteDynamicsWorld) {
             // Ground plane
             val groundShape = StaticPlaneShape(Vector3d(0.0, 1.0, 0.0), 1.0)

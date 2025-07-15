@@ -150,6 +150,18 @@ class Stack {
             return dst
         }
 
+        @Suppress("unused")
+        fun checkSlack(pos: IntArray, name: String = "") {
+            val instance: Stack = instances.get()
+            val dv = instance.vectorPosition - pos[0]
+            val dm = instance.matrixPosition - pos[1]
+            val dq = instance.quatPosition - pos[2]
+            val dt = instance.transPosition - pos[3]
+            if (dv != 0 || dm != 0 || dq != 0 || dt != 0) {
+                throw IllegalStateException("Slack: $dv vec + $dm mat + $dq quat + $dt trans, '$name'")
+            }
+        }
+
         fun reset(positions: IntArray) {
             val instance: Stack = instances.get()
             instance.vectorPosition = positions[0]
@@ -374,19 +386,19 @@ class Stack {
         }
 
         fun newPointCollector(): PointCollector {
-            val cr: PointCollector = POINT_COLLECTORS.create()
-            cr.init()
-            return cr
+            val pointCollector: PointCollector = POINT_COLLECTORS.create()
+            pointCollector.init()
+            return pointCollector
         }
 
         fun subPointCollector(delta: Int) {
             POINT_COLLECTORS.release(delta)
         }
 
-        fun newGjkCC(convexA: ConvexShape?, convexB: ConvexShape?): GjkConvexCast {
-            val cc: GjkConvexCast = GJK_CONVEX_CAST.create()
-            cc.init(convexA, convexB)
-            return cc
+        fun newGjkCC(convexA: ConvexShape, convexB: ConvexShape): GjkConvexCast {
+            val convexCast = GJK_CONVEX_CAST.create()
+            convexCast.init(convexA, convexB)
+            return convexCast
         }
 
         fun subGjkCC(delta: Int) {

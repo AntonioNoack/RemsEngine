@@ -3,9 +3,6 @@ package com.bulletphysics.linearmath
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.linearmath.MatrixUtil.getRotation
 import com.bulletphysics.linearmath.QuaternionUtil.getAngle
-import com.bulletphysics.util.setMul
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setScaleAdd
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -48,7 +45,7 @@ object TransformUtil {
         curTrans: Transform, linearVelocity: Vector3d, angularVelocity: Vector3d,
         timeStep: Double, predictedTransform: Transform
     ) {
-        predictedTransform.origin.setScaleAdd(timeStep, linearVelocity, curTrans.origin)
+        linearVelocity.mulAdd(timeStep, curTrans.origin, predictedTransform.origin)
 
         //	//#define QUATERNION_DERIVATIVE
 //	#ifdef QUATERNION_DERIVATIVE
@@ -68,10 +65,10 @@ object TransformUtil {
 
         if (fAngle < 0.001f) {
             // use Taylor's expansions of sync function
-            axis.setScale(0.5 * timeStep - (timeStep * timeStep * timeStep) * INV_48 * fAngle * fAngle, angularVelocity)
+            angularVelocity.mul(0.5 * timeStep - (timeStep * timeStep * timeStep) * INV_48 * fAngle * fAngle, axis)
         } else {
             // sync(fAngle) = sin(c*fAngle)/t
-            axis.setScale(sin(0.5 * fAngle * timeStep) / fAngle, angularVelocity)
+            angularVelocity.mul(sin(0.5 * fAngle * timeStep) / fAngle, axis)
         }
 
         val dorn = Stack.newQuat()
@@ -92,7 +89,7 @@ object TransformUtil {
     fun calculateAngularVelocity(transform0: Transform, transform1: Transform, timeStep: Double, angVel: Vector3d) {
         val axis = Stack.newVec()
         val angle = calculateDiffAxisAngle(transform0, transform1, axis)
-        angVel.setScale(angle / timeStep, axis)
+        axis.mul(angle / timeStep, angVel)
         Stack.subVec(1)
     }
 
@@ -112,7 +109,7 @@ object TransformUtil {
         transform0.basis.invert(tmp)
 
         val dmat = Stack.newMat()
-        dmat.setMul(transform1.basis, tmp)
+        transform1.basis.mul(tmp, dmat)
 
         val dorn = Stack.newQuat()
         getRotation(dmat, dorn)
@@ -125,7 +122,7 @@ object TransformUtil {
 
         // check for axis length
         val len = axis.lengthSquared()
-        if (len < BulletGlobals.FLT_EPSILON * BulletGlobals.FLT_EPSILON) {
+        if (len < BulletGlobals.FLT_EPSILON_SQ) {
             axis.set(1.0, 0.0, 0.0)
         } else {
             axis.mul(1.0 / sqrt(len))
@@ -142,7 +139,7 @@ object TransformUtil {
         transform0.basis.invert(tmp)
 
         val dmat = Stack.newMat()
-        dmat.setMul(transform1.basis, tmp)
+        transform1.basis.mul(tmp, dmat)
 
         val dorn = Stack.newQuat()
         getRotation(dmat, dorn)

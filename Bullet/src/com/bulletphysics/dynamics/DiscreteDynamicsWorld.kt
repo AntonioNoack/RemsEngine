@@ -23,7 +23,6 @@ import com.bulletphysics.linearmath.CProfileManager
 import com.bulletphysics.linearmath.DebugDrawModes
 import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.TransformUtil
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.CollisionFilters
 import me.anno.ecs.components.collider.CollisionFilters.createFilter
@@ -666,11 +665,11 @@ class DiscreteDynamicsWorld(
 
             val linVelA = Stack.newVec()
             val linVelB = Stack.newVec()
-            linVelA.setSub(convexToWorld, convexFromWorld)
+            convexToWorld.sub(convexFromWorld, linVelA)
             linVelB.set(0.0, 0.0, 0.0) //toB.getOrigin()-fromB.getOrigin();
 
             val relativeVelocity = Stack.newVec()
-            relativeVelocity.setSub(linVelA, linVelB)
+            linVelA.sub(linVelB, relativeVelocity)
 
             // don't report time of impact for motion away from the contact normal (or causes minor penetration)
             val allowedPenetration = 0.0
