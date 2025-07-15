@@ -95,7 +95,7 @@ class AABB {
         max.sub(center, extents)
 
         // Compute new center
-        trans.transform(center)
+        trans.transformPosition(center)
 
         val transformedExtents = Stack.newVec()
 

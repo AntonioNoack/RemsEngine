@@ -46,10 +46,10 @@ class Point2PointConstraint : TypedConstraint {
         for (i in 0..2) {
             normal[i] = 1.0
 
-            transformA.transform(pivotInA, globalPivotRelativeToA)
+            transformA.transformPosition(pivotInA, globalPivotRelativeToA)
             globalPivotRelativeToA.sub(transformA.origin)
 
-            transformB.transform(pivotInB, globalPivotRelativeToB)
+            transformB.transformPosition(pivotInB, globalPivotRelativeToB)
             globalPivotRelativeToB.sub(transformB.origin)
 
             jacobianInvDiagonals[i] = JacobianEntry.calculateDiagonalInv(
@@ -72,10 +72,10 @@ class Point2PointConstraint : TypedConstraint {
         val centerOfMassB = rigidBodyB.worldTransform
 
         val pivotAInW = Stack.newVec(pivotInA)
-        centerOfMassA.transform(pivotAInW)
+        centerOfMassA.transformPosition(pivotAInW)
 
         val pivotBInW = Stack.newVec(pivotInB)
-        centerOfMassB.transform(pivotBInW)
+        centerOfMassB.transformPosition(pivotBInW)
 
         val normal = Stack.newVec()
         normal.set(0.0, 0.0, 0.0)

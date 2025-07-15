@@ -328,7 +328,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             } else {
                 // need to transform normal into worldspace
                 hitNormalWorld.set(rayResult.hitNormalLocal)
-                collisionObject!!.getWorldTransform(Stack.newTrans()).basis.transform(hitNormalWorld)
+                collisionObject!!.worldTransform.transformDirection(hitNormalWorld)
             }
 
             setInterpolate3(hitPointWorld, rayFromWorld, rayToWorld, rayResult.hitFraction)
@@ -575,10 +575,10 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                     worldToCollisionObject.setInverse(colObjWorldTransform)
 
                     val rayFromLocal = Stack.newVec(rayFromTrans.origin)
-                    worldToCollisionObject.transform(rayFromLocal)
+                    worldToCollisionObject.transformPosition(rayFromLocal)
 
                     val rayToLocal = Stack.newVec(rayToTrans.origin)
-                    worldToCollisionObject.transform(rayToLocal)
+                    worldToCollisionObject.transformPosition(rayToLocal)
 
                     val rcb = BridgeTriangleRaycastCallback(
                         rayFromLocal, rayToLocal,
@@ -685,11 +685,11 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
 
                 val convexFromLocal = Stack.newVec()
                 convexFromLocal.set(convexFromTrans.origin)
-                worldToCollisionObject.transform(convexFromLocal)
+                worldToCollisionObject.transformPosition(convexFromLocal)
 
                 val convexToLocal = Stack.newVec()
                 convexToLocal.set(convexToTrans.origin)
-                worldToCollisionObject.transform(convexToLocal)
+                worldToCollisionObject.transformPosition(convexToLocal)
 
                 // rotation of box in local mesh space = MeshRotation^-1 * ConvexToRotation
                 val rotationXform = Stack.newTrans()

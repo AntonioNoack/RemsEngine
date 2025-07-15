@@ -2,27 +2,16 @@ package com.bulletphysics.linearmath
 
 import com.bulletphysics.BulletGlobals
 import cz.advel.stack.Stack
-import org.joml.Quaterniond
-import org.joml.Vector3d
 import org.joml.Matrix3d
 import kotlin.math.abs
 import kotlin.math.sqrt
 
 /**
- * Utility functions for matrices.
+ * Utility function for matrices.
  *
  * @author jezek2
  */
-object MatrixUtil {
-    @JvmStatic
-    fun transposeTransform(dst: Vector3d, vec: Vector3d, mat: Matrix3d) {
-        mat.transformTranspose(vec, dst)
-    }
-
-    @JvmStatic
-    fun getRotation(mat: Matrix3d, dst: Quaterniond) {
-        mat.getUnnormalizedRotation(dst).normalize()
-    }
+object DiagonalizeMatrix {
 
     /**
      * Diagonalizes this matrix by the Jacobi method. rot stores the rotation
@@ -34,8 +23,6 @@ object MatrixUtil {
      */
     // JAVA NOTE: diagonalize method from 2.71
     fun diagonalize(mat: Matrix3d, rot: Matrix3d, threshold: Double, maxSteps: Int) {
-        val row = Stack.newVec()
-
         rot.identity()
         var step = maxSteps
         while (step > 0) {
@@ -97,6 +84,7 @@ object MatrixUtil {
             mat[r, q] = cos * mrq + sin * mrp
 
             // apply rotation to rot (rot = rot * J)
+            val row = Stack.borrowVec()
             for (i in 0..2) {
                 rot.getRow(i, row)
 

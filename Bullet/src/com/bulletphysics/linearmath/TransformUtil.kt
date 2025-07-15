@@ -1,7 +1,6 @@
 package com.bulletphysics.linearmath
 
 import com.bulletphysics.BulletGlobals
-import com.bulletphysics.linearmath.MatrixUtil.getRotation
 import com.bulletphysics.linearmath.QuaternionUtil.getAngle
 import cz.advel.stack.Stack
 import org.joml.Vector3d
@@ -112,7 +111,7 @@ object TransformUtil {
         transform1.basis.mul(tmp, dmat)
 
         val dorn = Stack.newQuat()
-        getRotation(dmat, dorn)
+        dmat.getUnnormalizedRotation(dorn)
 
         // floating point inaccuracy can lead to w component > 1..., which breaks
         dorn.normalize()
@@ -142,7 +141,7 @@ object TransformUtil {
         transform1.basis.mul(tmp, dmat)
 
         val dorn = Stack.newQuat()
-        getRotation(dmat, dorn)
+        dmat.getUnnormalizedRotation(dorn)
 
         // floating point inaccuracy can lead to w component > 1..., which breaks
         dorn.normalize()

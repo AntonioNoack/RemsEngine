@@ -154,7 +154,7 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
         val chassisTrans = rigidBody.worldTransform
         wheel.raycastInfo.hardPointWS.set(wheel.chassisConnectionPointCS)
-        chassisTrans.transform(wheel.raycastInfo.hardPointWS)
+        chassisTrans.transformPosition(wheel.raycastInfo.hardPointWS)
 
         wheel.raycastInfo.wheelDirectionWS.set(wheel.wheelDirectionCS)
         chassisTrans.transformDirection(wheel.raycastInfo.wheelDirectionWS)
@@ -457,17 +457,13 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
             val wheelTrans = Stack.newTrans()
             val impulse = Stack.newDoublePtr()
             for (i in wheels.indices) {
-                val wheelInfo = this.wheels[i]
+                val wheelInfo = wheels[i]
                 val groundObject = wheelInfo.raycastInfo.groundObject
 
                 if (groundObject != null) {
                     getWheelTransformWS(i, wheelTrans)
 
-                    axle[i].set(
-                        wheelTrans.basis[rightAxis, 0],
-                        wheelTrans.basis[rightAxis, 1],
-                        wheelTrans.basis[rightAxis, 2]
-                    )
+                    wheelTrans.basis.getColumn(rightAxis,axle[i])
 
                     val surfNormalWS = wheelInfo.raycastInfo.contactNormalWS
                     val proj = axle[i].dot(surfNormalWS)
@@ -479,7 +475,7 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
                     forwardWS[i].normalize()
 
                     ContactConstraint.resolveSingleBilateral(
-                        this.rigidBody, wheelInfo.raycastInfo.contactPointWS,
+                        rigidBody, wheelInfo.raycastInfo.contactPointWS,
                         groundObject, wheelInfo.raycastInfo.contactPointWS,
                         axle[i], impulse
                     )
@@ -601,15 +597,11 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
     }
 
     /**
-     * Worldspace forward vector.
+     * World space forward vector.
      */
     fun getForwardVector(out: Vector3d): Vector3d {
         val chassisTrans = rigidBody.worldTransform
-        out.set(
-            chassisTrans.basis[forwardAxis, 0],
-            chassisTrans.basis[forwardAxis, 1],
-            chassisTrans.basis[forwardAxis, 2]
-        )
+        chassisTrans.basis.getColumn(forwardAxis, out)
         return out
     }
 

@@ -35,9 +35,9 @@ class BulletDebugComponent(
         for (co in dynamicsWorld.collisionObjects) {
 
             val tr = co.worldTransform
-            val x = DebugLine(tr.origin, tr.transform(Vector3d(1.0, 0.0, 0.0)), UIColors.axisXColor, 0f)
-            val y = DebugLine(tr.origin, tr.transform(Vector3d(0.0, 1.0, 0.0)), UIColors.axisYColor, 0f)
-            val z = DebugLine(tr.origin, tr.transform(Vector3d(0.0, 0.0, 1.0)), UIColors.axisZColor, 0f)
+            val x = DebugLine(tr.origin, tr.transformPosition(Vector3d(1.0, 0.0, 0.0)), UIColors.axisXColor, 0f)
+            val y = DebugLine(tr.origin, tr.transformPosition(Vector3d(0.0, 1.0, 0.0)), UIColors.axisYColor, 0f)
+            val z = DebugLine(tr.origin, tr.transformPosition(Vector3d(0.0, 0.0, 1.0)), UIColors.axisZColor, 0f)
             DebugShapes.debugLines.addAll(listOf(x, y, z))
 
             val shape = co.collisionShape

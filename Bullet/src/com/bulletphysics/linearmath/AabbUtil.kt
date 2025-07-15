@@ -154,7 +154,7 @@ object AabbUtil {
         val center = Stack.newVec()
         localAabbMax.add(localAabbMin, center)
         center.mul(0.5)
-        trans.transform(center)
+        trans.transformPosition(center)
 
         val ex = ((localAabbMax.x - localAabbMin.x) * 0.5) + margin
         val ey = ((localAabbMax.y - localAabbMin.y) * 0.5) + margin

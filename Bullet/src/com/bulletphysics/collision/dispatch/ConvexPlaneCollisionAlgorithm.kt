@@ -87,7 +87,7 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
 
         val vtx = convexShape.localGetSupportingVertex(tmp, Stack.newVec())
         val vtxInPlane = Stack.newVec(vtx)
-        convexInPlaneTrans.transform(vtxInPlane)
+        convexInPlaneTrans.transformPosition(vtxInPlane)
 
         val distance = (planeNormal.dot(vtxInPlane) - planeConstant)
 
@@ -96,7 +96,7 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
         vtxInPlane.sub(tmp, vtxInPlaneProjected)
 
         val vtxInPlaneWorld = Stack.newVec(vtxInPlaneProjected)
-        planeObj.getWorldTransform(tmpTrans).transform(vtxInPlaneWorld)
+        planeObj.getWorldTransform(tmpTrans).transformPosition(vtxInPlaneWorld)
 
         val hasCollision = distance < manifoldPtr.contactBreakingThreshold
         resultOut.persistentManifold = manifoldPtr

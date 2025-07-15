@@ -112,7 +112,7 @@ abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface?) : Co
 
         fun getSupportVertexWorldSpace(out: Vector3d): Vector3d {
             out.set(supportVertexLocal)
-            worldTrans.transform(out)
+            worldTrans.transformPosition(out)
             return out
         }
 

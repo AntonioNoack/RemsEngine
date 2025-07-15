@@ -92,10 +92,10 @@ class ConeTwistConstraint : TypedConstraint {
 
         if (!angularOnly) {
             val pivotAInW = Stack.newVec(rbAFrame.origin)
-            rigidBodyA.worldTransform.transform(pivotAInW)
+            rigidBodyA.worldTransform.transformPosition(pivotAInW)
 
             val pivotBInW = Stack.newVec(rbBFrame.origin)
-            rigidBodyB.worldTransform.transform(pivotBInW)
+            rigidBodyB.worldTransform.transformPosition(pivotBInW)
 
             val relPos = Stack.newVec()
             pivotBInW.sub(pivotAInW, relPos)
@@ -233,10 +233,10 @@ class ConeTwistConstraint : TypedConstraint {
         val tmp3 = Stack.newVec()
 
         val pivotAInW = Stack.newVec(rbAFrame.origin)
-        rigidBodyA.worldTransform.transform(pivotAInW)
+        rigidBodyA.worldTransform.transformPosition(pivotAInW)
 
         val pivotBInW = Stack.newVec(rbBFrame.origin)
-        rigidBodyB.worldTransform.transform(pivotBInW)
+        rigidBodyB.worldTransform.transformPosition(pivotBInW)
 
         val tau = 0.3
 

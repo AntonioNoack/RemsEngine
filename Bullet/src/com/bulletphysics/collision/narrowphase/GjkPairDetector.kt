@@ -115,8 +115,8 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
             minkowskiA.localGetSupportingVertexWithoutMargin(separatingAxisInA, pWorld)
             minkowskiB.localGetSupportingVertexWithoutMargin(separatingAxisInB, qWorld)
 
-            localTransA.transform(pWorld)
-            localTransB.transform(qWorld)
+            localTransA.transformPosition(pWorld)
+            localTransB.transformPosition(qWorld)
 
             pWorld.sub(qWorld, w)
             delta = cachedSeparatingAxis.dot(w)

@@ -32,11 +32,11 @@ class MinkowskiSumShape @Suppress("unused") constructor(
         dir.negate(tmp)
         transA.basis.transformTranspose(tmp)
         shapeA.localGetSupportingVertexWithoutMargin(tmp, supVertexA)
-        transA.transform(supVertexA)
+        transA.transformPosition(supVertexA)
 
         transB.basis.transformTranspose(dir, tmp)
         shapeB.localGetSupportingVertexWithoutMargin(tmp, supVertexB)
-        transB.transform(supVertexB)
+        transB.transformPosition(supVertexB)
 
         supVertexA.sub(supVertexB, out)
         Stack.subVec(3)

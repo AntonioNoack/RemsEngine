@@ -1,6 +1,5 @@
 package com.bulletphysics.linearmath
 
-import com.bulletphysics.linearmath.MatrixUtil.getRotation
 import cz.advel.stack.Stack
 import org.joml.Matrix3d
 import org.joml.Quaterniond
@@ -39,7 +38,7 @@ class Transform {
         origin.set(0.0, 0.0, 0.0)
     }
 
-    fun transform(src: Vector3d, dst: Vector3d = src): Vector3d {
+    fun transformPosition(src: Vector3d, dst: Vector3d = src): Vector3d {
         basis.transform(src, dst).add(origin)
         return dst
     }
@@ -73,14 +72,14 @@ class Transform {
     fun mul(tr: Transform) {
         // can only be simplified, if tr !== this
         val vec = Stack.borrowVec(tr.origin)
-        transform(vec)
+        transformPosition(vec)
         basis.mul(tr.basis)
         origin.set(vec)
     }
 
     fun setMul(tr1: Transform, tr2: Transform) {
         val vec = Stack.borrowVec(tr2.origin)
-        tr1.transform(vec)
+        tr1.transformPosition(vec)
         tr1.basis.mul(tr2.basis, basis)
         origin.set(vec)
     }
@@ -94,7 +93,7 @@ class Transform {
     }
 
     fun getRotation(out: Quaterniond): Quaterniond {
-        getRotation(basis, out)
+        basis.getUnnormalizedRotation(out).normalize()
         return out
     }
 

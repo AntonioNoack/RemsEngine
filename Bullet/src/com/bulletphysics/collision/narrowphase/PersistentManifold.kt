@@ -232,10 +232,10 @@ class PersistentManifold {
             val manifoldPoint = pointCache[i]
 
             manifoldPoint.positionWorldOnA.set(manifoldPoint.localPointA)
-            trA.transform(manifoldPoint.positionWorldOnA)
+            trA.transformPosition(manifoldPoint.positionWorldOnA)
 
             manifoldPoint.positionWorldOnB.set(manifoldPoint.localPointB)
-            trB.transform(manifoldPoint.positionWorldOnB)
+            trB.transformPosition(manifoldPoint.positionWorldOnB)
 
             tmp.set(manifoldPoint.positionWorldOnA)
             tmp.sub(manifoldPoint.positionWorldOnB)

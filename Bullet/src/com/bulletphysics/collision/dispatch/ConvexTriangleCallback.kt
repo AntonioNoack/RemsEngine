@@ -92,9 +92,9 @@ internal class ConvexTriangleCallback(
             val tmp2 = Stack.newVec()
             val tmp3 = Stack.newVec()
 
-            tr.transform(triangle[0], tmp1)
-            tr.transform(triangle[1], tmp2)
-            tr.transform(triangle[2], tmp3)
+            tr.transformPosition(triangle[0], tmp1)
+            tr.transformPosition(triangle[1], tmp2)
+            tr.transformPosition(triangle[2], tmp3)
             debugDraw.drawLine(tmp1, tmp2, color)
             debugDraw.drawLine(tmp2, tmp3, color)
             debugDraw.drawLine(tmp3, tmp1, color)

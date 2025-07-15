@@ -68,9 +68,9 @@ class PrimitiveTriangle {
     }
 
     fun applyTransform(t: Transform) {
-        t.transform(vertices[0])
-        t.transform(vertices[1])
-        t.transform(vertices[2])
+        t.transformPosition(vertices[0])
+        t.transformPosition(vertices[1])
+        t.transformPosition(vertices[2])
     }
 
     /**

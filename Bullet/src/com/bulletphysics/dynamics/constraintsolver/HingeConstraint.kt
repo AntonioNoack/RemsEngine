@@ -117,9 +117,10 @@ class HingeConstraint : TypedConstraint {
         enableAngularMotor = false
 
         // flip axis
-        this.rbBFrame.basis.m20 *= -1.0
-        this.rbBFrame.basis.m21 *= -1.0
-        this.rbBFrame.basis.m22 *= -1.0
+        val rbB = rbBFrame.basis
+        rbB.m20 = -rbB.m20
+        rbB.m21 = -rbB.m21
+        rbB.m22 = -rbB.m22
 
         // start with free
         lowerLimit = 1e308
@@ -143,10 +144,10 @@ class HingeConstraint : TypedConstraint {
 
         if (!angularOnly) {
             val pivotAInW = Stack.newVec(rbAFrame.origin)
-            centerOfMassA.transform(pivotAInW)
+            centerOfMassA.transformPosition(pivotAInW)
 
             val pivotBInW = Stack.newVec(rbBFrame.origin)
-            centerOfMassB.transform(pivotBInW)
+            centerOfMassB.transformPosition(pivotBInW)
 
             val relPos = Stack.newVec()
             pivotBInW.sub(pivotAInW, relPos)
@@ -239,10 +240,10 @@ class HingeConstraint : TypedConstraint {
         val centerOfMassB = rigidBodyB.getCenterOfMassTransform(Stack.newTrans())
 
         val pivotAInW = Stack.newVec(rbAFrame.origin)
-        centerOfMassA.transform(pivotAInW)
+        centerOfMassA.transformPosition(pivotAInW)
 
         val pivotBInW = Stack.newVec(rbBFrame.origin)
-        centerOfMassB.transform(pivotBInW)
+        centerOfMassB.transformPosition(pivotBInW)
 
         val tau = 0.3
 

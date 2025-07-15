@@ -1,7 +1,6 @@
 package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.BulletGlobals
-import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import org.joml.Vector3d
@@ -34,17 +33,17 @@ abstract class ConvexInternalShape : ConvexShape() {
             vec.set(0.0, 0.0, 0.0)
             vec[i] = 1.0
 
-            MatrixUtil.transposeTransform(tmp1, vec, t.basis)
+            t.basis.transformTranspose(vec, tmp1)
             localGetSupportingVertex(tmp1, tmp2)
 
-            t.transform(tmp2)
+            t.transformPosition(tmp2)
 
             aabbMax[i] = tmp2[i] + margin
             vec[i] = -1.0
 
-            MatrixUtil.transposeTransform(tmp1, vec, t.basis)
+            t.basis.transformTranspose(vec, tmp1)
             localGetSupportingVertex(tmp1, tmp2)
-            t.transform(tmp2)
+            t.transformPosition(tmp2)
 
             aabbMin[i] = tmp2[i] - margin
         }

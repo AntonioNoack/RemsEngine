@@ -2,7 +2,6 @@ package com.bulletphysics.collision.narrowphase
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.shapes.ConvexShape
-import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.setInterpolate3
 import cz.advel.stack.Stack
@@ -48,11 +47,11 @@ class SubSimplexConvexCast(
         relVelocity.negate(tmp)
         fromA.basis.transformTranspose(tmp)
         val supVertexA = convexA.localGetSupportingVertex(tmp, Stack.newVec())
-        fromA.transform(supVertexA)
+        fromA.transformPosition(supVertexA)
 
         fromB.basis.transformTranspose(relVelocity, tmp)
         val supVertexB = convexB.localGetSupportingVertex(tmp, Stack.newVec())
-        fromB.transform(supVertexB)
+        fromB.transformPosition(supVertexB)
 
         supVertexA.sub(supVertexB, v)
 
@@ -68,13 +67,13 @@ class SubSimplexConvexCast(
         while ((dist2 > epsilon) && (maxIter--) != 0) {
             // basic plane separation algorithm
             v.negate(tmp)
-            MatrixUtil.transposeTransform(tmp, tmp, interpolatedTransA.basis)
+            interpolatedTransA.basis.transformTranspose(tmp, tmp)
             convexA.localGetSupportingVertex(tmp, supVertexA)
-            interpolatedTransA.transform(supVertexA)
+            interpolatedTransA.transformPosition(supVertexA)
 
-            MatrixUtil.transposeTransform(tmp, v, interpolatedTransB.basis)
+            interpolatedTransB.basis.transformTranspose(v, tmp)
             convexB.localGetSupportingVertex(tmp, supVertexB)
-            interpolatedTransB.transform(supVertexB)
+            interpolatedTransB.transformPosition(supVertexB)
 
             supVertexA.sub(supVertexB, w)
 

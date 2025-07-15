@@ -148,7 +148,7 @@ object BulletRendering {
                 if (shape is ConvexHullShape) {
                     forLoopSafely(shape.points.size, 3) { idx ->
                         val p1 = Vector3d(shape.points, idx)
-                        tmpTrans.transform(p1)
+                        tmpTrans.transformPosition(p1)
                         DebugShapes.debugPoints.add(DebugPoint(p1, -1, 0f))
                     }
                 }

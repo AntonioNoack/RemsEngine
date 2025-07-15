@@ -2,7 +2,7 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.AabbUtil
-import com.bulletphysics.linearmath.MatrixUtil
+import com.bulletphysics.linearmath.DiagonalizeMatrix
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.maths.Maths.clamp
@@ -151,7 +151,7 @@ class CompoundShape : CollisionShape() {
             tensorSum.m21 -= yz
         }
 
-        MatrixUtil.diagonalize(tensorSum, principal.basis, 0.00001, 20)
+        DiagonalizeMatrix.diagonalize(tensorSum, principal.basis, 0.00001, 20)
         inertia.set(tensorSum.m00, tensorSum.m11, tensorSum.m22)
     }
 }

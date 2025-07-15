@@ -590,7 +590,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         var vi = shape0.vertexCount
         while ((vi--) != 0) {
             shape0.getVertex(vi, vertex)
-            orgTrans0.transform(vertex)
+            orgTrans0.transformPosition(vertex)
 
             val distance = dot3(vertex, plane) - plane.w - margin
             if (distance < 0.0) { //add contact
