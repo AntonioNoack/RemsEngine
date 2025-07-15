@@ -4,7 +4,6 @@ import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import me.anno.maths.Maths.clamp
 import org.joml.Vector3d
@@ -120,7 +119,7 @@ class CompoundShape : CollisionShape() {
 
             val childTransform = child.transform
             val offset = Stack.newVec()
-            offset.setSub(childTransform.origin, center)
+            childTransform.origin.sub(center, offset)
 
             // compute inertia tensor in coordinate system of compound shape
             childTransform.basis.transpose(childTensor)

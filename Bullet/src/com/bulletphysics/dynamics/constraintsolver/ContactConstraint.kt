@@ -3,10 +3,6 @@ package com.bulletphysics.dynamics.constraintsolver
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.narrowphase.ManifoldPoint
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setCross
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -51,10 +47,10 @@ object ContactConstraint {
         }
 
         val relPos1 = Stack.newVec()
-        relPos1.setSub(pos1, body1.worldTransform.origin)
+        pos1.sub(body1.worldTransform.origin, relPos1)
 
         val relPos2 = Stack.newVec()
-        relPos2.setSub(pos2, body2.worldTransform.origin)
+        pos2.sub(body2.worldTransform.origin, relPos2)
 
         //this jacobian entry could be re-used for all iterations
         val vel1 = Stack.newVec()
@@ -64,7 +60,7 @@ object ContactConstraint {
         body2.getVelocityInLocalPoint(relPos2, vel2)
 
         val vel = Stack.newVec()
-        vel.setSub(vel1, vel2)
+        vel1.sub(vel2, vel)
 
         val jacDiagABInv = JacobianEntry.calculateDiagonalInv(
             body1.worldTransform.basis, body2.worldTransform.basis,
@@ -140,11 +136,11 @@ object ContactConstraint {
         //#ifdef USE_INTERNAL_APPLY_IMPULSE
         val tmp = Stack.newVec()
         if (body1.inverseMass != 0.0) {
-            tmp.setScale(body1.inverseMass, contactPoint.normalWorldOnB)
+            contactPoint.normalWorldOnB.mul(body1.inverseMass, tmp)
             body1.internalApplyImpulse(tmp, cpd.angularComponentA, normalImpulse)
         }
         if (body2.inverseMass != 0.0) {
-            tmp.setScale(body2.inverseMass, contactPoint.normalWorldOnB)
+            contactPoint.normalWorldOnB.mul(body2.inverseMass, tmp)
             body2.internalApplyImpulse(tmp, cpd.angularComponentB, -normalImpulse)
         }
 
@@ -182,7 +178,7 @@ object ContactConstraint {
             body2.getVelocityInLocalPoint(relPos2, vel2)
 
             val vel = Stack.newVec()
-            vel.setSub(vel1, vel2)
+            vel1.sub(vel2, vel)
 
             var j1: Double
             var j2: Double
@@ -215,17 +211,17 @@ object ContactConstraint {
             //#ifdef USE_INTERNAL_APPLY_IMPULSE
             val impulse = Stack.newVec()
             if (body1.inverseMass != 0.0) {
-                impulse.setScale(body1.inverseMass, cpd.frictionWorldTangential0)
+                cpd.frictionWorldTangential0.mul(body1.inverseMass, impulse)
                 body1.internalApplyImpulse(impulse, cpd.frictionAngularComponent0A, j1)
 
-                impulse.setScale(body1.inverseMass, cpd.frictionWorldTangential1)
+                cpd.frictionWorldTangential1.mul(body1.inverseMass, impulse)
                 body1.internalApplyImpulse(impulse, cpd.frictionAngularComponent1A, j2)
             }
             if (body2.inverseMass != 0.0) {
-                impulse.setScale(body2.inverseMass, cpd.frictionWorldTangential0)
+                cpd.frictionWorldTangential0.mul(body2.inverseMass, impulse)
                 body2.internalApplyImpulse(impulse, cpd.frictionAngularComponent0B, -j1)
 
-                impulse.setScale(body2.inverseMass, cpd.frictionWorldTangential1)
+                cpd.frictionWorldTangential1.mul(body2.inverseMass, impulse)
                 body2.internalApplyImpulse(impulse, cpd.frictionAngularComponent1B, -j2)
             }
             Stack.subVec(4)
@@ -247,17 +243,16 @@ object ContactConstraint {
         solverInfo: ContactSolverInfo
     ): Double {
 
-        val tmpVec = Stack.newVec()
         val relPos1 = Stack.newVec()
-        relPos1.setSub( contactPoint.positionWorldOnA, body1.getCenterOfMassPosition(tmpVec))
+        contactPoint.positionWorldOnA.sub(body1.worldTransform.origin, relPos1)
 
         val relPos2 = Stack.newVec()
-        relPos2.setSub( contactPoint.positionWorldOnB, body2.getCenterOfMassPosition(tmpVec))
+        contactPoint.positionWorldOnB.sub(body2.worldTransform.origin, relPos2)
 
         val vel1 = body1.getVelocityInLocalPoint(relPos1, Stack.newVec())
         val vel2 = body2.getVelocityInLocalPoint(relPos2, Stack.newVec())
         val vel = Stack.newVec()
-        vel.setSub(vel1, vel2)
+        vel1.sub(vel2, vel)
 
         val normal = contactPoint.normalWorldOnB
         var relVel = normal.dot(vel)
@@ -290,11 +285,11 @@ object ContactConstraint {
         //#ifdef USE_INTERNAL_APPLY_IMPULSE
         val tmp = Stack.newVec()
         if (body1.inverseMass != 0.0) {
-            tmp.setScale(body1.inverseMass, contactPoint.normalWorldOnB)
+            contactPoint.normalWorldOnB.mul(body1.inverseMass, tmp)
             body1.internalApplyImpulse(tmp, cpd.angularComponentA, normalImpulse)
         }
         if (body2.inverseMass != 0.0) {
-            tmp.setScale(body2.inverseMass, contactPoint.normalWorldOnB)
+            contactPoint.normalWorldOnB.mul(body2.inverseMass, tmp)
             body2.internalApplyImpulse(tmp, cpd.angularComponentB, -normalImpulse)
         }
 
@@ -306,13 +301,13 @@ object ContactConstraint {
             //friction
             body1.getVelocityInLocalPoint(relPos1, vel1)
             body2.getVelocityInLocalPoint(relPos2, vel2)
-            vel.setSub(vel1, vel2)
+            vel1.sub(vel2, vel)
 
             relVel = normal.dot(vel)
 
-            tmp.setScale(relVel, normal)
+            normal.mul(relVel, tmp)
             val latVel = Stack.newVec()
-            latVel.setSub(vel, tmp)
+            vel.sub(tmp, latVel)
             val latRelVel = latVel.length()
 
             val combinedFriction = cpd.friction
@@ -321,20 +316,20 @@ object ContactConstraint {
                     latVel.mul(1.0 / latRelVel)
 
                     val temp1 = Stack.newVec()
-                    temp1.setCross(relPos1, latVel)
+                    relPos1.cross(latVel, temp1)
                     body1.invInertiaTensorWorld.transform(temp1)
 
                     val temp2 = Stack.newVec()
-                    temp2.setCross(relPos2, latVel)
+                    relPos2.cross(latVel, temp2)
                     body2.invInertiaTensorWorld.transform(temp2)
 
                     val javaTmp1 = Stack.newVec()
-                    javaTmp1.setCross(temp1, relPos1)
+                    temp1.cross(relPos1, javaTmp1)
 
                     val javaTmp2 = Stack.newVec()
-                    javaTmp2.setCross(temp2, relPos2)
+                    temp2.cross(relPos2, javaTmp2)
 
-                    tmp.setAdd(javaTmp1, javaTmp2)
+                    javaTmp1.add(javaTmp2, tmp)
 
                     var frictionImpulse = latRelVel /
                             (body1.inverseMass + body2.inverseMass + latVel.dot(tmp))
@@ -343,10 +338,10 @@ object ContactConstraint {
                     frictionImpulse = min(frictionImpulse, normalImpulse1)
                     frictionImpulse = max(frictionImpulse, -normalImpulse1)
 
-                    tmp.setScale(-frictionImpulse, latVel)
+                    latVel.mul(-frictionImpulse, tmp)
                     body1.applyImpulse(tmp, relPos1)
 
-                    tmp.setScale(frictionImpulse, latVel)
+                    latVel.mul(frictionImpulse, tmp)
                     body2.applyImpulse(tmp, relPos2)
 
                     Stack.subVec(4)
@@ -356,7 +351,7 @@ object ContactConstraint {
             Stack.subVec(1) // latVel
         }
 
-        Stack.subVec(6)
+        Stack.subVec(5)
 
         return normalImpulse
     }

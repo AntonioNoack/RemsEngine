@@ -1,10 +1,6 @@
 package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.linearmath.VectorUtil.setCoord
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setSub
-import com.bulletphysics.util.setTranspose
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -39,7 +35,7 @@ class Point2PointConstraint : TypedConstraint {
         appliedImpulse = 0.0
 
         val normal = Stack.newVec()
-        normal.set(0.0, 0.0, 0.0)
+        normal.set(0.0)
 
         val globalPivotRelativeToA = Stack.newVec()
         val globalPivotRelativeToB = Stack.newVec()
@@ -48,7 +44,7 @@ class Point2PointConstraint : TypedConstraint {
         val transformB = rigidBodyB.worldTransform
 
         for (i in 0..2) {
-            setCoord(normal, i, 1.0)
+            normal[i] = 1.0
 
             transformA.transform(pivotInA, globalPivotRelativeToA)
             globalPivotRelativeToA.sub(transformA.origin)
@@ -62,7 +58,7 @@ class Point2PointConstraint : TypedConstraint {
                 rigidBodyA.invInertiaLocal, rigidBodyA.inverseMass,
                 rigidBodyB.invInertiaLocal, rigidBodyB.inverseMass
             )
-            setCoord(normal, i, 0.0)
+            normal[i] = 0.0
         }
 
         Stack.subVec(3)
@@ -96,13 +92,13 @@ class Point2PointConstraint : TypedConstraint {
 
             val jacDiagABInv = jacobianInvDiagonals[i]
 
-            relPos1.setSub(pivotAInW, rigidBodyA.worldTransform.origin)
-            relPos2.setSub(pivotBInW, rigidBodyB.worldTransform.origin)
+            pivotAInW.sub(rigidBodyA.worldTransform.origin, relPos1)
+            pivotBInW.sub(rigidBodyB.worldTransform.origin, relPos2)
 
             // this jacobian entry could be re-used for all iterations
             rigidBodyA.getVelocityInLocalPoint(relPos1, vel1)
             rigidBodyB.getVelocityInLocalPoint(relPos2, vel2)
-            vel.setSub(vel1, vel2)
+            vel1.sub(vel2, vel)
 
             val relativeVelocity = normal.dot(vel)
 
@@ -113,7 +109,7 @@ class Point2PointConstraint : TypedConstraint {
 			 */
 
             // positional error (zeroth order error)
-            tmp.setSub(pivotAInW, pivotBInW)
+            pivotAInW.sub(pivotBInW, tmp)
             val depth = -tmp.dot(normal) //this is the error projected on the normal
 
             var impulse = (depth * setting.tau / timeStep - setting.damping * relativeVelocity) * jacDiagABInv
@@ -133,7 +129,7 @@ class Point2PointConstraint : TypedConstraint {
             }
 
             appliedImpulse += impulse
-            impulseVector.setScale(impulse, normal)
+            normal.mul(impulse, impulseVector)
             pivotAInW.sub(rigidBodyA.worldTransform.origin, tmp)
             rigidBodyA.applyImpulse(impulseVector, tmp)
 

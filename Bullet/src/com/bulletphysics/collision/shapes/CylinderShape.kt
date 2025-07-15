@@ -3,12 +3,10 @@ package com.bulletphysics.collision.shapes
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.VectorUtil
-import com.bulletphysics.util.setScaleAdd
 import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.Axis
 import org.joml.Vector3d
-import kotlin.math.sqrt
+import kotlin.math.hypot
 
 /**
  * CylinderShape class implements a cylinder shape primitive, centered around
@@ -33,29 +31,26 @@ open class CylinderShape(halfExtents: Vector3d, val upAxis: Axis) : BoxShape(hal
 
     private fun cylinderLocalSupport(halfExtents: Vector3d, v: Vector3d, out: Vector3d): Vector3d {
 
-        val XX = upAxis.secondary
-        val YY = upAxis.id
-        val ZZ = upAxis.tertiary
+        val xAxis = upAxis.secondary
+        val yAxis = upAxis.id
+        val zAxis = upAxis.tertiary
 
         //mapping depends on how cylinder local orientation is
         // extents of the cylinder is: X,Y is for radius, and Z for height
 
-        val radius = VectorUtil.getCoord(halfExtents, XX)
-        val halfHeight = VectorUtil.getCoord(halfExtents, YY)
+        val radius = halfExtents[xAxis]
+        val halfHeight = halfExtents[yAxis]
 
-        val s = sqrt(
-            VectorUtil.getCoord(v, XX) * VectorUtil.getCoord(v, XX) +
-                    VectorUtil.getCoord(v, ZZ) * VectorUtil.getCoord(v, ZZ)
-        )
+        val s = hypot(v[xAxis], v[zAxis])
         if (s != 0.0) {
             val d = radius / s
-            VectorUtil.setCoord(out, XX, VectorUtil.getCoord(v, XX) * d)
-            VectorUtil.setCoord(out, YY, if (VectorUtil.getCoord(v, YY) < 0.0) -halfHeight else halfHeight)
-            VectorUtil.setCoord(out, ZZ, VectorUtil.getCoord(v, ZZ) * d)
+            out[xAxis] = v[xAxis] * d
+            out[yAxis] = if (v[yAxis] < 0.0) -halfHeight else halfHeight
+            out[zAxis] = v[zAxis] * d
         } else {
-            VectorUtil.setCoord(out, XX, radius)
-            VectorUtil.setCoord(out, YY, if (VectorUtil.getCoord(v, YY) < 0.0) -halfHeight else halfHeight)
-            VectorUtil.setCoord(out, ZZ, 0.0)
+            out[xAxis] = radius
+            out[yAxis] = if (v[yAxis] < 0.0) -halfHeight else halfHeight
+            out[zAxis] = 0.0
         }
         return out
     }

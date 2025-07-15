@@ -7,7 +7,6 @@ import com.bulletphysics.linearmath.VectorUtil.setMin
 import com.bulletphysics.util.ObjectPool
 import cz.advel.stack.Stack
 import org.joml.Vector3d
-import com.bulletphysics.util.setSub
 
 /**
  * BvhTriangleMeshShape is a static-triangle mesh shape with several optimizations,
@@ -173,7 +172,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
 
     override fun setLocalScaling(scaling: Vector3d) {
         val tmp = Stack.newVec()
-        tmp.setSub(getLocalScaling(Stack.newVec()), scaling)
+        getLocalScaling(tmp).sub(scaling)
 
         if (tmp.lengthSquared() > BulletGlobals.SIMD_EPSILON) {
             super.setLocalScaling(scaling)
@@ -190,7 +189,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
             bvh!!.build(meshInterface!!, useQuantizedAabbCompression, localAabbMin, localAabbMax)
             ownsBvh = true
         }
-        Stack.subVec(2)
+        Stack.subVec(1)
     }
 
     @get:Suppress("unused")
@@ -211,11 +210,12 @@ class BvhTriangleMeshShape : TriangleMeshShape {
 
         // update the scaling without rebuilding the bvh
         val tmp = Stack.newVec()
-        tmp.setSub(getLocalScaling(Stack.newVec()), scaling)
+        getLocalScaling(tmp).sub(scaling, tmp)
 
         if (tmp.lengthSquared() > BulletGlobals.SIMD_EPSILON) {
             super.setLocalScaling(scaling)
         }
+        Stack.subVec(1)
     }
 
     @Suppress("unused")

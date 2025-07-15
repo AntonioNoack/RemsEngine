@@ -8,7 +8,6 @@ package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.util.setScale
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -162,7 +161,7 @@ class RotationalLimitMotor {
         clippedMotorImpulse = accumulatedImpulse - oldImpulseSum
 
         val motorImp = Stack.newVec()
-        motorImp.setScale(clippedMotorImpulse, axis)
+        axis.mul(clippedMotorImpulse, motorImp)
 
         body0.applyTorqueImpulse(motorImp)
         if (body1 != null) {

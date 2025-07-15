@@ -5,8 +5,6 @@ import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.ScalarUtil
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import org.joml.Vector4d
@@ -15,7 +13,7 @@ import kotlin.math.abs
 /**
  * BoxShape is a box primitive around the origin, its sides axis aligned with length
  * specified by half extents, in local shape coordinates. When used as part of a
- * [CollisionObject] or [RigidBody] it will be an oriented box in world space.
+ * [com.bulletphysics.collision.dispatch.CollisionObject] or [com.bulletphysics.dynamics.RigidBody] it will be an oriented box in world space.
  *
  * @author jezek2
  */
@@ -80,12 +78,12 @@ open class BoxShape(boxHalfExtents: Vector3d) : PolyhedralConvexShape() {
             val oldMargin = Stack.newVec()
             oldMargin.set(super.margin)
             val implicitShapeDimensionsWithMargin = Stack.newVec()
-            implicitShapeDimensionsWithMargin.setAdd(implicitShapeDimensions, oldMargin)
+            implicitShapeDimensions.add(oldMargin, implicitShapeDimensionsWithMargin)
 
             super.margin = value
             val newMargin = Stack.newVec()
             newMargin.set(value, value, value)
-            implicitShapeDimensions.setSub(implicitShapeDimensionsWithMargin, newMargin)
+            implicitShapeDimensionsWithMargin.sub(newMargin, implicitShapeDimensions)
             Stack.subVec(3)
         }
 
@@ -93,7 +91,7 @@ open class BoxShape(boxHalfExtents: Vector3d) : PolyhedralConvexShape() {
         val oldMargin = Stack.newVec()
         oldMargin.set(margin, margin, margin)
         val implicitShapeDimensionsWithMargin = Stack.newVec()
-        implicitShapeDimensionsWithMargin.setAdd(implicitShapeDimensions, oldMargin)
+        implicitShapeDimensions.add(oldMargin, implicitShapeDimensionsWithMargin)
         val unScaledImplicitShapeDimensionsWithMargin = Stack.newVec()
         VectorUtil.div(unScaledImplicitShapeDimensionsWithMargin, implicitShapeDimensionsWithMargin, localScaling)
 
@@ -219,7 +217,7 @@ open class BoxShape(boxHalfExtents: Vector3d) : PolyhedralConvexShape() {
     override fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3d) {
         val axis = index shr 1
         val value = if ((index and 1) == 0) 1.0 else -1.0
-        penetrationVector.set(0.0, 0.0, 0.0)
-        VectorUtil.setCoord(penetrationVector, axis, value)
+        penetrationVector.set(0.0)
+        penetrationVector[axis] = value
     }
 }

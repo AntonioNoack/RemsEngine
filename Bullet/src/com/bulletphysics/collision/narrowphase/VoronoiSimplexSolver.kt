@@ -513,7 +513,11 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
         return success
     }
 
-    override fun isPointInSimplex(w: Vector3d): Boolean {
+    override fun fullSimplex(): Boolean {
+        return numVertices == 4
+    }
+
+    override fun inSimplex(w: Vector3d): Boolean {
         var found = false
         //btScalar maxV = btScalar(0.);
 

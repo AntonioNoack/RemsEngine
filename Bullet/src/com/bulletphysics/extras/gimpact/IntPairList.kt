@@ -1,6 +1,8 @@
 package com.bulletphysics.extras.gimpact
 
-import com.bulletphysics.util.Packing
+import me.anno.maths.Packing.pack64
+import me.anno.maths.Packing.unpackHighFrom64
+import me.anno.maths.Packing.unpackLowFrom64
 import kotlin.math.max
 import kotlin.math.min
 
@@ -24,12 +26,12 @@ class IntPairList {
 
     fun getFirst(index: Int): Int {
         if (index >= size) throw IndexOutOfBoundsException()
-        return Packing.unpackHigh(content[index])
+        return unpackHighFrom64(content[index])
     }
 
     fun getSecond(index: Int): Int {
         if (index >= size) throw IndexOutOfBoundsException()
-        return Packing.unpackLow(content[index])
+        return unpackLowFrom64(content[index])
     }
 
     fun getQuick(index: Int): Long {
@@ -62,11 +64,11 @@ class IntPairList {
         if (size == content.size) {
             expand()
         }
-        content[size] = Packing.pack(first, second)
+        content[size] = pack64(first, second)
         size++
     }
 
     fun setPair(index: Int, first: Int, second: Int) {
-        content[index] = Packing.pack(first, second)
+        content[index] = pack64(first, second)
     }
 }

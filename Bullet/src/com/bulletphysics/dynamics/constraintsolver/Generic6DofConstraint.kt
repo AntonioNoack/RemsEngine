@@ -9,12 +9,6 @@ package com.bulletphysics.dynamics.constraintsolver
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.VectorUtil.getCoord
-import com.bulletphysics.linearmath.VectorUtil.setCoord
-import com.bulletphysics.util.getElement
-import com.bulletphysics.util.setCross
-import com.bulletphysics.util.setMul
-import com.bulletphysics.util.setScale
 import cz.advel.stack.Stack
 import org.joml.Matrix3d
 import org.joml.Vector3d
@@ -107,11 +101,10 @@ class Generic6DofConstraint : TypedConstraint {
      */
     fun calculateAngleInfo() {
         val mat = Stack.newMat()
-
         val relativeFrame = Stack.newMat()
         calculatedTransformA.basis.invert(mat)
 
-        relativeFrame.setMul(mat, calculatedTransformB.basis)
+        mat.mul(calculatedTransformB.basis, relativeFrame)
 
         matrixToEulerXYZ(relativeFrame, calculatedAxisAngleDiff)
 
@@ -135,9 +128,12 @@ class Generic6DofConstraint : TypedConstraint {
         val axis2 = Stack.newVec()
         calculatedTransformA.basis.getColumn(2, axis2)
 
-        calculatedAxis[1].setCross(axis2, axis0)
-        calculatedAxis[0].setCross(calculatedAxis[1], axis2)
-        calculatedAxis[2].setCross(axis0, calculatedAxis[1])
+        axis2.cross(axis0, calculatedAxis[1])
+        calculatedAxis[1].cross(axis2, calculatedAxis[0])
+        axis0.cross(calculatedAxis[1], calculatedAxis[2])
+
+        Stack.subMat(2)
+        Stack.subVec(2)
     }
 
     /**
@@ -194,7 +190,7 @@ class Generic6DofConstraint : TypedConstraint {
      * Generic6DofConstraint.buildJacobian must be called previously.
      */
     fun testAngularLimitMotor(axisIndex: Int): Boolean {
-        val angle = getCoord(calculatedAxisAngleDiff, axisIndex)
+        val angle = calculatedAxisAngleDiff[axisIndex]
 
         // test limits
         angularLimits[axisIndex].testLimitValue(angle)
@@ -313,7 +309,7 @@ class Generic6DofConstraint : TypedConstraint {
      * Generic6DofConstraint.buildJacobian must be called previously.
      */
     fun getAngle(axisIndex: Int): Double {
-        return getCoord(calculatedAxisAngleDiff, axisIndex)
+        return calculatedAxisAngleDiff[axisIndex]
     }
 
     /**
@@ -328,8 +324,8 @@ class Generic6DofConstraint : TypedConstraint {
      */
     fun setLimit(axis: Int, lo: Double, hi: Double) {
         if (axis < 3) {
-            setCoord(linearLimits.lowerLimit, axis, lo)
-            setCoord(linearLimits.upperLimit, axis, hi)
+            linearLimits.lowerLimit[axis] = lo
+            linearLimits.upperLimit[axis] = hi
         } else {
             angularLimits[axis - 3].lowerLimit = lo
             angularLimits[axis - 3].upperLimit = hi
@@ -359,20 +355,14 @@ class Generic6DofConstraint : TypedConstraint {
         val weight = if (imB == 0.0) 1.0 else imA / (imA + imB)
         val pA = calculatedTransformA.origin
         val pB = calculatedTransformB.origin
-
-        val tmp1 = Stack.newVec()
-        val tmp2 = Stack.newVec()
-
-        tmp1.setScale(weight, pA)
-        tmp2.setScale(1.0 - weight, pB)
-        tmp1.add(tmp2, anchorPos)
+        pB.lerp(pA, weight, anchorPos)
     }
 
     companion object {
         private fun getMatrixElem(mat: Matrix3d, index: Int): Double {
             val i = index % 3
             val j = index / 3
-            return mat.getElement(i, j)
+            return mat[j, i]
         }
 
         /**

@@ -565,8 +565,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         body0: CollisionObject, body1: CollisionObject,
         shape0: GImpactMeshShapePart, shape1: StaticPlaneShape, swapped: Boolean
     ) {
-        val orgTrans0 = body0.getWorldTransform(Stack.newTrans())
-        val orgTrans1 = body1.getWorldTransform(Stack.newTrans())
+        val orgTrans0 = body0.worldTransform
+        val orgTrans1 = body1.worldTransform
 
         val plane = Vector4d()
         getPlaneEquationTransformed(shape1, orgTrans1, plane)
@@ -577,7 +577,6 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         triangleBounds.incrementMargin(shape1.margin)
 
         if (triangleBounds.planeClassify(plane) != PlaneIntersectionType.COLLIDE_PLANE) {
-            Stack.subTrans(2)
             return
         }
 
@@ -606,8 +605,6 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         }
 
         shape0.unlockChildShapes()
-
-        Stack.subTrans(2)
         Stack.subVec(2)
     }
 

@@ -3,9 +3,6 @@ package com.bulletphysics.collision.shapes
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.VectorUtil.getCoord
-import com.bulletphysics.linearmath.VectorUtil.setCoord
-import com.bulletphysics.util.setScaleAdd
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 
@@ -35,22 +32,21 @@ abstract class ConvexInternalShape : ConvexShape() {
 
         for (i in 0..2) {
             vec.set(0.0, 0.0, 0.0)
-            setCoord(vec, i, 1.0)
+            vec[i] = 1.0
 
             MatrixUtil.transposeTransform(tmp1, vec, t.basis)
             localGetSupportingVertex(tmp1, tmp2)
 
             t.transform(tmp2)
 
-            setCoord(aabbMax, i, getCoord(tmp2, i) + margin)
-
-            setCoord(vec, i, -1.0)
+            aabbMax[i] = tmp2[i] + margin
+            vec[i] = -1.0
 
             MatrixUtil.transposeTransform(tmp1, vec, t.basis)
             localGetSupportingVertex(tmp1, tmp2)
             t.transform(tmp2)
 
-            setCoord(aabbMin, i, getCoord(tmp2, i) - margin)
+            aabbMin[i] = tmp2[i] - margin
         }
         Stack.subVec(3)
     }
@@ -61,7 +57,7 @@ abstract class ConvexInternalShape : ConvexShape() {
             /*val offset = margin / max(dir.length(), 1e-308)
             supVertex.fma(offset, dir)*/
             val vecNorm = Stack.newVec(dir)
-            if (vecNorm.lengthSquared() < (BulletGlobals.FLT_EPSILON * BulletGlobals.FLT_EPSILON)) {
+            if (vecNorm.lengthSquared() < BulletGlobals.FLT_EPSILON_SQ) {
                 vecNorm.set(-1.0, -1.0, -1.0)
             }
             vecNorm.normalize()

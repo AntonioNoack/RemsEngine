@@ -1,12 +1,8 @@
 package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.linearmath.VectorUtil.getCoord
-import com.bulletphysics.linearmath.VectorUtil.setCoord
 import cz.advel.stack.Stack
 import org.joml.Vector3d
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setSub
 
 /**
  * 2007-09-09
@@ -72,7 +68,7 @@ class TranslationalLimitMotor {
      * - limitIndex: first 3 are linear, next 3 are angular
      */
     fun isLimited(limitIndex: Int): Boolean {
-        return (getCoord(upperLimit, limitIndex) >= getCoord(lowerLimit, limitIndex))
+        return upperLimit[limitIndex] >= lowerLimit[limitIndex]
     }
 
     fun solveLinearAxis(
@@ -86,29 +82,29 @@ class TranslationalLimitMotor {
         // find relative velocity
         val relPos1 = Stack.newVec()
         //relPos1.sub(pointInA, body1.getCenterOfMassPosition(tmpVec));
-        relPos1.setSub(anchorPos, body1.getCenterOfMassPosition(tmpVec))
+        anchorPos.sub(body1.getCenterOfMassPosition(tmpVec), relPos1)
 
         val relPos2 = Stack.newVec()
         //relPos2.sub(pointInB, body2.getCenterOfMassPosition(tmpVec));
-        relPos2.setSub(anchorPos, body2.getCenterOfMassPosition(tmpVec))
+        anchorPos.sub(body2.getCenterOfMassPosition(tmpVec), relPos2)
 
         val vel1 = body1.getVelocityInLocalPoint(relPos1, Stack.newVec())
         val vel2 = body2.getVelocityInLocalPoint(relPos2, Stack.newVec())
         val vel = Stack.newVec()
-        vel.setSub(vel1, vel2)
+        vel1.sub(vel2, vel)
 
         val relVel = axisNormalOnA.dot(vel)
 
         // apply displacement correction
 
         // positional error (zeroth order error)
-        tmp.setSub(pointInA, pointInB)
+        pointInA.sub(pointInB, tmp)
         var depth = -(tmp).dot(axisNormalOnA)
         var lo = -1e308
         var hi = 1e308
 
-        val minLimit = getCoord(lowerLimit, limitIndex)
-        val maxLimit = getCoord(upperLimit, limitIndex)
+        val minLimit = lowerLimit[limitIndex]
+        val maxLimit = upperLimit[limitIndex]
 
         // handle the limits
         if (minLimit < maxLimit) {
@@ -127,13 +123,13 @@ class TranslationalLimitMotor {
 
         var normalImpulse = limitSoftness * (restitution * depth / timeStep - damping * relVel) * jacDiagABInv
 
-        val oldNormalImpulse = getCoord(accumulatedImpulse, limitIndex)
+        val oldNormalImpulse = accumulatedImpulse[limitIndex]
         val sum = oldNormalImpulse + normalImpulse
-        setCoord(accumulatedImpulse, limitIndex, if (sum > hi) 0.0 else if (sum < lo) 0.0 else sum)
-        normalImpulse = getCoord(accumulatedImpulse, limitIndex) - oldNormalImpulse
+        accumulatedImpulse[limitIndex] = if (sum > hi) 0.0 else if (sum < lo) 0.0 else sum
+        normalImpulse = accumulatedImpulse[limitIndex] - oldNormalImpulse
 
         val impulseVector = Stack.newVec()
-        impulseVector.setScale(normalImpulse, axisNormalOnA)
+        axisNormalOnA.mul(normalImpulse, impulseVector)
         body1.applyImpulse(impulseVector, relPos1)
 
         impulseVector.negate(tmp)

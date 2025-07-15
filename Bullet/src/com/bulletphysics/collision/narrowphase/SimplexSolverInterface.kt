@@ -17,17 +17,11 @@ interface SimplexSolverInterface {
 
     fun closest(v: Vector3d): Boolean
 
-    fun maxVertex(): Double
-
     fun fullSimplex(): Boolean
-
-    fun getSimplex(pBuf: Array<Vector3d>, qBuf: Array<Vector3d>, yBuf: Array<Vector3d>): Int
 
     fun inSimplex(w: Vector3d): Boolean
 
     fun backupClosest(v: Vector3d)
-
-    fun emptySimplex(): Boolean
 
     fun computePoints(p1: Vector3d, p2: Vector3d)
 

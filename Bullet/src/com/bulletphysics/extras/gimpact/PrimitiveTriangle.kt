@@ -6,10 +6,9 @@ import com.bulletphysics.extras.gimpact.ClipPolygon.planeClipTriangle
 import com.bulletphysics.extras.gimpact.GeometryOperations.edgePlane
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
+import me.anno.utils.types.Triangles.subCross
 import org.joml.Vector3d
 import org.joml.Vector4d
-import com.bulletphysics.util.setCross
-import com.bulletphysics.util.setSub
 
 /**
  * @author jezek2
@@ -26,17 +25,12 @@ class PrimitiveTriangle {
     var margin = 0.01
 
     fun buildTriPlane() {
-        val tmp1 = Stack.newVec()
-        val tmp2 = Stack.newVec()
-
         val normal = Stack.newVec()
-        tmp1.setSub(vertices[1], vertices[0])
-        tmp2.setSub(vertices[2], vertices[0])
-        normal.setCross(tmp1, tmp2)
-        normal.normalize()
+        subCross(vertices[0], vertices[1], vertices[2], normal)
+            .normalize()
 
         plane.set(normal.x, normal.y, normal.z, vertices[0].dot(normal))
-        Stack.subVec(3)
+        Stack.subVec(1)
     }
 
     /**
@@ -92,7 +86,8 @@ class PrimitiveTriangle {
 
         getEdgePlane(0, edgePlane)
 
-        var clippedCount = planeClipTriangle(edgePlane, other.vertices[0], other.vertices[1], other.vertices[2], tmpPoints1)
+        var clippedCount =
+            planeClipTriangle(edgePlane, other.vertices[0], other.vertices[1], other.vertices[2], tmpPoints1)
         if (clippedCount == 0) {
             return 0
         }

@@ -3,9 +3,6 @@ package com.bulletphysics.collision.shapes
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.collision.shapes.BoxShape.Companion.boxInertia
-import com.bulletphysics.linearmath.VectorUtil.getCoord
-import com.bulletphysics.linearmath.VectorUtil.setCoord
-import com.bulletphysics.util.setScaleAdd
 import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.Axis
 import org.joml.Vector3d
@@ -31,23 +28,23 @@ open class ConeShape(val radius: Double, val height: Double, val upAxis: Axis) :
 
     private fun coneLocalSupport(v: Vector3d, out: Vector3d): Vector3d {
         val halfHeight = height * 0.5
-        if (getCoord(v, upAxisId) > v.length() * sinAngle) {
-            setCoord(out, secondary, 0.0)
-            setCoord(out, upAxisId, halfHeight)
-            setCoord(out, tertiary, 0.0)
+        if (v[upAxisId] > v.length() * sinAngle) {
+            out[secondary] = 0.0
+            out[upAxisId] = halfHeight
+            out[tertiary] = 0.0
         } else {
-            val v0 = getCoord(v, secondary)
-            val v2 = getCoord(v, tertiary)
+            val v0 = v[secondary]
+            val v2 = v[tertiary]
             val s = hypot(v0, v2)
             if (s > BulletGlobals.FLT_EPSILON) {
                 val d = radius / s
-                setCoord(out, secondary, getCoord(v, secondary) * d)
-                setCoord(out, upAxisId, -halfHeight)
-                setCoord(out, tertiary, getCoord(v, tertiary) * d)
+                out[secondary] = v0 * d
+                out[upAxisId] = -halfHeight
+                out[tertiary] = v2 * d
             } else {
-                setCoord(out, secondary, 0.0)
-                setCoord(out, upAxisId, -halfHeight)
-                setCoord(out, tertiary, 0.0)
+                out[secondary] = 0.0
+                out[upAxisId] = -halfHeight
+                out[tertiary] = 0.0
             }
         }
         return out
@@ -61,7 +58,7 @@ open class ConeShape(val radius: Double, val height: Double, val upAxis: Axis) :
         val supVertex = coneLocalSupport(dir, out)
         if (margin != 0.0) {
             val vecNorm = Stack.newVec(dir)
-            if (vecNorm.lengthSquared() < (BulletGlobals.FLT_EPSILON * BulletGlobals.FLT_EPSILON)) {
+            if (vecNorm.lengthSquared() < BulletGlobals.FLT_EPSILON_SQ) {
                 vecNorm.set(-1.0, -1.0, -1.0)
             }
             vecNorm.normalize()

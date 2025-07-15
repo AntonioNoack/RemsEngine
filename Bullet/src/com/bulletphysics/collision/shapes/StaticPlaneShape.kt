@@ -4,9 +4,6 @@ import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.TransformUtil
 import com.bulletphysics.linearmath.VectorUtil
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 
@@ -31,12 +28,12 @@ class StaticPlaneShape(val planeNormal: Vector3d, var planeConstant: Double) : C
         val tmp2 = Stack.newVec()
 
         val halfExtents = Stack.newVec()
-        halfExtents.setSub(aabbMax, aabbMin)
+        aabbMax.sub(aabbMin, halfExtents)
         halfExtents.mul(0.5)
 
         val radius = halfExtents.length()
         val center = Stack.newVec()
-        center.setAdd(aabbMax, aabbMin)
+        aabbMax.add(aabbMin, center)
         center.mul(0.5)
 
         // this is where the triangles are generated, given AABB and plane equation (normal/constant)
@@ -47,39 +44,39 @@ class StaticPlaneShape(val planeNormal: Vector3d, var planeConstant: Double) : C
         TransformUtil.findOrthonormalBasis(planeNormal, tangentDir0, tangentDir1)
 
         val projectedCenter = Stack.newVec()
-        tmp.setScale(planeNormal.dot(center) - planeConstant, planeNormal)
-        projectedCenter.setSub(center, tmp)
+        planeNormal.mul(planeNormal.dot(center) - planeConstant, tmp)
+        center.sub(tmp, projectedCenter)
 
         val triangle: Array<Vector3d> = arrayOf(Stack.newVec(), Stack.newVec(), Stack.newVec())
 
-        tmp1.setScale(radius, tangentDir0)
-        tmp2.setScale(radius, tangentDir1)
+        tangentDir0.mul(radius, tmp1)
+        tangentDir1.mul(radius, tmp2)
         VectorUtil.add(triangle[0], projectedCenter, tmp1, tmp2)
 
-        tmp1.setScale(radius, tangentDir0)
-        tmp2.setScale(radius, tangentDir1)
-        tmp.setSub(tmp1, tmp2)
+        tangentDir0.mul(radius, tmp1)
+        tangentDir1.mul(radius, tmp2)
+        tmp1.sub(tmp2, tmp)
         VectorUtil.add(triangle[1], projectedCenter, tmp)
 
-        tmp1.setScale(radius, tangentDir0)
-        tmp2.setScale(radius, tangentDir1)
-        tmp.setSub(tmp1, tmp2)
-        triangle[2].setSub(projectedCenter, tmp)
+        tangentDir0.mul(radius, tmp1)
+        tangentDir1.mul(radius, tmp2)
+        tmp1.sub(tmp2, tmp)
+        projectedCenter.sub(tmp, triangle[2])
 
         callback.processTriangle(triangle, 0, 0)
 
-        tmp1.setScale(radius, tangentDir0)
-        tmp2.setScale(radius, tangentDir1)
-        tmp.setSub(tmp1, tmp2)
-        triangle[0].setSub(projectedCenter, tmp)
+        tangentDir0.mul(radius, tmp1)
+        tangentDir1.mul(radius, tmp2)
+        tmp1.sub(tmp2, tmp)
+        projectedCenter.sub(tmp, triangle[0])
 
-        tmp1.setScale(radius, tangentDir0)
-        tmp2.setScale(radius, tangentDir1)
-        tmp.setAdd(tmp1, tmp2)
-        triangle[1].setSub(projectedCenter, tmp)
+        tangentDir0.mul(radius, tmp1)
+        tangentDir1.mul(radius, tmp2)
+        tmp1.add(tmp2, tmp)
+        projectedCenter.sub(tmp, triangle[1])
 
-        tmp1.setScale(radius, tangentDir0)
-        tmp2.setScale(radius, tangentDir1)
+        tangentDir0.mul(radius, tmp1)
+        tangentDir1.mul(radius, tmp2)
         VectorUtil.add(triangle[2], projectedCenter, tmp1, tmp2)
 
         callback.processTriangle(triangle, 0, 1)

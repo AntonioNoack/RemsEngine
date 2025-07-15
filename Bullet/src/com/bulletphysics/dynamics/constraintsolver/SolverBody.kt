@@ -2,9 +2,6 @@ package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.TransformUtil
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setCross
-import com.bulletphysics.util.setScaleAdd
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 
@@ -45,8 +42,8 @@ class SolverBody {
 
     fun getVelocityInLocalPoint(relPos: Vector3d, velocity: Vector3d) {
         val tmp = Stack.newVec()
-        tmp.setCross(angularVelocity, relPos)
-        velocity.setAdd(linearVelocity, tmp)
+        angularVelocity.cross(relPos, tmp)
+        linearVelocity.add(tmp, velocity)
     }
 
     /**

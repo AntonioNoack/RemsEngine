@@ -2,7 +2,6 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
-import com.bulletphysics.util.setScaleAdd
 import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.engine.debug.DebugPoint
@@ -13,7 +12,6 @@ import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
-import java.util.Arrays
 
 /**
  * ConvexHullShape implements an implicit convex hull of an array of vertices.
@@ -66,7 +64,7 @@ class ConvexHullShape(val points: FloatArray, val triangles: IntArray?) :
 
         if (margin != 0.0) {
             val vecNorm = Stack.newVec(dir)
-            if (vecNorm.lengthSquared() < (BulletGlobals.FLT_EPSILON * BulletGlobals.FLT_EPSILON)) {
+            if (vecNorm.lengthSquared() < BulletGlobals.FLT_EPSILON_SQ) {
                 vecNorm.set(-1.0, -1.0, -1.0)
             }
             vecNorm.normalize()

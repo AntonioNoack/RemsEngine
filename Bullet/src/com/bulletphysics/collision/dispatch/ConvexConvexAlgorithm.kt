@@ -21,6 +21,9 @@ import cz.advel.stack.Stack
  * @author jezek2
  */
 class ConvexConvexAlgorithm : CollisionAlgorithm() {
+    companion object {
+        private val unusedSphere = SphereShape(1.0)
+    }
 
     val pointInputsPool = ObjectPool.Companion.get(ClosestPointInput::class.java)
 
@@ -37,7 +40,11 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
         pdSolver: ConvexPenetrationDepthSolver?
     ) {
         super.init(ci)
-        gjkPairDetector.init(null, null, simplexSolver, pdSolver)
+        val unusedCollider = unusedSphere
+        gjkPairDetector.init(
+            unusedCollider, unusedCollider,
+            simplexSolver, pdSolver
+        )
         this.manifold = mf
         this.ownManifold = false
         this.lowLevelOfDetail = false
@@ -62,29 +69,29 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
         dispatchInfo: DispatcherInfo,
         resultOut: ManifoldResult
     ) {
-        if (this.manifold == null) {
+        if (manifold == null) {
             // swapped?
-            this.manifold = dispatcher.getNewManifold(body0, body1)
+            manifold = dispatcher.getNewManifold(body0, body1)
             ownManifold = true
         }
-        resultOut.persistentManifold = this.manifold!!
 
-        val min0 = body0.collisionShape as ConvexShape?
-        val min1 = body1.collisionShape as ConvexShape?
+        resultOut.persistentManifold = manifold!!
+
+        val min0 = body0.collisionShape as ConvexShape
+        val min1 = body1.collisionShape as ConvexShape
 
         val input = pointInputsPool.get()
         input.init()
 
         gjkPairDetector.minkowskiA = min0
         gjkPairDetector.minkowskiB = min1
-        input.maximumDistanceSquared = min0!!.margin + min1!!.margin + manifold!!.contactBreakingThreshold
+        input.maximumDistanceSquared = min0.margin + min1.margin + manifold!!.contactBreakingThreshold
         input.maximumDistanceSquared *= input.maximumDistanceSquared
 
         body0.getWorldTransform(input.transformA)
         body1.getWorldTransform(input.transformB)
 
         gjkPairDetector.getClosestPoints(input, resultOut, dispatchInfo.debugDraw)
-
         pointInputsPool.release(input)
 
         //	#endif
@@ -118,12 +125,12 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
         // also the mainloop of the physics should have a kind of toi queue (something like Brian Mirtich's application of Timewarp for Rigidbodies)
 
         // Convex0 against sphere for Convex1
-        val convex0 = body0.collisionShape as ConvexShape?
+        val convex0 = body0.collisionShape as ConvexShape
         val sphere1 = createSphere(body1.ccdSweptSphereRadius)
         resultFraction = calculateTimeOfImpactI(body0, body1, convex0, sphere1, resultFraction)
 
         // Sphere (for convex0) against Convex1
-        val convex1 = body1.collisionShape as ConvexShape?
+        val convex1 = body1.collisionShape as ConvexShape
         val sphere0 = createSphere(body0.ccdSweptSphereRadius)
         return calculateTimeOfImpactI(body0, body1, sphere0, convex1, resultFraction)
     }
@@ -136,7 +143,7 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
 
     private fun calculateTimeOfImpactI(
         body0: CollisionObject, body1: CollisionObject,
-        convex0: ConvexShape?, sphere1: ConvexShape?,
+        convex0: ConvexShape, sphere1: ConvexShape,
         resultFraction: Double
     ): Double {
 

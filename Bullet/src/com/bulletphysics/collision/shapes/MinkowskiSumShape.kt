@@ -1,10 +1,7 @@
 package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
-import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.util.setNegate
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 
@@ -32,19 +29,16 @@ class MinkowskiSumShape @Suppress("unused") constructor(
         val supVertexA = Stack.newVec()
         val supVertexB = Stack.newVec()
 
-        // btVector3 supVertexA = m_transA(m_shapeA->localGetSupportingVertexWithoutMargin(-vec*m_transA.getBasis()));
-        tmp.setNegate(dir)
-        MatrixUtil.transposeTransform(tmp, tmp, transA.basis)
+        dir.negate(tmp)
+        transA.basis.transformTranspose(tmp)
         shapeA.localGetSupportingVertexWithoutMargin(tmp, supVertexA)
         transA.transform(supVertexA)
 
-        // btVector3 supVertexB = m_transB(m_shapeB->localGetSupportingVertexWithoutMargin(vec*m_transB.getBasis()));
-        MatrixUtil.transposeTransform(tmp, dir, transB.basis)
+        transB.basis.transformTranspose(dir, tmp)
         shapeB.localGetSupportingVertexWithoutMargin(tmp, supVertexB)
         transB.transform(supVertexB)
 
-        //return supVertexA - supVertexB;
-        out.setSub(supVertexA, supVertexB)
+        supVertexA.sub(supVertexB, out)
         Stack.subVec(3)
         return out
     }

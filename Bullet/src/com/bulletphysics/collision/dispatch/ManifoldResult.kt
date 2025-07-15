@@ -6,7 +6,6 @@ import com.bulletphysics.collision.narrowphase.ManifoldPoint
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.util.ObjectPool
-import com.bulletphysics.util.setScaleAdd
 import cz.advel.stack.Stack
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Booleans.hasFlag
@@ -27,8 +26,8 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
     private val rootTransA = Transform()
     private val rootTransB = Transform()
 
-    private var body0: CollisionObject? = null
-    private var body1: CollisionObject? = null
+    private lateinit var body0: CollisionObject
+    private lateinit var body1: CollisionObject
 
     private var partId0 = 0
     private var partId1 = 0
@@ -72,7 +71,7 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
 
         val isSwapped = manifold.body0 !== body0
         val pointA = Stack.newVec()
-        pointA.setScaleAdd(depth, normalOnBInWorld, pointInWorld)
+        normalOnBInWorld.mulAdd(depth, pointInWorld, pointA)
 
         val localA = Stack.newVec()
         val localB = Stack.newVec()
@@ -93,8 +92,8 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
 
         var insertIndex = manifold.getCacheEntry(newPt)
 
-        val body0 = body0!!
-        val body1 = body1!!
+        val body0 = body0
+        val body1 = body1
         newPt.combinedFriction = calculateCombinedFriction(body0, body1)
         newPt.combinedRestitution = calculateCombinedRestitution(body0, body1)
 

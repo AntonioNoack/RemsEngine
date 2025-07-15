@@ -7,15 +7,9 @@ import com.bulletphysics.extras.gimpact.BoxCollision.matXVec
 import com.bulletphysics.extras.gimpact.BoxCollision.max
 import com.bulletphysics.extras.gimpact.BoxCollision.min
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.VectorUtil.getCoord
-import com.bulletphysics.linearmath.VectorUtil.setCoord
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import org.joml.Vector4d
-import com.bulletphysics.util.getElement
-import com.bulletphysics.util.setAbsolute
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setSub
 import kotlin.math.abs
 
 class AABB {
@@ -94,11 +88,11 @@ class AABB {
         val tmp = Stack.newVec()
 
         val center = Stack.newVec()
-        center.setAdd(max, min)
+        max.add(min, center)
         center.mul(0.5)
 
         val extents = Stack.newVec()
-        extents.setSub(max, center)
+        max.sub(center, extents)
 
         // Compute new center
         trans.transform(center)
@@ -117,8 +111,8 @@ class AABB {
         tmp.absolute()
         transformedExtents.z = extents.dot(tmp)
 
-        min.setSub(center, transformedExtents)
-        max.setAdd(center, transformedExtents)
+        center.sub(transformedExtents, min)
+        center.add(transformedExtents, max)
 
         Stack.subVec(4)
     }
@@ -140,9 +134,9 @@ class AABB {
      * Gets the extend and center.
      */
     fun getCenterExtend(center: Vector3d, extend: Vector3d) {
-        center.setAdd(max, min)
+        max.add(min, center)
         center.mul(0.5)
-        extend.setSub(max, center)
+        max.sub(center, extend)
     }
 
     fun hasCollision(other: AABB): Boolean {
@@ -182,40 +176,36 @@ class AABB {
         return true
     }
 
-    fun projectionInterval(direction: Vector3d, vmin: DoubleArray, vmax: DoubleArray) {
-        val tmp = Stack.newVec()
+    fun projectionInterval(direction: Vector3d, interval: Vector3d) {
 
         val center = Stack.newVec()
         val extend = Stack.newVec()
         getCenterExtend(center, extend)
 
         val fOrigin = direction.dot(center)
-        tmp.setAbsolute(direction)
-        val fMaximumExtent = extend.dot(tmp)
-        vmin[0] = fOrigin - fMaximumExtent
-        vmax[0] = fOrigin + fMaximumExtent
-        Stack.subVec(3)
+        val fMaximumExtent = extend.dot(abs(direction.x), abs(direction.y), abs(direction.z))
+        interval.x = fOrigin - fMaximumExtent
+        interval.y = fOrigin + fMaximumExtent
+        Stack.subVec(2)
     }
 
     fun planeClassify(plane: Vector4d): PlaneIntersectionType {
         val tmp = Stack.newVec()
-
-        val min = Stack.newDoublePtr()
-        val max = Stack.newDoublePtr()
+        val interval = Stack.newVec()
         tmp.set(plane.x, plane.y, plane.z)
-        projectionInterval(tmp, min, max)
-        Stack.subVec(1)
-        Stack.subDoublePtr(2)
+        projectionInterval(tmp, interval)
+        val (min, max) = interval
+        Stack.subVec(2)
 
-        if (plane.w > max[0] + BOX_PLANE_EPSILON) {
-            return PlaneIntersectionType.BACK_PLANE // 0
+        if (plane.w > max + BOX_PLANE_EPSILON) {
+            return PlaneIntersectionType.BACK_PLANE
         }
 
-        if (plane.w + BOX_PLANE_EPSILON >= min[0]) {
-            return PlaneIntersectionType.COLLIDE_PLANE //1
+        if (plane.w + BOX_PLANE_EPSILON >= min) {
+            return PlaneIntersectionType.COLLIDE_PLANE
         }
 
-        return PlaneIntersectionType.FRONT_PLANE //2
+        return PlaneIntersectionType.FRONT_PLANE
     }
 
     /**
@@ -240,18 +230,18 @@ class AABB {
             // Class I : A's basis vectors
             for (i in 0..2) {
                 transformCache.R1to0.getRow(i, tmp)
-                setCoord(T, i, tmp.dot(cb) + getCoord(transformCache.T1to0, i) - getCoord(ca, i))
+                T[i] = tmp.dot(cb) + transformCache.T1to0[i] - ca[i]
 
                 transformCache.AR.getRow(i, tmp)
-                t1 = tmp.dot(eb) + getCoord(ea, i)
-                if (absGreater(getCoord(T, i), t1)) {
+                t1 = tmp.dot(eb) + ea[i]
+                if (absGreater(T[i], t1)) {
                     return false
                 }
             }
             // Class II : B's basis vectors
             for (i in 0..2) {
                 t1 = matXVec(transformCache.R1to0, T, i)
-                t2 = matXVec(transformCache.AR, ea, i) + getCoord(eb, i)
+                t2 = matXVec(transformCache.AR, ea, i) + eb[i]
                 if (absGreater(t1, t2)) {
                     return false
                 }
@@ -267,13 +257,13 @@ class AABB {
                         val q = if (j == 2) 1 else 2
                         val r = if (j == 0) 1 else 0
                         val r1to0 = transformCache.R1to0
-                        t1 = getCoord(T, n) * r1to0.getElement(m, j) -
-                                getCoord(T, m) * r1to0.getElement(n, j)
+                        t1 = T[n] * r1to0[j, m] -
+                                T[m] * r1to0[j, n]
                         val ar = transformCache.AR
-                        t2 = getCoord(ea, o) * ar.getElement(p, j) +
-                                getCoord(ea, p) * ar.getElement(o, j) +
-                                getCoord(eb, r) * ar.getElement(i, q) +
-                                getCoord(eb, q) * ar.getElement(i, r)
+                        t2 = ea[o] * ar[j, p] +
+                                ea[p] * ar[j, o] +
+                                eb[r] * ar[q, i] +
+                                eb[q] * ar[r, i]
                         if (absGreater(t1, t2)) {
                             return false
                         }

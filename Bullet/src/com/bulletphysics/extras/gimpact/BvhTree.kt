@@ -1,11 +1,7 @@
 package com.bulletphysics.extras.gimpact
 
-import com.bulletphysics.linearmath.VectorUtil.getCoord
 import com.bulletphysics.linearmath.VectorUtil.maxAxis
-import com.bulletphysics.linearmath.VectorUtil.mul
 import cz.advel.stack.Stack
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setSub
 
 /**
  * @author jezek2
@@ -24,73 +20,64 @@ internal class BvhTree {
         val diff2 = Stack.newVec()
 
         val tmp1 = Stack.newVec()
-        val tmp2 = Stack.newVec()
 
         for (i in startIndex until endIndex) {
-            primitiveBoxes.getBoundsMax(i, tmp1)
-            primitiveBoxes.getBoundsMin(i, tmp2)
-            center.setAdd(tmp1, tmp2)
-            center.mul(0.5)
-            means.add(center)
+            primitiveBoxes.getBoundsMax(i, center)
+            primitiveBoxes.getBoundsMin(i, tmp1)
+            means.add(center).add(tmp1)
         }
-        means.mul(1.0 / numIndices.toDouble())
+        means.mul(1.0 / numIndices)
 
         for (i in startIndex until endIndex) {
-            primitiveBoxes.getBoundsMax(i, tmp1)
-            primitiveBoxes.getBoundsMin(i, tmp2)
-            center.setAdd(tmp1, tmp2)
-            center.mul(0.5)
-            diff2.setSub(center, means)
-            mul(diff2, diff2, diff2)
+            primitiveBoxes.getBoundsMax(i, center)
+            primitiveBoxes.getBoundsMin(i, tmp1)
+            center.add(tmp1)
+            center.sub(means, diff2)
+            diff2.mul(diff2)
             variance.add(diff2)
         }
-        variance.mul(1.0 / (numIndices - 1).toDouble())
 
-        return maxAxis(variance)
+        // only used for maxAxis -> scaling not necessary
+        // variance.mul(1.0 / (numIndices - 1).toDouble())
+        val result = maxAxis(variance)
+        Stack.subVec(5)
+        return result
     }
 
     fun sortAndCalcSplittingIndex(
         primitiveBoxes: BvhDataArray,
-        startIndex: Int,
-        endIndex: Int,
-        splitAxis: Int
+        startIndex: Int, endIndex: Int, splitAxis: Int
     ): Int {
+
         var splitIndex = startIndex
         val numIndices = endIndex - startIndex
 
+        val tmp = Stack.newVec()
         val means = Stack.newVec(0.0)
-
-        val center = Stack.newVec()
-
-        val tmp1 = Stack.newVec()
-        val tmp2 = Stack.newVec()
-
         for (i in startIndex until endIndex) {
-            primitiveBoxes.getBoundsMax(i, tmp1)
-            primitiveBoxes.getBoundsMin(i, tmp2)
-            center.setAdd(tmp1, tmp2)
-            center.mul(0.5)
-            means.add(center)
+            means.add(primitiveBoxes.getBoundsMax(i, tmp))
+            means.add(primitiveBoxes.getBoundsMin(i, tmp))
         }
         means.mul(1.0 / numIndices)
 
         // average of centers
-        val splitValue = getCoord(means, splitAxis)
+        val splitValue = means[splitAxis]
 
         // sort leafNodes so all values larger than splitValue comes first, and smaller values start from 'splitIndex'.
+        val center = Stack.newVec()
         for (i in startIndex until endIndex) {
-            primitiveBoxes.getBoundsMax(i, tmp1)
-            primitiveBoxes.getBoundsMin(i, tmp2)
-            center.setAdd(tmp1, tmp2)
-            center.mul(0.5)
+            primitiveBoxes.getBoundsMax(i, center)
+            primitiveBoxes.getBoundsMin(i, tmp)
+            center.add(tmp)
 
-            if (getCoord(center, splitAxis) > splitValue) {
+            if (center[splitAxis] > splitValue) {
                 // swap
                 primitiveBoxes.swap(i, splitIndex)
                 //swapLeafNodes(i,splitIndex);
                 splitIndex++
             }
         }
+        Stack.subVec(3)
 
         // if the splitIndex causes unbalanced trees, fix this by using the center in between startIndex and endIndex
         // otherwise the tree-building might fail due to stack-overflows in certain cases.
@@ -102,15 +89,15 @@ internal class BvhTree {
 
         // this should be safe too:
         val rangeBalancedIndices = numIndices / 3
-        val unbalanced =
+        val isUnbalanced =
             ((splitIndex <= (startIndex + rangeBalancedIndices)) || (splitIndex >= (endIndex - 1 - rangeBalancedIndices)))
 
-        if (unbalanced) {
+        if (isUnbalanced) {
             splitIndex = startIndex + (numIndices shr 1)
         }
 
-        val unbal = (splitIndex == startIndex) || (splitIndex == (endIndex))
-        assert(!unbal)
+        val stillIsUnbalanced = (splitIndex == startIndex) || (splitIndex == (endIndex))
+        assert(!stillIsUnbalanced)
 
         return splitIndex
     }
@@ -156,12 +143,12 @@ internal class BvhTree {
         // build right branch
         buildSubTree(primitiveBoxes, splitIndex, endIndex)
 
-        nodePointer.setEscapeIndex(curIndex, this.nodeCount - curIndex)
+        nodePointer.setEscapeIndex(curIndex, nodeCount - curIndex)
     }
 
     fun buildTree(primitiveBoxes: BvhDataArray) {
         // initialize node count to 0
-        this.nodeCount = 0
+        nodeCount = 0
         // allocate nodes
         nodePointer.resize(primitiveBoxes.size() * 2)
 
@@ -170,7 +157,7 @@ internal class BvhTree {
 
     fun clearNodes() {
         nodePointer.clear()
-        this.nodeCount = 0
+        nodeCount = 0
     }
 
     /**

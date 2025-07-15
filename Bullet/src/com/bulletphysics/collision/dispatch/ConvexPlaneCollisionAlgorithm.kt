@@ -7,9 +7,6 @@ import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.StaticPlaneShape
 import com.bulletphysics.util.ObjectPool
-import com.bulletphysics.util.setNegate
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 
 /**
@@ -85,7 +82,7 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
         convexInPlaneTrans.mul(convexObj.worldTransform)
 
         val tmp = Stack.newVec()
-        tmp.setNegate(planeNormal)
+        planeNormal.negate(tmp)
         planeInConvex.basis.transform(tmp)
 
         val vtx = convexShape.localGetSupportingVertex(tmp, Stack.newVec())
@@ -95,8 +92,8 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
         val distance = (planeNormal.dot(vtxInPlane) - planeConstant)
 
         val vtxInPlaneProjected = Stack.newVec()
-        tmp.setScale(distance, planeNormal)
-        vtxInPlaneProjected.setSub(vtxInPlane, tmp)
+        planeNormal.mul(distance, tmp)
+        vtxInPlane.sub(tmp, vtxInPlaneProjected)
 
         val vtxInPlaneWorld = Stack.newVec(vtxInPlaneProjected)
         planeObj.getWorldTransform(tmpTrans).transform(vtxInPlaneWorld)

@@ -1,10 +1,7 @@
 package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.linearmath.AabbUtil
-import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.VectorUtil.getCoord
-import com.bulletphysics.linearmath.VectorUtil.setCoord
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 
@@ -13,7 +10,7 @@ import org.joml.Vector3d
  *
  * @author jezek2
  */
-abstract class TriangleMeshShape constructor(val meshInterface: StridingMeshInterface?) : ConcaveShape() {
+abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface?) : ConcaveShape() {
     val localAabbMin: Vector3d = Vector3d()
     val localAabbMax: Vector3d = Vector3d()
 
@@ -45,12 +42,12 @@ abstract class TriangleMeshShape constructor(val meshInterface: StridingMeshInte
         for (i in 0..2) {
             val vec = Stack.newVec()
             vec.set(0.0, 0.0, 0.0)
-            setCoord(vec, i, 1.0)
+            vec[i] = 1.0
             val tmp = localGetSupportingVertex(vec, Stack.newVec())
-            setCoord(localAabbMax, i, getCoord(tmp, i) + margin)
-            setCoord(vec, i, -1.0)
+            localAabbMax[i] = tmp[i] + margin
+            vec[i] = -1.0
             localGetSupportingVertex(vec, tmp)
-            setCoord(localAabbMin, i, getCoord(tmp, i) - margin)
+            localAabbMin[i] = tmp[i] - margin
         }
     }
 
@@ -99,8 +96,8 @@ abstract class TriangleMeshShape constructor(val meshInterface: StridingMeshInte
         val supportVecLocal: Vector3d = Vector3d()
 
         init {
-            this.worldTrans.set(trans)
-            MatrixUtil.transposeTransform(supportVecLocal, supportVecWorld, worldTrans.basis)
+            worldTrans.set(trans)
+            worldTrans.basis.transformTranspose(supportVecWorld, supportVecLocal)
         }
 
         override fun processTriangle(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {

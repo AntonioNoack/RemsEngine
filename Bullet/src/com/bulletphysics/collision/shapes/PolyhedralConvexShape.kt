@@ -2,12 +2,9 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.VectorUtil
-import com.bulletphysics.linearmath.VectorUtil.setCoord
 import com.bulletphysics.util.ArrayPool
 import cz.advel.stack.Stack
 import org.joml.Vector3d
-import java.util.*
 import kotlin.math.sqrt
 
 /**

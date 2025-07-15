@@ -7,9 +7,6 @@ import com.bulletphysics.collision.broadphase.DispatcherInfo
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.util.ObjectPool
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import me.anno.maths.Maths.sq
 import kotlin.math.max
@@ -62,7 +59,7 @@ class SphereSphereCollisionAlgorithm : CollisionAlgorithm() {
         val sphere1 = body1.collisionShape as SphereShape
 
         val diff = Stack.newVec()
-        diff.setSub(body0.worldTransform.origin, body1.worldTransform.origin)
+        body0.worldTransform.origin.sub(body1.worldTransform.origin, diff)
 
         val lenSq = diff.lengthSquared()
         val radius0 = sphere0.radius
@@ -83,18 +80,18 @@ class SphereSphereCollisionAlgorithm : CollisionAlgorithm() {
         val normalOnSurfaceB = Stack.newVec()
         normalOnSurfaceB.set(1.0, 0.0, 0.0)
         if (len > BulletGlobals.FLT_EPSILON) {
-            normalOnSurfaceB.setScale(1.0 / len, diff)
+            diff.mul(1.0 / len, normalOnSurfaceB)
         }
 
         // point on A (world space)
         val pos0 = Stack.newVec()
-        pos0.setScale(radius0, normalOnSurfaceB)
-        pos0.setSub(body0.worldTransform.origin, pos0)
+        normalOnSurfaceB.mul(radius0, pos0)
+        body0.worldTransform.origin.sub(pos0, pos0)
 
         // point on B (world space)
         val pos1 = Stack.newVec()
-        pos1.setScale(radius1, normalOnSurfaceB)
-        pos1.setAdd(body1.worldTransform.origin, pos1)
+        normalOnSurfaceB.mul(radius1, pos1)
+        body1.worldTransform.origin.add(pos1, pos1)
 
         // report a contact. internally this will be kept persistent, and contact reduction is done
         resultOut.addContactPoint(normalOnSurfaceB, pos1, dist)

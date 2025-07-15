@@ -16,14 +16,10 @@ import com.bulletphysics.linearmath.MiscUtil.resize
 import com.bulletphysics.linearmath.TransformUtil.findOrthonormalBasis
 import com.bulletphysics.util.IntArrayList
 import com.bulletphysics.util.ObjectPool
-import com.bulletphysics.util.Packing.pack
-import com.bulletphysics.util.Packing.unpackHigh
-import com.bulletphysics.util.Packing.unpackLow
-import com.bulletphysics.util.setCross
-import com.bulletphysics.util.setNegate
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
+import me.anno.maths.Packing.pack64
+import me.anno.maths.Packing.unpackHighFrom64
+import me.anno.maths.Packing.unpackLowFrom64
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -172,10 +168,10 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             normalImpulse = contactConstraint.appliedPushImpulse - oldNormalImpulse
 
             val tmp = Stack.newVec()
-            tmp.setScale(body1.invMass, contactConstraint.contactNormal)
+            contactConstraint.contactNormal.mul(body1.invMass, tmp)
             body1.internalApplyPushImpulse(tmp, contactConstraint.angularComponentA, normalImpulse)
 
-            tmp.setScale(body2.invMass, contactConstraint.contactNormal)
+            contactConstraint.contactNormal.mul(body2.invMass, tmp)
             body2.internalApplyPushImpulse(tmp, contactConstraint.angularComponentB, -normalImpulse)
             Stack.subVec(1)
         }
@@ -214,10 +210,10 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         normalImpulse = contactConstraint.appliedImpulse - oldNormalImpulse
 
         val tmp = Stack.newVec()
-        tmp.setScale(body1.invMass, contactConstraint.contactNormal)
+        contactConstraint.contactNormal.mul(body1.invMass, tmp)
         body1.internalApplyImpulse(tmp, contactConstraint.angularComponentA, normalImpulse)
 
-        tmp.setScale(body2.invMass, contactConstraint.contactNormal)
+        contactConstraint.contactNormal.mul(body2.invMass, tmp)
         body2.internalApplyImpulse(tmp, contactConstraint.angularComponentB, -normalImpulse)
         Stack.subVec(1)
     }
@@ -253,10 +249,10 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
 
             val tmp = Stack.newVec()
-            tmp.setScale(body1.invMass, contactConstraint.contactNormal)
+            contactConstraint.contactNormal.mul(body1.invMass, tmp)
             body1.internalApplyImpulse(tmp, contactConstraint.angularComponentA, j1)
 
-            tmp.setScale(body2.invMass, contactConstraint.contactNormal)
+            contactConstraint.contactNormal.mul(body2.invMass, tmp)
             body2.internalApplyImpulse(tmp, contactConstraint.angularComponentB, -j1)
             Stack.subVec(1)
         }
@@ -288,9 +284,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         solverConstraint.penetration = 0.0
 
         val ftorqueAxis1 = Stack.newVec()
-
-
-        ftorqueAxis1.setCross(relPos1, solverConstraint.contactNormal)
+        relPos1.cross(solverConstraint.contactNormal, ftorqueAxis1)
         solverConstraint.relPos1CrossNormal.set(ftorqueAxis1)
         if (body0 != null) {
             solverConstraint.angularComponentA.set(ftorqueAxis1)
@@ -299,8 +293,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             solverConstraint.angularComponentA.set(0.0, 0.0, 0.0)
         }
 
-
-        ftorqueAxis1.setCross(relPos2, solverConstraint.contactNormal)
+        relPos2.cross(solverConstraint.contactNormal, ftorqueAxis1)
         solverConstraint.relPos2CrossNormal.set(ftorqueAxis1)
         if (body1 != null) {
             solverConstraint.angularComponentB.set(ftorqueAxis1)
@@ -313,11 +306,11 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         var denom0 = 0.0
         var denom1 = 0.0
         if (body0 != null) {
-            vec.setCross(solverConstraint.angularComponentA, relPos1)
+            solverConstraint.angularComponentA.cross(relPos1, vec)
             denom0 = body0.inverseMass + normalAxis.dot(vec)
         }
         if (body1 != null) {
-            vec.setCross(solverConstraint.angularComponentB, relPos2)
+            solverConstraint.angularComponentB.cross(relPos2, vec)
             denom1 = body1.inverseMass + normalAxis.dot(vec)
         }
 
@@ -420,11 +413,11 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         var denominator0 = 0.0
         var denominator1 = 0.0
         if (rb0 != null) {
-            tmp.setCross(solverConstraint.angularComponentA, relPos1)
+            solverConstraint.angularComponentA.cross(relPos1, tmp)
             denominator0 = rb0.inverseMass + cp.normalWorldOnB.dot(tmp)
         }
         if (rb1 != null) {
-            tmp.setCross(solverConstraint.angularComponentB, relPos2)
+            solverConstraint.angularComponentB.cross(relPos2, tmp)
             denominator1 = rb1.inverseMass + cp.normalWorldOnB.dot(tmp)
         }
 
@@ -457,7 +450,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         solverConstraint: SolverConstraint, solverBodyId: Int,
         rigidBody: RigidBody, first: Boolean, tmp: Vector3d
     ) {
-        tmp.setScale(rigidBody.inverseMass, solverConstraint.contactNormal)
+        solverConstraint.contactNormal.mul(rigidBody.inverseMass, tmp)
         tmpSolverBodyPool[solverBodyId]
             .internalApplyImpulse(
                 tmp,
@@ -491,8 +484,8 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
     ) {
         solverConstraint.frictionIndex = tmpSolverFrictionConstraintPool.size
         if (!cp.lateralFrictionInitialized) {
-            cp.lateralFrictionDir1.setScale(relVel, cp.normalWorldOnB)
-            cp.lateralFrictionDir1.setSub(vel, cp.lateralFrictionDir1)
+            cp.normalWorldOnB.mul(relVel, cp.lateralFrictionDir1)
+            vel.sub(cp.lateralFrictionDir1, cp.lateralFrictionDir1)
 
             val latRelVel = cp.lateralFrictionDir1.lengthSquared()
             if (latRelVel > BulletGlobals.FLT_EPSILON) {
@@ -503,7 +496,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                     solverBodyIdA, solverBodyIdB, frictionIndex, cp,
                     relPos1, relPos2, colObj1, colObj2, relaxation
                 )
-                cp.lateralFrictionDir2.setCross(cp.lateralFrictionDir1, cp.normalWorldOnB)
+                cp.lateralFrictionDir1.cross(cp.normalWorldOnB, cp.lateralFrictionDir2)
                 cp.lateralFrictionDir2.normalize() //??
                 addFrictionConstraint(
                     cp.lateralFrictionDir2,
@@ -569,8 +562,8 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         calculateJacobianDiagonal(cp, relPos1, relPos2, rb1, rb2, solverConstraint, relaxation)
 
         solverConstraint.contactNormal.set(cp.normalWorldOnB)
-        solverConstraint.relPos1CrossNormal.setCross(relPos1, cp.normalWorldOnB)
-        solverConstraint.relPos2CrossNormal.setCross(relPos2, cp.normalWorldOnB)
+        relPos1.cross(cp.normalWorldOnB, solverConstraint.relPos1CrossNormal)
+        relPos2.cross(cp.normalWorldOnB, solverConstraint.relPos2CrossNormal)
 
         val vel = Stack.newVec()
         calculateVelocity(relPos1, relPos2, rb1, rb2, vel)
@@ -945,7 +938,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
                 body0.getVelocityInLocalPoint(relPos1, vel1)
                 body1.getVelocityInLocalPoint(relPos2, vel2)
-                vel.setSub(vel1, vel2)
+                vel1.sub(vel2, vel)
 
                 val relVel = cp.normalWorldOnB.dot(vel)
                 val combinedRestitution = cp.combinedRestitution
@@ -994,41 +987,41 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 denom = relaxation / (denom0 + denom1)
                 cpd.jacDiagABInvTangent1 = denom
 
-                totalImpulse.setScale(cpd.appliedImpulse, cp.normalWorldOnB)
+                cp.normalWorldOnB.mul(cpd.appliedImpulse, totalImpulse)
 
 
-                torqueAxis0.setCross(relPos1, cp.normalWorldOnB)
+                relPos1.cross(cp.normalWorldOnB, torqueAxis0)
                 cpd.angularComponentA.set(torqueAxis0)
                 body0.invInertiaTensorWorld.transform(cpd.angularComponentA)
 
-                torqueAxis1.setCross(relPos2, cp.normalWorldOnB)
+                relPos2.cross(cp.normalWorldOnB, torqueAxis1)
                 cpd.angularComponentB.set(torqueAxis1)
                 body1.invInertiaTensorWorld.transform(cpd.angularComponentB)
 
 
-                ftorqueAxis0.setCross(relPos1, cpd.frictionWorldTangential0)
+                relPos1.cross(cpd.frictionWorldTangential0, ftorqueAxis0)
                 cpd.frictionAngularComponent0A.set(ftorqueAxis0)
                 body0.invInertiaTensorWorld.transform(cpd.frictionAngularComponent0A)
 
 
-                ftorqueAxis1.setCross(relPos1, cpd.frictionWorldTangential1)
+                relPos1.cross(cpd.frictionWorldTangential1, ftorqueAxis1)
                 cpd.frictionAngularComponent1A.set(ftorqueAxis1)
                 body0.invInertiaTensorWorld.transform(cpd.frictionAngularComponent1A)
 
 
-                ftorqueAxis0.setCross(relPos2, cpd.frictionWorldTangential0)
+                relPos2.cross(cpd.frictionWorldTangential0, ftorqueAxis0)
                 cpd.frictionAngularComponent0B.set(ftorqueAxis0)
                 body1.invInertiaTensorWorld.transform(cpd.frictionAngularComponent0B)
 
 
-                ftorqueAxis1.setCross(relPos2, cpd.frictionWorldTangential1)
+                relPos2.cross(cpd.frictionWorldTangential1, ftorqueAxis1)
                 cpd.frictionAngularComponent1B.set(ftorqueAxis1)
                 body1.invInertiaTensorWorld.transform(cpd.frictionAngularComponent1B)
 
                 // apply previous frames impulse on both bodies
                 body0.applyImpulse(totalImpulse, relPos1)
 
-                tmpVec.setNegate(totalImpulse)
+                totalImpulse.negate(tmpVec)
                 body1.applyImpulse(tmpVec, relPos2)
             }
         }
@@ -1118,15 +1111,15 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
         /** ///////////////////////////////////////////////////////////////////////// */
         fun orderManifoldIndex(v: Long): Int {
-            return unpackHigh(v)
+            return unpackHighFrom64(v)
         }
 
         fun orderPointIndex(v: Long): Int {
-            return unpackLow(v)
+            return unpackLowFrom64(v)
         }
 
         fun orderIndex(manifoldIndex: Int, pointIndex: Int): Long {
-            return pack(manifoldIndex, pointIndex)
+            return pack64(manifoldIndex, pointIndex)
         }
     }
 }

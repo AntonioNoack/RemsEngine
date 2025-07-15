@@ -3,9 +3,8 @@ package com.bulletphysics.collision.shapes
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.maxAxis
-import com.bulletphysics.util.setCross
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
+import me.anno.utils.types.Triangles.subCross
 import org.joml.Vector3d
 
 /**
@@ -62,6 +61,7 @@ open class TriangleShape : PolyhedralConvexShape {
         val dots = Stack.newVec()
         dots.set(dir.dot(vertices[0]), dir.dot(vertices[1]), dir.dot(vertices[2]))
         out.set(vertices[maxAxis(dots)])
+        Stack.subVec(1)
         return out
     }
 
@@ -72,13 +72,8 @@ open class TriangleShape : PolyhedralConvexShape {
     override val numPlanes get() = 1
 
     fun calcNormal(normal: Vector3d) {
-        val tmp1 = Stack.newVec()
-        val tmp2 = Stack.newVec()
-
-        tmp1.setSub(vertices[1], vertices[0])
-        tmp2.setSub(vertices[2], vertices[0])
-
-        tmp1.cross(tmp2, normal).normalize()
+        subCross(vertices[0], vertices[1], vertices[2], normal)
+            .normalize()
     }
 
     fun getPlaneEquation(planeNormal: Vector3d, planeSupport: Vector3d) {
@@ -107,8 +102,8 @@ open class TriangleShape : PolyhedralConvexShape {
             val edgeNormal = Stack.newVec()
             for (i in 0 until 3) {
                 getEdge(i, pa, pb)
-                edge.setSub(pb, pa)
-                edgeNormal.setCross(edge, normal)
+                pb.sub(pa, edge)
+                edge.cross(normal, edgeNormal)
                 edgeNormal.normalize()
                 /*double*/
                 dist = pt.dot(edgeNormal)

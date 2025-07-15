@@ -3,9 +3,6 @@ package com.bulletphysics.collision.shapes
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import me.anno.maths.Maths
 import org.joml.Vector3d
@@ -51,11 +48,11 @@ abstract class CollisionShape {
 
         getBounds(tr, aabbMin, aabbMax)
 
-        tmp.setSub(aabbMax, aabbMin)
+        aabbMax.sub(aabbMin, tmp)
         val dst = tmp.length() * 0.5 // halfExtents.length()
 
-        tmp.setAdd(aabbMin, aabbMax)
-        center.setScale(0.5, tmp)
+        aabbMin.add(aabbMax, tmp)
+        tmp.mul(0.5, center)
 
         Stack.subVec(3)
         Stack.subTrans(1)

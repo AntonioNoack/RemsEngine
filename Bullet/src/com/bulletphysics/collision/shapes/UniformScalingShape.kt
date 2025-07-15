@@ -2,8 +2,6 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.util.setAdd
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 
@@ -39,15 +37,15 @@ class UniformScalingShape(val childShape: ConvexShape, val uniformScalingFactor:
     override fun getAabbSlow(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         childShape.getAabbSlow(t, aabbMin, aabbMax)
         val aabbCenter = Stack.newVec()
-        aabbCenter.setAdd(aabbMax, aabbMin)
-        aabbCenter.mul(0.5)
+        aabbMax.add(aabbMin, aabbCenter)
+            .mul(0.5)
 
         val scaledAabbHalfExtents = Stack.newVec()
-        scaledAabbHalfExtents.setSub(aabbMax, aabbMin)
-        scaledAabbHalfExtents.mul(0.5 * uniformScalingFactor)
+        aabbMax.sub(aabbMin, scaledAabbHalfExtents)
+            .mul(0.5 * uniformScalingFactor)
 
-        aabbMin.setSub(aabbCenter, scaledAabbHalfExtents)
-        aabbMax.setAdd(aabbCenter, scaledAabbHalfExtents)
+        aabbCenter.sub(scaledAabbHalfExtents, aabbMin)
+        aabbCenter.add(scaledAabbHalfExtents, aabbMax)
     }
 
     override fun setLocalScaling(scaling: Vector3d) {
@@ -76,15 +74,15 @@ class UniformScalingShape(val childShape: ConvexShape, val uniformScalingFactor:
         childShape.getBounds(t, aabbMin, aabbMax)
 
         val aabbCenter = Stack.newVec()
-        aabbCenter.setAdd(aabbMax, aabbMin)
-        aabbCenter.mul(0.5)
+        aabbMax.add(aabbMin, aabbCenter)
+            .mul(0.5)
 
         val scaledAabbHalfExtents = Stack.newVec()
-        scaledAabbHalfExtents.setSub(aabbMax, aabbMin)
-        scaledAabbHalfExtents.mul(0.5 * uniformScalingFactor)
+        aabbMax.sub(aabbMin, scaledAabbHalfExtents)
+            .mul(0.5 * uniformScalingFactor)
 
-        aabbMin.setSub(aabbCenter, scaledAabbHalfExtents)
-        aabbMax.setAdd(aabbCenter, scaledAabbHalfExtents)
+        aabbCenter.sub(scaledAabbHalfExtents, aabbMin)
+        aabbCenter.add(scaledAabbHalfExtents, aabbMax)
         Stack.subVec(2)
     }
 

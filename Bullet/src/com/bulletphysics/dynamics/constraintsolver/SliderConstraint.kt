@@ -9,14 +9,6 @@ package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.VectorUtil.getCoord
-import com.bulletphysics.linearmath.VectorUtil.setCoord
-import com.bulletphysics.util.setCross
-import com.bulletphysics.util.setNegate
-import com.bulletphysics.util.setNormalize
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setScaleAdd
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -195,7 +187,7 @@ class SliderConstraint : TypedConstraint {
         realPivotBInW.set(calculatedTransformB.origin)
         calculatedTransformA.basis.getColumn(0, sliderAxis) // along X
         realPivotBInW.sub(realPivotAInW, delta)
-        projPivotInW.setScaleAdd(sliderAxis.dot(delta), sliderAxis, realPivotAInW)
+        sliderAxis.mulAdd(sliderAxis.dot(delta), realPivotAInW, projPivotInW)
         projPivotInW.sub(rbA.worldTransform.origin, relPosA)
         realPivotBInW.sub(rbB.worldTransform.origin, relPosB)
 
@@ -211,7 +203,7 @@ class SliderConstraint : TypedConstraint {
                 rbB.invInertiaLocal, rbB.inverseMass
             )
 
-            setCoord(depth, i, delta.dot(normalWorld))
+            depth[i] = delta.dot(normalWorld)
         }
         testLinLimits()
 
@@ -235,7 +227,7 @@ class SliderConstraint : TypedConstraint {
         val velA = rbA.getVelocityInLocalPoint(relPosA, Stack.newVec())
         val velB = rbB.getVelocityInLocalPoint(relPosB, Stack.newVec())
         val vel = Stack.newVec()
-        vel.setSub(velA, velB)
+        velA.sub(velB, vel)
 
         val impulseVector = Stack.newVec()
 
@@ -243,7 +235,7 @@ class SliderConstraint : TypedConstraint {
             val normal = jacLin[i]
             val relVel = normal.dot(vel)
             // calculate positional error
-            val depth = getCoord(depth, i)
+            val depth = depth[i]
             // get parameters
             val softness =
                 if (i != 0) softnessOrthogonalLinear
@@ -265,9 +257,9 @@ class SliderConstraint : TypedConstraint {
                 break
             }
 
-            impulseVector.setScale(normalImpulse, normal)
+            normal.mul(normalImpulse, impulseVector)
             rbA.applyImpulse(impulseVector, relPosA)
-            tmp.setNegate(impulseVector)
+            impulseVector.negate(tmp)
             rbB.applyImpulse(tmp, relPosB)
 
             if (poweredLinearMotor && i == 0) {
@@ -286,9 +278,9 @@ class SliderConstraint : TypedConstraint {
 
                     accumulatedLinearMotorImpulse = newAcc
                     // apply clamped impulse
-                    impulseVector.setScale(normalImpulse, normal)
+                    normal.mul(normalImpulse, impulseVector)
                     rbA.applyImpulse(impulseVector, relPosA)
-                    tmp.setNegate(impulseVector)
+                    impulseVector.negate(tmp)
                     rbB.applyImpulse(tmp, relPosB)
                 }
             }
@@ -305,55 +297,57 @@ class SliderConstraint : TypedConstraint {
         val angVelB = rbB.angularVelocity
 
         val angVelAroundAxisA = Stack.newVec()
-        angVelAroundAxisA.setScale(axisA.dot(angVelA), axisA)
+        axisA.mul(axisA.dot(angVelA), angVelAroundAxisA)
         val angVelAroundAxisB = Stack.newVec()
-        angVelAroundAxisB.setScale(axisB.dot(angVelB), axisB)
+        axisB.mul(axisB.dot(angVelB), angVelAroundAxisB)
 
         val angleAOrthogonal = Stack.newVec()
-        angleAOrthogonal.setSub(angVelA, angVelAroundAxisA)
+        angVelA.sub(angVelAroundAxisA, angleAOrthogonal)
         val angleBOrthogonal = Stack.newVec()
-        angleBOrthogonal.setSub(angVelB, angVelAroundAxisB)
+        angVelB.sub(angVelAroundAxisB, angleBOrthogonal)
         val velRelOrthogonal = Stack.newVec()
-        velRelOrthogonal.setSub(angleAOrthogonal, angleBOrthogonal)
+        angleAOrthogonal.sub(angleBOrthogonal, velRelOrthogonal)
 
         // solve orthogonal angular velocity correction
         val len = velRelOrthogonal.length()
         if (len > 0.00001) {
             val normal = Stack.newVec()
-            normal.setNormalize(velRelOrthogonal)
+            velRelOrthogonal.normalize(normal)
             val denominator = rbA.computeAngularImpulseDenominator(normal) +
                     rbB.computeAngularImpulseDenominator(normal)
             velRelOrthogonal.mul((1.0 / denominator) * dampingOrthogonalAngular * softnessOrthogonalAngular)
+            Stack.subVec(1)
         }
 
         // solve angular positional correction
         val angularError = Stack.newVec()
-        angularError.setCross(axisA, axisB)
+        axisA.cross(axisB, angularError)
         angularError.mul(1.0 / timeStep)
         val len2 = angularError.length()
         if (len2 > 0.00001) {
-            val normal2 = Stack.newVec()
-            normal2.setNormalize(angularError)
-            val denominator = rbA.computeAngularImpulseDenominator(normal2) +
-                    rbB.computeAngularImpulseDenominator(normal2)
+            val normal = Stack.newVec()
+            angularError.normalize(normal)
+            val denominator = rbA.computeAngularImpulseDenominator(normal) +
+                    rbB.computeAngularImpulseDenominator(normal)
             angularError.mul((1.0 / denominator) * restitutionOrthogonalAngular * softnessOrthogonalAngular)
+            Stack.subVec(1)
         }
 
         // apply impulse
-        tmp.setNegate(velRelOrthogonal)
-        tmp.add(angularError)
+        angularError.sub(velRelOrthogonal, tmp)
         rbA.applyTorqueImpulse(tmp)
-        tmp.setSub(velRelOrthogonal, angularError)
+        tmp.negate()
         rbB.applyTorqueImpulse(tmp)
+
         var impulseMag: Double
 
         // solve angular limits
         if (solveAngLim) {
-            tmp.setSub(angVelB, angVelA)
+            angVelB.sub(angVelA, tmp)
             impulseMag = tmp.dot(axisA) * dampingLimitAngular + angularPosition * restitutionLimitAngular / timeStep
             impulseMag *= kAngle * softnessLimitAngular
         } else {
-            tmp.setSub(angVelB, angVelA)
+            angVelB.sub(angVelA, tmp)
             impulseMag = tmp.dot(axisA) * dampingDirAngular + angularPosition * restitutionDirAngular / timeStep
             impulseMag *= kAngle * softnessDirAngular
         }
@@ -364,16 +358,16 @@ class SliderConstraint : TypedConstraint {
         }
 
         val impulse = Stack.newVec()
-        impulse.setScale(impulseMag, axisA)
+        axisA.mul(impulseMag, impulse)
         rbA.applyTorqueImpulse(impulse)
-        tmp.setNegate(impulse)
+        impulse.negate(tmp)
         rbB.applyTorqueImpulse(tmp)
         Stack.subVec(1) // impulse
 
         // apply angular motor
         if (poweredAngularMotor && accumulatedAngMotorImpulse < maxAngularMotorForce) {
             val velRel = Stack.newVec()
-            velRel.setSub(angVelAroundAxisA, angVelAroundAxisB)
+            angVelAroundAxisA.sub(angVelAroundAxisB, velRel)
             val projRelVel = velRel.dot(axisA)
 
             val desiredMotorVel = targetAngularMotorVelocity
@@ -397,9 +391,9 @@ class SliderConstraint : TypedConstraint {
 
             // apply clamped impulse
             val motorImp = Stack.newVec()
-            motorImp.setScale(angImpulse, axisA)
+            axisA.mul(angImpulse, motorImp)
             rbA.applyTorqueImpulse(motorImp)
-            tmp.setNegate(motorImp)
+            motorImp.negate(tmp)
             rbB.applyTorqueImpulse(tmp)
 
             Stack.subVec(2) // motorImp, velRel
