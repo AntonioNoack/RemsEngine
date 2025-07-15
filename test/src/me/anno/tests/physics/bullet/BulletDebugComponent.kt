@@ -1,4 +1,4 @@
-package me.anno.bullet
+package me.anno.tests.physics.bullet
 
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.SphereShape
@@ -30,7 +30,7 @@ class BulletDebugComponent(
     }
 
     private fun debugRender(dynamicsWorld: DynamicsWorld) {
-        // todo debug render everything
+        // debug render everything
         val m = Matrix4x3()
         for (co in dynamicsWorld.collisionObjects) {
 

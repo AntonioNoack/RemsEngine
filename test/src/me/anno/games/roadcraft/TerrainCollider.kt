@@ -7,8 +7,6 @@ import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.engine.ui.LineShapes.getDrawMatrix
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.ui.UIColors
-import me.anno.utils.Color.withAlpha
 import org.joml.Vector3d
 
 class TerrainCollider(
@@ -44,9 +42,9 @@ class TerrainCollider(
                 transform.transformPosition(p1)
                 transform.transformPosition(p2)
             }
-            LineBuffer.putRelativeLine(p0, p1, color)
-            LineBuffer.putRelativeLine(p1, p2, color)
-            LineBuffer.putRelativeLine(p2, p0, color)
+            LineBuffer.addLine(p0, p1, color)
+            LineBuffer.addLine(p1, p2, color)
+            LineBuffer.addLine(p2, p0, color)
         }, Vector3d(-1e308), Vector3d(1e308))
     }
 }

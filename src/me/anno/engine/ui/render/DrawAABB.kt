@@ -6,26 +6,20 @@ import me.anno.gpu.buffer.LineBuffer.ensureSize
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4x3
-import org.joml.Vector3d
 
 object DrawAABB {
 
     fun drawAABB(aabb: AABBd, color: Int) {
-        val pos = RenderState.cameraPosition
-        drawAABB(aabb, color, pos)
-    }
-
-    fun drawAABB(aabb: AABBd, color: Int, pos: Vector3d) {
 
         if (aabb.isEmpty()) return
 
-        val x0 = aabb.minX - pos.x
-        val y0 = aabb.minY - pos.y
-        val z0 = aabb.minZ - pos.z
+        val x0 = aabb.minX
+        val y0 = aabb.minY
+        val z0 = aabb.minZ
 
-        val x1 = aabb.maxX - pos.x
-        val y1 = aabb.maxY - pos.y
-        val z1 = aabb.maxZ - pos.z
+        val x1 = aabb.maxX
+        val y1 = aabb.maxY
+        val z1 = aabb.maxZ
 
         drawAABB(x0, y0, z0, x1, y1, z1, color)
     }

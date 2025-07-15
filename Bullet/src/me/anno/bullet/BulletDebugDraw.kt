@@ -54,6 +54,6 @@ object BulletDebugDraw : IDebugDraw {
     }
 
     override fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d) {
-        LineBuffer.putRelativeLine(from, to, rgb(color.x.toInt(), color.y.toInt(), color.z.toInt()))
+        LineBuffer.addLine(from, to, rgb(color.x.toInt(), color.y.toInt(), color.z.toInt()))
     }
 }

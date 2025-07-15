@@ -1,8 +1,7 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
-import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.buffer.LineBuffer.putRelativeLine
+import me.anno.gpu.buffer.LineBuffer.addLine
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.mix
 import me.anno.utils.Color.black
@@ -66,9 +65,9 @@ object LineShapes {
 
         for (i in 0 until 4) {
             // from center to frame
-            putRelativeLine(positions[i], positions[4], color)
+            addLine(positions[i], positions[4], color)
             // frame
-            putRelativeLine(positions[i], positions[(i + 1) and 3], color)
+            addLine(positions[i], positions[(i + 1) and 3], color)
         }
     }
 
@@ -97,11 +96,11 @@ object LineShapes {
         positions[5].set(to2).sub(dirX).add(dirY)
 
         // body
-        putRelativeLine(positions[0], positions[1], color)
+        addLine(positions[0], positions[1], color)
 
         // arrow tip
         for (i in 2 until 6) {
-            putRelativeLine(positions[1], positions[i], color)
+            addLine(positions[1], positions[i], color)
         }
 
         JomlPools.vec3d.sub(3)
@@ -131,11 +130,11 @@ object LineShapes {
         }
 
         // body
-        putRelativeLine(positions[0], positions[1], color)
+        addLine(positions[0], positions[1], color)
 
         // arrow tip
         for (i in 2 until 6) {
-            putRelativeLine(positions[1], positions[i], color)
+            addLine(positions[1], positions[i], color)
         }
     }
 
@@ -161,9 +160,9 @@ object LineShapes {
             transform?.transformPosition(position)
         }
 
-        putRelativeLine(positions[0], positions[1], color)
-        putRelativeLine(positions[2], positions[3], color)
-        putRelativeLine(positions[4], positions[5], color)
+        addLine(positions[0], positions[1], color)
+        addLine(positions[2], positions[3], color)
+        addLine(positions[4], positions[5], color)
     }
 
 
@@ -201,7 +200,7 @@ object LineShapes {
                 if (base.and(bit) == 0) {
                     val other = base or bit
                     // line from base to other
-                    putRelativeLine(positions[base], positions[other], color)
+                    addLine(positions[base], positions[other], color)
                 }
             }
         }
@@ -223,10 +222,10 @@ object LineShapes {
             transform?.transformPosition(position)
         }
 
-        putRelativeLine(positions[0], positions[1], color)
-        putRelativeLine(positions[1], positions[3], color)
-        putRelativeLine(positions[3], positions[2], color)
-        putRelativeLine(positions[2], positions[0], color)
+        addLine(positions[0], positions[1], color)
+        addLine(positions[1], positions[3], color)
+        addLine(positions[3], positions[2], color)
+        addLine(positions[2], positions[0], color)
     }
 
     fun drawPoint(entity: Entity?, center: Vector3d, sideLength: Double, color: Int = defaultColor) =
@@ -258,9 +257,9 @@ object LineShapes {
             transform?.transformPosition(posI)
         }
 
-        putRelativeLine(positions[0], positions[1], color)
-        putRelativeLine(positions[2], positions[3], color)
-        putRelativeLine(positions[4], positions[5], color)
+        addLine(positions[0], positions[1], color)
+        addLine(positions[2], positions[3], color)
+        addLine(positions[4], positions[5], color)
     }
 
     fun drawPoint(
@@ -292,7 +291,7 @@ object LineShapes {
         val pieces = 16
         for (i in 0 until pieces) {
             p0.mix(p1, (i + 1.0) / pieces, pj)
-            putRelativeLine(pi, pj, color)
+            addLine(pi, pj, color)
             pi.set(pj)
         }
     }
@@ -316,7 +315,7 @@ object LineShapes {
         val pieces = 16
         for (i in 0 until pieces) {
             p0.mix(p1, (i + 1f) / pieces, pj)
-            putRelativeLine(pi, pj, color)
+            addLine(pi, pj, color)
             pi.set(pj)
         }
     }
@@ -337,7 +336,7 @@ object LineShapes {
             transform.transformPosition(c0)
             transform.transformPosition(c1)
         }
-        putRelativeLine(c0, c1, color)
+        addLine(c0, c1, color)
     }
 
     fun drawLineTriangle(
@@ -354,9 +353,9 @@ object LineShapes {
             transform.transformPosition(c1)
             transform.transformPosition(c2)
         }
-        putRelativeLine(c0, c1, color)
-        putRelativeLine(c1, c2, color)
-        putRelativeLine(c2, c0, color)
+        addLine(c0, c1, color)
+        addLine(c1, c2, color)
+        addLine(c2, c0, color)
     }
 
     fun drawLine(
@@ -377,7 +376,7 @@ object LineShapes {
                 transform.transformPosition(positions[i])
             }
         }
-        putRelativeLine(positions[0], positions[1], color)
+        addLine(positions[0], positions[1], color)
     }
 
     fun drawRect(
@@ -422,7 +421,7 @@ object LineShapes {
             }
         }
         for (i in 0 until 4) {
-            putRelativeLine(positions[i], positions[(i + 1) and 3], color)
+            addLine(positions[i], positions[(i + 1) and 3], color)
         }
     }
 
@@ -484,7 +483,7 @@ object LineShapes {
         val i0 = fullCircle.toInt(0, 1)
         for (i in i0 until segments) {
             val pos = positions[i]
-            putRelativeLine(lastPos, pos, color)
+            addLine(lastPos, pos, color)
             lastPos = pos
         }
     }
@@ -519,12 +518,10 @@ object LineShapes {
         tmp.set(p1).sub(p0).findSystem(sysX, sysY)
 
         // draw central line
-        putRelativeLine(p0, p1, centralColor)
+        addLine(p0, p1, centralColor)
 
         val r0 = radiusAtOrigin.toDouble()
         val r1 = radiusAtOrigin.toDouble() + radiusPerUnit * p1.distance(p0)
-
-        val cp = RenderState.cameraPosition
 
         // draw borderlines
         val numBorderLines = 8
@@ -536,10 +533,10 @@ object LineShapes {
             val c1 = c * r1
             val s0 = s * r0
             val s1 = s * r1
-            putRelativeLine(
+            addLine(
                 p0.x + c0 * sysX.x + s0 * sysY.x, p0.y + c0 * sysX.y + s0 * sysY.y, p0.z + c0 * sysX.z + s0 * sysY.z,
                 p1.x + c1 * sysX.x + s1 * sysY.x, p1.y + c1 * sysX.y + s1 * sysY.y, p1.z + c1 * sysX.z + s1 * sysY.z,
-                cp, outerRayColor
+                outerRayColor
             )
         }
 
@@ -560,7 +557,7 @@ object LineShapes {
             }
             var j = segments - 1
             for (i in 0 until segments) {
-                putRelativeLine(positions[di + i], positions[di + j], circleColor)
+                addLine(positions[di + i], positions[di + j], circleColor)
                 j = i
             }
         }

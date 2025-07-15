@@ -227,12 +227,12 @@ object DebugRendering {
 
     fun drawDebugShapes(view: RenderView, cameraMatrix: Matrix4f) {
         drawDebugPoints(view)
-        drawDebugLines(view)
-        drawDebugArrows(view)
+        drawDebugLines()
+        drawDebugArrows()
         drawDebugRays(view)
-        drawDebugAABBs(view)
+        drawDebugAABBs()
         LineBuffer.finish(cameraMatrix)
-        drawDebugTriangles(view)
+        drawDebugTriangles()
         TriangleBuffer.finish(cameraMatrix)
         GFXState.depthMode.use(view.depthMode.alwaysMode) {
             GFXState.depthMask.use(false) {
@@ -249,14 +249,14 @@ object DebugRendering {
         }
     }
 
-    private fun drawDebugArrows(view: RenderView) {
+    private fun drawDebugArrows() {
         val arrows = DebugShapes.debugArrows
         val dirX = JomlPools.vec3d.create()
         val dirY = JomlPools.vec3d.create()
         val dirZ = JomlPools.vec3d.create()
         for (i in arrows.indices) {
             val arrow = arrows[i]
-            LineBuffer.putRelativeLine(arrow.from, arrow.to, view.cameraPosition, arrow.color)
+            LineBuffer.addLine(arrow.from, arrow.to, arrow.color)
             arrow.to.sub(arrow.from, dirY)
             val len = dirY.length()
             dirY.findSystem(dirX, dirZ)
@@ -265,7 +265,7 @@ object DebugRendering {
                 val anchor = arrow.from.mix(arrow.to, 0.6, dirY)
                 dirX.mulAdd(dxi, anchor, anchor)
                 dirZ.mulAdd(dzi, anchor, anchor)
-                LineBuffer.putRelativeLine(anchor, arrow.to, view.cameraPosition, arrow.color)
+                LineBuffer.addLine(anchor, arrow.to, arrow.color)
             }
             addPt(+s, 0.0)
             addPt(-s, 0.0)
@@ -275,27 +275,27 @@ object DebugRendering {
         JomlPools.vec3d.sub(3)
     }
 
-    private fun drawDebugLines(view: RenderView) {
+    private fun drawDebugLines() {
         val lines = DebugShapes.debugLines
         for (i in lines.indices) {
             val line = lines[i]
-            LineBuffer.putRelativeLine(line.p0, line.p1, view.cameraPosition, line.color)
+            LineBuffer.addLine(line.p0, line.p1, line.color)
         }
     }
 
-    private fun drawDebugAABBs(view: RenderView) {
+    private fun drawDebugAABBs() {
         val aabbs = DebugShapes.debugAABBs
         for (i in aabbs.indices) {
             val aabb = aabbs[i]
-            DrawAABB.drawAABB(aabb.bounds, aabb.color, view.cameraPosition)
+            DrawAABB.drawAABB(aabb.bounds, aabb.color)
         }
     }
 
-    private fun drawDebugTriangles(view: RenderView) {
+    private fun drawDebugTriangles() {
         val triangles = DebugShapes.debugTriangles
         for (i in triangles.indices) {
             val tri = triangles[i]
-            TriangleBuffer.putRelativeTriangle(tri.p0, tri.p1, tri.p2, view.cameraPosition, tri.color)
+            TriangleBuffer.addTriangle(tri.p0, tri.p1, tri.p2, tri.color)
         }
     }
 
@@ -309,10 +309,7 @@ object DebugRendering {
             val color = ray.color
             val length = 0.2 * pos.distance(cameraPosition)
             drawDebugPoint(view, pos, color)
-            LineBuffer.putRelativeVector(
-                pos, dir, length,
-                view.cameraPosition, color
-            )
+            LineBuffer.addVector(pos, dir, length, color)
         }
     }
 
@@ -368,20 +365,10 @@ object DebugRendering {
     }
 
     fun drawDebugPoint(view: RenderView, p: Vector3d, color: Int) {
-        val camPosition = view.cameraPosition
         val d = p.distance(view.cameraPosition) * 0.03 * tan(view.fovYRadians * 0.5)
-        LineBuffer.putRelativeLine(
-            p.x - d, p.y, p.z, p.x + d, p.y, p.z,
-            camPosition, color
-        )
-        LineBuffer.putRelativeLine(
-            p.x, p.y - d, p.z, p.x, p.y + d, p.z,
-            camPosition, color
-        )
-        LineBuffer.putRelativeLine(
-            p.x, p.y, p.z - d, p.x, p.y, p.z + d,
-            camPosition, color
-        )
+        LineBuffer.addLine(p.x - d, p.y, p.z, p.x + d, p.y, p.z, color)
+        LineBuffer.addLine(p.x, p.y - d, p.z, p.x, p.y + d, p.z, color)
+        LineBuffer.addLine(p.x, p.y, p.z - d, p.x, p.y, p.z + d, color)
     }
 
     fun drawLightCount(

@@ -1,6 +1,6 @@
 package me.anno.gpu.buffer
 
-import me.anno.engine.ui.render.RenderState.cameraPosition
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -12,6 +12,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import org.joml.Matrix4f
+import org.joml.Vector3d
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL46C.GL_LINE_SMOOTH
 import org.lwjgl.opengl.GL46C.glDisable
@@ -29,10 +30,11 @@ object LineBuffer {
         "DebugLines", listOf(
             Variable(GLSLType.V3F, "position", VariableMode.ATTR),
             Variable(GLSLType.V4F, "color", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "cameraDelta"),
             Variable(GLSLType.M4x4, "transform")
         ), "" +
                 "void main(){\n" +
-                "   gl_Position = matMul(transform, vec4(position, 1.0));\n" +
+                "   gl_Position = matMul(transform, vec4(position + cameraDelta, 1.0));\n" +
                 "   vColor = color;\n" +
                 "}", listOf(Variable(GLSLType.V4F, "vColor")), listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
@@ -68,301 +70,68 @@ object LineBuffer {
         buffer.ensureHasExtraSpace(extraSize)
     }
 
-    fun vToByte(d: Double): Byte {
-        // a function, that must not/does not crash
-        return when {
-            d < 0.0 -> 0
-            d < 1.0 -> (d * 255.0).toInt().toByte()
-            else -> -1 // = 255
-        }
-    }
-
-    fun vToByte(d: Float): Byte {
-        // a function, that must not/does not crash
-        return when {
-            d < 0f -> 0
-            d < 1f -> (d * 255f).toInt().toByte()
-            else -> -1 // = 255
-        }
-    }
-
     fun addLine(
-        x0: Float, y0: Float, z0: Float,
-        x1: Float, y1: Float, z1: Float,
-        r: Byte, g: Byte, b: Byte, a: Byte = -1
+        x0: Double, y0: Double, z0: Double,
+        x1: Double, y1: Double, z1: Double,
+        color: Int
     ) {
         // ensure that there is enough space in bytes
         ensureSize(bytesPerLine)
-        addPoint(x0, y0, z0, r, g, b, a)
-        addPoint(x1, y1, z1, r, g, b, a)
-    }
 
-    /**
-     * only use this function in pairs!
-     * */
-    fun addPoint(
-        x0: Float, y0: Float, z0: Float,
-        r: Byte, g: Byte, b: Byte, a: Byte
-    ) {
+        val r = color.r().toByte()
+        val g = color.g().toByte()
+        val b = color.b().toByte()
+        val a = color.a().toByte()
+
+        val cam = cameraPosition
         buffer.getOrCreateNioBuffer()
-            .putFloat(x0).putFloat(y0).putFloat(z0)
+            .putFloat((x0 - cam.x).toFloat())
+            .putFloat((y0 - cam.y).toFloat())
+            .putFloat((z0 - cam.z).toFloat())
+            .put(r).put(g).put(b).put(a)
+            .putFloat((x1 - cam.x).toFloat())
+            .putFloat((y1 - cam.y).toFloat())
+            .putFloat((z1 - cam.z).toFloat())
             .put(r).put(g).put(b).put(a)
     }
 
-    @Suppress("unused")
-    fun addLine(
-        x0: Float, y0: Float, z0: Float,
-        x1: Float, y1: Float, z1: Float,
-        r: Double, g: Double, b: Double, a: Double = 1.0
-    ) {
-        addLine(
-            x0, y0, z0,
-            x1, y1, z1,
-            vToByte(r),
-            vToByte(g),
-            vToByte(b),
-            vToByte(a)
-        )
-    }
-
-    @Suppress("unused")
-    fun addLine(
-        x0: Float, y0: Float, z0: Float,
-        x1: Float, y1: Float, z1: Float,
-        r: Float, g: Float, b: Float, a: Float = 1f
-    ) {
-        addLine(
-            x0, y0, z0,
-            x1, y1, z1,
-            vToByte(r),
-            vToByte(g),
-            vToByte(b),
-            vToByte(a)
-        )
-    }
-
-    @Suppress("unused")
     fun addLine(
         x0: Float, y0: Float, z0: Float,
         x1: Float, y1: Float, z1: Float,
         color: Int
-    ) {
-        addLine(
-            x0, y0, z0,
-            x1, y1, z1,
-            color.r().toByte(),
-            color.g().toByte(),
-            color.b().toByte(),
-            color.a().toByte()
-        )
-    }
-
-    @Suppress("unused")
-    fun addLine(
-        x0: Double, y0: Double, z0: Double,
-        x1: Double, y1: Double, z1: Double,
-        color: Int
-    ) {
-        addLine(
-            x0.toFloat(), y0.toFloat(), z0.toFloat(),
-            x1.toFloat(), y1.toFloat(), z1.toFloat(),
-            color.r().toByte(),
-            color.g().toByte(),
-            color.b().toByte(),
-            color.a().toByte()
-        )
-    }
-
-    @Suppress("unused")
-    fun addLine(
-        v0: Vector3f, v1: Vector3f,
-        r: Double, g: Double, b: Double, a: Double = 1.0
-    ) {
-        addLine(
-            v0.x, v0.y, v0.z,
-            v1.x, v1.y, v1.z,
-            vToByte(r),
-            vToByte(g),
-            vToByte(b),
-            vToByte(a)
-        )
-    }
-
-    @Suppress("unused")
-    fun addLine(
-        v0: Vector3f, v1: Vector3f,
-        r: Float, g: Float, b: Float, a: Float = 1f
-    ) {
-        addLine(
-            v0.x, v0.y, v0.z,
-            v1.x, v1.y, v1.z,
-            vToByte(r),
-            vToByte(g),
-            vToByte(b),
-            vToByte(a)
-        )
-    }
+    ): Unit = addLine(
+        x0.toDouble(), y0.toDouble(), z0.toDouble(),
+        x1.toDouble(), y1.toDouble(), z1.toDouble(), color
+    )
 
     fun addLine(
         v0: Vector3f, v1: Vector3f,
         color: Int
-    ) {
-        addLine(
-            v0.x, v0.y, v0.z,
-            v1.x, v1.y, v1.z,
-            color.r().toByte(),
-            color.g().toByte(),
-            color.b().toByte(),
-            color.a().toByte()
-        )
-    }
+    ): Unit = addLine(v0.x, v0.y, v0.z, v1.x, v1.y, v1.z, color)
 
-    @Suppress("unused")
-    fun putRelativeLine(
-        x0: Double, y0: Double, z0: Double,
+    fun addLine(
+        v0: Vector3d,
         x1: Double, y1: Double, z1: Double,
-        cam: org.joml.Vector3d,
-        r: Byte, g: Byte, b: Byte, a: Byte = -1
-    ) {
-        addLine(
-            (x0 - cam.x).toFloat(), (y0 - cam.y).toFloat(), (z0 - cam.z).toFloat(),
-            (x1 - cam.x).toFloat(), (y1 - cam.y).toFloat(), (z1 - cam.z).toFloat(),
-            r, g, b, a
-        )
-    }
-
-    fun putRelativeLine(
-        x0: Float, y0: Float, z0: Float,
-        x1: Float, y1: Float, z1: Float,
-        cam: org.joml.Vector3d,
-        r: Byte, g: Byte, b: Byte, a: Byte = -1
-    ) {
-        putRelativeLine(
-            x0.toDouble(), y0.toDouble(), z0.toDouble(),
-            x1.toDouble(), y1.toDouble(), z1.toDouble(),
-            cam, r, g, b, a
-        )
-    }
-
-    @Suppress("unused")
-    fun putRelativeLine(
-        v0: org.joml.Vector3d,
-        x1: Double, y1: Double, z1: Double,
-        cam: org.joml.Vector3d,
         color: Int
-    ) {
-        putRelativeLine(
-            v0.x, v0.y, v0.z,
-            x1, y1, z1, cam,
-            color.r().toByte(),
-            color.g().toByte(),
-            color.b().toByte(),
-            color.a().toByte()
-        )
-    }
+    ): Unit = addLine(v0.x, v0.y, v0.z, x1, y1, z1, color)
 
-    fun putRelativeVector(
-        v0: org.joml.Vector3d,
-        dir: org.joml.Vector3d,
+    fun addVector(
+        v0: Vector3d,
+        dir: Vector3d,
         length: Double,
-        cam: org.joml.Vector3d,
         color: Int
     ) {
-        putRelativeLine(
+        addLine(
             v0.x, v0.y, v0.z,
             v0.x + dir.x * length,
             v0.y + dir.y * length,
-            v0.z + dir.z * length, cam,
-            color.r().toByte(),
-            color.g().toByte(),
-            color.b().toByte(),
-            color.a().toByte()
+            v0.z + dir.z * length,
+            color
         )
     }
 
-    fun putRelativeLine(
-        x0: Double, y0: Double, z0: Double,
-        x1: Double, y1: Double, z1: Double,
-        cam: org.joml.Vector3d,
-        color: Int
-    ) {
-        putRelativeLine(
-            x0, y0, z0,
-            x1, y1, z1, cam,
-            color.r().toByte(),
-            color.g().toByte(),
-            color.b().toByte(),
-            color.a().toByte()
-        )
-    }
-
-    fun putRelativeLine(
-        x0: Float, y0: Float, z0: Float,
-        x1: Float, y1: Float, z1: Float,
-        cam: org.joml.Vector3d,
-        color: Int
-    ) {
-        putRelativeLine(
-            x0, y0, z0,
-            x1, y1, z1, cam,
-            color.r().toByte(),
-            color.g().toByte(),
-            color.b().toByte(),
-            color.a().toByte()
-        )
-    }
-
-    @Suppress("unused")
-    fun putRelativeLine(
-        v0: org.joml.Vector3d, v1: org.joml.Vector3d,
-        cam: org.joml.Vector3d,
-        r: Double, g: Double, b: Double, a: Double = 1.0
-    ) {
-        putRelativeLine(
-            v0.x, v0.y, v0.z,
-            v1.x, v1.y, v1.z, cam,
-            vToByte(r),
-            vToByte(g),
-            vToByte(b),
-            vToByte(a)
-        )
-    }
-
-    fun putRelativeLine(
-        v0: org.joml.Vector3d, v1: org.joml.Vector3d,
-        cam: org.joml.Vector3d,
-        color: Int
-    ) {
-        putRelativeLine(
-            v0.x, v0.y, v0.z,
-            v1.x, v1.y, v1.z,
-            cam, color
-        )
-    }
-
-    fun putRelativeLine(
-        v0: org.joml.Vector3d,
-        v1: org.joml.Vector3d,
-        color: Int
-    ) {
-        putRelativeLine(
-            v0.x, v0.y, v0.z,
-            v1.x, v1.y, v1.z,
-            cameraPosition, color
-        )
-    }
-
-    fun putRelativeLine(
-        v0: Vector3f,
-        v1: Vector3f,
-        color: Int
-    ) {
-        putRelativeLine(
-            v0.x, v0.y, v0.z,
-            v1.x, v1.y, v1.z,
-            cameraPosition, color
-        )
-    }
+    fun addLine(v0: Vector3d, v1: Vector3d, color: Int): Unit =
+        addLine(v0.x, v0.y, v0.z, v1.x, v1.y, v1.z, color)
 
     fun drawIf1M(camTransform: Matrix4f) {
         val nioBuffer = buffer.nioBuffer
@@ -379,11 +148,19 @@ object LineBuffer {
         finish(camTransform, shader)
     }
 
+    private val cameraPosition = Vector3d()
+    private val cameraDelta = Vector3d()
     private fun finish(transform: Matrix4f, shader: Shader) {
         if (!hasLinesToDraw()) return
+
+        val newPosition = RenderState.cameraPosition
+        cameraPosition.sub(newPosition, cameraDelta)
+        cameraPosition.set(newPosition)
+
         val buffer = buffer
         buffer.upload(allowResize = true, keepLarge = true)
         shader.m4x4("transform", transform)
+        shader.v3f("cameraDelta", cameraDelta)
         if (enableLineSmoothing) glEnable(GL_LINE_SMOOTH)
         buffer.draw(shader)
         if (enableLineSmoothing) glDisable(GL_LINE_SMOOTH)

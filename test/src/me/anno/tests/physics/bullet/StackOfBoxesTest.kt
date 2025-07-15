@@ -1,4 +1,4 @@
-package me.anno.bullet
+package me.anno.tests.physics.bullet
 
 import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
@@ -15,51 +15,13 @@ import com.bulletphysics.dynamics.constraintsolver.SliderConstraint
 import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.Entity
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
-import org.junit.jupiter.api.Test
-import kotlin.math.abs
 
+/**
+ * Copied over from Bullet module; this had weird issues, because I messed up refactoring.
+ * */
 class StackOfBoxesTest {
 
-    @Test
-    fun testStackDoesNotFall() {
-        val world = createWorld()
-        createGround(world)
-
-        val boxes = createBoxTower(world, 0.0)
-        runSimulation(world)
-
-        // Validate stack has not fallen
-        for (i in boxes.indices) {
-            val trans = boxes[i].worldTransform
-            val y = trans.origin.y
-            println(trans.origin)
-            assertTrue(abs(trans.origin.x) < 0.5f, "Box $i fell sideways on X axis")
-            assertTrue(abs(trans.origin.z) < 0.5f, "Box $i fell sideways on Z axis")
-            assertTrue(y > 0.1f, "Box $i dropped too low")
-        }
-    }
-
-    @Test
-    fun testStackFallsOverWhenOffset() {
-        val world: DiscreteDynamicsWorld = createWorld()
-        createGround(world)
-
-        val boxes = createBoxTower(world, 0.6)
-        runSimulation(world)
-
-        // Check that the top box has significantly deviated horizontally (i.e., tower has fallen)
-        val topBoxTransform = boxes[boxes.size - 1].worldTransform
-        val finalX = topBoxTransform.origin.x
-        val finalZ = topBoxTransform.origin.z
-
-        // Threshold assumes a fall if final X or Z is way off from initial offset
-        val fellOver = abs(finalX) > 3.0f || abs(finalZ) > 1.0f
-        assertTrue(fellOver, "The stack did not fall over as expected. Final X: $finalX, Z: $finalZ")
-    }
-
-    @Test
     fun testHeavySphereKnocksOverTower() {
         // Physics setup
         val world = createWorld()
@@ -112,30 +74,16 @@ class StackOfBoxesTest {
         sphereBody.setLinearVelocity(Vector3d(10.0, 0.0, 0.0)) // Move right
 
         runSimulation(world)
-
-        // Verify the tower has fallen (by checking top box's horizontal deviation)
-        val topTransform = boxes[boxes.size - 1].worldTransform
-        val dx = abs(topTransform.origin.x)
-        val dz = abs(topTransform.origin.z)
-
-        val towerFell = dx > 1.0f || dz > 1.0f
-        assertTrue(towerFell, "Tower did not fall after being hit. X offset: $dx, Z offset: $dz")
     }
 
     private fun runSimulation(world: DiscreteDynamicsWorld) {
         // Run the simulation
         val timeStep = 1.0 / 60.0
         val maxSubSteps = 10
-        val steps = 240 // 4 seconds of simulation
-
         testSceneWithUI(
             "StackOfBoxes", Entity()
                 .add(BulletDebugComponent(world, timeStep, maxSubSteps))
         )
-
-        repeat(steps) {
-            world.stepSimulation(timeStep, maxSubSteps)
-        }
     }
 
     private fun createBoxTower(dynamicsWorld: DynamicsWorld, xOffsetPerBox: Double): Array<RigidBody> {

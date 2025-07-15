@@ -14,7 +14,7 @@ import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.RenderState.cameraPosition
-import me.anno.gpu.buffer.LineBuffer.putRelativeLine
+import me.anno.gpu.buffer.LineBuffer.addLine
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.ui.UIColors
 import me.anno.utils.Color.black
@@ -182,13 +182,13 @@ object BulletRendering {
             val scale = 0.1 * center.distance(cameraPosition)
 
             basis.getColumn(0, tmp).mul(scale).add(center)
-            putRelativeLine(center, tmp, colorX)
+            addLine(center, tmp, colorX)
 
             basis.getColumn(1, tmp).mul(scale).add(center)
-            putRelativeLine(center, tmp, colorY)
+            addLine(center, tmp, colorY)
 
             basis.getColumn(2, tmp).mul(scale).add(center)
-            putRelativeLine(center, tmp, colorZ)
+            addLine(center, tmp, colorZ)
         }
         JomlPools.vec3d.sub(1)
     }
@@ -215,14 +215,14 @@ object BulletRendering {
 
                 mat.transformDirection(wheel.wheelAxleCS, tmp)
                 tmp.add(wheelPosWS)
-                putRelativeLine(wheelPosWS, tmp, wheelColor)
+                addLine(wheelPosWS, tmp, wheelColor)
 
                 mat.transformDirection(wheel.wheelDirectionCS, tmp)
                 tmp.add(wheelPosWS)
-                putRelativeLine(wheelPosWS, tmp, wheelColor)
+                addLine(wheelPosWS, tmp, wheelColor)
 
                 val contact = wheel.raycastInfo.contactPointWS
-                putRelativeLine(wheelPosWS, contact, wheelColor)
+                addLine(wheelPosWS, contact, wheelColor)
             }
         }
 

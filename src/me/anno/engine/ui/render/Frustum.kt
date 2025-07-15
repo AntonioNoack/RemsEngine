@@ -278,10 +278,10 @@ class Frustum {
             val p = positions[i]
             val n = normals[i]
             val color = 0x00ff00 or black
-            LineBuffer.putRelativeLine(p, Vector3d(n).normalize(length).add(p), color)
-            LineBuffer.putRelativeLine(Vector3d(p).add(-s, 0.0, 0.0), Vector3d(p).add(+s, 0.0, 0.0), color)
-            LineBuffer.putRelativeLine(Vector3d(p).add(0.0, -s, 0.0), Vector3d(p).add(0.0, +s, 0.0), color)
-            LineBuffer.putRelativeLine(Vector3d(p).add(0.0, 0.0, -s), Vector3d(p).add(0.0, 0.0, +s), color)
+            LineBuffer.addLine(p, Vector3d(n).normalize(length).add(p), color)
+            LineBuffer.addLine(Vector3d(p).add(-s, 0.0, 0.0), Vector3d(p).add(+s, 0.0, 0.0), color)
+            LineBuffer.addLine(Vector3d(p).add(0.0, -s, 0.0), Vector3d(p).add(0.0, +s, 0.0), color)
+            LineBuffer.addLine(Vector3d(p).add(0.0, 0.0, -s), Vector3d(p).add(0.0, 0.0, +s), color)
         }
     }
 
