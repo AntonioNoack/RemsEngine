@@ -91,11 +91,10 @@ class SplineCrossing : ProceduralMesh(), OnChangeStructure {
             val transform = street.transform ?: continue
             yAxis.add(transform.localRotation.transform(tmp.set(0.0, 1.0, 0.0)))
         }
-        yAxis.safeNormalize()
 
         val xAxis = Vector3d()
         val zAxis = Vector3d()
-        yAxis.findSystem(xAxis, zAxis)
+        yAxis.findSystem(xAxis, zAxis, true)
 
         return streets.sortedByDescending {
             it.getLocalPosition(tmp, 0.0)

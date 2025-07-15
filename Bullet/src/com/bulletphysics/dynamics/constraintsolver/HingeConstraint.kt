@@ -7,7 +7,6 @@ import com.bulletphysics.linearmath.QuaternionUtil.quatRotate
 import com.bulletphysics.linearmath.QuaternionUtil.shortestArcQuat
 import com.bulletphysics.linearmath.ScalarUtil.atan2Fast
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.TransformUtil.findOrthonormalBasis
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -160,7 +159,7 @@ class HingeConstraint : TypedConstraint {
                 normal[0].set(1.0, 0.0, 0.0)
             }
 
-            findOrthonormalBasis(normal[0], normal[1], normal[2])
+            normal[0].findSystem(normal[1], normal[2], false)
 
             for (i in 0..2) {
                 pivotAInW.sub(rigidBodyA.getCenterOfMassPosition(tmpVec), tmp1)
@@ -184,7 +183,7 @@ class HingeConstraint : TypedConstraint {
         val jointAxis1local = Stack.newVec()
 
         rbAFrame.basis.getColumn(2, tmp)
-        findOrthonormalBasis(tmp, jointAxis0local, jointAxis1local)
+        tmp.findSystem(jointAxis0local, jointAxis1local, false)
 
         // TODO: check this
         //rigidBodyA().getCenterOfMassTransform().getBasis() * m_rbAFrame.getBasis().getColumn(2);

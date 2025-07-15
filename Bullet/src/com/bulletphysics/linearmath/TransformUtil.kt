@@ -16,28 +16,8 @@ import kotlin.math.sqrt
  */
 object TransformUtil {
 
-    private const val SIMD_SQRT12 = 0.7071067811865476
     private const val ANGULAR_MOTION_THRESHOLD = 0.5 * BulletGlobals.SIMD_HALF_PI
     private const val INV_48 = 1.0 / 48.0
-
-    @JvmStatic
-    fun findOrthonormalBasis(n: Vector3d, p: Vector3d, q: Vector3d) {
-        if (abs(n.z) > SIMD_SQRT12) {
-            // choose p in y-z plane
-            val a = n.y * n.y + n.z * n.z
-            val k = 1.0 / sqrt(a)
-            p.set(0.0, -n.z * k, n.y * k)
-            // set q = n x p
-            q.set(a * k, -n.x * p.z, n.x * p.y)
-        } else {
-            // choose p in x-y plane
-            val a = n.x * n.x + n.y * n.y
-            val k = 1.0 / sqrt(a)
-            p.set(-n.y * k, n.x * k, 0.0)
-            // set q = n x p
-            q.set(-n.z * p.y, n.z * p.x, a * k)
-        }
-    }
 
     @JvmStatic
     fun integrateTransform(

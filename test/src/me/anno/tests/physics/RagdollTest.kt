@@ -3,6 +3,7 @@ package me.anno.tests.physics
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
 import me.anno.bullet.bodies.StaticBody
+import me.anno.bullet.constraints.ConeTwistConstraint
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -22,16 +23,12 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
-import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
 import me.anno.maths.Maths.sq
 import me.anno.sdf.shapes.SDFCapsule
-import me.anno.ui.UIColors
 import me.anno.utils.OS
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.none2
@@ -73,8 +70,11 @@ fun main() {
         is ImportedAnimation -> baseAnimation.withFrames(listOf(0))
         else -> throw IllegalStateException()
     }
+    ragdollAnimation.unlinkPrefab()
 
-    val initialPose = ragdollAnimation.frames[0].map { Matrix4x3f(it) }
+    val initialPose = ragdollAnimation.frames[0]
+        .map { Matrix4x3f(it) } // cloned, because we manipulate exactly these matrices
+
     val bonePositions = bones.map {
         val pos = Vector3d(it.bindPosition)
         initialPose[it.index].transformPosition(pos)
@@ -85,7 +85,7 @@ fun main() {
 
     val entities = ArrayList<Entity?>()
     val rigidbodies = ArrayList<DynamicBody?>()
-    val baseTransformInvs = ArrayList<Matrix4x3?>()
+    val baseTransformInvs = Array(bones.size) { Matrix4x3() }
     val roots = ArrayList<Pair<Double, DynamicBody>>()
     var isRootBone = true
 
@@ -104,6 +104,9 @@ fun main() {
 
     for (bone in bones) {
 
+        // todo this is all based on positions ->
+        //  apply the first frame of the animation as start transforms?
+
         val bonePos = bonePositions[bone.index]
 
         fun findParent(bone: Bone): Bone? {
@@ -117,7 +120,6 @@ fun main() {
         if (parent == null) {
             entities.add(null)
             rigidbodies.add(null)
-            baseTransformInvs.add(null)
             continue
         }
 
@@ -125,7 +127,6 @@ fun main() {
         if (isRootBone && parentPos.distance(bonePos) < 0.001) {
             entities.add(null)
             rigidbodies.add(null)
-            baseTransformInvs.add(null)
             continue
         }
 
@@ -134,21 +135,18 @@ fun main() {
             isRootBone = false
             entities.add(null)
             rigidbodies.add(null)
-            baseTransformInvs.add(null)
             continue
         }
-
-        // todo the "behind" of the fox has vertices, but no bones or animations... what do we set for it?, is there physics for it?
 
         val length = parentPos.distance(bonePos)
         val centerPos = parentPos.add(bonePos, Vector3d()).mul(0.5)
         val direction = Vector3f(parentPos - bonePos)
         val dynamicBody = DynamicBody().apply {
             mass = length
-            friction = 1.0
-            // todo why do we need to high friction to prevent explosions?
-            linearDamping = 0.9
-            angularDamping = 0.9
+            friction = 0.7
+            // todo why do we need high friction to prevent explosions?
+            linearDamping = 0.7
+            angularDamping = 0.7
             rigidbodies.add(this)
         }
 
@@ -214,17 +212,25 @@ fun main() {
         if (parentBody != null) {
             // how TF does everything just explode???
             //  because some cylinders are still overlapping
-            entity.add(PointConstraint().apply {
+            // todo getConeTwistConstraint working
+            val constraint =
+                if (true) PointConstraint()
+                else ConeTwistConstraint()
+            entity.add(constraint.apply {
                 other = parentBody
                 selfPosition.set(0.0, +length * 0.5, 0.0)
                 otherPosition.set(0.0, -parent.length(bones) * 0.5, 0.0)
                 breakingImpulseThreshold = 50.0
-                // disableCollisionsBetweenLinked = false
+            })
+            // disableCollisionsBetweenLinked = false
+            (constraint as? PointConstraint)?.apply {
                 damping = 0.5
-                // twist = 0.01
+            }
+            (constraint as? ConeTwistConstraint)?.apply {
+                // twist = 0.1
                 // angleX = 0.1
                 // angleY = 0.1
-            })
+            }
         } else {
             roots.add(length to dynamicBody)
         }
@@ -233,7 +239,9 @@ fun main() {
         entity.rotation = baseRotation
         entity.validateTransform()
         entities.add(entity)
-        baseTransformInvs.add(entity.transform.globalTransform.invert(Matrix4x3()))
+
+        baseTransformInvs[bone.index]
+            .translationRotateInvert(centerPos, baseRotation)
     }
 
     val totalBoneMass = rigidbodies.filterNotNull().sumOf { it.mass }
@@ -272,6 +280,12 @@ fun main() {
             val invTransform = Matrix4x3f().set(invTransformD)
             for (boneId in bones.indices) {
 
+                val dstMatrix = ragdollAnimation.frames[0][boneId]
+                if (Input.isShiftDown) {
+                    dstMatrix.set(initialPose[boneId])
+                    continue
+                }
+
                 var boneId1 = boneId
                 var ragdoll = entities[boneId]
                 val isFirstBone = ragdoll == null
@@ -291,35 +305,30 @@ fun main() {
 
                 val ragdollT = ragdoll.transform
                 val physicsTransform = ragdollT.globalTransform
-                val dstMatrix = ragdollAnimation.frames[0][boneId]
                 val bone = bones[boneId1]
-                if (Input.isShiftDown) {
-                    dstMatrix.set(initialPose[boneId])
-                } else {
 
-                    val baseTransformInv = baseTransformInvs[boneId1]!!
-                    val length = bone.length(bones)
+                val baseTransformInv = baseTransformInvs[boneId1]
+                val length = bone.length(bones)
 
-                    // physicsPos must be corrected by half a bone length,
-                    // because we simulate the center, but actually mean the root
-                    boneOffset.set(0f, length * 0.5f, 0f)
-                    physicsTransform.transformDirection(boneOffset)
+                // physicsPos must be corrected by half a bone length,
+                // because we simulate the center, but actually mean the root
+                boneOffset.set(0f, length * 0.5f, 0f)
+                physicsTransform.transformDirection(boneOffset)
 
-                    physicsPos.set(ragdollT.localPosition)
-                    if (isFirstBone) physicsPos.add(boneOffset)
-                    else physicsPos.sub(boneOffset)
+                physicsPos.set(ragdollT.localPosition)
+                if (isFirstBone) physicsPos.add(boneOffset)
+                else physicsPos.sub(boneOffset)
 
-                    val bindPos = bone.bindPosition // baseTransform.getTranslation(Vector3d())
-                    physicsTransform.getUnnormalizedRotation(physicsRot)
-                    baseTransformInv.getUnnormalizedRotation(baseRotInv)
+                val bindPos = bone.bindPosition // baseTransform.getTranslation(Vector3d())
+                physicsTransform.getUnnormalizedRotation(physicsRot)
+                baseTransformInv.getUnnormalizedRotation(baseRotInv)
 
-                    dstMatrix.identity()
-                        .translate(physicsPos)
-                        .rotate(baseRotInv.premul(physicsRot).normalize())
-                        .translate(-bindPos.x, -bindPos.y, -bindPos.z)
+                dstMatrix.identity()
+                    .translate(physicsPos)
+                    .rotate(baseRotInv.premul(physicsRot).normalize())
+                    .translate(-bindPos.x, -bindPos.y, -bindPos.z)
 
-                    invTransform.mul(dstMatrix, dstMatrix)
-                }
+                invTransform.mul(dstMatrix, dstMatrix)
             }
             AnimationCache.invalidate(ragdollAnimation)
         }

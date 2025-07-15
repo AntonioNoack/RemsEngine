@@ -6,7 +6,6 @@ import com.bulletphysics.linearmath.QuaternionUtil.quatRotate
 import com.bulletphysics.linearmath.QuaternionUtil.shortestArcQuat
 import com.bulletphysics.linearmath.ScalarUtil
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.TransformUtil
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -29,13 +28,13 @@ class ConeTwistConstraint : TypedConstraint {
     private val rbAFrame = Transform()
     private val rbBFrame = Transform()
 
-    private var limitSoftness = 0.0
-    private var biasFactor = 0.0
-    private var relaxationFactor = 0.0
+    var limitSoftness = 0.0
+    var biasFactor = 0.0
+    var relaxationFactor = 0.0
 
-    private var swingSpan1 = 0.0
-    private var swingSpan2 = 0.0
-    private var twistSpan = 0.0
+    var swingSpan1 = 0.0
+    var swingSpan2 = 0.0
+    var twistSpan = 0.0
 
     private val swingAxis = Vector3d()
     private val twistAxis = Vector3d()
@@ -46,13 +45,14 @@ class ConeTwistConstraint : TypedConstraint {
     @get:Suppress("unused")
     var twistLimitSign: Double = 0.0
         private set
+
     private var swingCorrection = 0.0
     private var twistCorrection = 0.0
 
     private var accSwingLimitImpulse = 0.0
     private var accTwistLimitImpulse = 0.0
 
-    private var angularOnly = false
+    var angularOnly = false
 
     var solveTwistLimit: Boolean = false
         private set
@@ -107,7 +107,7 @@ class ConeTwistConstraint : TypedConstraint {
                 normal[0].set(1.0, 0.0, 0.0)
             }
 
-            TransformUtil.findOrthonormalBasis(normal[0], normal[1], normal[2])
+            normal[0].findSystem(normal[1], normal[2], false)
 
             for (i in 0..2) {
 
@@ -336,35 +336,5 @@ class ConeTwistConstraint : TypedConstraint {
         }
 
         Stack.subVec(3)
-    }
-
-    fun updateRHS(timeStep: Double) {
-    }
-
-    @Suppress("unused")
-    fun setAngularOnly(angularOnly: Boolean) {
-        this.angularOnly = angularOnly
-    }
-
-    @Suppress("unused")
-    fun setLimit(swingSpan1: Double, swingSpan2: Double, twistSpan: Double) {
-        setLimit(swingSpan1, swingSpan2, twistSpan, 0.8, 0.3, 1.0)
-    }
-
-    fun setLimit(
-        swingSpan1: Double,
-        swingSpan2: Double,
-        twistSpan: Double,
-        limitSoftness: Double,
-        biasFactor: Double,
-        relaxationFactor: Double
-    ) {
-        this.swingSpan1 = swingSpan1
-        this.swingSpan2 = swingSpan2
-        this.twistSpan = twistSpan
-
-        this.limitSoftness = limitSoftness
-        this.biasFactor = biasFactor
-        this.relaxationFactor = relaxationFactor
     }
 }

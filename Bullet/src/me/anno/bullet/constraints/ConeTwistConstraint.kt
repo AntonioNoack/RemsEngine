@@ -13,57 +13,58 @@ class ConeTwistConstraint : Constraint<com.bulletphysics.dynamics.constraintsolv
     var softness = 0.8
         set(value) {
             field = value
-            updateLimits()
+            bulletInstance?.limitSoftness = value
         }
 
     var biasFactor = 0.3 // ?
         set(value) {
             field = value
-            updateLimits()
+            bulletInstance?.biasFactor = biasFactor
         }
 
     var relaxation = 1.0
         set(value) {
             field = value
-            updateLimits()
+            bulletInstance?.relaxationFactor = value
         }
 
     var twist = 1.0
         set(value) {
             field = value
-            updateLimits()
+            bulletInstance?.twistSpan = value
         }
 
     var angleX = 1.0
         set(value) {
             field = value
-            updateLimits()
+            bulletInstance?.swingSpan1 = value
         }
 
     var angleY = 1.0
         set(value) {
             field = value
-            updateLimits()
+            bulletInstance?.swingSpan2 = value
         }
 
     var angularOnly = false
         set(value) {
             field = value
-            bulletInstance?.setAngularOnly(value)
+            bulletInstance?.angularOnly = value
         }
 
     override fun createConstraint(
         a: RigidBody, b: RigidBody, ta: Transform, tb: Transform,
     ): com.bulletphysics.dynamics.constraintsolver.ConeTwistConstraint {
         val instance = com.bulletphysics.dynamics.constraintsolver.ConeTwistConstraint(a, b, ta, tb)
-        instance.setLimit(angleX, angleY, twist, softness, biasFactor, relaxation)
-        instance.setAngularOnly(angularOnly)
+        instance.swingSpan1 = angleX
+        instance.swingSpan2 = angleY
+        instance.twistSpan = twist
+        instance.limitSoftness = softness
+        instance.biasFactor = biasFactor
+        instance.relaxationFactor = relaxation
+        instance.angularOnly = angularOnly
         instance.breakingImpulseThreshold = breakingImpulseThreshold
         return instance
-    }
-
-    private fun updateLimits() {
-        bulletInstance?.setLimit(angleX, angleY, twist, softness, biasFactor, relaxation)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

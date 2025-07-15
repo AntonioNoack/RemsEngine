@@ -84,7 +84,7 @@ object LineShapes {
 
         val dirX = JomlPools.vec3d.create()
         val dirY = JomlPools.vec3d.create()
-        dirZ.findSystem(dirX, dirY)
+        dirZ.findSystem(dirX, dirY, true)
 
         val to2 = from.mix(to, 0.7, JomlPools.vec3d.create())
         dirX.normalize(length * 0.15)
@@ -515,7 +515,7 @@ object LineShapes {
         val tmp = positions[2]
         val sysX = positions[3]
         val sysY = positions[4]
-        tmp.set(p1).sub(p0).findSystem(sysX, sysY)
+        p1.sub(p0, tmp).findSystem(sysX, sysY, true)
 
         // draw central line
         addLine(p0, p1, centralColor)

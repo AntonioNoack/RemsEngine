@@ -13,7 +13,6 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.ContactConstraint.resolveSingleCollisionCombined
 import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.MiscUtil.resize
-import com.bulletphysics.linearmath.TransformUtil.findOrthonormalBasis
 import com.bulletphysics.util.IntArrayList
 import com.bulletphysics.util.ObjectPool
 import cz.advel.stack.Stack
@@ -505,8 +504,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 )
             } else {
                 // re-calculate friction direction every frame, todo: check if this is really needed
-
-                findOrthonormalBasis(cp.normalWorldOnB, cp.lateralFrictionDir1, cp.lateralFrictionDir2)
+                cp.normalWorldOnB.findSystem( cp.lateralFrictionDir1, cp.lateralFrictionDir2, false)
                 addFrictionConstraint(
                     cp.lateralFrictionDir1,
                     solverBodyIdA, solverBodyIdB, frictionIndex, cp,
@@ -970,7 +968,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 cpd.prevAppliedImpulse = cpd.appliedImpulse
 
                 // re-calculate friction direction every frame, todo: check if this is really needed
-                findOrthonormalBasis(cp.normalWorldOnB, cpd.frictionWorldTangential0, cpd.frictionWorldTangential1)
+                cp.normalWorldOnB.findSystem( cpd.frictionWorldTangential0, cpd.frictionWorldTangential1, false)
 
                 //#define NO_FRICTION_WARMSTART 1
                 //#ifdef NO_FRICTION_WARMSTART

@@ -752,15 +752,37 @@ open class Vector3d(
         )
     }
 
-    fun findSecondAxis(dst: Vector3d = Vector3d()): Vector3d {
+    /**
+     * Finds second vector for orthogonal basis.
+     * */
+    fun findSecondAxis(dst: Vector3d): Vector3d {
         val thirdAxis = if (abs(x) > abs(y)) dst.set(0.0, 1.0, 0.0)
         else dst.set(1.0, 0.0, 0.0)
         return cross(thirdAxis, dst).safeNormalize()
     }
 
-    fun findSystem(dstY: Vector3d = Vector3d(), dstZ: Vector3d = Vector3d()) {
-        findSecondAxis(dstY)
-        cross(dstY, dstZ).safeNormalize()
+    /**
+     * Finds orthogonal basis.
+     * Set normalize, if dstY isn't normalized yet.
+     * */
+    fun findSystem(dstY: Vector3d, dstZ: Vector3d, normalize: Boolean) {
+        if (normalize) safeNormalize()
+        val SQRT12 = 0.7071067811865476
+        if (abs(z) > SQRT12) {
+            // choose p in y-z plane
+            val a = y * y + z * z
+            val k = 1.0 / sqrt(a)
+            dstY.set(0.0, -z * k, y * k)
+            // set q = n x p
+            dstZ.set(a * k, -x * dstY.z, x * dstY.y)
+        } else {
+            // choose p in x-y plane
+            val a = x * x + y * y
+            val k = 1.0 / sqrt(a)
+            dstY.set(-y * k, x * k, 0.0)
+            // set q = n x p
+            dstZ.set(-z * dstY.y, z * dstY.x, a * k)
+        }
     }
 
     fun fract(dst: Vector3d = this): Vector3d =

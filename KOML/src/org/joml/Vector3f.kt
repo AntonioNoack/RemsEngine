@@ -698,15 +698,37 @@ open class Vector3f(
     fun is000(): Boolean = x == 0f && y == 0f && z == 0f
     fun is111(): Boolean = x == 1f && y == 1f && z == 1f
 
-    fun findSecondAxis(dst: Vector3f = Vector3f()): Vector3f {
+    /**
+     * Finds second vector for orthogonal basis.
+     * */
+    fun findSecondAxis(dst: Vector3f): Vector3f {
         val thirdAxis = if (abs(x) > abs(y)) dst.set(0f, 1f, 0f)
         else dst.set(1f, 0f, 0f)
         return cross(thirdAxis, dst).normalize()
     }
 
-    fun findSystem(dstY: Vector3f = Vector3f(), dstZ: Vector3f = Vector3f()) {
-        findSecondAxis(dstY)
-        cross(dstY, dstZ).normalize()
+    /**
+     * Finds orthogonal basis.
+     * Set normalize, if dstY isn't normalized yet.
+     * */
+    fun findSystem(dstY: Vector3f, dstZ: Vector3f, normalize: Boolean) {
+        if (normalize) safeNormalize()
+        val SQRT12 = 0.70710677f
+        if (abs(z) > SQRT12) {
+            // choose p in y-z plane
+            val a = y * y + z * z
+            val k = 1f / sqrt(a)
+            dstY.set(0f, -z * k, y * k)
+            // set q = n x p
+            dstZ.set(a * k, -x * dstY.z, x * dstY.y)
+        } else {
+            // choose p in x-y plane
+            val a = x * x + y * y
+            val k = 1f / sqrt(a)
+            dstY.set(-y * k, x * k, 0f)
+            // set q = n x p
+            dstZ.set(-z * dstY.y, z * dstY.x, a * k)
+        }
     }
 
     fun rotateInv(q: Quaternionf, dst: Vector3f = this): Vector3f {

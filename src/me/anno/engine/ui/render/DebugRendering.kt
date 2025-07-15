@@ -259,7 +259,7 @@ object DebugRendering {
             LineBuffer.addLine(arrow.from, arrow.to, arrow.color)
             arrow.to.sub(arrow.from, dirY)
             val len = dirY.length()
-            dirY.findSystem(dirX, dirZ)
+            dirY.findSystem(dirX, dirZ, true)
             val s = len * 0.2
             fun addPt(dxi: Double, dzi: Double) {
                 val anchor = arrow.from.mix(arrow.to, 0.6, dirY)
