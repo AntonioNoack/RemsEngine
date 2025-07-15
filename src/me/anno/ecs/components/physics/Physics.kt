@@ -168,6 +168,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         invalidEntities.clear() // correct??
     }
 
+    @DebugAction
     fun validate() {
         if (printValidations) LOGGER.debug("Validating {}", hash32(this))
         invalidEntities.process2x(removal, creating)

@@ -34,6 +34,7 @@ import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.getComponent
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollisionFilters.createFilter
@@ -51,6 +52,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Floats.toLongOr
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3
 import org.joml.Vector3d
@@ -364,6 +366,13 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         // Stack.limit = 1024
         Stack.reset(printSlack)
         super.step(dtNanos, printSlack)
+    }
+
+    @DebugAction
+    fun manualStep2() {
+        // dt = 1e9 / 60
+        val step = if (fixedStep == 0.0) 1.0 / 60.0 else fixedStep
+        step((step * 1e9).toLong(), true)
     }
 
     var maxSubSteps = 16

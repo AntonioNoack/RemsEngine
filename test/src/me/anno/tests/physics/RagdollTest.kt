@@ -3,7 +3,6 @@ package me.anno.tests.physics
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
 import me.anno.bullet.bodies.StaticBody
-import me.anno.bullet.constraints.ConeTwistConstraint
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -15,8 +14,8 @@ import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Axis
-import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.CapsuleCollider
+import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.systems.OnUpdate
@@ -26,18 +25,23 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes
+import me.anno.engine.ui.LineShapes
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
+import me.anno.maths.Maths.sq
+import me.anno.sdf.shapes.SDFCapsule
 import me.anno.ui.UIColors
 import me.anno.utils.OS
-import me.anno.utils.assertions.assertEquals
+import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Vectors.normalToQuaternionY
-import org.joml.Matrix3f
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.joml.Vector4f
 
 fun main() {
 
@@ -78,23 +82,26 @@ fun main() {
     }
 
     val capsules = ArrayList<CapsuleCollider>()
-    for (bone in bones) {
-        val parent = bone.getParent(bones) ?: continue
-        val bonePos = bonePositions[bone.index]
-        val parentPos = bonePositions[parent.index]
-        DebugShapes.debugLines.add(DebugLine(bonePos, parentPos, UIColors.gold, 1000f))
-    }
 
-    for (pos in bonePositions) {
-        DebugShapes.debugPoints.add(DebugPoint(pos, UIColors.fireBrick, 1000f))
-    }
-
-    // todo add bone visually
     val entities = ArrayList<Entity?>()
     val rigidbodies = ArrayList<DynamicBody?>()
     val baseTransformInvs = ArrayList<Matrix4x3?>()
     val roots = ArrayList<Pair<Double, DynamicBody>>()
     var isRootBone = true
+
+    class Sphere(val position: Vector3d, var radius: Double) {
+        fun overlaps(other: Sphere): Boolean {
+            val distanceSq = position.distanceSquared(other.position)
+            val radiusSq = sq(radius + other.radius)
+            return distanceSq <= radiusSq
+        }
+    }
+
+    val spheres = ArrayList<Sphere>()
+    val capsules2 = ArrayList<SDFCapsule>()
+    val seeds = IntArrayList(0)
+    val tmp4 = Vector4f()
+
     for (bone in bones) {
 
         val bonePos = bonePositions[bone.index]
@@ -131,19 +138,59 @@ fun main() {
             continue
         }
 
+        // todo the "behind" of the fox has vertices, but no bones or animations... what do we set for it?, is there physics for it?
+
         val length = parentPos.distance(bonePos)
         val centerPos = parentPos.add(bonePos, Vector3d()).mul(0.5)
         val direction = Vector3f(parentPos - bonePos)
         val dynamicBody = DynamicBody().apply {
             mass = length
+            friction = 1.0
+            // todo why do we need to high friction to prevent explosions?
+            linearDamping = 0.9
+            angularDamping = 0.9
             rigidbodies.add(this)
         }
 
+        // while parent's sphere is still colliding,
+        //  shrink effective length
+        var effectiveLength = length.toFloat() * 0.4
+        val radiusFactor = 0.3
+        val parentSphere = Sphere(Vector3d(), 1.0)
+        fun defineSphere(sign: Double, dstSphere: Sphere) {
+            centerPos.fma(sign * effectiveLength / length, direction, dstSphere.position)
+            dstSphere.radius = effectiveLength * radiusFactor
+        }
+        while (true) {
+            defineSphere(1.0, parentSphere)
+            if (spheres.none2 { it.overlaps(parentSphere) } &&
+                capsules2.none2 {
+                    tmp4.set(parentSphere.position, 0.0)
+                    it.computeSDF(tmp4, seeds) < parentSphere.radius
+                }) break
+            effectiveLength *= 0.95f
+        }
+
+        // just for safety
+        effectiveLength *= 0.5f
+
+        val selfSphere = Sphere(Vector3d(), 1.0)
+        defineSphere(-1.0, selfSphere)
+
+        spheres.add(parentSphere)
+        spheres.add(selfSphere)
+        capsules2.add(SDFCapsule().apply {
+            p0.set(parentSphere.position)
+            p1.set(selfSphere.position)
+            radius = (effectiveLength * radiusFactor).toFloat()
+        })
+
+        // todo somehow generate better, non-overlapping colliders...
         val collider = CapsuleCollider().apply {
             axis = Axis.Y
-            halfHeight = length.toFloat() * 0.32f
-            radius = halfHeight * 0.3f
-            roundness = 0.01f
+            halfHeight = effectiveLength.toFloat()
+            radius = halfHeight * radiusFactor.toFloat()
+            roundness = 0.1f
             capsules.add(this)
         }
 
@@ -151,13 +198,29 @@ fun main() {
             .add(dynamicBody)
             .add(collider)
 
+        entity.add(object : Component(), OnUpdate {
+            fun displaySphere(sphere: Sphere) {
+                LineShapes.drawSphere(null, sphere.radius, sphere.position, -1)
+            }
+
+            override fun onUpdate() {
+                displaySphere(parentSphere)
+                displaySphere(selfSphere)
+            }
+        })
+
         val baseRotation = direction.normalize().normalToQuaternionY()
         val parentBody = rigidbodies[parent.index]
         if (parentBody != null) {
-            if (false) entity.add(ConeTwistConstraint().apply {
+            // how TF does everything just explode???
+            //  because some cylinders are still overlapping
+            entity.add(PointConstraint().apply {
                 other = parentBody
                 selfPosition.set(0.0, +length * 0.5, 0.0)
                 otherPosition.set(0.0, -parent.length(bones) * 0.5, 0.0)
+                breakingImpulseThreshold = 50.0
+                // disableCollisionsBetweenLinked = false
+                damping = 0.5
                 // twist = 0.01
                 // angleX = 0.1
                 // angleY = 0.1
@@ -170,7 +233,7 @@ fun main() {
         entity.rotation = baseRotation
         entity.validateTransform()
         entities.add(entity)
-        baseTransformInvs.add(Matrix4x3(entity.transform.globalTransform).invert())
+        baseTransformInvs.add(entity.transform.globalTransform.invert(Matrix4x3()))
     }
 
     val totalBoneMass = rigidbodies.filterNotNull().sumOf { it.mass }
@@ -190,77 +253,74 @@ fun main() {
                 other = root2
                 selfPosition.set(0.0, root1Len * 0.5, 0.0)
                 otherPosition.set(0.0, root2Len * 0.5, 0.0)
+                breakingImpulseThreshold = 50.0
+                // disableCollisionsBetweenLinked = false
+                damping = 0.5
             })
         }
     }
 
-    var firstFrame = true
     val animationUpdateComponent = object : Component(), OnUpdate {
+
+        val physicsRot = Quaternionf()
+        val baseRotInv = Quaternionf()
+        val physicsPos = Vector3f()
+        val boneOffset = Vector3f()
+
         override fun onUpdate() {
             val invTransformD = sampleComponent.transform!!.globalTransform.invert(Matrix4x3())
             val invTransform = Matrix4x3f().set(invTransformD)
             for (boneId in bones.indices) {
-                val ragdoll = entities[boneId] ?: continue
+
+                var boneId1 = boneId
+                var ragdoll = entities[boneId]
+                val isFirstBone = ragdoll == null
+                if (isFirstBone) {
+                    // todo average the rotations of all children???
+                    // todo position is also a bit weird...
+                    //  baseTransformInvs probably doesn't match
+                    val firstChildRagdoll = bones.indexOfFirst {
+                        it.parentIndex == boneId && entities[it.index] != null
+                    }
+                    if (firstChildRagdoll <= 0) continue
+                    boneId1 = firstChildRagdoll
+                    ragdoll = entities[boneId1]!!
+                }
+
+                ragdoll.validateTransform()
+
                 val ragdollT = ragdoll.transform
                 val physicsTransform = ragdollT.globalTransform
                 val dstMatrix = ragdollAnimation.frames[0][boneId]
-                val bone = bones[boneId]
+                val bone = bones[boneId1]
                 if (Input.isShiftDown) {
                     dstMatrix.set(initialPose[boneId])
                 } else {
-                    // todo this transform isn't correct yet, this must be equal for the first frame
-                    val baseTransformInv = baseTransformInvs[boneId]!!
-                    val target = initialPose[boneId]
 
+                    val baseTransformInv = baseTransformInvs[boneId1]!!
                     val length = bone.length(bones)
+
                     // physicsPos must be corrected by half a bone length,
                     // because we simulate the center, but actually mean the root
-                    val physicsPos = Vector3d(ragdollT.localPosition)
-                        .sub(physicsTransform.transformDirection(Vector3d(0.0, length * 0.5, 0.0)))
-                    val bindPos = Vector3d(bone.bindPosition) // baseTransform.getTranslation(Vector3d())
+                    boneOffset.set(0f, length * 0.5f, 0f)
+                    physicsTransform.transformDirection(boneOffset)
 
-                    val physicsRot = physicsTransform.getUnnormalizedRotation(Quaternionf())
-                    // baseTransform.transformRotation(physicsRot)
-                    val baseRotInv = baseTransformInv.getUnnormalizedRotation(Quaternionf())
+                    physicsPos.set(ragdollT.localPosition)
+                    if (isFirstBone) physicsPos.add(boneOffset)
+                    else physicsPos.sub(boneOffset)
 
-                    if (firstFrame) {
-                        println("Checking '${bone.name}':")
-                        println("  baseInv: $baseTransformInv")
-                        println("  invTransform: $invTransformD")
-                        println("  physics: $physicsTransform")
-                        println("  bindPose: ${bone.bindPose}")
-                        println("  relPose: ${bone.relativeTransform}")
-                        println("  target: ${initialPose[boneId]}")
-                    }
-
-                    // physicsRot should be the same as baseRotation before physics sets in
-                    // why is it changing soo much after just one frame???
-                    if (firstFrame) {
-                        println("Checking '${bone.name}':")
-                        println("  physics: $physicsRot")
-                        println("  base:    $baseRotInv")
-                        assertEquals(
-                            Matrix3f(), Matrix3f()
-                                .rotation(physicsRot.mul(baseRotInv, Quaternionf())), 0.01
-                        )
-                    }
-
-                    // todo what is the correct local rotation???
-                    //  * baseRot^-1 *
-
+                    val bindPos = bone.bindPosition // baseTransform.getTranslation(Vector3d())
+                    physicsTransform.getUnnormalizedRotation(physicsRot)
+                    baseTransformInv.getUnnormalizedRotation(baseRotInv)
 
                     dstMatrix.identity()
-                        // .rotate(Quaternionf(baseRotInv.mul(physicsRot)))
-                        .translate(Vector3f(physicsPos - bindPos))
+                        .translate(physicsPos)
+                        .rotate(baseRotInv.premul(physicsRot).normalize())
+                        .translate(-bindPos.x, -bindPos.y, -bindPos.z)
 
                     invTransform.mul(dstMatrix, dstMatrix)
-
-                    if (boneId == 160) {
-                        assertEquals(dstMatrix, target, 0.9)
-                    }
                 }
             }
-            firstFrame = false
             AnimationCache.invalidate(ragdollAnimation)
         }
     }
@@ -268,11 +328,11 @@ fun main() {
     animationUpdateComponent.onUpdate()
 
     Entity("Floor", scene)
-        .setPosition(0.0, -15.0, 0.0)
-        .setScale(250f, 15f, 250f)
+        .setPosition(0.0, -10.0, 0.0)
+        .setScale(250f)
         .add(StaticBody())
-        .add(BoxCollider())
-        .add(MeshComponent(DefaultAssets.flatCube))
+        .add(InfinitePlaneCollider())
+        .add(MeshComponent(DefaultAssets.plane))
 
     // make space, so we can see the bones properly
     val state = AnimationState(ragdollAnimation.ref)
@@ -291,5 +351,5 @@ fun main() {
     // adjust ragdoll to start on specific animation state/frame (e.g., walking)
     // make skin stick to ragdoll physics
     // test physics for ragdoll -> looks very weird, and there is two parts for some reason :/
-    testSceneWithUI("Ragdoll Test", scene)
+    testSceneWithUI("Ragdoll Test", scene, RenderMode.LINES)
 }

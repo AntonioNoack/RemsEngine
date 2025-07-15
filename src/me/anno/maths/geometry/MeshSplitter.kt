@@ -24,7 +24,7 @@ import org.joml.Vector4f
  * */
 object MeshSplitter {
 
-    fun interface V3F {
+    fun interface Vec3fToFloat {
         fun call(v: Vector3f): Float
     }
 
@@ -88,7 +88,7 @@ object MeshSplitter {
         }
     }
 
-    class VertexCreator(val mesh: Mesh, val distance: V3F) {
+    class VertexCreator(val mesh: Mesh, val distance: Vec3fToFloat) {
 
         val positions = mesh.positions!!
         val normals = mesh.normals!!
@@ -223,7 +223,7 @@ object MeshSplitter {
      * result:
      *  [dist >= 0, dist>=0-surface, dist < 0, dist<0-surface]
      * */
-    fun split(mesh: Mesh, distance: V3F): List<Mesh> {
+    fun split(mesh: Mesh, distance: Vec3fToFloat): List<Mesh> {
         mesh.ensureNorTanUVs()
         val vc = VertexCreator(mesh, distance)
         val ms = MeshSplitter(vc)

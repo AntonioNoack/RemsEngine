@@ -43,6 +43,7 @@ open class Vector4f(
     fun set(v: Vector4i) = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
     fun set(v: Vector4d) = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
     fun set(v: Vector3f, w: Float) = set(v.x, v.y, v.z, w)
+    fun set(v: Vector3d, w: Double) = set(v.x, v.y, v.z, w)
     fun set(v: Vector3i, w: Float) = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), w)
     fun set(v: Vector2f, z: Float, w: Float) = set(v.x, v.y, z, w)
     fun set(v: Vector2i, z: Float, w: Float) = set(v.x.toFloat(), v.y.toFloat(), z, w)
