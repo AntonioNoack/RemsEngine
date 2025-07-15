@@ -266,9 +266,11 @@ open class Quaternionf(
     }
 
     fun setFromUnnormalized(mat: Matrix4d): Quaternionf {
-        return setFromUnnormalized(mat.m00.toFloat(), mat.m01.toFloat(), mat.m02.toFloat(),
+        return setFromUnnormalized(
+            mat.m00.toFloat(), mat.m01.toFloat(), mat.m02.toFloat(),
             mat.m10.toFloat(), mat.m11.toFloat(), mat.m12.toFloat(),
-            mat.m20.toFloat(), mat.m21.toFloat(), mat.m22.toFloat())
+            mat.m20.toFloat(), mat.m21.toFloat(), mat.m22.toFloat()
+        )
     }
 
     fun setFromUnnormalized(mat: Matrix4x3f): Quaternionf {
@@ -602,12 +604,7 @@ open class Quaternionf(
         val y = -b.y * invNorm
         val z = -b.z * invNorm
         val w = b.w * invNorm
-        return dst.set(
-            this.w * x + this.x * w + this.y * z - this.z * y,
-            this.w * y - this.x * z + this.y * w + this.z * x,
-            this.w * z + this.x * y - this.y * x + this.z * w,
-            this.w * w - this.x * x - this.y * y - this.z * z
-        )
+        return applyTransform(x, y, z, w, dst)
     }
 
     @JvmOverloads
@@ -643,12 +640,7 @@ open class Quaternionf(
         val x = sx * cycz + cx * sysz
         val y = cx * sycz - sx * cysz
         val z = cx * cysz + sx * sycz
-        return dst.set(
-            this.w * x + this.x * w + this.y * z - this.z * y,
-            this.w * y - this.x * z + this.y * w + this.z * x,
-            this.w * z + this.x * y - this.y * x + this.z * w,
-            this.w * w - this.x * x - this.y * y - this.z * z
-        )
+        return applyTransform(x, y, z, w, dst)
     }
 
     @JvmOverloads
@@ -667,12 +659,7 @@ open class Quaternionf(
         val x = sx * cycz - cx * sysz
         val y = cx * sycz + sx * cysz
         val z = cx * cysz - sx * sycz
-        return dst.set(
-            this.w * x + this.x * w + this.y * z - this.z * y,
-            this.w * y - this.x * z + this.y * w + this.z * x,
-            this.w * z + this.x * y - this.y * x + this.z * w,
-            this.w * w - this.x * x - this.y * y - this.z * z
-        )
+        return applyTransform(x, y, z, w, dst)
     }
 
     @JvmOverloads
@@ -691,12 +678,7 @@ open class Quaternionf(
         val y = yy * cz - yx * sz
         val z = yw * sz - yz * cz
         val w = yw * cz + yz * sz
-        return dst.set(
-            this.w * x + this.x * w + this.y * z - this.z * y,
-            this.w * y - this.x * z + this.y * w + this.z * x,
-            this.w * z + this.x * y - this.y * x + this.z * w,
-            this.w * w - this.x * x - this.y * y - this.z * z
-        )
+        return applyTransform(x, y, z, w, dst)
     }
 
     fun getEulerAnglesXYZ(eulerAngles: Vector3f): Vector3f {
@@ -1008,59 +990,39 @@ open class Quaternionf(
             y = ((upnZ + dirnY) * t).toFloat()
             w = ((upnX - leftY) * t).toFloat()
         }
-        return dst.set(
-            this.w * x + this.x * w + this.y * z - this.z * y,
-            this.w * y - this.x * z + this.y * w + this.z * x,
-            this.w * z + this.x * y - this.y * x + this.z * w,
-            this.w * w - this.x * x - this.y * y - this.z * z
-        )
+        return applyTransform(x, y, z, w, dst)
     }
 
     fun rotationTo(
         fromDirX: Float, fromDirY: Float, fromDirZ: Float,
         toDirX: Float, toDirY: Float, toDirZ: Float
     ): Quaternionf {
-        val fn = JomlMath.invsqrt(fromDirX * fromDirX + fromDirY * fromDirY + fromDirZ * fromDirZ)
-        val tn = JomlMath.invsqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ)
-        val fx = fromDirX * fn
-        val fy = fromDirY * fn
-        val fz = fromDirZ * fn
-        val tx = toDirX * tn
-        val ty = toDirY * tn
-        val tz = toDirZ * tn
-        val dot = fx * tx + fy * ty + fz * tz
-        var x: Float
-        var y: Float
-        var z: Float
-        val w: Float
-        if (dot < -0.999999f) {
-            x = fy
-            y = -fx
-            z = 0f
-            if (fy * fy + y * y == 0f) {
+        val fromLenSq = Vector3f.lengthSquared(fromDirX, fromDirY, fromDirZ)
+        val toLenSq = Vector3f.lengthSquared(toDirX, toDirY, toDirZ)
+        val invLenFactor = sqrt(fromLenSq * toLenSq) // ^4 -> 1/^2
+        val dot = (fromDirX * toDirX + fromDirY * toDirY + fromDirZ * toDirZ)
+        if (dot < -0.999999 * invLenFactor) {
+            val fn = JomlMath.invsqrt(fromLenSq)
+            val fx = fromDirX * fn
+            val fy = fromDirY * fn
+            val fz = fromDirZ * fn
+            // from and to are opposite to each other ->
+            //  there's multiple solutions, pick any
+            var x = fy
+            var y = -fx
+            var z = 0f
+            if (fy * fy + fx * fx == 0f) {
                 x = 0f
                 y = fz
                 z = -fy
             }
-            this.x = x
-            this.y = y
-            this.z = z
-            this.w = 0f
+            set(x, y, z, 0f)
         } else {
-            val sd2 = sqrt((1f + dot) * 2f)
-            val isd2 = 1f / sd2
-            val cx = fy * tz - fz * ty
-            val cy = fz * tx - fx * tz
-            val cz = fx * ty - fy * tx
-            x = cx * isd2
-            y = cy * isd2
-            z = cz * isd2
-            w = sd2 * 0.5f
-            val n2 = JomlMath.invsqrt(x * x + y * y + z * z + w * w)
-            this.x = x * n2
-            this.y = y * n2
-            this.z = z * n2
-            this.w = w * n2
+            val cx = fromDirY * toDirZ - fromDirZ * toDirY
+            val cy = fromDirZ * toDirX - fromDirX * toDirZ
+            val cz = fromDirX * toDirY - fromDirY * toDirX
+            set(cx, cy, cz, invLenFactor + dot)
+                .normalize()
         }
         return this
     }
@@ -1071,60 +1033,14 @@ open class Quaternionf(
 
     @JvmOverloads
     fun rotateTo(
-        fromDirX: Float,
-        fromDirY: Float,
-        fromDirZ: Float,
-        toDirX: Float,
-        toDirY: Float,
-        toDirZ: Float,
-        dst: Quaternionf = this
+        fromDirX: Float, fromDirY: Float, fromDirZ: Float,
+        toDirX: Float, toDirY: Float, toDirZ: Float, dst: Quaternionf = this
     ): Quaternionf {
-        val fn = JomlMath.invsqrt(fromDirX * fromDirX + fromDirY * fromDirY + fromDirZ * fromDirZ)
-        val tn = JomlMath.invsqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ)
-        val fx = fromDirX * fn
-        val fy = fromDirY * fn
-        val fz = fromDirZ * fn
-        val tx = toDirX * tn
-        val ty = toDirY * tn
-        val tz = toDirZ * tn
-        val dot = fx * tx + fy * ty + fz * tz
-        var x: Float
-        var y: Float
-        var z: Float
-        var w: Float
-        if (dot < -0.999999f) {
-            x = fy
-            y = -fx
-            z = 0f
-            w = 0f
-            if (fy * fy + y * y == 0f) {
-                x = 0f
-                y = fz
-                z = -fy
-                w = 0f
-            }
-        } else {
-            val sd2 = sqrt((1f + dot) * 2f)
-            val isd2 = 1f / sd2
-            val cx = fy * tz - fz * ty
-            val cy = fz * tx - fx * tz
-            val cz = fx * ty - fy * tx
-            x = cx * isd2
-            y = cy * isd2
-            z = cz * isd2
-            w = sd2 * 0.5f
-            val n2 = JomlMath.invsqrt(x * x + y * y + z * z + w * w)
-            x *= n2
-            y *= n2
-            z *= n2
-            w *= n2
-        }
-        return dst.set(
-            this.w * x + this.x * w + this.y * z - this.z * y,
-            this.w * y - this.x * z + this.y * w + this.z * x,
-            this.w * z + this.x * y - this.y * x + this.z * w,
-            this.w * w - this.x * x - this.y * y - this.z * z
-        )
+        val (tx, ty, tz, tw) = this // backup in case this === dst
+        dst.rotationTo(fromDirX, fromDirY, fromDirZ, toDirX, toDirY, toDirZ)
+        val (rx, ry, rz, rw) = dst // backup of rotationTo-results
+        return dst.set(tx, ty, tz, tw) // set dst to original this
+            .applyTransform(rx, ry, rz, rw, dst)  // then apply the new transform
     }
 
     fun rotateTo(fromDir: Vector3f, toDir: Vector3f, dst: Quaternionf): Quaternionf {
@@ -1198,6 +1114,15 @@ open class Quaternionf(
             w * ry - x * rz + y * rw + z * rx,
             w * rz + x * ry - y * rx + z * rw,
             w * rw - x * rx - y * ry - z * rz
+        )
+    }
+
+    private fun applyTransform(x: Float, y: Float, z: Float, w: Float, dst: Quaternionf): Quaternionf {
+        return dst.set(
+            this.w * x + this.x * w + this.y * z - this.z * y,
+            this.w * y - this.x * z + this.y * w + this.z * x,
+            this.w * z + this.x * y - this.y * x + this.z * w,
+            this.w * w - this.x * x - this.y * y - this.z * z
         )
     }
 

@@ -528,12 +528,7 @@ open class Quaterniond(
         val y = -b.y * invNorm
         val z = -b.z * invNorm
         val w = b.w * invNorm
-        return dst.set(
-            this.w * x + this.x * w + this.y * z - this.z * y,
-            this.w * y - this.x * z + this.y * w + this.z * x,
-            this.w * z + this.x * y - this.y * x + this.z * w,
-            this.w * w - this.x * x - this.y * y - this.z * z
-        )
+        return applyTransform(x, y, z, w, dst)
     }
 
     @JvmOverloads
@@ -804,12 +799,7 @@ open class Quaterniond(
             y = (upnZ + dirnY) * t
             w = (upnX - leftY) * t
         }
-        return dst.set(
-            this.w * x + this.x * w + this.y * z - this.z * y,
-            this.w * y - this.x * z + this.y * w + this.z * x,
-            this.w * z + this.x * y - this.y * x + this.z * w,
-            this.w * w - this.x * x - this.y * y - this.z * z
-        )
+        return applyTransform(x, y, z, w, dst)
     }
 
     override fun toString(): String {
@@ -849,47 +839,32 @@ open class Quaterniond(
         fromDirX: Double, fromDirY: Double, fromDirZ: Double,
         toDirX: Double, toDirY: Double, toDirZ: Double
     ): Quaterniond {
-        val fn = JomlMath.invsqrt(fromDirX * fromDirX + fromDirY * fromDirY + fromDirZ * fromDirZ)
-        val tn = JomlMath.invsqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ)
-        val fx = fromDirX * fn
-        val fy = fromDirY * fn
-        val fz = fromDirZ * fn
-        val tx = toDirX * tn
-        val ty = toDirY * tn
-        val tz = toDirZ * tn
-        val dot = fx * tx + fy * ty + fz * tz
-        var x: Double
-        var y: Double
-        var z: Double
-        val w: Double
-        if (dot < -0.999999) {
-            x = fy
-            y = -fx
-            z = 0.0
-            if (fy * fy + y * y == 0.0) {
+        val fromLenSq = Vector3d.lengthSquared(fromDirX, fromDirY, fromDirZ)
+        val toLenSq = Vector3d.lengthSquared(toDirX, toDirY, toDirZ)
+        val invLenFactor = sqrt(fromLenSq * toLenSq) // ^4 -> 1/^2
+        val dot = (fromDirX * toDirX + fromDirY * toDirY + fromDirZ * toDirZ)
+        if (dot < -0.999999 * invLenFactor) {
+            val fn = JomlMath.invsqrt(fromLenSq)
+            val fx = fromDirX * fn
+            val fy = fromDirY * fn
+            val fz = fromDirZ * fn
+            // from and to are opposite to each other ->
+            //  there's multiple solutions, pick any
+            var x = fy
+            var y = -fx
+            var z = 0.0
+            if (fy * fy + fx * fx == 0.0) {
                 x = 0.0
                 y = fz
                 z = -fy
             }
-            this.x = x
-            this.y = y
-            this.z = z
-            this.w = 0.0
+            set(x, y, z, 0.0)
         } else {
-            val sd2 = sqrt((1.0 + dot) * 2.0)
-            val isd2 = 1.0 / sd2
-            val cx = fy * tz - fz * ty
-            val cy = fz * tx - fx * tz
-            val cz = fx * ty - fy * tx
-            x = cx * isd2
-            y = cy * isd2
-            z = cz * isd2
-            w = sd2 * 0.5
-            val n2 = JomlMath.invsqrt(x * x + y * y + z * z + w * w)
-            this.x = x * n2
-            this.y = y * n2
-            this.z = z * n2
-            this.w = w * n2
+            val cx = fromDirY * toDirZ - fromDirZ * toDirY
+            val cy = fromDirZ * toDirX - fromDirX * toDirZ
+            val cz = fromDirX * toDirY - fromDirY * toDirX
+            set(cx, cy, cz, invLenFactor + dot)
+                .normalize()
         }
         return this
     }
@@ -904,46 +879,14 @@ open class Quaterniond(
         toDirX: Double, toDirY: Double, toDirZ: Double,
         dst: Quaterniond = this
     ): Quaterniond {
-        val fn = JomlMath.invsqrt(fromDirX * fromDirX + fromDirY * fromDirY + fromDirZ * fromDirZ)
-        val tn = JomlMath.invsqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ)
-        val fx = fromDirX * fn
-        val fy = fromDirY * fn
-        val fz = fromDirZ * fn
-        val tx = toDirX * tn
-        val ty = toDirY * tn
-        val tz = toDirZ * tn
-        val dot = fx * tx + fy * ty + fz * tz
-        var x: Double
-        var y: Double
-        var z: Double
-        var w: Double
-        if (dot < -0.999999) {
-            x = fy
-            y = -fx
-            z = 0.0
-            w = 0.0
-            if (fy * fy + y * y == 0.0) {
-                x = 0.0
-                y = fz
-                z = -fy
-                w = 0.0
-            }
-        } else {
-            val sd2 = sqrt((1.0 + dot) * 2.0)
-            val isd2 = 1.0 / sd2
-            val cx = fy * tz - fz * ty
-            val cy = fz * tx - fx * tz
-            val cz = fx * ty - fy * tx
-            x = cx * isd2
-            y = cy * isd2
-            z = cz * isd2
-            w = sd2 * 0.5
-            val n2 = JomlMath.invsqrt(x * x + y * y + z * z + w * w)
-            x *= n2
-            y *= n2
-            z *= n2
-            w *= n2
-        }
+        val (tx, ty, tz, tw) = this // backup in case this === dst
+        dst.rotationTo(fromDirX, fromDirY, fromDirZ, toDirX, toDirY, toDirZ)
+        val (rx, ry, rz, rw) = dst // backup of rotationTo-results
+        return dst.set(tx, ty, tz, tw) // set dst to original this
+            .applyTransform(rx, ry, rz, rw, dst)  // then apply the new transform
+    }
+
+    private fun applyTransform(x: Double, y: Double, z: Double, w: Double, dst: Quaterniond): Quaterniond {
         return dst.set(
             this.w * x + this.x * w + this.y * z - this.z * y,
             this.w * y - this.x * z + this.y * w + this.z * x,
@@ -1054,12 +997,7 @@ open class Quaterniond(
         val x = sx * cycz + cx * sysz
         val y = cx * sycz - sx * cysz
         val z = cx * cysz + sx * sycz
-        return dst.set(
-            this.w * x + this.x * w + this.y * z - this.z * y,
-            this.w * y - this.x * z + this.y * w + this.z * x,
-            this.w * z + this.x * y - this.y * x + this.z * w,
-            this.w * w - this.x * x - this.y * y - this.z * z
-        )
+        return applyTransform(x, y, z, w, dst)
     }
 
     @JvmOverloads
@@ -1078,12 +1016,7 @@ open class Quaterniond(
         val x = sx * cycz - cx * sysz
         val y = cx * sycz + sx * cysz
         val z = cx * cysz - sx * sycz
-        return dst.set(
-            this.w * x + this.x * w + this.y * z - this.z * y,
-            this.w * y - this.x * z + this.y * w + this.z * x,
-            this.w * z + this.x * y - this.y * x + this.z * w,
-            this.w * w - this.x * x - this.y * y - this.z * z
-        )
+        return applyTransform(x, y, z, w, dst)
     }
 
     @JvmOverloads
@@ -1102,12 +1035,7 @@ open class Quaterniond(
         val y = yy * cz - yx * sz
         val z = yw * sz - yz * cz
         val w = yw * cz + yz * sz
-        return dst.set(
-            this.w * x + this.x * w + this.y * z - this.z * y,
-            this.w * y - this.x * z + this.y * w + this.z * x,
-            this.w * z + this.x * y - this.y * x + this.z * w,
-            this.w * w - this.x * x - this.y * y - this.z * z
-        )
+        return applyTransform(x, y, z, w, dst)
     }
 
     fun getEulerAnglesXYZ(eulerAngles: Vector3d): Vector3d {

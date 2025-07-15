@@ -2,8 +2,6 @@ package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.linearmath.QuaternionUtil.quatRotate
-import com.bulletphysics.linearmath.QuaternionUtil.shortestArcQuat
 import com.bulletphysics.linearmath.ScalarUtil
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
@@ -196,8 +194,8 @@ class ConeTwistConstraint : TypedConstraint {
             rbBFrame.basis.getColumn(1, b2Axis2)
             rigidBodyB.getCenterOfMassTransform(tmpTrans).basis.transform(b2Axis2)
 
-            val rotationArc = shortestArcQuat(b2Axis1, b1Axis1, Stack.newQuat())
-            val twistRef = quatRotate(rotationArc, b2Axis2, Stack.newVec())
+            val rotationArc = Stack.newQuat().rotationTo(b2Axis1, b1Axis1)
+            val twistRef = rotationArc.transform(b2Axis2, Stack.newVec())
             val twist = ScalarUtil.atan2Fast(twistRef.dot(b1Axis3), twistRef.dot(b1Axis2))
 
             val lockedFreeFactor = if (twistSpan > 0.05f) limitSoftness else 0.0

@@ -136,7 +136,7 @@ class QuaternionTests {
         transformManually: (V) -> V
     ) {
         val random = Random(1234)
-        for (i in 0 until 20) {
+        repeat(20) {
             val a = createVector()
             val b = createVector()
             for (j in 0 until min(a.numComponents, 3)) {
@@ -333,5 +333,39 @@ class QuaternionTests {
         assertEquals(baseline.transform(vec, Vector3d()), baseline.transformUnit(vec, Vector3d()), 1e-6)
         assertEquals(baseline.transform(vec, Vector3d()), normal.transformInverse(vec, Vector3d()), 1e-6)
         assertEquals(baseline.transformUnit(vec, Vector3d()), normal.transformInverseUnit(vec, Vector3d()), 1e-6)
+    }
+
+    @Test
+    fun testRotateToF() {
+        val rnd = Random(1345)
+        val a = Vector3f()
+        val b = Vector3f()
+        val c = Vector3f()
+        val q = Quaternionf()
+        repeat(1000) {
+            a.set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f).normalize()
+            b.set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f).normalize()
+            q.rotationTo(a, b)
+            assertEquals(0f, q.transform(a, c).distanceSquared(b), 1e-8f)
+            q.rotateTo(b, a)
+            assertEquals(0f, q.angle(), 2e-3f)
+        }
+    }
+
+    @Test
+    fun testRotateToD() {
+        val rnd = Random(1345)
+        val a = Vector3d()
+        val b = Vector3d()
+        val c = Vector3d()
+        val q = Quaterniond()
+        repeat(1000) {
+            a.set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5).normalize()
+            b.set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5).normalize()
+            q.rotationTo(a, b)
+            assertEquals(0.0, q.transform(a, c).distanceSquared(b), 1e-16)
+            q.rotateTo(b, a)
+            assertEquals(0.0, q.angle(), 1e-7)
+        }
     }
 }

@@ -3,8 +3,6 @@ package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.linearmath.QuaternionUtil.quatRotate
-import com.bulletphysics.linearmath.QuaternionUtil.shortestArcQuat
 import com.bulletphysics.linearmath.ScalarUtil.atan2Fast
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
@@ -90,8 +88,8 @@ class HingeConstraint : TypedConstraint {
         rbAFrame.basis.setRow(1, rbAxisA1.y, rbAxisA2.y, axisInA.y)
         rbAFrame.basis.setRow(2, rbAxisA1.z, rbAxisA2.z, axisInA.z)
 
-        val rotationArc = shortestArcQuat(axisInA, axisInB, Stack.newQuat())
-        val rbAxisB1 = quatRotate(rotationArc, rbAxisA1, Stack.newVec())
+        val rotationArc = Stack.newQuat().rotationTo(axisInA, axisInB)
+        val rbAxisB1 = rotationArc.transform(rbAxisA1, Stack.newVec())
         val rbAxisB2 = Stack.newVec()
         axisInB.cross(rbAxisB1, rbAxisB2)
 

@@ -1,10 +1,8 @@
 package com.bulletphysics.linearmath
 
 import com.bulletphysics.BulletGlobals
-import com.bulletphysics.linearmath.QuaternionUtil.getAngle
 import cz.advel.stack.Stack
 import org.joml.Vector3d
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -96,7 +94,7 @@ object TransformUtil {
         // floating point inaccuracy can lead to w component > 1..., which breaks
         dorn.normalize()
 
-        val result = getAngle(dorn)
+        val result = dorn.angle()
         axis.set(dorn.x, dorn.y, dorn.z)
 
         // check for axis length
@@ -115,7 +113,7 @@ object TransformUtil {
 
     fun calculateDiffAxisAngle(transform0: Transform, transform1: Transform): Double {
         val tmp = Stack.newMat()
-        transform0.basis.invert(tmp)
+        transform0.basis.transpose(tmp)
 
         val dmat = Stack.newMat()
         transform1.basis.mul(tmp, dmat)
@@ -126,7 +124,7 @@ object TransformUtil {
         // floating point inaccuracy can lead to w component > 1..., which breaks
         dorn.normalize()
 
-        val result = getAngle(dorn)
+        val result = dorn.angle()
 
         Stack.subMat(2)
         Stack.subQuat(1)
