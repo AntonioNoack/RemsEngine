@@ -41,8 +41,9 @@ class Transform {
         origin.set(0.0, 0.0, 0.0)
     }
 
-    fun transform(src: Vector3d, dst: Vector3d = src) {
+    fun transform(src: Vector3d, dst: Vector3d = src): Vector3d {
         basis.transform(src, dst).add(origin)
+        return dst
     }
 
     fun transformDirection(src: Vector3d, dst: Vector3d = src) {

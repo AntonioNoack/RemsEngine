@@ -2,15 +2,10 @@ package com.bulletphysics.collision.narrowphase
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.shapes.ConvexShape
-import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.util.ObjectStackList
-import com.bulletphysics.util.setCross
-import com.bulletphysics.util.setNegate
-import com.bulletphysics.util.setNormalize
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
+import me.anno.utils.types.Triangles.subCross
 import org.joml.Vector3d
 import java.util.Arrays
 import kotlin.math.abs
@@ -124,9 +119,9 @@ class GjkEpaSolver {
 
         fun localSupport(d: Vector3d, i: Int, out: Vector3d): Vector3d {
             val dir = Stack.newVec()
-            val transform = if(i == 0) transform0 else transform1
+            val transform = if (i == 0) transform0 else transform1
             val rotation = transform.basis
-            MatrixUtil.transposeTransform(dir, d, rotation)
+            rotation.transformTranspose(d, dir)
 
             val shape = if (i == 0) shape0 else shape1
             shape.localGetSupportingVertex(dir, out)
@@ -146,7 +141,7 @@ class GjkEpaSolver {
             tmp.negate()
             val tmp2 = localSupport(tmp, 1, Stack.newVec())
 
-            ray.origin.setSub(tmp1, tmp2)
+            tmp1.sub(tmp2, ray.origin)
             ray.origin.fma(margin, direction)
             Stack.subVec(3)
         }
@@ -173,9 +168,9 @@ class GjkEpaSolver {
         fun solveSimplex2(ao: Vector3d, ab: Vector3d): Boolean {
             if (ab.dot(ao) >= 0) {
                 val area = Stack.borrowVec()
-                area.setCross(ab, ao)
+                ab.cross(ao, area)
                 if (area.lengthSquared() > GJK_SQ_IN_SIMPLEX_EPSILON) {
-                    ray.setCross(area, ab)
+                    area.cross(ab, ray)
                 } else {
                     return true
                 }
@@ -189,7 +184,7 @@ class GjkEpaSolver {
 
         fun solveSimplex3(ao: Vector3d, ab: Vector3d, ac: Vector3d): Boolean {
             val tmp = Stack.newVec()
-            tmp.setCross(ab, ac)
+            ab.cross(ac, tmp)
             val result = solveSimplex3a(ao, ab, ac, tmp)
             Stack.subVec(1)
             return result
@@ -199,10 +194,10 @@ class GjkEpaSolver {
             // TODO: optimize
 
             val tmp = Stack.newVec()
-            tmp.setCross(cabc, ab)
+            cabc.cross(ab, tmp)
 
             val tmp2 = Stack.newVec()
-            tmp2.setCross(cabc, ac)
+            cabc.cross(ac, tmp2)
 
             val result: Boolean
             if (tmp.dot(ao) < -GJK_IN_SIMPLEX_EPSILON) {
@@ -220,7 +215,7 @@ class GjkEpaSolver {
                     if (d > 0) {
                         ray.set(cabc)
                     } else {
-                        ray.setNegate(cabc)
+                        cabc.negate(ray)
 
                         val swapTmp = Ray()
                         swapTmp.set(simplex[0])
@@ -242,13 +237,13 @@ class GjkEpaSolver {
             val crs = Stack.newVec()
 
             val tmp = Stack.newVec()
-            tmp.setCross(ab, ac)
+            ab.cross(ac, tmp)
 
             val tmp2 = Stack.newVec()
-            tmp2.setCross(ac, ad)
+            ac.cross(ad, tmp2)
 
             val tmp3 = Stack.newVec()
-            tmp3.setCross(ad, ab)
+            ad.cross(ab, tmp3)
 
             val result: Boolean
             if (tmp.dot(ao) > GJK_IN_SIMPLEX_EPSILON) {
@@ -298,7 +293,7 @@ class GjkEpaSolver {
             Arrays.fill(table, null)
 
             fetchSupport()
-            ray.setNegate(simplex[0].origin)
+            simplex[0].origin.negate(ray)
             while (iterations < GJK_MAX_ITERATIONS) {
                 val rl = ray.length()
                 ray.mul(1.0 / (if (rl > 0.0) rl else 1.0))
@@ -306,21 +301,21 @@ class GjkEpaSolver {
                     var found = false
                     when (order) {
                         1 -> {
-                            tmp1.setNegate(simplex[1].origin)
-                            tmp2.setSub(simplex[0].origin, simplex[1].origin)
+                            simplex[1].origin.negate(tmp1)
+                            simplex[0].origin.sub(simplex[1].origin, tmp2)
                             found = solveSimplex2(tmp1, tmp2)
                         }
                         2 -> {
-                            tmp1.setNegate(simplex[2].origin)
-                            tmp2.setSub(simplex[1].origin, simplex[2].origin)
-                            tmp3.setSub(simplex[0].origin, simplex[2].origin)
+                            simplex[2].origin.negate(tmp1)
+                            simplex[1].origin.sub(simplex[2].origin, tmp2)
+                            simplex[0].origin.sub(simplex[2].origin, tmp3)
                             found = solveSimplex3(tmp1, tmp2, tmp3)
                         }
                         3 -> {
-                            tmp1.setNegate(simplex[3].origin)
-                            tmp2.setSub(simplex[2].origin, simplex[3].origin)
-                            tmp3.setSub(simplex[1].origin, simplex[3].origin)
-                            tmp4.setSub(simplex[0].origin, simplex[3].origin)
+                            simplex[3].origin.negate(tmp1)
+                            simplex[2].origin.sub(simplex[3].origin, tmp2)
+                            simplex[1].origin.sub(simplex[3].origin, tmp3)
+                            simplex[0].origin.sub(simplex[3].origin, tmp4)
                             found = solveSimplex4(tmp1, tmp2, tmp3, tmp4)
                         }
                     }
@@ -340,31 +335,27 @@ class GjkEpaSolver {
         }
 
         fun encloseOrigin(): Boolean {
-            val tmp = Stack.newVec()
-            val tmp1 = Stack.newVec()
-            val tmp2 = Stack.newVec()
-
             when (order) {
-                0 -> {}
                 1 -> {
+                    val tmp = Stack.newVec()
                     val ab = Stack.newVec()
-                    ab.setSub(simplex[1].origin, simplex[0].origin)
+                    simplex[1].origin.sub(simplex[0].origin, ab)
 
                     val b = arrayOf(Stack.newVec(), Stack.newVec(), Stack.newVec())
                     b[0].set(1.0, 0.0, 0.0)
                     b[1].set(0.0, 1.0, 0.0)
                     b[2].set(0.0, 0.0, 1.0)
 
-                    b[0].setCross(ab, b[0])
-                    b[1].setCross(ab, b[1])
-                    b[2].setCross(ab, b[2])
+                    ab.cross(b[0], b[0])
+                    ab.cross(b[1], b[1])
+                    ab.cross(b[2], b[2])
 
                     val m0 = b[0].lengthSquared()
                     val m1 = b[1].lengthSquared()
                     val m2 = b[2].lengthSquared()
 
                     val tmpQuat = Stack.newQuat()
-                    tmp.setNormalize(ab)
+                    ab.normalize(tmp)
                     tmpQuat.setAngleAxis(TAU / 3.0, tmp)
 
                     val r = Stack.newMat()
@@ -372,47 +363,39 @@ class GjkEpaSolver {
 
                     val w = Stack.newVec()
                     w.set(b[if (m0 > m1) if (m0 > m2) 0 else 2 else if (m1 > m2) 1 else 2])
-
-                    tmp.setNormalize(w)
+                    w.normalize(tmp)
                     support(tmp, simplex[4])
                     r.transform(w)
-                    tmp.setNormalize(w)
+                    w.normalize(tmp)
                     support(tmp, simplex[2])
-                    r.transform(w)
-                    tmp.setNormalize(w)
+                    r.transform(w).normalize(tmp)
                     support(tmp, simplex[3])
                     r.transform(w)
                     order = 4
 
-                    Stack.subVec(8)
+                    Stack.subVec(6)
                     Stack.subMat(1)
                     Stack.subQuat(1)
 
                     return true
                 }
                 2 -> {
-                    tmp1.setSub(simplex[1].origin, simplex[0].origin)
-                    tmp2.setSub(simplex[2].origin, simplex[0].origin)
                     val n = Stack.newVec()
-                    n.setCross(tmp1, tmp2)
+                    subCross(simplex[0].origin, simplex[1].origin, simplex[2].origin, n)
                     n.normalize()
 
                     support(n, simplex[3])
 
-                    tmp.setNegate(n)
-                    support(tmp, simplex[4])
+                    n.negate()
+                    support(n, simplex[4])
                     order = 4
 
-                    Stack.subVec(4)
+                    Stack.subVec(1)
                     return true
                 }
-                3, 4 -> {
-                    Stack.subVec(3)
-                    return true
-                }
+                3, 4 -> return true
+                else -> return false
             }
-            Stack.subVec(3)
-            return false
         }
     }
 
@@ -449,21 +432,21 @@ class GjkEpaSolver {
             val tmp2 = Stack.newVec()
 
             val o = Stack.newVec()
-            o.setScale(-face.depth, face.n)
+            face.n.mul(-face.depth, o)
 
-            tmp1.setSub(face.vertices[0]!!.origin, o)
-            tmp2.setSub(face.vertices[1]!!.origin, o)
-            tmp.setCross(tmp1, tmp2)
+            face.vertices[0]!!.origin.sub(o, tmp1)
+            face.vertices[1]!!.origin.sub(o, tmp2)
+            tmp1.cross(tmp2, tmp)
             val a0 = tmp.length()
 
-            tmp1.setSub(face.vertices[1]!!.origin, o)
-            tmp2.setSub(face.vertices[2]!!.origin, o)
-            tmp.setCross(tmp1, tmp2)
+            face.vertices[1]!!.origin.sub(o, tmp1)
+            face.vertices[2]!!.origin.sub(o, tmp2)
+            tmp1.cross(tmp2, tmp)
             val a1 = tmp.length()
 
-            tmp1.setSub(face.vertices[2]!!.origin, o)
-            tmp2.setSub(face.vertices[0]!!.origin, o)
-            tmp.setCross(tmp1, tmp2)
+            face.vertices[2]!!.origin.sub(o, tmp1)
+            face.vertices[0]!!.origin.sub(o, tmp2)
+            tmp1.cross(tmp2, tmp)
             val a2 = tmp.length()
 
             val sm = a0 + a1 + a2
@@ -495,26 +478,24 @@ class GjkEpaSolver {
             val tmp2 = Stack.newVec()
             val tmp3 = Stack.newVec()
 
-            val nrm = Stack.newVec()
-            tmp1.setSub(b.origin, a.origin)
-            tmp2.setSub(c.origin, a.origin)
-            nrm.setCross(tmp1, tmp2)
+            val normal = Stack.newVec()
+            subCross(a.origin, b.origin, c.origin, normal)
 
-            val len = nrm.length()
+            val len = normal.length()
 
-            tmp1.setCross(a.origin, b.origin)
-            tmp2.setCross(b.origin, c.origin)
-            tmp3.setCross(c.origin, a.origin)
+            a.origin.cross(b.origin, tmp1)
+            b.origin.cross(c.origin, tmp2)
+            c.origin.cross(a.origin, tmp3)
 
-            val valid = (tmp1.dot(nrm) >= -EPA_IN_FACE_EPSILON) &&
-                    (tmp2.dot(nrm) >= -EPA_IN_FACE_EPSILON) &&
-                    (tmp3.dot(nrm) >= -EPA_IN_FACE_EPSILON)
+            val valid = (tmp1.dot(normal) >= -EPA_IN_FACE_EPSILON) &&
+                    (tmp2.dot(normal) >= -EPA_IN_FACE_EPSILON) &&
+                    (tmp3.dot(normal) >= -EPA_IN_FACE_EPSILON)
 
             f.vertices[0] = a
             f.vertices[1] = b
             f.vertices[2] = c
             f.mark = 0
-            f.n.setScale(1.0 / (if (len > 0.0) len else INFINITY), nrm)
+            normal.mul(1.0 / (if (len > 0.0) len else INFINITY), f.n)
             f.depth = max(0.0, -f.n.dot(a.origin))
             Stack.subVec(4)
             return valid
@@ -522,20 +503,20 @@ class GjkEpaSolver {
 
         fun newFace(a: Ray, b: Ray, c: Ray): Face {
             //Face pf = new Face();
-            val pf = stackFace.get()
-            if (set(pf, a, b, c)) {
+            val face = stackFace.get()
+            if (set(face, a, b, c)) {
                 if (root != null) {
-                    root!!.prev = pf
+                    root!!.prev = face
                 }
-                pf.prev = null
-                pf.next = root
-                root = pf
+                face.prev = null
+                face.next = root
+                root = face
                 ++nfaces
             } else {
-                pf.next = null
-                pf.prev = pf.next
+                face.next = null
+                face.prev = face.next
             }
-            return (pf)
+            return face
         }
 
         fun detach(face: Face) {
@@ -662,7 +643,7 @@ class GjkEpaSolver {
                 while (iterations < EPA_MAX_ITERATIONS) {
                     val bf = findBestFace()
                     if (bf != null) {
-                        tmp.setNegate(bf.n)
+                        bf.n.negate(tmp)
                         val w = support(tmp)
                         val d = bf.n.dot(w.origin) + bf.depth
                         bestFace = bf
@@ -696,7 +677,7 @@ class GjkEpaSolver {
                     for (i in 0..1) {
                         val s = if (i != 0) -1.0 else 1.0
                         for (j in 0..2) {
-                            tmp.setScale(s, bestFace.vertices[j]!!.direction)
+                            bestFace.vertices[j]!!.direction.mul(s, tmp)
                             gjk.localSupport(tmp, i, features[i * 3 + j])
                         }
                     }

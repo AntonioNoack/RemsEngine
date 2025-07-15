@@ -179,9 +179,12 @@ object LineShapes {
     }
 
     fun drawBox(entity: Entity?, color: Int, hx: Double, hy: Double, hz: Double) {
+        drawBox(getDrawMatrix(entity), color, hx, hy, hz)
+    }
+
+    fun drawBox(transform: Matrix4x3?, color: Int, hx: Double, hy: Double, hz: Double) {
         // iterate over all lines:
         // all bits that can flip
-        val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
         for (i in 0 until 8) {
             val position = positions[i].set(

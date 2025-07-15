@@ -6,8 +6,6 @@ import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.setInterpolate3
 import cz.advel.stack.Stack
-import com.bulletphysics.util.setNegate
-import com.bulletphysics.util.setSub
 
 /**
  * SubsimplexConvexCast implements Gino van den Bergens' paper
@@ -34,30 +32,29 @@ class SubSimplexConvexCast(
 
         val linVelA = Stack.newVec()
         val linVelB = Stack.newVec()
-        linVelA.setSub(toA.origin, fromA.origin)
-        linVelB.setSub(toB.origin, fromB.origin)
+        toA.origin.sub(fromA.origin, linVelA)
+        toB.origin.sub(fromB.origin, linVelB)
 
         var lambda = 0.0
 
         val interpolatedTransA = Stack.newTrans(fromA)
         val interpolatedTransB = Stack.newTrans(fromB)
 
-        // take relative motion
-        val r = Stack.newVec()
-        r.setSub(linVelA, linVelB)
+        val relVelocity = Stack.newVec()
+        linVelA.sub(linVelB, relVelocity)
 
         val v = Stack.newVec()
 
-        r.negate(tmp)
-        MatrixUtil.transposeTransform(tmp, tmp, fromA.basis)
+        relVelocity.negate(tmp)
+        fromA.basis.transformTranspose(tmp)
         val supVertexA = convexA.localGetSupportingVertex(tmp, Stack.newVec())
         fromA.transform(supVertexA)
 
-        MatrixUtil.transposeTransform(tmp, r, fromB.basis)
+        fromB.basis.transformTranspose(relVelocity, tmp)
         val supVertexB = convexB.localGetSupportingVertex(tmp, Stack.newVec())
         fromB.transform(supVertexB)
 
-        v.setSub(supVertexA, supVertexB)
+        supVertexA.sub(supVertexB, v)
 
         var maxIter: Int = MAX_ITERATIONS
 
@@ -67,10 +64,10 @@ class SubSimplexConvexCast(
         var dist2 = v.lengthSquared()
         val epsilon = 0.0001
         val w = Stack.newVec()
-        var VdotR: Double
 
         while ((dist2 > epsilon) && (maxIter--) != 0) {
-            tmp.setNegate(v)
+            // basic plane separation algorithm
+            v.negate(tmp)
             MatrixUtil.transposeTransform(tmp, tmp, interpolatedTransA.basis)
             convexA.localGetSupportingVertex(tmp, supVertexA)
             interpolatedTransA.transform(supVertexA)
@@ -79,30 +76,33 @@ class SubSimplexConvexCast(
             convexB.localGetSupportingVertex(tmp, supVertexB)
             interpolatedTransB.transform(supVertexB)
 
-            w.setSub(supVertexA, supVertexB)
-
-            val VdotW = v.dot(w)
+            supVertexA.sub(supVertexB, w)
 
             if (lambda > 1.0) {
+                Stack.subVec(8)
+                Stack.subTrans(2)
                 return false
             }
 
-            if (VdotW > 0.0) {
-                VdotR = v.dot(r)
-
-                if (VdotR >= -(BulletGlobals.FLT_EPSILON * BulletGlobals.FLT_EPSILON)) {
+            val depth = v.dot(w)
+            if (depth > 0.0) {
+                val VdotR = v.dot(relVelocity)
+                if (VdotR >= -BulletGlobals.FLT_EPSILON_SQ) {
+                    Stack.subVec(8)
+                    Stack.subTrans(2)
                     return false
                 } else {
-                    lambda = lambda - VdotW / VdotR
+                    lambda = lambda - depth / VdotR
                     // interpolate to next lambda
                     //	x = s + lambda * r;
                     setInterpolate3(interpolatedTransA.origin, fromA.origin, toA.origin, lambda)
                     setInterpolate3(interpolatedTransB.origin, fromB.origin, toB.origin, lambda)
                     // check next line
-                    w.setSub(supVertexA, supVertexB)
+                    supVertexA.sub(supVertexB, w)
                     n.set(v)
                 }
             }
+            
             simplexSolver.addVertex(w, supVertexA, supVertexB)
             if (simplexSolver.closest(v)) {
                 dist2 = v.lengthSquared()
@@ -113,7 +113,7 @@ class SubSimplexConvexCast(
             }
         }
 
-        // don't report a time of impact when moving 'away' from the hitnormal
+        // don't report a time of impact when moving 'away' from the hitNormal
         result.fraction = lambda
         if (n.lengthSquared() >= BulletGlobals.SIMD_EPSILON * BulletGlobals.SIMD_EPSILON) {
             n.normalize(result.normal)
@@ -122,12 +122,19 @@ class SubSimplexConvexCast(
         }
 
         // don't report time of impact for motion away from the contact normal (or causes minor penetration)
-        if (result.normal.dot(r) >= -result.allowedPenetration) return false
+        if (result.normal.dot(relVelocity) >= -result.allowedPenetration) {
+            Stack.subVec(8)
+            Stack.subTrans(2)
+            return false
+        }
 
         val hitA = Stack.newVec()
         val hitB = Stack.newVec()
         simplexSolver.computePoints(hitA, hitB)
         result.hitPoint.set(hitB)
+        
+        Stack.subVec(10)
+        Stack.subTrans(2)
         return true
     }
 

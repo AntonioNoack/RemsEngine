@@ -17,6 +17,7 @@ object BulletGlobals {
 
     // we may have to change that to the correct double value
     const val FLT_EPSILON: Double = 2.220446049250313E-16
+    const val FLT_EPSILON_SQ: Double = FLT_EPSILON * FLT_EPSILON
     const val SIMD_EPSILON: Double = FLT_EPSILON
 
     const val SIMD_TAU: Double = Math.PI * 2.0

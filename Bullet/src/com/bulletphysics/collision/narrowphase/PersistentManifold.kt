@@ -4,9 +4,8 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.closestAxis4
-import com.bulletphysics.util.setScale
-import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
+import me.anno.maths.Maths.sq
 
 /**
  * PersistentManifold is a contact point cache, it stays persistent as long as objects
@@ -134,21 +133,21 @@ class PersistentManifold {
         get() = BulletGlobals.contactBreakingThreshold
 
     fun getCacheEntry(newPoint: ManifoldPoint): Int {
-        var shortestDist = this.contactBreakingThreshold * this.contactBreakingThreshold
+        var shortestDist = sq(contactBreakingThreshold)
         val size = this.numContacts
         var nearestPoint = -1
         val diffA = Stack.newVec()
+        val newLocalPoint = newPoint.localPointA
         for (i in 0 until size) {
-            val mp = pointCache[i]
-
-            diffA.setSub(mp.localPointA, newPoint.localPointA)
-
+            pointCache[i].localPointA
+                .sub(newLocalPoint, diffA)
             val distToManiPoint = diffA.dot(diffA)
             if (distToManiPoint < shortestDist) {
                 shortestDist = distToManiPoint
                 nearestPoint = i
             }
         }
+        Stack.subVec(1)
         return nearestPoint
     }
 
@@ -205,12 +204,10 @@ class PersistentManifold {
         val cache = pointCache[insertIndex].userPersistentData
 
         pointCache[insertIndex].set(newPoint)
-
         pointCache[insertIndex].userPersistentData = cache
         pointCache[insertIndex].appliedImpulse = appliedImpulse
         pointCache[insertIndex].appliedImpulseLateral1 = appliedLateralImpulse1
         pointCache[insertIndex].appliedImpulseLateral2 = appliedLateralImpulse2
-
         pointCache[insertIndex].lifeTime = lifeTime
     }
 
@@ -258,9 +255,9 @@ class PersistentManifold {
                 removeContactPoint(i)
             } else {
                 // contact also becomes invalid when relative movement orthogonal to normal exceeds margin
-                tmp.setScale(manifoldPoint.distance, manifoldPoint.normalWorldOnB)
-                projectedPoint.setSub(manifoldPoint.positionWorldOnA, tmp)
-                projectedDifference.setSub(manifoldPoint.positionWorldOnB, projectedPoint)
+                manifoldPoint.normalWorldOnB.mul(manifoldPoint.distance, tmp)
+                manifoldPoint.positionWorldOnA.sub(tmp, projectedPoint)
+                manifoldPoint.positionWorldOnB.sub(projectedPoint, projectedDifference)
                 val distance2d = projectedDifference.dot(projectedDifference)
                 if (distance2d > this.contactBreakingThreshold * this.contactBreakingThreshold) {
                     removeContactPoint(i)
