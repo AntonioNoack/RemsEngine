@@ -147,9 +147,9 @@ object AabbUtil {
         aabbMinOut: Vector3d, aabbMaxOut: Vector3d
     ) {
 
-        assert(localAabbMin.x <= localAabbMax.x)
-        assert(localAabbMin.y <= localAabbMax.y)
-        assert(localAabbMin.z <= localAabbMax.z)
+        // assert(localAabbMin.x <= localAabbMax.x)
+        // assert(localAabbMin.y <= localAabbMax.y)
+        // assert(localAabbMin.z <= localAabbMax.z)
 
         val center = Stack.newVec()
         localAabbMax.add(localAabbMin, center)

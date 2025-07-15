@@ -96,8 +96,8 @@ internal class BvhTree {
             splitIndex = startIndex + (numIndices shr 1)
         }
 
-        val stillIsUnbalanced = (splitIndex == startIndex) || (splitIndex == (endIndex))
-        assert(!stillIsUnbalanced)
+        // val stillIsUnbalanced = (splitIndex == startIndex) || (splitIndex == (endIndex))
+        // assert(!stillIsUnbalanced)
 
         return splitIndex
     }

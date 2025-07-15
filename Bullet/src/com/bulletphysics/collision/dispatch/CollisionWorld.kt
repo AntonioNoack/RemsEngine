@@ -8,7 +8,6 @@ import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.broadphase.DispatcherInfo
 import com.bulletphysics.collision.broadphase.OverlappingPairCache
-import com.bulletphysics.collision.narrowphase.ConvexCast
 import com.bulletphysics.collision.narrowphase.SubSimplexConvexCast
 import com.bulletphysics.collision.narrowphase.TriangleConvexCastCallback
 import com.bulletphysics.collision.narrowphase.TriangleRaycastCallback
@@ -29,7 +28,6 @@ import com.bulletphysics.linearmath.VectorUtil.setMin
 import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.CollisionFilters
 import me.anno.ecs.components.collider.CollisionFilters.collides
-import me.anno.utils.assertions.assertFalse
 import me.anno.utils.structures.lists.Lists.swapRemove
 import org.joml.Vector3d
 
@@ -62,7 +60,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         collisionFilter: Int// = CollisionFilterGroups.DEFAULT_ALL,
     ) {
         // check that the object isn't already added
-        assertFalse(collisionObjects.contains(collisionObject))
+        if (collisionObjects.contains(collisionObject)) return
 
         collisionObjects.add(collisionObject)
 

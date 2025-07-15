@@ -72,38 +72,33 @@ class GImpactMeshShape(meshInterface: StridingMeshInterface) : GImpactShapeInter
         get() = 0
 
     override fun childrenHasTransform(): Boolean {
-        assert(false)
         return false
     }
 
     override fun needsRetrieveTriangles(): Boolean {
-        assert(false)
         return false
     }
 
     override fun needsRetrieveTetrahedrons(): Boolean {
-        assert(false)
         return false
     }
 
     override fun getBulletTriangle(primIndex: Int, triangle: TriangleShapeEx) {
-        assert(false)
+        // not implemented
     }
 
     override fun getBulletTetrahedron(primIndex: Int, tetrahedron: TetrahedronShapeEx) {
-        assert(false)
+        // not implemented
     }
 
     override fun lockChildShapes() {
-        assert(false)
     }
 
     override fun unlockChildShapes() {
-        assert(false)
     }
 
     override fun getChildAabb(childIndex: Int, t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
-        assert(false)
+        // doesn't have children
     }
 
     override fun getChildShape(index: Int): CollisionShape {

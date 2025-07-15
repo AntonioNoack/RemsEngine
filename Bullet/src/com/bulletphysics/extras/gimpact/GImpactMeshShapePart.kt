@@ -104,7 +104,7 @@ class GImpactMeshShapePart : GImpactShapeInterface {
     }
 
     override fun getBulletTetrahedron(primIndex: Int, tetrahedron: TetrahedronShapeEx) {
-        assert(false)
+        // not supported/implemented
     }
 
     val vertexCount: Int
