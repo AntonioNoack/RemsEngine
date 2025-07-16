@@ -15,7 +15,7 @@ fun main() {
     var max = 0
 
     repeat(12) {
-        Threads.start("SemaphoreTest") {
+        Threads.runTaskThread("SemaphoreTest") {
             repeat(1000) {
                 s.acquire()
                 val ci = c.incrementAndGet()

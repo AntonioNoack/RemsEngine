@@ -367,7 +367,7 @@ object WindowManagement {
 
         // Start new thread to have the OpenGL context current in and that does the rendering.
         if (useSeparateGLFWThread) {
-            Threads.start("OpenGL") {
+            Threads.runTaskThread("OpenGL") {
                 GFX.glThread = Thread.currentThread()
                 runRenderLoop0(window0)
                 runRenderLoop()

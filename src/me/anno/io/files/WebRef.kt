@@ -93,7 +93,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     }
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        Threads.start("WebRef:${absolutePath.shorten(100)}") {
+        Threads.runTaskThread("WebRef:${absolutePath.shorten(100)}") {
             val connection = toURL().openConnection() as HttpURLConnection
             if (connection.responseCode in 200 until 300) {
                 callback.ok(connection.inputStream)

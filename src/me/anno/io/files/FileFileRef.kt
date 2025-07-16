@@ -8,12 +8,10 @@ import me.anno.io.VoidOutputStream
 import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import kotlin.concurrent.thread
 
 class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath)) {
 
@@ -116,11 +114,11 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     }
 
     override fun listChildren(callback: Callback<List<FileReference>>) {
-        Threads.start("$absolutePath.listChildren") { // can be extremely slow
+        Threads.runTaskThread("$absolutePath.listChildren") { // can be extremely slow
             if (exists && isDirectory) {
                 try {
                     val answer = file.listFiles()?.map { getChild(it.name) }
-                    if (answer != null) return@start callback.ok(answer)
+                    if (answer != null) return@runTaskThread callback.ok(answer)
                 } catch (_: Throwable) {
                     // failed reading :/
                 }

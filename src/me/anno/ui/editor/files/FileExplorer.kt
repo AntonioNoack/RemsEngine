@@ -471,12 +471,12 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         // or just switch?
         return listOf(
             MenuOption(NameDesc("Move")) {
-                Threads.start("Moving files") {
+                Threads.runTaskThread("Moving files") {
                     moveInto(files, folder)
                 }
             },
             MenuOption(NameDesc("Copy")) {
-                Threads.start("Copying files") {
+                Threads.runTaskThread("Copying files") {
                     copyInto(files, folder)
                 }
             },
@@ -487,7 +487,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                 switchTo(files.first())
             }.setEnabled(files.size == 1 && !files.first().isDirectory),
             MenuOption(NameDesc("Create Links")) {
-                Threads.start("Creating links") {
+                Threads.runTaskThread("Creating links") {
                     createLinksInto(files, folder)
                 }
             }
@@ -628,7 +628,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         folder ?: return
         if (GFX.isGFXThread() && OSFeatures.hasMultiThreading) {
             loading = Time.nanoTime
-            Threads.start("SwitchTo($folder)") {
+            Threads.runTaskThread("SwitchTo($folder)") {
                 try {
                     switchToImpl(folder)
                 } catch (_: IgnoredException) {

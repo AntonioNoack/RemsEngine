@@ -5,7 +5,6 @@ import me.anno.engine.RemsEngine
 import me.anno.utils.OS.documents
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Threads
-import kotlin.concurrent.thread
 
 fun main() {
 
@@ -16,7 +15,7 @@ fun main() {
     val file1 = folder.getChild("t1.obj")
     val file2 = folder.getChild("t2.obj")
 
-    Threads.start("ToggleThread") {
+    Threads.runTaskThread("ToggleThread") {
         var ctr = 0
         var data1: ByteArray? = null
         documents.getChild("cube.obj").readBytes { it, exc ->

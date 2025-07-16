@@ -15,7 +15,6 @@ import java.net.SocketException
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeoutException
 import javax.net.ssl.SSLSocketFactory
-import kotlin.concurrent.thread
 
 open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: Int) : Closeable {
 
@@ -201,7 +200,7 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
     }
 
     fun startClientSideAsync(shutdown: () -> Boolean = { false }) {
-        Threads.start("$name.tcp") {
+        Threads.runTaskThread("$name.tcp") {
             try {
                 startClientSide(shutdown)
             } catch (e: SocketException) {

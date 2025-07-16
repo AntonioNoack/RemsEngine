@@ -85,7 +85,7 @@ class NetworkTest {
             val tcpSocket = TCPClient.createSocket(address, server.tcpPort, tcpProtocol)
             val tcpClient = TCPClient(tcpSocket, tcpProtocol, name)
             tcpClient.startClientSideAsync()
-            Threads.start("$name.udp") {
+            Threads.runTaskThread("$name.udp") {
                 // when the connection is established
                 val udpClient = UDPClient(address, server.udpPort)
                 udpClient.send(null, tcpClient, udpProtocol, PingPacket())

@@ -91,7 +91,7 @@ abstract class VideoBackgroundTask(val creator: VideoCreator, val samples: Int) 
         } else {
             // waiting for saving to ffmpeg
             // todo we know better how to wait
-            Threads.start("VBT/2", ::addNextTask)
+            Threads.runTaskThread("VBT/2", ::addNextTask)
         }
     }
 
@@ -116,7 +116,7 @@ abstract class VideoBackgroundTask(val creator: VideoCreator, val samples: Int) 
             addNextTask()
         } else {
             // waiting
-            Threads.start("VBT/1") { addNextTask() }
+            Threads.runTaskThread("VBT/1") { addNextTask() }
         }
     }
 

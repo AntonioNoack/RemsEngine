@@ -29,8 +29,10 @@ object Threads {
     /**
      * Use this method to run on any thread,
      * and if your task is not waiting for Engine.shutdown.
+     *
+     * Ideally, don't block such a thread to prevent creating too many threads.
      * */
-    fun start(name: String, runnable: () -> Unit) {
+    fun runTaskThread(name: String, runnable: () -> Unit) {
         if (!(OSFeatures.canSleep && OSFeatures.hasMultiThreading)) {
             return runnable()
         }
@@ -90,14 +92,14 @@ object Threads {
      * */
     fun runOnNonGFXThread(threadName: String, runnable: () -> Unit) {
         if (GFX.isGFXThread()) {
-            start(threadName, runnable)
+            runTaskThread(threadName, runnable)
         } else {
             runnable()
         }
     }
 
     /**
-     * Use this method, if your thread runs as long as !Engine.shutdown
+     * Use this method, if your thread lifetime directly depends on !Engine.shutdown
      * */
     fun runWorkerThread(threadName: String, runnable: () -> Unit): Thread {
 

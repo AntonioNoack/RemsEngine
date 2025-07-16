@@ -15,7 +15,6 @@ import me.anno.utils.types.Strings.isBlank2
 import org.joml.Vector2i
 import org.joml.Vector3i
 import java.io.FileNotFoundException
-import kotlin.concurrent.thread
 
 val uniqueLOC = HashMap<String, HashSet<String>>(32)
 val cache = HashMap<FileReference, String>(1024)
@@ -25,7 +24,7 @@ val cache3 = HashMap<FileReference, Vector2i>(4096)
 fun <K, V> HashMap<K, V>.getOrPutAsync(k: K, default: V, putter: () -> V): V {
     synchronized(this) {
         return getOrPut(k) {
-            Threads.start(k.toString()) {
+            Threads.runTaskThread(k.toString()) {
                 val v = putter()
                 synchronized(this) {
                     put(k, v)

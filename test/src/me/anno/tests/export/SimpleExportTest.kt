@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import java.io.InputStream
-import kotlin.concurrent.thread
 
 class SimpleExportTest {
 
@@ -90,7 +89,7 @@ class SimpleExportTest {
     }
 
     private fun logErrors(stream: InputStream) {
-        Threads.start("logErrors") {
+        Threads.runTaskThread("logErrors") {
             val reader = stream.bufferedReader()
             while (true) {
                 val nextLine = reader.readLine() ?: break
@@ -100,7 +99,7 @@ class SimpleExportTest {
     }
 
     private fun waitUntilOutput(stream: InputStream, keyPhrase: String, whenDone: () -> Unit) {
-        Threads.start("logInfos") {
+        Threads.runTaskThread("logInfos") {
             val reader = stream.bufferedReader()
             while (true) {
                 val nextLine = reader.readLine() ?: break

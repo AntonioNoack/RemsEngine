@@ -7,7 +7,6 @@ import me.anno.utils.Sleep
 import me.anno.utils.Threads
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.thread
 
 open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter(numThreads) {
 
@@ -52,7 +51,7 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
         // LOGGER.debug("Starting queue $name")
         if (OSFeatures.hasMultiThreading) {
             aliveThreads.incrementAndGet()
-            Threads.start(name) {
+            Threads.runTaskThread(name) {
                 runWorker()
             }
         } else runUntilDone()

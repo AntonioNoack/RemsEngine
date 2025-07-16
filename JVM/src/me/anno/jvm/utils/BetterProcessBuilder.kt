@@ -9,7 +9,6 @@ import me.anno.utils.Threads
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.InputStream
-import kotlin.concurrent.thread
 
 class BetterProcessBuilder(
     program: String?,
@@ -87,8 +86,8 @@ class BetterProcessBuilder(
 
     fun startAndPrint(): Process {
         val process = start()
-        Threads.start("cmd($args):error") { readLines(process.errorStream, true) }
-        Threads.start("cmd($args):input") { readLines(process.inputStream, false) }
+        Threads.runTaskThread("cmd($args):error") { readLines(process.errorStream, true) }
+        Threads.runTaskThread("cmd($args):input") { readLines(process.inputStream, false) }
         return process
     }
 

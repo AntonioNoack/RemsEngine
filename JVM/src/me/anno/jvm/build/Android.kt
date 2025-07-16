@@ -8,7 +8,6 @@ import me.anno.utils.OS.home
 import me.anno.utils.Threads
 import me.anno.utils.assertions.assertTrue
 import java.io.File
-import kotlin.concurrent.thread
 
 /**
  * automated build/export process for Android, so we don't need (to open) AndroidStudio
@@ -40,8 +39,8 @@ fun main() {
         val builder = ProcessBuilder(args)
         builder.directory(File(androidPortPath.absolutePath))
         val process = builder.start()
-        Threads.start("cmd($args):error") { readLines(process.errorStream, true) }
-        Threads.start("cmd($args):input") { readLines(process.inputStream, false) }
+        Threads.runTaskThread("cmd($args):error") { readLines(process.errorStream, true) }
+        Threads.runTaskThread("cmd($args):input") { readLines(process.inputStream, false) }
         process.waitFor()
     }
 

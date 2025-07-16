@@ -66,7 +66,7 @@ object Installer {
 
     @JvmStatic
     fun download(fileName: String, dstFile: FileReference, urls: List<String>, callback: () -> Unit) {
-        Threads.start("Download $fileName") {
+        Threads.runTaskThread("Download $fileName") {
             downloadSync(fileName, dstFile, urls, callback)
         }
     }
@@ -155,7 +155,7 @@ object Installer {
         // change "files" to "files.phychi.com"?
         // create a temporary file, and rename, so we know that we finished the download :)
         val tmp = dstFile.getSibling(dstFile.name + ".tmp")
-        Threads.start("Download $fileName") {
+        Threads.runTaskThread("Download $fileName") {
             val progress = GFX.someWindow.addProgressBar(fileName, "Bytes", Double.NaN)
             try {
                 runDownload(URL(srcFile.absolutePath), fileName, dstFile, tmp, progress)

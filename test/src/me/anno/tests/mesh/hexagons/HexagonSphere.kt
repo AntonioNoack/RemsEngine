@@ -33,7 +33,6 @@ import me.anno.utils.Threads
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
-import kotlin.concurrent.thread
 import kotlin.math.atan2
 import kotlin.math.hypot
 import kotlin.math.sqrt
@@ -317,7 +316,7 @@ fun main() {
                 validateSync()
             } else {
                 working = true
-                Threads.start("work") {
+                Threads.runTaskThread("work") {
                     try {
                         validateSync()
                     } finally {

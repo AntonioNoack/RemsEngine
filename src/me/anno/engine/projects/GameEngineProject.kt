@@ -217,7 +217,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
         // to do if is Web, provide mechanism to index files...
         // we can't really do that anyway...
         if (!OS.isWeb) {
-            Threads.start("Indexing Resources") {
+            Threads.runTaskThread("Indexing Resources") {
                 val progressBar = GFX.someWindow.addProgressBar(object : ProgressBar("Indexing Assets", "Files", 1.0) {
                     override fun formatProgress(): String {
                         return "$name: ${progress.toLongOr()} / ${total.toLongOr()} $unit"

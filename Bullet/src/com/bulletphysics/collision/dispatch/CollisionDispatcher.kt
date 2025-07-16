@@ -127,8 +127,8 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
     }
 
     private class CollisionPairCallback : OverlapCallback {
-        private var dispatchInfo: DispatcherInfo? = null
-        private var dispatcher: CollisionDispatcher? = null
+        private lateinit var dispatchInfo: DispatcherInfo
+        private lateinit var dispatcher: CollisionDispatcher
 
         fun init(dispatchInfo: DispatcherInfo, dispatcher: CollisionDispatcher) {
             this.dispatchInfo = dispatchInfo
@@ -136,8 +136,7 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
         }
 
         override fun processOverlap(pair: BroadphasePair): Boolean {
-            val dispatcher = dispatcher!!
-            dispatcher.nearCallback.handleCollision(pair, dispatcher, dispatchInfo!!)
+            dispatcher.nearCallback.handleCollision(pair, dispatcher, dispatchInfo)
             return false
         }
     }

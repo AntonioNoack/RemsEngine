@@ -207,7 +207,7 @@ class ExportSettings : NamedSaveable() {
                 checkbox.setTooltip(file.toLocalPath())
                 modules.add(checkbox)
                 // load module info for ttt
-                Threads.start("extInfo(${file.nameWithoutExtension})") {
+                Threads.runTaskThread("extInfo(${file.nameWithoutExtension})") {
                     val extInfoTxt = file.getSibling("src").listChildren()
                         .firstOrNull { it.name.endsWith("-ext.info") }
                     val info = if (extInfoTxt != null) {

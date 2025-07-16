@@ -155,7 +155,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         @JvmStatic
         fun logOutput(prefix: String?, name: String, stream: InputStream, warn: Boolean) {
             val reader = stream.bufferedReader()
-            Threads.start("LogOutput<$name>") {
+            Threads.runTaskThread("LogOutput<$name>") {
                 while (true) {
                     val line = reader.readLine() ?: break
                     val lineWithPrefix = if (prefix == null) line else "[$prefix] $line"
@@ -178,7 +178,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         @JvmStatic
         fun devLog(name: String, stream: InputStream) {
-            Threads.start(name) {
+            Threads.runTaskThread(name) {
                 val out = stream.bufferedReader()
                 while (!Engine.shutdown) {
                     val line = out.readLine() ?: break
@@ -216,11 +216,11 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 }
                 width != 0 && height != 0 && codec.isNotEmpty()
             }
-        }, { Threads.start(toString(), anyThreadCallback) })
+        }, { Threads.runTaskThread(toString(), anyThreadCallback) })
     }
 
     fun parseAsync(parser: FFMPEGMetaParser, stream: InputStream) {
-        Threads.start("${file?.name}:error-stream") {
+        Threads.runTaskThread("${file?.name}:error-stream") {
             val out = stream.bufferedReader()
             try {
                 while (true) {
@@ -248,7 +248,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 }
             })
         } else {
-            Threads.start(threadName) {
+            Threads.runTaskThread(threadName) {
                 runUnlimited(arguments)
             }
         }

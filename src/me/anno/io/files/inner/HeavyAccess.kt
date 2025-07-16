@@ -4,7 +4,6 @@ import me.anno.io.files.FileReference
 import me.anno.utils.Threads
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.thread
 
 object HeavyAccess {
 
@@ -33,7 +32,7 @@ object HeavyAccess {
             task.requests.size == 1
         }
         if (needsWorkerThread) {
-            Threads.start("HeavyAccess<$source,#${ctr.incrementAndGet()}>") {
+            Threads.runTaskThread("HeavyAccess<$source,#${ctr.incrementAndGet()}>") {
                 process(source, task, onError)
             }
         }

@@ -22,7 +22,6 @@ import java.net.Socket
 import java.net.SocketException
 import java.net.SocketTimeoutException
 import javax.net.ssl.SSLServerSocketFactory
-import kotlin.concurrent.thread
 import kotlin.random.Random
 
 // to do there should be lobbies, where players are assigned to other servers, with seamless transfers...
@@ -104,7 +103,7 @@ open class Server : Closeable {
                 tcpSocket = socket
                 this.tcpPort = tcpPort
             }
-            Threads.start("Server-TCP") {
+            Threads.runTaskThread("Server-TCP") {
                 runTCP(socket)
             }
         }
@@ -125,7 +124,7 @@ open class Server : Closeable {
                 udpSocket = socket
                 this.udpPort = udpPort
             }
-            Threads.start("Server-UDP") {
+            Threads.runTaskThread("Server-UDP") {
                 runUDP(socket)
             }
         }
@@ -173,7 +172,7 @@ open class Server : Closeable {
                     continue
                 }
                 if (acceptsIP(clientSocket.inetAddress, clientSocket.port)) {
-                    Threads.start("Client ${clientSocket.inetAddress}:${clientSocket.port}") {
+                    Threads.runTaskThread("Client ${clientSocket.inetAddress}:${clientSocket.port}") {
                         var tcpClient2: TCPClient? = null
                         try {
                             val input = clientSocket.getInputStream()

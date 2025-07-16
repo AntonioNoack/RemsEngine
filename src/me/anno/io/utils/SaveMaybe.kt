@@ -20,7 +20,7 @@ class SaveMaybe {
                     } else {
                         // delay in case it needs longer
                         lastSaveTime = nanoTime + 60 * SECONDS_TO_NANOS
-                        Threads.start("Saving $name") {
+                        Threads.runTaskThread("Saving $name") {
                             save()
                             lastSaveTime = nanoTime
                         }

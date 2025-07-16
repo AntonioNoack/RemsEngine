@@ -7,7 +7,6 @@ import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.Image
-import me.anno.image.raw.IntImage
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.clamp
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
@@ -25,7 +24,6 @@ import org.lwjgl.opengl.GL46C.glFlush
 import org.lwjgl.opengl.GL46C.glReadPixels
 import java.text.SimpleDateFormat
 import java.util.Date
-import kotlin.concurrent.thread
 
 object Screenshots {
     private val LOGGER = LogManager.getLogger(Screenshots::class)
@@ -182,7 +180,7 @@ object Screenshots {
             GFX.check()
 
             val image = getPixels(renderer)
-            if (image != null) Threads.start("Save Screenshot") {
+            if (image != null) Threads.runTaskThread("Save Screenshot") {
                 val file = folder.getChild(name)
                 image.write(file)
                 LOGGER.info(

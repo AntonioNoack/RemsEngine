@@ -94,7 +94,7 @@ object HeavyIterator {
 
         if (waiting != null) {
             // new thread, because our original is finished anyway
-            Threads.start("HeavyIterator.process($source)") {
+            Threads.runTaskThread("HeavyIterator.process($source)") {
                 @Suppress("unchecked_cast")
                 process(source, waiting as List<IHeavyIterable<Item, Stream, Processable>>)
             }

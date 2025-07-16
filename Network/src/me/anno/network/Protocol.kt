@@ -99,7 +99,7 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
 
     private fun defaultRun(server: Server?, client: TCPClient, shutdown: () -> Boolean) {
         // start writing queue
-        Threads.start(if (server == null) "[${client.name}]" else "S[${server.name}][${client.name}]") {
+        Threads.runTaskThread(if (server == null) "[${client.name}]" else "S[${server.name}][${client.name}]") {
             client.workPacketTasks(server)
             server?.removeClient(client)
         }

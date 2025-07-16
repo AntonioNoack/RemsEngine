@@ -45,7 +45,6 @@ import me.anno.utils.Threads
 import me.anno.utils.async.Callback
 import me.anno.utils.files.OpenFileExternally.openInExplorer
 import me.anno.utils.types.Strings.isBlank2
-import kotlin.concurrent.thread
 
 interface WelcomeUI {
 
@@ -244,7 +243,7 @@ interface WelcomeUI {
     fun createProjectUI()
 
     fun openProject(studio: EngineBase, name: String, folder: FileReference) {
-        Threads.start("OpenProject") { // prevent the engine from hanging
+        Threads.runTaskThread("OpenProject") { // prevent the engine from hanging
             openProject2(name, folder)
         }
     }

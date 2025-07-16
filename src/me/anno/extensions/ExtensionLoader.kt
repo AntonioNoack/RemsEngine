@@ -1,6 +1,5 @@
 package me.anno.extensions
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
 import me.anno.extensions.mods.Mod
@@ -87,7 +86,7 @@ object ExtensionLoader {
                     val name = it.name
                     if (!name.startsWith(".") && it.lcExtension == "jar") {
                         var finished = false
-                        Threads.start("ExtensionLoader::getInfos($it)") {
+                        Threads.runTaskThread("ExtensionLoader::getInfos($it)") {
                             loadInfoFromZip(it) { info, err ->
                                 err?.printStackTrace()
                                 // (check if compatible???)

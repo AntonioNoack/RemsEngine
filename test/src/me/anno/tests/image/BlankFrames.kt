@@ -13,7 +13,6 @@ import me.anno.utils.OS
 import me.anno.utils.Threads
 import me.anno.video.VideoCreator
 import me.anno.video.formats.gpu.BlankFrameDetector
-import kotlin.concurrent.thread
 
 fun main() {
     OfficialExtensions.initForTests()
@@ -31,7 +30,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL(meta.videoWidth, meta.videoHeight)
     val fb = Framebuffer("blank", meta.videoWidth, meta.videoHeight, 1, TargetType.UInt8x4, DepthBufferType.NONE)
     VideoCreator.renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb, { _, callback ->
-        Threads.start("frame$frameIndex") {
+        Threads.runTaskThread("frame$frameIndex") {
             val frame = BlankFrameDetector.getFrame(src, 1, frameIndex, bufferSize, fps, timeout, meta, false)!!
             addGPUTask("blank frame detection", 1) {
                 GFXState.useFrame(fb) {

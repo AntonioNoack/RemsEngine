@@ -32,7 +32,6 @@ import org.lwjgl.opengl.GL46C.glMapBuffer
 import org.lwjgl.opengl.GL46C.glUnmapBuffer
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
-import kotlin.concurrent.thread
 import kotlin.math.max
 
 abstract class OpenGLBuffer(
@@ -135,7 +134,7 @@ abstract class OpenGLBuffer(
 
         val dst = glMapBuffer(type, pointer, newLimit.toLong(), nio)!!
         val name = "OpenGLBuffer.uploadAsync('$name', $newLimit)"
-        Threads.start(name) {
+        Threads.runTaskThread(name) {
             // copy all data
             if (dst !== nio) {
                 dst.put(nio)

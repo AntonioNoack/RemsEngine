@@ -152,7 +152,7 @@ object Streams {
 
     @JvmStatic
     fun InputStream.listen(name: String, callback: (String) -> Unit) {
-        Threads.start(name) {
+        Threads.runTaskThread(name) {
             // some streams always return 0 for available() :(
             bufferedReader().use { reader: BufferedReader ->
                 while (!Engine.shutdown) {

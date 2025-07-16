@@ -2,7 +2,6 @@ package me.anno.video
 
 import me.anno.Engine
 import me.anno.Time
-import me.anno.cache.AsyncCacheData
 import me.anno.utils.Threads
 import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
@@ -39,7 +38,6 @@ import org.lwjgl.opengl.GL46C
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
-import kotlin.concurrent.thread
 
 // todo support HDR video, too
 open class VideoCreator(
@@ -153,7 +151,7 @@ open class VideoCreator(
 
         process = builder.start()
         logOutput(null, output.absolutePath, process.inputStream, true)
-        Threads.start("VideoCreator:updates") {
+        Threads.runTaskThread("VideoCreator:updates") {
             processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream) {
                 close()
             }

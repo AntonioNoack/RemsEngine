@@ -8,7 +8,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
-import kotlin.concurrent.thread
 
 @Suppress("unused")
 open class CommandLineReader {
@@ -54,7 +53,7 @@ open class CommandLineReader {
     }
 
     fun start() {
-        Threads.start("CommandReader") {
+        Threads.runTaskThread("CommandReader") {
             val input = TimeoutReader(System.`in`)
             while (true) {
                 val line = input.readLine() ?: break

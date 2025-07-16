@@ -12,7 +12,6 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import kotlin.concurrent.thread
 
 object FileRootRef : FileReference("root") {
 
@@ -44,7 +43,7 @@ object FileRootRef : FileReference("root") {
     override fun mkdirs(): Boolean = true
 
     override fun listChildren(callback: Callback<List<FileReference>>) {
-        Threads.start("$absolutePath.listChildren") { // can be extremely slow
+        Threads.runTaskThread("$absolutePath.listChildren") { // can be extremely slow
             var results = File.listRoots().map { getReference(it.absolutePath) }
             if (OS.isWindows) {
                 @Suppress("SuspiciousCollectionReassignment")

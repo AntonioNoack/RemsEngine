@@ -19,7 +19,6 @@ import me.anno.video.ffmpeg.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.OutputStream
-import kotlin.concurrent.thread
 import kotlin.math.ceil
 
 abstract class AudioCreator(
@@ -85,7 +84,7 @@ abstract class AudioCreator(
         val process = builder.start()
         val targetFPS = 60.0
         val totalFrameCount = (targetFPS * durationSeconds).toInt()
-        Threads.start("AudioOutputListener") {
+        Threads.runTaskThread("AudioOutputListener") {
             processOutput(LOGGER, "Audio", startTime, targetFPS, totalFrameCount, process.errorStream) {
                 onFinished()
             }
