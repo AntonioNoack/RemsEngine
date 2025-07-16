@@ -15,9 +15,9 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.renderer.Renderer
+import me.anno.utils.Threads
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.thread
 import kotlin.math.abs
 
 abstract class VideoBackgroundTask(val creator: VideoCreator, val samples: Int) {
@@ -90,7 +90,8 @@ abstract class VideoBackgroundTask(val creator: VideoCreator, val samples: Int) 
             addGPUTask("VideoBackgroundTask", creator.width, creator.height, ::tryRenderingFrame)
         } else {
             // waiting for saving to ffmpeg
-            thread(name = "VBT/2") { addNextTask() }
+            // todo we know better how to wait
+            Threads.start("VBT/2", ::addNextTask)
         }
     }
 
@@ -115,7 +116,7 @@ abstract class VideoBackgroundTask(val creator: VideoCreator, val samples: Int) 
             addNextTask()
         } else {
             // waiting
-            thread(name = "VBT/1") { addNextTask() }
+            Threads.start("VBT/1") { addNextTask() }
         }
     }
 

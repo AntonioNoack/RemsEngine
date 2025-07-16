@@ -113,6 +113,7 @@ class HashedOverlappingPairCache : OverlappingPairCache {
     }
 
     override fun findPair(proxy0: BroadphaseProxy, proxy1: BroadphaseProxy): BroadphasePair? {
+        BulletStats.findPairCalls++
         return pairs[hash(proxy0, proxy1)]
     }
 

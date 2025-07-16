@@ -3,7 +3,6 @@ package me.anno.tests.io.files
 import me.anno.Engine
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttribute
-import me.anno.engine.OfficialExtensions
 import me.anno.gpu.buffer.Attribute
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
@@ -35,6 +34,5 @@ class YAMLTest {
         val fromYAML = reader.allInstances
         val copyViaBothForTesting = JsonStringWriter.toText(fromYAML, InvalidRef)
         assertEquals(asJSON, copyViaBothForTesting)
-        Engine.requestShutdown()
     }
 }

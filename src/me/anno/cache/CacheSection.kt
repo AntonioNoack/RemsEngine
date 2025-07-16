@@ -2,7 +2,7 @@ package me.anno.cache
 
 import me.anno.Build
 import me.anno.Time.nanoTime
-import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
+import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference

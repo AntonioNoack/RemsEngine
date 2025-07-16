@@ -12,6 +12,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
+import me.anno.utils.Threads
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertIs
 import me.anno.utils.assertions.assertTrue
@@ -134,7 +135,7 @@ abstract class OpenGLBuffer(
 
         val dst = glMapBuffer(type, pointer, newLimit.toLong(), nio)!!
         val name = "OpenGLBuffer.uploadAsync('$name', $newLimit)"
-        thread(name = name) {
+        Threads.start(name) {
             // copy all data
             if (dst !== nio) {
                 dst.put(nio)

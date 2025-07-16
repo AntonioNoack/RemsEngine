@@ -1,6 +1,6 @@
 package me.anno.export
 
-import me.anno.cache.ThreadPool
+import me.anno.utils.Threads
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
 import me.anno.export.idea.IdeaProject
@@ -207,7 +207,7 @@ class ExportSettings : NamedSaveable() {
                 checkbox.setTooltip(file.toLocalPath())
                 modules.add(checkbox)
                 // load module info for ttt
-                ThreadPool.start("extInfo(${file.nameWithoutExtension})") {
+                Threads.start("extInfo(${file.nameWithoutExtension})") {
                     val extInfoTxt = file.getSibling("src").listChildren()
                         .firstOrNull { it.name.endsWith("-ext.info") }
                     val info = if (extInfoTxt != null) {

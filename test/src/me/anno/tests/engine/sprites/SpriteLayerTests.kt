@@ -111,8 +111,11 @@ class SpriteLayerTests {
         val layerTextureRef = layerTexture.ref
 
         // ensure texture atlas is created
-        TextureCache.getTextureArrayEntry(layerTextureRef, Vector2i(7, 7))
+        val loaded = TextureCache.getTextureArrayEntry(layerTextureRef, Vector2i(7, 7))
             .waitFor()
+        println("Loaded: $loaded, isCreated? ${loaded?.isCreated()}")
+
+        // todo why/how is only white rendered???
 
         val layer = createLayer()
         layer.material.diffuseMap = layerTextureRef
@@ -144,7 +147,7 @@ class SpriteLayerTests {
         }
         val asImage = fb.getTexture0()
             .createImage(flipY = false, withAlpha = false)
-        if (false) asImage.write(OS.desktop.getChild("sprites.png"))
+        asImage.write(OS.desktop.getChild("sprites.png"))
         val expectedImage = IntImage(asImage.width, asImage.height, true)
         var wrongPixels = 0
         for (yi in 0 until cells) {

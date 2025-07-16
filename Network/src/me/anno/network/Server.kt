@@ -5,6 +5,7 @@ import me.anno.Time
 import me.anno.io.Streams.readBE32
 import me.anno.maths.Maths
 import me.anno.utils.Color.hex32
+import me.anno.utils.Threads
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.UnsafeArrayList
 import org.apache.logging.log4j.LogManager
@@ -103,7 +104,7 @@ open class Server : Closeable {
                 tcpSocket = socket
                 this.tcpPort = tcpPort
             }
-            thread(name = "Server-TCP") {
+            Threads.start("Server-TCP") {
                 runTCP(socket)
             }
         }
@@ -124,7 +125,7 @@ open class Server : Closeable {
                 udpSocket = socket
                 this.udpPort = udpPort
             }
-            thread(name = "Server-UDP") {
+            Threads.start("Server-UDP") {
                 runUDP(socket)
             }
         }
@@ -172,7 +173,7 @@ open class Server : Closeable {
                     continue
                 }
                 if (acceptsIP(clientSocket.inetAddress, clientSocket.port)) {
-                    thread(name = "Client ${clientSocket.inetAddress}:${clientSocket.port}") {
+                    Threads.start("Client ${clientSocket.inetAddress}:${clientSocket.port}") {
                         var tcpClient2: TCPClient? = null
                         try {
                             val input = clientSocket.getInputStream()

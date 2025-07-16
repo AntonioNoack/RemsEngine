@@ -19,6 +19,7 @@ import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.UpdatingSimpleTextPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
+import me.anno.utils.Threads
 import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.DataInputStream
@@ -157,7 +158,7 @@ open class Instance(val name: String) {
 
     fun start() {
         val id = ++currentId
-        thread(name = "tcp-$name") {
+        Threads.runWorkerThread("tcp-$name") {
             while (id == currentId && !Engine.shutdown) {
                 try {
                     val server = LocalServer()

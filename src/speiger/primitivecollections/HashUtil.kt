@@ -11,13 +11,12 @@ import kotlin.math.min
  * */
 @Suppress("unused")
 object HashUtil {
+
     const val DEFAULT_MIN_CAPACITY: Int = 16
     const val DEFAULT_MIN_CONCURRENCY: Int = 4
     const val DEFAULT_LOAD_FACTOR: Float = 0.75f
     const val FAST_LOAD_FACTOR: Float = 0.5f
     const val FASTER_LOAD_FACTOR: Float = 0.25f
-    private val INT_PHI = -1640531527
-    private const val INV_INT_PHI = 340573321
 
     @JvmStatic
     fun mix(x: Int): Int {

@@ -47,6 +47,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.Pools
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -1049,7 +1050,7 @@ open class Texture2D(
         var textureBudgetUsed = 0L
 
         @JvmField
-        val texturesToDelete = ArrayList<Int>()
+        val texturesToDelete = IntArrayList()
 
         @JvmStatic
         fun resetBudget() {

@@ -1,41 +1,35 @@
 package com.bulletphysics.linearmath
 
-import com.bulletphysics.BulletStats
-import com.bulletphysics.BulletStats.profileGetTicks
+import me.anno.Time
 
 /***************************************************************************************************
- *
- *
  * Real-Time Hierarchical Profiling for Game Programming Gems 3
- *
- *
  * by Greg Hjelstrom & Byon Garrabrant
- *
- *
- *
  *
  * A node in the Profile Hierarchy Tree.
  *
  * @author jezek2
  */
-class CProfileNode(var name: String?, val parent: CProfileNode?) {
+internal class ProfilingNode(var name: String?, val parent: ProfilingNode?) {
 
     var totalCalls: Int = 0
-    var totalTimeSeconds: Double = 0.0
+    var totalTimeNanos: Long = 0L
+    val totalTimeSeconds: Double
+        get() = totalTimeNanos * 1e-9
 
     private var startTime: Long = 0
     private var recursionCounter = 0
 
-    var child: CProfileNode? = null
+    var child: ProfilingNode? = null
         private set
-    var sibling: CProfileNode? = null
+    var sibling: ProfilingNode? = null
         private set
 
     init {
         reset()
     }
 
-    fun getSubNode(name: String?): CProfileNode {
+    fun getSubNode(name: String?): ProfilingNode {
         // Try to find this sub node
         var child = this.child
         while (child != null) {
@@ -46,21 +40,16 @@ class CProfileNode(var name: String?, val parent: CProfileNode?) {
         }
 
         // We didn't find it, so add it
-        val node = CProfileNode(name, this)
+        val node = ProfilingNode(name, this)
         node.sibling = this.child
         this.child = node
         return node
     }
 
-    fun cleanupMemory() {
-        child = null
-        sibling = null
-    }
-
     fun reset() {
+
         totalCalls = 0
-        totalTimeSeconds = 0.0
-        BulletStats.profileClock.reset()
+        totalTimeNanos = 0L
 
         if (child != null) {
             child!!.reset()
@@ -73,15 +62,14 @@ class CProfileNode(var name: String?, val parent: CProfileNode?) {
     fun call() {
         totalCalls++
         if (recursionCounter++ == 0) {
-            startTime = profileGetTicks()
+            startTime = Time.nanoTime
         }
     }
 
     fun end(): Boolean {
         if (--recursionCounter == 0 && totalCalls != 0) {
-            val time = profileGetTicks() - startTime
-            totalTimeSeconds += time * 1e-9
+            totalTimeNanos += Time.nanoTime - startTime
         }
-        return (recursionCounter == 0)
+        return recursionCounter == 0
     }
 }

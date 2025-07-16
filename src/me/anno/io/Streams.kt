@@ -4,6 +4,7 @@ import me.anno.Engine
 import me.anno.graph.hdb.ByteSlice
 import me.anno.maths.Packing.pack64
 import me.anno.utils.Sleep.sleepShortly
+import me.anno.utils.Threads
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.size
@@ -14,7 +15,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.io.Reader
 import java.nio.ByteBuffer
-import kotlin.concurrent.thread
 import kotlin.math.min
 
 /**
@@ -152,7 +152,7 @@ object Streams {
 
     @JvmStatic
     fun InputStream.listen(name: String, callback: (String) -> Unit) {
-        thread(name = name) {
+        Threads.start(name) {
             // some streams always return 0 for available() :(
             bufferedReader().use { reader: BufferedReader ->
                 while (!Engine.shutdown) {

@@ -841,7 +841,7 @@ open class Quaterniond(
     ): Quaterniond {
         val fromLenSq = Vector3d.lengthSquared(fromDirX, fromDirY, fromDirZ)
         val toLenSq = Vector3d.lengthSquared(toDirX, toDirY, toDirZ)
-        val invLenFactor = sqrt(fromLenSq * toLenSq) // ^4 -> 1/^2
+        val invLenFactor = sqrt(fromLenSq * toLenSq) // ^4 -> ^2
         val dot = (fromDirX * toDirX + fromDirY * toDirY + fromDirZ * toDirZ)
         if (dot < -0.999999 * invLenFactor) {
             val fn = JomlMath.invsqrt(fromLenSq)

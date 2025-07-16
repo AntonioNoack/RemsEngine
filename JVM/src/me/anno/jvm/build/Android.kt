@@ -5,6 +5,7 @@ import me.anno.jvm.utils.BetterProcessBuilder.Companion.readLines
 import me.anno.utils.OS
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.home
+import me.anno.utils.Threads
 import me.anno.utils.assertions.assertTrue
 import java.io.File
 import kotlin.concurrent.thread
@@ -39,8 +40,8 @@ fun main() {
         val builder = ProcessBuilder(args)
         builder.directory(File(androidPortPath.absolutePath))
         val process = builder.start()
-        thread(name = "cmd($args):error") { readLines(process.errorStream, true) }
-        thread(name = "cmd($args):input") { readLines(process.inputStream, false) }
+        Threads.start("cmd($args):error") { readLines(process.errorStream, true) }
+        Threads.start("cmd($args):input") { readLines(process.inputStream, false) }
         process.waitFor()
     }
 

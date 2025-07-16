@@ -13,6 +13,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
 import me.anno.utils.InternalAPI
 import me.anno.utils.OS
+import me.anno.utils.Threads
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4i
 import org.lwjgl.opengl.GL46C.GL_FLOAT
@@ -181,7 +182,7 @@ object Screenshots {
             GFX.check()
 
             val image = getPixels(renderer)
-            if (image != null) thread(name = "Save Screenshot") {
+            if (image != null) Threads.start("Save Screenshot") {
                 val file = folder.getChild(name)
                 image.write(file)
                 LOGGER.info(

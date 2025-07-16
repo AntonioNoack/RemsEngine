@@ -149,12 +149,8 @@ class SimulationIslandManager {
             for (i in 0 until maxNumManifolds) {
                 val manifold = dispatcher.getManifold(i)
 
-                val colObj0 = manifold.getBody0() as CollisionObject?
-                val colObj1 = manifold.getBody1() as CollisionObject?
-
-                if (colObj0 == null || colObj1 == null) {
-                    continue
-                }
+                val colObj0 = manifold.body0
+                val colObj1 = manifold.body1
 
                 // todo: check sleeping conditions!
                 if (colObj0.activationState != ActivationState.SLEEPING ||
@@ -283,11 +279,13 @@ class SimulationIslandManager {
 
     companion object {
         private fun getIslandId(lhs: PersistentManifold): Int {
-            val obj0 = lhs.getBody0() as CollisionObject
-            val obj1 = lhs.getBody1() as CollisionObject
-            return if (obj0.islandTag >= 0) obj0.islandTag else obj1.islandTag
+            val obj0 = lhs.body0.islandTag
+            val obj1 = lhs.body1.islandTag
+            return if (obj0 >= 0) obj0 else obj1
         }
 
-        private val sortByIslandId = Comparator.comparingInt<PersistentManifold>(::getIslandId)
+        private val sortByIslandId = Comparator<PersistentManifold> { o1, o2 ->
+            getIslandId(o1).compareTo(getIslandId(o2))
+        }
     }
 }

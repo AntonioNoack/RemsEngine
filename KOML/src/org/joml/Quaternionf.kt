@@ -999,7 +999,7 @@ open class Quaternionf(
     ): Quaternionf {
         val fromLenSq = Vector3f.lengthSquared(fromDirX, fromDirY, fromDirZ)
         val toLenSq = Vector3f.lengthSquared(toDirX, toDirY, toDirZ)
-        val invLenFactor = sqrt(fromLenSq * toLenSq) // ^4 -> 1/^2
+        val invLenFactor = sqrt(fromLenSq * toLenSq) // ^4 -> ^2
         val dot = (fromDirX * toDirX + fromDirY * toDirY + fromDirZ * toDirZ)
         if (dot < -0.999999 * invLenFactor) {
             val fn = JomlMath.invsqrt(fromLenSq)

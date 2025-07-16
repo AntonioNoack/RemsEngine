@@ -19,7 +19,7 @@ import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver
 import com.bulletphysics.dynamics.constraintsolver.ContactSolverInfo
 import com.bulletphysics.dynamics.constraintsolver.TypedConstraint
 import com.bulletphysics.dynamics.vehicle.RaycastVehicle
-import com.bulletphysics.linearmath.CProfileManager
+import com.bulletphysics.linearmath.BulletProfiling
 import com.bulletphysics.linearmath.DebugDrawModes
 import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.TransformUtil
@@ -127,7 +127,7 @@ class DiscreteDynamicsWorld(
     override fun stepSimulation(timeStep: Double, maxSubSteps: Int, fixedTimeStep: Double): Int {
         var maxSubSteps = maxSubSteps
         var fixedTimeStep = fixedTimeStep
-        startProfiling()
+        // startProfiling() // resets the profiling counters
 
         val t0 = System.nanoTime()
 
@@ -176,7 +176,7 @@ class DiscreteDynamicsWorld(
             clearForces()
 
             //#ifndef BT_NO_PROFILE
-            CProfileManager.incrementFrameCounter()
+            BulletProfiling.incrementFrameCounter()
 
             //#endif //BT_NO_PROFILE
             return numSimulationSubSteps
@@ -634,10 +634,6 @@ class DiscreteDynamicsWorld(
         } finally {
             popProfile()
         }
-    }
-
-    fun startProfiling() {
-        CProfileManager.reset()
     }
 
     private class ClosestNotMeConvexResultCallback : ClosestConvexResultCallback() {

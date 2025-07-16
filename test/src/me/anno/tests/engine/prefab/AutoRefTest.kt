@@ -53,8 +53,6 @@ class AutoRefTest {
 
         prefab.invalidateInstance()
         compare(scene, prefab.newInstance() as Entity)
-
-        Engine.requestShutdown()
     }
 
     fun createScene(): Entity {

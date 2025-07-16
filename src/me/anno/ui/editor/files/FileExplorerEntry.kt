@@ -3,7 +3,7 @@ package me.anno.ui.editor.files
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL
-import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
+import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.mesh.IMesh

@@ -1,6 +1,6 @@
 package me.anno.export
 
-import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
+import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent

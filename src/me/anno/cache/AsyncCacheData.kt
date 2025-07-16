@@ -1,13 +1,19 @@
 package me.anno.cache
 
 import me.anno.Time.nanoTime
-import me.anno.gpu.GFX
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
 import kotlin.math.abs
 import kotlin.math.max
 
+/**
+ * Represents a value to be filled in whenever.
+ * You can "append" listeners to get notified when it is ready.
+ *
+ * To get asynchronous access to the value, just use this.value.
+ * For synchronous access (listeners), use this.waitFor().
+ * */
 open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
 
     constructor(value: V?) : this() {
@@ -174,14 +180,6 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
             loadAsync(wrapper)
             wrapper.waitFor()
             return wrapper.value
-        }
-
-        fun runOnNonGFXThread(threadName: String, runnable: () -> Unit) {
-            if (GFX.isGFXThread()) {
-                ThreadPool.start(threadName, runnable)
-            } else {
-                runnable()
-            }
         }
     }
 }

@@ -9,6 +9,7 @@ import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.utils.Threads
 import me.anno.utils.structures.Collections.setContains
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.Vector2i
@@ -24,7 +25,7 @@ val cache3 = HashMap<FileReference, Vector2i>(4096)
 fun <K, V> HashMap<K, V>.getOrPutAsync(k: K, default: V, putter: () -> V): V {
     synchronized(this) {
         return getOrPut(k) {
-            thread(name = k.toString()) {
+            Threads.start(k.toString()) {
                 val v = putter()
                 synchronized(this) {
                     put(k, v)

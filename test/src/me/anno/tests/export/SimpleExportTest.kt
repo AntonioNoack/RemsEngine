@@ -15,6 +15,7 @@ import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.OS.res
 import me.anno.utils.Sleep
+import me.anno.utils.Threads
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -89,7 +90,7 @@ class SimpleExportTest {
     }
 
     private fun logErrors(stream: InputStream) {
-        thread(name = "logErrors") {
+        Threads.start("logErrors") {
             val reader = stream.bufferedReader()
             while (true) {
                 val nextLine = reader.readLine() ?: break
@@ -99,7 +100,7 @@ class SimpleExportTest {
     }
 
     private fun waitUntilOutput(stream: InputStream, keyPhrase: String, whenDone: () -> Unit) {
-        thread(name = "logInfos") {
+        Threads.start("logInfos") {
             val reader = stream.bufferedReader()
             while (true) {
                 val nextLine = reader.readLine() ?: break

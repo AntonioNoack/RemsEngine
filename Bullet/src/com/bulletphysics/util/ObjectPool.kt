@@ -5,9 +5,9 @@ package com.bulletphysics.util
  *
  * @author jezek2
  */
-class ObjectPool<T>(private val cls: Class<T>) {
-    private val list = ArrayList<T>()
+class ObjectPool<T: Any>(private val cls: Class<T>) {
 
+    private val list = ArrayList<T>()
     private fun create(): T {
         return cls.newInstance()
     }
@@ -18,11 +18,7 @@ class ObjectPool<T>(private val cls: Class<T>) {
      * @return instance
      */
     fun get(): T {
-        return if (list.isNotEmpty()) {
-            list.removeLast()
-        } else {
-            create()
-        }
+        return list.removeLastOrNull() ?: create()
     }
 
     /**
@@ -54,7 +50,7 @@ class ObjectPool<T>(private val cls: Class<T>) {
          * @param cls type
          * @return object pool
          */
-        fun <T> get(cls: Class<T>): ObjectPool<T> {
+        fun <T: Any> get(cls: Class<T>): ObjectPool<T> {
             @Suppress("UNCHECKED_CAST")
             return threadLocal.get().getOrPut(cls) {
                 ObjectPool(cls)

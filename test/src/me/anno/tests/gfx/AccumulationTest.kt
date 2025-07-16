@@ -1,12 +1,11 @@
 package me.anno.tests.gfx
 
-import me.anno.Engine
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.ComputeBuffer
-import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.Accumulation
+import me.anno.jvm.HiddenOpenGLContext
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -42,7 +41,5 @@ class AccumulationTest {
         for (i in src.indices) {
             Assertions.assertEquals(((i + 1) * (i + 2)) / 2, data[i])
         }
-
-        Engine.requestShutdown()
     }
 }

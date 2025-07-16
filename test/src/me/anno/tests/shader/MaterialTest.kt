@@ -1,6 +1,5 @@
 package me.anno.tests.shader
 
-import me.anno.Engine
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.OfficialExtensions
@@ -19,5 +18,4 @@ fun main() {
     }
     val instance = prefab.newInstance()
     logger.info(instance)
-    Engine.requestShutdown()
 }

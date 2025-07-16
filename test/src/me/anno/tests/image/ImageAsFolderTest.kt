@@ -1,6 +1,5 @@
 package me.anno.tests.image
 
-import me.anno.Engine
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
 import me.anno.image.raw.AlphaMaskImage
@@ -65,6 +64,5 @@ class ImageAsFolderTest {
             intArrayOf(0x363636 or black, 0xb6b6b6 or black, 0x121212 or black, white),
             ref.getChild("grayscale.png"), GrayscaleImage::class
         )
-        Engine.requestShutdown()
     }
 }

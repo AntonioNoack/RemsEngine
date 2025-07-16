@@ -2,6 +2,7 @@ package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
 import speiger.primitivecollections.callbacks.LongObjectCallback
+import speiger.primitivecollections.callbacks.LongObjectPredicate
 
 /**
  * Long2ObjectOpenHashMap from https://github.com/Speiger/Primitive-Collections/,
@@ -157,12 +158,13 @@ class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
         growMaybe()
     }
 
-    fun removeIf(predicate: (Long, V) -> Boolean): Int {
+    fun removeIf(predicate: LongObjectPredicate<V>): Int {
+        // todo this could/should be optimized
         val oldSize = size
         keysToHashSet().forEach { key ->
             val slot = findIndex(key)
             @Suppress("UNCHECKED_CAST")
-            if (slot >= 0 && predicate(key, values[slot] as V)) {
+            if (slot >= 0 && predicate.test(key, values[slot] as V)) {
                 removeIndex(slot)
             }
         }

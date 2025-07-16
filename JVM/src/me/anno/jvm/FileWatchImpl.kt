@@ -9,6 +9,7 @@ import me.anno.io.files.FileRootRef
 import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference
+import me.anno.utils.Threads
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.nio.file.FileSystems
@@ -83,7 +84,7 @@ object FileWatchImpl {
     }
 
     init {
-        thread(name = "FileWatch") {
+        Threads.runWorkerThread("FileWatch") {
             while (!Engine.shutdown) {
                 val key = watcher.poll(10L, TimeUnit.MILLISECONDS)
                 if (key != null) {

@@ -4,6 +4,7 @@ import me.anno.Engine
 import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep.sleepABit
+import me.anno.utils.Threads
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
@@ -17,7 +18,6 @@ import org.lwjgl.openal.ALCCapabilities
 import org.lwjgl.openal.EXTDisconnect.ALC_CONNECTED
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
-import kotlin.concurrent.thread
 import kotlin.math.abs
 
 object AudioManager {
@@ -45,7 +45,7 @@ object AudioManager {
 
     fun startRunning() {
         runningThread?.interrupt() // kill the old thread
-        runningThread = thread(name = "AudioManager") {
+        runningThread = Threads.runWorkerThread("AudioManager") {
             // just in case the other thread is still alive, wait for a bit
             try {
                 Thread.sleep(50)

@@ -4,6 +4,7 @@ import me.anno.io.VoidOutputStream
 import me.anno.io.binary.ByteArrayIO.readLE16
 import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS
+import me.anno.utils.Threads
 import me.anno.utils.async.Callback
 import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
@@ -43,7 +44,7 @@ object FileRootRef : FileReference("root") {
     override fun mkdirs(): Boolean = true
 
     override fun listChildren(callback: Callback<List<FileReference>>) {
-        thread(name = "$absolutePath.listChildren") { // can be extremely slow
+        Threads.start("$absolutePath.listChildren") { // can be extremely slow
             var results = File.listRoots().map { getReference(it.absolutePath) }
             if (OS.isWindows) {
                 @Suppress("SuspiciousCollectionReassignment")

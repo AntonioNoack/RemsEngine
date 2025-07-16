@@ -3,6 +3,7 @@ package me.anno.network
 import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep.waitUntilOrThrow
+import me.anno.utils.Threads
 import org.apache.logging.log4j.LogManager
 import java.io.Closeable
 import java.io.DataInputStream
@@ -200,7 +201,7 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
     }
 
     fun startClientSideAsync(shutdown: () -> Boolean = { false }) {
-        thread(name = "$name.tcp") {
+        Threads.start("$name.tcp") {
             try {
                 startClientSide(shutdown)
             } catch (e: SocketException) {

@@ -40,10 +40,9 @@ abstract class ChunkSystem<Chunk : Any, Element>(
 
     fun removeIf(condition: (key: Vector3i, value: Chunk) -> Boolean) {
         chunks.remove { key, value ->
-            val key1 = key as? Vector3i
             @Suppress("UNCHECKED_CAST")
             val value2 = value.value
-            key1 != null && value2 != null && condition(key1, value2)
+            value2 != null && condition(key, value2)
         }
     }
 
@@ -244,7 +243,6 @@ abstract class ChunkSystem<Chunk : Any, Element>(
                 shallRemove
             }
             for (pos in chunks.cache.keys.toList()) { // toList() to copy the entries, so we don't get ConcurrentModificationExceptions
-                pos as Vector3i
                 val px = (pos.x shl bitsX) + sx2
                 val py = (pos.y shl bitsY) + sy2
                 val pz = (pos.z shl bitsZ) + sz2

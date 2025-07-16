@@ -7,12 +7,12 @@ import speiger.primitivecollections.callbacks.IntObjectCallback
  * Wrapper around LongToObjectHashMap.
  * The overhead isn't that big, and it saves us from having lots of duplicated code.
  * */
-class IntToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = DEFAULT_LOAD_FACTOR) {
+class IntToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = DEFAULT_LOAD_FACTOR) : PrimitiveCollection {
 
     val content = LongToObjectHashMap<V>(minCapacity, loadFactor)
 
-    val size get() = content.size
-    fun isEmpty() = size == 0
+    override val size get() = content.size
+    override val maxFill: Int get() = content.maxFill
 
     operator fun set(key: Int, value: V) {
         put(key, value)
@@ -54,7 +54,7 @@ class IntToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = DEFAULT_L
         return content.replace(key.toLong(), value)
     }
 
-    fun clear() {
+    override fun clear() {
         content.clear()
     }
 

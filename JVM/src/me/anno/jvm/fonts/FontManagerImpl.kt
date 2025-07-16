@@ -1,6 +1,6 @@
 package me.anno.jvm.fonts
 
-import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
+import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
 import me.anno.fonts.FontManager.getFontSizeIndex

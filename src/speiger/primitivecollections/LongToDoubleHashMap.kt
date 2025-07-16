@@ -10,16 +10,13 @@ class LongToDoubleHashMap(
     missingValue: Double,
     minCapacity: Int = 16,
     loadFactor: Float = 0.75f
-) {
+) : PrimitiveCollection {
 
     @InternalAPI
     val content = LongToLongHashMap(missingValue.toRawBits(), minCapacity, loadFactor)
 
-    val size get() = content.size
-    val maxFill get() = content.maxFill
-
-    fun isEmpty() = size == 0
-    fun isNotEmpty() = !isEmpty()
+    override val size get() = content.size
+    override val maxFill get() = content.maxFill
 
     @Suppress("unused")
     val missingValue: Double
@@ -64,7 +61,7 @@ class LongToDoubleHashMap(
         return Double.fromBits(content.replace(key, value.toRawBits()))
     }
 
-    fun clear() {
+    override fun clear() {
         content.clear()
     }
 

@@ -5,7 +5,7 @@ import me.anno.Time
 import me.anno.audio.openal.SoundBuffer
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.IgnoredException
-import me.anno.cache.ThreadPool
+import me.anno.utils.Threads
 import me.anno.image.Image
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
@@ -19,7 +19,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -156,7 +155,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         @JvmStatic
         fun logOutput(prefix: String?, name: String, stream: InputStream, warn: Boolean) {
             val reader = stream.bufferedReader()
-            thread(name = "LogOutput<$name>") {
+            Threads.start("LogOutput<$name>") {
                 while (true) {
                     val line = reader.readLine() ?: break
                     val lineWithPrefix = if (prefix == null) line else "[$prefix] $line"
@@ -179,7 +178,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         @JvmStatic
         fun devLog(name: String, stream: InputStream) {
-            thread(name = name) {
+            Threads.start(name) {
                 val out = stream.bufferedReader()
                 while (!Engine.shutdown) {
                     val line = out.readLine() ?: break
@@ -202,7 +201,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
     abstract fun destroy()
 
-    fun waitForMetadata(parser: FFMPEGMetaParser, callback: () -> Unit) {
+    fun waitForMetadata(parser: FFMPEGMetaParser, anyThreadCallback: () -> Unit) {
         var lt = Time.nanoTime
         Sleep.waitUntil("waitForMetadata(${file?.name})", true, {
             // if the last line is too long ago, e.g., because the source is not readable as an image, return
@@ -217,11 +216,11 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 }
                 width != 0 && height != 0 && codec.isNotEmpty()
             }
-        }, { thread(name = toString(), block = callback) })
+        }, { Threads.start(toString(), anyThreadCallback) })
     }
 
     fun parseAsync(parser: FFMPEGMetaParser, stream: InputStream) {
-        ThreadPool.start("${file?.name}:error-stream") {
+        Threads.start("${file?.name}:error-stream") {
             val out = stream.bufferedReader()
             try {
                 while (true) {
@@ -249,7 +248,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 }
             })
         } else {
-            ThreadPool.start(threadName) {
+            Threads.start(threadName) {
                 runUnlimited(arguments)
             }
         }

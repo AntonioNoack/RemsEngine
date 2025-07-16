@@ -1,6 +1,7 @@
 package me.anno.io
 
 import me.anno.Engine
+import me.anno.utils.Threads
 import me.anno.utils.structures.arrays.ByteArrayList
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -53,7 +54,7 @@ open class CommandLineReader {
     }
 
     fun start() {
-        thread(name = "CommandReader") {
+        Threads.start("CommandReader") {
             val input = TimeoutReader(System.`in`)
             while (true) {
                 val line = input.readLine() ?: break

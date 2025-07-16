@@ -22,7 +22,7 @@ package com.bulletphysics.util
  *
  * @author jezek2
  */
-class ObjectStackList<T>(private val cls: Class<T>) {
+class ObjectStackList<T: Any>(private val cls: Class<T>) {
 
     private val list = ArrayList<T>()
 

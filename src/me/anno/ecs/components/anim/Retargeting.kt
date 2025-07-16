@@ -359,9 +359,8 @@ class Retargeting : PrefabSaveable(), Renderable {
         val mat = Matrix3f()
         val tmp = Vector3f()
         // find orthogonal directions
-        Vectors.findTangent(dirY, dirX).normalize(length)
-        dirZ.set(dirX).cross(dirY).normalize(length)
-        mat.set(dirX, dirY, dirZ)
+        dirY.findSystem(dirX, dirZ, true)
+        mat.set(dirX, dirY, dirZ).scale(length)
         // add a bone from src to dst
         val vertices = Skeleton.boneMeshVertices
         val list = ArrayList<Vector3d>()

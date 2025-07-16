@@ -9,6 +9,7 @@ import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
+import me.anno.utils.Threads
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Buffers.flip16
 import org.apache.logging.log4j.LogManager
@@ -37,7 +38,7 @@ class FFMPEGAudio(
     override fun process(process: Process, arguments: List<String>, callback: () -> Unit) {
         // ("starting process for audio $sampleRate x $length")
         // (arguments)
-        thread(name = "${file?.name}:error-stream") {
+        Threads.runWorkerThread("${file?.name}:error-stream") {
             val out = process.errorStream.bufferedReader()
             val parser = FFMPEGMetaParser()
             try {

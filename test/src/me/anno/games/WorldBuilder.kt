@@ -49,7 +49,7 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.documents
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.UpdatingList
-import me.anno.utils.types.Vectors.normalToQuaternionY2
+import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Quaternionf
@@ -336,7 +336,7 @@ fun main() {
 
                 // todo make dynamic angle a checkbox...
                 if (dynamicAngle && abs(normal.y) in 0.1f..0.9f) {
-                    nor.set(normal).normalToQuaternionY2(rot)
+                    nor.set(normal).normalToQuaternionY(rot)
                 } else {
                     rot.rotationY(atan2(normal.x, normal.z))
                 }

@@ -1,6 +1,5 @@
 package me.anno.tests.io.files
 
-import me.anno.Engine
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttribute
 import me.anno.gpu.buffer.Attribute
@@ -38,6 +37,5 @@ class XMLTest {
         val fromXML = reader.allInstances
         val copyViaBothForTesting = JsonStringWriter.toText(fromXML, InvalidRef)
         assertEquals(asJSON, copyViaBothForTesting)
-        Engine.requestShutdown()
     }
 }

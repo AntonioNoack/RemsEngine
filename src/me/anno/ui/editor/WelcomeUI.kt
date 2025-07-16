@@ -41,6 +41,7 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.black
 import me.anno.utils.GFXFeatures
+import me.anno.utils.Threads
 import me.anno.utils.async.Callback
 import me.anno.utils.files.OpenFileExternally.openInExplorer
 import me.anno.utils.types.Strings.isBlank2
@@ -243,7 +244,7 @@ interface WelcomeUI {
     fun createProjectUI()
 
     fun openProject(studio: EngineBase, name: String, folder: FileReference) {
-        thread(name = "OpenProject") { // prevent the engine from hanging
+        Threads.start("OpenProject") { // prevent the engine from hanging
             openProject2(name, folder)
         }
     }

@@ -2,7 +2,7 @@ package me.anno.io.utils
 
 import me.anno.Engine
 import me.anno.Time.nanoTime
-import me.anno.cache.ThreadPool
+import me.anno.utils.Threads
 import me.anno.engine.Events.addEvent
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.OSFeatures
@@ -20,7 +20,7 @@ class SaveMaybe {
                     } else {
                         // delay in case it needs longer
                         lastSaveTime = nanoTime + 60 * SECONDS_TO_NANOS
-                        ThreadPool.start("Saving $name") {
+                        Threads.start("Saving $name") {
                             save()
                             lastSaveTime = nanoTime
                         }

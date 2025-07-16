@@ -41,6 +41,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.mesh.Shapes
+import me.anno.tests.LOGGER
 import me.anno.tests.ui.UITests
 import me.anno.tests.utils.TestWorld
 import me.anno.ui.base.components.AxisAlignment
@@ -158,6 +159,7 @@ class CompileTest {
         val tmp = Framebuffer("tmp", rv.width, rv.height, 1, TargetType.UInt8x4, DepthBufferType.NONE)
         for (mode in RenderMode.values) {
             try {
+                LOGGER.info("Checking '${mode.nameDesc.name}'")
                 rv.renderMode = mode
                 if (printResults) {
                     useFrame(tmp) {
@@ -172,6 +174,5 @@ class CompileTest {
                 throw Exception(mode.nameDesc.englishName, e)
             }
         }
-        Engine.requestShutdown()
     }
 }

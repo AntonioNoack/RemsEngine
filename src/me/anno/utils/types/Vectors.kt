@@ -1,20 +1,16 @@
 package me.anno.utils.types
 
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
 import me.anno.utils.types.Floats.f2x
 import me.anno.utils.types.Triangles.getParallelogramArea
-import me.anno.utils.types.Triangles.getTriangleArea
 import org.hsluv.HSLuvColorSpace
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
-import org.joml.Quaternionf
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.sqrt
 
@@ -71,87 +67,8 @@ object Vectors {
             " (${m02.f2x()} ${m12.f2x()} ${m22.f2x()} ${m32.f2x()})]"
 
     @JvmStatic
-    fun findTangent(normal: Vector3f, dst: Vector3f = Vector3f()): Vector3f {
-        return normal.findSecondAxis(dst)
-    }
-
-    @JvmStatic
-    fun findTangent(normal: Vector3d, dst: Vector3d = Vector3d()): Vector3d {
-        return normal.findSecondAxis(dst)
-    }
-
-    @JvmStatic
-    fun Vector3f.addScaled(other: Vector3f, scale: Float): Vector3f {
-        other.mulAdd(scale, this, this)
-        return this
-    }
-
-    /**
-     * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
-     * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
-     * */
-    @JvmStatic
-    fun Vector3d.normalToQuaternionY(dst: Quaterniond = Quaterniond()): Quaterniond {
-        return normalToQuaternionY(x, y, z, dst)
-    }
-
-    /**
-     * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
-     * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
-     * */
-    @JvmStatic
-    fun Vector3f.normalToQuaternionY(dst: Quaternionf = Quaternionf()): Quaternionf {
-        val tmpOutput = JomlPools.quat4d.create()
-        normalToQuaternionY(x.toDouble(), y.toDouble(), z.toDouble(), tmpOutput)
-        JomlPools.quat4d.sub(1)
-        return dst.set(tmpOutput)
-    }
-
-    @JvmStatic
     fun normalToQuaternionY(x: Double, y: Double, z: Double, dst: Quaterniond = Quaterniond()): Quaterniond {
-        // todo this works perfectly, but the y-angle shouldn't change :/
-        // uses ~ 28 ns/e on R5 2600 in fp32
-        if (x * x + z * z > 0.001) {
-            val v3 = JomlPools.vec3d
-            val v0 = v3.create()
-            val v2 = v3.create()
-            v0.set(z, 0.0, -x).normalize()
-            v0.cross(x, y, z, v2)
-            val v00 = v0.x
-            val v22 = v2.z
-            val diag = v00 + y + v22
-            if (diag >= 0.0) {
-                dst.set(z - v2.y, v2.x - v0.z, v0.y - x, diag + 1.0)
-            } else if (v00 >= y && v00 >= v22) {
-                dst.set(v00 - (y + v22) + 1.0, x + v0.y, v0.z + v2.x, z - v2.y)
-            } else if (y > v22) {
-                dst.set(x + v0.y, y - (v22 + v00) + 1.0, v2.y + z, v2.x - v0.z)
-            } else {
-                dst.set(v0.z + v2.x, v2.y + z, v22 - (v00 + y) + 1.0, v0.y - x)
-            }
-            v3.sub(2)
-            return dst.normalize()
-        } else if (y > 0.0) { // up
-            return dst.identity()
-        } else { // down
-            return dst.set(1.0, 0.0, 0.0, 0.0)
-        }
-    }
-
-    /**
-     * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
-     * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
-     * */
-    @JvmStatic
-    fun Vector3f.normalToQuaternionY2(dst: Quaternionf): Quaternionf {
-        normalToQuaternionY(dst)
-        // todo better formula?
-        val test = JomlPools.vec3f.borrow()
-        for (i in 0 until 4) {
-            dst.transform(test.set(1f, 0f, 0f))
-            rotateY(atan2(test.z, test.x))
-        }
-        return dst
+        return dst.rotateTo(0.0, 1.0, 0.0, x, y, z)
     }
 
     @JvmStatic

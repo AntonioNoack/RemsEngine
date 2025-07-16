@@ -803,6 +803,14 @@ open class Vector3d(
         return dst.rotationYXZ(y, x, z)
     }
 
+    /**
+     * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
+     * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
+     * */
+    fun normalToQuaternionY(dst: Quaterniond = Quaterniond()): Quaterniond {
+        return dst.rotateTo(0.0, 1.0, 0.0, x, y, z)
+    }
+
     companion object {
         @JvmStatic
         fun lengthSquared(x: Double, y: Double, z: Double): Double {

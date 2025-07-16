@@ -10,6 +10,7 @@ import me.anno.tests.FlakyTest
 import me.anno.tests.LOGGER
 import me.anno.tests.network.NetworkTests.nextPort
 import me.anno.utils.Sleep
+import me.anno.utils.Threads
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertLessThan
 import me.anno.utils.assertions.assertTrue
@@ -84,7 +85,7 @@ class NetworkTest {
             val tcpSocket = TCPClient.createSocket(address, server.tcpPort, tcpProtocol)
             val tcpClient = TCPClient(tcpSocket, tcpProtocol, name)
             tcpClient.startClientSideAsync()
-            thread(name = "$name.udp") {
+            Threads.start("$name.udp") {
                 // when the connection is established
                 val udpClient = UDPClient(address, server.udpPort)
                 udpClient.send(null, tcpClient, udpProtocol, PingPacket())

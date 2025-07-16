@@ -28,6 +28,7 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.black
 import me.anno.utils.Logging.hash32
+import me.anno.utils.Threads
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.Collections.setContains
 import me.anno.utils.structures.sets.ParallelHashSet
@@ -37,7 +38,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector3d
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
@@ -289,7 +289,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     private fun startWorker() {
-        workerThread = thread(name = className) {
+        workerThread = Threads.runWorkerThread(className) {
             try {
                 while (!Engine.shutdown) {
 

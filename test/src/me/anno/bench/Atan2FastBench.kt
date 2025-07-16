@@ -1,7 +1,6 @@
 package me.anno.bench
 
 import com.bulletphysics.linearmath.ScalarUtil.atan2Fast
-import me.anno.Engine
 import me.anno.maths.Maths.posMod
 import me.anno.maths.Maths.sq
 import me.anno.utils.Clock
@@ -43,5 +42,4 @@ fun main() {
         val y = data[idx + 1]
         atan2Fast(y, x)
     }
-    Engine.requestShutdown()
 }

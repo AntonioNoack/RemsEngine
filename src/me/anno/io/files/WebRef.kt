@@ -2,7 +2,7 @@ package me.anno.io.files
 
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
-import me.anno.cache.ThreadPool
+import me.anno.utils.Threads
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.io.Streams.readText
 import me.anno.io.VoidOutputStream
@@ -93,7 +93,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     }
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        ThreadPool.start("WebRef:${absolutePath.shorten(100)}") {
+        Threads.start("WebRef:${absolutePath.shorten(100)}") {
             val connection = toURL().openConnection() as HttpURLConnection
             if (connection.responseCode in 200 until 300) {
                 callback.ok(connection.inputStream)

@@ -348,8 +348,8 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
     private fun setupManifold(manifold: PersistentManifold, infoGlobal: ContactSolverInfo) {
 
-        val colObj0 = manifold.getBody0() as CollisionObject
-        val colObj1 = manifold.getBody1() as CollisionObject
+        val colObj0 = manifold.body0
+        val colObj1 = manifold.body1
 
         val solverBodyIdA = defineSolverBody(colObj0)
         val solverBodyIdB = defineSolverBody(colObj1)
@@ -504,7 +504,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 )
             } else {
                 // re-calculate friction direction every frame, todo: check if this is really needed
-                cp.normalWorldOnB.findSystem( cp.lateralFrictionDir1, cp.lateralFrictionDir2, false)
+                cp.normalWorldOnB.findSystem(cp.lateralFrictionDir1, cp.lateralFrictionDir2, false)
                 addFrictionConstraint(
                     cp.lateralFrictionDir1,
                     solverBodyIdA, solverBodyIdB, frictionIndex, cp,
@@ -838,8 +838,8 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 for (j in 0 until totalPoints) {
                     val manifold1 = manifold[manifoldOffset + orderManifoldIndex(gOrder[j])]
                     solve(
-                        (manifold1.getBody0() as RigidBody),
-                        manifold1.getBody1() as RigidBody,
+                        manifold1.body0 as RigidBody,
+                        manifold1.body1 as RigidBody,
                         manifold1.getContactPoint(orderPointIndex(gOrder[j])), info
                     )
                 }
@@ -847,8 +847,8 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 for (j in 0 until totalPoints) {
                     val manifold1 = manifold[manifoldOffset + orderManifoldIndex(gOrder[j])]
                     solveFriction(
-                        (manifold1.getBody0() as RigidBody),
-                        manifold1.getBody1() as RigidBody,
+                        manifold1.body0 as RigidBody,
+                        manifold1.body1 as RigidBody,
                         manifold1.getContactPoint(orderPointIndex(gOrder[j])), info
                     )
                 }
@@ -859,17 +859,16 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
     }
 
     fun prepareConstraints(manifoldPtr: PersistentManifold, info: ContactSolverInfo) {
-        val body0 = manifoldPtr.getBody0() as RigidBody
-        val body1 = manifoldPtr.getBody1() as RigidBody
+        val body0 = manifoldPtr.body0 as RigidBody
+        val body1 = manifoldPtr.body1 as RigidBody
 
         // only necessary to refresh the manifold once (first iteration). The integration is done outside the loop
 
         //#ifdef FORCE_REFESH_CONTACT_MANIFOLDS
         //manifoldPtr->refreshContactPoints(body0->getCenterOfMassTransform(),body1->getCenterOfMassTransform());
         //#endif //FORCE_REFESH_CONTACT_MANIFOLDS
-        val numpoints = manifoldPtr.numContacts
-
-        BulletStats.totalContactPoints += numpoints
+        val numPoints = manifoldPtr.numContacts
+        BulletStats.totalContactPoints += numPoints
 
         val tmpVec = Stack.newVec()
 
@@ -886,7 +885,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         val ftorqueAxis0 = Stack.newVec()
         val ftorqueAxis1 = Stack.newVec()
 
-        for (i in 0 until numpoints) {
+        for (i in 0 until numPoints) {
             val cp = manifoldPtr.getContactPoint(i)
             if (cp.distance <= 0.0) {
 
@@ -968,7 +967,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 cpd.prevAppliedImpulse = cpd.appliedImpulse
 
                 // re-calculate friction direction every frame, todo: check if this is really needed
-                cp.normalWorldOnB.findSystem( cpd.frictionWorldTangential0, cpd.frictionWorldTangential1, false)
+                cp.normalWorldOnB.findSystem(cpd.frictionWorldTangential0, cpd.frictionWorldTangential1, false)
 
                 //#define NO_FRICTION_WARMSTART 1
                 //#ifdef NO_FRICTION_WARMSTART

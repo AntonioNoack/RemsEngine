@@ -7,10 +7,10 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.network.Server.Companion.str32
 import me.anno.network.packets.PingPacket
 import me.anno.utils.Sleep
+import me.anno.utils.Threads
 import me.anno.utils.hpc.threadLocal
 import java.io.IOException
 import java.net.Socket
-import kotlin.concurrent.thread
 import kotlin.math.abs
 
 open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtocol) {
@@ -99,7 +99,7 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
 
     private fun defaultRun(server: Server?, client: TCPClient, shutdown: () -> Boolean) {
         // start writing queue
-        thread(name = if (server == null) "[${client.name}]" else "S[${server.name}][${client.name}]") {
+        Threads.start(if (server == null) "[${client.name}]" else "S[${server.name}][${client.name}]") {
             client.workPacketTasks(server)
             server?.removeClient(client)
         }

@@ -14,7 +14,7 @@ import kotlin.math.min
 abstract class LongToHashMap<AV>(
     minCapacity: Int = 16,
     loadFactor: Float = 0.75f
-) {
+) : PrimitiveCollection {
 
     abstract fun createArray(size: Int): AV
     abstract fun fillNulls(values: AV)
@@ -26,9 +26,6 @@ abstract class LongToHashMap<AV>(
     abstract fun setNull(
         dstValues: AV, dstIndex: Int
     )
-
-    fun isEmpty() = size == 0
-    fun isNotEmpty() = !isEmpty()
 
     @InternalAPI
     var keys: LongArray
@@ -53,12 +50,12 @@ abstract class LongToHashMap<AV>(
     var nullIndex = 0
 
     @InternalAPI
-    var maxFill = 0
+    override var maxFill = 0
 
     @InternalAPI
     var mask = 0
 
-    var size = 0
+    override var size = 0
 
     val loadFactor: Float
 
@@ -95,7 +92,7 @@ abstract class LongToHashMap<AV>(
         return HashUtil.nextPowerOfTwo(sizeToCapacity(size))
     }
 
-    fun clear() {
+    override fun clear() {
         if (size != 0) {
             size = 0
             containsNull = false

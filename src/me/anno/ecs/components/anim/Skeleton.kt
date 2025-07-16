@@ -17,7 +17,6 @@ import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.types.Vectors
 import org.joml.Matrix3f
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
@@ -182,9 +181,8 @@ class Skeleton : PrefabSaveable(), Renderable {
                     } // skip the root bone, because it's awkward
                     val thickness = min(length, maxBoneThickness)
                     // find orthogonal directions
-                    Vectors.findTangent(dirY, dirX).normalize(thickness)
-                    dirZ.set(dirX).cross(dirY).normalize(thickness)
-                    mat.set(dirX, dirY, dirZ)
+                    dirY.findSystem(dirX, dirZ, true)
+                    mat.set(dirX, dirY, dirZ).scale(thickness)
                     // add a bone from src to dst
                     forLoopSafely(boneMeshVertices.size, 3) { i ->
                         tmp.set(boneMeshVertices[i], boneMeshVertices[i + 1], boneMeshVertices[i + 2])

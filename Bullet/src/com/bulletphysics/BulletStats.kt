@@ -1,7 +1,6 @@
 package com.bulletphysics
 
-import com.bulletphysics.linearmath.CProfileManager
-import com.bulletphysics.linearmath.Clock
+import com.bulletphysics.linearmath.BulletProfiling
 
 /**
  * Bullet statistics and profile support.
@@ -31,9 +30,6 @@ object BulletStats {
     @JvmField
     var findPairCalls: Int = 0
 
-    @JvmField
-    val profileClock = Clock()
-
     // DiscreteDynamicsWorld:
     @JvmField
     var numClampedCcdMotions: Int = 0
@@ -45,11 +41,6 @@ object BulletStats {
     /**///////////////////////////////////////////////////////////////////////// */
     var isProfileEnabled: Boolean = false
 
-    @JvmStatic
-    fun profileGetTicks(): Long {
-        return profileClock.timeNanos
-    }
-
     /**
      * Pushes profile node. Use try/finally block to call [.popProfile] method.
      *
@@ -58,7 +49,7 @@ object BulletStats {
     @JvmStatic
     fun pushProfile(name: String?) {
         if (isProfileEnabled) {
-            CProfileManager.startProfile(name)
+            BulletProfiling.startProfile(name)
         }
     }
 
@@ -68,7 +59,7 @@ object BulletStats {
     @JvmStatic
     fun popProfile() {
         if (isProfileEnabled) {
-            CProfileManager.stopProfile()
+            BulletProfiling.stopProfile()
         }
     }
 }

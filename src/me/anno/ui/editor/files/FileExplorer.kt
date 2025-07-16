@@ -2,7 +2,7 @@ package me.anno.ui.editor.files
 
 import me.anno.Time
 import me.anno.cache.IgnoredException
-import me.anno.cache.ThreadPool
+import me.anno.utils.Threads
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent
@@ -471,12 +471,12 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         // or just switch?
         return listOf(
             MenuOption(NameDesc("Move")) {
-                ThreadPool.start("Moving files") {
+                Threads.start("Moving files") {
                     moveInto(files, folder)
                 }
             },
             MenuOption(NameDesc("Copy")) {
-                ThreadPool.start("Copying files") {
+                Threads.start("Copying files") {
                     copyInto(files, folder)
                 }
             },
@@ -487,7 +487,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                 switchTo(files.first())
             }.setEnabled(files.size == 1 && !files.first().isDirectory),
             MenuOption(NameDesc("Create Links")) {
-                ThreadPool.start("Creating links") {
+                Threads.start("Creating links") {
                     createLinksInto(files, folder)
                 }
             }
@@ -628,7 +628,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         folder ?: return
         if (GFX.isGFXThread() && OSFeatures.hasMultiThreading) {
             loading = Time.nanoTime
-            ThreadPool.start("SwitchTo($folder)") {
+            Threads.start("SwitchTo($folder)") {
                 try {
                     switchToImpl(folder)
                 } catch (_: IgnoredException) {

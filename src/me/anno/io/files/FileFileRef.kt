@@ -1,8 +1,8 @@
 package me.anno.io.files
 
-import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
+import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.cache.IgnoredException
-import me.anno.cache.ThreadPool
+import me.anno.utils.Threads
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.VoidOutputStream
 import me.anno.utils.async.Callback
@@ -116,7 +116,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     }
 
     override fun listChildren(callback: Callback<List<FileReference>>) {
-        ThreadPool.start("$absolutePath.listChildren") { // can be extremely slow
+        Threads.start("$absolutePath.listChildren") { // can be extremely slow
             if (exists && isDirectory) {
                 try {
                     val answer = file.listFiles()?.map { getChild(it.name) }

@@ -3,7 +3,7 @@ package me.anno.video
 import me.anno.Engine
 import me.anno.Time
 import me.anno.cache.AsyncCacheData
-import me.anno.cache.ThreadPool
+import me.anno.utils.Threads
 import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
@@ -153,7 +153,7 @@ open class VideoCreator(
 
         process = builder.start()
         logOutput(null, output.absolutePath, process.inputStream, true)
-        ThreadPool.start("VideoCreator:updates") {
+        Threads.start("VideoCreator:updates") {
             processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream) {
                 close()
             }

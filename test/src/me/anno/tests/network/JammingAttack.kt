@@ -7,6 +7,7 @@ import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.network.packets.MSGBroadcastPacket
 import me.anno.network.packets.PingPacket
+import me.anno.utils.Threads
 import java.io.IOException
 import java.net.InetAddress
 import java.net.ServerSocket
@@ -67,7 +68,7 @@ fun test1() {
         evilClient.dos.writeInt(protocol.bigEndianMagic)
         protocol.clientHandshake(evilClient.socket, evilClient)
         evilClient.isRunning = true
-        thread(name = "Evil-Ping") {
+        Threads.runWorkerThread("Evil-Ping") {
             // keep the connection alive
             try {
                 while (!Engine.shutdown && !evilClient.isClosed) {

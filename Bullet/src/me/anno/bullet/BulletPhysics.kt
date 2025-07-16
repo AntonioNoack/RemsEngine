@@ -56,6 +56,7 @@ import me.anno.utils.types.Floats.toLongOr
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3
 import org.joml.Vector3d
+import speiger.primitivecollections.IntHashSet
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -484,7 +485,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
     val numIslands: Int
         get() {
             val objects = bulletInstance.collisionObjects
-            val islandIds = HashSet<Int>()
+            val islandIds = IntHashSet()
             for (i in objects.indices) {
                 val co = objects[i]
                 val islandId = co.islandTag

@@ -10,16 +10,13 @@ class LongToIntHashMap(
     missingValue: Int,
     minCapacity: Int = 16,
     loadFactor: Float = 0.75f
-) {
+): PrimitiveCollection {
 
     @InternalAPI
     val content = LongToLongHashMap(missingValue.toLong(), minCapacity, loadFactor)
 
-    val size get() = content.size
-    val maxFill get() = content.maxFill
-
-    fun isEmpty() = size == 0
-    fun isNotEmpty() = !isEmpty()
+    override val size get() = content.size
+    override val maxFill get() = content.maxFill
 
     @Suppress("unused")
     val missingValue: Int
@@ -61,7 +58,7 @@ class LongToIntHashMap(
         return content.replace(key, value.toLong()).toInt()
     }
 
-    fun clear() {
+    override fun clear() {
         content.clear()
     }
 

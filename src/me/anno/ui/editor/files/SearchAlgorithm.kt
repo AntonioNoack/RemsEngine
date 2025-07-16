@@ -1,7 +1,7 @@
 package me.anno.ui.editor.files
 
 import me.anno.cache.AsyncCacheData
-import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
+import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.engine.Events.addEvent
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef

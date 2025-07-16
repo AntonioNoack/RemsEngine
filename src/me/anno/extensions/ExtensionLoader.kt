@@ -1,5 +1,6 @@
 package me.anno.extensions
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
 import me.anno.extensions.mods.Mod
@@ -9,14 +10,15 @@ import me.anno.extensions.plugins.PluginManager
 import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
-import me.anno.utils.hpc.HeavyProcessing.processStage
+import me.anno.utils.Sleep
+import me.anno.utils.Threads
 import me.anno.utils.async.Callback
+import me.anno.utils.hpc.HeavyProcessing.processStage
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.net.URL
 import java.net.URLClassLoader
 import java.util.zip.ZipInputStream
-import kotlin.concurrent.thread
 import kotlin.reflect.KClass
 
 object ExtensionLoader {
@@ -70,7 +72,7 @@ object ExtensionLoader {
     @JvmStatic
     private fun addAllFromFolder(
         folder: FileReference,
-        threads: MutableList<Thread>,
+        threads: MutableList<() -> Boolean>,
         extInfos0: MutableList<ExtensionInfo>,
         maxDepth: Int = 5
     ) {
@@ -84,17 +86,20 @@ object ExtensionLoader {
                 } else {
                     val name = it.name
                     if (!name.startsWith(".") && it.lcExtension == "jar") {
-                        threads += thread(name = "ExtensionLoader::getInfos($it)") {
+                        var finished = false
+                        Threads.start("ExtensionLoader::getInfos($it)") {
                             loadInfoFromZip(it) { info, err ->
                                 err?.printStackTrace()
                                 // (check if compatible???)
                                 if (info != null && checkExtensionRequirements(info)) {
                                     synchronized(extInfos0) {
                                         extInfos0 += info
+                                        finished = true
                                     }
                                 }
                             }
                         }
+                        threads += { finished }
                     }
                 }
             }
@@ -104,12 +109,10 @@ object ExtensionLoader {
     @JvmStatic
     private fun getInfos(): List<ExtensionInfo> {
         val result = ArrayList<ExtensionInfo>()
-        val threads = ArrayList<Thread>()
+        val threads = ArrayList<() -> Boolean>()
         addAllFromFolder(pluginsFolder, threads, result)
         addAllFromFolder(modsFolder, threads, result)
-        for (it in threads) {
-            it.join()
-        }
+        Sleep.waitUntil(true) { threads.all { isFinished -> isFinished() } }
         for (internal in internally) {
             result.removeAll { it.uuid == internal.uuid }
             result.add(internal)

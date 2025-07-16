@@ -1,9 +1,7 @@
 package me.anno.bench
 
 import com.bulletphysics.BulletStats
-import com.bulletphysics.linearmath.CProfileManager
-import com.bulletphysics.linearmath.CProfileNode
-import me.anno.Engine
+import com.bulletphysics.linearmath.BulletProfiling
 import me.anno.Time
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
@@ -19,7 +17,6 @@ import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.Clock
-import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -29,36 +26,20 @@ private val LOGGER = LogManager.getLogger("DominoPhysics")
 fun main() {
     init()
     val clock = Clock(LOGGER)
-    val numSteps = 100_000
+    val numSteps = 500
     LOGGER.info("NumSteps: $numSteps")
-    // runDominoTest(2, 2) // warmup
 
-    // todo test performance debugging
+    runDominoTest(2, 2) // warmup
+
     BulletStats.isProfileEnabled = true
 
-    for (n in listOf(16, 32, 64, 128, 256, 512, 1024)) {
+    for (n in listOf(16, 32, 64, 128, 256)) {
         clock.start()
         runDominoTest(n, numSteps)
         clock.stop("$n Dominos", n * numSteps)
     }
 
-    // just prints the last simulation step
-    printProfiling()
-
-    Engine.requestShutdown()
-}
-
-fun printProfiling() {
-    printProfiling(CProfileManager.root, 0)
-}
-
-fun printProfiling(node: CProfileNode, depth: Int) {
-    println("  ".repeat(depth) + "\"${node.name}\" ${node.totalCalls}x: ${(node.totalTimeSeconds * 1e3).f3()} ms")
-    var child = node.child
-    while (child != null) {
-        printProfiling(child, depth + 1)
-        child = child.sibling
-    }
+    BulletProfiling.printProfiling()
 }
 
 fun init() {
@@ -77,9 +58,9 @@ fun runDominoTest(numDominos: Int, numSteps: Int) {
     Systems.world = scene
 
     val physics = BulletPhysics().apply {
-        // updateInEditMode = true
         // fixedStep = 1.0 / 240.0
         synchronousPhysics = true
+        updateInEditMode = true // necessary, or onUpdate won't be called
     }
 
     Systems.registerSystem(physics)

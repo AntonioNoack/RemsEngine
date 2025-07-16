@@ -1,7 +1,5 @@
 package me.anno.tests.mesh.gltf
 
-import me.anno.Engine
-import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.OfficialExtensions
@@ -48,7 +46,5 @@ class RecursiveAssetImportTest {
 
         srcFolder.delete()
         dstFolder.delete()
-
-        Engine.requestShutdown()
     }
 }

@@ -2,6 +2,7 @@ package me.anno
 
 import me.anno.cache.CacheSection
 import me.anno.gpu.WindowManagement
+import me.anno.utils.Threads
 
 object Engine {
 
@@ -9,8 +10,11 @@ object Engine {
     var projectName = "Rem's Engine"
 
     @JvmStatic
-    var shutdown: Boolean = false
-        private set
+    private var shutdownFlag: Boolean = false
+
+    @JvmStatic
+    val shutdown: Boolean
+        get() = shutdownFlag || Threads.isIdleQuickCheck()
 
     private val onShutdown = ArrayList<() -> Unit>()
     fun registerForShutdown(callback: () -> Unit) {
@@ -20,9 +24,18 @@ object Engine {
         }
     }
 
+    /**
+     * Explicit call to stop waiting on optional load processes, and shut down any remaining workers.
+     * After calling this, lots of things will break, so don't call this unless you are sure.
+     *
+     * If you want to save the engine from a shutdown, call Engine.cancelShutdown(), but not everything might work again.
+     * */
     @JvmStatic
     fun requestShutdown() {
-        shutdown = true
+        synchronized(this) {
+            if (shutdownFlag) return
+            shutdownFlag = true
+        }
         for (i in onShutdown.indices) {
             try {
                 onShutdown[i]()
@@ -35,7 +48,7 @@ object Engine {
     @JvmStatic
     @Deprecated("This is experimental!")
     fun cancelShutdown() {
-        shutdown = false
+        shutdownFlag = false
         // how are CacheSections handling ShutdownErrors? Can a once failed resource still be created, or will it be failed?
         //  - it looks like they just keep <null> as their value... -> clear them all 😄
         CacheSection.clearAll()

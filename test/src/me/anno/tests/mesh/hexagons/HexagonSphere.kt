@@ -29,6 +29,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI2
 import me.anno.ui.input.IntInput
 import me.anno.utils.Color.r01
 import me.anno.utils.OS.downloads
+import me.anno.utils.Threads
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
@@ -316,7 +317,7 @@ fun main() {
                 validateSync()
             } else {
                 working = true
-                thread(name = "work") {
+                Threads.start("work") {
                     try {
                         validateSync()
                     } finally {

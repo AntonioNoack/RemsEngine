@@ -1,9 +1,9 @@
 package me.anno.tests.utils
 
 import me.anno.tests.LOGGER
+import me.anno.utils.Threads
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.thread
 
 fun main() {
 
@@ -14,9 +14,9 @@ fun main() {
     val c = AtomicInteger()
     var max = 0
 
-    for (i in 0 until 12) {
-        thread(name = "SemaphoreTest") {
-            for (j in 0 until 1000) {
+    repeat(12) {
+        Threads.start("SemaphoreTest") {
+            repeat(1000) {
                 s.acquire()
                 val ci = c.incrementAndGet()
                 if (ci > max) {
@@ -29,5 +29,4 @@ fun main() {
             }
         }
     }
-
 }

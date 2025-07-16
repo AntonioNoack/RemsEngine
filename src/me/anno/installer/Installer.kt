@@ -1,7 +1,7 @@
 package me.anno.installer
 
 import me.anno.Time
-import me.anno.cache.ThreadPool
+import me.anno.utils.Threads
 import me.anno.gpu.GFX
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.VoidOutputStream
@@ -66,7 +66,7 @@ object Installer {
 
     @JvmStatic
     fun download(fileName: String, dstFile: FileReference, urls: List<String>, callback: () -> Unit) {
-        ThreadPool.start("Download $fileName") {
+        Threads.start("Download $fileName") {
             downloadSync(fileName, dstFile, urls, callback)
         }
     }
@@ -155,7 +155,7 @@ object Installer {
         // change "files" to "files.phychi.com"?
         // create a temporary file, and rename, so we know that we finished the download :)
         val tmp = dstFile.getSibling(dstFile.name + ".tmp")
-        ThreadPool.start("Download $fileName") {
+        Threads.start("Download $fileName") {
             val progress = GFX.someWindow.addProgressBar(fileName, "Bytes", Double.NaN)
             try {
                 runDownload(URL(srcFile.absolutePath), fileName, dstFile, tmp, progress)

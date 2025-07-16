@@ -35,13 +35,13 @@ class PersistentManifold {
     /**
      * these two body pointers can point to the physics rigidbody class.
      */
-    var body0: CollisionObject? = null
-    var body1: CollisionObject? = null
+    lateinit var body0: CollisionObject
+    lateinit var body1: CollisionObject
 
     var numContacts: Int = 0
     var index1a: Int = 0
 
-    fun init(body0: CollisionObject?, body1: CollisionObject?) {
+    fun init(body0: CollisionObject, body1: CollisionObject) {
         this.body0 = body0
         this.body1 = body1
         this.numContacts = 0
@@ -100,15 +100,6 @@ class PersistentManifold {
         val res3 = cross.lengthSquared()
         Stack.subVec(3)
         return res3
-    }
-
-    //private int findContactPoint(ManifoldPoint unUsed, int numUnused, ManifoldPoint pt);
-    fun getBody0(): Any {
-        return body0!!
-    }
-
-    fun getBody1(): Any {
-        return body1!!
     }
 
     fun setBodies(body0: CollisionObject, body1: CollisionObject) {

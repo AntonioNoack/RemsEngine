@@ -35,8 +35,8 @@ import me.anno.utils.GFXFeatures
 import me.anno.utils.OS
 import me.anno.utils.OS.res
 import me.anno.utils.OSFeatures
+import me.anno.utils.Threads
 import me.anno.utils.assertions.assertNotEquals
-import me.anno.utils.async.Callback.Companion.waitFor
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
@@ -59,7 +59,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -368,7 +367,7 @@ object WindowManagement {
 
         // Start new thread to have the OpenGL context current in and that does the rendering.
         if (useSeparateGLFWThread) {
-            thread(name = "OpenGL") {
+            Threads.start("OpenGL") {
                 GFX.glThread = Thread.currentThread()
                 runRenderLoop0(window0)
                 runRenderLoop()

@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.utils.OS
+import me.anno.utils.Threads
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.InputStream
@@ -86,8 +87,8 @@ class BetterProcessBuilder(
 
     fun startAndPrint(): Process {
         val process = start()
-        thread(name = "cmd($args):error") { readLines(process.errorStream, true) }
-        thread(name = "cmd($args):input") { readLines(process.inputStream, false) }
+        Threads.start("cmd($args):error") { readLines(process.errorStream, true) }
+        Threads.start("cmd($args):input") { readLines(process.inputStream, false) }
         return process
     }
 

@@ -3,6 +3,7 @@ package me.anno.utils.hpc
 import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep
+import me.anno.utils.Threads
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.abs
@@ -29,7 +30,7 @@ class UpdatingTask(val threadName: String) {
                 val time = Time.nanoTime
                 if (id.get() == newId && (runningThread == null || abs(time - lastSuccessfulStart) >= TIMEOUT_NANOS)) {
                     lastSuccessfulStart = time
-                    runningThread = thread(name = threadName) {
+                    runningThread = Threads.runWorkerThread(threadName) {
                         if (id.get() == newId) {
                             computation(newId) {
                                 freeThread()

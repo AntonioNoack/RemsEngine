@@ -1,6 +1,5 @@
 package me.anno.tests.language.spellchecking
 
-import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.utils.assertions.assertContains
@@ -21,6 +20,5 @@ class SpellcheckTest {
         assertEquals(2, answer.start)
         assertEquals(5, answer.end)
         assertContains("love", answer.improvements)
-        Engine.requestShutdown()
     }
 }

@@ -18,6 +18,7 @@ import me.anno.language.spellcheck.Suggestion
 import me.anno.utils.Color
 import me.anno.utils.OS
 import me.anno.utils.Sleep
+import me.anno.utils.Threads
 import me.anno.utils.structures.lists.PairArrayList
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.Strings.isBlank2
@@ -169,7 +170,7 @@ object SpellcheckingImpl {
      * */
     private fun start(language: Language, queue: TaskQueue) {
         queue.restart = null // restart no longer needed
-        thread(name = "Spellchecking ${language.code}") {
+        Threads.runWorkerThread("Spellchecking ${language.code}") {
             if (!OS.isAndroid && !OS.isWeb) {
                 getExecutable(language) { executable ->
                     val process = createProcess(executable, language)
