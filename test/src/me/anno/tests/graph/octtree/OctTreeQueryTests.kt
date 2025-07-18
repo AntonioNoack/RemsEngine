@@ -53,8 +53,8 @@ class OctTreeQueryTests {
             hasFound: (Value, Value) -> Boolean,
         ): Boolean {
             if (other == null || !overlaps(other)) return false
-            val ownChildren = children
-            val otherChildren = other.children
+            val ownChildren = values
+            val otherChildren = other.values
             val sameNode = other === this
             when {
                 ownChildren != null && otherChildren != null -> {
@@ -131,7 +131,7 @@ class OctTreeQueryTests {
             printTree(node.left as Node, depth + 1)
             printTree(node.right as Node, depth + 1)
         } else {
-            println("Node[${node.size}]: ${node.children}")
+            println("Node[${node.size}]: ${node.values}")
         }
     }
 

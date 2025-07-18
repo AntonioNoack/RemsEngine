@@ -1,6 +1,5 @@
 package me.anno.bench
 
-import me.anno.maths.geometry.convexhull.HullDesc
 import me.anno.maths.geometry.convexhull.ConvexHulls
 import me.anno.utils.Clock
 import me.anno.utils.assertions.assertNotNull
@@ -58,6 +57,6 @@ fun createPoints(n: Int): List<Vector3d> {
 
 fun convexHullSphereLimited(points: List<Vector3d>, n: Int, limit: Int) {
     val vertices = if (n == points.size) points else points.subList(0, n)
-    val hull = ConvexHulls.calculateConvexHull(HullDesc(vertices, limit))
+    val hull = ConvexHulls.calculateConvexHull(vertices, limit)
     assertNotNull(hull)
 }

@@ -1,4 +1,4 @@
-package me.anno.tests.physics
+package me.anno.tests.physics.ragdoll
 
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
@@ -27,12 +27,10 @@ import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
-import me.anno.maths.Maths.sq
 import me.anno.sdf.shapes.SDFCapsule
 import me.anno.utils.OS
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.none2
-import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Matrix4x3
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
@@ -88,14 +86,6 @@ fun main() {
     val baseTransformInvs = Array(bones.size) { Matrix4x3() }
     val roots = ArrayList<Pair<Double, DynamicBody>>()
     var isRootBone = true
-
-    class Sphere(val position: Vector3d, var radius: Double) {
-        fun overlaps(other: Sphere): Boolean {
-            val distanceSq = position.distanceSquared(other.position)
-            val radiusSq = sq(radius + other.radius)
-            return distanceSq <= radiusSq
-        }
-    }
 
     val spheres = ArrayList<Sphere>()
     val capsules2 = ArrayList<SDFCapsule>()
@@ -360,5 +350,5 @@ fun main() {
     // adjust ragdoll to start on specific animation state/frame (e.g., walking)
     // make skin stick to ragdoll physics
     // test physics for ragdoll -> looks very weird, and there is two parts for some reason :/
-    testSceneWithUI("Ragdoll Test", scene, RenderMode.LINES)
+    testSceneWithUI("Ragdoll Bones Test", scene, RenderMode.LINES)
 }

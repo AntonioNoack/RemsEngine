@@ -67,7 +67,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             // todo update, if there are new messages incoming
             // done select the text color based on the type of message
             val list = listPanel.content as PanelList
-            val lcl = lastConsoleLines.toList()
+            val lcl = lastConsoleLines
             for (i in lcl.indices) {
                 val msg = lcl.getOrNull(i) ?: continue
                 val panel = ConsoleOutputLine(list, msg, style)

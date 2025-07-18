@@ -43,8 +43,8 @@ object KdTreePairs {
     ): Boolean {
 
         if (!overlaps(other)) return false
-        val ownChildren = children
-        val otherChildren = other.children
+        val ownChildren = values
+        val otherChildren = other.values
         val sameNode = other === this
         when {
             ownChildren != null && otherChildren != null -> {

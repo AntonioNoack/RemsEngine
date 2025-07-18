@@ -20,7 +20,6 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.Stack
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.add
-import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -34,7 +33,7 @@ class Accelerator(val boids: BoidV3) : OctTreeF<Int>(32) {
         instance.right = null
         instance.min.set(Float.POSITIVE_INFINITY)
         instance.max.set(Float.NEGATIVE_INFINITY)
-        instance.children?.clear()
+        instance.values?.clear()
         return instance
     }
 }

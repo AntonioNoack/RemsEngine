@@ -1,7 +1,6 @@
 package com.bulletphysics.collision.shapes
 
 import me.anno.maths.geometry.convexhull.ConvexHulls
-import me.anno.maths.geometry.convexhull.HullDesc
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 
@@ -44,8 +43,7 @@ class ShapeHull(val shape: ConvexShape) {
             shape.localGetSupportingVertex(tmp.set(v), v)
         }
 
-        val hullDesc = HullDesc(directions)
-        val hullResult = ConvexHulls.calculateConvexHull(hullDesc)
+        val hullResult = ConvexHulls.calculateConvexHull(directions)
         if (hullResult == null) {
             LOGGER.warn("Failed to create convex hull for $directions")
             return false

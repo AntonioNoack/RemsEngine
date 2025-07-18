@@ -41,7 +41,7 @@ class MaximumInnerProduct : OctTree<Vector3d>(16) {
             val v1 = n1.findBiggestDotProduct(dir, bestDotProduct)
             return v1 ?: v0
         } else { // a leaf
-            val children = children!!
+            val children = values!!
             var bestVector: Vector3d? = null
             var bestDotProduct = bestDotProduct
             for (i in children.indices) {

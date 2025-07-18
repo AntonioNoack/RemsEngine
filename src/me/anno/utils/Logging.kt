@@ -7,9 +7,8 @@ import kotlin.math.max
 
 object Logging {
 
-    // Web isn't supporting multithreading yet
     @JvmField
-    val lastConsoleLines: Queue<String> = LinkedBlockingQueue()
+    val lastConsoleLines = ArrayDeque<String>()
 
     @JvmField
     var maxMemorizedLines = 500
@@ -18,10 +17,10 @@ object Logging {
         val lines = lastConsoleLines
         synchronized(lines) {
             if (lines.size > max(0, maxMemorizedLines)) {
-                lines.poll()
+                lines.removeFirst()
             }
+            lines.add(line)
         }
-        lines.add(line)
     }
 
     /**

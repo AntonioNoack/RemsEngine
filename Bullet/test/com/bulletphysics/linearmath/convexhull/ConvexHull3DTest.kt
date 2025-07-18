@@ -2,7 +2,6 @@ package com.bulletphysics.linearmath.convexhull
 
 import me.anno.maths.geometry.convexhull.ConvexHull
 import me.anno.maths.geometry.convexhull.ConvexHulls.Companion.calculateConvexHullNaive
-import me.anno.maths.geometry.convexhull.HullDesc
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
@@ -30,7 +29,7 @@ class ConvexHull3DTest {
             v(0f, 0f, 0f), v(1f, 0f, 0f), v(0f, 1f, 0f), v(0f, 0f, 1f)
         )
 
-        val hull = calculateConvexHullNaive(HullDesc(pts))!!
+        val hull = calculateConvexHullNaive(pts)!!
         val vertices = hull.vertices
         val triangles = hull.triangles
 
@@ -77,7 +76,7 @@ class ConvexHull3DTest {
             v(0f, 0f, 1f), v(1f, 0f, 1f), v(1f, 1f, 1f), v(0f, 1f, 1f)
         )
 
-        val hull = calculateConvexHullNaive(HullDesc(pts))!!
+        val hull = calculateConvexHullNaive(pts)!!
         val vertices = hull.vertices
         Assertions.assertEquals(8, vertices.size)
 
@@ -95,7 +94,7 @@ class ConvexHull3DTest {
             v(0f, 0f, 0f), v(1f, 0f, 0f) // duplicates
         )
 
-        val hull = calculateConvexHullNaive(HullDesc(pts))!!
+        val hull = calculateConvexHullNaive(pts)!!
         val vertices = hull.vertices
 
         // Should be 4 unique vertices
@@ -120,8 +119,8 @@ class ConvexHull3DTest {
             pts.add(Vector3d(rnd.nextDouble(), rnd.nextDouble(), rnd.nextDouble()))
         }
 
-        val hull1 = calculateConvexHullNaive(HullDesc(pts))!!
-        val hull2 = calculateConvexHullNaive(HullDesc(pts))!!
+        val hull1 = calculateConvexHullNaive(pts)!!
+        val hull2 = calculateConvexHullNaive(pts)!!
 
         val verts1 = ArrayList(hull1.vertices)
         val verts2 = ArrayList(hull2.vertices)
@@ -157,7 +156,7 @@ class ConvexHull3DTest {
             }
             p
         }
-        return calculateConvexHullNaive(HullDesc(pts))!!
+        return calculateConvexHullNaive(pts)!!
     }
 
     @Test
@@ -225,7 +224,7 @@ class ConvexHull3DTest {
                 }
                 pts.add(p)
             }
-            val hull = calculateConvexHullNaive(HullDesc(pts))!!
+            val hull = calculateConvexHullNaive(pts)!!
             val scaledPoint = Vector3d()
             for (i in pts.indices) {
                 val point = pts[i]

@@ -27,7 +27,6 @@ import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.maths.geometry.convexhull.ConvexHulls
-import me.anno.maths.geometry.convexhull.HullDesc
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
@@ -93,7 +92,7 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
              convex.localGetSupportingVertex(tmp.set(v), v)
          }*/
 
-        val hull = ConvexHulls.calculateConvexHull(positions, HullDesc(emptyList(), maxNumVertices))
+        val hull = ConvexHulls.calculateConvexHull(positions, maxNumVertices)
         if (hull == null) {
             LOGGER.warn("Failed to create convex hull for ${mesh.ref}")
             convex.margin = margin.toDouble()

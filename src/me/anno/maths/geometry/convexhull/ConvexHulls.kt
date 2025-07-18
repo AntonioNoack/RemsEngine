@@ -44,14 +44,18 @@ class ConvexHulls {
      * @param desc describes the input request
      * @return conversion result
      */
-    private fun createConvexHullImpl(desc: HullDesc): ConvexHull? {
+    private fun createConvexHullImpl(
+        vertices: List<Vector3d>,
+        maxNumVertices: Int = DEFAULT_MAX_VERTICES,
+        normalEpsilon: Double = DEFAULT_NORMAL_EPSILON
+    ): ConvexHull? {
 
         // normalize point cloud, remove duplicates, restore!
         // originally was O(n²), now is O(n log n) (Java HashMap becomes O(n log n) if over capacity)
-        val cleanVertices = cleanupVertices(desc.vertices, desc.normalEpsilon)
+        val cleanVertices = cleanupVertices(vertices, normalEpsilon)
         if (cleanVertices == null) return null
 
-        val ok = calculateConvexHull(cleanVertices, desc.maxNumVertices)
+        val ok = calculateConvexHull(cleanVertices, maxNumVertices)
         if (!ok) return null
 
         val triangles = serializeTriangles()
@@ -594,6 +598,10 @@ class ConvexHulls {
     }
 
     companion object {
+
+        const val DEFAULT_MAX_VERTICES = 4096
+        const val DEFAULT_NORMAL_EPSILON = 0.001
+
         /** close enough to consider two numbers to be 'the same'. */
         private const val EPSILON = 0.000001
         private const val RADS_PER_DEG: Double = Math.PI * 180.0
@@ -605,8 +613,12 @@ class ConvexHulls {
          * Returns null if too few unique vertices are provided.
          * Vertices are considered equal, if their direction matches by normalEpsilon.
          * */
-        fun calculateConvexHullNaive(desc: HullDesc): ConvexHull? {
-            return ConvexHulls().createConvexHullImpl(desc)
+        fun calculateConvexHullNaive(
+            vertices: List<Vector3d>,
+            maxNumVertices: Int = DEFAULT_MAX_VERTICES,
+            normalEpsilon: Double = DEFAULT_NORMAL_EPSILON
+        ): ConvexHull? {
+            return ConvexHulls().createConvexHullImpl(vertices, maxNumVertices, normalEpsilon)
         }
 
         /**
@@ -616,12 +628,16 @@ class ConvexHulls {
          * Returns null if too few unique vertices are provided.
          * Vertices are considered equal, if their direction matches by normalEpsilon.
          * */
-        fun calculateConvexHull(desc: HullDesc): ConvexHull? {
-            var gridSize = ceil(4 * sqrt(desc.maxNumVertices.toFloat())).toIntOr()
+        fun calculateConvexHull(
+            vertices: List<Vector3d>,
+            maxNumVertices: Int = DEFAULT_MAX_VERTICES,
+            normalEpsilon: Double = DEFAULT_NORMAL_EPSILON
+        ): ConvexHull? {
+            var gridSize = ceil(4 * sqrt(maxNumVertices.toFloat())).toIntOr()
             gridSize = clamp(gridSize, 16, 64) // 64² = 4096 is the standard maximum output size
 
-            desc.vertices = PackedNormalsCompressor.compressVertices(desc.vertices, gridSize)
-            return calculateConvexHullNaive(desc)
+            val vertices = PackedNormalsCompressor.compressVertices(vertices, gridSize)
+            return calculateConvexHullNaive(vertices, maxNumVertices, normalEpsilon)
         }
 
         /**
@@ -631,12 +647,16 @@ class ConvexHulls {
          * Returns null if too few unique vertices are provided.
          * Vertices are considered equal, if their direction matches by normalEpsilon.
          * */
-        fun calculateConvexHull(vertices: FloatArray, desc: HullDesc): ConvexHull? {
-            var gridSize = ceil(4 * sqrt(desc.maxNumVertices.toFloat())).toIntOr()
+        fun calculateConvexHull(
+            vertices: FloatArray,
+            maxNumVertices: Int = DEFAULT_MAX_VERTICES,
+            normalEpsilon: Double = DEFAULT_NORMAL_EPSILON
+        ): ConvexHull? {
+            var gridSize = ceil(4 * sqrt(maxNumVertices.toFloat())).toIntOr()
             gridSize = clamp(gridSize, 16, 64) // 64² = 4096 is the standard maximum output size
 
-            desc.vertices = PackedNormalsCompressor.compressVertices(vertices, gridSize)
-            return calculateConvexHullNaive(desc)
+            val vertices = PackedNormalsCompressor.compressVertices(vertices, gridSize)
+            return calculateConvexHullNaive(vertices, maxNumVertices, normalEpsilon)
         }
 
         /** ///////////////////////////////////////////////////////////////////////// */

@@ -1,4 +1,4 @@
-package me.anno.tests.physics
+package me.anno.tests.physics.ragdoll
 
 import me.anno.maths.Maths.factorial
 import me.anno.maths.Permutations.generatePermutations

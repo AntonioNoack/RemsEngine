@@ -1,7 +1,6 @@
 package me.anno.bench
 
 import me.anno.maths.geometry.convexhull.ConvexHulls
-import me.anno.maths.geometry.convexhull.HullDesc
 import me.anno.utils.Clock
 import me.anno.utils.assertions.assertNotNull
 import org.apache.logging.log4j.LogManager
@@ -55,6 +54,6 @@ fun convexHullSphere3(points: FloatArray, n: Int) {
 
 fun convexHullSphereLimited3(points: FloatArray, n: Int, limit: Int) {
     val vertices = if (n == points.size) points else points.copyOf(n)
-    val hull = ConvexHulls.calculateConvexHull(vertices, HullDesc(emptyList(), limit))
+    val hull = ConvexHulls.calculateConvexHull(vertices, limit)
     assertNotNull(hull)
 }

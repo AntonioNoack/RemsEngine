@@ -3,7 +3,6 @@ package me.anno.maths.geometry.convexhull
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.lists.Lists
 import me.anno.utils.types.Floats.toIntOr
 import org.joml.AABBf
 import org.joml.Vector3f
@@ -93,7 +92,7 @@ class ConvexDecomposition(
         for (i in triangles.indices) {
             getVertices(triangles[i], points, i * 9)
         }
-        return ConvexHulls.calculateConvexHull(points, HullDesc(emptyList(), maxVerticesPerHull))
+        return ConvexHulls.calculateConvexHull(points, maxVerticesPerHull)
     }
 
     private fun meshToTriangles(positions: FloatArray, mesh: Mesh): ArrayList<Triangle> {

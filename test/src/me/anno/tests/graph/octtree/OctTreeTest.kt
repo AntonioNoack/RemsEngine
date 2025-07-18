@@ -18,7 +18,7 @@ import kotlin.random.Random
 class OctTreeTest {
 
     class TestNode(maxNumChildren: Int) : OctTreeF<Vector3f>(maxNumChildren) {
-        override fun createChild(): KdTree<Vector3f, Vector3f> = TestNode(maxNumChildren)
+        override fun createChild(): KdTree<Vector3f, Vector3f> = TestNode(maxNumValues)
         override fun getPoint(data: Vector3f): Vector3f = data
     }
 
@@ -79,7 +79,7 @@ class OctTreeTest {
 
     fun checkFillLevels(node: TestNode?, dst: Vector4i) {
         node ?: return
-        val children = node.children
+        val children = node.values
         if (children != null) {
             dst.add(children.size, 1, 0, 0)
             dst.z = min(children.size, dst.z)
