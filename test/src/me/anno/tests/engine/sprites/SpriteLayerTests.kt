@@ -23,7 +23,6 @@ import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGB
-import me.anno.utils.OS
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector2i
@@ -147,7 +146,7 @@ class SpriteLayerTests {
         }
         val asImage = fb.getTexture0()
             .createImage(flipY = false, withAlpha = false)
-        asImage.write(OS.desktop.getChild("sprites.png"))
+        // asImage.write(OS.desktop.getChild("sprites.png"))
         val expectedImage = IntImage(asImage.width, asImage.height, true)
         var wrongPixels = 0
         for (yi in 0 until cells) {

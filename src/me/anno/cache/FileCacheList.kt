@@ -1,5 +1,6 @@
 package me.anno.cache
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.LinkFileReference
 import me.anno.utils.structures.lists.SimpleList
@@ -18,7 +19,12 @@ class FileCacheList<V : Any>(
             @Suppress("UNCHECKED_CAST")
             return emptyList as FileCacheList<V>
         }
+
+        fun <V: PrefabSaveable> of(value: V): FileCacheList<V> {
+            return FileCacheList(listOf(value.ref)) { AsyncCacheData(value) }
+        }
     }
+
 
     override val size: Int get() = files.size
 
