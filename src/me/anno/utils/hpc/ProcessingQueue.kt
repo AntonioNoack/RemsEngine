@@ -1,6 +1,6 @@
 package me.anno.utils.hpc
 
-import me.anno.Engine.shutdown
+import me.anno.Engine
 import me.anno.utils.OSFeatures
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep
@@ -48,17 +48,16 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
     open fun start(name: String = this.name, force: Boolean = false) {
         if (aliveThreads.get() >= numThreads && !force) return
         shouldStop = false
-        // LOGGER.debug("Starting queue $name")
         if (OSFeatures.hasMultiThreading) {
             aliveThreads.incrementAndGet()
-            Threads.runTaskThread(name) {
+            Threads.runWorkerThread(name) {
                 runWorker()
             }
-        } else runUntilDone()
+        } else workWhileHasTasks()
     }
 
     private fun runWorker() {
-        workLoop@ while (!shutdown && !shouldStop) {
+        workLoop@ while (!Engine.shutdown && !shouldStop) {
             try {
                 // will block, until we have new work
                 if (!workItem()) {
@@ -79,13 +78,6 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
             }
         }
         aliveThreads.decrementAndGet()
-        // LOGGER.info("Finished $name")
-    }
-
-    private fun runUntilDone() {
-        while (true) {
-            if (!workItem()) break
-        }
     }
 
     /**
@@ -99,15 +91,19 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
 
     override fun processUnbalanced(i0: Int, i1: Int, countPerThread: Int, func: Task1d) {
         val counter = spawnUnbalancedTasks(i0, i1, countPerThread, func)
-        while (workItem()) {
-            // continue working
-        }
-        waitForCounter(counter, i1)
+        workWhileHasTasks()
+        waitForCounter(counter, i1 - i0)
     }
 
     override operator fun plusAssign(task: () -> Unit) {
         tasks.add(task)
         start()
+    }
+
+    fun workWhileHasTasks() {
+        while (workItem()) {
+            // continue working
+        }
     }
 
     override fun toString(): String {

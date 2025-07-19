@@ -215,6 +215,8 @@ open class CacheSection<K, V : Any>(val name: String) : Comparable<CacheSection<
     ): AsyncCacheData<V> = getEntryWithIfNotGeneratingCallback(key, timeoutMillis, queue, generator, null)
 
     fun update() {
+        // todo we have a target of 60 FPS, if we're running slower than that, make Cache-decay slower, too
+        //  issue: we need a separate clock for the cache... 🤔
         synchronized(cache) {
             // avoiding allocations for clean memory debugging XD
             cache.removeIf { (_, value) ->

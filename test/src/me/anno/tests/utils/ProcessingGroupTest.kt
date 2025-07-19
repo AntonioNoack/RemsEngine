@@ -29,10 +29,14 @@ class ProcessingGroupTest {
         for (i in data.indices) {
             assertEquals(i + 1, data[i], "Entry $i was not computed!")
         }
+        val lazyThreads = ArrayList<Int>()
         for (i in threads.indices) {
             if (!threads[i]) {
-                logger.warn("Thread #$i didn't work!")
+                lazyThreads.add(i)
             }
+        }
+        if (lazyThreads.isNotEmpty()) {
+            logger.warn("Thread #$lazyThreads didn't work!")
         }
     }
 
@@ -76,5 +80,19 @@ class ProcessingGroupTest {
         }
         checkWork(threads, data)
         group.stop()
+    }
+
+    @Test
+    @Execution(ExecutionMode.SAME_THREAD)
+    fun testUnbalancedThenWaitFor() {
+        Engine.cancelShutdown()
+        val threads = BooleanArray(16)
+        val group = ProcessingGroup("test", threads.size)
+        val data = IntArray(1024)
+        group.processUnbalanced(0, data.size, true) { i0, i1 ->
+            checkOffWork(threads, data, i0, i1, 1)
+        }
+        checkWork(threads, data)
+        group.waitUntilDone(false)
     }
 }
