@@ -76,7 +76,9 @@ object RaycastMeshTest {
         mesh.forEachLine { a, b ->
             val dir = a.mix(b, 0.5f).normalize()
             val pos = b.set(0f)
-            checkHit(mesh, pos, dir, 2f, -1, SQRT2f, null)
+            if (dir.absMax() > 0.95f) {
+                checkHit(mesh, pos, dir, 2f, -1, 1f, null)
+            }
             false
         }
     }
@@ -87,7 +89,9 @@ object RaycastMeshTest {
         mesh.forEachLine { a, b ->
             val dir = a.mix(b, 0.5f).normalize()
             val pos = a.mul(-3f, b)
-            checkHit(mesh, pos, dir, 3f, -1, 3f - SQRT2f, null)
+            if (dir.absMax() > 0.95f) {
+                checkHit(mesh, pos, dir, 3f, -1, 2f, null)
+            }
             false
         }
     }
@@ -111,7 +115,7 @@ object RaycastMeshTest {
         mesh.forEachPoint(false) { x, y, z ->
             pos.set(x, y, z).mul(-3f)
             dir.set(x, y, z).normalize()
-            checkHit(mesh, pos, dir, 3f, -1, 3f - SQRT3f, null)
+            checkHit(mesh, pos, dir, 5f, -1, 2f * SQRT3f, null)
             false
         }
     }

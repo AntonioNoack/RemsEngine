@@ -131,21 +131,21 @@ object RaycastMesh {
             globalTransform.invert(inverse)
         } else inverse.identity()
 
-        val tmp0 = result.tmpVector3fs
-        val tmp1 = result.tmpVector3ds
+        val vec3fs = result.tmpVector3fs
+        val vec3ds = result.tmpVector3ds
 
-        val localSrt0 = inverse.transformPosition(query.start, tmp1[0])
-        val localEnd0 = inverse.transformPosition(query.end, tmp1[1])
-        val localDir0 = tmp1[2].set(tmp1[1]).sub(tmp1[0]).normalize()
+        val localSrt0 = inverse.transformPosition(query.start, vec3ds[0])
+        val localEnd0 = inverse.transformPosition(query.end, vec3ds[1])
+        val localDir0 = localEnd0.sub(localSrt0, vec3ds[2]).normalize()
 
         // todo reprojection doesn't work yet correctly (test: monkey ears)
         // project points onto front/back of box
         val extraDistance = 0.0 // projectRayToAABBFront(localSrt0, localDir0, mesh.aabb, dst = localSrt0)
         // projectRayToAABBBack(localEnd0, localDir0, mesh.aabb, dst = localEnd0)
 
-        val localStart = tmp0[0].set(localSrt0)
-        val localEnd = tmp0[1].set(localEnd0)
-        val localDir = tmp0[2].set(localDir0)
+        val localStart = vec3fs[0].set(localSrt0)
+        val localEnd = vec3fs[1].set(localEnd0)
+        val localDir = vec3fs[2].set(localDir0)
 
         // if any coordinates of start or end are invalid, work in global coordinates
         val hasValidCoordinates = localStart.isFinite && localDir.isFinite
@@ -161,7 +161,7 @@ object RaycastMesh {
             } else {
                 raycastLocalMesh(
                     mesh, globalTransform, inverse, localStart, localDir, localEnd,
-                    extraDistance, tmp0, query
+                    extraDistance, vec3fs, query
                 )
             }
         } else {

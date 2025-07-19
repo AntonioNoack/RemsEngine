@@ -1,5 +1,6 @@
 package speiger.primitivecollections
 
+import me.anno.utils.InternalAPI
 import speiger.primitivecollections.callbacks.LongLongCallback
 
 /**
@@ -39,6 +40,14 @@ class LongToLongHashMap(
         val newValue = generateIfNull()
         this[key] = newValue
         return newValue
+    }
+
+    fun getOrPut(key: Long, valueIfNull: Long): Long {
+        val slot = findIndex(key)
+        if (slot >= 0) return values[slot]
+
+        insert(-slot - 1, key, valueIfNull)
+        return valueIfNull
     }
 
     fun put(key: Long, value: Long): Long {
@@ -137,7 +146,8 @@ class LongToLongHashMap(
         return value
     }
 
-    private fun insert(slot: Int, key: Long, value: Long) {
+    @InternalAPI
+    fun insert(slot: Int, key: Long, value: Long) {
         if (slot == nullIndex) {
             containsNull = true
         }
