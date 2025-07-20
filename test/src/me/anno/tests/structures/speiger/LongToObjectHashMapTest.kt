@@ -5,7 +5,6 @@ import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import speiger.primitivecollections.LongToObjectHashMap
-import speiger.primitivecollections.ObjectToLongHashMap
 
 class LongToObjectHashMapTest {
 
@@ -60,6 +59,7 @@ class LongToObjectHashMapTest {
             assertEquals(null, map[i])
         }
     }
+
     @Test
     fun testReplace() {
         val map = LongToObjectHashMap<Long>()

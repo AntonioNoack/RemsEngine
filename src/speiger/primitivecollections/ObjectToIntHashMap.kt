@@ -53,7 +53,7 @@ class ObjectToIntHashMap<K>(
     }
 
     operator fun get(key: K): Int {
-        return content.remove(key).toInt()
+        return content[key].toInt()
     }
 
     fun replace(key: K, oldValue: Int, newValue: Int): Boolean {

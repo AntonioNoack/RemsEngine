@@ -26,7 +26,7 @@ abstract class MathNode<V : Enum<V>>(var data: MathNodeData<V>) :
     }
 
     fun onTypeChange() {
-        val idx = data.typeToIndex[enumType]!!
+        val idx = data.typeToIndex[enumType]
         name = data.names[idx]
         description = data.getGLSL(data.enumValues[idx])
         for (i in inputs.indices) {

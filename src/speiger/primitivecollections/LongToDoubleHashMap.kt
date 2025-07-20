@@ -50,7 +50,7 @@ class LongToDoubleHashMap(
     }
 
     operator fun get(key: Long): Double {
-        return Double.fromBits(content.remove(key))
+        return Double.fromBits(content[key])
     }
 
     fun replace(key: Long, oldValue: Double, newValue: Double): Boolean {

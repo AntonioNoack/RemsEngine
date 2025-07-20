@@ -5,7 +5,6 @@ import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import speiger.primitivecollections.LongToLongHashMap
-import speiger.primitivecollections.ObjectToLongHashMap
 
 class LongToLongHashMapTest {
 

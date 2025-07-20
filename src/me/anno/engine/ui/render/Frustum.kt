@@ -33,16 +33,16 @@ class Frustum {
     private val positions = Array(13) { Vector3d() }
 
     // frustum information, for the size estimation
-    private val cameraPosition = Vector3d()
-    private val cameraRotation = Matrix3f()
+    val cameraPosition = Vector3d()
+    val cameraRotation = Matrix3f()
 
-    private var sizeThreshold = 0.01
-    private var isPerspective = false
+    var sizeThreshold = 0.01
+    var isPerspective = false
 
     // 1.0 is nearly not noticeable
     // 3.0 is noticeable, if you look at it, and have a static scene
     // we may get away with 10-20, if we just fade them in and out
-    private var minObjectSizePixels = 1.0
+    var minObjectSizePixels = 1.0
 
     // todo for size thresholding, it would be great, if we could fade the objects in and out
 
@@ -286,20 +286,16 @@ class Frustum {
     }
 
     /**
-     * check if larger than a single pixel
+     * of an AABB on screen
      * */
-    fun hasEffectiveSize(
-        aabb: AABBd
-    ): Boolean {
-
+    fun estimateRelativeSize(aabb: AABBd): Double {
         val cameraPosition = cameraPosition
-
         if (isPerspective) {
 
             // if the aabb contains the camera,
             // it will be visible
             if (aabb.testPoint(cameraPosition)) {
-                return true
+                return Double.POSITIVE_INFINITY
             }
 
             val mx = aabb.minX - cameraPosition.x
@@ -330,11 +326,18 @@ class Frustum {
             val guessedSize = calculateArea(cameraRotation, aabb.deltaX, aabb.deltaY, aabb.deltaZ) // area
             val guessedDistance = sq(min(-mx, xx), min(-my, xy), min(-mz, xz)) // distance²
             val relativeSizeGuess = guessedSize / guessedDistance // (bounds / distance)²
-            return relativeSizeGuess > sizeThreshold
+            return relativeSizeGuess
         } else {
             val guessedSize = calculateArea(cameraRotation, aabb.deltaX, aabb.deltaY, aabb.deltaZ) // area
-            return guessedSize > sizeThreshold
+            return guessedSize
         }
+    }
+
+    /**
+     * check if larger than a single pixel
+     * */
+    fun hasEffectiveSize(aabb: AABBd): Boolean {
+        return estimateRelativeSize(aabb) > sizeThreshold
     }
 
     fun union(aabb: AABBd) {

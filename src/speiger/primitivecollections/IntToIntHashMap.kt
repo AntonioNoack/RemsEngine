@@ -54,7 +54,7 @@ class IntToIntHashMap(
     }
 
     operator fun get(key: Int): Int {
-        return content.remove(key.toLong()).toInt()
+        return content[key.toLong()].toInt()
     }
 
     fun replace(key: Int, oldValue: Int, newValue: Int): Boolean {

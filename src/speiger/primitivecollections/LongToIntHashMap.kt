@@ -50,7 +50,7 @@ class LongToIntHashMap(
     }
 
     operator fun get(key: Long): Int {
-        return content.remove(key).toInt()
+        return content[key].toInt()
     }
 
     fun replace(key: Long, oldValue: Int, newValue: Int): Boolean {
