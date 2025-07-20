@@ -35,6 +35,7 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isNotBlank2
 import me.anno.utils.types.Strings.levenshtein
 import org.apache.logging.log4j.LogManager
+import speiger.primitivecollections.ObjectToIntHashMap
 import kotlin.math.max
 import kotlin.math.min
 
@@ -439,7 +440,7 @@ object Menu {
         var searchPanel: TextInput? = null
 
         // while useful for keyboard-only controls, it looks quite stupid to have a searchbar for only two items
-        val originalOrder = HashMap<Panel, Int>()
+        val originalOrder = ObjectToIntHashMap<Panel>(-1)
         if (needsSearch(panels.size)) {
             val startIndex = list.children.size + 1
             val suggestions = DefaultConfig["ui.search.spellcheck", true]
@@ -453,7 +454,7 @@ object Menu {
                         children[i].isVisible = true
                     }
                     // restore original order
-                    children.sortBy { originalOrder[it] ?: -1 }
+                    children.sortBy { originalOrder[it] }
                 } else {
                     for (i in startIndex until children.size) {
                         val child = children[i]
@@ -464,7 +465,7 @@ object Menu {
                     }
                     // sort results by relevance
                     children.sortBy {
-                        val id = originalOrder[it] ?: -1
+                        val id = originalOrder[it]
                         if (id >= startIndex && it is TextPanel && it.isVisible) {
                             // find best match using levenshtein distance (text similarity)
                             val dist0 = searchTerm.levenshtein(it.text, true)

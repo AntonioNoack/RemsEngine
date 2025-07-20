@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import speiger.primitivecollections.ObjectToIntHashMap
 import kotlin.reflect.KProperty
 
 /**
@@ -16,10 +17,10 @@ class ContextPointer {
         var currentWindow: OSWindow? = null
     }
 
-    private val entries = HashMap<OSWindow?, Int>()
+    private val entries = ObjectToIntHashMap<OSWindow?>(0)
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): Int {
-        return entries[currentWindow] ?: 0
+        return entries[currentWindow]
     }
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {

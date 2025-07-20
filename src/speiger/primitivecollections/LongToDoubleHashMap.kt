@@ -40,10 +40,7 @@ class LongToDoubleHashMap(
     }
 
     fun remove(key: Long, value: Double): Boolean {
-        return if (this[key] == value) {
-            content.remove(key)
-            true
-        } else false
+        return content.remove(key, value.toRawBits())
     }
 
     fun containsKey(key: Long): Boolean {
