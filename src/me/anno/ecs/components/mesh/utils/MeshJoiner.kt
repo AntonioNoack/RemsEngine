@@ -13,6 +13,7 @@ import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Arrays.resize
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
+import speiger.primitivecollections.UniqueValueIndexMap
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -74,16 +75,21 @@ abstract class MeshJoiner<V>(
         val firstMaterial = getMaterials(firstElement)
         val hasUniqueMaterial = firstMaterial.size < 2 && elements.all2 { getMaterials(it) == firstMaterial }
         val drawMode = firstMesh.drawMode
-        val materialToId: Map<FileReference, Int>
+        val materialToId: UniqueValueIndexMap<FileReference>
 
         if (hasUniqueMaterial) {
-            materialToId = emptyMap()
+            materialToId = UniqueValueIndexMap(0)
             dstMesh.materials = firstMaterial
         } else {
-            val uniqueMaterials = elements
-                .flatMap { getMaterials(it) }.toSet().toList()
-            materialToId = uniqueMaterials.withIndex().associate { it.value to it.index }
-            dstMesh.materials = uniqueMaterials
+            materialToId = UniqueValueIndexMap(0)
+            for (i in elements.indices) {
+                val materials = getMaterials(elements[i])
+                for (j in materials.indices) {
+                    val material = materials[j]
+                    materialToId.add(material)
+                }
+            }
+            dstMesh.materials = materialToId.values
         }
 
         for (element in elements) {
@@ -319,7 +325,7 @@ abstract class MeshJoiner<V>(
 
     private fun fillMaterialIds(
         dstMaterialIds: IntArray, element: V, srcMesh: Mesh,
-        materialToId: Map<FileReference, Int>, j0: Int, j: Int,
+        materialToId: UniqueValueIndexMap<FileReference>, j0: Int, j: Int,
         drawMode: DrawMode
     ) {
         // apply material ids
@@ -327,7 +333,7 @@ abstract class MeshJoiner<V>(
         val usedMaterials = min(materials.size, srcMesh.numMaterials)
         val materialIds = IntArray(usedMaterials)
         for (k in 0 until usedMaterials) {
-            materialIds[k] = materialToId[materials[k]] ?: continue
+            materialIds[k] = materialToId[materials[k]]
         }
         if (materialIds.any { it != 0 }) {
             val k0 = j0 / drawMode.primitiveSize

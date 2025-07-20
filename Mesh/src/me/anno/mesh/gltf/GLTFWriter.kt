@@ -61,7 +61,6 @@ import me.anno.utils.async.Callback
 import me.anno.utils.async.UnitCallback
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.structures.maps.Maps.nextId
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Vectors.toLinear
@@ -74,6 +73,8 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
+import speiger.primitivecollections.UniqueValueIndexMap
+import speiger.primitivecollections.ObjectToIntHashMap
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import kotlin.math.atan
@@ -104,15 +105,15 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         output.write(value)
     }
 
-    private val textures = HashMap<IntPair, Int>() // source, sampler
-    private val images = HashMap<FileReference, Int>() // uris
-    private val samplers = HashMap<Sampler, Int>()
-    private val materials = HashMap<MaterialData, Int>() // material, isDoubleSided
-    private val meshes = HashMap<MeshData, Int>() // mesh, materials[]
-    private val cameras = HashMap<Camera, Int>()
-    private val lights = HashMap<LightComponent, Int>()
-    private val skins = HashMap<SkinData, Int>()
-    private val meshCompToSkin = HashMap<AnimMeshComponent, Int>()
+    private val textures = UniqueValueIndexMap<IntPair>(-1) // source, sampler
+    private val images = UniqueValueIndexMap<FileReference>(-1) // uris
+    private val samplers = UniqueValueIndexMap<Sampler>(-1)
+    private val materials = UniqueValueIndexMap<MaterialData>(-1) // material, isDoubleSided
+    private val meshes = UniqueValueIndexMap<MeshData>(-1) // mesh, materials[]
+    private val cameras = UniqueValueIndexMap<Camera>(-1)
+    private val lights = UniqueValueIndexMap<LightComponent>(-1)
+    private val skins = UniqueValueIndexMap<SkinData>(-1)
+    private val meshCompToSkin = ObjectToIntHashMap<AnimMeshComponent>(-1)
     private val animations = ArrayList<AnimationData>()
 
     private val binary = ByteArrayOutputStream(4096)
@@ -180,7 +181,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             // add bone/skeleton hierarchy
             val baseId = nodes.size
             defineBoneHierarchy(skeleton.bones, childIndices)
-            meshCompToSkin[comp] = skins.nextId(SkinData(skeleton, baseId until nodes.size))
+            meshCompToSkin[comp] = skins.add(SkinData(skeleton, baseId until nodes.size))
             for (state in comp.animations) {
                 val animation = AnimationCache.getEntry(state.source).waitFor() ?: continue
                 animations.add(AnimationData(skeleton, animation, baseId))
@@ -206,12 +207,13 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         }
     }
 
-    private fun <K> writeArray(name: String, map: Map<K, Int>, write: (K) -> Unit) {
+    private fun <K> writeArray(name: String, map: UniqueValueIndexMap<K>, write: (K) -> Unit) {
         if (map.isNotEmpty()) {
             attr(name)
             writeArray {
-                for ((k, _) in map.entries.sortedBy { it.value }) {
-                    write(k)
+                val values = map.values
+                for (index in values.indices) {
+                    write(values[index])
                 }
             }
         }
@@ -401,7 +403,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     }
 
     private fun getTextureIndex(source: FileReference, sampler: Int): Int {
-        return textures.nextId(IntPair(images.nextId(source), sampler))
+        return textures.add(IntPair(images.add(source), sampler))
     }
 
     private fun writeSampler(sampler: Sampler) {
@@ -495,7 +497,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             material.normalMap.exists ||
             material.occlusionMap.exists
         ) {
-            samplers.nextId(
+            samplers.add(
                 Sampler(
                     if (material.linearFiltering) Filtering.TRULY_LINEAR
                     else Filtering.TRULY_NEAREST,
@@ -651,7 +653,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     ) {
         writeObject {
             attr("mode", mode.id) // triangles / triangle-strip, ...
-            attr("material", materials.nextId(MaterialData(material, cullMode)))
+            attr("material", materials.add(MaterialData(material, cullMode)))
             if (indices != null) attr("indices", createIndicesView(indices, mode, cullMode))
             writeMeshAttributes()
         }
@@ -666,7 +668,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     ) {
         writeObject {
             attr("mode", mode.id) // triangles, triangle-strip, ...
-            if (material != null) attr("material", materials.nextId(MaterialData(material, cullMode)))
+            if (material != null) attr("material", materials.add(MaterialData(material, cullMode)))
             attr("indices", createIndicesView(helper.indices, mode, cullMode))
             writeMeshAttributes()
         }
@@ -746,24 +748,24 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         val name = node.name
         if (name.isNotEmpty()) attr("name", name)
         val mesh = node.getMesh()
-        if (mesh is Mesh) {
+        if (mesh is Mesh && node is AnimMeshComponent) {
             attr("mesh")
-            write(meshes.nextId(getMeshData(node, mesh)))
+            write(meshes.add(getMeshData(node, mesh)))
             val skin = meshCompToSkin[node]
-            if (skin != null) attr("skin", skin)
+            if (skin != -1) attr("skin", skin)
         }
     }
 
     private fun writeCameraAttributes(node: Camera) {
         val name = node.name
         if (name.isNotEmpty()) attr("name", name)
-        attr("camera", cameras.nextId(node))
+        attr("camera", cameras.add(node))
     }
 
     private fun writeLightAttributes(node: LightComponent) {
         val name = node.name
         if (name.isNotEmpty()) attr("name", name)
-        val id = lights.nextId(node)
+        val id = lights.add(node)
         attr("extensions")
         writeObject {
             attr("KHR_lights_punctual")
@@ -860,7 +862,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             is Mesh -> {
                 nodes.add(MeshComponent(scene))
                 children.add(IntArrayList(0))
-                meshes[MeshData(scene, FileCacheList.empty(), emptyList())] = 0
+                meshes.add(MeshData(scene, FileCacheList.empty(), emptyList()))
 
                 callback(null)
             }
@@ -870,7 +872,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                     nodes.add(scene)
                     val childIndices = IntArrayList(0)
                     children.add(childIndices)
-                    meshes[getMeshData(scene, mesh)] = 0
+                    meshes.add(getMeshData(scene, mesh))
 
                     if (scene is AnimMeshComponent && scene.animations.isNotEmpty()) {
                         defineSkin(scene, scene.getMesh()!!, childIndices)
@@ -882,14 +884,14 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             is Camera -> {
                 nodes.add(scene)
                 children.add(IntArrayList(0))
-                cameras[scene] = 0
+                cameras.add(scene)
                 callback(null)
             }
             is LightComponent -> {
                 if (supportsLight(scene)) {
                     nodes.add(scene)
                     children.add(IntArrayList(0))
-                    lights[scene] = 0
+                    lights.add(scene)
                     callback(null)
                 } else callback(warnUnsupportedType(scene))
             }

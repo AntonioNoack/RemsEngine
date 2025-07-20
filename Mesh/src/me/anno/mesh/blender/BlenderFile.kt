@@ -63,6 +63,7 @@ import me.anno.mesh.blender.impl.values.BNSVRotation
 import me.anno.mesh.blender.impl.values.BNSVVector
 import me.anno.utils.Color.rgba
 import org.apache.logging.log4j.LogManager
+import speiger.primitivecollections.IntHashSet
 import speiger.primitivecollections.LongToObjectHashMap
 import java.io.IOException
 import java.nio.ByteOrder
@@ -340,7 +341,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
 
     @Suppress("unused")
     fun searchReferencesByStructsAtPositions(positions: List<Int>, names: List<String>) {
-        val positionsOfInterest = HashSet<Int>()
+        val positionsOfInterest = IntHashSet()
         val nextPositions = ArrayList<Pair<Int, String>>()
         for (i in positions.indices) {
             positionsOfInterest.add(positions[i])

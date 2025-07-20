@@ -1,6 +1,8 @@
 package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
+import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
+import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.ObjectIntCallback
 
 /**
@@ -8,8 +10,8 @@ import speiger.primitivecollections.callbacks.ObjectIntCallback
  * */
 class ObjectToIntHashMap<K>(
     missingValue: Int,
-    minCapacity: Int = 16,
-    loadFactor: Float = 0.75f
+    minCapacity: Int = DEFAULT_MIN_CAPACITY,
+    loadFactor: Float = DEFAULT_LOAD_FACTOR
 ) : PrimitiveCollection {
 
     @InternalAPI
@@ -28,6 +30,10 @@ class ObjectToIntHashMap<K>(
 
     inline fun getOrPut(key: K, generateIfNull: () -> Int): Int {
         return content.getOrPut(key) { generateIfNull().toLong() }.toInt()
+    }
+
+    fun getOrPut(key: K, valueIfNull: Int): Int {
+        return content.getOrPut(key, valueIfNull.toLong()).toInt()
     }
 
     fun put(key: K, value: Int): Int {

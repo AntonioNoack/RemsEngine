@@ -1,6 +1,8 @@
 package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
+import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
+import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.LongLongCallback
 
 /**
@@ -9,8 +11,8 @@ import speiger.primitivecollections.callbacks.LongLongCallback
  * */
 class LongToLongHashMap(
     val missingValue: Long,
-    minCapacity: Int = 16,
-    loadFactor: Float = 0.75f
+    minCapacity: Int = DEFAULT_MIN_CAPACITY,
+    loadFactor: Float = DEFAULT_LOAD_FACTOR
 ) : LongToHashMap<LongArray>(minCapacity, loadFactor) {
 
     override fun createArray(size: Int): LongArray = LongArray(size)

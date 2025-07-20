@@ -3,6 +3,7 @@ package me.anno.tests.utils.algorithms
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
+import org.joml.Vector2i
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -65,10 +66,10 @@ object RecursionTests {
         val node1 = Node(1, listOf(Node(2)))
         val node2 = Node(10, listOf(Node(20)))
 
-        val visited = ArrayList<Pair<Int, Int>>()
+        val visited = ArrayList<Vector2i>()
 
         Recursion.processRecursivePairs(node1, node2) { n1, n2, remaining ->
-            visited.add(n1.value to n2.value)
+            visited.add(Vector2i(n1.value, n2.value))
 
             for (c1 in n1.children) {
                 for (c2 in n2.children) {
@@ -78,7 +79,7 @@ object RecursionTests {
             }
         }
 
-        assertEquals(listOf(1 to 10, 2 to 20), visited)
+        assertEquals(listOf(Vector2i(1, 10), Vector2i(2, 20)), visited)
     }
 
     @Test

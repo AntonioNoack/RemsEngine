@@ -1,12 +1,16 @@
 package speiger.primitivecollections
 
+import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
+import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.LongCallback
 
 /**
  * Space-efficient LongToHashMap without any values
  * */
-class LongHashSet(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
-    LongToHashMap<Unit>(minCapacity, loadFactor) {
+class LongHashSet(
+    minCapacity: Int = DEFAULT_MIN_CAPACITY,
+    loadFactor: Float = DEFAULT_LOAD_FACTOR
+) : LongToHashMap<Unit>(minCapacity, loadFactor) {
 
     override fun createArray(size: Int) {
     }

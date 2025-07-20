@@ -8,6 +8,7 @@ import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.numpy.NumPyReader
 import me.anno.utils.OS.documents
 import org.joml.Vector3f
+import speiger.primitivecollections.ObjectToIntHashMap
 
 /**
  * MakeHuman has a set of meshes, e.g., for clothing, which are saved as Python binary objects.
@@ -51,7 +52,7 @@ fun main() {
         data class Vertex(val x: Float, val y: Float, val z: Float, val u: Float, val v: Float)
 
         val vertexList = ArrayList<Vertex>(indices.size)
-        val vertices = HashMap<Vertex, Int>(indices.size)
+        val vertices = ObjectToIntHashMap<Vertex>(-1, indices.size)
         val normals = HashMap<Vector3f, Vector3f>()
         val tmpIndices = IntArray(indices.size)
 

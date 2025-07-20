@@ -7,6 +7,7 @@ import me.anno.maths.Maths.TAUf
 import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.utils.OS.desktop
 import org.joml.Vector3f
+import org.joml.Vector3i
 import java.util.Random
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -84,9 +85,9 @@ fun testFindingChunks2(sphere: HexagonSphere) {
     val hs = size / 2f
     val image = IntImage(size, size, false)
 
-    val queried = HashSet<Triple<Int, Int, Int>>()
+    val queried = HashSet<Vector3i>()
     sphere.queryChunks(Vector3f(0f, 1f, 0f), maxDistance) { sc ->
-        queried.add(Triple(sc.tri, sc.si, sc.sj))
+        queried.add(Vector3i(sc.tri, sc.si, sc.sj))
         false
     }
 
@@ -95,7 +96,7 @@ fun testFindingChunks2(sphere: HexagonSphere) {
         for (si in 0 until sphere.chunkCount) {
             for (sj in 0 until sphere.chunkCount - si) {
                 val hexagons = sphere.queryChunk(tri, si, sj)
-                val color0 = rand.nextInt().and(0x777777) or (if (Triple(tri, si, sj) in queried) 0x808080 else 0)
+                val color0 = rand.nextInt().and(0x777777) or (if (Vector3i(tri, si, sj) in queried) 0x808080 else 0)
                 for (hex in hexagons) {
                     if (hex.center.y > 0f) {
                         val x = ((hex.center.x + 1) * hs)

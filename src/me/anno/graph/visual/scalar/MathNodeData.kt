@@ -1,6 +1,7 @@
 package me.anno.graph.visual.scalar
 
 import me.anno.utils.types.Strings.upperSnakeCaseToTitle
+import speiger.primitivecollections.ObjectToIntHashMap
 
 class MathNodeData<V : Enum<V>>(
     val enumValues: List<V>,
@@ -22,8 +23,8 @@ class MathNodeData<V : Enum<V>>(
 
     companion object {
         @JvmStatic
-        private fun <V> createTypeToIndexMap(enumValues: List<V>): Map<V, Int> {
-            val map = HashMap<V, Int>(enumValues.size)
+        private fun <V> createTypeToIndexMap(enumValues: List<V>): ObjectToIntHashMap<V> {
+            val map = ObjectToIntHashMap<V>(-1, enumValues.size)
             for (i in enumValues.indices) {
                 map[enumValues[i]] = i
             }

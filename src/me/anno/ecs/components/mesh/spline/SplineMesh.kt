@@ -24,6 +24,7 @@ import org.joml.Matrix4x3f
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import speiger.primitivecollections.ObjectToIntHashMap
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
@@ -207,7 +208,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             dirY0: Vector3f, pos: FloatArray, nor: FloatArray, col: IntArray, k0: Int
         ): Int {
             // add profile
-            val ptToColor = HashMap<Vector2f, Int>(profile.positions.size)
+            val ptToColor = ObjectToIntHashMap<Vector2f>(white, profile.positions.size)
             for (i in profile.positions.indices) {// not necessarily correct color, but cannot triangulate it correctly atm anyway
                 ptToColor[profile.getPosition(i)] = profile.getColor(i, true)
             }
@@ -222,13 +223,13 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             if (nx < 0f) {
                 for (i in profileFacade.indices.reversed()) {
                     val xy = profileFacade[i]
-                    val color = ptToColor[xy] ?: white
+                    val color = ptToColor[xy]
                     add2(pos, nor, col, k++, p0a, p0b, xy, color, dirY0, normal)
                 }
             } else {
                 for (i in profileFacade.indices) {
                     val xy = profileFacade[i]
-                    val color = ptToColor[xy] ?: white
+                    val color = ptToColor[xy]
                     add2(pos, nor, col, k++, p0a, p0b, xy, color, dirY0, normal)
                 }
             }
@@ -273,7 +274,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                 if (!isStrictlyUp) findDirY(p0a, p0b, splinePoints[3], dirY0)
                 k = addStartFace(
                     p0a, p0b, 1f,
-                    profile, profileFacade!!, dirY0,
+                    profile, profileFacade, dirY0,
                     pos, nor, col, k
                 )
             }
@@ -289,7 +290,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                 )
                 k = addStartFace(
                     p0a, p0b, -1f,
-                    profile, profileFacade!!, dirY0,
+                    profile, profileFacade, dirY0,
                     pos, nor, col, k
                 )
             }

@@ -2,13 +2,16 @@ package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
+import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.IntCallback
 
 /**
  * Wrapper around LongHashSet
  * */
-class IntHashSet(minCapacity: Int = 16, loadFactor: Float = DEFAULT_LOAD_FACTOR) :
-    PrimitiveCollection {
+class IntHashSet(
+    minCapacity: Int = DEFAULT_MIN_CAPACITY,
+    loadFactor: Float = DEFAULT_LOAD_FACTOR
+) : PrimitiveCollection {
 
     @InternalAPI
     val content = LongHashSet(minCapacity, loadFactor)

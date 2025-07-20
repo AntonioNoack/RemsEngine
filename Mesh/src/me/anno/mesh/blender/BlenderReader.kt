@@ -42,6 +42,7 @@ import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
+import speiger.primitivecollections.ObjectToIntHashMap
 import java.nio.ByteBuffer
 import kotlin.math.PI
 import kotlin.math.max
@@ -306,7 +307,7 @@ object BlenderReader {
     ): Pair<Prefab, ByteArray> {
         val prefab = Prefab("Skeleton")
         val blenderBones = ArrayList<BBone>()
-        val boneToIndex = HashMap<String, Int>()
+        val boneToIndex = ObjectToIntHashMap<String?>(0)
         fun index(bone: BBone) {
             val name = bone.name ?: return
             blenderBones.add(bone)
@@ -322,7 +323,7 @@ object BlenderReader {
             LOGGER.warn("Cannot handle more than 256 bones")
         }
         prefab["bones"] = blenderBones.mapIndexed { index, bone ->
-            val parentIndex = boneToIndex[bone.parent?.name] ?: -1
+            val parentIndex = boneToIndex[bone.parent?.name]
             val newBone = Bone(index, parentIndex, bone.name!!)
             val data = bone.restPose // todo is this the bind pose? (probably not)
             newBone.setBindPose(
@@ -342,14 +343,14 @@ object BlenderReader {
 
     private fun mapBoneIndices(
         vertexGroups: List<String>,
-        boneToIndex: Map<String, Int>,
+        boneToIndex: ObjectToIntHashMap<String?>,
         vertexGroupIndices: IntArray
     ): ByteArray {
         val boneMapping = ByteArray(vertexGroups.size)
         for (vgIndex in boneMapping.indices) {
             val newBoneIndex = boneToIndex[vertexGroups[vgIndex]]
             // LOGGER.info("Mapping ${vertexGroups[vgIndex]} to $newBoneIndex")
-            boneMapping[vgIndex] = (newBoneIndex ?: 0).toByte()
+            boneMapping[vgIndex] = (newBoneIndex).toByte()
         }
         val dstBoneIndices = ByteArray(vertexGroupIndices.size)
         for (i in vertexGroupIndices.indices) {

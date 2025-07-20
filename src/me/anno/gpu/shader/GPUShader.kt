@@ -65,6 +65,7 @@ import org.lwjgl.opengl.GL46C.glUniformMatrix3fv
 import org.lwjgl.opengl.GL46C.glUniformMatrix4fv
 import org.lwjgl.opengl.GL46C.glUniformMatrix4x3fv
 import org.lwjgl.opengl.GL46C.glUseProgram
+import speiger.primitivecollections.ObjectToIntHashMap
 import java.nio.FloatBuffer
 
 /**
@@ -111,7 +112,7 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
         }
 
         // needs to be cleared when the opengl session changes
-        private val shaderCache = HashMap<Pair<Int, String>, Int>(256)
+        private val shaderCache = ObjectToIntHashMap<Pair<Int, String>>(-1, 256)
         private var shaderCacheSession = -1
 
         fun compile(shaderName: String, program: Int, type: Int, source: String): Int {

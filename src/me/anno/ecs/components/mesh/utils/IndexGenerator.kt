@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.utils
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
 import org.apache.logging.log4j.LogManager
+import speiger.primitivecollections.ObjectToIntHashMap
 import kotlin.math.min
 
 object IndexGenerator {
@@ -84,7 +85,7 @@ object IndexGenerator {
 
         // remove
         val builder = MeshBuilder(this)
-        val pointToIndex = HashMap<UniquePoint, Int>()
+        val pointToIndex = ObjectToIntHashMap<UniquePoint>(-1)
         for (i in points.indices) {
             pointToIndex.getOrPut(points[i]) {
                 builder.add(this, i)
@@ -97,7 +98,7 @@ object IndexGenerator {
         builder.build(this)
 
         indices = IntArray(points.size) {
-            pointToIndex[points[it]]!!
+            pointToIndex[points[it]]
         }
     }
 }

@@ -1,6 +1,8 @@
 package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
+import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
+import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.LongObjectCallback
 import speiger.primitivecollections.callbacks.LongObjectPredicate
 
@@ -10,8 +12,10 @@ import speiger.primitivecollections.callbacks.LongObjectPredicate
  *
  * This improves our smooth normal calculation from 54ms for 110k triangles down to 32ms (1.68x speedup).
  * */
-class LongToObjectHashMap<V>(minCapacity: Int = 16, loadFactor: Float = 0.75f) :
-    LongToHashMap<Array<V?>>(minCapacity, loadFactor) {
+class LongToObjectHashMap<V>(
+    minCapacity: Int = DEFAULT_MIN_CAPACITY,
+    loadFactor: Float = DEFAULT_LOAD_FACTOR
+) : LongToHashMap<Array<V?>>(minCapacity, loadFactor) {
 
     override fun createArray(size: Int): Array<V?> {
         @Suppress("UNCHECKED_CAST")

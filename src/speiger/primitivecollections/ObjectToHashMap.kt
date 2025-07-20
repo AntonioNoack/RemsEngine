@@ -2,6 +2,7 @@ package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
+import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -10,8 +11,8 @@ import kotlin.math.min
  * Converted from LongToHashMap
  * */
 abstract class ObjectToHashMap<K, AV>(
-    minCapacity: Int = 16,
-    loadFactor: Float = 0.75f
+    minCapacity: Int = DEFAULT_MIN_CAPACITY,
+    loadFactor: Float = DEFAULT_LOAD_FACTOR
 ) : PrimitiveCollection {
 
     abstract fun createArray(size: Int): AV

@@ -1,5 +1,7 @@
 package me.anno.utils.structures.maps
 
+import speiger.primitivecollections.ObjectToIntHashMap
+
 object Maps {
 
     @JvmStatic
@@ -28,7 +30,7 @@ object Maps {
     }
 
     @JvmStatic
-    fun <V> MutableMap<V, Int>.nextId(key: V): Int {
+    fun <K> ObjectToIntHashMap<K>.nextId(key: K): Int {
         return getOrPut(key) { size }
     }
 }

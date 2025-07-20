@@ -33,7 +33,7 @@ object ShapedBlur {
     val fileName = "libHPIFvSA.bin"
 
     val filters by lazy {
-        val map: HashMap<String, Lazy<Pair<Shader, Int>>> = HashMap()
+        val map = HashMap<String, Lazy<Pair<Shader, Int>>>()
         res.getChild("shaders/$fileName").inputStream { it, e ->
             e?.printStackTrace()
             if (it != null) map.putAll(loadFilters(it))

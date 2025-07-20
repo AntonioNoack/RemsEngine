@@ -43,6 +43,7 @@ import org.joml.Vector3i
 import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
+import speiger.primitivecollections.ObjectToIntHashMap
 import java.io.OutputStream
 
 open class BinaryWriter(val output: OutputStream, workspace: FileReference) : BaseWriter(workspace, true) {
@@ -51,7 +52,7 @@ open class BinaryWriter(val output: OutputStream, workspace: FileReference) : Ba
      * max number of strings? idk...
      * typically we need only a few, but what if we need many?
      * */
-    private val knownStrings = HashMap<String, Int>()
+    private val knownStrings = ObjectToIntHashMap<String>(-1)
 
     private val knownNameTypes = HashMap<String, HashMap<NameType, Int>>()
 
@@ -73,7 +74,7 @@ open class BinaryWriter(val output: OutputStream, workspace: FileReference) : Ba
             output.writeBE32(-1)
         } else {
             val known = knownStrings[string]
-            if (known != null) {
+            if (known != -1) {
                 output.writeBE32(known)
             } else {
                 val bytes = string.encodeToByteArray()

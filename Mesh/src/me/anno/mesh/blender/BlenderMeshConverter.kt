@@ -28,6 +28,7 @@ import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import org.joml.Vector3f
+import speiger.primitivecollections.ObjectToIntHashMap
 
 object BlenderMeshConverter {
 
@@ -381,7 +382,7 @@ object BlenderMeshConverter {
                     //complexCtr++
                     // complex triangulation, because it may be more complicated than it seems, and
                     // we have to be correct
-                    val vec2Index = HashMap<Vector3f, Int>()
+                    val vec2Index = ObjectToIntHashMap<Vector3f>(-1)
                     val vectors = List(loopSize) {
                         val index = (loopData[loopStart + it]).v
                         val vec = Vector3f(
@@ -396,9 +397,9 @@ object BlenderMeshConverter {
                     uvIndex += loopSize
                     val triangles = Triangulation.ringToTrianglesVec3f(vectors)
                     forLoopSafely(triangles.size, 3) { idx0 ->
-                        val i0 = vec2Index[triangles[idx0]]!!
-                        val i1 = vec2Index[triangles[idx0 + 1]]!!
-                        val i2 = vec2Index[triangles[idx0 + 2]]!!
+                        val i0 = vec2Index[triangles[idx0]]
+                        val i1 = vec2Index[triangles[idx0 + 1]]
+                        val i2 = vec2Index[triangles[idx0 + 2]]
                         val v0 = (loopData[loopStart + i0]).v
                         val v1 = (loopData[loopStart + i1]).v
                         val v2 = (loopData[loopStart + i2]).v
@@ -482,7 +483,7 @@ object BlenderMeshConverter {
                 else -> {
                     // complex triangulation, because it may be more complicated than it seems, and
                     // we have to be correct
-                    val vec2Index = HashMap<Vector3d, Int>()
+                    val vec2Index = ObjectToIntHashMap<Vector3d>(-1)
                     val vectors = List(loopSize) {
                         val index = loopData[loopStart + it].v
                         val vec = Vector3d(positions, index * 3)
@@ -491,7 +492,7 @@ object BlenderMeshConverter {
                     }
                     val triangles = Triangulation.ringToTrianglesVec3d(vectors)
                     for (tri in triangles) {
-                        indices.add(vec2Index[tri]!!)
+                        indices.add(vec2Index[tri])
                     }
                     forLoopSafely(triangles.size, 3) {
                         materialIndices?.set(matIndex++, materialIndex)

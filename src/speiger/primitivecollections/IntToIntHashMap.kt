@@ -1,6 +1,8 @@
 package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
+import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
+import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.LongIntCallback
 
 /**
@@ -9,8 +11,8 @@ import speiger.primitivecollections.callbacks.LongIntCallback
 @Suppress("unused")
 class IntToIntHashMap(
     missingValue: Int,
-    minCapacity: Int = 16,
-    loadFactor: Float = 0.75f
+    minCapacity: Int = DEFAULT_MIN_CAPACITY,
+    loadFactor: Float = DEFAULT_LOAD_FACTOR
 ) : PrimitiveCollection {
 
     @InternalAPI

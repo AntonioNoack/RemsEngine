@@ -1,5 +1,7 @@
 package me.anno.input
 
+import speiger.primitivecollections.ObjectToIntHashMap
+
 /**
  * records, which key combinations were used to create what keys;
  * this makes that we can print Umlauts and special symbols correctly
@@ -23,7 +25,7 @@ object KeyNames {
     }
 
     @JvmField
-    val inputMap = HashMap<InputState, Int>()
+    val inputMap = ObjectToIntHashMap<InputState>(-1)
 
     @JvmField
     var maxKeys = 3

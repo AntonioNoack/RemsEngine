@@ -17,6 +17,7 @@ import org.joml.AABBd
 import org.joml.Vector3d
 import org.joml.Vector4i
 import speiger.primitivecollections.LongToObjectHashMap
+import speiger.primitivecollections.ObjectToIntHashMap
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.cos
@@ -137,7 +138,7 @@ class ConvexHulls {
     }
 
     private val mip = MaximumInnerProduct()
-    private lateinit var vertexToIndex: HashMap<Vector3d, Int>
+    private lateinit var vertexToIndex: ObjectToIntHashMap<Vector3d>
 
     private fun calculateConvexHull(vertices: ArrayList<Vector3d>, vertexLimit: Int): Boolean {
         var numRemainingVertices = vertexLimit
@@ -418,7 +419,7 @@ class ConvexHulls {
 
         val capacityGuess = max(inputVertices.size, 16)
         val uniqueVertices = LongToObjectHashMap<Vector3d>(capacityGuess)
-        val vertexToIndex = HashMap<Vector3d, Int>(capacityGuess)
+        val vertexToIndex = ObjectToIntHashMap<Vector3d>(-1, capacityGuess)
         for (i in inputVertices.indices) {
             val inputVertex = inputVertices[i]
 
@@ -447,7 +448,8 @@ class ConvexHulls {
                         // in which case we keep this one instead.
                         if (score > center.distanceSquared(inResult)) {
                             // this would modify the original set
-                            val indexInResult = vertexToIndex.remove(inResult) ?: continue // duplicate vertex?
+                            val indexInResult = vertexToIndex.remove(inResult)
+                            if (indexInResult < 0) continue
                             cleanVertices[indexInResult] = inputVertex
                             vertexToIndex[inputVertex] = indexInResult
                         }
@@ -529,7 +531,7 @@ class ConvexHulls {
         result.add(Vector3d(x2, y2, z2))
         result.add(Vector3d(x1, y2, z2))
 
-        val map = HashMap<Vector3d, Int>(16)
+        val map = ObjectToIntHashMap<Vector3d>(-1, 16)
         for (i in result.indices) {
             map[result[i]] = i
         }
@@ -539,7 +541,7 @@ class ConvexHulls {
 
     private fun findVertexWithMaxDotProduct(dir: Vector3d): Int {
         val bestVertex = mip.findBiggestDotProduct(dir)!!
-        return vertexToIndex[bestVertex]!!
+        return vertexToIndex[bestVertex]
     }
 
     private fun findVertexForSimplex(vertices: List<Vector3d>, dir: Vector3d, isUsed: BooleanArray): Int {
