@@ -4,14 +4,13 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
-import speiger.primitivecollections.LongToLongHashMap
 import speiger.primitivecollections.ObjectToLongHashMap
 
-class LongToLongHashMapTest {
+class ObjectToLongHashMapTest {
 
     @Test
     fun testInsert() {
-        val map = LongToLongHashMap(-1L)
+        val map = ObjectToLongHashMap<Long>(-1L)
         assertEquals(-1L, map[0])
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
@@ -24,7 +23,7 @@ class LongToLongHashMapTest {
 
     @Test
     fun testRemove() {
-        val map = LongToLongHashMap(-1L)
+        val map = ObjectToLongHashMap<Long>(-1L)
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -45,7 +44,7 @@ class LongToLongHashMapTest {
 
     @Test
     fun testRemoveWithValue() {
-        val map = LongToLongHashMap(-1L)
+        val map = ObjectToLongHashMap<Long>(-1L)
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -58,7 +57,7 @@ class LongToLongHashMapTest {
 
     @Test
     fun testClear() {
-        val map = LongToLongHashMap(-1L)
+        val map = ObjectToLongHashMap<Long>(-1L)
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -72,7 +71,7 @@ class LongToLongHashMapTest {
 
     @Test
     fun testReplace() {
-        val map = LongToLongHashMap(-1L)
+        val map = ObjectToLongHashMap<Long>(-1L)
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -89,7 +88,7 @@ class LongToLongHashMapTest {
 
     @Test
     fun testForEach() {
-        val map = LongToLongHashMap(-1L)
+        val map = ObjectToLongHashMap<Long>(-1L)
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -103,7 +102,7 @@ class LongToLongHashMapTest {
 
     @Test
     fun testKeySet() {
-        val map = LongToLongHashMap(-1L)
+        val map = ObjectToLongHashMap<Long>(-1L)
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -117,7 +116,7 @@ class LongToLongHashMapTest {
 
     @Test
     fun testForEachKey() {
-        val map = LongToLongHashMap(-1L)
+        val map = ObjectToLongHashMap<Long>(-1L)
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -134,7 +133,7 @@ class LongToLongHashMapTest {
 
     @Test
     fun testGetOrPut() {
-        val map = LongToLongHashMap(-1L)
+        val map = ObjectToLongHashMap<Long>(-1L)
         val timesCalculated = IntArray(999)
         fun fib(i: Int): Long {
             return if (i < 2) i.toLong()

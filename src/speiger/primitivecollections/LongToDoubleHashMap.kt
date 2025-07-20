@@ -1,6 +1,7 @@
 package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
+import speiger.primitivecollections.callbacks.LongCallback
 import speiger.primitivecollections.callbacks.LongDoubleCallback
 
 /**
@@ -81,4 +82,5 @@ class LongToDoubleHashMap(
     }
 
     fun keysToHashSet() = content.keysToHashSet()
+    fun forEachKey(callback: LongCallback) = content.forEachKey(callback)
 }

@@ -5,6 +5,7 @@ import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import speiger.primitivecollections.LongToIntHashMap
+import speiger.primitivecollections.ObjectToLongHashMap
 
 class LongToIntHashMapTest {
 
@@ -98,6 +99,23 @@ class LongToIntHashMapTest {
             map[i.toLong()] = i * i + 5
         }
         val keys = map.keysToHashSet()
+        assertFalse(-1L in keys)
+        assertFalse(1000L in keys)
+        for (i in 0 until 1000L) {
+            assertTrue(i in keys)
+        }
+    }
+
+    @Test
+    fun testForEachKey() {
+        val map = LongToIntHashMap(-1)
+        for (i in 0 until 1000) {
+            map[i.toLong()] = i * i + 5
+        }
+        val keys = HashSet<Long>()
+        map.forEachKey { key ->
+            assertTrue(keys.add(key))
+        }
         assertFalse(-1L in keys)
         assertFalse(1000L in keys)
         for (i in 0 until 1000L) {

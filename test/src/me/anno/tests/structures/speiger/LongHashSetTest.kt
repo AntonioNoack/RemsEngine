@@ -5,6 +5,7 @@ import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import speiger.primitivecollections.LongHashSet
+import speiger.primitivecollections.ObjectToLongHashMap
 
 class LongHashSetTest {
     @Test
@@ -43,5 +44,20 @@ class LongHashSetTest {
         set.clear()
         assertTrue(set.isEmpty())
         for (i in 0 until 100) assertTrue(i.toLong() !in set)
+    }
+
+    @Test
+    fun testForEachKey() {
+        val map = LongHashSet()
+        for (i in 0 until 1000L) map.add(i)
+        val keys = HashSet<Long>()
+        map.forEachKey { key ->
+            assertTrue(keys.add(key))
+        }
+        assertFalse(-1L in keys)
+        assertFalse(1000L in keys)
+        for (i in 0 until 1000L) {
+            assertTrue(i in keys)
+        }
     }
 }
