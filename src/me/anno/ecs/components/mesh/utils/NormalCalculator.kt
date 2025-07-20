@@ -13,8 +13,8 @@ import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Triangles.subCross
 import org.joml.Vector3f
 import org.joml.Vector3f.Companion.lengthSquared
-import kotlin.math.abs
 import kotlin.math.min
+import kotlin.math.sqrt
 
 // todo some blender meshes have broken normals
 object NormalCalculator {
@@ -60,11 +60,16 @@ object NormalCalculator {
         val weights = FloatArray(positions.size / 3)
         for (j in weights.indices) {
             val i = j * 3
-            if (abs(normals[i]) + abs(normals[i + 1]) + abs(normals[i + 2]) > 0.001) {
+            val lenSq = lengthSquared(normals[i], normals[i + 1], normals[i + 2])
+            if (lenSq > 1e-20f && lenSq.isFinite()) {
+                val factor = 1f / sqrt(lenSq)
+                normals[i] *= factor
+                normals[i + 1] *= factor
+                normals[i + 2] *= factor
                 // fine -> we don't need weights
                 weights[j] = -1f
             } else {
-                // clear it, because we will sum our normal there
+                // clear it, because we will sum our normal there, and these values might be NaN
                 normals[i + 0] = 0f
                 normals[i + 1] = 0f
                 normals[i + 2] = 0f
@@ -97,7 +102,7 @@ object NormalCalculator {
                 val i = j * 3
                 // dividing by the weight count is no enough, since the normal needs to be normalized,
                 // and avg(normals) will not have length 1, if there are different input normals
-                val weightInv = 1f / Maths.max(0.1f, Maths.length(normals[i + 0], normals[i + 1], normals[i + 2]))
+                val weightInv = 1f / Maths.max(1e-38f, Maths.length(normals[i + 0], normals[i + 1], normals[i + 2]))
                 normals[i + 0] *= weightInv
                 normals[i + 1] *= weightInv
                 normals[i + 2] *= weightInv
