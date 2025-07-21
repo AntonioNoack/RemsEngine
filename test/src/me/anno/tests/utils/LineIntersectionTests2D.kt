@@ -14,17 +14,15 @@ import kotlin.random.Random
 class LineIntersectionTests2D {
     @Test
     fun testSampleD() {
-        val result1 = Vector2d()
-        val result2 = Vector2d()
+        val result = Vector2d()
         assertTrue(
             lineIntersection(
                 Vector2d(-1.0, 0.0), Vector2d(1.0, 0.0),
                 Vector2d(0.0, -1.0), Vector2d(0.0, 1.0),
-                result1, result2
+                result
             )
         )
-        assertEquals(Vector2d(0.0, 0.0), result1)
-        assertEquals(Vector2d(0.0, 0.0), result2)
+        assertEquals(Vector2d(1.0, 1.0), result)
     }
 
     @Test
@@ -37,17 +35,15 @@ class LineIntersectionTests2D {
             val dir1 = Vector2d(0.0, 1.0).rotate(rnd.nextDouble() * TAU)
             val dir2 = Vector2d(0.0, 1.0).rotate(rnd.nextDouble() * TAU)
 
-            val result1 = Vector2d()
-            val result2 = Vector2d()
+            val result = Vector2d()
             assertTrue(
                 lineIntersection(
-                    hit + dir1 * dist1, dir1,
-                    hit + dir2 * dist2, dir2,
-                    result1, result2
+                    hit - dir1 * dist1, dir1,
+                    hit - dir2 * dist2, dir2,
+                    result
                 )
             )
-            assertEquals(hit, result1, 1e-13)
-            assertEquals(hit, result2, 1e-13)
+            assertEquals(Vector2d(dist1, dist2), result, 1e-13)
         }
     }
 
@@ -56,25 +52,22 @@ class LineIntersectionTests2D {
         assertFalse(
             lineIntersection(
                 Vector2d(-1.0, 0.0), Vector2d(1.0, 0.0),
-                Vector2d(0.0, -1.0), Vector2d(1.0, 0.0),
-                Vector2d(), Vector2d()
+                Vector2d(0.0, -1.0), Vector2d(1.0, 0.0)
             )
         )
     }
 
     @Test
     fun testSampleF() {
-        val result1 = Vector2f()
-        val result2 = Vector2f()
+        val result = Vector2f()
         assertTrue(
             lineIntersection(
                 Vector2f(-1.0, 0.0), Vector2f(1.0, 0.0),
                 Vector2f(0.0, -1.0), Vector2f(0.0, 1.0),
-                result1, result2
+                result
             )
         )
-        assertEquals(Vector2f(0.0, 0.0), result1)
-        assertEquals(Vector2f(0.0, 0.0), result2)
+        assertEquals(Vector2f(1.0, 1.0), result)
     }
 
     @Test
@@ -87,17 +80,15 @@ class LineIntersectionTests2D {
             val dir1 = Vector2f(0f, 1f).rotate(rnd.nextFloat() * TAUf)
             val dir2 = Vector2f(0f, 1f).rotate(rnd.nextFloat() * TAUf)
 
-            val result1 = Vector2f()
-            val result2 = Vector2f()
+            val result = Vector2f()
             assertTrue(
                 lineIntersection(
-                    hit + dir1 * dist1, dir1,
-                    hit + dir2 * dist2, dir2,
-                    result1, result2
+                    hit - dir1 * dist1, dir1,
+                    hit - dir2 * dist2, dir2,
+                    result
                 )
             )
-            assertEquals(hit, result1, 1e-4)
-            assertEquals(hit, result2, 1e-4)
+            assertEquals(Vector2f(dist1, dist2), result, 1e-4)
         }
     }
 
@@ -106,8 +97,7 @@ class LineIntersectionTests2D {
         assertFalse(
             lineIntersection(
                 Vector2f(-1.0, 0.0), Vector2f(1.0, 0.0),
-                Vector2f(0.0, -1.0), Vector2f(1.0, 0.0),
-                Vector2f(), Vector2f()
+                Vector2f(0.0, -1.0), Vector2f(1.0, 0.0)
             )
         )
     }

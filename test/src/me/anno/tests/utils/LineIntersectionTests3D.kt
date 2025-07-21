@@ -4,6 +4,8 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.LineIntersection.lineIntersection
+import org.joml.Vector2d
+import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
@@ -12,17 +14,15 @@ import kotlin.random.Random
 class LineIntersectionTests3D {
     @Test
     fun testSampleD() {
-        val result1 = Vector3d()
-        val result2 = Vector3d()
+        val result = Vector2d()
         assertTrue(
             lineIntersection(
                 Vector3d(-1.0, -1.0, 0.0), Vector3d(1.0, 0.0, 0.0),
                 Vector3d(0.0, 1.0, -1.0), Vector3d(0.0, 0.0, 1.0),
-                result1, result2
+                result
             )
         )
-        assertEquals(Vector3d(0.0, -1.0, 0.0), result1)
-        assertEquals(Vector3d(0.0, 1.0, 0.0), result2)
+        assertEquals(Vector2d(1.0, 1.0), result)
     }
 
     @Test
@@ -35,17 +35,15 @@ class LineIntersectionTests3D {
             val dir1 = Vector3d(rnd.nextDouble(), rnd.nextDouble(), rnd.nextDouble()).sub(0.5).normalize()
             val dir2 = Vector3d(rnd.nextDouble(), rnd.nextDouble(), rnd.nextDouble()).sub(0.5).normalize()
 
-            val result1 = Vector3d()
-            val result2 = Vector3d()
+            val result = Vector2d()
             assertTrue(
                 lineIntersection(
-                    hit + dir1 * dist1, dir1,
-                    hit + dir2 * dist2, dir2,
-                    result1, result2
+                    hit - dir1 * dist1, dir1,
+                    hit - dir2 * dist2, dir2,
+                    result
                 )
             )
-            assertEquals(hit, result1, 1e-13)
-            assertEquals(hit, result2, 1e-13)
+            assertEquals(Vector2d(dist1, dist2), result, 1e-13)
         }
     }
 
@@ -54,25 +52,22 @@ class LineIntersectionTests3D {
         assertFalse(
             lineIntersection(
                 Vector3d(-1.0, -1.0, 0.0), Vector3d(1.0, 0.0, 0.0),
-                Vector3d(0.0, 1.0, -1.0), Vector3d(1.0, 0.0, 0.0),
-                Vector3d(), Vector3d()
+                Vector3d(0.0, 1.0, -1.0), Vector3d(1.0, 0.0, 0.0)
             )
         )
     }
 
     @Test
     fun testSampleF() {
-        val result1 = Vector3f()
-        val result2 = Vector3f()
+        val result = Vector2f()
         assertTrue(
             lineIntersection(
                 Vector3f(-1.0, -1.0, 0.0), Vector3f(1.0, 0.0, 0.0),
                 Vector3f(0.0, 1.0, -1.0), Vector3f(0.0, 0.0, 1.0),
-                result1, result2
+                result
             )
         )
-        assertEquals(Vector3f(0.0, -1.0, 0.0), result1)
-        assertEquals(Vector3f(0.0, 1.0, 0.0), result2)
+        assertEquals(Vector2f(1.0, 1.0), result)
     }
 
     @Test
@@ -85,17 +80,15 @@ class LineIntersectionTests3D {
             val dir1 = Vector3f(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f).normalize()
             val dir2 = Vector3f(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f).normalize()
 
-            val result1 = Vector3f()
-            val result2 = Vector3f()
+            val result = Vector2f()
             assertTrue(
                 lineIntersection(
-                    hit + dir1 * dist1, dir1,
-                    hit + dir2 * dist2, dir2,
-                    result1, result2
+                    hit - dir1 * dist1, dir1,
+                    hit - dir2 * dist2, dir2,
+                    result
                 )
             )
-            assertEquals(hit, result1, 1e-5)
-            assertEquals(hit, result2, 1e-5)
+            assertEquals(Vector2f(dist1, dist2), result, 1e-5)
         }
     }
 
@@ -104,8 +97,7 @@ class LineIntersectionTests3D {
         assertFalse(
             lineIntersection(
                 Vector3f(-1.0, -1.0, 0.0), Vector3f(1.0, 0.0, 0.0),
-                Vector3f(0.0, 1.0, -1.0), Vector3f(1.0, 0.0, 0.0),
-                Vector3f(), Vector3f()
+                Vector3f(0.0, 1.0, -1.0), Vector3f(1.0, 0.0, 0.0)
             )
         )
     }

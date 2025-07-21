@@ -19,7 +19,7 @@ object LineIntersection {
     fun lineIntersection(
         pos0: Vector3d, dir0: Vector3d,
         pos1: Vector3d, dir1: Vector3d,
-        dst0: Vector3d, dst1: Vector3d
+        dst: Vector2d? = null
     ): Boolean {
 
         val p13x = pos0.x - pos1.x
@@ -38,8 +38,7 @@ object LineIntersection {
         val mua = numerator / denominator
         val mub = (d1343 + d4321 * mua) / d4343
 
-        dir0.mulAdd(mua, pos0, dst0)
-        dir1.mulAdd(mub, pos1, dst1)
+        dst?.set(mua, mub)
         return true
     }
 
@@ -47,7 +46,7 @@ object LineIntersection {
     fun lineIntersection(
         pos0: Vector3f, dir0: Vector3f,
         pos1: Vector3f, dir1: Vector3f,
-        dst0: Vector3f, dst1: Vector3f
+        dst: Vector2f? = null
     ): Boolean {
 
         val p13x = pos0.x - pos1.x
@@ -66,8 +65,7 @@ object LineIntersection {
         val mua = numerator / denominator
         val mub = (d1343 + d4321 * mua) / d4343
 
-        dir0.mulAdd(mua, pos0, dst0)
-        dir1.mulAdd(mub, pos1, dst1)
+        dst?.set(mua, mub)
         return true
     }
 
@@ -75,7 +73,7 @@ object LineIntersection {
     fun lineIntersection(
         pos0: Vector2d, dir0: Vector2d,
         pos1: Vector2d, dir1: Vector2d,
-        dst0: Vector2d, dst1: Vector2d
+        dst: Vector2d? = null
     ): Boolean {
 
         val p13x = pos0.x - pos1.x
@@ -93,8 +91,7 @@ object LineIntersection {
         val mua = numerator / denominator
         val mub = (d1343 + d4321 * mua) / d4343
 
-        dir0.mulAdd(mua, pos0, dst0)
-        dir1.mulAdd(mub, pos1, dst1)
+        dst?.set(mua, mub)
         return true
     }
 
@@ -102,7 +99,7 @@ object LineIntersection {
     fun lineIntersection(
         pos0: Vector2f, dir0: Vector2f,
         pos1: Vector2f, dir1: Vector2f,
-        dst0: Vector2f, dst1: Vector2f
+        dst: Vector2f? = null
     ): Boolean {
 
         val p13x = pos0.x - pos1.x
@@ -120,8 +117,7 @@ object LineIntersection {
         val mua = numerator / denominator
         val mub = (d1343 + d4321 * mua) / d4343
 
-        dir0.mulAdd(mua, pos0, dst0)
-        dir1.mulAdd(mub, pos1, dst1)
+        dst?.set(mua, mub)
         return true
     }
 }
