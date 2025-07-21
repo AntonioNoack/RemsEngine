@@ -5,7 +5,7 @@ import me.anno.maths.Maths.TAUf
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.types.Lines.lineIntersection
+import me.anno.utils.types.LineIntersection.lineIntersection
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.junit.jupiter.api.Test

@@ -3,7 +3,7 @@ package me.anno.tests.utils
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.types.Lines.lineIntersection
+import me.anno.utils.types.LineIntersection.lineIntersection
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test

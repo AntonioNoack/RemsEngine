@@ -10,7 +10,7 @@ import kotlin.math.abs
  * approximate line intersection
  * http://paulbourke.net/geometry/pointlineplane/calclineline.cs
  * */
-object Lines {
+object LineIntersection {
 
     const val MIN_DENOMINATOR_64 = 1e-307
     const val MIN_DENOMINATOR_32 = 1e-37f
