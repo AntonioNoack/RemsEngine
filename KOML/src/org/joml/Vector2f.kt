@@ -87,6 +87,13 @@ open class Vector2f(
         return dst
     }
 
+    @JvmOverloads
+    fun sub(v: Float, dst: Vector2f = this): Vector2f {
+        dst.x = this.x - v
+        dst.y = this.y - v
+        return dst
+    }
+
     fun dot(v: Vector2f): Float = x * v.x + y * v.y
     fun dot(v: Vector2d): Double = x * v.x + y * v.y
     fun dot(vx: Float, vy: Float): Float = x * vx + y * vy

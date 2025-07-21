@@ -33,6 +33,7 @@ open class Vector3f(
     constructor(xyz: FloatArray, i: Int) : this(xyz[i], xyz[i + 1], xyz[i + 2])
     constructor(xyz: FloatArray) : this(xyz, 0)
     constructor(x: Int, y: Int, z: Int) : this(x.toFloat(), y.toFloat(), z.toFloat())
+    constructor(x: Double, y: Double, z: Double): this(x.toFloat(), y.toFloat(), z.toFloat())
 
     override val numComponents: Int get() = 3
     override fun getComp(i: Int): Double = get(i).toDouble()

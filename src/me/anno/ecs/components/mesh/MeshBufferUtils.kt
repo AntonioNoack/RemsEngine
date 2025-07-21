@@ -208,7 +208,12 @@ object MeshBufferUtils {
         triBuffer?.drawMode = drawMode
     }
 
-    private val Mesh.numVertices get() = min(positions!!.size, normals!!.size) / 3
+    private val Mesh.numVertices: Int
+        get() {
+            val positions = positions ?: return 0
+            val normals = normals ?: return 0
+            return min(positions.size, normals.size) / 3
+        }
 
     fun Mesh.fillVertexData(
         attributes: List<VertexAttr>,
