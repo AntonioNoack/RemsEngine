@@ -62,6 +62,7 @@ abstract class MeshJoiner<V>(
             dstMesh.positions = FloatArray(0)
             dstMesh.indices = null
             dstMesh.materialIds = null
+            dstMesh.invalidateGeometry()
             return dstMesh
         }
 
@@ -184,6 +185,7 @@ abstract class MeshJoiner<V>(
         dstMesh.skeleton = firstMesh.skeleton // just a guess
         dstMesh.materialIds = dstMaterialIds
         dstMesh.numMaterials = max(materialToId.size, 1)
+        dstMesh.invalidateGeometry()
 
         return dstMesh
     }

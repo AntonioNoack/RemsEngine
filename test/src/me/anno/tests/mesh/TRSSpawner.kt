@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.mesh.Shapes
 import me.anno.utils.structures.arrays.FloatArrayList
@@ -31,13 +32,13 @@ fun main() {
     }
     val mesh = Shapes.flatCube.front
     val spawner = object : MeshSpawner() {
-        override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
+        override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
             for (tr in transforms) {
                 if (callback(mesh, null, tr)) break
             }
         }
 
-        override fun forEachMeshGroupTRS(callback: (IMesh, Material?) -> FloatArrayList): Boolean {
+        override fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, Material?) -> FloatArrayList): Boolean {
             return if (Input.isShiftDown) {
                 val data = callback(mesh, null)
                 data.ensureExtra(transforms.size * 8)

@@ -20,6 +20,7 @@ import me.anno.gpu.FinalRendering.isFinalRendering
 import me.anno.gpu.FinalRendering.onMissingResource
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.Shapes
@@ -108,7 +109,7 @@ class SDFTextComponent(
         return materials[i]
     }
 
-    override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
+    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
 
         var i = 0
         val group = getOrCreateMeshGroup()

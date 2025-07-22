@@ -73,7 +73,7 @@ fun main() {
             dstUnion.setMax(+dx, +dy, (maxCount - 1) * space + thickness.toDouble())
         }
 
-        override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
+        override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
             for (i in 0 until count) {
                 val tr = getTransform(i)
                 tr.setLocalPosition(0.0, 0.0, i * space)

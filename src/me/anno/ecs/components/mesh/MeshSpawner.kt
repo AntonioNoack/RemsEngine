@@ -50,26 +50,23 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     }
 
     fun instancedFill(pipeline: Pipeline): Boolean {
-        forEachMesh { mesh, materialOverride, transform ->
+        forEachMesh(pipeline) { mesh, materialOverride, transform ->
 
+            // necessary for stacks
             transform.validate()
 
-            // check visibility: first transform bounds into global space, then test them
-            mesh.getBounds().transformUnion(transform.globalTransform, tmpAABB)
-            if (pipeline.frustum.contains(tmpAABB)) {
-                for (matIndex in 0 until mesh.numMaterials) {
-                    val material0 = materialOverride ?: Materials.getMaterial(mesh.cachedMaterials, matIndex)
-                    val material = Materials.getMaterial(pipeline.superMaterial, material0)
-                    val stage = pipeline.findStage(material)
-                    if (mesh.proceduralLength <= 0) {
-                        val stack = stage.instanced.data.getStack(mesh, material, matIndex)
-                        stage.addToStack(stack, this, transform, mesh)
-                    } else {
-                        if (Build.isDebug && mesh.numMaterials > 1) {
-                            LOGGER.warn("Procedural meshes cannot support multiple materials (in MeshSpawner)")
-                        }
-                        stage.add(this, mesh, transform, material, matIndex)
+            for (matIndex in 0 until mesh.numMaterials) {
+                val material0 = materialOverride ?: Materials.getMaterial(mesh.cachedMaterials, matIndex)
+                val material = Materials.getMaterial(pipeline.superMaterial, material0)
+                val stage = pipeline.findStage(material)
+                if (mesh.proceduralLength <= 0) {
+                    val stack = stage.instanced.data.getStack(mesh, material, matIndex)
+                    stage.addToStack(stack, this, transform, mesh)
+                } else {
+                    if (Build.isDebug && mesh.numMaterials > 1) {
+                        LOGGER.warn("Procedural meshes cannot support multiple materials (in MeshSpawner)")
                     }
+                    stage.add(this, mesh, transform, material, matIndex)
                 }
             }
             false
@@ -79,7 +76,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
 
     fun instancedMeshGroupFill(pipeline: Pipeline): Boolean {
         lastStack = null
-        val result = forEachMeshGroup { mesh, material ->
+        val result = forEachMeshGroup(pipeline) { mesh, material ->
             val material2 = material ?: Material.defaultMaterial
             val stage = pipeline.findStage(material2)
             val stack = stage.instanced.data.getStack(mesh, material2, 0)
@@ -93,7 +90,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     }
 
     fun instancedTRSFill(pipeline: Pipeline): Boolean {
-        return forEachMeshGroupTRS { mesh, material ->
+        return forEachMeshGroupTRS(pipeline) { mesh, material ->
             val material2 = material ?: Material.defaultMaterial
             val stage = pipeline.findStage(material2)
             val stack = stage.instancedTRS.data.getOrPut(mesh, material2) { _, _ -> InstancedTRSStack.Data() }
@@ -106,7 +103,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     }
 
     fun instancedGroupFill(pipeline: Pipeline): Boolean {
-        return forEachInstancedGroup { mesh, material, group, overrides ->
+        return forEachInstancedGroup(pipeline) { mesh, material, group, overrides ->
             val material2 = material ?: Material.defaultMaterial
             val stage = pipeline.findStage(material2)
             val stack = stage.instancedStatic.data.getOrPut(mesh, material2) { _, _ -> InstancedStaticStack.Data() }
@@ -156,7 +153,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
 
     override fun raycast(query: RayQuery): Boolean {
         var hit = false
-        forEachMesh { mesh, _, transform ->
+        forEachMesh(null) { mesh, _, transform ->
             if (mesh is Mesh && RaycastMesh.raycastGlobalMesh(query, transform, mesh)) {
                 query.result.mesh = mesh
                 hit = true
@@ -181,7 +178,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         val local = localAABB
         local.clear()
         val tmp = JomlPools.mat4x3m.create()
-        forEachMesh { mesh, _, transform ->
+        forEachMesh(null) { mesh, _, transform ->
             transform.validate()
             val lt = transform.getLocalTransform(tmp)
             mesh.getBounds().transformUnion(lt, local, local)
@@ -201,7 +198,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * iterates over each mesh, which is actively visible; caller shall call transform.validate() if he needs the transform;
      * will (probably) stop, if you return true
      * */
-    abstract fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean)
+    abstract fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean)
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
@@ -209,7 +206,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * useful, if there are thousands of pre-grouped meshes with the same material; reduced overhead
      * */
-    open fun forEachMeshGroup(callback: (IMesh, Material?) -> InstancedStack) = false
+    open fun forEachMeshGroup(pipeline: Pipeline, callback: (IMesh, Material?) -> InstancedStack) = false
 
     /**
      * iterates over each mesh group, which is actively visible;
@@ -219,7 +216,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * useful, if there are thousands of pre-grouped meshes with the same material; and just P+R+S, no shearing, only uniform scaling; reduced overhead
      * */
-    open fun forEachMeshGroupTRS(callback: (IMesh, Material?) -> FloatArrayList) = false
+    open fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, Material?) -> FloatArrayList) = false
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
@@ -233,7 +230,10 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * this is like forEachMeshGroupI32, just generalized
      * */
-    open fun forEachInstancedGroup(callback: (IMesh, Material?, StaticBuffer, Map<String, TypeValue>) -> Unit) = false
+    open fun forEachInstancedGroup(
+        pipeline: Pipeline,
+        callback: (IMesh, Material?, StaticBuffer, Map<String, TypeValue>) -> Unit
+    ) = false
 
     fun <V : InstancedI32Stack> getOrPutI32Stack(
         pipeline: Pipeline,

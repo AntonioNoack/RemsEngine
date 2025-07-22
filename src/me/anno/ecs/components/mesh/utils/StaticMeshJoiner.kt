@@ -55,7 +55,7 @@ object StaticMeshJoiner {
                     addMesh(meshes, component.getMesh(), component.transform, component.materials)
                 }
                 is MeshSpawner -> {
-                    component.forEachMesh { mesh, material, transform ->
+                    component.forEachMesh(null) { mesh, material, transform ->
                         val materialList = if (material == null) emptyList()
                         else listOf(material.ref)
                         addMesh(meshes, mesh, transform, materialList)

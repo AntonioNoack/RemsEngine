@@ -138,6 +138,7 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         dst.positions = builder.vertices.toFloatArray()
         dst.normals = builder.normals?.toFloatArray()
         dst.color0 = builder.colors?.toIntArray()
+        dst.invalidateGeometry()
 
         return dst
     }

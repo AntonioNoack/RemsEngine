@@ -133,7 +133,7 @@ class BoidV3(val n: Int) : MeshSpawner(), OnUpdate, OnDrawGUI {
         invalidateBounds()
     }
 
-    override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
+    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
         val mesh = birdMesh
         for (i in 0 until n) {
             val transform = getTransform(i)
@@ -143,7 +143,7 @@ class BoidV3(val n: Int) : MeshSpawner(), OnUpdate, OnDrawGUI {
         }
     }
 
-    override fun forEachMeshGroupTRS(callback: (IMesh, Material?) -> FloatArrayList): Boolean {
+    override fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, Material?) -> FloatArrayList): Boolean {
         val list = callback(birdMesh, null)
         list.ensureExtra(8 * n)
         for (i in 0 until n) {

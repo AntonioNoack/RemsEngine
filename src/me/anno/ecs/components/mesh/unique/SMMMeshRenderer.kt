@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.unique.StaticMeshManager.Companion.attributes
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.utils.Color.a
@@ -180,7 +181,7 @@ class SMMMeshRenderer(material: Material) :
         return data
     }
 
-    override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
+    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
         // shall we implement this?
     }
 }

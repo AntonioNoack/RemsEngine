@@ -10,6 +10,7 @@ import me.anno.engine.WindowRenderFlags
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.hpc.ProcessingGroup
@@ -93,7 +94,7 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner(), OnUpdate {
         newDir.add(posB).sub(posA)
     }
 
-    override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
+    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
         val mesh = birdMesh
         for (i in 0 until n) {
             val transform = getTransform(i)
@@ -103,7 +104,7 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner(), OnUpdate {
         }
     }
 
-    override fun forEachMeshGroupTRS(callback: (IMesh, Material?) -> FloatArrayList): Boolean {
+    override fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, Material?) -> FloatArrayList): Boolean {
         val list = callback(birdMesh, null)
         list.ensureExtra(8 * n)
         for (i in 0 until n) {

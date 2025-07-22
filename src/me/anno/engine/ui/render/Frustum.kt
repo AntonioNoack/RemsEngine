@@ -324,7 +324,11 @@ class Frustum {
             // val transformedBounds = cameraRotation.transform(tmp.set(xx - mx, xy - my, xz - mz))
             // abs(transformedBounds.x * transformedBounds.y) // area
             val guessedSize = calculateArea(cameraRotation, aabb.deltaX, aabb.deltaY, aabb.deltaZ) // area
-            val guessedDistance = sq(min(-mx, xx), min(-my, xy), min(-mz, xz)) // distance²
+            val guessedDistance = sq(
+                min(-mx, xx),
+                min(-my, xy),
+                min(-mz, xz)
+            ) // distance²
             val relativeSizeGuess = guessedSize / guessedDistance // (bounds / distance)²
             return relativeSizeGuess
         } else {
@@ -338,6 +342,40 @@ class Frustum {
      * */
     fun hasEffectiveSize(aabb: AABBd): Boolean {
         return estimateRelativeSize(aabb) > sizeThreshold
+    }
+
+    /**
+     * on screen
+     * */
+    fun estimateRelativeSphereSize(position: Vector3d, radius: Double): Double {
+        return estimateRelativeSphereSize(position.x, position.y, position.z, radius)
+    }
+
+    /**
+     * on screen
+     * */
+    fun estimateRelativeSphereSize(px: Double, py: Double, pz: Double, radius: Double): Double {
+        val cameraPosition = cameraPosition
+        val radiusSq = sq(radius)
+        if (isPerspective) {
+            val distanceSq = cameraPosition.distanceSquared(px, py, pz)
+            val guessedDistance = max(distanceSq - radiusSq, 1e-308) // distance²
+            return radiusSq / guessedDistance // (area / distance²)
+        } else return radiusSq
+    }
+
+    /**
+     * check if larger than a single pixel
+     * */
+    fun hasSphereEffectiveSize(position: Vector3d, radius: Double): Boolean {
+        return estimateRelativeSphereSize(position, radius) > sizeThreshold
+    }
+
+    /**
+     * check if larger than a single pixel
+     * */
+    fun hasSphereEffectiveSize(px: Double, py: Double, pz: Double, radius: Double): Boolean {
+        return estimateRelativeSphereSize(px, py, pz, radius) > sizeThreshold
     }
 
     fun union(aabb: AABBd) {
@@ -371,6 +409,9 @@ class Frustum {
         }
     }
 
+    /**
+     * Rotates the dimensions dx, dy, dz with the camera rotation, then takes the square length.
+     * */
     private fun calculateArea(mat: Matrix3f, x: Double, y: Double, z: Double): Double {
         if (x.isInfinite() || y.isInfinite() || z.isInfinite()) return Double.POSITIVE_INFINITY
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z
@@ -393,6 +434,47 @@ class Frustum {
         return true
     }
 
+    fun containsSphere(position: Vector3d, radius: Double): Boolean {
+        return containsSphere(position.x, position.y, position.z, radius)
+    }
+
+    fun containsSphere(px: Double, py: Double, pz: Double, radius: Double): Boolean {
+        if (radius < 0.0) return false
+        // https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
+        for (i in 0 until length) {
+            val plane = planes[i]
+            val x = if (plane.dirX > 0.0) px - radius else px + radius
+            val y = if (plane.dirY > 0.0) py - radius else py + radius
+            val z = if (plane.dirZ > 0.0) pz - radius else pz + radius
+            // outside
+            if (plane.dot(x, y, z) >= 0.0) return false
+        }
+        return true
+    }
+
+    /**
+     * Checks whether an axis aligned box would be approximately visible on screen.
+     * If too small, or outside, it will be discarded.
+     * This test is just a rough approximation!
+     * */
     fun isVisible(aabb: AABBd) =
         contains(aabb) && hasEffectiveSize(aabb)
+
+    /**
+     * Checks whether a sphere would be approximately visible on screen.
+     * If too small, or outside, it will be discarded.
+     * This test is just a rough approximation!
+     * It shall have some false-positives, but no false-negatives.
+     * */
+    fun isSphereVisible(position: Vector3d, radius: Double) =
+        hasSphereEffectiveSize(position, radius) && containsSphere(position, radius)
+
+    /**
+     * Checks whether a sphere would be approximately visible on screen.
+     * If too small, or outside, it will be discarded.
+     * This test is just a rough approximation!
+     * It shall have some false-positives, but no false-negatives.
+     * */
+    fun isSphereVisible(px: Double, py: Double, pz: Double, radius: Double) =
+        hasSphereEffectiveSize(px, py, pz, radius) && containsSphere(px, py, pz, radius)
 }

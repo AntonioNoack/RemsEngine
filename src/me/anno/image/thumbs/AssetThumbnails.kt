@@ -124,7 +124,7 @@ object AssetThumbnails {
             scene.forAll {
                 when (it) {
                     is MeshComponentBase -> addMesh(it.getMesh(), it.transform ?: scene.transform)
-                    is MeshSpawner -> it.forEachMesh { mesh, _, transform ->
+                    is MeshSpawner -> it.forEachMesh(null) { mesh, _, transform ->
                         addMesh(mesh, transform)
                         false
                     }
