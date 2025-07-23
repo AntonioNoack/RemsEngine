@@ -18,10 +18,15 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.EditorState.control
 import me.anno.engine.ui.EditorState.editMode
 import me.anno.engine.ui.render.DebugRendering
+import me.anno.engine.ui.render.DebugRendering.debugBuilder
+import me.anno.engine.ui.render.DebugRendering.drawDebugSteps
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.shiftSlowdown
@@ -32,12 +37,16 @@ import me.anno.input.controller.ControllerType
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo10
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
+import me.anno.ui.debug.FrameTimings
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.toFloat
 import me.anno.utils.types.Floats.toRadians
+import me.anno.utils.types.NumberFormatter.formatIntTriplets
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -416,6 +425,42 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         if (settings.showRenderTimes) {
             DebugRendering.showTimeRecords(renderView)
         }
+    }
+
+    fun drawStats() {
+        renderView.apply {
+            drawDebugSteps(this)
+            drawDebugStats()
+        }
+    }
+
+    open fun formatDebugStats() {
+        val view = renderView
+        val drawnPrimitives = PipelineStageImpl.drawnPrimitives - view.drawnPrimitives0
+        val drawnInstances = PipelineStageImpl.drawnInstances - view.drawnInstances0
+        val drawCalls = PipelineStageImpl.drawCalls - view.drawCalls0
+        debugBuilder
+            .formatIntTriplets(drawnPrimitives).append(" tris, ")
+            .formatIntTriplets(drawnInstances).append(" inst, ")
+            .formatIntTriplets(drawCalls).append(" calls")
+    }
+
+    fun drawDebugStats() {
+
+        formatDebugStats()
+        if (debugBuilder.isEmpty()) return
+
+        val pbb = DrawTexts.pushBetterBlending(true)
+        val usesBetterBlending = DrawTexts.canUseComputeShader()
+        drawSimpleTextCharByChar(
+            x + 2, y + height + 1,
+            0, debugBuilder,
+            FrameTimings.textColor,
+            FrameTimings.background.color.withAlpha(if (usesBetterBlending) 0 else 255),
+            AxisAlignment.MIN, AxisAlignment.MAX
+        )
+        debugBuilder.clear()
+        DrawTexts.popBetterBlending(pbb)
     }
 
     fun updateCameraByTouchInput() {

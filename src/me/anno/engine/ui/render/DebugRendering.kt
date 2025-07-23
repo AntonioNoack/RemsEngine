@@ -571,27 +571,8 @@ object DebugRendering {
         GFXState.popDrawCallName()
     }
 
-    private val debugBuilder = StringBuilder(32)
-    fun drawDebugStats(view: RenderView, drawnPrimitives0: Long, drawnInstances0: Long, drawCalls0: Long) {
-        val pbb = DrawTexts.pushBetterBlending(true)
-        val drawnPrimitives = PipelineStageImpl.drawnPrimitives - drawnPrimitives0
-        val drawnInstances = PipelineStageImpl.drawnInstances - drawnInstances0
-        val drawCalls = PipelineStageImpl.drawCalls - drawCalls0
-        val usesBetterBlending = DrawTexts.canUseComputeShader()
-        debugBuilder
-            .formatIntTriplets(drawnPrimitives).append(" tris, ")
-            .formatIntTriplets(drawnInstances).append(" inst, ")
-            .formatIntTriplets(drawCalls).append(" calls")
-        DrawTexts.drawSimpleTextCharByChar(
-            view.x + 2, view.y + view.height + 1,
-            0, debugBuilder,
-            FrameTimings.textColor,
-            FrameTimings.background.color.withAlpha(if (usesBetterBlending) 0 else 255),
-            AxisAlignment.MIN, AxisAlignment.MAX
-        )
-        debugBuilder.clear()
-        DrawTexts.popBetterBlending(pbb)
-    }
+    val debugBuilder = StringBuilder(32)
+
 
     /**
      * Some devices don't support RenderDoc well,

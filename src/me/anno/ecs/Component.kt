@@ -44,7 +44,6 @@ abstract class Component : PrefabSaveable() {
     @HideInInspector
     @NotSerializedProperty
     var gfxId = 0
-        private set
 
     @NotSerializedProperty
     var clickId: Int

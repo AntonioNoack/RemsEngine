@@ -5,17 +5,25 @@ import speiger.primitivecollections.HashUtil.initialSize
 import speiger.primitivecollections.IntToObjectHashMap
 import java.lang.reflect.Field
 import java.lang.reflect.Method
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
 
 object Reflections {
+
+    private val superClassCache = ConcurrentHashMap<KClass<*>, List<KClass<*>>>()
+    private val parentClassCache = ConcurrentHashMap<KClass<*>, KClass<*>>()
 
     /**
      * returns super class or null if class = Any::class = Object::class, or class is an interface
      * */
     @JvmStatic
     fun getParentClass(clazz: KClass<*>): KClass<*>? {
-        return getParentClasses(clazz).firstOrNull()
+        return parentClassCache.getOrPut(clazz) {
+            getParentClasses(clazz).firstOrNull { superClass ->
+                !superClass.java.isInterface
+            }
+        }
     }
 
     /**
@@ -23,7 +31,7 @@ object Reflections {
      * */
     @JvmStatic
     fun getParentClasses(clazz: KClass<*>): List<KClass<*>> {
-        return clazz.superclasses
+        return superClassCache.getOrPut(clazz) { clazz.superclasses }
     }
 
     @JvmStatic

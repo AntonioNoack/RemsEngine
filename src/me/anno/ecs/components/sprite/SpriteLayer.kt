@@ -41,9 +41,10 @@ import kotlin.math.sign
  * The tile layout can be configured inside the material.
  *
  * For large worlds, you need a chunk-manager to load/unload them dynamically.
+ * Mesh: IntArray of packed values: [uint8: px, uint8: py, uint16: spiteId]
  * */
 class SpriteLayer :
-    UniqueMeshRenderer<Vector2i, SpriteMeshLike>(attributes, spriteVertexData, DrawMode.TRIANGLES),
+    UniqueMeshRenderer<Vector2i, IntArray>(attributes, spriteVertexData, DrawMode.TRIANGLES),
     OnUpdate, CustomEditMode {
 
     companion object {
@@ -58,6 +59,9 @@ class SpriteLayer :
 
         private const val SPRITE_SIZE_X = 1 shl SPRITE_BITS_X
         private const val SPRITE_SIZE_Y = 1 shl SPRITE_BITS_Y
+
+        private const val SPRITE_MASK_X = SPRITE_SIZE_X - 1
+        private const val SPRITE_MASK_Y = SPRITE_SIZE_Y - 1
 
         val spriteVertexData = MeshVertexData(
             listOf(
@@ -93,18 +97,42 @@ class SpriteLayer :
         )
     }
 
-    override fun getData(key: Vector2i, mesh: SpriteMeshLike): StaticBuffer? {
+    override fun createBuffer(key: Vector2i, mesh: IntArray): StaticBuffer? {
         val k = material.numTiles.x
-        if (mesh.entries.isEmpty() || k < 1) return null
+        if (mesh.isEmpty() || k < 1) return null
         return getDataSafely(key, mesh)
     }
 
-    fun getDataSafely(key: Vector2i, mesh: SpriteMeshLike): StaticBuffer {
+    fun getDataSafely(key: Vector2i, mesh: IntArray): StaticBuffer {
         val k = material.numTiles.x
-        assertTrue(mesh.entries.isNotEmpty() && k >= 1)
-        val buffer = StaticBuffer("sprites", attributes, mesh.numPrimitives.toInt(), BufferUsage.STATIC)
-        mesh.fillBuffer(SPRITE_BITS_X, SPRITE_BITS_Y, key, buffer)
+        assertTrue(mesh.isNotEmpty() && k >= 1)
+        val buffer = StaticBuffer("sprites", attributes, mesh.size * 6, BufferUsage.STATIC)
+        fillBuffer(mesh, key, buffer)
         return buffer
+    }
+
+    private fun StaticBuffer.addVertex(px: Int, py: Int, spriteId: Short, uvId: Short) {
+        putShort(px.toShort())
+        putShort(py.toShort())
+        putShort(spriteId)
+        putShort(uvId)
+    }
+
+    private fun fillBuffer(entries: IntArray, key: Vector2i, buffer: StaticBuffer) {
+        // create a quad for each mesh
+        for (i in entries.indices) {
+            val entry = entries[i]
+            val pos = entry.ushr(16)
+            val spiteId = entry.toShort()
+            val posX = key.x.shl(SPRITE_BITS_X) + pos.and(SPRITE_MASK_X)
+            val posY = key.y.shl(SPRITE_BITS_Y) + pos.shr(SPRITE_BITS_X).and(SPRITE_MASK_Y)
+            buffer.addVertex(posX, posY, spiteId, 0)
+            buffer.addVertex(posX + 1, posY, spiteId, 1)
+            buffer.addVertex(posX + 1, posY + 1, spiteId, 3)
+            buffer.addVertex(posX, posY, spiteId, 0)
+            buffer.addVertex(posX + 1, posY + 1, spiteId, 3)
+            buffer.addVertex(posX, posY + 1, spiteId, 2)
+        }
     }
 
     @EditorField
@@ -181,8 +209,8 @@ class SpriteLayer :
     }
 
     private fun getLocalIndex(x: Int, y: Int): Int {
-        val lx = x and (SPRITE_SIZE_X - 1)
-        val ly = y and (SPRITE_SIZE_Y - 1)
+        val lx = x and SPRITE_MASK_X
+        val ly = y and SPRITE_MASK_Y
         return lx + ly.shl(SPRITE_BITS_X)
     }
 
@@ -217,19 +245,18 @@ class SpriteLayer :
         }
     }
 
-    private fun createMeshData(key: Vector2i, chunk: IntArray, count: Int): MeshEntry<SpriteMeshLike> {
+    private fun createMeshData(key: Vector2i, chunk: IntArray, count: Int): MeshEntry<IntArray> {
         val bounds = AABBf()
-        val data = IntArray(count)
-        fillMeshData(chunk, data, bounds)
+        val faces = IntArray(count)
+        fillMeshData(chunk, faces, bounds)
         val dx = key.x.shl(SPRITE_BITS_X).toFloat()
         val dy = key.y.shl(SPRITE_BITS_Y).toFloat()
         bounds.minX += dx
         bounds.minY += dy
         bounds.maxX += dx + 1f // extend bounds for 1x1-sized cells
         bounds.maxY += dy + 1f
-        val mesh = SpriteMeshLike(data, bounds, materials)
-        val buffer = getDataSafely(key, mesh)
-        return MeshEntry(mesh, bounds, buffer)
+        val buffer = getDataSafely(key, faces)
+        return MeshEntry(faces, bounds, buffer)
     }
 
     private fun fillMeshData(srcChunk: IntArray, dstData: IntArray, dstBounds: AABBf) {

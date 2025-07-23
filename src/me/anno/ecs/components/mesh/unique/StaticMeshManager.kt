@@ -30,7 +30,7 @@ import org.joml.AABBd
 // todo this probably has undefined behaviour, because its RenderDocCaptures crash RenderDoc
 class StaticMeshManager : System(), Renderable, OnUpdate {
 
-    val managers = HashMap<Material, UniqueMeshRenderer<SMMKey, Mesh>>()
+    val managers = HashMap<Material, SMMMeshRenderer>()
     val meshes = HashSet<MeshComponent>(1024)
 
     override fun fill(pipeline: Pipeline, transform: Transform) {
@@ -103,7 +103,7 @@ class StaticMeshManager : System(), Renderable, OnUpdate {
             val material = getMaterial(comp.cachedMaterials, mesh.cachedMaterials, i)
             val umr = managers.getOrPut(material) { SMMMeshRenderer(material) }
             val key = SMMKey(comp, mesh, i)
-            val buffer = umr.getData(key, mesh)
+            val buffer = umr.createBuffer(key, mesh)
             if (buffer != null) {
                 // bounds need to be transformed from local to global
                 val bounds = AABBd(mesh.getBounds())

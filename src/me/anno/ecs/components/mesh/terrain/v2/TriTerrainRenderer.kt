@@ -21,7 +21,7 @@ class TriTerrainRenderer : UniqueMeshRenderer<Mesh, Mesh>(attributes, MeshVertex
     override val materials: List<FileReference>
         get() = material?.ref.wrap()
 
-    override fun getData(key: Mesh, mesh: Mesh): StaticBuffer? {
+    override fun createBuffer(key: Mesh, mesh: Mesh): StaticBuffer? {
         val positions = mesh.positions ?: return null
         if (positions.isEmpty()) return null
         val normals = mesh.normals!!

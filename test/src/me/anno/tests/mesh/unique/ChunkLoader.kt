@@ -44,7 +44,7 @@ class ChunkLoader(val chunkRenderer: ChunkRenderer, val world: TestWorld) : Comp
             world.getElementAt(x0 + x, y0 + y, z0 + z).toInt()
         }, null)
 
-        val data = chunkRenderer.getData(chunkId, mesh)
+        val data = chunkRenderer.createBuffer(chunkId, mesh)
         if (data != null) {
             val bounds = mesh.getBounds()
             bounds.translate(x0.toFloat(), y0.toFloat(), z0.toFloat())

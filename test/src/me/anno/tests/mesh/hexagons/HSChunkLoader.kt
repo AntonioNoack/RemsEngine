@@ -75,7 +75,7 @@ class HSChunkLoader(
         dstUnion.all()
     }
 
-    override fun getData(key: HexagonSphere.Chunk, mesh: Mesh): StaticBuffer? {
+    override fun createBuffer(key: HexagonSphere.Chunk, mesh: Mesh): StaticBuffer? {
         val positions = mesh.positions ?: return null
         val colors = mesh.color0 ?: return null
         if (positions.isEmpty()) return null
@@ -128,7 +128,7 @@ class HSChunkLoader(
             worker += {
                 // check if the request is still valid
                 val mesh = createMesh(sphere.queryChunk(key), world, transparent)
-                val buffer = getData(key, mesh)
+                val buffer = createBuffer(key, mesh)
                 if (buffer != null) {
                     addGPUTask("chunk", sphere.chunkCount) {
                         buffer.ensureBufferAsync {

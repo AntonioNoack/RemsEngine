@@ -197,6 +197,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             Mode.SCALING -> "S"
             else -> "X"
         }
+        drawStats()
         drawSimpleTextCharByChar(
             x + width, y + height, 2, modeName,
             -1, background.color, AxisAlignment.MAX, AxisAlignment.MAX

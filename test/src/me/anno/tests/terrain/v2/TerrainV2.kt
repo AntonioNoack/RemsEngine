@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.AutoTileableMaterial
 import me.anno.ecs.components.mesh.terrain.v2.TriTerrainRenderer
+import me.anno.engine.Events.addEvent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -42,8 +43,10 @@ fun main() {
     scene.add(terrainLoader)
     scene.add(editor)
 
-    terrainLoader.init(-4, -4, 4, 4)
     testSceneWithUI("TerrainV2", scene) {
         EditorState.select(editor)
+        addEvent {
+            terrainLoader.init(-4, -4, 4, 4)
+        }
     }
 }

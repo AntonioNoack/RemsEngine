@@ -156,6 +156,8 @@ abstract class OpenGLBuffer(
 
     open fun uploadEmpty(newLimit: Long) {
 
+        GFX.checkIsGFXThread()
+
         assertTrue(newLimit > 0)
         if (pointer >= 0) glDeleteBuffers(pointer)
 

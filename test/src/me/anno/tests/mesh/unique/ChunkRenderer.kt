@@ -77,7 +77,7 @@ class ChunkRenderer(val material: Material, val world: TestWorld) :
         return material
     }
 
-    override fun getData(key: Vector3i, mesh: Mesh): StaticBuffer? {
+    override fun createBuffer(key: Vector3i, mesh: Mesh): StaticBuffer? {
         if (mesh.numPrimitives == 0L) return null
         val pos = mesh.positions!!
         val col = mesh.color0!!

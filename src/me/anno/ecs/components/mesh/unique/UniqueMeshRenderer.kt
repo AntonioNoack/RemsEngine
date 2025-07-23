@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.ui.render.Frustum
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.BufferUsage
@@ -38,14 +39,24 @@ import java.nio.IntBuffer
  *
  * todo somehow use indexed meshes (less load on the vertex shader)
  * */
-abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
+abstract class UniqueMeshRenderer<Key, Mesh>(
     val attributes: CompactAttributeLayout,
     override val vertexData: MeshVertexData,
     val drawMode: DrawMode
 ) : MeshSpawner(), IMesh, ICacheData, AllocationManager<MeshEntry<Mesh>, StaticBuffer> {
 
-    abstract fun getData(key: Key, mesh: Mesh): StaticBuffer?
+    /**
+     * Implement this method to pack your custom mesh type into a StaticBuffer to be copied around.
+     * Returning null will ignore your element.
+     * */
+    abstract fun createBuffer(key: Key, mesh: Mesh): StaticBuffer?
 
+    /**
+     * Return transform and material for that specific mesh for traditional methods.
+     * Rendering must handle transform and material without this function:
+     * - transform must be encoded in the buffer somehow
+     * - material is taken from UniqueMeshRender.cachedMaterials
+     * */
     open fun getTransformAndMaterial(key: Key, transform: Transform): Material? = null
 
     /**
@@ -54,21 +65,23 @@ abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
      * */
     override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
         var i = 0
-        for ((key, entry) in entryLookup) {
+        for ((key, entry) in entries) {
             val transform = getTransform(i++)
             val material = getTransformAndMaterial(key, transform)
-            if (callback(entry.mesh, material, transform)) break
+            val mesh = entry.mesh as? IMesh ?: continue
+            if (callback(mesh, material, transform)) break
         }
     }
 
-    val entryLookup = HashMap<Key, MeshEntry<Mesh>>()
-    val entries = ArrayList<MeshEntry<Mesh>>()
-    val ranges = ArrayList<IntRange>()
+    private val entries = HashMap<Key, MeshEntry<Mesh>>()
+    private val sortedEntries = ArrayList<MeshEntry<Mesh>>()
+    private val sortedRanges = ArrayList<IntRange>()
 
     private var buffer0 = StaticBuffer("umr0", attributes, 0, BufferUsage.DYNAMIC)
     private var buffer1 = StaticBuffer("umr1", attributes, 0, BufferUsage.DYNAMIC)
 
     val stride get() = attributes.stride
+    val values: List<MeshEntry<Mesh>> get() = sortedEntries
 
     @DebugProperty
     @NotSerializedProperty
@@ -85,8 +98,8 @@ abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
         // calculate local aabb
         val local = boundsF
         local.clear()
-        for (i in entries.indices) {
-            val entry = entries[i]
+        for (i in sortedEntries.indices) {
+            val entry = sortedEntries[i]
             local.union(entry.localBounds)
         }
         localAABB.set(local)
@@ -101,24 +114,26 @@ abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
 
     val clock = Clock(LOGGER)
 
-    fun set(key: Key, entry: MeshEntry<Mesh>): Boolean {
-        val old = entryLookup[key]
-        if (old != null) remove(key, entry.mesh != old.mesh)
+    operator fun set(key: Key, entry: MeshEntry<Mesh>): Boolean {
+        val old = entries[key]
+        if (old != null) remove(key, entry.mesh !== old.mesh)
         return add(key, entry)
     }
 
+    operator fun get(key: Key): MeshEntry<Mesh>? = entries[key]
+
     fun add(key: Key, entry: MeshEntry<Mesh>): Boolean {
-        if (key in entryLookup) return false
+        if (key in entries) return false
         val b0 = buffer0
         val b1 = buffer1
         clock.start()
         val bx = insert(
-            entries, ranges, entry, entry.buffer,
+            sortedEntries, sortedRanges, entry, entry.buffer,
             entry.range, b0.vertexCount, b0,
             false
         ).second
         clock.stop("Insert", 0.01)
-        entryLookup[key] = entry
+        entries[key] = entry
         numPrimitives += entry.buffer.vertexCount
         assertTrue(bx === b0 || bx === b1)
         this.buffer1 = if (bx === b1) b0 else b1
@@ -127,11 +142,18 @@ abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
         return true
     }
 
+    fun add(key: Key, mesh: Mesh, bounds: AABBd): Boolean {
+        if (key in entries) return false
+        val buffer = createBuffer(key, mesh) ?: return false
+        val entry = MeshEntry(mesh, bounds, buffer)
+        return add(key, entry)
+    }
+
     fun remove(key: Key, destroyMesh: Boolean): Mesh? {
-        val entry = entryLookup.remove(key) ?: return null
-        assertTrue(remove(entry, entries, ranges))
+        val entry = this@UniqueMeshRenderer.entries.remove(key) ?: return null
+        assertTrue(remove(entry, sortedEntries, sortedRanges))
         numPrimitives -= entry.buffer.vertexCount
-        if (destroyMesh) {
+        if (destroyMesh && entry.mesh is ICacheData) {
             entry.mesh.destroy()
         }
         entry.buffer.destroy()
@@ -180,19 +202,14 @@ abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
         buffer.drawLength = numPrimitives.toInt()
         buffer.bind(shader)
         val frustum = pipeline?.frustum
-        val transform = transform?.globalTransform
+        var transform = transform?.globalTransform
+        // small optimization: most UniqueMeshRenderers will be at the origin
+        if (transform != null && transform.isIdentity()) transform = null
         var currStart = 0
         var currEnd = 0
-        val tmpBounds = JomlPools.aabbd.create()
-        for (i in entries.indices) {
-            val entry = entries[i]
-            val shallRender = if (frustum != null) {
-                val globalBounds = if (transform != null) {
-                    entry.localBounds.transform(transform, tmpBounds)
-                } else entry.localBounds
-                frustum.isVisible(globalBounds)
-            } else true
-            if (shallRender) { // frustum culling
+        for (i in sortedEntries.indices) {
+            val entry = sortedEntries[i]
+            if (shallRenderEntry(frustum, transform, entry)) {
                 val range = entry.range
                 if (range.first != currEnd) {
                     push(buffer, currStart, currEnd)
@@ -204,7 +221,17 @@ abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
         push(buffer, currStart, currEnd)
         finish(buffer)
         buffer.unbind()
-        JomlPools.aabbd.sub(1)
+    }
+
+    open fun shallRenderEntry(frustum: Frustum?, transform: Matrix4x3?, entry: MeshEntry<Mesh>): Boolean {
+        return if (frustum != null) {
+            val globalBounds = if (transform != null) {
+                val tmpBounds = JomlPools.aabbd.borrow()
+                entry.localBounds.transform(transform, tmpBounds)
+            } else entry.localBounds
+            // frustum culling
+            frustum.isVisible(globalBounds)
+        } else true
     }
 
     override fun drawInstanced(
@@ -246,20 +273,20 @@ abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
     override fun destroy() {
         buffer0.destroy()
         buffer1.destroy()
-        for ((_, entry) in entryLookup) {
+        for ((_, entry) in entries) {
             entry.buffer.destroy()
-            entry.mesh.destroy()
+            if (entry.mesh is ICacheData) entry.mesh.destroy()
         }
     }
 
     open fun clear(destroyMeshes: Boolean) {
-        entryLookup.clear()
-        for (entry in entries) {
-            if (destroyMeshes) entry.mesh.destroy()
+        entries.clear()
+        for (entry in sortedEntries) {
+            if (destroyMeshes && entry.mesh is ICacheData) entry.mesh.destroy()
             entry.buffer.destroy()
         }
-        entries.clear()
-        ranges.clear()
+        sortedEntries.clear()
+        sortedRanges.clear()
         numPrimitives = 0
     }
 

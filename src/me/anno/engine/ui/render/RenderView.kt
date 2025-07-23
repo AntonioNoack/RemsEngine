@@ -5,12 +5,12 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
+import me.anno.ecs.components.FillSpace
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.ecs.components.FillSpace
 import me.anno.ecs.systems.OnBeforeDraw
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.ecs.systems.Systems
@@ -19,8 +19,6 @@ import me.anno.engine.inspector.Inspectable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
-import me.anno.engine.ui.render.DebugRendering.drawDebugStats
-import me.anno.engine.ui.render.DebugRendering.drawDebugSteps
 import me.anno.engine.ui.render.DefaultSun.defaultSun
 import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
@@ -203,13 +201,17 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         return true
     }
 
+    var drawnPrimitives0 = 0L
+    var drawnInstances0 = 0L
+    var drawCalls0 = 0L
+
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         if (tryRenderVRViews()) return
 
-        val drawnPrimitives0 = PipelineStageImpl.drawnPrimitives
-        val drawnInstances0 = PipelineStageImpl.drawnInstances
-        val drawCalls0 = PipelineStageImpl.drawCalls
+        drawnPrimitives0 = PipelineStageImpl.drawnPrimitives
+        drawnInstances0 = PipelineStageImpl.drawnInstances
+        drawCalls0 = PipelineStageImpl.drawCalls
 
         currentInstance = this
 
@@ -249,11 +251,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         if (world is Entity && playMode != PlayMode.EDITING) {
             drawPrimaryCanvas(world, x0, y0, x1, y1)
-        }
-
-        if (playMode == PlayMode.EDITING) {
-            drawDebugSteps(this)
-            drawDebugStats(this, drawnPrimitives0, drawnInstances0, drawCalls0)
         }
 
         if (update) {

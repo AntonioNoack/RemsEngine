@@ -11,7 +11,7 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Clock
 import me.anno.utils.GFXFeatures
 import me.anno.utils.OS
-import me.anno.utils.assertions.assertNull
+import me.anno.utils.assertions.assertSame
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -212,11 +212,12 @@ object GFX {
     @JvmStatic
     fun checkIsGFXThread() {
         val currentThread = Thread.currentThread()
-        if (currentThread != glThread) {
-            assertNull(glThread, "GFX.check() called from wrong thread! Always use addGPUTask { ... }")
-            glThread = currentThread
-            currentThread.name = "OpenGL"
-        }
+        val glThread = glThread
+        assertSame(
+            currentThread, glThread,
+            if (glThread == null) "Missing OpenGL Context"
+            else "OpenGL called from wrong thread"
+        )
     }
 
     /**

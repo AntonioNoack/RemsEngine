@@ -3,7 +3,6 @@ package me.anno.ecs.components.mesh.terrain.v2
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.ecs.components.mesh.terrain.TerrainBrush
-import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
 import me.anno.graph.octtree.KdTree
@@ -11,6 +10,7 @@ import me.anno.graph.octtree.OctTreeF
 import me.anno.maths.Maths.length
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.callbacks.F2F
+import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector2i
@@ -110,7 +110,7 @@ class TriTerrainChunk(val owner: TriTerrainRenderer) : OctTreeF<Mesh>(16) {
     }
 
     private fun addMeshUnsafe(mesh: Mesh) {
-        owner.add(mesh, MeshEntry(mesh, mesh.getBounds(), owner.getData(mesh, mesh)!!))
+        owner.add(mesh, mesh, AABBd(mesh.getBounds()))
     }
 
     fun applyBrush(brushToPos: Matrix4x3f, brush: TerrainBrush) {

@@ -22,6 +22,7 @@ import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Quaterniond
+import speiger.primitivecollections.LongToObjectHashMap
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.floor
@@ -161,7 +162,9 @@ object MovingGrid {
         rotation: Quaterniond,
     ) {
         val size = baseSize * factor
-        val mesh = cachedMeshes.getOrPut(size) { "$factor${getSuffix(baseSize)}" }
+        val mesh = cachedMeshes.getOrPut(size.toRawBits()) {
+            "$factor${getSuffix(baseSize)}"
+        }
         val tmpPos = JomlPools.vec3d.create()
             .set(size, size * 0.02, 0.0).rotate(rotation)
         TextShapes.drawTextMesh(pipeline, mesh, tmpPos, rotation, size * 0.2, null)
@@ -200,7 +203,7 @@ object MovingGrid {
         return suffixes.getOrNull(idx) ?: "e${power}m"
     }
 
-    private val cachedMeshes = HashMap<Double, String>()
+    private val cachedMeshes = LongToObjectHashMap<String>()
     private val baseRotX = Quaterniond().rotateX(PI * 0.5)
     private val baseRotY = Quaterniond()
     private val baseRotZ = Quaterniond().rotateY(PI * 0.5).rotateX(PI * 0.5)

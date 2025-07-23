@@ -170,7 +170,7 @@ class SMMMeshRenderer(material: Material) :
         return null
     }
 
-    override fun getData(key: SMMKey, mesh: Mesh): StaticBuffer? {
+    override fun createBuffer(key: SMMKey, mesh: Mesh): StaticBuffer? {
         val data = getData0(key, mesh) ?: return null
         val dataBuffer = data.getOrCreateNioBuffer()
         val stride = attributes.stride

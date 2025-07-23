@@ -8,6 +8,7 @@ import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.ECSMeshShaderLight.Companion.canUseLightShader
@@ -36,6 +37,7 @@ import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.ResetArrayList
@@ -69,8 +71,12 @@ class PipelineStageImpl(
         var drawCalls = 0L
         var drawCallId = 0
 
+        var instancedToNonInstancedThreshold = 4
+
         val lastMaterial = HashMap<Shader, Material>(64)
         private val tmp4x3 = Matrix4x3f()
+
+        private val tmpComponents = LazyList(65536) { MeshComponent() }
 
         val tmpAABBd = AABBd()
 
@@ -502,6 +508,8 @@ class PipelineStageImpl(
 
         pipeline.lights.fill(null)
 
+        optimizeInstancedToNonInstanced()
+
         // draw non-instanced meshes
         for (index in 0 until nextInsertIndex) {
             val request = drawRequests[index]
@@ -531,6 +539,29 @@ class PipelineStageImpl(
         Companion.drawnPrimitives += drawnPrimitives
         Companion.drawnInstances += drawnInstances
         Companion.drawCalls += drawCalls
+    }
+
+    /**
+     * Updating a buffer is exhausting, prefer more draw calls;
+     * This was ~3x faster for my brick sample
+     * */
+    private fun optimizeInstancedToNonInstanced() {
+        var k = 0
+        val threshold = instancedToNonInstancedThreshold
+        if (threshold <= 0) return
+        instanced.data.forEach { mesh, material, materialId, stack ->
+            // todo how do we implement it for InstancedAnimStack?
+            //   we need to assign animTexture and animState somehow...
+            if (stack.size in 1..threshold && stack !is InstancedAnimStack) {
+                for (i in 0 until stack.size) {
+                    val component = tmpComponents[k++]
+                    component.gfxId = stack.gfxIds[i] // for click-resolution
+                    val transform = stack.transforms[i] as Transform
+                    add(component, mesh, transform, material, materialId)
+                }
+                stack.clear()
+            }
+        }
     }
 
     private fun clearLastElements() {
