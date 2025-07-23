@@ -48,21 +48,23 @@ class OpenXRSystem(val window: Long) {
     private fun checkExtensions() {
         checkXR(xrEnumerateInstanceExtensionProperties(null as ByteBuffer?, intPtr, null))
         val extCount = intPtr[0]
-        LOGGER.info("Runtime supports $extCount extensions:")
-        val extensions =
-            XrExtensionProperties.Buffer(ByteBuffer.allocateDirect(extCount * XrExtensionProperties.SIZEOF))
+        val extBuffer = ByteBuffer.allocateDirect(extCount * XrExtensionProperties.SIZEOF)
+        val extensions = XrExtensionProperties.Buffer(extBuffer)
         for (ext in extensions) ext.type(XR_TYPE_EXTENSION_PROPERTIES)
         checkXR(xrEnumerateInstanceExtensionProperties(null as ByteBuffer?, intPtr, extensions))
+        val joinedNames = StringBuilder()
         for (i in 0 until extCount) {
             val extName = extensions[i].extensionNameString()
-            LOGGER.info("Extension[$i]: $extName")
             when (extName) {
                 XR_KHR_OPENGL_ENABLE_EXTENSION_NAME -> hasOpenGLExtension = true
                 XR_EXT_HAND_TRACKING_EXTENSION_NAME -> hasHandTracking = true
                 XR_KHR_COMPOSITION_LAYER_DEPTH_EXTENSION_NAME -> hasDepth = true
                 XR_EXT_DEBUG_UTILS_EXTENSION_NAME -> hasDebug = true
             }
+            if (joinedNames.isNotEmpty()) joinedNames.append(", ")
+            joinedNames.append(extName)
         }
+        LOGGER.info("Supported Extensions: [$joinedNames]")
         if (!hasOpenGLExtension) throw IllegalStateException("OpenGL isn't supported 😭")
     }
 

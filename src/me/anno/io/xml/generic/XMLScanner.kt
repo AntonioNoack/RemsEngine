@@ -40,30 +40,30 @@ abstract class XMLScanner(reader: Reader) : XMLReaderBase(reader) {
     abstract fun onContent(depth: Int, type: CharSequence, value: CharSequence)
 
     fun scan(): Any {
-        return scan(-1, 0)
+        return scan(-1, 0, false)
     }
 
-    private fun scan(firstChar: Int, depth: Int): Any {
+    private fun scan(firstChar: Int, depth: Int, ignored: Boolean): Any {
         val first = if (firstChar < 0) skipSpaces() else firstChar
         if (first == -1) return endOfReader
         if (first != '<'.code) return readStringUntilNextNode(first)
         if (types.size <= typeI) types.add(ComparableStringBuilder())
         val type = readTypeUntilSpaceOrEnd(types[typeI], -1)
         return when {
-            type.startsWith("?") -> skipScanXMLVersion(depth)
+            type.startsWith("?") -> skipScanXMLVersion(depth, ignored)
             type.startsWith("!--") -> {
                 // search until -->
                 readUntil("-->")
-                scan(-1, depth)
+                scan(-1, depth, ignored)
             }
-            type.startsWith("!doctype", true) -> skipScanDocType(depth)
+            type.startsWith("!doctype", true) -> skipScanDocType(depth, ignored)
             type.startsWith("![cdata[", true) -> readCData(type)
             type.startsWith('/') -> endElement
-            else -> scanXMLNode(depth, type)
+            else -> scanXMLNode(depth, type, ignored)
         }
     }
 
-    private fun scanXMLAttributes(depth: Int, type: CharSequence): Int {
+    private fun scanXMLAttributes(depth: Int, type: CharSequence, ignored: Boolean): Int {
         var next = -1
         while (true) {
             // name="value"
@@ -74,7 +74,7 @@ abstract class XMLScanner(reader: Reader) : XMLReaderBase(reader) {
             val start = skipSpaces()
             assert(start, '"', '\'')
             val value = readStringUntilQuotes(start)
-            onAttribute(depth, type, propName, value)
+            if (!ignored) onAttribute(depth, type, propName, value)
             next = skipSpaces()
             when (next) {
                 '/'.code,
@@ -87,21 +87,21 @@ abstract class XMLScanner(reader: Reader) : XMLReaderBase(reader) {
     /**
      * read the body (all children)
      * */
-    private fun scanXMLBody(depth: Int, type: CharSequence): Any {
+    private fun scanXMLBody(depth: Int, type: CharSequence, ignored: Boolean): Any {
         typeI++
         var next: Int = -1
         while (true) {
-            val child = scan(next, depth + 1)
+            val child = scan(next, depth + 1, ignored)
             next = -1
             when (child) {
                 is String -> {
-                    onContent(depth, type, child)
+                    if (!ignored) onContent(depth, type, child)
                     next = '<'.code
                 }
                 sthElement -> {} // do nothing
                 endElement, endOfReader -> {
                     typeI--
-                    onEnd(depth, type)
+                    if (!ignored) onEnd(depth, type)
                     return if (child == endElement) sthElement else endOfReader
                 }
                 else -> throw IllegalStateException("Unknown child $child")
@@ -110,16 +110,16 @@ abstract class XMLScanner(reader: Reader) : XMLReaderBase(reader) {
     }
 
     @Suppress("SpellCheckingInspection")
-    private fun skipScanXMLVersion(depth: Int): Any {
+    private fun skipScanXMLVersion(depth: Int, ignored: Boolean): Any {
         // <?xml version="1.0" encoding="utf-8"?>
         // I don't really care about it
         // read until ?>
         // or <?xpacket end="w"?>
         readUntil("?>")
-        return scan(-1, depth)
+        return scan(-1, depth, ignored)
     }
 
-    private fun skipScanDocType(depth: Int): Any {
+    private fun skipScanDocType(depth: Int, ignored: Boolean): Any {
         var ctr = 1
         while (ctr > 0) {
             when (input.read()) {
@@ -127,50 +127,29 @@ abstract class XMLScanner(reader: Reader) : XMLReaderBase(reader) {
                 '>'.code -> ctr--
             }
         }
-        return scan(-1, depth)
+        return scan(-1, depth, ignored)
     }
 
-    private fun skipXMLNode(): Any {
-        var depthI = 1
-        while (true) {
-            when (input.read()) {
-                '>'.code -> {
-                    depthI--
-                    if (depthI == 0) {
-                        return sthElement
-                    }
-                }
-                '<'.code -> depthI++
-                '"'.code -> skipString('"'.code)
-                '\''.code -> skipString('\''.code)
-                -1 -> return RuntimeException("Unexpected end")
-            }
-        }
-    }
-
-    private fun scanXMLNode(depth: Int, type: CharSequence): Any {
+    private fun scanXMLNode(depth: Int, type: CharSequence, ignored: Boolean): Any {
         var end = last
         if (end == -1) return endOfReader
-        if (!onStart(depth, type)) {
-            // this node can be ignored
-            return skipXMLNode()
-        }
+        val ignored = ignored || !onStart(depth, type)
 
         // / is the end of an element
         if (end.toChar().isWhitespace()) {
-            end = scanXMLAttributes(depth, type)
+            end = scanXMLAttributes(depth, type, ignored)
         }
 
         when (end) {
             '/'.code -> {
                 assertEquals(input.read(), '>'.code)
-                onEnd(depth, type)
+                if (!ignored) onEnd(depth, type)
                 return sthElement
             }
-            '>'.code -> return scanXMLBody(depth, type)
+            '>'.code -> return scanXMLBody(depth, type, ignored)
             else -> {
                 LOGGER.warn("Unknown end symbol '${end.toChar()}', $end")
-                onEnd(depth, type)
+                if (!ignored) onEnd(depth, type)
                 return endOfReader
             }
         }
