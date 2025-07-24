@@ -134,6 +134,7 @@ object WindowManagement {
             // before we actually destroy the window and its framebuffer
             destroyed = true
             GFX.glThread = null // no longer valid after closing all windows
+            GFXState.onDestroyContext()
             clock.stop("Finishing last frame", 0.0)
         }
         synchronized(glfwLock) {

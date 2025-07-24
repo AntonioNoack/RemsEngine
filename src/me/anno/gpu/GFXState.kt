@@ -217,6 +217,10 @@ object GFXState {
         }
     }
 
+    fun onDestroyContext() {
+        session++
+    }
+
     private fun clearGPUCaches() {
         // clear all caches, which contain gpu data
         FBStack.clear()

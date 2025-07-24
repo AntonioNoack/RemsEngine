@@ -473,7 +473,10 @@ class Framebuffer(
     }
 
     override fun destroy() {
-        if (pointer != 0) {
+        if (session != GFXState.session) {
+            // pointer has become invalid anyway; e.g., this happens on shutdown
+            pointer = 0
+        } else if (pointer != 0) {
             GFX.checkIsGFXThread()
             ssBuffer?.destroy()
             destroyFramebuffer()
