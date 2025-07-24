@@ -241,8 +241,7 @@ object GFX {
 
     @JvmStatic
     fun checkWithoutCrashing(name: String) {
-        // assumes that the first access is indeed from the OpenGL thread
-        if (isDebug) {
+        if (isDebug && glThread == Thread.currentThread()) {
             checkIsGFXThread()
             checkWithoutCrashingImpl(name)
         }

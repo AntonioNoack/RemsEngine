@@ -8,7 +8,7 @@ import java.io.InputStreamReader
 /**
  * reads a JSON-similar format from a text file
  * */
-class JsonStreamReader(data: InputStream, workspace: FileReference) : JsonReaderBase(workspace) {
+open class JsonStreamReader(data: InputStream, workspace: FileReference) : JsonReaderBase(workspace) {
 
     private val reader = InputStreamReader(data)
 

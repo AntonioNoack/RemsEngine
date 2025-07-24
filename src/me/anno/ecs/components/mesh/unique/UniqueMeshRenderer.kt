@@ -87,6 +87,8 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     @NotSerializedProperty
     override var numPrimitives: Long = 0
 
+    var totalNumPrimitives = 0L
+
     override fun ensureBuffer() {
         // not really anything to do for now...
     }
@@ -134,7 +136,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         ).second
         clock.stop("Insert", 0.01)
         entries[key] = entry
-        numPrimitives += entry.buffer.vertexCount
+        totalNumPrimitives += entry.buffer.vertexCount
         assertTrue(bx === b0 || bx === b1)
         this.buffer1 = if (bx === b1) b0 else b1
         this.buffer0 = if (bx === b1) b1 else b0
@@ -152,7 +154,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     fun remove(key: Key, destroyMesh: Boolean): Mesh? {
         val entry = this@UniqueMeshRenderer.entries.remove(key) ?: return null
         assertTrue(remove(entry, sortedEntries, sortedRanges))
-        numPrimitives -= entry.buffer.vertexCount
+        totalNumPrimitives -= entry.buffer.vertexCount
         if (destroyMesh && entry.mesh is ICacheData) {
             entry.mesh.destroy()
         }
@@ -192,14 +194,15 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     }
 
     override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {
-        if (numPrimitives == 0L) return
+        if (totalNumPrimitives == 0L) return
         val buffer = buffer0
         if (!buffer.isUpToDate) {
             LOGGER.warn("Buffer ${hash32(buffer)} isn't ready")
             return
         }
+        var counter = 0L
         GFXState.bind()
-        buffer.drawLength = numPrimitives.toInt()
+        buffer.drawLength = 1 // doesn't matter as long as it's greater than zero
         buffer.bind(shader)
         val frustum = pipeline?.frustum
         var transform = transform?.globalTransform
@@ -213,12 +216,15 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
                 val range = entry.range
                 if (range.first != currEnd) {
                     push(buffer, currStart, currEnd)
+                    counter += currEnd - currStart
                     currStart = range.first
                 }
                 currEnd = range.last + 1
             }
         }
         push(buffer, currStart, currEnd)
+        counter += currEnd - currStart
+        numPrimitives = counter
         finish(buffer)
         buffer.unbind()
     }

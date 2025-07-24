@@ -11,7 +11,7 @@ import java.io.InputStream
 /**
  * reads a JSON-similar format from a text file
  * */
-class JsonStringReader(val data: CharSequence, workspace: FileReference) : JsonReaderBase(workspace) {
+open class JsonStringReader(val data: CharSequence, workspace: FileReference) : JsonReaderBase(workspace) {
 
     private var index = 0
 

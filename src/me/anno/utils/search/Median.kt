@@ -82,7 +82,7 @@ object Median {
         val count4th = count.ushr(2)
         val minAcceptableI = start + count4th
         val maxAcceptableI = start + count4th * 3
-        val maxNumTries = count.toFloat().log2i().shr(1)
+        val maxNumTries = log2i(count.toFloat()).shr(1)
         for (tryIndex in 0 until maxNumTries) {
 
             // using this guessed pivot as a first try reduced the time from 80ms to 57ms on my Ryzen 9 7950x3d

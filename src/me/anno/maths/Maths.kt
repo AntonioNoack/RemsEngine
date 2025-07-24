@@ -240,8 +240,8 @@ object Maths {
      * incorrect for denormalized values
      * */
     @JvmStatic
-    fun Float.log2i(): Int {
-        val bits = toRawBits()
+    fun log2i(value: Float): Int {
+        val bits = value.toRawBits()
         val exponent = (bits shr 23) and 255
         return exponent - 127
     }
@@ -251,8 +251,8 @@ object Maths {
      * incorrect for denormalized values
      * */
     @JvmStatic
-    fun Double.log2i(): Int {
-        val bits = toRawBits()
+    fun log2i(value: Double): Int {
+        val bits = value.toRawBits()
         val exponent = (bits shr 52).toInt() and 2047
         return exponent - 1023
     }
