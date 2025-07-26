@@ -850,8 +850,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     fun setRenderState() {
         RenderState.aspectRatio = width.toFloat() / height.toFloat()
 
-        println("camPos, camDir: $cameraPosition, $cameraDirection")
-
         RenderState.cameraMatrix.set(cameraMatrix)
         RenderState.cameraMatrixInv.set(cameraMatrixInv)
         RenderState.cameraPosition.set(cameraPosition)
