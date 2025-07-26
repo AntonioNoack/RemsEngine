@@ -92,7 +92,7 @@ abstract class VRRendering {
         }
 
         // todo define camera fov for frustum based on actually used angles
-        rv.editorCamera.fovY = 110f // just a guess, should be good enough
+        rv.editorCamera.fovYDegrees = 110f // just a guess, should be good enough
     }
 
     private fun prepareRenderViewRendering(rv: RenderView, width: Int, height: Int) {

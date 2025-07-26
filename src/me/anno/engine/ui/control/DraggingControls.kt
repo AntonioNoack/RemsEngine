@@ -299,7 +299,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         var newGizmoMask = 0
         val pos = JomlPools.vec3d.create()
         val rot = JomlPools.quat4f.create()
-        val scale = renderView.radius * tan(camera.fovY.toRadians() * 0.5f) * 0.2f
+        val scale = renderView.radius * tan(camera.fovYDegrees.toRadians() * 0.5f) * 0.2f
         val cam = renderView.cameraMatrix
         val pip = renderView.pipeline
         for (selected in instancesToTransform) {
@@ -340,7 +340,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         renderView.near = 1e-3f
         renderView.far = 1e10f
         camera.fovOrthographic = 5f
-        camera.fovY = 90f
+        camera.fovYDegrees = 90f
         camera.isPerspective = true
         rotationTargetDegrees.set(0.0)
     }
@@ -411,7 +411,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             }
             isSelected && Input.isMiddleDown -> {
                 // move camera
-                val fovYRadians = renderView.editorCamera.fovY.toRadians()
+                val fovYRadians = renderView.editorCamera.fovYDegrees.toRadians()
                 val speed = tan(fovYRadians * 0.5f) * renderView.radius / height
                 val camTransform = camera.transform!!
                 val globalCamTransform = camTransform.globalTransform

@@ -262,7 +262,7 @@ object AssetThumbnails {
     private val rv by lazy {
         val rv = RenderView0(PlayMode.EDITING, DefaultConfig.style)
         rv.enableOrbiting = true
-        rv.editorCamera.fovY = 10f.toRadians()
+        rv.editorCamera.fovYDegrees = 10f.toRadians()
         rv.orbitRotation.identity()
             .rotateY(25f.toRadians())
             .rotateX((-15f).toRadians())

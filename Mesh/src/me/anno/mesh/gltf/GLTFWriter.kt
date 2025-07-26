@@ -545,7 +545,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             writeObject {
                 if (camera.isPerspective) {
                     attr("aspectRatio", 1.0) // mmmh...
-                    attr("yfov", camera.fovY.toDouble().toRadians())
+                    attr("yfov", camera.fovYDegrees.toDouble().toRadians())
                     attr("zfar", camera.far.toDouble())
                     attr("znear", camera.near.toDouble())
                 } else {

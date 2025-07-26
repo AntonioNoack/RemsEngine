@@ -11,6 +11,7 @@ import me.anno.engine.NamedTask
 import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
+import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GLNames.getErrorTypeName
 import me.anno.gpu.RenderDoc.loadRenderDoc
 import me.anno.gpu.RenderStep.renderStep
@@ -283,6 +284,7 @@ object WindowManagement {
     @JvmStatic
     fun prepareForRendering(tick: Clock?) {
         capabilities = GL.createCapabilities()
+        glThread = Thread.currentThread()
         GFXState.newSession()
         tick?.stop("OpenGL initialization")
         if (isDebug) {

@@ -36,6 +36,12 @@ import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
+import me.anno.maths.Packing.pack32
+import me.anno.maths.Packing.pack64
+import me.anno.maths.Packing.unpackHighFrom32
+import me.anno.maths.Packing.unpackHighFrom64
+import me.anno.maths.Packing.unpackLowFrom32
+import me.anno.maths.Packing.unpackLowFrom64
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.assertions.assertEquals
@@ -811,7 +817,7 @@ open class Texture2D(
 
     fun bindBeforeUpload() {
         assertNotEquals(0, pointer, "Pointer must be defined")
-        boundTextures[boundTextureSlot] = 0
+        boundTextures[activeTextureSlot] = 0
         bindTexture(target, pointer)
     }
 
@@ -969,7 +975,7 @@ open class Texture2D(
         }
 
         @JvmField
-        var boundTextureSlot = 0
+        var activeTextureSlot = 0
 
         @JvmField
         val boundTextures = IntArray(64)
@@ -998,19 +1004,40 @@ open class Texture2D(
             }
         }
 
+        fun getBindState(): Long {
+            val slot = activeTextureSlot
+            return if (slot >= 0) {
+                val high32 = pack32(slot, boundTargets[slot])
+                pack64(high32, boundTextures[slot])
+            } else -1
+        }
+
+        fun restoreBindState(bindState: Long) {
+            if (bindState == -1L) return
+            val high32 = unpackHighFrom64(bindState)
+            val pointer = unpackLowFrom64(bindState)
+            val slot = unpackHighFrom32(high32, false)
+            val target = unpackLowFrom32(high32, false)
+            activeSlot(slot)
+            if (pointer >= 0) bindTexture(target, pointer)
+        }
+
         fun getBindState(slot: Int): Long {
-            return boundTargets[slot] + boundTextures[slot].toLong().shl(16)
+            return pack64(boundTargets[slot], boundTextures[slot])
         }
 
         fun restoreBindState(slot: Int, state: Long) {
             activeSlot(slot)
-            val pointer = state.shr(16).toInt()
-            if (pointer >= 0) bindTexture(state.toInt().and(0xffff), pointer)
+            val pointer = unpackLowFrom64(state)
+            if (pointer >= 0) {
+                val target = unpackHighFrom64(state)
+                bindTexture(target, pointer)
+            }
         }
 
         @JvmStatic
         fun invalidateBinding() {
-            boundTextureSlot = -1
+            activeTextureSlot = -1
             activeSlot(0)
             boundTextures.fill(-1)
         }
@@ -1019,9 +1046,9 @@ open class Texture2D(
         fun activeSlot(index: Int) {
             if (index < 0 || index >= maxBoundTextures)
                 throw IllegalArgumentException("Texture index $index out of allowed bounds")
-            if (alwaysBindTexture || index != boundTextureSlot) {
+            if (alwaysBindTexture || index != activeTextureSlot) {
                 glActiveTexture(GL_TEXTURE0 + index)
-                boundTextureSlot = index
+                activeTextureSlot = index
             }
         }
 
@@ -1035,9 +1062,9 @@ open class Texture2D(
                 glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
                 wasModifiedInComputePipeline = false
             }
-            return if (alwaysBindTexture || boundTextures[boundTextureSlot] != pointer) {
-                boundTextures[boundTextureSlot] = pointer
-                boundTargets[boundTextureSlot] = target
+            return if (alwaysBindTexture || boundTextures[activeTextureSlot] != pointer) {
+                boundTextures[activeTextureSlot] = pointer
+                boundTargets[activeTextureSlot] = target
                 glBindTexture(target, pointer)
                 true
             } else false

@@ -37,7 +37,7 @@ class Camera : Component(), OnDrawGUI, FillSpace {
 
     @Range(0.0, 180.0)
     @Docs("the fov when perspective, in degrees")
-    var fovY = 90f
+    var fovYDegrees = 90f
 
     @Range(0.0, 1e308)
     @Docs("the fov when orthographic, in base units")
@@ -119,7 +119,7 @@ class Camera : Component(), OnDrawGUI, FillSpace {
         val f11 = JomlPools.vec3d.create()
 
         if (isPerspective) {
-            val tanFovY = tan(fovY.toDouble().toRadians() * 0.5)
+            val tanFovY = tan(fovYDegrees.toDouble().toRadians() * 0.5)
             defineRect(aspectRatio, near * tanFovY, -near.toDouble(), n00, n01, n10, n11)
             defineRect(aspectRatio, far * tanFovY, -far.toDouble(), f00, f01, f10, f11)
         } else {
@@ -145,6 +145,6 @@ class Camera : Component(), OnDrawGUI, FillSpace {
         dst.isPerspective = isPerspective
         dst.near = near
         dst.far = far
-        dst.fovY = fovY
+        dst.fovYDegrees = fovYDegrees
     }
 }

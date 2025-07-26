@@ -123,7 +123,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         .add(editorCamera)
 
     var renderMode = RenderMode.DEFAULT
-    var superMaterial = SuperMaterial.NONE
+    var superMaterial: SuperMaterial = SuperMaterial.NONE
         set(value) {
             field = value
             pipeline.superMaterial = value.material
@@ -220,8 +220,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         updateEditorCameraTransform()
 
         val world = getWorld()
-
-        setRenderState()
 
         val t1 = Time.nanoTime
 
@@ -457,7 +455,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     private fun findFOV(camera: Camera): Float {
-        return if (camera.isPerspective) camera.fovY else camera.fovOrthographic * 0.5f
+        return if (camera.isPerspective) camera.fovYDegrees else camera.fovOrthographic * 0.5f
     }
 
     fun prepareDrawScene(
@@ -530,6 +528,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         currentInstance = this
 
         if (fillPipeline) {
+            setRenderState() // needed for light matrix calculation (camSpaceToLightSpace)
             OnBeforeDraw.onBeforeDrawing()
             definePipeline(width, height, aspectRatio, fov, world)
         }
@@ -593,7 +592,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
-        setRenderState() // needed for light matrix calculation (camSpaceToLightSpace)
         if (world != null) pipeline.fill(world)
         controlScheme?.fill(pipeline)
         // if the scene would be dark, define lights, so we can see something
@@ -851,6 +849,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     fun setRenderState() {
         RenderState.aspectRatio = width.toFloat() / height.toFloat()
+
+        println("camPos, camDir: $cameraPosition, $cameraDirection")
 
         RenderState.cameraMatrix.set(cameraMatrix)
         RenderState.cameraMatrixInv.set(cameraMatrixInv)

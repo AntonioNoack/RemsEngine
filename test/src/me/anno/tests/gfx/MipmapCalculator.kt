@@ -30,7 +30,7 @@ object MipmapCalculator {
      * @return whether the texture was actively bound
      * */
     fun forceBindTexture(mode: Int, pointer: Int): Boolean {
-        Texture2D.boundTextures[Texture2D.boundTextureSlot] = 0
+        Texture2D.boundTextures[Texture2D.activeTextureSlot] = 0
         return Texture2D.bindTexture(mode, pointer)
     }
 

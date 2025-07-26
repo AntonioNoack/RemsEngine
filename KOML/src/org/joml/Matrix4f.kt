@@ -5673,6 +5673,25 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         return dst.setOrtho(minX, maxX, minY, maxY, -maxZ, -minZ)
     }
 
+    /**
+     * Set this matrix to a perspective transformation that maps the trapezoid spanned by the four corner coordinates
+     * (p0x, p0y), (p1x, p1y), (p2x, p2y) and (p3x, p3y) to the unit square [(-1, -1)..(+1, +1)].
+     * The corner coordinates are given in counter-clockwise order starting from the
+     * left corner on the smaller parallel side of the trapezoid seen when looking at the trapezoid oriented
+     * with its shorter parallel edge at the bottom and its longer parallel edge at the top.
+     *
+     * Reference: https://www.comp.nus.edu.sg/~tants/tsm/TSM_recipe.html
+     *
+     * Parameters:
+     * @param p0x x coordinate of the left corner at the shorter edge of the trapezoid
+     * @param p0y y coordinate of the left corner at the shorter edge of the trapezoid
+     * @param p1x x coordinate of the right corner at the shorter edge of the trapezoid
+     * @param p1y y coordinate of the right corner at the shorter edge of the trapezoid
+     * @param p2x x coordinate of the right corner at the longer edge of the trapezoid
+     * @param p2y y coordinate of the right corner at the longer edge of the trapezoid
+     * @param p3x x coordinate of the left corner at the longer edge of the trapezoid
+     * @param p3y y coordinate of the left corner at the longer edge of the trapezoid
+     * */
     fun trapezoidCrop(
         p0x: Float, p0y: Float, p1x: Float,
         p1y: Float, p2x: Float, p2y: Float,

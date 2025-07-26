@@ -166,7 +166,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     open fun handleInputs() {
         moveCameraByInputs()
         updateViewRotation(false)
-        renderView.editorCamera.fovY = settings.fovY
+        renderView.editorCamera.fovYDegrees = settings.fovY
     }
 
     open fun updateViewRotation(jump: Boolean) {
@@ -345,7 +345,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         val baseSpeed = 20.0 * renderView.radius
         val acceleration = baseSpeed * uiDeltaTime * settings.moveSpeed
         val cameraFactor = if (camera.isPerspective) {
-            tan(0.5 * camera.fovY.toRadians())
+            tan(0.5 * camera.fovYDegrees.toRadians())
         } else 1.0
         return (acceleration * cameraFactor).toFloat()
     }

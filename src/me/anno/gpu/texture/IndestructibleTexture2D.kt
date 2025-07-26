@@ -23,7 +23,7 @@ class IndestructibleTexture2D(
     }
 
     override fun isCreated(): Boolean {
-        if (GFX.isGFXThread()) ensureExists()
+        if (GFX.isGFXThread()) ensureExists(-1)
         return super.isCreated()
     }
 
@@ -47,10 +47,19 @@ class IndestructibleTexture2D(
         }
     }
 
-    fun ensureExists() {
+    fun ensureExists(slot: Int) {
         checkSession()
         if (!wasCreated || isDestroyed) {
             isDestroyed = false
+
+            val bindState = if (slot >= 0) {
+                activeSlot(slot)
+                -1L // it's fine, we're overriding the state anyway
+            } else {
+                // might be called from bind(), and we must not disturb the previously bound texture
+                getBindState()
+            }
+
             when (creationData) {
                 is ByteArray -> {
                     if (creationData.size == width * height) {
@@ -70,11 +79,13 @@ class IndestructibleTexture2D(
                 }
                 else -> throw IllegalArgumentException("Unknown constructor data")
             }
+
+            restoreBindState(bindState)
         }
     }
 
     override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
-        ensureExists()
+        ensureExists(index)
         val hasSize = width > 1 || height > 1
         return super.bind(
             index, if (hasSize) filtering else this.filtering,

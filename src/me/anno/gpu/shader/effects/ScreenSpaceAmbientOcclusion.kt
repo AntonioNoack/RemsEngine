@@ -46,9 +46,7 @@ object ScreenSpaceAmbientOcclusion {
 
     // could be set lower for older hardware, would need restart
     private val MAX_SAMPLES = Maths.max(4, DefaultConfig["gpu.ssao.maxSamples", 512])
-    private val sampleKernel = LazyMap { numSamples: Int ->
-        generateSampleKernel(numSamples)
-    }
+    private val sampleKernel = LazyMap(::generateSampleKernel)
 
     @JvmStatic
     private fun generateSampleKernel(numSamples: Int): IndestructibleTexture2D {
@@ -296,12 +294,16 @@ object ScreenSpaceAmbientOcclusion {
         val channels = if (isSSGI) 3 else 1
         val dst = FBStack["ssao-1st", fw, fh, channels, isSSGI, 1, DepthBufferType.NONE]
         useFrame(dst, Renderer.copyRenderer) {
+            dst.clearColor(0)
             GFX.check()
             val msaa = depthSS.samples > 1
             val roughnessMask = ssgi?.roughnessMask ?: 0
             val base = ((msaa.toInt() + isSSGI.toInt(2)).shl(2) + roughnessMask).shl(3)
             val shader = occlusionShaders[base + normalZW.toInt() + depthMask.shl(1)]
             shader.use()
+
+            // todo bug: "sampleKernel"-slot is filled by random4x4-texture
+
             DepthTransforms.bindDepthUniforms(shader)
             // bind all textures
             sampleKernel[samples].bindTrulyNearest(shader, "sampleKernel")
@@ -338,6 +340,7 @@ object ScreenSpaceAmbientOcclusion {
         val isSSGI = ssgi != null
         val dst = FBStack["ssao-2nd", w, h, if (isSSGI) 3 else 1, isSSGI, 1, DepthBufferType.NONE]
         useFrame(dst, Renderer.copyRenderer) {
+            dst.clearColor(0)
             GFX.check()
             val base = enableBlur.toInt() + isSSGI.toInt(2)
             val shader = blurShaders[base.shl(3) + normalZW.toInt() + depthMaskI.shl(1)]

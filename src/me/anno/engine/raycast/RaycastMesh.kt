@@ -176,6 +176,7 @@ object RaycastMesh {
         globalTransform: Matrix4x3?, query: RayQuery
     ) {
         val result = query.result
+        val originalDistance = query.result.distance
         val localMaxDistance = localStart.distance(localEnd)
         result.distance = localMaxDistance.toDouble()
         if (blas.raycast(localStart, localDir, result)) {
@@ -187,7 +188,7 @@ object RaycastMesh {
             } else {
                 query.direction.mul(result.distance, result.positionWS).add(query.start)
             }
-        }
+        } else result.distance = originalDistance
     }
 
     fun isCloser(query: RayQuery, maxDistance: Double): Boolean {

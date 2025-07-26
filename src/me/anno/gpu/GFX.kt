@@ -144,7 +144,6 @@ object GFX {
 
     @JvmStatic
     fun setupBasics(tick: Clock?) {
-        glThread = Thread.currentThread()
         LOGGER.info("OpenGL Version: ${GL46C.glGetString(GL46C.GL_VERSION)}")
         LOGGER.info("GLSL Version: ${GL46C.glGetString(GL46C.GL_SHADING_LANGUAGE_VERSION)}")
         LOGGER.info("GPU: ${GL46C.glGetString(GL46C.GL_RENDERER)}, Vendor: ${GL46C.glGetString(GL46C.GL_VENDOR)}")
