@@ -9,6 +9,7 @@ import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
 import org.joml.Vector3d.Companion.lengthSquared
 import org.joml.Vector3i
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -84,9 +85,9 @@ abstract class ChunkSystem<Chunk : Any, Element>(
         globalZ: Double,
         generateIfMissing: Boolean
     ): AsyncCacheData<Chunk>? {
-        val cx = globalX.toInt() shr bitsX
-        val cy = globalY.toInt() shr bitsY
-        val cz = globalZ.toInt() shr bitsZ
+        val cx = floor(globalX).toInt() shr bitsX
+        val cy = floor(globalY).toInt() shr bitsY
+        val cz = floor(globalZ).toInt() shr bitsZ
         return getChunk(cx, cy, cz, generateIfMissing)
     }
 

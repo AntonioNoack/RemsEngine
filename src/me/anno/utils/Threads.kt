@@ -4,6 +4,7 @@ import me.anno.Engine
 import me.anno.Time
 import me.anno.engine.NamedTask
 import me.anno.gpu.GFX
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import org.apache.logging.log4j.LogManager
 import speiger.primitivecollections.LongHashSet
 import java.util.WeakHashMap
@@ -18,13 +19,18 @@ import kotlin.math.abs
 object Threads {
 
     private val LOGGER = LogManager.getLogger(Threads::class)
-    private const val MAX_NUM_SLEEPING_THREADS = 8
     private const val MIN_NUM_SLEEPING_THREADS = 2
+    var idleTimeoutMillis = 1000
 
-    private val tasks = ConcurrentLinkedQueue<NamedTask>()
+    private val waitingTasks = ConcurrentLinkedQueue<NamedTask>()
 
     private val sleepingThreads = AtomicInteger()
     private val unfinishedTasks = AtomicInteger()
+
+    val numWaitingTasks get() = waitingTasks.size
+    val numSleepingThreads get() = sleepingThreads.get()
+    val numUnfinishedTasks get() = unfinishedTasks.get()
+    val numWorkerThreads get() = workerThreads.size
 
     /**
      * Use this method to run on any thread,
@@ -43,7 +49,7 @@ object Threads {
         repeat(missingThreads) { startThread() }
 
         unfinishedTasks.incrementAndGet()
-        tasks.add(NamedTask(name, runnable))
+        waitingTasks.add(NamedTask(name, runnable))
     }
 
     private val threadId = AtomicInteger()
@@ -52,8 +58,10 @@ object Threads {
         val thread = thread(name = originalName, start = false) {
             val self = Thread.currentThread()
             var isIdle = true
-            while (sleepingThreads.get() < MAX_NUM_SLEEPING_THREADS && !Engine.shutdown) {
-                val task = tasks.poll()
+            var startIdleTime = Time.nanoTime
+            while (true) {
+                if (Engine.shutdown) break
+                val task = waitingTasks.poll()
                 if (task != null) {
                     if (isIdle) {
                         sleepingThreads.decrementAndGet() // no longer sleeping
@@ -71,8 +79,11 @@ object Threads {
                     if (!isIdle) {
                         sleepingThreads.incrementAndGet() // is sleeping again
                         isIdle = true
-                    }
-                    Thread.sleep(1)
+                        startIdleTime = Time.nanoTime
+                        Thread.sleep(0)
+                    } else if (Time.nanoTime < startIdleTime + idleTimeoutMillis * MILLIS_TO_NANOS) {
+                        Thread.sleep(1)
+                    } else break
                 }
             }
 
