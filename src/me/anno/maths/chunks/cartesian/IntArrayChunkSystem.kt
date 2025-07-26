@@ -1,5 +1,7 @@
 package me.anno.maths.chunks.cartesian
 
+import me.anno.cache.AsyncCacheData
+
 /**
  * a typical implementation for a chunk system would be an array backend
  * */
@@ -8,26 +10,20 @@ open class IntArrayChunkSystem(
     val defaultElement: Int
 ) : ChunkSystem<IntArray, Int>(bitsX, bitsY, bitsZ) {
 
-    open fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: IntArray) {
-        if (defaultElement != 0) chunk.fill(defaultElement)
-    }
-
-    override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int): IntArray {
-        val data = IntArray(size)
-        generateChunk(chunkX, chunkY, chunkZ, data)
-        return data
+    override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int, result: AsyncCacheData<IntArray>) {
+        result.value = IntArray(size).apply {
+            if (defaultElement != 0) fill(defaultElement)
+        }
     }
 
     override fun getElement(
         container: IntArray,
-        localX: Int, localY: Int, localZ: Int,
-        index: Int
+        localX: Int, localY: Int, localZ: Int, index: Int
     ) = container[index]
 
     override fun setElement(
         container: IntArray,
-        localX: Int, localY: Int, localZ: Int,
-        index: Int,
+        localX: Int, localY: Int, localZ: Int, index: Int,
         element: Int
     ): Boolean {
         container[index] = element

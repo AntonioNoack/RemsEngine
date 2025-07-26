@@ -9,7 +9,7 @@ fun main() {
     val clock = Clock("GreedyMesher")
     val world = TestWorld()
     val mesh = Mesh()
-    val chunk = world.getChunk(0, 0, 0, true)!!
+    val chunk = world.getChunk(0, 0, 0, true)!!.waitFor()!!
     val model = object : VoxelModel(world.sizeX, world.sizeY, world.sizeZ) {
         override fun getBlock(x: Int, y: Int, z: Int) =
             chunk[getIndex(x, y, z)].toInt()

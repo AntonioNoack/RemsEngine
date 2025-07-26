@@ -1,5 +1,6 @@
 package me.anno.tests.terrain.v1
 
+import me.anno.cache.AsyncCacheData
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.systems.OnUpdate
@@ -16,8 +17,8 @@ class TerrainChunkSystem(val childrenContainer: Entity) :
         const val sx = 1 shl zBits
     }
 
-    override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int): TerrainChunk {
-        return TerrainChunk(chunkX, chunkZ)
+    override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int, result: AsyncCacheData<TerrainChunk>) {
+        result.value = TerrainChunk(chunkX, chunkZ)
     }
 
     override fun getIndex(localX: Int, localY: Int, localZ: Int): Int {
@@ -38,18 +39,18 @@ class TerrainChunkSystem(val childrenContainer: Entity) :
         // update neighbor chunks, too
         if (localX == 0) {
             setElement(
-                getChunk(container.xi - 1, 0, container.zi, true)!!,
+                getChunk(container.xi - 1, 0, container.zi, true)!!.waitFor()!!,
                 getIndex(sz, 0, localZ), element
             )
         }
         if (localZ == 0) {
             setElement(
-                getChunk(container.xi, 0, container.zi - 1, true)!!,
+                getChunk(container.xi, 0, container.zi - 1, true)!!.waitFor()!!,
                 getIndex(localX, 0, sx), element
             )
             if (localX == 0) {
                 setElement(
-                    getChunk(container.xi - 1, 0, container.zi - 1, true)!!,
+                    getChunk(container.xi - 1, 0, container.zi - 1, true)!!.waitFor()!!,
                     getIndex(sz, 0, sx), element
                 )
             }
@@ -75,6 +76,7 @@ class TerrainChunkSystem(val childrenContainer: Entity) :
             for (xi in -10..10) {
                 val visible = xi * xi + zi * zi < 81
                 val chunk = getChunk(x0 + xi, 0, z0 + zi, visible)
+                    ?.waitFor(!visible)
                 if (chunk != null && (chunk in visibleChunks) != visible) {
                     if (visible) {
                         val child = Entity("${chunk.xi}/${chunk.zi}")

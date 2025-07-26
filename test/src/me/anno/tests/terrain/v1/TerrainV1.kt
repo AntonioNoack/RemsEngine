@@ -33,7 +33,7 @@ fun main() {
         it.editControls = object : ControlScheme(it.renderView) {
             fun edit(xi: Int, zi: Int, effect0: Float, hit: RayHit) {
 
-                val comp = chunkSystem.getChunk(xi, 0, zi, true)!!
+                val comp = chunkSystem.getChunk(xi, 0, zi, true)!!.waitFor()!!
                 val mesh = comp.getMesh()
                 if (mesh.positions == null || mesh.color0 == null) {
                     me.anno.tests.LOGGER.warn("Missing positions/color for $xi/$zi :(")

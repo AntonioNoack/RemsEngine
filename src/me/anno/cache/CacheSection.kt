@@ -33,7 +33,7 @@ open class CacheSection<K, V : Any>(val name: String) : Comparable<CacheSection<
         }
     }
 
-    fun remove(filter: (K, AsyncCacheData<V>) -> Boolean): Int {
+    fun removeIf(filter: (K, AsyncCacheData<V>) -> Boolean): Int {
         return synchronized(cache) {
             cache.removeIf { (k, v) ->
                 if (filter(k, v)) {
@@ -297,7 +297,7 @@ open class CacheSection<K, V : Any>(val name: String) : Comparable<CacheSection<
             }
             val removed = ArrayList<IndexedValue<String>>()
             for (cache in caches) {
-                val numRemovedEntries = cache.remove(filter)
+                val numRemovedEntries = cache.removeIf(filter)
                 if (numRemovedEntries > 0) {
                     removed.add(IndexedValue(numRemovedEntries, cache.name))
                 }

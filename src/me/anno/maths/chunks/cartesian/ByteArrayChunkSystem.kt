@@ -1,5 +1,7 @@
 package me.anno.maths.chunks.cartesian
 
+import me.anno.cache.AsyncCacheData
+
 /**
  * a typical implementation for a chunk system would be an array backend
  * */
@@ -10,27 +12,24 @@ abstract class ByteArrayChunkSystem(
 
     abstract fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: ByteArray)
 
-    override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int): ByteArray {
+    override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int, result: AsyncCacheData<ByteArray>) {
         val data = ByteArray(size)
         if (defaultElement != 0.toByte()) data.fill(defaultElement)
         generateChunk(chunkX, chunkY, chunkZ, data)
-        return data
+        result.value = data
     }
 
     override fun getElement(
         container: ByteArray,
-        localX: Int, localY: Int, localZ: Int,
-        index: Int
+        localX: Int, localY: Int, localZ: Int, index: Int
     ) = container[index]
 
     override fun setElement(
         container: ByteArray,
-        localX: Int, localY: Int, localZ: Int,
-        index: Int,
+        localX: Int, localY: Int, localZ: Int, index: Int,
         element: Byte
     ): Boolean {
         container[index] = element
         return true
     }
-
 }

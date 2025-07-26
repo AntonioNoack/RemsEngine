@@ -1,5 +1,6 @@
 package me.anno.maths.chunks.cartesian
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.maths.chunks.PlayerLocation
@@ -16,30 +17,14 @@ import kotlin.math.min
  * LODs can be generated e.g., with OctTree
  * */
 abstract class ChunkSystem<Chunk : Any, Element>(
-    val bitsX: Int,
-    val bitsY: Int,
-    val bitsZ: Int
+    val bitsX: Int, val bitsY: Int, val bitsZ: Int
 ) : Component() {
 
     var timeoutMillis = 10_000L
     val chunks = CacheSection<Vector3i, Chunk>("Chunks")
 
-    fun getOrPut(key: Vector3i, put: (Vector3i) -> Chunk): Chunk {
-        return chunks.getEntry(key, timeoutMillis) { k, result ->
-            result.value = put(k)
-        }.waitFor()!!
-    }
-
-    fun get(key: Vector3i): Chunk? {
-        return chunks.getEntryWithoutGenerator(key)?.value
-    }
-
-    fun remove(key: Vector3i): Chunk? {
-        return chunks.removeEntry(key)?.value
-    }
-
     fun removeIf(condition: (key: Vector3i, value: Chunk) -> Boolean) {
-        chunks.remove { key, value ->
+        chunks.removeIf { key, value ->
             @Suppress("UNCHECKED_CAST")
             val value2 = value.value
             value2 != null && condition(key, value2)
@@ -62,8 +47,8 @@ abstract class ChunkSystem<Chunk : Any, Element>(
 
     abstract fun createChunk(
         chunkX: Int, chunkY: Int, chunkZ: Int,
-        size: Int
-    ): Chunk
+        size: Int, result: AsyncCacheData<Chunk>
+    )
 
     abstract fun getElement(
         container: Chunk, localX: Int, localY: Int, localZ: Int,
@@ -78,32 +63,34 @@ abstract class ChunkSystem<Chunk : Any, Element>(
         index: Int, element: Element
     ): Boolean
 
-    open fun getChunk(chunkX: Int, chunkY: Int, chunkZ: Int, generateIfMissing: Boolean): Chunk? {
+    open fun getChunk(chunkX: Int, chunkY: Int, chunkZ: Int, generateIfMissing: Boolean): AsyncCacheData<Chunk>? {
         val key = Vector3i(chunkX, chunkY, chunkZ)
         return if (generateIfMissing) {
-            getOrPut(key) {
-                val chunk = createChunk(chunkX, chunkY, chunkZ, totalSize)
-                onCreateChunk(chunk, chunkX, chunkY, chunkZ)
-                chunk
+            chunks.getEntry(key, timeoutMillis) { k, result ->
+                createChunk(chunkX, chunkY, chunkZ, totalSize, result)
             }
-        } else get(key)
-    }
-
-    fun removeChunk(chunkX: Int, chunkY: Int, chunkZ: Int): Chunk? {
-        val key = Vector3i(chunkX, chunkY, chunkZ)
-        return synchronized(chunks) {
-            remove(key)
+        } else {
+            chunks.getEntryWithoutGenerator(key)
         }
     }
 
-    open fun getChunkAt(globalX: Double, globalY: Double, globalZ: Double, generateIfMissing: Boolean): Chunk? {
+    fun removeChunk(chunkX: Int, chunkY: Int, chunkZ: Int): AsyncCacheData<Chunk>? {
+        return chunks.removeEntry(Vector3i(chunkX, chunkY, chunkZ))
+    }
+
+    open fun getChunkAt(
+        globalX: Double,
+        globalY: Double,
+        globalZ: Double,
+        generateIfMissing: Boolean
+    ): AsyncCacheData<Chunk>? {
         val cx = globalX.toInt() shr bitsX
         val cy = globalY.toInt() shr bitsY
         val cz = globalZ.toInt() shr bitsZ
         return getChunk(cx, cy, cz, generateIfMissing)
     }
 
-    open fun getChunkAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): Chunk? {
+    open fun getChunkAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): AsyncCacheData<Chunk>? {
         val cx = globalX shr bitsX
         val cy = globalY shr bitsY
         val cz = globalZ shr bitsZ
@@ -111,7 +98,8 @@ abstract class ChunkSystem<Chunk : Any, Element>(
     }
 
     open fun getElementAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): Element? {
-        val chunk = getChunkAt(globalX, globalY, globalZ, generateIfMissing) ?: return null
+        val chunk = getChunkAt(globalX, globalY, globalZ, generateIfMissing)
+            ?.waitFor(!generateIfMissing) ?: return null
         val lx = globalX and maskX
         val ly = globalY and maskY
         val lz = globalZ and maskZ
@@ -122,7 +110,7 @@ abstract class ChunkSystem<Chunk : Any, Element>(
     }
 
     open fun getElementAt(globalX: Int, globalY: Int, globalZ: Int): Element {
-        val chunk = getChunkAt(globalX, globalY, globalZ, true)!!
+        val chunk = getChunkAt(globalX, globalY, globalZ, true)!!.waitFor()!!
         val lx = globalX and maskX
         val ly = globalY and maskY
         val lz = globalZ and maskZ
@@ -139,7 +127,8 @@ abstract class ChunkSystem<Chunk : Any, Element>(
         generateIfMissing: Boolean,
         element: Element
     ): Boolean {
-        val chunk = getChunkAt(globalX, globalY, globalZ, generateIfMissing) ?: return false
+        val chunk = getChunkAt(globalX, globalY, globalZ, generateIfMissing)
+            ?.waitFor(!generateIfMissing) ?: return false
         val lx = globalX and maskX
         val ly = globalY and maskY
         val lz = globalZ and maskZ
@@ -181,6 +170,7 @@ abstract class ChunkSystem<Chunk : Any, Element>(
             for (cz in minZ..maxZ) {
                 for (cx in minX..maxX) {
                     val chunk = getChunk(cx, cy, cz, generateIfMissing)
+                        ?.waitFor(!generateIfMissing)
                     if (chunk != null) {
                         val baseX = cx shl bitsX
                         val baseY = cy shl bitsY
@@ -239,7 +229,6 @@ abstract class ChunkSystem<Chunk : Any, Element>(
                     val dist = lengthSquared(px - it.x, py - it.y, pz - it.z)
                     dist * it.unloadMultiplier > unloadingSq
                 }
-                if (shallRemove) onDestroyChunk(chunk, pos.x, pos.y, pos.z)
                 shallRemove
             }
             for (pos in chunks.cache.keys.toList()) { // toList() to copy the entries, so we don't get ConcurrentModificationExceptions
@@ -263,10 +252,6 @@ abstract class ChunkSystem<Chunk : Any, Element>(
             }
         }
     }
-
-    open fun onCreateChunk(chunk: Chunk, chunkX: Int, chunkY: Int, chunkZ: Int) {}
-
-    open fun onDestroyChunk(chunk: Chunk, chunkX: Int, chunkY: Int, chunkZ: Int) {}
 
     override fun destroy() {
         super.destroy()

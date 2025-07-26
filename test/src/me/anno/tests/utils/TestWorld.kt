@@ -180,7 +180,7 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
 
     fun createTriangleMeshFromChunk(cx: Int, cy: Int, cz: Int): Mesh {
         val mesh = Mesh()
-        val chunk = getChunk(cx, cy, cz, true)!!
+        val chunk = getChunk(cx, cy, cz, true)!!.waitFor()!!
         object : VoxelModel(sizeX, sizeY, sizeZ) {
             override fun getBlock(x: Int, y: Int, z: Int) =
                 chunk[getIndex(x, y, z)].toInt()

@@ -107,6 +107,7 @@ fun main() {
         override fun getChunk(node: AccNode): ByteArray? =
             if (node.x in 0 until sx && node.y in 0 until sy && node.z in 0 until sz)
                 world.getChunkAt(node.x, node.y, node.z, true)
+                    ?.waitFor()
             else null
 
         override fun distance(start: AccNode, end: AccNode): Double {

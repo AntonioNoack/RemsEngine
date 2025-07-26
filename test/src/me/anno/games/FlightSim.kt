@@ -4,6 +4,8 @@ import me.anno.Time
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
 import me.anno.bullet.bodies.StaticBody
+import me.anno.cache.AsyncCacheData
+import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
@@ -88,13 +90,23 @@ fun createTerrain(player: LocalPlayer): Entity {
     val cellSize = 50f
     val chunkSize = (cellSize * cellsPerChunk).toDouble()
 
-    val terrainSystem = object : SingleChunkSystem<Entity>() {
+    class Chunk(val entity: Entity): ICacheData {
+        override fun destroy() {
+            entity.removeFromParent()
+            entity.destroy()
+        }
+    }
+
+    val terrainSystem = object : SingleChunkSystem<Chunk>() {
 
         val noise = PerlinNoise(1234L, 7, 0.5f, -500f, 500f, Vector4f(0.025f))
-        val empty = Entity()
+        val empty = Chunk(Entity())
 
-        override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int): Entity {
-            if (chunkY != 0) return empty
+        override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int, result: AsyncCacheData<Chunk>) {
+            if (chunkY != 0) {
+                result.value = empty
+                return
+            }
             val mesh = Mesh()
             val dx = chunkX * cellsPerChunk
             val dz = chunkZ * cellsPerChunk
@@ -114,12 +126,7 @@ fun createTerrain(player: LocalPlayer): Entity {
                 .add(StaticBody())
             terrain.add(wrapper)
             terrain.invalidateAABBsCompletely()
-            return wrapper
-        }
-
-        override fun onDestroyChunk(chunk: Entity, chunkX: Int, chunkY: Int, chunkZ: Int) {
-            chunk.removeFromParent()
-            chunk.destroy()
+            result.value = Chunk(wrapper)
         }
     }
 

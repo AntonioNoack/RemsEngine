@@ -71,7 +71,7 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
     fun invalidate(file: FileReference, neededSize: Int) {
         if (file == InvalidRef) return
         val size = getSize(neededSize)
-        textures.remove { key, _ -> key.file == file && key.size == size }
+        textures.removeIf { key, _ -> key.file == file && key.size == size }
         // invalidate database, too
         file.getFileHash { hash ->
             hdb.remove(getCacheKey(file, hash, size))
@@ -81,7 +81,7 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
     @JvmStatic
     fun invalidate(file: FileReference) {
         if (file == InvalidRef) return
-        textures.remove { key, _ -> key.file == file }
+        textures.removeIf { key, _ -> key.file == file }
         // invalidate database, too
         file.getFileHash { hash ->
             for (size in sizes) {

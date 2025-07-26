@@ -1,5 +1,6 @@
 package me.anno.maths.chunks.cartesian
 
+import me.anno.cache.AsyncCacheData
 import speiger.primitivecollections.IntToObjectHashMap
 
 /**
@@ -12,18 +13,19 @@ abstract class MapChunkSystem<Element>(
 
     abstract fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: IntToObjectHashMap<Element>)
 
-    override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int): IntToObjectHashMap<Element> {
+    override fun createChunk(
+        chunkX: Int, chunkY: Int, chunkZ: Int, size: Int,
+        result: AsyncCacheData<IntToObjectHashMap<Element>>
+    ) {
         val data = IntToObjectHashMap<Element>()
         generateChunk(chunkX, chunkY, chunkZ, data)
-        return data
+        result.value = data
     }
 
     override fun getElement(
         container: IntToObjectHashMap<Element>,
         localX: Int, localY: Int, localZ: Int, index: Int
-    ): Element {
-        return container[index] ?: defaultElement
-    }
+    ): Element = container[index] ?: defaultElement
 
     override fun setElement(
         container: IntToObjectHashMap<Element>,

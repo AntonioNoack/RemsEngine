@@ -48,9 +48,7 @@ object Reference {
     @JvmStatic
     fun invalidate(absolutePath: String) {
         LOGGER.info("Invalidating $absolutePath")
-        fileCache.remove { key, _ ->
-            key is String && key.startsWith(absolutePath)
-        }
+        fileCache.removeIf { key, _ -> key.startsWith(absolutePath) }
         for (li in invalidateListeners.indices) {
             invalidateListeners[li](absolutePath)
         }
