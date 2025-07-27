@@ -4,11 +4,11 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
-import speiger.primitivecollections.LongHashSet
+import speiger.primitivecollections.ObjectHashSet
 
-class LongHashSetTest {
+class ObjectHashSetTest {
 
-    private fun createInstance() = LongHashSet(4)
+    private fun createInstance() = ObjectHashSet<Long>(4)
 
     @Test
     fun testRehashing() {

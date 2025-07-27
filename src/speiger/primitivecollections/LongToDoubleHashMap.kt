@@ -5,6 +5,7 @@ import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.LongCallback
 import speiger.primitivecollections.callbacks.LongDoubleCallback
+import speiger.primitivecollections.callbacks.LongDoublePredicate
 
 /**
  * Wrapper around LongToLongHashMap
@@ -41,10 +42,6 @@ class LongToDoubleHashMap(
         return Double.fromBits(content.remove(key))
     }
 
-    fun remove(key: Long, value: Double): Boolean {
-        return content.remove(key, value.toRawBits())
-    }
-
     fun containsKey(key: Long): Boolean {
         return content.containsKey(key)
     }
@@ -53,24 +50,11 @@ class LongToDoubleHashMap(
         return Double.fromBits(content[key])
     }
 
-    fun replace(key: Long, oldValue: Double, newValue: Double): Boolean {
-        return content.replace(key, oldValue.toRawBits(), newValue.toRawBits())
-    }
-
-    fun replace(key: Long, value: Double): Double {
-        return Double.fromBits(content.replace(key, value.toRawBits()))
-    }
-
     override fun clear() {
         content.clear()
     }
 
-    fun trim(size: Int): Boolean {
-        return content.trim(size)
-    }
-
-    @Suppress("unused")
-    fun clearAndTrim(size: Int) {
+    override fun clearAndTrim(size: Int) {
         content.clearAndTrim(size)
     }
 
@@ -82,4 +66,6 @@ class LongToDoubleHashMap(
 
     fun keysToHashSet() = content.keysToHashSet()
     fun forEachKey(callback: LongCallback) = content.forEachKey(callback)
+    fun removeIf(predicate: LongDoublePredicate): Int =
+        content.removeIf { key, value -> predicate.test(key,Double.fromBits(value)) }
 }

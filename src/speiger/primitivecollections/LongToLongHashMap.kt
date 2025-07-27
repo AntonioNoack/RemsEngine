@@ -4,6 +4,7 @@ import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.LongLongCallback
+import speiger.primitivecollections.callbacks.LongLongPredicate
 
 /**
  * Long2LongOpenHashMap from https://github.com/Speiger/Primitive-Collections/,
@@ -15,8 +16,8 @@ class LongToLongHashMap(
     loadFactor: Float = DEFAULT_LOAD_FACTOR
 ) : LongToHashMap<LongArray>(minCapacity, loadFactor) {
 
-    override fun createArray(size: Int): LongArray = LongArray(size)
-    override fun fillNulls(values: LongArray) {
+    override fun createValues(size: Int): LongArray = LongArray(size)
+    override fun fillNullValues(values: LongArray) {
         values.fill(0L)
     }
 
@@ -66,86 +67,15 @@ class LongToLongHashMap(
 
     fun remove(key: Long): Long {
         val slot = findIndex(key)
-        return if (slot < 0) missingValue else removeIndex(slot)
-    }
-
-    fun remove(key: Long, value: Long): Boolean {
-        if (key == 0L) {
-            if (containsNull && value == values[nullIndex]) {
-                removeNullIndex()
-                return true
-            } else {
-                return false
-            }
-        } else {
-            var pos = HashUtil.mix(key.hashCode()) and mask
-            var current = keys[pos]
-            if (current == 0L) {
-                return false
-            } else if (current == key && value == values[pos]) {
-                removeIndex(pos)
-                return true
-            } else {
-                do {
-                    pos = (pos + 1) and mask
-                    current = keys[pos]
-                    if (current == 0L) {
-                        return false
-                    }
-                } while (current != key || value != values[pos])
-
-                removeIndex(pos)
-                return true
-            }
+        return if (slot < 0) missingValue else {
+            val value = values[slot]
+            if (removeIndex(slot)) value else missingValue
         }
     }
 
     operator fun get(key: Long): Long {
         val slot = findIndex(key)
         return if (slot < 0) missingValue else values[slot]
-    }
-
-    fun replace(key: Long, oldValue: Long, newValue: Long): Boolean {
-        val index = findIndex(key)
-        if (index >= 0 && values[index] == oldValue) {
-            values[index] = newValue
-            return true
-        } else return false
-    }
-
-    fun replace(key: Long, value: Long): Long {
-        val index = findIndex(key)
-        if (index < 0) {
-            return missingValue
-        } else {
-            val oldValue = values[index]
-            values[index] = value
-            return oldValue
-        }
-    }
-
-    private fun removeIndex(pos: Int): Long {
-        if (pos == nullIndex) {
-            return if (containsNull) removeNullIndex() else missingValue
-        } else {
-            val value = values[pos]
-            keys[pos] = 0L
-            values[pos] = missingValue
-            --size
-            shiftKeys(pos)
-            shrinkMaybe()
-            return value
-        }
-    }
-
-    private fun removeNullIndex(): Long {
-        val value = values[nullIndex]
-        containsNull = false
-        keys[nullIndex] = 0L
-        values[nullIndex] = missingValue
-        --size
-        shrinkMaybe()
-        return value
     }
 
     @InternalAPI
@@ -166,5 +96,9 @@ class LongToLongHashMap(
             val key = keys[i]
             if (key != 0L) callback.callback(key, values[i])
         }
+    }
+
+    fun removeIf(predicate: LongLongPredicate): Int {
+        return removeIfImpl { predicate.test(keys[it], values[it]) }
     }
 }

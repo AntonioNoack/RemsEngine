@@ -2,12 +2,12 @@ package me.anno.cache
 
 import me.anno.Build
 import me.anno.Time.nanoTime
-import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference
 import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
+import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.ProcessingQueue
@@ -30,6 +30,14 @@ open class CacheSection<K, V : Any>(val name: String) : Comparable<CacheSection<
         synchronized(cache) {
             for (it in cache.values) it.destroy()
             cache.clear()
+        }
+    }
+
+    @Suppress("unused")
+    fun forEach(callback: (K, AsyncCacheData<V>) -> Unit) {
+        removeIf { k, v ->
+            callback(k, v)
+            false
         }
     }
 

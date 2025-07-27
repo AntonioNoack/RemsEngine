@@ -60,4 +60,16 @@ object HashUtil {
         val rawValue = ceil(max(usedSize, 0) / loadFactor)
         return max(min(rawValue, 2e9f).toIntOr(), 4)
     }
+
+    fun sizeToCapacity(size: Int, loadFactor: Float): Int {
+        return ceil(size * loadFactor).toInt()
+    }
+
+    fun sizeToPower2Capacity(size: Int, loadFactor: Float): Int {
+        return nextPowerOfTwo(sizeToCapacity(size, loadFactor))
+    }
+
+    fun getMaxFill(nullIndex: Int, loadFactor: Float): Int {
+        return min(sizeToCapacity(nullIndex, loadFactor), nullIndex - 1)
+    }
 }

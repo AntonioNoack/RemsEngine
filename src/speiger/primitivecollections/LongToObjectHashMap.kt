@@ -3,6 +3,7 @@ package speiger.primitivecollections
 import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
+import speiger.primitivecollections.callbacks.LongLongPredicate
 import speiger.primitivecollections.callbacks.LongObjectCallback
 import speiger.primitivecollections.callbacks.LongObjectPredicate
 
@@ -17,12 +18,12 @@ class LongToObjectHashMap<V>(
     loadFactor: Float = DEFAULT_LOAD_FACTOR
 ) : LongToHashMap<Array<V?>>(minCapacity, loadFactor) {
 
-    override fun createArray(size: Int): Array<V?> {
+    override fun createValues(size: Int): Array<V?> {
         @Suppress("UNCHECKED_CAST")
         return arrayOfNulls<Any>(size) as Array<V?>
     }
 
-    override fun fillNulls(values: Array<V?>) {
+    override fun fillNullValues(values: Array<V?>) {
         values.fill(null)
     }
 
@@ -66,88 +67,15 @@ class LongToObjectHashMap<V>(
 
     fun remove(key: Long): V? {
         val slot = findIndex(key)
-        return if (slot < 0) null else removeIndex(slot)
-    }
-
-    fun remove(key: Long, value: V?): Boolean {
-        if (key == 0L) {
-            if (containsNull && value == values[nullIndex]) {
-                removeNullIndex()
-                return true
-            } else {
-                return false
-            }
-        } else {
-            var pos = HashUtil.mix(key.hashCode()) and mask
-            var current = keys[pos]
-            if (current == 0L) {
-                return false
-            } else if (current == key && value == values[pos]) {
-                removeIndex(pos)
-                return true
-            } else {
-                do {
-                    pos = (pos + 1) and mask
-                    current = keys[pos]
-                    if (current == 0L) {
-                        return false
-                    }
-                } while (current != key || value != values[pos])
-
-                removeIndex(pos)
-                return true
-            }
+        return if (slot < 0) null else {
+            val value = values[slot]
+            if (removeIndex(slot)) value else null
         }
     }
 
     operator fun get(key: Long): V? {
         val slot = findIndex(key)
         return if (slot < 0) null else values[slot]
-    }
-
-    fun replace(key: Long, oldValue: V, newValue: V): Boolean {
-        val index = findIndex(key)
-        if (index >= 0 && values[index] == oldValue) {
-            values[index] = newValue
-            return true
-        } else {
-            return false
-        }
-    }
-
-    fun replace(key: Long, value: V): V? {
-        val index = findIndex(key)
-        if (index < 0) {
-            return null
-        } else {
-            val oldValue = values[index]
-            values[index] = value
-            return oldValue
-        }
-    }
-
-    private fun removeIndex(pos: Int): V? {
-        if (pos == nullIndex) {
-            return if (containsNull) removeNullIndex() else null
-        } else {
-            val value = values[pos]
-            keys[pos] = 0L
-            values[pos] = null
-            --size
-            shiftKeys(pos)
-            shrinkMaybe()
-            return value
-        }
-    }
-
-    private fun removeNullIndex(): V? {
-        val value = values[nullIndex]
-        containsNull = false
-        keys[nullIndex] = 0L
-        values[nullIndex] = null
-        --size
-        shrinkMaybe()
-        return value
     }
 
     @InternalAPI
@@ -162,19 +90,6 @@ class LongToObjectHashMap<V>(
         growMaybe()
     }
 
-    fun removeIf(predicate: LongObjectPredicate<V>): Int {
-        // todo this could/should be optimized
-        val oldSize = size
-        keysToHashSet().forEach { key ->
-            val slot = findIndex(key)
-            @Suppress("UNCHECKED_CAST")
-            if (slot >= 0 && predicate.test(key, values[slot] as V)) {
-                removeIndex(slot)
-            }
-        }
-        return oldSize - size
-    }
-
     fun forEach(callback: LongObjectCallback<V>) {
         @Suppress("UNCHECKED_CAST")
         if (containsNull) callback.callback(0L, values[nullIndex] as V)
@@ -184,5 +99,10 @@ class LongToObjectHashMap<V>(
             @Suppress("UNCHECKED_CAST")
             if (key != 0L) callback.callback(key, values[i] as V)
         }
+    }
+
+    fun removeIf(predicate: LongObjectPredicate<V>): Int {
+        @Suppress("UNCHECKED_CAST")
+        return removeIfImpl { predicate.test(keys[it], values[it] as V) }
     }
 }

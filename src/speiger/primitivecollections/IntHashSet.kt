@@ -9,12 +9,14 @@ import speiger.primitivecollections.callbacks.IntCallback
  * Wrapper around LongHashSet
  * */
 class IntHashSet(
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
+    @InternalAPI
+    val content: LongHashSet
 ) : PrimitiveCollection {
 
-    @InternalAPI
-    val content = LongHashSet(minCapacity, loadFactor)
+    constructor(
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : this(LongHashSet(minCapacity, loadFactor))
 
     override val size: Int get() = content.size
     override val maxFill: Int get() = content.maxFill
@@ -29,6 +31,10 @@ class IntHashSet(
 
     override fun clear() {
         content.clear()
+    }
+
+    override fun clearAndTrim(size: Int) {
+        content.clearAndTrim(size)
     }
 
     operator fun contains(key: Int): Boolean {

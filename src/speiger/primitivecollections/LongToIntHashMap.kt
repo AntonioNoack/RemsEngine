@@ -5,6 +5,7 @@ import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.LongCallback
 import speiger.primitivecollections.callbacks.LongIntCallback
+import speiger.primitivecollections.callbacks.LongIntPredicate
 
 /**
  * Wrapper around LongToLongHashMap
@@ -41,10 +42,6 @@ class LongToIntHashMap(
         return content.remove(key).toInt()
     }
 
-    fun remove(key: Long, value: Int): Boolean {
-        return content.remove(key, value.toLong())
-    }
-
     fun containsKey(key: Long): Boolean {
         return content.containsKey(key)
     }
@@ -53,24 +50,11 @@ class LongToIntHashMap(
         return content[key].toInt()
     }
 
-    fun replace(key: Long, oldValue: Int, newValue: Int): Boolean {
-        return content.replace(key, oldValue.toLong(), newValue.toLong())
-    }
-
-    fun replace(key: Long, value: Int): Int {
-        return content.replace(key, value.toLong()).toInt()
-    }
-
     override fun clear() {
         content.clear()
     }
 
-    fun trim(size: Int): Boolean {
-        return content.trim(size)
-    }
-
-    @Suppress("unused")
-    fun clearAndTrim(size: Int) {
+    override fun clearAndTrim(size: Int) {
         content.clearAndTrim(size)
     }
 
@@ -82,4 +66,6 @@ class LongToIntHashMap(
 
     fun keysToHashSet() = content.keysToHashSet()
     fun forEachKey(callback: LongCallback) = content.forEachKey(callback)
+    fun removeIf(predicate: LongIntPredicate): Int =
+        content.removeIf { key, value -> predicate.test(key, value.toInt()) }
 }

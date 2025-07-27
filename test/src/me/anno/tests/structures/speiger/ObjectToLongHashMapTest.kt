@@ -8,9 +8,11 @@ import speiger.primitivecollections.ObjectToLongHashMap
 
 class ObjectToLongHashMapTest {
 
+    private fun createInstance() = ObjectToLongHashMap<Long>(-1L)
+
     @Test
     fun testInsert() {
-        val map = ObjectToLongHashMap<Long>(-1L)
+        val map = createInstance()
         assertEquals(-1L, map[0])
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
@@ -23,7 +25,7 @@ class ObjectToLongHashMapTest {
 
     @Test
     fun testRemove() {
-        val map = ObjectToLongHashMap<Long>(-1L)
+        val map = createInstance()
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -43,21 +45,32 @@ class ObjectToLongHashMapTest {
     }
 
     @Test
-    fun testRemoveWithValue() {
-        val map = ObjectToLongHashMap<Long>(-1L)
+    fun testRemoveIf() {
+        val map = createInstance()
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
-        assertFalse(map.remove(-1L, -1L))
+        assertEquals(1000, map.size)
+        assertTrue(map.maxFill >= 1000)
+
+        assertEquals(800, map.removeIf { key, value ->
+            key in 100 until 900
+        })
+        assertEquals(0, map.removeIf { key, value ->
+            key in 100 until 900
+        })
+
+        assertEquals(200, map.size)
+        assertTrue(map.maxFill < 1000)
+
         for (i in 0 until 1000L) {
-            assertFalse(map.remove(i, i * i + 6))
-            assertTrue(map.remove(i, i * i + 5))
+            assertEquals(if (i in 100 until 900) -1L else i * i + 5, map[i])
         }
     }
 
     @Test
     fun testClear() {
-        val map = ObjectToLongHashMap<Long>(-1L)
+        val map = createInstance()
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -70,25 +83,8 @@ class ObjectToLongHashMapTest {
     }
 
     @Test
-    fun testReplace() {
-        val map = ObjectToLongHashMap<Long>(-1L)
-        for (i in 0 until 1000L) {
-            map[i] = i * i + 5
-        }
-        assertEquals(-1L, map.replace(-1, 100))
-        assertEquals(1000, map.size)
-        for (i in 0 until 500L) {
-            assertEquals(i * i + 5, map.replace(i, i * 2))
-        }
-        for (i in 500 until 1000L) {
-            assertFalse(map.replace(i, i * i + 6, 0))
-            assertTrue(map.replace(i, i * i + 5, i * 2))
-        }
-    }
-
-    @Test
     fun testForEach() {
-        val map = ObjectToLongHashMap<Long>(-1L)
+        val map = createInstance()
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -102,7 +98,7 @@ class ObjectToLongHashMapTest {
 
     @Test
     fun testKeySet() {
-        val map = ObjectToLongHashMap<Long>(-1L)
+        val map = createInstance()
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -116,7 +112,7 @@ class ObjectToLongHashMapTest {
 
     @Test
     fun testForEachKey() {
-        val map = ObjectToLongHashMap<Long>(-1L)
+        val map = createInstance()
         for (i in 0 until 1000L) {
             map[i] = i * i + 5
         }
@@ -133,7 +129,7 @@ class ObjectToLongHashMapTest {
 
     @Test
     fun testGetOrPut() {
-        val map = ObjectToLongHashMap<Long>(-1L)
+        val map = createInstance()
         val timesCalculated = IntArray(999)
         fun fib(i: Int): Long {
             return if (i < 2) i.toLong()

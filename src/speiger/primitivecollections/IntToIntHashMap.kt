@@ -3,12 +3,14 @@ package speiger.primitivecollections
 import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
+import speiger.primitivecollections.callbacks.IntCallback
+import speiger.primitivecollections.callbacks.IntIntCallback
+import speiger.primitivecollections.callbacks.IntIntPredicate
 import speiger.primitivecollections.callbacks.LongIntCallback
 
 /**
  * Wrapper around LongToLongHashMap
  * */
-@Suppress("unused")
 class IntToIntHashMap(
     missingValue: Int,
     minCapacity: Int = DEFAULT_MIN_CAPACITY,
@@ -45,10 +47,6 @@ class IntToIntHashMap(
         return content.remove(key.toLong()).toInt()
     }
 
-    fun remove(key: Int, value: Int): Boolean {
-        return content.remove(key.toLong(), value.toLong())
-    }
-
     fun containsKey(key: Int): Boolean {
         return content.containsKey(key.toLong())
     }
@@ -57,32 +55,25 @@ class IntToIntHashMap(
         return content[key.toLong()].toInt()
     }
 
-    fun replace(key: Int, oldValue: Int, newValue: Int): Boolean {
-        return content.replace(key.toLong(), oldValue.toLong(), newValue.toLong())
-    }
-
-    fun replace(key: Int, value: Int): Int {
-        return content.replace(key.toLong(), value.toLong()).toInt()
-    }
-
     override fun clear() {
         content.clear()
     }
 
-    fun trim(size: Int): Boolean {
-        return content.trim(size)
-    }
-
-    @Suppress("unused")
-    fun clearAndTrim(size: Int) {
+    override fun clearAndTrim(size: Int) {
         content.clearAndTrim(size)
     }
 
-    fun forEach(callback: LongIntCallback) {
+    fun forEach(callback: IntIntCallback) {
         content.forEach { k, v ->
-            callback.callback(k, v.toInt())
+            callback.callback(k.toInt(), v.toInt())
         }
     }
 
     fun keysToHashSet() = content.keysToHashSet()
+    fun forEachKey(callback: IntCallback) {
+        content.forEachKey { key -> callback.callback(key.toInt()) }
+    }
+
+    fun removeIf(predicate: IntIntPredicate): Int =
+        content.removeIf { key, value -> predicate.test(key.toInt(), value.toInt()) }
 }

@@ -22,6 +22,11 @@ class UniqueValueIndexMap<K>(
         values.clear()
     }
 
+    override fun clearAndTrim(size: Int) {
+        content.clearAndTrim(size)
+        values.clear() // todo trim this, too
+    }
+
     fun add(value: K): Int {
         val oldSize = content.size
         val id = content.getOrPut(value, oldSize)

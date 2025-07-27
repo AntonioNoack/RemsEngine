@@ -2,7 +2,9 @@ package speiger.primitivecollections
 
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
+import speiger.primitivecollections.callbacks.IntCallback
 import speiger.primitivecollections.callbacks.IntObjectCallback
+import speiger.primitivecollections.callbacks.IntObjectPredicate
 
 /**
  * Wrapper around LongToObjectHashMap.
@@ -38,10 +40,6 @@ class IntToObjectHashMap<V>(
         return content.remove(key.toLong())
     }
 
-    fun remove(key: Int, value: V): Boolean {
-        return content.remove(key.toLong(), value)
-    }
-
     operator fun get(key: Int): V? {
         return content[key.toLong()]
     }
@@ -50,24 +48,11 @@ class IntToObjectHashMap<V>(
         return content.containsKey(key.toLong())
     }
 
-    fun replace(key: Int, oldValue: V, newValue: V): Boolean {
-        return content.replace(key.toLong(), oldValue, newValue)
-    }
-
-    fun replace(key: Int, value: V): V? {
-        return content.replace(key.toLong(), value)
-    }
-
     override fun clear() {
         content.clear()
     }
 
-    fun trim(size: Int): Boolean {
-        return content.trim(size)
-    }
-
-    @Suppress("unused")
-    fun clearAndTrim(size: Int) {
+    override fun clearAndTrim(size: Int) {
         content.clearAndTrim(size)
     }
 
@@ -76,6 +61,15 @@ class IntToObjectHashMap<V>(
             callback.callback(k.toInt(), v)
         }
     }
+
+    fun removeIf(predicate: IntObjectPredicate<V>): Int =
+        content.removeIf { key, value -> predicate.test(key.toInt(), value) }
+
+    fun forEachKey(callback: IntCallback) {
+        content.forEachKey { key -> callback.callback(key.toInt()) }
+    }
+
+    fun keysToHashSet() = IntHashSet(content.keysToHashSet())
 
     // definitely not ideal...
     val values: Iterable<V>

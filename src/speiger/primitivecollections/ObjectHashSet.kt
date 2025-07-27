@@ -2,20 +2,17 @@ package speiger.primitivecollections
 
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
-import speiger.primitivecollections.callbacks.LongCallback
-import speiger.primitivecollections.callbacks.LongPredicate
 
 /**
- * Space-efficient LongToHashMap without any values
+ * Space-efficient ObjectToHashMap without any values.
+ * Advantage over java.util.HashSet: only uses linear array, no node objects, so fewer overall memory usage and number of allocations
  * */
-class LongHashSet(
+class ObjectHashSet<K>(
     minCapacity: Int = DEFAULT_MIN_CAPACITY,
     loadFactor: Float = DEFAULT_LOAD_FACTOR
-) : LongToHashMap<Unit>(minCapacity, loadFactor) {
+) : ObjectToHashMap<K, Unit>(minCapacity, loadFactor) {
 
-    override fun createValues(size: Int) {
-    }
-
+    override fun createValues(size: Int) {}
     override fun fillNullValues(values: Unit) {
     }
 
@@ -28,7 +25,7 @@ class LongHashSet(
     override fun setNull(dstValues: Unit, dstIndex: Int) {
     }
 
-    fun add(key: Long): Boolean {
+    fun add(key: K): Boolean {
         val slot = findIndex(key)
         if (slot < 0) {
             insert(-slot - 1, key)
@@ -36,17 +33,17 @@ class LongHashSet(
         } else return false
     }
 
-    fun remove(key: Long): Boolean {
+    fun remove(key: K): Boolean {
         val slot = findIndex(key)
         if (slot >= 0) removeIndex(slot)
         return slot >= 0
     }
 
-    operator fun contains(key: Long): Boolean {
+    operator fun contains(key: K): Boolean {
         return containsKey(key)
     }
 
-    private fun insert(slot: Int, key: Long) {
+    private fun insert(slot: Int, key: K) {
         if (slot == nullIndex) {
             containsNull = true
         }
@@ -56,9 +53,12 @@ class LongHashSet(
         growMaybe()
     }
 
-    fun forEach(callback: LongCallback) =
+    fun forEach(callback: (K) -> Unit) {
         forEachKey(callback)
+    }
 
-    fun removeIf(predicate: LongPredicate) =
-        removeIfImpl { predicate.test(keys[it]) }
+    fun removeIf(predicate: (K) -> Boolean): Int {
+        @Suppress("UNCHECKED_CAST")
+        return removeIfImpl { predicate(keys[it] as K) }
+    }
 }
