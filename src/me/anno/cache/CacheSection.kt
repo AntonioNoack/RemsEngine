@@ -1,7 +1,6 @@
 package me.anno.cache
 
 import me.anno.Build
-import me.anno.Time.nanoTime
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference
@@ -228,7 +227,7 @@ open class CacheSection<K, V : Any>(val name: String) : Comparable<CacheSection<
         synchronized(cache) {
             // avoiding allocations for clean memory debugging XD
             cache.removeIf { (_, value) ->
-                if (nanoTime > value.timeoutNanoTime) {
+                if (value.hasExpired) {
                     value.destroy()
                     true
                 } else false
@@ -272,6 +271,7 @@ open class CacheSection<K, V : Any>(val name: String) : Comparable<CacheSection<
 
         @JvmStatic
         fun updateAll() {
+            CacheTime.updateTime()
             callListeners(updateListeners)
         }
 

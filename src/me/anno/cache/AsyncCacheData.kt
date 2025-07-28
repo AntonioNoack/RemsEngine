@@ -1,6 +1,7 @@
 package me.anno.cache
 
 import me.anno.Time.nanoTime
+import me.anno.cache.CacheTime.cacheTime
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
@@ -20,7 +21,8 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
         this.value = value
     }
 
-    var timeoutNanoTime: Long = 0
+    val hasExpired: Boolean get() = cacheTime > timeoutCacheTime
+    var timeoutCacheTime: Long = 0L
 
     var hasValue = false
     var hasBeenDestroyed = false
@@ -34,7 +36,7 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
             hasValue = true
         }
 
-    var lastRetry = 0L
+    var lastRetryNanos = 0L
     var retryCallback: (() -> Unit)? = null
 
     fun retryHasValue(): Boolean {
@@ -42,20 +44,19 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
         //  but also somehow register this for future destruction...
         if (hasValue || hasBeenDestroyed) return true
         val time = nanoTime
-        if (abs(time - lastRetry) >= RETRY_PERIOD_NANOS) {
+        if (abs(time - lastRetryNanos) >= RETRY_PERIOD_NANOS) {
             retryCallback?.invoke()
-            lastRetry = time
+            lastRetryNanos = time
         }
         return hasValue
     }
 
     fun reset(timeoutMillis: Long) {
-        timeoutNanoTime = nanoTime + timeoutMillis * MILLIS_TO_NANOS
+        timeoutCacheTime = cacheTime + timeoutMillis
     }
 
     fun update(timeoutMillis: Long) {
-        val secondTime = nanoTime + max(0L, timeoutMillis) * MILLIS_TO_NANOS
-        timeoutNanoTime = max(timeoutNanoTime, secondTime)
+        timeoutCacheTime = max(timeoutCacheTime, cacheTime + timeoutMillis)
     }
 
     @Deprecated(message = ASYNC_WARNING)

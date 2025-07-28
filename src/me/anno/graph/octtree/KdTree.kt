@@ -50,7 +50,7 @@ abstract class KdTree<Point, Value>(
     abstract fun copy(a: Point): Point
     abstract fun distanceMetric(p: Point, min: Point, max: Point): Double
 
-    fun distanceMetric(p: Point, value: Value): Double {
+    open fun distanceMetric(p: Point, value: Value): Double {
         return distanceMetric(p, getMin(value), getMax(value))
     }
 

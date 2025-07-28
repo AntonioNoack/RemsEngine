@@ -1,7 +1,6 @@
 package me.anno.cache
 
 import me.anno.Build
-import me.anno.Time.nanoTime
 import me.anno.cache.CacheSection.Companion.checkKey
 import me.anno.cache.CacheSection.Companion.getKeyName
 import me.anno.cache.CacheSection.Companion.registerCache
@@ -114,9 +113,9 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
 
     fun update() {
         synchronized(dualCache) {
-            dualCache.removeIf { _, _, v ->
-                if (nanoTime > v.timeoutNanoTime) {
-                    v.destroy()
+            dualCache.removeIf { _, _, value ->
+                if (value.hasExpired) {
+                    value.destroy()
                     true
                 } else false
             }

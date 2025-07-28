@@ -49,7 +49,7 @@ object DebugCaches {
     }
 
     private fun collectValueInfo(value: AsyncCacheData<*>): String {
-        return formatTime(value.timeoutNanoTime - Time.nanoTime)
+        return formatTime(value.timeoutCacheTime - Time.nanoTime)
     }
 
     private fun formatTime(v: Long): String {

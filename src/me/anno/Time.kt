@@ -13,7 +13,7 @@ import kotlin.math.min
 object Time {
 
     /**
-     * game time since last frame in seconds;
+     * game time (maybe scaled) since last frame in seconds;
      * 0.1 at max.
      * */
     var deltaTime = 0.0
@@ -28,7 +28,7 @@ object Time {
 
     /**
      * time since last frame in seconds;
-     * not clamped
+     * not clamped, not influenced by timeSpeed
      * */
     var rawDeltaTime = 0.0
         private set

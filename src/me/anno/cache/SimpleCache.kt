@@ -1,7 +1,6 @@
 package me.anno.cache
 
 import me.anno.Build
-import me.anno.Time.nanoTime
 import me.anno.cache.CacheSection.Companion.generateSafely
 import me.anno.cache.CacheSection.Companion.registerCache
 import me.anno.utils.assertions.assertFail
@@ -11,7 +10,7 @@ import org.apache.logging.log4j.LogManager
 /**
  * Single-Threaded access only
  * */
-open class SimpleCache<K, V: Any>(val name: String, var timeoutMillis: Long) : Comparable<SimpleCache<*, *>> {
+open class SimpleCache<K, V : Any>(val name: String, var timeoutMillis: Long) : Comparable<SimpleCache<*, *>> {
 
     val values = HashMap<K, AsyncCacheData<V>>(512)
 
@@ -65,7 +64,7 @@ open class SimpleCache<K, V: Any>(val name: String, var timeoutMillis: Long) : C
     fun update() {
         // avoiding allocations for clean memory debugging XD
         values.removeIf { (_, value) ->
-            if (nanoTime > value.timeoutNanoTime) {
+            if (value.hasExpired) {
                 value.destroy()
                 true
             } else false
