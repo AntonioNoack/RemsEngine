@@ -237,15 +237,17 @@ object PathFinding {
         val result = if (end != null) {
             // backward tracking
             val path = ArrayList<Node>()
-            if (includeEnd) path.add(end!!)
+            if (includeEnd) path.add(end)
             var node = previousFromEnd ?: cache[end]!!.previous as Node
             // find the best candidate = node with the smallest distance from start
             // LOGGER.debug("Remaining nodes: $queue")
             while (node !in starts) {
-                path.add(node)
+                if (path.lastOrNull() != node) path.add(node)
                 node = cache[node]!!.previous as Node
             }
-            if (includeStart) path.add(node)
+            if (includeStart && path.lastOrNull() != node) {
+                path.add(node)
+            }
             path.reverse()
             path
         } else null
@@ -262,7 +264,7 @@ object PathFinding {
             0 -> emptyList()
             1 -> listOf(start)
             2 -> listOf(end)
-            else -> listOf(start, end)
+            else -> if (start == end) listOf(start) else listOf(start, end)
         }
     }
 }

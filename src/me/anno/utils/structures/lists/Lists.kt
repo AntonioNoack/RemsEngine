@@ -623,16 +623,17 @@ object Lists {
     }
 
     @JvmStatic
-    fun <V> MutableList<V>.sortedAdd(instance: V, comparator: Comparator<V>, insertIfEquals: Boolean) {
+    fun <V> MutableList<V>.sortedAdd(instance: V, comparator: Comparator<V>, insertIfEquals: Boolean): Int {
         var index = BinarySearch.binarySearch(size) { comparator.compare(get(it), instance) }
         if (index < 0) index = -1 - index
-        else if (!insertIfEquals && this[index] == instance) return
+        else if (!insertIfEquals && this[index] == instance) return -1
         add(index, instance)
+        return index
     }
 
     @JvmStatic
-    fun <V : Comparable<V>> MutableList<V>.sortedAdd(instance: V, insertIfEquals: Boolean) {
-        sortedAdd(instance, { a, b -> a.compareTo(b) }, insertIfEquals)
+    fun <V : Comparable<V>> MutableList<V>.sortedAdd(instance: V, insertIfEquals: Boolean): Int {
+        return sortedAdd(instance, { a, b -> a.compareTo(b) }, insertIfEquals)
     }
 
     @JvmStatic
