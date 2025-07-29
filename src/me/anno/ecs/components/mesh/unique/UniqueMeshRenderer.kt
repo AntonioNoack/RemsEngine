@@ -257,7 +257,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         buffer.vertexCount = newSize
         if (newSize > 0) {
             val clock = Clock(LOGGER)
-            println("changing buffer size from $oldSize to $newSize")
+            LOGGER.info("Changing buffer size from $oldSize to $newSize")
             buffer.uploadEmpty(newSize.toLong() * stride)
             clock.stop("UploadEmpty")
         }

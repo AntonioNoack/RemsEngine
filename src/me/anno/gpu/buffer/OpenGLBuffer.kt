@@ -95,6 +95,7 @@ abstract class OpenGLBuffer(
 
     open fun upload(allowResize: Boolean = true, keepLarge: Boolean = false) {
         prepareUpload()
+        assertTrue(isPointerValid(pointer))
         bindBuffer(target, pointer)
 
         val nio = getOrCreateNioBuffer()
@@ -107,6 +108,7 @@ abstract class OpenGLBuffer(
             GL46C.glBufferSubData(target, 0, nio)
         } else {
             locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
+            assertTrue(nio.isDirect, "Buffers for OpenGL must be native. Use ByteBufferPool!")
             GL46C.glBufferData(target, nio, usage.id)
         }
 
@@ -220,6 +222,7 @@ abstract class OpenGLBuffer(
             // actual copy
             toBuffer.bind()
             GL46C.glBufferSubData(toBuffer.target, to, fromBuffer)
+            GFX.check()
 
             // restore state
             fromBuffer.limit(oldLimit)
