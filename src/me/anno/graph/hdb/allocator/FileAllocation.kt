@@ -10,6 +10,10 @@ object FileAllocation : AllocationManager<File, ByteArray> {
         return ByteArray(newSize)
     }
 
+    override fun deallocate(data: ByteArray) {
+        // JVM needs to free it
+    }
+
     override fun copy(key: File, from: Int, fromData: ByteArray, to: IntRange, toData: ByteArray) {
         copy(from, fromData, to, toData)
         key.range = to
@@ -21,5 +25,9 @@ object FileAllocation : AllocationManager<File, ByteArray> {
 
     override fun getRange(key: File): IntRange {
         return key.range
+    }
+
+    override fun allocationKeepsOldData(): Boolean {
+        return true
     }
 }

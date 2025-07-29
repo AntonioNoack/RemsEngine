@@ -2,6 +2,7 @@ package me.anno.gpu.query
 
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_SESSION
 import me.anno.gpu.GFXState
 import me.anno.maths.Maths
 import me.anno.utils.structures.arrays.IntArrayList
@@ -25,7 +26,7 @@ open class SimpleGPUQuery(
     var readSlot = 0
     var writeSlot = 0
     var frameCounter = 0
-    var session = 0
+    var session = INVALID_SESSION
 
     fun start(): Boolean {
         if (target in isTimerActive) {

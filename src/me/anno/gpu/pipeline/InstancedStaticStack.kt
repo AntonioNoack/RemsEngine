@@ -124,5 +124,7 @@ class InstancedStaticStack(capacity: Int = 512) : DrawableStack(MeshInstanceData
                 value.clear()
             }
         }
+        // must be cleared to avoid Meshes staying as keys indefinitely
+        data.clear()
     }
 }

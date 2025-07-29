@@ -253,14 +253,22 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
 
     override fun allocate(newSize: Int): StaticBuffer {
         val buffer = buffer1
+        val oldSize = buffer.vertexCount
         buffer.vertexCount = newSize
         if (newSize > 0) {
             val clock = Clock(LOGGER)
+            println("changing buffer size from $oldSize to $newSize")
             buffer.uploadEmpty(newSize.toLong() * stride)
             clock.stop("UploadEmpty")
         }
         return buffer
     }
+
+    override fun deallocate(data: StaticBuffer) {
+        // we just swap between buffer0 and buffer1, so we must not destroy anything
+    }
+
+    override fun allocationKeepsOldData(): Boolean = true
 
     override fun roundUpStorage(requiredSize: Int): Int {
         return requiredSize * 2

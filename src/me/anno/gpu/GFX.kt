@@ -262,4 +262,10 @@ object GFX {
             checkWithoutCrashingImpl(name)
         }
     }
+
+    fun isPointerValid(pointer: Long): Boolean = pointer > 0
+    fun isPointerValid(pointer: Int): Boolean = pointer > 0
+    const val INVALID_POINTER = 0
+    const val INVALID_POINTER64 = 0L
+    const val INVALID_SESSION = -1
 }

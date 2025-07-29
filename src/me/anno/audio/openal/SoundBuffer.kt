@@ -3,6 +3,9 @@ package me.anno.audio.openal
 import me.anno.audio.openal.AudioManager.openALSession
 import me.anno.audio.streams.AudioStream.Companion.byteBufferPool
 import me.anno.cache.ICacheData
+import me.anno.gpu.GFX.INVALID_POINTER
+import me.anno.gpu.GFX.INVALID_SESSION
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertNotNull
 import org.lwjgl.openal.AL11.AL_FORMAT_MONO16
@@ -15,8 +18,8 @@ import java.nio.ShortBuffer
 
 class SoundBuffer : ICacheData {
 
-    private var session = -1
-    var pointer = 0
+    private var session = INVALID_SESSION
+    var pointer = INVALID_POINTER
         private set
 
     private var data0: ByteBuffer? = null
@@ -29,7 +32,7 @@ class SoundBuffer : ICacheData {
     val isStereo get() = format == AL_FORMAT_STEREO16
 
     fun ensurePointer() {
-        if (pointer == 0 || session != openALSession) {
+        if (!isPointerValid(pointer) || session != openALSession) {
             pointer = alGenBuffers()
             session = openALSession
         }
@@ -55,9 +58,9 @@ class SoundBuffer : ICacheData {
     }
 
     override fun destroy() {
-        if (pointer != 0 && session == openALSession) {
+        if (isPointerValid(pointer) && session == openALSession) {
             alDeleteBuffers(pointer)
-            pointer = 0
+            pointer = INVALID_POINTER
         }
         if (data0 != null) {
             byteBufferPool.returnBuffer(data0)

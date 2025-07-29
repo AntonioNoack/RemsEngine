@@ -1,6 +1,8 @@
 package me.anno.gpu
 
 import me.anno.cache.ICacheData
+import me.anno.gpu.GFX.INVALID_POINTER64
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.WindowManagement.imageToGLFW
 import me.anno.image.Image
 import me.anno.utils.pooling.ByteBufferPool
@@ -24,7 +26,7 @@ class Cursor : ICacheData {
     private var centerX = 0
     private var centerY = 0
     private var glfwType = -1
-    private var pointer = 0L
+    private var pointer = INVALID_POINTER64
 
     constructor(image: Image) : this(image, image.width / 2, image.height / 2)
     constructor(image: Image, centerX: Int, centerY: Int) {
@@ -50,7 +52,7 @@ class Cursor : ICacheData {
     }
 
     fun useCursor(window: OSWindow) {
-        if (this.pointer == 0L) create()
+        if (!isPointerValid(pointer)) create()
         // the cursor is only updating when moving the mouse???
         // bug in the api maybe, how to fix that? -> we can't really fix that
         // -> don't use it as an important feature

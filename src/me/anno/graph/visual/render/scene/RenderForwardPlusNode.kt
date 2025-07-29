@@ -13,6 +13,7 @@ import me.anno.engine.ui.render.Renderers.MAX_PLANAR_LIGHTS
 import me.anno.engine.ui.render.Renderers.finalResultStage
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
@@ -246,7 +247,7 @@ class RenderForwardPlusNode() : RenderViewNode(
         bucket = bucketInput
         // verify that the bucket has enough data
         assertTrue(
-            bucketInput.pointer >= 0 &&
+            isPointerValid(bucketInput.pointer) &&
                     bucketInput.elementCount >= numBucketsX * numBucketsY * FillLightBucketsNode.Companion.lightBucketSize
         )
 

@@ -49,4 +49,8 @@ open class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 1
     }
 
     override fun iterator() = values.values.iterator()
+
+    fun clear() {
+        values.clear()
+    }
 }

@@ -37,6 +37,7 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.DrawMode
@@ -339,7 +340,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     @DebugProperty
     val hasBuffers
-        get() = buffer?.run { pointer != 0 } == true
+        get() = buffer?.run { isPointerValid(pointer) } == true
 
     var hasHighPrecisionNormals = false
 

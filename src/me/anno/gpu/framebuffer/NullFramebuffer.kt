@@ -1,6 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_POINTER
 import me.anno.gpu.GFX.viewportHeight
 import me.anno.gpu.GFX.viewportWidth
 import me.anno.gpu.GFX.viewportX
@@ -18,7 +19,7 @@ import org.lwjgl.opengl.GL46C
 object NullFramebuffer : IFramebuffer {
 
     override var name = "null"
-    override val pointer = 0
+    override val pointer = INVALID_POINTER
 
     override val width get() = (GFX.activeWindow ?: GFX.someWindow).width
     override val height get() = (GFX.activeWindow ?: GFX.someWindow).height

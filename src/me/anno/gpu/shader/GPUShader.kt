@@ -3,6 +3,8 @@ package me.anno.gpu.shader
 import me.anno.Build
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_POINTER
+import me.anno.gpu.GFX.INVALID_SESSION
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.shader.builder.Variable
@@ -113,7 +115,7 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
 
         // needs to be cleared when the opengl session changes
         private val shaderCache = ObjectToIntHashMap<Pair<Int, String>>(-1, 256)
-        private var shaderCacheSession = -1
+        private var shaderCacheSession = INVALID_SESSION
 
         fun compile(shaderName: String, program: Int, type: Int, source: String): Int {
             if (shaderCacheSession != GFXState.session) {
@@ -242,8 +244,8 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
 
     var glslVersion = DEFAULT_GLSL_VERSION
 
-    var program = 0
-    var session = 0
+    var program = INVALID_POINTER
+    var session = INVALID_SESSION
 
     // todo this should be set automatically
     var failedCompilation = false

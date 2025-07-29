@@ -264,7 +264,7 @@ object PathFinding {
             0 -> emptyList()
             1 -> listOf(start)
             2 -> listOf(end)
-            else -> if (start == end) listOf(start) else listOf(start, end)
+            else -> if (start == end) listOf(end) else listOf(start, end)
         }
     }
 }

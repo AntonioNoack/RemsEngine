@@ -159,6 +159,8 @@ class InstancedTRSStack(capacity: Int = 64) :
                 value.clear()
             }
         }
+        // must be cleared to avoid Meshes staying as keys indefinitely
+        data.clear()
     }
 
     override fun isEmpty(): Boolean {

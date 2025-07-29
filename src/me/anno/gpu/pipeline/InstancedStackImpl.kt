@@ -352,5 +352,7 @@ class InstancedStackImpl(capacity: Int = 512) : DrawableStack(MeshInstanceData.D
             }
             stack.clear()
         }
+        // must be cleared to avoid Meshes staying as keys indefinitely
+        data.clear()
     }
 }

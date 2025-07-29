@@ -3,6 +3,9 @@ package me.anno.gpu.buffer
 import me.anno.Build
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_POINTER
+import me.anno.gpu.GFX.INVALID_SESSION
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.debug.DebugGPUStorage
@@ -14,6 +17,7 @@ import me.anno.utils.Color.r
 import me.anno.utils.OS
 import me.anno.utils.Threads
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertGreaterThanEquals
 import me.anno.utils.assertions.assertIs
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.ByteBufferPool
@@ -35,7 +39,7 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.max
 
 abstract class OpenGLBuffer(
-    val name: String, val type: Int,
+    val name: String, val target: Int,
     var attributes: AttributeLayout,
     val usage: BufferUsage
 ) : ICacheData {
@@ -48,8 +52,8 @@ abstract class OpenGLBuffer(
 
     var nioBuffer: ByteBuffer? = null
 
-    var pointer = 0
-    var session = 0
+    var pointer = INVALID_POINTER
+    var session = INVALID_SESSION
 
     var isUpToDate = false
 
@@ -64,7 +68,7 @@ abstract class OpenGLBuffer(
     }
 
     open fun onSessionChange() {
-        pointer = 0
+        pointer = INVALID_POINTER
         isUpToDate = false
         locallyAllocated = allocate(locallyAllocated, 0L)
     }
@@ -73,13 +77,8 @@ abstract class OpenGLBuffer(
         checkSession()
 
         GFX.check()
-
-        if (nioBuffer == null) {
-            createNioBuffer()
-        }
-
-        if (pointer == 0) pointer = GL46C.glGenBuffers()
-        if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
+        if (!isPointerValid(pointer)) pointer = GL46C.glGenBuffers()
+        if (!isPointerValid(pointer)) throw OutOfMemoryError("Could not generate OpenGL Buffer")
     }
 
     private fun finishUpload() {
@@ -96,7 +95,7 @@ abstract class OpenGLBuffer(
 
     open fun upload(allowResize: Boolean = true, keepLarge: Boolean = false) {
         prepareUpload()
-        bindBuffer(type, pointer)
+        bindBuffer(target, pointer)
 
         val nio = getOrCreateNioBuffer()
         val newLimit = nio.position()
@@ -105,10 +104,10 @@ abstract class OpenGLBuffer(
         nio.limit(elementCount * stride)
         if (keepBuffer(allowResize, newLimit, keepLarge)) {
             // just keep the buffer
-            GL46C.glBufferSubData(type, 0, nio)
+            GL46C.glBufferSubData(target, 0, nio)
         } else {
             locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
-            GL46C.glBufferData(type, nio, usage.id)
+            GL46C.glBufferData(target, nio, usage.id)
         }
 
         finishUpload()
@@ -119,7 +118,7 @@ abstract class OpenGLBuffer(
         allowResize: Boolean = true, keepLarge: Boolean = false,
     ) {
         prepareUpload()
-        bindBuffer(type, pointer)
+        bindBuffer(target, pointer)
 
         val nio = getOrCreateNioBuffer()
         val newLimit = nio.position()
@@ -128,11 +127,11 @@ abstract class OpenGLBuffer(
         nio.limit(elementCount * stride)
 
         if (!keepBuffer(allowResize, newLimit, keepLarge)) {
-            glBufferStorage(type, newLimit.toLong(), GL_DYNAMIC_STORAGE_BIT or GL_MAP_WRITE_BIT)
+            glBufferStorage(target, newLimit.toLong(), GL_DYNAMIC_STORAGE_BIT or GL_MAP_WRITE_BIT)
             locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
         }
 
-        val dst = glMapBuffer(type, pointer, newLimit.toLong(), nio)!!
+        val dst = glMapBuffer(target, pointer, newLimit.toLong(), nio)!!
         val name = "OpenGLBuffer.uploadAsync('$name', $newLimit)"
         Threads.runTaskThread(name) {
             // copy all data
@@ -140,11 +139,11 @@ abstract class OpenGLBuffer(
                 dst.put(nio)
             }
             addGPUTask(name, newLimit) {
-                if (pointer >= 0) {
+                if (isPointerValid(pointer)) {
                     GFX.check()
-                    bindBuffer(type, pointer)
-                    glFlushMappedBufferRange(type, 0, newLimit.toLong())
-                    glUnmapBuffer(type)
+                    bindBuffer(target, pointer)
+                    glFlushMappedBufferRange(target, 0, newLimit.toLong())
+                    glUnmapBuffer(target)
 
                     finishUpload()
                     callback()
@@ -159,12 +158,12 @@ abstract class OpenGLBuffer(
         GFX.checkIsGFXThread()
 
         assertTrue(newLimit > 0)
-        if (pointer >= 0) glDeleteBuffers(pointer)
+        if (isPointerValid(pointer)) glDeleteBuffers(pointer)
 
         prepareUpload()
-        bindBuffer(type, pointer)
+        bindBuffer(target, pointer)
 
-        glBufferStorage(type, newLimit, GL_DYNAMIC_STORAGE_BIT)
+        glBufferStorage(target, newLimit, GL_DYNAMIC_STORAGE_BIT)
         // GL46C.glBufferData(type, newLimit, usage.id)
         locallyAllocated = allocate(locallyAllocated, newLimit)
 
@@ -185,34 +184,57 @@ abstract class OpenGLBuffer(
         // initial checks
         if (size == 0L) return
         if (toBuffer === this && from == to) return
-        if (size < 0) {
-            throw IllegalArgumentException("Size must be non-negative")
-        }
+        assertGreaterThanEquals(size, 0, "Size must be non-negative")
 
         // just in case, ensure the buffers have data;
         // might fail us on Android, where OpenGL can lose its session
-        ensureBuffer()
+        // ensureBuffer()
         toBuffer.ensureBuffer()
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Copying from $name to ${toBuffer.name}: from $from to $to, x$size")
         }
 
-        if (locallyAllocated < from + size || toBuffer.locallyAllocated < to + size) {
-            throw IllegalStateException("Illegal copy $from to $to, $from + $size vs $locallyAllocated / $to + $size vs ${toBuffer.locallyAllocated}")
-        } else if (pointer == 0 || toBuffer.pointer == 0) {
+        if (isPointerValid(pointer) && locallyAllocated < from + size) {
+            throw IllegalStateException("Illegal copy $from to $to [from], $from + $size vs $locallyAllocated")
+        }
+
+        if (toBuffer.locallyAllocated < to + size) {
+            throw IllegalStateException("Illegal copy $from to $to [to], $to + $size vs ${toBuffer.locallyAllocated}")
+        } else if (toBuffer.pointer == 0) {
             throw IllegalStateException("Buffer hasn't been created yet")
         }
 
-        GFX.check()
-        GL46C.glBindBuffer(GL46C.GL_COPY_READ_BUFFER, pointer)
-        GL46C.glBindBuffer(GL46C.GL_COPY_WRITE_BUFFER, toBuffer.pointer)
-        GL46C.glCopyBufferSubData(
-            GL46C.GL_COPY_READ_BUFFER,
-            GL46C.GL_COPY_WRITE_BUFFER,
-            from, to, size
-        )
-        GFX.check()
+        if (!isPointerValid(pointer)) {
+            // buffer hasn't been uploaded to GPU yet,
+            // and we don't need to -> just sub-upload it (saves an OpenGL buffer)
+
+            val fromBuffer = getOrCreateNioBuffer()
+
+            // backup & update state
+            val oldLimit = fromBuffer.limit()
+            val oldPosition = fromBuffer.position()
+            fromBuffer.position(from.toInt())
+            fromBuffer.limit((from + size).toInt())
+
+            // actual copy
+            toBuffer.bind()
+            GL46C.glBufferSubData(toBuffer.target, to, fromBuffer)
+
+            // restore state
+            fromBuffer.limit(oldLimit)
+            fromBuffer.position(oldPosition)
+        } else {
+            GFX.check()
+            GL46C.glBindBuffer(GL46C.GL_COPY_READ_BUFFER, pointer)
+            GL46C.glBindBuffer(GL46C.GL_COPY_WRITE_BUFFER, toBuffer.pointer)
+            GL46C.glCopyBufferSubData(
+                GL46C.GL_COPY_READ_BUFFER,
+                GL46C.GL_COPY_WRITE_BUFFER,
+                from, to, size
+            )
+            GFX.check()
+        }
     }
 
     /**
@@ -234,11 +256,11 @@ abstract class OpenGLBuffer(
 
     fun bind() {
         ensureBuffer()
-        bindBuffer(type, pointer)
+        bindBuffer(target, pointer)
     }
 
     open fun unbind() {
-        bindBuffer(type, 0)
+        bindBuffer(target, 0)
     }
 
     abstract fun createNioBuffer(): ByteBuffer
@@ -358,7 +380,7 @@ abstract class OpenGLBuffer(
                 locallyAllocated = allocate(locallyAllocated, 0L)
             }
         }
-        this.pointer = 0
+        this.pointer = INVALID_POINTER
         if (nioBuffer != null) {
             ByteBufferPool.free(nioBuffer)
             nioBuffer = null

@@ -3,8 +3,9 @@ package me.anno.mesh.blender
 class DNAStruct(val index: Int, val type: DNAType, val fields: Array<DNAField>, pointerSize: Int) {
 
     init {
-        var pointer = 0
-        for (field in fields) {
+        var structSize = 0
+        for (i in fields.indices) {
+            val field = fields[i]
 
             val sn = field.decoratedName
             val isArray = sn.endsWith("]")
@@ -12,12 +13,14 @@ class DNAStruct(val index: Int, val type: DNAType, val fields: Array<DNAField>, 
 
             val size = arraySizeOr1 * (if (field.isPointer) pointerSize else field.type.size)
 
-            field.offset = pointer
+            field.offset = structSize
             field.arraySizeOr1 = arraySizeOr1
 
-            pointer += size
+            structSize += size
         }
-        if (pointer > type.size) throw RuntimeException("Size calculation must be wrong! $pointer > ${type.size}")
+        if (structSize > type.size) {
+            throw RuntimeException("Size calculation must be wrong! $structSize > ${type.size}")
+        }
     }
 
     private fun parseArraySize(str: String): Int {

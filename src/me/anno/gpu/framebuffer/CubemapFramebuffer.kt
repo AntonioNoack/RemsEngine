@@ -2,6 +2,9 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.ContextPointer
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_POINTER
+import me.anno.gpu.GFX.INVALID_SESSION
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.GLNames
@@ -46,7 +49,7 @@ class CubemapFramebuffer(
 
     override var pointer by ContextPointer()
 
-    var session = 0
+    var session = INVALID_SESSION
     var depthRenderBuffer: Renderbuffer? = null
     override var isSRGBMask: Int = 0
     override var depthTexture: CubemapTexture? = null
@@ -61,13 +64,13 @@ class CubemapFramebuffer(
 
     var autoUpdateMipmaps = true
 
-    val isCreated get() = pointer != 0
+    val isCreated get() = isPointerValid(pointer)
 
     override fun getTargetType(slot: Int) = targets[slot]
 
     override fun ensure() {
         checkSession()
-        if (pointer == 0) create()
+        if (!isPointerValid(pointer)) create()
     }
 
     override fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int) {
@@ -82,7 +85,7 @@ class CubemapFramebuffer(
         if (session != GFXState.session) {
             GFX.check()
             session = GFXState.session
-            pointer = 0
+            pointer = INVALID_POINTER
             // needsBlit = true
             // msBuffer?.checkSession()
             depthTexture?.checkSession()
@@ -107,7 +110,7 @@ class CubemapFramebuffer(
     }
 
     private fun bind() {
-        if (pointer == 0) create()
+        if (!isPointerValid(pointer)) create()
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
     }
@@ -219,11 +222,11 @@ class CubemapFramebuffer(
     }
 
     override fun destroy() {
-        if (pointer != 0) {
+        if (isPointerValid(pointer)) {
             bindFramebuffer(GL_FRAMEBUFFER, 0)
             glDeleteFramebuffers(pointer)
             Frame.invalidate()
-            pointer = 0
+            pointer = INVALID_POINTER
             for (it in textures) {
                 it.destroy()
             }

@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.gpu.GFX.INVALID_POINTER
 import speiger.primitivecollections.ObjectToIntHashMap
 import kotlin.reflect.KProperty
 
@@ -17,7 +18,7 @@ class ContextPointer {
         var currentWindow: OSWindow? = null
     }
 
-    private val entries = ObjectToIntHashMap<OSWindow?>(0)
+    private val entries = ObjectToIntHashMap<OSWindow?>(INVALID_POINTER)
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): Int {
         return entries[currentWindow]

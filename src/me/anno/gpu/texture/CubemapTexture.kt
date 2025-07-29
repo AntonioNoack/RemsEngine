@@ -3,6 +3,9 @@ package me.anno.gpu.texture
 import me.anno.Build
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_POINTER
+import me.anno.gpu.GFX.INVALID_SESSION
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.debug.DebugGPUStorage
@@ -50,8 +53,8 @@ open class CubemapTexture(
 
     override var wasCreated = false
     override var isDestroyed = false
-    var pointer = 0
-    var session = 0
+    var pointer = INVALID_POINTER
+    var session = INVALID_SESSION
     var createdSize = 0
 
     // todo set this property when the texture was created
@@ -79,7 +82,7 @@ open class CubemapTexture(
     private fun ensurePointer() {
         assertFalse(isDestroyed, "Texture was destroyed")
         checkSession()
-        if (pointer == 0) {
+        if (!isPointerValid(pointer)) {
             GFX.check()
             pointer = Texture2D.createTexture()
             // many textures can be created by the console log and the fps viewer constantly xD
@@ -95,7 +98,7 @@ open class CubemapTexture(
     override fun checkSession() {
         if (session != GFXState.session) {
             session = GFXState.session
-            pointer = 0
+            pointer = INVALID_POINTER
             wasCreated = false
             isDestroyed = false
             locallyAllocated = allocate(locallyAllocated, 0L)
@@ -104,7 +107,7 @@ open class CubemapTexture(
     }
 
     private fun bindBeforeUpload() {
-        if (pointer == 0) throw RuntimeException("Pointer must be defined")
+        if (!isPointerValid(pointer)) throw RuntimeException("Pointer must be defined")
         Texture2D.bindTexture(target, pointer)
     }
 
@@ -190,7 +193,7 @@ open class CubemapTexture(
     }
 
     fun bind(index: Int, nearest: Filtering): Boolean {
-        if (pointer != 0 && wasCreated) {
+        if (isPointerValid(pointer) && wasCreated) {
             if (isBoundToSlot(index)) return false
             Texture2D.activeSlot(index)
             val result = Texture2D.bindTexture(target, pointer)
@@ -266,8 +269,8 @@ open class CubemapTexture(
         wasCreated = false
         isDestroyed = true
         val pointer = pointer
-        if (pointer != 0) destroy(pointer)
-        this.pointer = 0
+        if (isPointerValid(pointer)) destroy(pointer)
+        this.pointer = INVALID_POINTER
     }
 
     private fun destroy(pointer: Int) {

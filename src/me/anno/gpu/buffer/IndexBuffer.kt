@@ -2,6 +2,8 @@ package me.anno.gpu.buffer
 
 import me.anno.Build
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_POINTER
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
@@ -56,8 +58,8 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
 
         val target = GL_ELEMENT_ARRAY_BUFFER
 
-        if (pointer == 0) pointer = glGenBuffers()
-        if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL buffer")
+        if (!isPointerValid(pointer)) pointer = glGenBuffers()
+        if (!isPointerValid(pointer)) throw OutOfMemoryError("Could not generate OpenGL buffer")
         bindBuffer(target, pointer)
 
         if (isUpToDate) return
@@ -193,7 +195,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
                 onDestroyBuffer(buffer)
                 glDeleteBuffers(buffer)
             }
-            pointer = 0
+            pointer = INVALID_POINTER
             locallyAllocated = allocate(locallyAllocated, 0)
         }
     }

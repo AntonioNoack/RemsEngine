@@ -2,6 +2,9 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.ContextPointer
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_POINTER
+import me.anno.gpu.GFX.INVALID_SESSION
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.GLNames
 import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
@@ -35,7 +38,7 @@ class Framebuffer3D(
 
     override var pointer by ContextPointer()
 
-    var session = 0
+    var session = INVALID_SESSION
 
     override val samples get() = 1
     override val numTextures get() = 1
@@ -54,7 +57,7 @@ class Framebuffer3D(
         Frame.invalidate()
         GFX.check()
         val pointer = glGenFramebuffers()
-        if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
+        if (!isPointerValid(pointer)) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
         session = GFXState.session
         // if (Build.isDebug) DebugGPUStorage.fbs.add(this)
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
@@ -134,7 +137,7 @@ class Framebuffer3D(
 
     override fun ensure() {
         checkSession()
-        if (pointer == 0) create()
+        if (!isPointerValid(pointer)) create()
     }
 
     override fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int) {
@@ -147,10 +150,10 @@ class Framebuffer3D(
     }
 
     override fun checkSession() {
-        if (pointer != 0 && session != GFXState.session) {
+        if (isPointerValid(pointer) && session != GFXState.session) {
             GFX.check()
             session = GFXState.session
-            pointer = 0
+            pointer = INVALID_POINTER
             // needsBlit = true
             // ssBuffer?.checkSession()
             // depthTexture?.checkSession()
@@ -207,7 +210,7 @@ class Framebuffer3D(
     }
 
     override fun destroy() {
-        if (pointer != 0) {
+        if (isPointerValid(pointer)) {
             GFX.checkIsGFXThread()
             // ssBuffer?.destroy()
             destroyFramebuffer()
@@ -217,12 +220,12 @@ class Framebuffer3D(
     }
 
     fun destroyFramebuffer() {
-        if (pointer != 0) {
+        if (isPointerValid(pointer)) {
             bindFramebuffer(GL_FRAMEBUFFER, 0)
             glDeleteFramebuffers(pointer)
             Frame.invalidate()
             // if (Build.isDebug) DebugGPUStorage.fbs.remove(this)
-            pointer = 0
+            pointer = INVALID_POINTER
         }
     }
 

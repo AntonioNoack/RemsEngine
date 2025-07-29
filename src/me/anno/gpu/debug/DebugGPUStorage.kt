@@ -210,7 +210,7 @@ object DebugGPUStorage {
                 openMenuOfPanels("Buffers", PanelListY(style)) { list ->
                     for (buffer in buffers.sortedBy { it.locallyAllocated }) {
                         list.add(TextPanel(
-                            "\"${buffer.name}\", ${GLNames.getName(buffer.type)}, " +
+                            "\"${buffer.name}\", ${GLNames.getName(buffer.target)}, " +
                                     "${buffer.elementCount} x ${buffer.attributes}, " +
                                     "total: ${
                                         (buffer.nioBuffer?.capacity()?.toLong() ?: buffer.locallyAllocated)

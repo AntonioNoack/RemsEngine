@@ -2,6 +2,7 @@ package me.anno.gpu.buffer
 
 import me.anno.Build
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_POINTER
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
@@ -35,7 +36,7 @@ abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUs
 
     private fun forceBind() {
         ensureBuffer()
-        bindBuffer(type, pointer, true)
+        bindBuffer(target, pointer, true)
     }
 
     open fun createVAO(shader: Shader, instanceData: Buffer? = null) {
@@ -161,18 +162,21 @@ abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUs
         if (Build.isDebug) DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
         if (buffer > -1) {
-            addGPUTask("Buffer.destroy()", 1) {
-                onDestroyBuffer(buffer)
-                GL46C.glDeleteBuffers(buffer)
-                locallyAllocated = allocate(locallyAllocated, 0L)
-            }
+            if (GFX.isGFXThread()) doDestroy(buffer)
+            else addGPUTask("Buffer.destroy()", 1) { doDestroy(buffer) }
         }
-        pointer = 0
+        pointer = INVALID_POINTER
         isUpToDate = false
         if (nioBuffer != null) {
             ByteBufferPool.free(nioBuffer)
         }
         nioBuffer = null
+    }
+
+    private fun doDestroy(buffer: Int) {
+        onDestroyBuffer(buffer)
+        GL46C.glDeleteBuffers(buffer)
+        locallyAllocated = allocate(locallyAllocated, 0L)
     }
 
     companion object {

@@ -24,9 +24,9 @@ class ComputeBuffer(name: String, attr: AttributeLayout, elementCount: Int, type
         values: FloatArray = FloatArray(((elementCount - startIndex) * stride / 4).toInt())
     ): FloatArray {
         ensureBuffer()
-        bindBuffer(type, pointer)
+        bindBuffer(target, pointer)
         GFX.check()
-        glGetBufferSubData(type, startIndex * stride, values)
+        glGetBufferSubData(target, startIndex * stride, values)
         GFX.check()
         return values
     }
@@ -36,9 +36,9 @@ class ComputeBuffer(name: String, attr: AttributeLayout, elementCount: Int, type
         values: IntArray = IntArray(((elementCount - startIndex) * stride / 4).toInt())
     ): IntArray {
         ensureBuffer()
-        bindBuffer(type, pointer)
+        bindBuffer(target, pointer)
         GFX.check()
-        glGetBufferSubData(type, startIndex * stride, values)
+        glGetBufferSubData(target, startIndex * stride, values)
         GFX.check()
         return values
     }

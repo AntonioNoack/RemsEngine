@@ -35,6 +35,9 @@ class AllocationManagerTest {
             return allocationIndex++
         }
 
+        override fun deallocate(data: Int) {
+        }
+
         override fun copy(from: Int, fromData: Int, to: IntRange, toData: Int) {
             copyOperations.add(CopyOperation(from, fromData, to, toData))
         }
@@ -47,6 +50,10 @@ class AllocationManagerTest {
 
         override fun roundUpStorage(requiredSize: Int): Int {
             return 2 * requiredSize
+        }
+
+        override fun allocationKeepsOldData(): Boolean {
+            return true
         }
     }
 

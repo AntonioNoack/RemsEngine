@@ -7,8 +7,11 @@ import me.anno.ecs.annotations.Docs
 import me.anno.gpu.DepthMode
 import me.anno.gpu.FinalRendering.isFinalRendering
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_POINTER
+import me.anno.gpu.GFX.INVALID_SESSION
 import me.anno.gpu.GFX.check
 import me.anno.gpu.GFX.isGFXThread
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.maxBoundTextures
 import me.anno.gpu.GFXState
@@ -162,13 +165,13 @@ open class Texture2D(
     val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
     val state get(): Int = if (isCreated()) pointer else 0
 
-    var pointer = 0
-    var session = 0
+    var pointer = INVALID_POINTER
+    var session = INVALID_SESSION
 
     override fun checkSession() {
         if (session != GFXState.session) {
             session = GFXState.session
-            pointer = 0
+            pointer = INVALID_POINTER
             wasCreated = false
             isDestroyed = false
             locallyAllocated = allocate(locallyAllocated, 0L)
@@ -208,10 +211,10 @@ open class Texture2D(
     fun ensurePointer() {
         checkSession()
         assertFalse(isDestroyed, "Texture was destroyed")
-        if (pointer == 0) {
+        if (!isPointerValid(pointer)) {
             check()
             pointer = createTexture()
-            if (pointer != 0 && Build.isDebug) {
+            if (isPointerValid(pointer) && Build.isDebug) {
                 synchronized(DebugGPUStorage.tex2d) {
                     DebugGPUStorage.tex2d.add(this)
                 }
@@ -220,7 +223,7 @@ open class Texture2D(
             // maybe we should use allocation free versions there xD
             check()
         }
-        if (pointer == 0) throw RuntimeException("Could not allocate texture pointer")
+        if (!isPointerValid(pointer)) throw RuntimeException("Could not allocate texture pointer")
     }
 
     private fun unbindUnpackBuffer() {
@@ -842,7 +845,7 @@ open class Texture2D(
         wasCreated = false
         isDestroyed = true
         val pointer = pointer
-        if (pointer != 0) {
+        if (isPointerValid(pointer)) {
             if (Build.isDebug) synchronized(DebugGPUStorage.tex2d) {
                 DebugGPUStorage.tex2d.remove(this)
             }
@@ -852,7 +855,7 @@ open class Texture2D(
                 texturesToDelete.add(pointer)
             }
         }
-        this.pointer = 0
+        this.pointer = INVALID_POINTER
     }
 
     private fun checkSize(channels: Int, size: Int) {
@@ -1019,7 +1022,9 @@ open class Texture2D(
             val slot = unpackHighFrom32(high32, false)
             val target = unpackLowFrom32(high32, false)
             activeSlot(slot)
-            if (pointer >= 0) bindTexture(target, pointer)
+            if (isPointerValid(pointer)) {
+                bindTexture(target, pointer)
+            }
         }
 
         fun getBindState(slot: Int): Long {
@@ -1029,7 +1034,7 @@ open class Texture2D(
         fun restoreBindState(slot: Int, state: Long) {
             activeSlot(slot)
             val pointer = unpackLowFrom64(state)
-            if (pointer >= 0) {
+            if (isPointerValid(pointer)) {
                 val target = unpackHighFrom64(state)
                 bindTexture(target, pointer)
             }
@@ -1085,7 +1090,7 @@ open class Texture2D(
         }
 
         @JvmStatic
-        private var creationSession = -1
+        private var creationSession = INVALID_SESSION
 
         @JvmStatic
         private var creationIndex = 0

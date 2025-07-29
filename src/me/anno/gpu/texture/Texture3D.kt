@@ -3,6 +3,9 @@ package me.anno.gpu.texture
 import me.anno.Build
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_POINTER
+import me.anno.gpu.GFX.INVALID_SESSION
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.GLNames
 import me.anno.gpu.GPUTasks.addGPUTask
@@ -57,8 +60,8 @@ open class Texture3D(
     var depth: Int
 ) : ITexture2D {
 
-    var pointer = 0
-    var session = -1
+    var pointer = INVALID_POINTER
+    var session = INVALID_SESSION
 
     override var wasCreated = false
     override var isDestroyed = false
@@ -88,7 +91,7 @@ open class Texture3D(
     override fun checkSession() {
         if (session != GFXState.session) {
             session = GFXState.session
-            pointer = 0
+            pointer = INVALID_POINTER
             wasCreated = false
             isDestroyed = false
         }
@@ -96,7 +99,7 @@ open class Texture3D(
 
     private fun ensurePointer() {
         checkSession()
-        if (pointer == 0) pointer = Texture2D.createTexture()
+        if (!isPointerValid(pointer)) pointer = Texture2D.createTexture()
         assertNotEquals(0, pointer, "Could not generate texture")
         if (Build.isDebug) synchronized(DebugGPUStorage.tex3d) {
             DebugGPUStorage.tex3d.add(this)
@@ -342,13 +345,13 @@ open class Texture3D(
     }
 
     private fun forceBind() {
-        if (pointer == 0) throw RuntimeException()
+        if (!isPointerValid(pointer)) throw RuntimeException()
         bindTexture(target, pointer)
     }
 
     override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
         activeSlot(index)
-        if (pointer != 0 && wasCreated) {
+        if (isPointerValid(pointer) && wasCreated) {
             bindTexture(target, pointer)
             ensureFiltering(filtering, clamping)
         } else {
@@ -359,8 +362,8 @@ open class Texture3D(
 
     override fun destroy() {
         val pointer = pointer
-        if (pointer != 0) destroy(pointer)
-        this.pointer = 0
+        if (isPointerValid(pointer)) destroy(pointer)
+        this.pointer = INVALID_POINTER
     }
 
     private fun destroy(pointer: Int) {

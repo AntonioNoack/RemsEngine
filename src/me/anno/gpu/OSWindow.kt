@@ -4,6 +4,8 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.Events.addEvent
 import me.anno.engine.NamedTask
+import me.anno.gpu.GFX.INVALID_POINTER64
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.WindowManagement.glfwTasks
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.Input
@@ -34,7 +36,7 @@ open class OSWindow(var title: String) {
     var positionX = 0
     var positionY = 0
 
-    var pointer = 0L
+    var pointer = INVALID_POINTER64
     var width = defaultWidth
     var height = defaultHeight
 
@@ -208,7 +210,7 @@ open class OSWindow(var title: String) {
     }
 
     fun isInitialized(): Boolean {
-        return pointer != 0L
+        return isPointerValid(pointer)
     }
 
     open fun addCallbacks() {
@@ -297,12 +299,12 @@ open class OSWindow(var title: String) {
 
     fun makeCurrent(): Boolean {
         GFX.activeWindow = this
-        if (pointer != lastCurrentContext && pointer != 0L) {
+        if (pointer != lastCurrentContext && isPointerValid(pointer)) {
             lastCurrentContext = pointer
             GLFW.glfwMakeContextCurrent(pointer)
             ContextPointer.currentWindow = this
         }
-        return pointer != 0L
+        return isPointerValid(pointer)
     }
 
     val progressBars = ArrayList<ProgressBar>()

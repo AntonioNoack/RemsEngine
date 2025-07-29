@@ -2,6 +2,9 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.ContextPointer
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.INVALID_POINTER
+import me.anno.gpu.GFX.INVALID_SESSION
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.GLNames
@@ -55,7 +58,7 @@ class FramebufferArray(
 
     override var pointer by ContextPointer()
 
-    var session = 0
+    var session = INVALID_SESSION
     var depthRenderBuffer: Renderbuffer? = null
     override var depthTexture: Texture2DArray? = null
     override var depthMask: Int = 0
@@ -68,12 +71,12 @@ class FramebufferArray(
 
     var autoUpdateMipmaps = true
 
-    val isCreated get() = pointer != 0
+    val isCreated get() = isPointerValid(pointer)
 
     override fun getTargetType(slot: Int) = targets[slot]
 
     override fun ensure() {
-        if (pointer == 0) create()
+        if (!isPointerValid(pointer)) create()
     }
 
     override fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int) {
@@ -87,10 +90,10 @@ class FramebufferArray(
     }
 
     override fun checkSession() {
-        if (pointer != 0 && session != GFXState.session) {
+        if (isPointerValid(pointer) && session != GFXState.session) {
             GFX.check()
             session = GFXState.session
-            pointer = 0
+            pointer = INVALID_POINTER
             // needsBlit = true
             // msBuffer?.checkSession()
             depthTexture?.checkSession()
@@ -112,7 +115,7 @@ class FramebufferArray(
     }
 
     private fun bind() {
-        if (pointer == 0) create()
+        if (!isPointerValid(pointer)) create()
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
     }
@@ -134,7 +137,7 @@ class FramebufferArray(
         // LOGGER.info("w: $w, h: $h, samples: $samples, targets: $targetCount x fp32? $fpTargets")
         GFX.check()
         pointer = glGenFramebuffers()
-        if (pointer == 0) throw RuntimeException()
+        if (!isPointerValid(pointer)) throw RuntimeException()
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
         //stack.push(this)
@@ -232,11 +235,11 @@ class FramebufferArray(
     }
 
     override fun destroy() {
-        if (pointer != 0) {
+        if (isPointerValid(pointer)) {
             bindFramebuffer(GL_FRAMEBUFFER, 0)
             glDeleteFramebuffers(pointer)
             Frame.invalidate()
-            pointer = 0
+            pointer = INVALID_POINTER
             for (it in textures) {
                 it.destroy()
             }

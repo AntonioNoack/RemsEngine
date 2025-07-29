@@ -9,9 +9,11 @@ import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
 import me.anno.engine.NamedTask
 import me.anno.engine.WindowRenderFlags
+import me.anno.gpu.GFX.INVALID_POINTER64
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GFX.glThread
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GLNames.getErrorTypeName
 import me.anno.gpu.RenderDoc.loadRenderDoc
 import me.anno.gpu.RenderStep.renderStep
@@ -248,7 +250,7 @@ object WindowManagement {
      * windows sharing a context means we only need to support a single GFX context at a time
      * */
     private fun findSharedWindow(): Long {
-        val firstWindow = windows.firstOrNull { it.pointer != 0L } ?: return 0L
+        val firstWindow = windows.firstOrNull { isPointerValid(it.pointer) } ?: return 0L
         return firstWindow.pointer
     }
 
@@ -661,9 +663,9 @@ object WindowManagement {
     @JvmStatic
     fun close(window: OSWindow) {
         synchronized(glfwLock) {
-            if (window.pointer != 0L) {
+            if (isPointerValid(window.pointer)) {
                 GLFW.glfwDestroyWindow(window.pointer)
-                window.pointer = 0L
+                window.pointer = INVALID_POINTER64
             }
         }
     }

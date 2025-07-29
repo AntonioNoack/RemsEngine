@@ -1,6 +1,8 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.cache.ICacheData
+import me.anno.gpu.GFX.INVALID_POINTER
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.utils.InternalAPI
 import me.anno.utils.assertions.assertTrue
 import org.lwjgl.opengl.GL14C.GL_DEPTH_COMPONENT16
@@ -23,11 +25,11 @@ import org.lwjgl.opengl.GL46C.glRenderbufferStorageMultisample
 @InternalAPI
 class Renderbuffer : ICacheData {
 
-    var pointer = 0
+    var pointer = INVALID_POINTER
 
     fun createDepthBuffer(width: Int, height: Int, samples: Int) {
         val renderBuffer = glGenRenderbuffers()
-        assertTrue(renderBuffer > 0)
+        assertTrue(isPointerValid(renderBuffer))
         pointer = renderBuffer
         glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
         if (samples > 1) glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT16, width, height)
@@ -35,15 +37,15 @@ class Renderbuffer : ICacheData {
     }
 
     fun attachToFramebuffer(bind: Boolean) {
-        assertTrue(pointer > 0)
+        assertTrue(isPointerValid(pointer))
         if (bind) glBindRenderbuffer(GL_RENDERBUFFER, pointer)
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, pointer)
     }
 
     override fun destroy() {
-        if (pointer != 0) {
+        if (isPointerValid(pointer)) {
             glDeleteRenderbuffers(pointer)
-            pointer = 0
+            pointer = INVALID_POINTER
         }
     }
 }

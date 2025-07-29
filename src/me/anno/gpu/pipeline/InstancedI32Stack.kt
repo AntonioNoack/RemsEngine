@@ -174,6 +174,8 @@ open class InstancedI32Stack(
                 stack.clear()
             }
         }
+        // must be cleared to avoid Meshes staying as keys indefinitely
+        data.clear()
     }
 
     override fun isEmpty(): Boolean {

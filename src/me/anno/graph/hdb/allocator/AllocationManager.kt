@@ -281,8 +281,12 @@ interface AllocationManager<Key, Data : Any> {
     fun getRange(key: Key): IntRange
 
     fun allocate(newSize: Int): Data
-    fun deallocate(data: Data) {}
-    fun allocationKeepsOldData(): Boolean = true
+    fun deallocate(data: Data)
+
+    /**
+     * return false, if any allocate()-call clears all data and needs all data reinserted
+     * */
+    fun allocationKeepsOldData(): Boolean
 
     fun copy(key: Key, from: Int, fromData: Data, to: IntRange, toData: Data)
     fun copy(from: Int, fromData: Data, to: IntRange, toData: Data)
