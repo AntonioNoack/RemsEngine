@@ -515,6 +515,7 @@ abstract class KdTree<Point, Value>(
 
     fun clear() {
         values?.clear()
+        size = 0
 
         // recursive deletion of nodes and children lists
         val self = this
@@ -537,6 +538,7 @@ abstract class KdTree<Point, Value>(
                     destroyList(children)
                     node.values = null
                 }
+                node.size = 0
                 destroyChild(node)
             }
         }

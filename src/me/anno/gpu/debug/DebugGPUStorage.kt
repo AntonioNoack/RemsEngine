@@ -190,10 +190,10 @@ object DebugGPUStorage {
             MenuOption(NameDesc("Framebuffers (${fbs.size}, ${fbsSum.formatFileSize()})")) {
                 create2DListOfPanels("Framebuffers") { list ->
                     for (fb in fbs.sortedBy { it.width * it.height }) {
-                        val textures = fb.textures ?: emptyList()
+                        val textures = fb.textures
                         for (i in textures.indices) {
                             val tex = textures[i]
-                            list.add(TexturePanel2D(tex.name, tex, true))
+                            list.add(TexturePanel2D(tex.name, tex, false))
                         }
                         val dt = fb.depthTexture
                         if (dt != null) {
