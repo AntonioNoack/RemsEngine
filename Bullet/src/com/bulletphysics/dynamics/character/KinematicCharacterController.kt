@@ -163,7 +163,7 @@ class KinematicCharacterController(
             }
         }
 
-        currentPosition.set(ghostObject.getWorldTransform(Stack.newTrans()).origin)
+        currentPosition.set(ghostObject.worldTransform.origin)
         targetPosition.set(currentPosition)
         //printf("m_targetPosition=%f,%f,%f\n",m_targetPosition[0],m_targetPosition[1],m_targetPosition[2]);
     }
@@ -216,12 +216,14 @@ class KinematicCharacterController(
 
             // okay, step
             stepForwardAndStrafe(collisionWorld, move)
+            Stack.subVec(1) // move
         }
         stepDown(collisionWorld, dt)
 
         //printf("\n");
         xform.setTranslation(currentPosition)
         ghostObject.setWorldTransform(xform)
+        Stack.subTrans(1)
     }
 
     fun canJump(): Boolean {
@@ -285,7 +287,7 @@ class KinematicCharacterController(
             ghostObject.overlappingPairCache, collisionWorld.dispatchInfo, collisionWorld.dispatcher
         )
 
-        currentPosition.set(ghostObject.getWorldTransform(Stack.newTrans()).origin)
+        currentPosition.set(ghostObject.worldTransform.origin)
 
         var maxPen = 0.0
         ghostObject.overlappingPairCache.processAllOverlappingPairs { collisionPair ->
@@ -317,9 +319,8 @@ class KinematicCharacterController(
             }
         }
 
-        val newTrans = ghostObject.getWorldTransform(Stack.newTrans())
-        newTrans.setTranslation(currentPosition)
-        ghostObject.setWorldTransform(newTrans)
+        ghostObject.worldTransform
+            .setTranslation(currentPosition)
 
         //printf("m_touchingNormal = %f,%f,%f\n",m_touchingNormal[0],m_touchingNormal[1],m_touchingNormal[2]);
 

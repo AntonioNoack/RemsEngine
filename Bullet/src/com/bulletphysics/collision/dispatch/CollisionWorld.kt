@@ -408,7 +408,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             } else {
                 // need to transform normal into world space
                 hitNormalWorld.set(convexResult.hitNormalLocal)
-                hitCollisionObject!!.getWorldTransform(Stack.newTrans()).basis.transform(hitNormalWorld)
+                hitCollisionObject!!.worldTransform.transformDirection(hitNormalWorld)
                 if (hitNormalWorld.length() > 2) {
                     println("CollisionWorld.addSingleResult world $hitNormalWorld")
                 }

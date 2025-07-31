@@ -90,10 +90,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
     }
 
     fun gimpactVsGimpact(
-        body0: CollisionObject,
-        body1: CollisionObject,
-        shape0: GImpactShapeInterface,
-        shape1: GImpactShapeInterface
+        body0: CollisionObject, body1: CollisionObject,
+        shape0: GImpactShapeInterface, shape1: GImpactShapeInterface
     ) {
         if (shape0.gImpactShapeType == ShapeType.TRIMESH_SHAPE) {
             val meshShape0 = shape0 as GImpactMeshShape
@@ -113,8 +111,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
             return
         }
 
-        val orgTrans0 = body0.getWorldTransform(Stack.newTrans())
-        val orgTrans1 = body1.getWorldTransform(Stack.newTrans())
+        val orgTrans0 = body0.worldTransform
+        val orgTrans1 = body1.worldTransform
 
         val pairList = tmpPairList
         pairList.clear()
@@ -220,8 +218,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
             return
         }
 
-        val orgTrans0 = body0.getWorldTransform(Stack.newTrans())
-        val orgTrans1 = body1.getWorldTransform(Stack.newTrans())
+        val orgTrans0 = body0.worldTransform
+        val orgTrans1 = body1.worldTransform
 
         val collidedResults = IntArrayList()
 
@@ -237,9 +235,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         val childHasTransform0 = shape0.childrenHasTransform()
 
         val tmpTrans = Stack.newTrans()
-
         var i = collidedResults.size()
-
         while ((i--) != 0) {
             val childIndex = collidedResults.get(i)
             if (swapped) {
@@ -268,6 +264,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         }
 
         shape0.unlockChildShapes()
+        Stack.subTrans(1)
     }
 
     fun gimpactVsCompoundShape(
@@ -321,13 +318,13 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
 
         body1.getWorldTransform(gimpactInConcaveSpace)
         gimpactInConcaveSpace.inverse()
-        gimpactInConcaveSpace.mul(body0.getWorldTransform(Stack.newTrans()))
+        gimpactInConcaveSpace.mul(body0.worldTransform)
 
         val minAABB = Stack.newVec()
         val maxAABB = Stack.newVec()
         shape0.getBounds(gimpactInConcaveSpace, minAABB, maxAABB)
-
         shape1.processAllTriangles(callback, minAABB, maxAABB)
+        Stack.subVec(2)
     }
 
     /**
@@ -410,8 +407,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
     ) {
         val normal = Stack.newVec()
 
-        val orgTrans0 = body0.getWorldTransform(Stack.newTrans())
-        val orgTrans1 = body1.getWorldTransform(Stack.newTrans())
+        val orgTrans0 = body0.worldTransform
+        val orgTrans1 = body1.worldTransform
 
         val tri0 = PrimitiveTriangle()
         val tri1 = PrimitiveTriangle()
@@ -455,7 +452,6 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         shape0.unlockChildShapes()
         shape1.unlockChildShapes()
 
-        Stack.subTrans(2)
         Stack.subVec(1)
     }
 

@@ -80,11 +80,10 @@ class SolverBody {
 
             // correct the position/orientation based on push/turn recovery
             val newTransform = Stack.newTrans()
-            val curTrans = originalBody.getWorldTransform(Stack.newTrans())
+            val curTrans = originalBody.worldTransform
             TransformUtil.integrateTransform(curTrans, pushVelocity, turnVelocity, timeStep, newTransform)
             originalBody.setWorldTransform(newTransform)
-
-            Stack.subTrans(2)
+            Stack.subTrans(1)
             //m_originalBody->setCompanionId(-1);
         }
     }

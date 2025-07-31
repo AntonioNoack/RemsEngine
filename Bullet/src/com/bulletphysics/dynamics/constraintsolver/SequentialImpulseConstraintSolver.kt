@@ -95,23 +95,21 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             }
         }
 
-        // TODO: check modulo C vs Java mismatch
         return abs(r % n).toInt()
     }
 
     private fun initSolverBody(solverBody: SolverBody, collisionObject: CollisionObject) {
-        val body = collisionObject as? RigidBody
-        if (body != null) {
-            solverBody.angularVelocity.set(body.angularVelocity)
-            solverBody.centerOfMassPosition.set(collisionObject.getWorldTransform(Stack.newTrans()).origin)
+        if (collisionObject is RigidBody) {
+            solverBody.angularVelocity.set(collisionObject.angularVelocity)
+            solverBody.centerOfMassPosition.set(collisionObject.worldTransform.origin)
             solverBody.friction = collisionObject.friction
-            solverBody.invMass = body.inverseMass
-            solverBody.linearVelocity.set(body.linearVelocity)
-            solverBody.originalBody = body
-            solverBody.angularFactor = body.angularFactor
+            solverBody.invMass = collisionObject.inverseMass
+            solverBody.linearVelocity.set(collisionObject.linearVelocity)
+            solverBody.originalBody = collisionObject
+            solverBody.angularFactor = collisionObject.angularFactor
         } else {
             solverBody.angularVelocity.set(0.0)
-            solverBody.centerOfMassPosition.set(collisionObject.getWorldTransform(Stack.newTrans()).origin)
+            solverBody.centerOfMassPosition.set(collisionObject.worldTransform.origin)
             solverBody.friction = collisionObject.friction
             solverBody.invMass = 0.0
             solverBody.linearVelocity.set(0.0)
@@ -181,8 +179,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
      * response  between two dynamic objects with friction
      */
     private fun resolveSingleCollisionCombinedCacheFriendly(
-        body1: SolverBody,
-        body2: SolverBody,
+        body1: SolverBody, body2: SolverBody,
         contactConstraint: SolverConstraint,
         solverInfo: ContactSolverInfo
     ) {
@@ -192,10 +189,10 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         // btVector3 vel = vel1 - vel2;
         // btScalar  rel_vel = contactConstraint.m_contactNormal.dot(vel);
 
-        val vel1Dotn =
-            contactConstraint.contactNormal.dot(body1.linearVelocity) + contactConstraint.relPos1CrossNormal.dot(body1.angularVelocity)
-        val vel2Dotn =
-            contactConstraint.contactNormal.dot(body2.linearVelocity) + contactConstraint.relPos2CrossNormal.dot(body2.angularVelocity)
+        val vel1Dotn = contactConstraint.contactNormal.dot(body1.linearVelocity) +
+                contactConstraint.relPos1CrossNormal.dot(body1.angularVelocity)
+        val vel2Dotn = contactConstraint.contactNormal.dot(body2.linearVelocity) +
+                contactConstraint.relPos2CrossNormal.dot(body2.angularVelocity)
 
         val relVel = vel1Dotn - vel2Dotn
 

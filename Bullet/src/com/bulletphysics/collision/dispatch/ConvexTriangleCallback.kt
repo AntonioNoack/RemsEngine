@@ -56,15 +56,15 @@ internal class ConvexTriangleCallback(
 
         triBody.getWorldTransform(convexInTriangleSpace)
         convexInTriangleSpace.inverse()
-        convexInTriangleSpace.mul(convexBody.getWorldTransform(Stack.newTrans()))
+        convexInTriangleSpace.mul(convexBody.worldTransform)
 
         val convexShape = convexBody.collisionShape
         convexShape!!.getBounds(convexInTriangleSpace, aabbMin, aabbMax)
-        val extra = Stack.newVec()
-        extra.set(collisionMarginTriangle, collisionMarginTriangle, collisionMarginTriangle)
 
-        aabbMax.add(extra)
-        aabbMin.sub(extra)
+        aabbMax.add(collisionMarginTriangle)
+        aabbMin.sub(collisionMarginTriangle)
+
+        Stack.subTrans(1)
     }
 
     private val ci = CollisionAlgorithmConstructionInfo()

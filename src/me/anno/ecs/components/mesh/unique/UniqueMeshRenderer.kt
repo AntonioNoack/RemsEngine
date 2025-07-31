@@ -18,6 +18,7 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.graph.hdb.allocator.AllocationManager
+import me.anno.maths.Maths.min
 import me.anno.utils.Clock
 import me.anno.utils.Logging.hash32
 import me.anno.utils.assertions.assertTrue
@@ -30,6 +31,7 @@ import org.joml.AABBf
 import org.joml.Matrix4x3
 import org.lwjgl.opengl.GL46C.glMultiDrawArrays
 import java.nio.IntBuffer
+import kotlin.math.max
 
 /**
  * renderer for static geometry, that still can be partially loaded/unloaded
@@ -202,7 +204,8 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         }
         var counter = 0L
         GFXState.bind()
-        buffer.drawLength = 1 // doesn't matter as long as it's greater than zero
+        // doesn't matter as long as it's greater than zero; make it the actual value for debugging using DebugGPUStorage
+        buffer.drawLength = max(min(totalNumPrimitives, Int.MAX_VALUE.toLong()).toInt(), 1)
         buffer.bind(shader)
         val frustum = pipeline?.frustum
         var transform = transform?.globalTransform
