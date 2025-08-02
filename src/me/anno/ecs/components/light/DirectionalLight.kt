@@ -64,6 +64,8 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         )
         orthoMatrix.mul(invCamMatrix, dst = dstCameraMatrix)
 
+        println("$cascadeScale -> $dstCameraMatrix, ${Matrix4f(dstCameraMatrix).invert()}")
+
         // is this correct if cascadeScale != 1.0? should be
         pipeline.frustum.defineOrthographic(
             drawTransform, resolution,
@@ -73,12 +75,12 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
     override fun getLightPrimitive(): Mesh = Shapes.cube11Smooth
 
+    override fun getShaderV0(): Float = shadowBias
     override fun getShaderV1(): Float = shadowMapPower
     override fun getShaderV2(): Float = if (cutoff == 0f) 0f else 1f / cutoff
-    override fun getShaderV3(): Float {
-        val transform = transform ?: return 0.5f
-        return 1f - 0.5f / transform.getGlobalScaleZ()
-    }
+
+    @Range(0.0, 1.0)
+    var shadowBias = 0.001f
 
     override fun drawShape(pipeline: Pipeline) {
         drawBox(entity)
@@ -144,12 +146,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             "           nextDir *= shadowMapPower;\n" +
                             "       }\n" +
 
-                            // why does it need this scale factor -> because OpenGL maps depth from [-1,1] to [0,1] by itself
-                            // why does it need this offset?? it doesn't, this is just the usual bias
-                            // todo for large scale.z-values, the shadow becomes weaker... why???
-                            //   must be our interpolation, I think... half of the pixels become shadowed,
-                            //   because we would need a tighter/wider bias
-                            "       float depthFromShader = (lightPos.z*.5 + shaderV3) + 0.001;\n" +
+                            "       float depthFromShader = (lightPos.z + 1.0) * 0.5 + shaderV0;\n" +
 
                             // do the shadow map function and compare
                             "       float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, vec3(shadowDir.xy,layerIdx), NdotL, depthFromShader);\n" +

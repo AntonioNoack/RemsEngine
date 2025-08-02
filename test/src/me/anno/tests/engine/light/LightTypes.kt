@@ -74,9 +74,14 @@ fun createLightTypesScene(): Entity {
     // sunlight
     // todo bug: SDF shapes throw shadows only in a small range (seemingly scaled on z-axis, probably forgetting a factor)
     val sun = Entity("Directional")
-    sun.add(DirectionalLight().apply { shadowMapCascades = 2; cutoff = 1e-3f })
+    sun.add(DirectionalLight().apply {
+        shadowMapCascades = 2
+        cutoff = 1e-3f
+        color.mul(10f)
+    })
     sun.setPosition(-5.0, 0.0, 0.0)
     sun.setRotation(-PIf * 0.5f, 0f, 0f)
+    sun.setScale(4f, 4f, 8f)
     scene.add(sun)
     placeTruck(sun)
 
