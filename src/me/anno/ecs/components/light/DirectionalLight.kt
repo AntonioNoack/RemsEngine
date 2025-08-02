@@ -64,8 +64,6 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         )
         orthoMatrix.mul(invCamMatrix, dst = dstCameraMatrix)
 
-        println("$cascadeScale -> $dstCameraMatrix, ${Matrix4f(dstCameraMatrix).invert()}")
-
         // is this correct if cascadeScale != 1.0? should be
         pipeline.frustum.defineOrthographic(
             drawTransform, resolution,
@@ -129,6 +127,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows && NdotL > 0.0){\n" +
                             // when we are close to the edge, we blend in
                             "   float edgeFactor = min(20.0*(1.0-max(abs(lightPos.x),abs(lightPos.y))),1.0);\n" +
+                            "   float shadowBias = shaderV0;\n" +
                             "   if(edgeFactor > 0.0){\n" +
                             "       float shadowMapPower = shaderV1;\n" +
                             "       float invShadowMapPower = 1.0/shadowMapPower;\n" +
@@ -144,9 +143,10 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             "           layerIdx++;\n" +
                             "           shadowDir = nextDir;\n" +
                             "           nextDir *= shadowMapPower;\n" +
+                            "           shadowBias /= shadowMapPower;\n" + // bias is a spatial unit -> needs to be adjusted, too
                             "       }\n" +
 
-                            "       float depthFromShader = (lightPos.z + 1.0) * 0.5 + shaderV0;\n" +
+                            "       float depthFromShader = (lightPos.z + 1.0) * 0.5 + shadowBias;\n" +
 
                             // do the shadow map function and compare
                             "       float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, vec3(shadowDir.xy,layerIdx), NdotL, depthFromShader);\n" +

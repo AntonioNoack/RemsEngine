@@ -6,6 +6,7 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.collider.CollidingComponent
+import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.unique.StaticMeshManager
@@ -36,7 +37,6 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @SerializedProperty
     var receiveShadows = true
 
-    // todo respect this property when rendering shadows
     @SerializedProperty
     var castShadows = true
 
@@ -117,8 +117,10 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     var occlusionQuery: OcclusionQuery? = null
 
     override fun fill(pipeline: Pipeline, transform: Transform) {
-        if (manager != null) return
-        val mesh = getMeshOrNull() ?: return
+        if (manager != null) return // already handled
+        if (!castShadows && pipeline === LightComponent.pipeline) return // shouldn't be drawn
+
+        val mesh = getMeshOrNull() ?: return // mesh hasn't been loaded yet :/
         clickId = pipeline.getClickId(this)
         if (isInstanced && mesh.proceduralLength <= 0) {
             pipeline.addMeshInstanced(mesh, this, transform)

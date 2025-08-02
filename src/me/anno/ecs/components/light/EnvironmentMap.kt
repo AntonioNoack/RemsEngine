@@ -83,7 +83,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
             needsUpdate1 = true
         }
         val texture = texture
-        if (texture != null && (needsUpdate1 || needsAutoUpdate())) {
+        if (texture != null && (needsUpdate1 || needsAutoUpdate(0,1))) {
             needsUpdate1 = false
             drawBuffer(texture)
         }

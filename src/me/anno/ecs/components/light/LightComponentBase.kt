@@ -3,9 +3,9 @@ package me.anno.ecs.components.light
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Transform
+import me.anno.ecs.components.FillSpace
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.ecs.components.FillSpace
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
@@ -34,9 +34,13 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate, FillSpace
         lastDrawn = Time.gameTimeN
     }
 
-    fun needsAutoUpdate(): Boolean {
+    fun needsAutoUpdate(cascade: Int, numCascades: Int): Boolean {
         val autoUpdate = autoUpdate
-        return autoUpdate > 0 && posMod(Time.frameIndex + clickId, autoUpdate) == 0
+        if (autoUpdate <= 0 || numCascades <= 0) return false
+        // clickId for pseudo-randomness
+        // lodIndex*autoUpdate/numLODs for distributing updates over multiple frames
+        val frameIndex = Time.frameIndex + clickId + (cascade * autoUpdate) / numCascades
+        return posMod(frameIndex, autoUpdate) == 0
     }
 
     override fun onUpdate() {

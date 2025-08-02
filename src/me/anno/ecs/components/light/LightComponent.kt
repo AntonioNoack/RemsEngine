@@ -171,12 +171,18 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
     }
 
     override fun onVisibleUpdate() {
-        if (hasShadow) {
-            if (needsAutoUpdate() || needsUpdate1) {
-                needsUpdate1 = false
-                ensureShadowBuffers()
-                if (hasShadow) {
-                    updateShadowMaps()
+
+        if (shadowMapCascades <= 0) return
+        ensureShadowBuffers()
+
+        if (needsUpdate1) {
+            needsUpdate1 = false
+            updateShadowMaps(-1)
+        } else {
+            val numCascades = shadowMapCascades
+            for (cascadeIndex in 0 until numCascades) {
+                if (needsAutoUpdate(cascadeIndex, numCascades)) {
+                    updateShadowMaps(cascadeIndex)
                 }
             }
         }
@@ -191,7 +197,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         resolution: Int,
     )
 
-    open fun updateShadowMaps() {
+    open fun updateShadowMaps(cascadeIndex: Int) {
 
         lastDrawn = Time.gameTimeN
 
@@ -209,37 +215,60 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         val direction = rotation.transform(RenderState.cameraDirection.set(0.0, 0.0, -1.0))
         // val originalWorldScale = RenderState.worldScale // test frustum
         val result = shadowTextures as FramebufferArray
-        val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
         val tmpPos = JomlPools.vec3d.create().set(position)
+        val root = rootOverride ?: entity.getRoot(Entity::class)
         timeRendering(className, timer) {
             GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
                 GFXState.ditherMode.use(ditherMode) {
-                    result.draw(renderer) { i ->
-                        // reset position
-                        position.set(tmpPos)
-                        pipeline.clear()
-                        val cascadeScale = shadowMapPower.pow(-i)
-                        updateShadowMap(
-                            cascadeScale,
-                            RenderState.cameraMatrix,
-                            position, rotation, direction,
-                            drawTransform, pipeline, resolution
-                        )
-                        val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
-                        RenderState.calculateDirections(isPerspective, true)
-                        val root = rootOverride ?: entity.getRoot(Entity::class)
-                        pipeline.fill(root)
-                        // decals and transparent objects are irrelevant for shadows
-                        pipeline.stages.getOrNull(PipelineStage.DECAL.id)?.clear()
-                        pipeline.stages.getOrNull(PipelineStage.GLASS.id)?.clear()
-                        result.clearColor(0, depth = true)
-                        pipeline.singlePassWithoutSky()
+                    if (cascadeIndex < 0) {
+                        // render all sides
+                        result.draw(renderer) { cascadeIndex ->
+                            renderCascade(
+                                pipeline, root, position, tmpPos, cascadeIndex,
+                                rotation, direction, drawTransform, resolution, result
+                            )
+                        }
+                    } else {
+                        // render just one side
+                        result.draw(renderer, cascadeIndex) {
+                            renderCascade(
+                                pipeline, root, position, tmpPos, cascadeIndex,
+                                rotation, direction, drawTransform, resolution, result
+                            )
+                        }
                     }
                 }
             }
         }
         JomlPools.vec3d.sub(1)
+    }
+
+    private fun renderCascade(
+        pipeline: Pipeline, root: PrefabSaveable,
+        position: Vector3d, tmpPos: Vector3d, cascadeIndex: Int,
+        rotation: Quaternionf, direction: Vector3f,
+        drawTransform: Matrix4x3, resolution: Int,
+        result: FramebufferArray
+    ) {
+        // reset position
+        position.set(tmpPos)
+        pipeline.clear()
+        val cascadeScale = shadowMapPower.pow(-cascadeIndex)
+        updateShadowMap(
+            cascadeScale,
+            RenderState.cameraMatrix,
+            position, rotation, direction,
+            drawTransform, pipeline, resolution
+        )
+        val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
+        RenderState.calculateDirections(isPerspective, true)
+        pipeline.fill(root)
+        // decals and transparent objects are irrelevant for shadows
+        pipeline.stages.getOrNull(PipelineStage.DECAL.id)?.clear()
+        pipeline.stages.getOrNull(PipelineStage.GLASS.id)?.clear()
+        result.clearColor(0, depth = true)
+        pipeline.singlePassWithoutSky()
     }
 
     /**

@@ -277,17 +277,35 @@ class FramebufferArray(
         }
     }
 
+    fun draw(renderer: Renderer, layer: Int, renderSide: () -> Unit) {
+        useFrame(this, renderer) {
+            renderSide(layer, renderSide)
+        }
+    }
+
     private fun renderSides(render: (layer: Int) -> Unit) {
         Frame.bind()
         for (layer in 0 until layers) {
-            // update all attachments, updating the framebuffer texture targets
-            updateAttachments(layer)
-            val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
-            assertEquals(GL_FRAMEBUFFER_COMPLETE, status, "Framebuffer incomplete")
+            updateBind(layer)
             render(layer)
+            textures.getOrNull(layer)?.needsMipmaps = true
         }
         depthTexture?.needsMipmaps = true
-        for (i in textures.indices) textures[i].needsMipmaps = true
+    }
+
+    private fun renderSide(layer: Int, render: () -> Unit) {
+        Frame.bind()
+        updateBind(layer)
+        render()
+        depthTexture?.needsMipmaps = true
+        textures.getOrNull(layer)?.needsMipmaps = true
+    }
+
+    private fun updateBind(layer: Int) {
+        // update all attachments, updating the framebuffer texture targets
+        updateAttachments(layer)
+        val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
+        assertEquals(GL_FRAMEBUFFER_COMPLETE, status, "Framebuffer incomplete")
     }
 
     override fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer {
