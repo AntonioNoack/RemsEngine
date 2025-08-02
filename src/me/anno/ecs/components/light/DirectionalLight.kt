@@ -8,6 +8,7 @@ import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.ShaderLib
 import me.anno.mesh.Shapes
+import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4f
 import org.joml.Matrix4x3
@@ -52,29 +53,21 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         //  (we need less pixels behind the player, and more in front, so it makes sense to prioritize the front)
 
         // cascade style must only influence xy, not z
-        dstCameraMatrix.set(drawTransform).invert()
+        dstCameraMatrix.set(drawTransform)
         dstCameraMatrix.setTranslation(0f, 0f, 0f)
-        val sx = 1.0 / cascadeScale
-        val sz = 1.0
+        val invCamMatrix = dstCameraMatrix.invert()
 
-        // z must be mapped from [-1,1] to [0,1]
-        // additionally it must be scaled to match the world size
-        dstCameraMatrix.scaleLocal(sx.toFloat(), sx.toFloat(), (sz * 0.5).toFloat())
-        dstCameraMatrix.m32 = sx.toFloat() // w
-        dstCameraMatrix.determineProperties() // after writing a field, we need to recalculate them
+        val orthoMatrix = JomlPools.mat4f.borrow().setOrtho(
+            -cascadeScale, cascadeScale,
+            -cascadeScale, cascadeScale,
+            1f, -1f, zZeroToOne = true
+        )
+        orthoMatrix.mul(invCamMatrix, dst = dstCameraMatrix)
 
         // is this correct if cascadeScale != 1.0? should be
         pipeline.frustum.defineOrthographic(
             drawTransform, resolution,
             dstCameraPosition, cameraRotation
-        )
-
-        // offset camera position accordingly
-        val factor = (2f / cascadeScale - 1f)
-        dstCameraPosition.sub(
-            cameraDirection.x * factor,
-            cameraDirection.y * factor,
-            cameraDirection.z * factor // todo this might be wrong... but idk how much :/
         )
     }
 
@@ -151,12 +144,12 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             "           nextDir *= shadowMapPower;\n" +
                             "       }\n" +
 
-                            // todo why does it need this scale factor and offset??
-                            // todo can we integrate it into the matrix somehow??
+                            // why does it need this scale factor -> because OpenGL maps depth from [-1,1] to [0,1] by itself
+                            // why does it need this offset?? it doesn't, this is just the usual bias
                             // todo for large scale.z-values, the shadow becomes weaker... why???
                             //   must be our interpolation, I think... half of the pixels become shadowed,
                             //   because we would need a tighter/wider bias
-                            "       float depthFromShader = (lightPos.z*.5 + shaderV3) + 0.005;\n" +
+                            "       float depthFromShader = (lightPos.z*.5 + shaderV3) + 0.001;\n" +
 
                             // do the shadow map function and compare
                             "       float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, vec3(shadowDir.xy,layerIdx), NdotL, depthFromShader);\n" +
