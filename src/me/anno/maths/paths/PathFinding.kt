@@ -1,5 +1,6 @@
 package me.anno.maths.paths
 
+import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.pooling.Stack
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
@@ -173,21 +174,15 @@ object PathFinding {
         else max(16, 1 shl log2(capacityGuess.toFloat()).toInt())
         val cache = HashMap<Node, DataNode<Node>>(capacity)
         val queue = PriorityQueue<Node> { p0, p1 ->
-            val score0 = cache[p0]!!.score
-            val score1 = cache[p1]!!.score
+            val score0 = assertNotNull(cache[p0], "cache[p0] is null").score
+            val score1 = assertNotNull(cache[p1], "cache[p1] is null").score
             score0.compareTo(score1)
         }
 
-        /*val cache = localCache.get() as HashMap<Node,DataNode>
-        val queue = localQueue.get() as PriorityQueue<Node>
-
-        cache.clear()
-        queue.clear()*/
-
         for (start in starts) {
-            queue.add(start)
             @Suppress("UNCHECKED_CAST")
             cache[start] = pool.create().set(0.0, distStartEnd, null) as DataNode<Node>
+            queue.add(start)
         }
 
         var end: Node? = null
