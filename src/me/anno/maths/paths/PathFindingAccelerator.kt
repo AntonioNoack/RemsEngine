@@ -1,11 +1,11 @@
 package me.anno.maths.paths
 
-import me.anno.maths.paths.PathFinding.aStar
+import me.anno.maths.paths.PathFinding.aStarWithCallback
 import me.anno.maths.paths.PathFinding.dijkstra
 import me.anno.maths.paths.PathFinding.emptyResult
 import me.anno.maths.paths.PathFinding.genericSearch
-import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.algorithms.Recursion
+import me.anno.utils.structures.lists.Lists.any2
 
 /**
  * accelerates many requests on large graphs by grouping them into proxies;
@@ -120,11 +120,10 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
         ) { from, callback ->
             // callback neighbor proxies
             for (to in getProxyData(from)!!.neighborProxies.value) {
-                callback(to, distance(from, to), distance(to, end))
+                callback.respond(to, distance(from, to), distance(to, end))
                 if (useSecondaryHops) {
                     for (to2 in getProxyData(to)!!.neighborProxies.value) {
-                        if (to2 != from)
-                            callback(to2, distance(from, to2), distance(to2, end))
+                        if (to2 != from) callback.respond(to2, distance(from, to2), distance(to2, end))
                     }
                 }
             }
@@ -174,7 +173,7 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
                         listConnections(from) {
                             // distance to end should converge to zero in the region around the proxy node
                             // doesn't fix the chunky-ness of the found path :/
-                            callback(it, distance(from, it), distance(from, endNode))
+                            callback.respond(it, distance(from, it), distance(from, endNode))
                         }
                     }!!
                 )
@@ -190,7 +189,7 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
                     includeEnd = true
                 ) { from, callback ->
                     listConnections(from) {
-                        callback(it, distance(from, it), distance(from, end))
+                        callback.respond(it, distance(from, it), distance(from, end))
                     }
                 }!!
             )
@@ -211,12 +210,12 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
     fun findWithoutAcceleration(
         start: Node, end: Node, maxDistance: Double,
         capacityGuess: Int, includeStart: Boolean, includeEnd: Boolean
-    ): List<Node>? = aStar(
+    ): List<Node>? = aStarWithCallback(
         start, end, distance(start, end), maxDistance,
         capacityGuess, includeStart, includeEnd
     ) { from, callback ->
         listConnections(from) {
-            callback(it, distance(from, it), distance(it, end))
+            callback.respond(it, distance(from, it), distance(it, end))
         }
     }
 
@@ -229,7 +228,7 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
         capacityGuess, includeStart, includeEnd
     ) { from, callback ->
         listConnections(from) { to ->
-            callback(to, distance(from, to))
+            callback.respond(to, distance(from, to))
         }
     }
 }

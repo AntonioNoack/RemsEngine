@@ -116,7 +116,7 @@ abstract class Agent(val image: Image) {
         start: Vector2i,
         end: Vector2i,
     ): IntArray? {
-        val path = PathFinding.aStar(
+        val path = PathFinding.aStarWithCallback(
             start, end, start.gridDistance(end).toDouble(),
             Int.MAX_VALUE.toDouble(), 64,
             includeStart = true, includeEnd = true,
@@ -130,7 +130,7 @@ abstract class Agent(val image: Image) {
                 val i = x + y * w
                 if (rockTypes[i] == 0) {
                     val to = Vector2i(x, y)
-                    callback(to, 1.0, to.gridDistance(end).toDouble())
+                    callback.respond(to, 1.0, to.gridDistance(end).toDouble())
                 }
             }
             if (node.x > 0) call(-1, 0)

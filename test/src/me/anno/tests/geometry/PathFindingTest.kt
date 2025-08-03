@@ -7,6 +7,8 @@ import me.anno.maths.Maths.length
 import me.anno.maths.paths.PathFinding
 import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.jvm.images.BIImage.write
+import me.anno.maths.paths.AStarForwardResponse
+import me.anno.maths.paths.DijkstraForwardResponse
 import me.anno.tests.LOGGER
 import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -109,20 +111,20 @@ fun forward(graph: TestGraph, sx: Int, sy: Int) =
 
     }
 
-fun forwardV2x1(from: TestNode, callback: (TestNode, Double, Double) -> Unit) {
+fun forwardV2x1(from: TestNode, response: AStarForwardResponse<TestNode>) {
     val links = from.links
     for (i in links.indices) {
         val link = links[i]
         val to = link.to
-        callback(to, link.dist, to.distToEnd)
+        response.respond(to, link.dist, to.distToEnd)
     }
 }
 
-fun forwardV2x2(from: TestNode, callback: (TestNode, Double) -> Unit) {
+fun forwardV2x2(from: TestNode, response: DijkstraForwardResponse<TestNode>) {
     val links = from.links
     for (i in links.indices) {
         val link = links[i]
-        callback(link.to, link.dist)
+        response.respond(link.to, link.dist)
     }
 }
 
@@ -216,7 +218,7 @@ fun main() {
         // with and without inlining, we get the same performance of 1500ns/seed
         // 1500ns/seed | 32k ns/seed
         val t0 = Time.nanoTime
-        path0 = PathFinding.aStar(
+        path0 = PathFinding.aStarWithCallback(
             start, end, distance(start, end), maxDistance,
             sx * sy, includeStart, includeEnd, ::forwardV2x1
         )!!
