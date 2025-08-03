@@ -4,6 +4,7 @@ import me.anno.maths.Maths.mix
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
@@ -33,5 +34,20 @@ class QuaternionTest {
             workQuat.toEulerAnglesDegrees(dstVec)
             assertEquals(0.0, dstVec.distanceSquared(srcVec), maxAllowedError)
         }
+    }
+
+    @Test
+    fun testRotationToParallel() {
+        val qf = Quaternionf().rotationTo(0f, 1f, 0f, 0f, 1f, 0f)
+        assertEquals(Quaternionf(), qf)
+
+        qf.rotationTo(0f, 1f, 0f, 0f, -1f, 0f)
+        assertEquals(Quaternionf(1f, 0f, 0f, 0f), qf)
+
+        val qd = Quaterniond().rotationTo(0.0, 1.0, 0.0, 0.0, 1.0, 0.0)
+        assertEquals(Quaterniond(), qd)
+
+        qd.rotationTo(0.0, 1.0, 0.0, 0.0, -1.0, 0.0)
+        assertEquals(Quaterniond(1.0, 0.0, 0.0, 0.0), qd)
     }
 }

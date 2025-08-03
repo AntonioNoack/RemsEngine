@@ -75,12 +75,12 @@ class SDFBezierCurve : SDFShape() {
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         val points = points
         return when (points.size) {
-            0 -> Float.POSITIVE_INFINITY
-            1 -> {
+            0 -> Float.POSITIVE_INFINITY // impossible
+            1 -> { // a single point
                 val p0 = points[0]
                 pos.distance(p0.x, p0.y, p0.z, pos.w) - p0.w + pos.w
             }
-            2 -> {
+            2 -> { // a line
                 val p0 = points[0]
                 val p1 = points[1]
                 val tmp = JomlPools.vec4f.create()
@@ -90,6 +90,7 @@ class SDFBezierCurve : SDFShape() {
                 return r + pos.w
             }
             else -> {
+                // proper Bézier curve, approximation through quadratic curves
                 var a = points[0]
                 var b = points[1]
                 var c = points[2]
@@ -97,7 +98,7 @@ class SDFBezierCurve : SDFShape() {
                 for (i in 3 until points.size) {
                     a = b
                     b = c
-                    c = points[3]
+                    c = points[i]
                     best = min(best, sdBezier(pos, a, b, c))
                 }
                 best + pos.w

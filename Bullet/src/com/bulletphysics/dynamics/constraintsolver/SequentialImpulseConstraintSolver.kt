@@ -10,15 +10,11 @@ import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.narrowphase.ManifoldPoint
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.dynamics.constraintsolver.ContactConstraint.resolveSingleCollisionCombined
 import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.MiscUtil.resize
 import com.bulletphysics.util.IntArrayList
 import com.bulletphysics.util.ObjectPool
 import cz.advel.stack.Stack
-import me.anno.maths.Packing.pack64
-import me.anno.maths.Packing.unpackHighFrom64
-import me.anno.maths.Packing.unpackLowFrom64
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -38,8 +34,6 @@ import kotlin.math.sqrt
  * @author jezek2
  */
 class SequentialImpulseConstraintSolver : ConstraintSolver {
-
-    private val gOrder = LongArray(SEQUENTIAL_IMPULSE_MAX_SOLVER_POINTS)
 
     /** ///////////////////////////////////////////////////////////////////////// */
     private val bodiesPool = ObjectPool.Companion.get(SolverBody::class.java)
@@ -776,268 +770,18 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
     ) {
         pushProfile("solveGroup")
         try {
-            // TODO: solver cache friendly
-            if ((info.solverMode and SolverMode.SOLVER_CACHE_FRIENDLY) != 0) {
-                // you need to provide at least some bodies
-                // SimpleDynamicsWorld needs to switch off SOLVER_CACHE_FRIENDLY
-                checkNotNull(bodies)
-                assert(numBodies != 0)
-                return solveGroupCacheFriendly(
-                    manifold, manifoldOffset, numManifolds,
-                    constraints, constraintsOffset, numConstraints,
-                    info
-                )
-            }
-
-            val info = ContactSolverInfo(info)
-
-            val numIter = info.numIterations
-
-            var totalPoints = 0
-            for (j in 0 until numManifolds) {
-                val manifold1 = manifold[manifoldOffset + j]
-                prepareConstraints(manifold1, info)
-
-                for (p in 0 until manifold1.numContacts) {
-                    gOrder[totalPoints] = orderIndex(j, p)
-                    totalPoints++
-                }
-            }
-
-            if (constraints != null) {
-                for (j in 0 until numConstraints) {
-                    constraints[constraintsOffset + j]
-                        .buildJacobian()
-                }
-            }
-
-            // should traverse the contacts random order...
-            for (iteration in 0 until numIter) {
-                if ((info.solverMode and SolverMode.SOLVER_RANDOMIZE_ORDER) != 0) {
-                    if ((iteration and 7) == 0) {
-                        for (j in 0 until totalPoints) {
-                            // JAVA NOTE: swaps references instead of copying values (but that's fine in this context)
-                            val tmp = gOrder[j]
-                            val swapi = randInt2(j + 1)
-                            gOrder[j] = gOrder[swapi]
-                            gOrder[swapi] = tmp
-                        }
-                    }
-                }
-
-                if (constraints != null) {
-                    for (j in 0 until numConstraints) {
-                        constraints[constraintsOffset + j]
-                            .solveConstraint(info.timeStep)
-                    }
-                }
-
-                for (j in 0 until totalPoints) {
-                    val manifold1 = manifold[manifoldOffset + orderManifoldIndex(gOrder[j])]
-                    solve(
-                        manifold1.body0 as RigidBody,
-                        manifold1.body1 as RigidBody,
-                        manifold1.getContactPoint(orderPointIndex(gOrder[j])), info
-                    )
-                }
-
-                for (j in 0 until totalPoints) {
-                    val manifold1 = manifold[manifoldOffset + orderManifoldIndex(gOrder[j])]
-                    solveFriction(
-                        manifold1.body0 as RigidBody,
-                        manifold1.body1 as RigidBody,
-                        manifold1.getContactPoint(orderPointIndex(gOrder[j])), info
-                    )
-                }
-            }
+            // you need to provide at least some bodies
+            // SimpleDynamicsWorld needs to switch off SOLVER_CACHE_FRIENDLY
+            checkNotNull(bodies)
+            assert(numBodies != 0)
+            return solveGroupCacheFriendly(
+                manifold, manifoldOffset, numManifolds,
+                constraints, constraintsOffset, numConstraints,
+                info
+            )
         } finally {
             popProfile()
         }
-    }
-
-    fun prepareConstraints(manifoldPtr: PersistentManifold, info: ContactSolverInfo) {
-        val body0 = manifoldPtr.body0 as RigidBody
-        val body1 = manifoldPtr.body1 as RigidBody
-
-        // only necessary to refresh the manifold once (first iteration). The integration is done outside the loop
-
-        //#ifdef FORCE_REFESH_CONTACT_MANIFOLDS
-        //manifoldPtr->refreshContactPoints(body0->getCenterOfMassTransform(),body1->getCenterOfMassTransform());
-        //#endif //FORCE_REFESH_CONTACT_MANIFOLDS
-        val numPoints = manifoldPtr.numContacts
-        BulletStats.totalContactPoints += numPoints
-
-        val tmpVec = Stack.newVec()
-
-        val pos1 = Stack.newVec()
-        val pos2 = Stack.newVec()
-        val relPos1 = Stack.newVec()
-        val relPos2 = Stack.newVec()
-        val vel1 = Stack.newVec()
-        val vel2 = Stack.newVec()
-        val vel = Stack.newVec()
-        val totalImpulse = Stack.newVec()
-        val torqueAxis0 = Stack.newVec()
-        val torqueAxis1 = Stack.newVec()
-        val ftorqueAxis0 = Stack.newVec()
-        val ftorqueAxis1 = Stack.newVec()
-
-        for (i in 0 until numPoints) {
-            val cp = manifoldPtr.getContactPoint(i)
-            if (cp.distance <= 0.0) {
-
-                cp.getPositionWorldOnA(pos1).sub(body0.worldTransform.origin, relPos1)
-                cp.getPositionWorldOnB(pos2).sub(body1.worldTransform.origin, relPos2)
-
-                // this jacobian entry is re-used for all iterations
-                val jacDiagABInv = JacobianEntry.calculateDiagonalInv(
-                    body0.worldTransform.basis, body1.worldTransform.basis,
-                    relPos1, relPos2, cp.normalWorldOnB,
-                    body0.invInertiaLocal, body0.inverseMass,
-                    body1.invInertiaLocal, body1.inverseMass
-                )
-
-                var cpd = cp.userPersistentData as ConstraintPersistentData?
-                if (cpd != null) {
-                    // might be invalid
-                    cpd.persistentLifeTime++
-                    if (cpd.persistentLifeTime != cp.lifeTime) {
-                        //printf("Invalid: cpd->m_persistentLifeTime = %i cp.getLifeTime() = %i\n",cpd->m_persistentLifeTime,cp.getLifeTime());
-                        //new (cpd) btConstraintPersistentData;
-                        cpd.reset()
-                        cpd.persistentLifeTime = cp.lifeTime
-                    } // else printf("Persistent: cpd->m_persistentLifeTime = %i cp.getLifeTime() = %i\n",cpd->m_persistentLifeTime,cp.getLifeTime());
-                } else {
-                    // todo: should this be in a pool?
-                    //void* mem = btAlignedAlloc(sizeof(btConstraintPersistentData),16);
-                    //cpd = new (mem)btConstraintPersistentData;
-                    cpd = ConstraintPersistentData()
-
-                    //assert(cpd != null);
-
-                    //printf("totalCpd = %i Created Ptr %x\n",totalCpd,cpd);
-                    cp.userPersistentData = cpd
-                    cpd.persistentLifeTime = cp.lifeTime
-                    //printf("CREATED: %x . cpd->m_persistentLifeTime = %i cp.getLifeTime() = %i\n",cpd,cpd->m_persistentLifeTime,cp.getLifeTime());
-                }
-
-                cpd.jacDiagABInv = jacDiagABInv
-
-                // Dependent on Rigidbody A and B types, fetch the contact/friction response func
-                // perhaps do a similar thing for friction/restutution combiner funcs...
-                cpd.frictionSolverFunc =
-                    frictionDispatch[body0.frictionSolverType * MAX_CONTACT_SOLVER_TYPES + body1.frictionSolverType]
-                cpd.contactSolverFunc =
-                    contactDispatch[body0.contactSolverType * MAX_CONTACT_SOLVER_TYPES + body1.contactSolverType]
-
-                body0.getVelocityInLocalPoint(relPos1, vel1)
-                body1.getVelocityInLocalPoint(relPos2, vel2)
-                vel1.sub(vel2, vel)
-
-                val relVel = cp.normalWorldOnB.dot(vel)
-                val combinedRestitution = cp.combinedRestitution
-
-                cpd.penetration = cp.distance
-                /**btScalar(info.m_numIterations); */
-                cpd.friction = cp.combinedFriction
-                cpd.restitution = restitutionCurve(relVel, combinedRestitution)
-                if (cpd.restitution <= 0.0) {
-                    cpd.restitution = 0.0
-                }
-
-                // restitution and penetration work in same direction so
-                // rel_vel
-                val penVel = -cpd.penetration / info.timeStep
-
-                if (cpd.restitution > penVel) {
-                    cpd.penetration = 0.0
-                }
-
-                val relaxation = info.damping
-                if ((info.solverMode and SolverMode.SOLVER_USE_WARMSTARTING) != 0) {
-                    cpd.appliedImpulse *= relaxation
-                } else {
-                    cpd.appliedImpulse = 0.0
-                }
-
-                // for friction
-                cpd.prevAppliedImpulse = cpd.appliedImpulse
-
-                // re-calculate friction direction every frame, todo: check if this is really needed
-                cp.normalWorldOnB.findSystem(cpd.frictionWorldTangential0, cpd.frictionWorldTangential1, false)
-
-                //#define NO_FRICTION_WARMSTART 1
-                //#ifdef NO_FRICTION_WARMSTART
-                cpd.accumulatedTangentImpulse0 = 0.0
-                cpd.accumulatedTangentImpulse1 = 0.0
-                //#endif //NO_FRICTION_WARMSTART
-                var denom0 = body0.computeImpulseDenominator(pos1, cpd.frictionWorldTangential0)
-                var denom1 = body1.computeImpulseDenominator(pos2, cpd.frictionWorldTangential0)
-                var denom = relaxation / (denom0 + denom1)
-                cpd.jacDiagABInvTangent0 = denom
-
-                denom0 = body0.computeImpulseDenominator(pos1, cpd.frictionWorldTangential1)
-                denom1 = body1.computeImpulseDenominator(pos2, cpd.frictionWorldTangential1)
-                denom = relaxation / (denom0 + denom1)
-                cpd.jacDiagABInvTangent1 = denom
-
-                cp.normalWorldOnB.mul(cpd.appliedImpulse, totalImpulse)
-
-
-                relPos1.cross(cp.normalWorldOnB, torqueAxis0)
-                cpd.angularComponentA.set(torqueAxis0)
-                body0.invInertiaTensorWorld.transform(cpd.angularComponentA)
-
-                relPos2.cross(cp.normalWorldOnB, torqueAxis1)
-                cpd.angularComponentB.set(torqueAxis1)
-                body1.invInertiaTensorWorld.transform(cpd.angularComponentB)
-
-
-                relPos1.cross(cpd.frictionWorldTangential0, ftorqueAxis0)
-                cpd.frictionAngularComponent0A.set(ftorqueAxis0)
-                body0.invInertiaTensorWorld.transform(cpd.frictionAngularComponent0A)
-
-
-                relPos1.cross(cpd.frictionWorldTangential1, ftorqueAxis1)
-                cpd.frictionAngularComponent1A.set(ftorqueAxis1)
-                body0.invInertiaTensorWorld.transform(cpd.frictionAngularComponent1A)
-
-
-                relPos2.cross(cpd.frictionWorldTangential0, ftorqueAxis0)
-                cpd.frictionAngularComponent0B.set(ftorqueAxis0)
-                body1.invInertiaTensorWorld.transform(cpd.frictionAngularComponent0B)
-
-
-                relPos2.cross(cpd.frictionWorldTangential1, ftorqueAxis1)
-                cpd.frictionAngularComponent1B.set(ftorqueAxis1)
-                body1.invInertiaTensorWorld.transform(cpd.frictionAngularComponent1B)
-
-                // apply previous frames impulse on both bodies
-                body0.applyImpulse(totalImpulse, relPos1)
-
-                totalImpulse.negate(tmpVec)
-                body1.applyImpulse(tmpVec, relPos2)
-            }
-        }
-
-        Stack.subVec(13)
-    }
-
-    @Suppress("unused")
-    fun solveCombinedContactFriction(
-        body0: RigidBody,
-        body1: RigidBody,
-        cp: ManifoldPoint,
-        info: ContactSolverInfo
-    ): Double {
-        var maxImpulse = 0.0
-        if (cp.distance <= 0.0) {
-            val impulse = resolveSingleCollisionCombined(body0, body1, cp, info)
-            if (maxImpulse < impulse) {
-                maxImpulse = impulse
-            }
-        }
-        return maxImpulse
     }
 
     fun solve(body0: RigidBody, body1: RigidBody, cp: ManifoldPoint, info: ContactSolverInfo): Double {
@@ -1050,14 +794,6 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             }
         }
         return maxImpulse
-    }
-
-    fun solveFriction(body0: RigidBody, body1: RigidBody, cp: ManifoldPoint, info: ContactSolverInfo): Double {
-        if (cp.distance <= 0.0) {
-            val cpd = cp.userPersistentData as ConstraintPersistentData
-            cpd.frictionSolverFunc!!.resolveContact(body0, body1, cp, info)
-        }
-        return 0.0
     }
 
     override fun reset() {
@@ -1084,8 +820,6 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
     companion object {
         private val MAX_CONTACT_SOLVER_TYPES = ContactConstraintEnum.MAX_CONTACT_SOLVER_TYPES.ordinal
-
-        private const val SEQUENTIAL_IMPULSE_MAX_SOLVER_POINTS = 16384
         private fun getNormalImpulse(
             contactConstraint: SolverConstraint,
             solverInfo: ContactSolverInfo,
@@ -1096,24 +830,10 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 positionalError = -contactConstraint.penetration * solverInfo.erp / solverInfo.timeStep
             }
 
-            val velocityError = contactConstraint.restitution - relVel // * damping;
-
+            val velocityError = contactConstraint.restitution - relVel // * damping
             val penetrationImpulse = positionalError * contactConstraint.jacDiagABInv
             val velocityImpulse = velocityError * contactConstraint.jacDiagABInv
             return penetrationImpulse + velocityImpulse
-        }
-
-        /** ///////////////////////////////////////////////////////////////////////// */
-        fun orderManifoldIndex(v: Long): Int {
-            return unpackHighFrom64(v)
-        }
-
-        fun orderPointIndex(v: Long): Int {
-            return unpackLowFrom64(v)
-        }
-
-        fun orderIndex(manifoldIndex: Int, pointIndex: Int): Long {
-            return pack64(manifoldIndex, pointIndex)
         }
     }
 }

@@ -4,7 +4,6 @@ import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.linearmath.Transform
 import me.anno.bullet.bodies.PhysicsBody
-import me.anno.ecs.components.physics.Physics
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
 
