@@ -1,9 +1,6 @@
 package me.anno.maths.paths
 
-import me.anno.maths.paths.PathFinding.aStarWithCallback
-import me.anno.maths.paths.PathFinding.dijkstra
-import me.anno.maths.paths.PathFinding.emptyResult
-import me.anno.maths.paths.PathFinding.genericSearch
+import me.anno.maths.paths.PathFinding.Companion.emptyResult
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.lists.Lists.any2
 
@@ -114,9 +111,9 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
         if (startProxyData == null || endProxyData == null || startProxyData == endProxyData) {
             return findWithoutAcceleration(start, end, maxDistance, capacityGuess, includeStart, includeEnd)
         }
-        val result = genericSearch(// search in proxy space
+        val result = PathFinding<Node>(capacityGuess).genericSearch(// search in proxy space
             startProxyData.proxyNode, endProxyData.proxyNode, distance(start, end), maxDistance,
-            true, capacityGuess, includeStart, includeEnd
+            true, includeStart, includeEnd
         ) { from, callback ->
             // callback neighbor proxies
             for (to in getProxyData(from)!!.neighborProxies.value) {
@@ -162,11 +159,11 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
                 val endNode = base[proxyIndex]
                 val targetProxies = getProxyData(endNode)!!.members
                 result.addAll(
-                    PathFinding.genericSearchMany(
+                    PathFinding<Node>(capacityGuess).genericSearchMany(
                         setOf(startNode),
                         { it in targetProxies },
                         distance(startNode, endNode), maxDistance,
-                        earlyExit = true, capacityGuess,
+                        earlyExit = true,
                         includeStart = false,
                         includeEnd = true
                     ) { from, callback ->
@@ -181,10 +178,10 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
             // add path from last proxy to end
             val startNode = result.last()
             result.addAll(
-                genericSearch(
+                PathFinding<Node>(capacityGuess).genericSearch(
                     startNode, end,
                     distance(startNode, end), maxDistance,
-                    earlyExit = true, capacityGuess,
+                    earlyExit = true,
                     includeStart = false,
                     includeEnd = true
                 ) { from, callback ->
@@ -210,9 +207,9 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
     fun findWithoutAcceleration(
         start: Node, end: Node, maxDistance: Double,
         capacityGuess: Int, includeStart: Boolean, includeEnd: Boolean
-    ): List<Node>? = aStarWithCallback(
+    ): List<Node>? = PathFinding<Node>(capacityGuess).aStarWithCallback(
         start, end, distance(start, end), maxDistance,
-        capacityGuess, includeStart, includeEnd
+        includeStart, includeEnd
     ) { from, callback ->
         listConnections(from) {
             callback.respond(it, distance(from, it), distance(it, end))
@@ -223,9 +220,9 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
     fun findShortest(
         start: Node, end: Node, maxDistance: Double,
         capacityGuess: Int, includeStart: Boolean, includeEnd: Boolean
-    ): List<Node>? = dijkstra(
+    ): List<Node>? = PathFinding<Node>(capacityGuess).dijkstra(
         start, end, distance(start, end), maxDistance,
-        capacityGuess, includeStart, includeEnd
+        includeStart, includeEnd
     ) { from, callback ->
         listConnections(from) { to ->
             callback.respond(to, distance(from, to))

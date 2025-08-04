@@ -59,7 +59,7 @@ abstract class Agent(val image: Image) {
                 Vector2i(newPos.x + dx, newPos.y + dy)
             )
             return if (path != null) {
-                world.add(AgentPixel(path,  color, this))
+                world.add(AgentPixel(path, color, this))
                 loadingState--
                 false
             } else true
@@ -116,13 +116,14 @@ abstract class Agent(val image: Image) {
         start: Vector2i,
         end: Vector2i,
     ): IntArray? {
-        val path = PathFinding.aStarWithCallback(
+        val path = PathFinding<Vector2i>(64).aStarWithCallback(
             start, end, start.gridDistance(end).toDouble(),
-            Int.MAX_VALUE.toDouble(), 64,
+            Int.MAX_VALUE.toDouble(),
             includeStart = true, includeEnd = true,
         ) { node, callback ->
             val w = world.w
             val h = world.h
+
             // query all neighbors
             fun call(dx: Int, dy: Int) {
                 val x = node.x + dx

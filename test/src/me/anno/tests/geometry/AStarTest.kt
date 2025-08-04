@@ -1,6 +1,6 @@
 package me.anno.tests.geometry
 
-import me.anno.maths.paths.PathFinding.aStar
+import me.anno.maths.paths.PathFinding
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNull
 import me.anno.utils.structures.Collections.crossMap
@@ -57,10 +57,10 @@ class AStarTest {
         val nodes = testGraph1
         val startNode = nodes[start - 'A']
         val endNode = nodes[end - 'A']
-        val takenPath = aStar(
+        val takenPath = PathFinding<AStarNode>(16).aStar(
             startNode, endNode,
             { a, b -> a.distance(b) },
-            { a -> a.links.keys }, 1e9, 16,
+            { a -> a.links.keys }, 1e9,
             includeStart = true, includeEnd = true
         )!!.joinToString("") { node ->
             ('A' + nodes.indexOf(node)).toString()
@@ -93,13 +93,13 @@ class AStarTest {
         val nodes = testGraph1
         val extraNode = AStarNode(Vector2d())
         val searched = HashSet<AStarNode>()
-        val takenPath = aStar(
+        val takenPath = PathFinding<AStarNode>(16).aStar(
             nodes[0], extraNode,
             { a, b -> a.distance(b) },
             { a ->
                 searched.add(a)
                 a.links.keys
-            }, 1e9, 16,
+            }, 1e9,
             includeStart = true, includeEnd = true
         )
         assertNull(takenPath) // there is no path, so none must be returned
@@ -140,13 +140,13 @@ class AStarTest {
         assertEquals(getIndex(0, 5), nodes.indexOf(start))
         val end = getNode[Vector2d(9.0, 5.0)]!!
         val searched = HashSet<AStarNode>()
-        val takenPath = aStar(
+        val takenPath = PathFinding<AStarNode>(16).aStar(
             start, end,
             { a, b -> a.distance(b) },
             { a ->
                 searched.add(a)
                 a.links.keys
-            }, 1e9, 16,
+            }, 1e9,
             includeStart = true, includeEnd = true
         )!!
         val expectedPath = (start.position.x.toInt()..end.position.x.toInt()).map { x ->
@@ -167,34 +167,34 @@ class AStarTest {
         )
         val (start, end) = nodes
         assertEquals(
-            listOf(start, end), aStar(
+            listOf(start, end), PathFinding<AStarNode>(16).aStar(
                 start, end,
                 { a, b -> a.distance(b) },
-                { a -> a.links.keys }, 1e6, 16,
+                { a -> a.links.keys }, 1e6,
                 includeStart = true, includeEnd = true
             )
         )
         assertEquals(
-            listOf(start), aStar(
+            listOf(start), PathFinding<AStarNode>(16).aStar(
                 start, end,
                 { a, b -> a.distance(b) },
-                { a -> a.links.keys }, 1e6, 16,
+                { a -> a.links.keys }, 1e6,
                 includeStart = true, includeEnd = false
             )
         )
         assertEquals(
-            listOf(end), aStar(
+            listOf(end), PathFinding<AStarNode>(16).aStar(
                 start, end,
                 { a, b -> a.distance(b) },
-                { a -> a.links.keys }, 1e6, 16,
+                { a -> a.links.keys }, 1e6,
                 includeStart = false, includeEnd = true
             )
         )
         assertEquals(
-            emptyList<AStarNode>(), aStar(
+            emptyList<AStarNode>(), PathFinding<AStarNode>(16).aStar(
                 start, end,
                 { a, b -> a.distance(b) },
-                { a -> a.links.keys }, 1e6, 16,
+                { a -> a.links.keys }, 1e6,
                 includeStart = false, includeEnd = false
             )
         )
@@ -210,17 +210,17 @@ class AStarTest {
             listOf("B", "A")
         )
         val (start, end) = nodes
-        val tooFar = aStar(
+        val tooFar = PathFinding<AStarNode>(16).aStar(
             start, end,
             { a, b -> a.distance(b) },
-            { a -> a.links.keys }, 14.0, 16,
+            { a -> a.links.keys }, 14.0,
             includeStart = true, includeEnd = true
         )
         assertNull(tooFar)
-        val goodEnough = aStar(
+        val goodEnough = PathFinding<AStarNode>(16).aStar(
             start, end,
             { a, b -> a.distance(b) },
-            { a -> a.links.keys }, 15.0, 16,
+            { a -> a.links.keys }, 15.0,
             includeStart = true, includeEnd = true
         )
         assertNotNull(goodEnough)

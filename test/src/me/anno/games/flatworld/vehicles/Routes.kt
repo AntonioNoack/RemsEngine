@@ -1,8 +1,8 @@
 package me.anno.games.flatworld.vehicles
 
-import me.anno.maths.paths.PathFinding.aStar
 import me.anno.games.flatworld.FlatWorld
 import me.anno.games.flatworld.streets.ReversibleSegment
+import me.anno.maths.paths.PathFinding
 
 object Routes {
     fun distance(start: ReversibleSegment, end: ReversibleSegment): Double {
@@ -14,9 +14,9 @@ object Routes {
     }
 
     fun findRoute(world: FlatWorld, start: ReversibleSegment, end: ReversibleSegment): List<ReversibleSegment>? {
-        return aStar(
+        return PathFinding<ReversibleSegment>(16).aStar(
             start, end, ::distance, { segment -> getChildren(world, segment) },
-            1e9, 16, includeStart = true, includeEnd = true
+            1e9, includeStart = true, includeEnd = true
         )
     }
 }

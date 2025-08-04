@@ -2,13 +2,13 @@ package me.anno.tests.geometry
 
 import me.anno.Time
 import me.anno.engine.OfficialExtensions
-import me.anno.maths.Maths
-import me.anno.maths.Maths.length
-import me.anno.maths.paths.PathFinding
 import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.jvm.images.BIImage.write
+import me.anno.maths.Maths
+import me.anno.maths.Maths.length
 import me.anno.maths.paths.AStarForwardResponse
 import me.anno.maths.paths.DijkstraForwardResponse
+import me.anno.maths.paths.PathFinding
 import me.anno.tests.LOGGER
 import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -218,14 +218,14 @@ fun main() {
         // with and without inlining, we get the same performance of 1500ns/seed
         // 1500ns/seed | 32k ns/seed
         val t0 = Time.nanoTime
-        path0 = PathFinding.aStarWithCallback(
+        path0 = PathFinding<TestNode>(sx * sy).aStarWithCallback(
             start, end, distance(start, end), maxDistance,
-            sx * sy, includeStart, includeEnd, ::forwardV2x1
+            includeStart, includeEnd, ::forwardV2x1
         )!!
         val t1 = Time.nanoTime
-        path1 = PathFinding.dijkstra(
+        path1 = PathFinding<TestNode>(sx * sy).dijkstra(
             start, end, distance(start, end), maxDistance,
-            sx * sy, includeStart, includeEnd, ::forwardV2x2
+            includeStart, includeEnd, ::forwardV2x2
         )!!
         val t2 = Time.nanoTime
         cost0 += (t1 - t0)

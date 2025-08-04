@@ -54,9 +54,9 @@ class PathFindingTests {
             val includeStart = i.hasFlag(1)
             val includeEnd = i.hasFlag(2)
 
-            val route = PathFinding.aStar(
+            val route = PathFinding<Node>().aStar(
                 nodes[0], nodes[9], ::ringDistance, connected,
-                1e3, 16, includeStart, includeEnd
+                1e3, includeStart, includeEnd
             )
 
             val offset = (!includeStart).toInt()
@@ -74,9 +74,9 @@ class PathFindingTests {
         val connected = openRingConnectivity(nodes)
 
         // find route on that path
-        val route = PathFinding.aStar(
+        val route = PathFinding<Node>().aStar(
             nodes[0], nodes[9], ::ringDistance, connected,
-            8.5 * TAUf / 10.0, 16, true, true
+            8.5 * TAUf / 10.0, true, true
         )
 
         assertNull(route)
@@ -92,9 +92,9 @@ class PathFindingTests {
             val includeStart = i.hasFlag(1)
             val includeEnd = i.hasFlag(2)
 
-            val route = PathFinding.dijkstra(
+            val route = PathFinding<Node>().dijkstra(
                 nodes[0], nodes[9], ::ringDistance, connected,
-                1e3, 16, includeStart, includeEnd
+                1e3, includeStart, includeEnd
             )
 
             val offset = (!includeStart).toInt()
@@ -112,9 +112,9 @@ class PathFindingTests {
         val connected = openRingConnectivity(nodes)
 
         // find route on that path
-        val route = PathFinding.dijkstra(
+        val route = PathFinding<Node>().dijkstra(
             nodes[0], nodes[9], ::ringDistance, connected,
-            8.5 * TAUf / 10.0, 16, true, true
+            8.5 * TAUf / 10.0, true, true
         )
 
         assertNull(route)
@@ -135,9 +135,9 @@ class PathFindingTests {
         val nodes = createCircle(10)
         val connected = closedRingConnectivity(nodes)
         // find route on that path
-        val route = PathFinding.dijkstra(
+        val route = PathFinding<Node>().dijkstra(
             nodes[0], nodes[9], ::circleWithSlowJump, connected,
-            1e6, 16, true, true
+            1e6, true, true
         )
         assertEquals(nodes.toList(), route)
     }
@@ -148,9 +148,9 @@ class PathFindingTests {
         val nodes = createCircle(10)
         val connected = closedRingConnectivity(nodes)
         // find route on that path
-        val route = PathFinding.aStar(
+        val route = PathFinding<Node>().aStar(
             nodes[0], nodes[9], ::circleWithSlowJump, connected,
-            1e6, 16, true, true
+            1e6, true, true
         )
         assertEquals(listOf(nodes[0], nodes[9]), route)
     }
@@ -174,10 +174,10 @@ class PathFindingTests {
             3, 6, 3, 1, 10,
             5, 7, 5, 3, 9
         )
-        val route = PathFinding.genericSearchMany(
+        val route = PathFinding<Node2d>().genericSearchMany(
             List(10) { grid[it * 10] },
             { node -> node.index == 49 },
-            9.0, 1e6, true, 16,
+            9.0, 1e6, true,
             true, true,
             { from, response ->
                 if (from.xi < lengths[from.yi]) {
@@ -196,10 +196,10 @@ class PathFindingTests {
             3, 6, 3, 1, 10,
             5, 7, 5, 3, 9
         )
-        val route = PathFinding.genericSearchMany(
+        val route = PathFinding<Node2d>().genericSearchMany(
             List(10) { grid[it * 10] },
             { node -> node.index == 49 },
-            9.0, 1e6, false, 16,
+            9.0, 1e6, false,
             true, true,
             { from, response ->
                 if (from.xi < lengths[from.yi]) {

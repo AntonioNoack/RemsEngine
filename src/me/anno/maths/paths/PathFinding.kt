@@ -5,30 +5,57 @@ import me.anno.utils.pooling.Stack
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import java.util.PriorityQueue
-import kotlin.math.log2
 import kotlin.math.max
 
-object PathFinding {
+/**
+ * Single-threaded pathfinding instanced with cached allocations.
+ * For using dijkstra or A*, use the corresponding functions.
+ * */
+class PathFinding<Node : Any>(capacityGuess: Int = 16) {
 
-    private val LOGGER = LogManager.getLogger(PathFinding::class)
+    companion object {
+        private val LOGGER = LogManager.getLogger(PathFinding::class)
 
-    class DataNode<Node>(var distance: Double, var score: Double, var previous: Node?) {
-        constructor() : this(0.0, 0.0, null)
-
-        fun set(dist: Double, score: Double, previous: Node?): DataNode<Node> {
-            this.distance = dist
-            this.score = score
-            this.previous = previous
-            return this
+        fun <Node> dijkstraCallback(
+            queryForward: (from: Node, DijkstraForwardResponse<Node>) -> Unit
+        ): (from: Node, AStarForwardResponse<Node>) -> Unit {
+            return { from, callback ->
+                queryForward(from) { to, distance ->
+                    callback.respond(to, distance, 0.0)
+                }
+            }
         }
 
-        fun set(dist: Double, previous: Node?): DataNode<Node> {
-            this.distance = dist
-            this.previous = previous
-            return this
+        fun <Node> aStarCallback(
+            distance: NodeDistance<Node>,
+            getConnectedNodes: (Node) -> Collection<Node>,
+            end: Node
+        ): (Node, AStarForwardResponse<Node>) -> Unit {
+            return { from, callback ->
+                for (next in getConnectedNodes(from)) {
+                    callback.respond(next, distance.get(from, next), distance.get(next, end))
+                }
+            }
         }
 
-        override fun toString() = "($distance,$score,$previous)"
+        fun <Node> emptyResult(
+            start: Node, end: Node,
+            includeStart: Boolean, includeEnd: Boolean
+        ): List<Node> {
+            return when (includeStart.toInt(2) + includeEnd.toInt(1)) {
+                0 -> emptyList()
+                1 -> listOf(start)
+                2 -> listOf(end)
+                else -> if (start == end) listOf(end) else listOf(start, end)
+            }
+        }
+    }
+
+    private val cache = HashMap<Node, DataNode<Node>>(max(capacityGuess, 16))
+    private val queue = PriorityQueue<Node> { p0, p1 ->
+        val score0 = assertNotNull(cache[p0], "cache[p0] is null").score
+        val score1 = assertNotNull(cache[p1], "cache[p1] is null").score
+        score0.compareTo(score1)
     }
 
     // pooled values to avoid allocations
@@ -39,37 +66,34 @@ object PathFinding {
      * if you have node positions, please use A* instead, because it is more efficient
      * @return list of nodes from start to end; without start and end; null if no path is found
      * */
-    fun <Node : Any> dijkstra(
+    fun dijkstra(
         start: Node,
         end: Node,
         distStartEnd: Double,
         maxDistance: Double,
-        capacityGuess: Int,
         includeStart: Boolean,
         includeEnd: Boolean,
         queryForward: (from: Node, DijkstraForwardResponse<Node>) -> Unit
     ): List<Node>? = genericSearch(
         start, end, distStartEnd, maxDistance, false,
-        capacityGuess, includeStart, includeEnd, dijkstraCallback(queryForward)
+        includeStart, includeEnd, dijkstraCallback(queryForward)
     )
-
 
     /**
      * searches for the shortest path within a graph;
      * @return list of nodes from start to end; without start and end; null if no path is found
      * */
-    fun <Node : Any> dijkstra(
+    fun dijkstra(
         start: Node,
         isEnd: (Node) -> Boolean,
         distStartEnd: Double,
         maxDistance: Double,
-        capacityGuess: Int,
         includeStart: Boolean,
         includeEnd: Boolean,
         queryForward: (from: Node, DijkstraForwardResponse<Node>) -> Unit
     ): List<Node>? = genericSearchMany(
         setOf(start), isEnd, distStartEnd, maxDistance, false,
-        capacityGuess, includeStart, includeEnd, dijkstraCallback(queryForward)
+        includeStart, includeEnd, dijkstraCallback(queryForward)
     )
 
     /**
@@ -78,51 +102,39 @@ object PathFinding {
      * using wrong heuristics will cause slower or worse results
      * @return list of nodes from start to end; without start and end; null if no path is found
      * */
-    fun <Node : Any> dijkstra(
+    fun dijkstra(
         start: Node, end: Node,
         distance: NodeDistance<Node>,
         getConnectedNodes: (Node) -> Collection<Node>,
         maxDistance: Double,
-        capacityGuess: Int,
         includeStart: Boolean,
         includeEnd: Boolean
     ): List<Node>? = genericSearch(
         start, end, distance.get(start, end), maxDistance,
-        false, capacityGuess, includeStart, includeEnd
+        false, includeStart, includeEnd
     ) { from, callback ->
         for (next in getConnectedNodes(from)) {
             callback.respond(next, distance.get(from, next), 0.0)
         }
     }
 
-    fun <Node> dijkstraCallback(
-        queryForward: (from: Node, DijkstraForwardResponse<Node>) -> Unit
-    ): (from: Node, AStarForwardResponse<Node>) -> Unit {
-        return { from, callback ->
-            queryForward(from) { to, distance ->
-                callback.respond(to, distance, 0.0)
-            }
-        }
-    }
-
     /**
      * searches for a short path within a graph;
      * uses the distance to the target as a heuristic;
      * using wrong heuristics will cause slower or worse results
      * @return list of nodes from start to end; without start and end; null if no path is found
      * */
-    fun <Node : Any> aStarWithCallback(
+    fun aStarWithCallback(
         start: Node,
         end: Node,
         distStartEnd: Double,
         maxDistance: Double,
-        capacityGuess: Int,
         includeStart: Boolean,
         includeEnd: Boolean,
         queryForward: (from: Node, AStarForwardResponse<Node>) -> Unit
     ): List<Node>? = genericSearch(
         start, end, distStartEnd, maxDistance, true,
-        capacityGuess, includeStart, includeEnd, queryForward
+        includeStart, includeEnd, queryForward
     )
 
     /**
@@ -131,56 +143,41 @@ object PathFinding {
      * using wrong heuristics will cause slower or worse results
      * @return list of nodes from start to end; without start and end; null if no path is found
      * */
-    fun <Node : Any> aStar(
+    fun aStar(
         start: Node, end: Node,
         distance: NodeDistance<Node>,
         getConnectedNodes: (Node) -> Collection<Node>,
         maxDistance: Double,
-        capacityGuess: Int,
         includeStart: Boolean,
         includeEnd: Boolean
     ): List<Node>? = aStarWithCallback(
         start, end, distance.get(start, end), maxDistance,
-        capacityGuess, includeStart, includeEnd, aStar(distance, getConnectedNodes, end)
+        includeStart, includeEnd, aStarCallback(distance, getConnectedNodes, end)
     )
 
-    fun <Node> aStar(
-        distance: NodeDistance<Node>,
-        getConnectedNodes: (Node) -> Collection<Node>,
-        end: Node
-    ): (Node, AStarForwardResponse<Node>) -> Unit {
-        return { from, callback ->
-            for (next in getConnectedNodes(from)) {
-                callback.respond(next, distance.get(from, next), distance.get(next, end))
-            }
-        }
-    }
-
-    fun <Node : Any> genericSearch(
+    fun genericSearch(
         start: Node,
         end: Node,
         distStartEnd: Double,
         maxDistance: Double,
         earlyExit: Boolean,
-        capacityGuess: Int,
         includeStart: Boolean,
         includeEnd: Boolean,
         queryForward: (from: Node, AStarForwardResponse<Node>) -> Unit
     ): List<Node>? = genericSearchMany(
         setOf(start), { it == end }, distStartEnd, maxDistance,
-        earlyExit, capacityGuess, includeStart, includeEnd, queryForward
+        earlyExit, includeStart, includeEnd, queryForward
     )
 
     /**
      * @param earlyExit whether we can immediately return when any solution was found (within children; might be a child farther away): true for aStar, false for dijkstra
      * */
-    fun <Node : Any> genericSearchMany(
+    fun genericSearchMany(
         starts: Collection<Node>,
         isEnd: (Node) -> Boolean,
         distStartEnd: Double,
         maxDistance: Double,
         earlyExit: Boolean,
-        capacityGuess: Int,
         includeStart: Boolean,
         includeEnd: Boolean,
         queryForward: (from: Node, AStarForwardResponse<Node>) -> Unit
@@ -194,14 +191,6 @@ object PathFinding {
 
         // forward tracking
         val poolStartIndex = pool.index
-        val capacity = if (capacityGuess <= 0) 16
-        else max(16, 1 shl log2(capacityGuess.toFloat()).toInt())
-        val cache = HashMap<Node, DataNode<Node>>(capacity)
-        val queue = PriorityQueue<Node> { p0, p1 ->
-            val score0 = assertNotNull(cache[p0], "cache[p0] is null").score
-            val score1 = assertNotNull(cache[p1], "cache[p1] is null").score
-            score0.compareTo(score1)
-        }
 
         for (start in starts) {
             @Suppress("UNCHECKED_CAST")
@@ -271,19 +260,11 @@ object PathFinding {
             path
         } else null
         pool.index = poolStartIndex
+
+        cache.clear()
+        queue.clear()
+
         // LOGGER.debug("Visited ${cache.size} nodes")
         return result
-    }
-
-    fun <Node : Any> emptyResult(
-        start: Node, end: Node,
-        includeStart: Boolean, includeEnd: Boolean
-    ): List<Node> {
-        return when (includeStart.toInt(2) + includeEnd.toInt(1)) {
-            0 -> emptyList()
-            1 -> listOf(start)
-            2 -> listOf(end)
-            else -> if (start == end) listOf(end) else listOf(start, end)
-        }
     }
 }
