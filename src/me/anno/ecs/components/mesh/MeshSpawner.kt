@@ -94,10 +94,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             val material2 = material ?: Material.defaultMaterial
             val stage = pipeline.findStage(material2)
             val stack = stage.instancedTRS.data.getOrPut(mesh, material2) { _, _ -> InstancedTRSStack.Data() }
-            if (stack.gfxIds.isEmpty() || stack.gfxIds.last() != gfxId) {
-                stack.gfxIds.add(stack.size)
-                stack.gfxIds.add(gfxId)
-            }
+            stack.pushGfxId(gfxId)
             stack.posSizeRot
         }
     }

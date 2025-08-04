@@ -33,7 +33,7 @@ open class Vector3f(
     constructor(xyz: FloatArray, i: Int) : this(xyz[i], xyz[i + 1], xyz[i + 2])
     constructor(xyz: FloatArray) : this(xyz, 0)
     constructor(x: Int, y: Int, z: Int) : this(x.toFloat(), y.toFloat(), z.toFloat())
-    constructor(x: Double, y: Double, z: Double): this(x.toFloat(), y.toFloat(), z.toFloat())
+    constructor(x: Double, y: Double, z: Double) : this(x.toFloat(), y.toFloat(), z.toFloat())
 
     override val numComponents: Int get() = 3
     override fun getComp(i: Int): Double = get(i).toDouble()
@@ -418,11 +418,15 @@ open class Vector3f(
     }
 
     fun length(): Float = length(x, y, z)
-    fun lengthSquared() = x * x + y * y + z * z
-    fun distance(v: Vector3f) = distance(v.x, v.y, v.z)
+    fun lengthSquared(): Float = x * x + y * y + z * z
+    fun distance(v: Vector3f): Float = distance(v.x, v.y, v.z)
     fun distance(vx: Float, vy: Float, vz: Float): Float = distance(x, y, z, vx, vy, vz)
-    fun distanceSquared(v: Vector3f) = distanceSquared(v.x, v.y, v.z)
+    fun distance(v: Vector3d): Double = distance(v.x, v.y, v.z)
+    fun distance(vx: Double, vy: Double, vz: Double): Double = Vector3d.length(x - vx, y - vy, z - vz)
+    fun distanceSquared(v: Vector3f): Float = distanceSquared(v.x, v.y, v.z)
     fun distanceSquared(vx: Float, vy: Float, vz: Float): Float = distanceSquared(x, y, z, vx, vy, vz)
+    fun distanceSquared(v: Vector3d): Double = distanceSquared(v.x, v.y, v.z)
+    fun distanceSquared(vx: Double, vy: Double, vz: Double): Double = Vector3d.lengthSquared(x - vx, y - vy, z - vz)
 
     fun lengthXZ(): Float = Vector2f.length(x, z)
     fun lengthXZSquared(): Float = Vector2f.lengthSquared(x, z)

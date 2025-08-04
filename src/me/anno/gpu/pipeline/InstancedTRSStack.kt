@@ -22,18 +22,28 @@ import me.anno.utils.structures.tuples.LongTriple
 /**
  * instanced stack, supporting position, uniform scale, and rotation
  * */
-class InstancedTRSStack(capacity: Int = 64) :
-    DrawableStack(MeshInstanceData.TRS) {
+open class InstancedTRSStack(instanceData: MeshInstanceData, capacity: Int = 64) :
+    DrawableStack(instanceData) {
+
+    constructor() : this(MeshInstanceData.TRS)
 
     val data = KeyPairMap<IMesh, Material, Data>(capacity)
 
     class Data {
+
         val size get() = posSizeRot.size ushr 3
         val posSizeRot = FloatArrayList(256)
         val gfxIds = IntArrayList(16)
         fun clear() {
             posSizeRot.clear()
             gfxIds.clear()
+        }
+
+        fun pushGfxId(gfxId: Int) {
+            if (gfxIds.isEmpty() || gfxIds.last() != gfxId) {
+                gfxIds.add(size)
+                gfxIds.add(gfxId)
+            }
         }
     }
 

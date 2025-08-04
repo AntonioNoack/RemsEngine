@@ -484,16 +484,24 @@ open class Vector3d(
 
     fun length(): Double = length(x, y, z)
     fun lengthSquared(): Double = lengthSquared(x, y, z)
+    fun distance(v: Vector3f) = distance(v.x, v.y, v.z)
     fun distance(v: Vector3d) = distance(v.x, v.y, v.z)
+    fun distance(vx: Float, vy: Float, vz: Float): Double = Vector3d.length(x - vx, y - vy, z - vz)
     fun distance(vx: Double, vy: Double, vz: Double): Double = distance(x, y, z, vx, vy, vz)
+    fun distanceSquared(v: Vector3f): Double = distanceSquared(v.x, v.y, v.z)
     fun distanceSquared(v: Vector3d): Double = distanceSquared(v.x, v.y, v.z)
+    fun distanceSquared(vx: Float, vy: Float, vz: Float): Double = lengthSquared(x - vx, y - vy, z - vz)
     fun distanceSquared(vx: Double, vy: Double, vz: Double): Double = lengthSquared(x - vx, y - vy, z - vz)
 
     fun lengthXZ(): Double = Vector2d.length(x, z)
     fun lengthXZSquared(): Double = Vector2d.lengthSquared(x, z)
+    fun distanceXZ(v: Vector3f): Double = hypot(x - v.x, z - v.z)
     fun distanceXZ(v: Vector3d): Double = hypot(x - v.x, z - v.z)
+    fun distanceXZ(vx: Float, vz: Float): Double = hypot(x - vx, z - vz)
     fun distanceXZ(vx: Double, vz: Double): Double = hypot(x - vx, z - vz)
+    fun distanceXZSquared(v: Vector3f): Double = Vector2d.lengthSquared(x - v.x, z - v.z)
     fun distanceXZSquared(v: Vector3d): Double = Vector2d.lengthSquared(x - v.x, z - v.z)
+    fun distanceXZSquared(vx: Float, vz: Float): Double = Vector2d.lengthSquared(x - vx, z - vz)
     fun distanceXZSquared(vx: Double, vz: Double): Double = Vector2d.lengthSquared(x - vx, z - vz)
 
     fun dot(v: Vector3f): Double = x * v.x + y * v.y + z * v.z
