@@ -381,7 +381,8 @@ open class LoggerImpl(val name: String) : Logger, Log {
                 logFile.outputStream(true).apply {
                     // must use println, or we would create an infinite loop
                     println("[${getTimeStamp()},INFO:Logger] Writing log to $logFile")
-                    Engine.registerForShutdown(-1000_000_000) { flush() }
+                    // register this as the last action to take
+                    Engine.registerForShutdown(1000_000_000) { flush() }
                 }
             } catch (e: IOException) {
                 VoidOutputStream.apply {
