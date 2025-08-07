@@ -1,5 +1,6 @@
 package org.apache.logging.log4j
 
+import me.anno.Engine
 import me.anno.Time
 import me.anno.io.Streams.writeString
 import me.anno.io.VoidOutputStream
@@ -354,7 +355,10 @@ open class LoggerImpl(val name: String) : Logger, Log {
         private var logFileStream: OutputStream? = null
 
         private fun getLogFileStream(): OutputStream? {
-            if (logFileStream != null || !OSFeatures.supportsContinuousLogFiles) return null
+            val currStream = logFileStream
+            if (currStream != null || !OSFeatures.supportsContinuousLogFiles) {
+                return currStream
+            }
 
             logFileStream = VoidOutputStream
             createFileLogStream()
@@ -377,6 +381,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
                 logFile.outputStream(true).apply {
                     // must use println, or we would create an infinite loop
                     println("[${getTimeStamp()},INFO:Logger] Writing log to $logFile")
+                    Engine.registerForShutdown(-1000_000_000) { flush() }
                 }
             } catch (e: IOException) {
                 VoidOutputStream.apply {

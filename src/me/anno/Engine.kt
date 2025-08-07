@@ -1,8 +1,10 @@
 package me.anno
 
 import me.anno.cache.CacheSection
+import me.anno.engine.ScheduledTask
 import me.anno.gpu.WindowManagement
 import me.anno.utils.Threads
+import java.util.concurrent.PriorityBlockingQueue
 
 object Engine {
 
@@ -16,12 +18,14 @@ object Engine {
     val shutdown: Boolean
         get() = shutdownFlag || Threads.isIdleQuickCheck()
 
-    private val onShutdown = ArrayList<() -> Unit>()
+    private val onShutdown = PriorityBlockingQueue<ScheduledTask>()
     fun registerForShutdown(callback: () -> Unit) {
+        registerForShutdown(0, callback)
+    }
+
+    fun registerForShutdown(priority: Int, callback: () -> Unit) {
         if (shutdown) callback()
-        synchronized(onShutdown) {
-            onShutdown.add(callback)
-        }
+        onShutdown.add(ScheduledTask("", priority.toLong(), callback))
     }
 
     /**
@@ -36,9 +40,10 @@ object Engine {
             if (shutdownFlag) return
             shutdownFlag = true
         }
-        for (i in onShutdown.indices) {
+        while (true) {
+            val task = onShutdown.poll() ?: break
             try {
-                onShutdown[i]()
+                task.runnable()
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
