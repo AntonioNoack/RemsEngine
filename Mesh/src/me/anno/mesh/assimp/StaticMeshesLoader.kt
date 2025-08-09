@@ -20,7 +20,7 @@ import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.io.xml.generic.XMLWriter
-import me.anno.maths.EquationSolver.solveQuadratic
+import me.anno.maths.PolynomialSolver.solveQuadratic
 import me.anno.utils.Color.rgba
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.algorithms.Recursion

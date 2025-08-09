@@ -7,7 +7,7 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotDiffXXY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
-import me.anno.maths.EquationSolver.solveCubic
+import me.anno.maths.PolynomialSolver.solveCubic
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.avg

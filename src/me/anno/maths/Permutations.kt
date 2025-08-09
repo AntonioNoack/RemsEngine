@@ -2,7 +2,6 @@ package me.anno.maths
 
 import me.anno.utils.structures.lists.Lists.swap
 
-@Suppress("unused")
 object Permutations {
 
     fun <T> generatePermutations(elements: List<T>, onNextPermutation: (List<T>) -> Unit) {

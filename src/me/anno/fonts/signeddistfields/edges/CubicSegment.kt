@@ -6,7 +6,7 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossDiffXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
-import me.anno.maths.EquationSolver.solveQuadratic
+import me.anno.maths.PolynomialSolver.solveQuadratic
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf

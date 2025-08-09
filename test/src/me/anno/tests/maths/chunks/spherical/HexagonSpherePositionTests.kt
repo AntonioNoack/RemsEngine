@@ -1,7 +1,7 @@
 package me.anno.tests.maths.chunks.spherical
 
 import me.anno.maths.Maths.PHI
-import me.anno.maths.Optimization
+import me.anno.maths.optimization.GradientDescent
 import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
@@ -20,7 +20,7 @@ fun main() {
     val angle0 = (63.43494882292201).toRadians() / 2 // = 90-atan(4/3)/2
     println(v0.rotateY(angle0, Vector3d()))
     println(v1.rotateY(angle0, Vector3d()))
-    val (err, v) = Optimization.simplexAlgorithm(
+    val (err, v) = GradientDescent.simplexAlgorithm(
         doubleArrayOf(angle0), 1.0 / 1000000000000000.0, 0.0, 512
     ) {
         val a = it[0]

@@ -1,6 +1,6 @@
 package me.anno.tests.maths
 
-import me.anno.maths.EquationSolver
+import me.anno.maths.PolynomialSolver
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
@@ -30,7 +30,7 @@ class EquationSolverTest {
             val x1 = (random.nextFloat() - 0.5f) * 20f
             val b = -a * (x0 + x1)
             val c = a * x0 * x1
-            assertEquals(2, EquationSolver.solveQuadratic(dst, a, b, c))
+            assertEquals(2, PolynomialSolver.solveQuadratic(dst, a, b, c))
             assertNotEquals(dst[0], dst[1])
             assertTrue(equals1(dst[0], x0) || equals1(dst[1], x0))
             assertTrue(equals1(dst[0], x1) || equals1(dst[1], x1))
@@ -49,7 +49,7 @@ class EquationSolverTest {
             val c = a * x0 * x0
             val div = b * b - 4 * a * c
             if (div != 0f) continue // skipping sample because of precision issues
-            assertEquals(1, EquationSolver.solveQuadratic(dst, a, b, c))
+            assertEquals(1, PolynomialSolver.solveQuadratic(dst, a, b, c))
             assertEquals(dst[0], x0, 1e-5f)
             ctr++
         }
@@ -69,7 +69,7 @@ class EquationSolverTest {
             var c = a * x0 * x1
             val div = b * b - 4 * a * c
             c += div / (4f * a) * (1f + random.nextFloat())
-            assertEquals(0, EquationSolver.solveQuadratic(dst, a, b, c))
+            assertEquals(0, PolynomialSolver.solveQuadratic(dst, a, b, c))
         }
     }
 
@@ -85,7 +85,7 @@ class EquationSolverTest {
             val b = -a * (x0 + x1 + x2)
             val c = a * (x0 * x1 + x1 * x2 + x2 * x0)
             val d = -a * x0 * x1 * x2
-            assertEquals(3, EquationSolver.solveCubic(dst, a, b, c, d))
+            assertEquals(3, PolynomialSolver.solveCubic(dst, a, b, c, d))
             assertNotEquals(dst[0], dst[1])
             assertNotEquals(dst[1], dst[2])
             assertNotEquals(dst[2], dst[0])
@@ -113,7 +113,7 @@ class EquationSolverTest {
                 continue
             }
 
-            assertEquals(2, EquationSolver.solveCubic(dst, a, b, c, d))
+            assertEquals(2, PolynomialSolver.solveCubic(dst, a, b, c, d))
             assertNotEquals(dst[0], dst[1])
             assertTrue(equals1(dst[0], x0) || equals1(dst[1], x0))
             assertTrue(equals1(dst[0], x1) || equals1(dst[1], x1))
@@ -140,7 +140,7 @@ class EquationSolverTest {
                 continue
             }
 
-            assertEquals(1, EquationSolver.solveCubic(dst, a, b, c, d))
+            assertEquals(1, PolynomialSolver.solveCubic(dst, a, b, c, d))
             assertEquals(dst[0], x0, 0.1f)
             ctr++
         }

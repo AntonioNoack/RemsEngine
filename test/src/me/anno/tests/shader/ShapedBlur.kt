@@ -13,7 +13,7 @@ import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.maths.Maths
-import me.anno.maths.Optimization
+import me.anno.maths.optimization.GradientDescent
 import me.anno.network.ResetByteArrayOutputStream
 import me.anno.sdf.shapes.SDFHeart
 import me.anno.utils.OS
@@ -243,7 +243,7 @@ fun main2() {
     var res: DoubleArray = data
     for (i in 0 until 10) {
         println("// $i")
-        val (_, res2) = Optimization.randomSearch(res, 1.0, 0.0, 100000, 1000) {
+        val (_, res2) = GradientDescent.randomSearch(res, 1.0, 0.0, 100000, 1000) {
             fill(it)
             val src = sparseConvolve(kernels, false)
             // eval error
@@ -254,7 +254,7 @@ fun main2() {
             }
             error
         }
-        val (err3, res3) = Optimization.simplexAlgorithm(res2, 0.01, 0.0, 100000) {
+        val (err3, res3) = GradientDescent.simplexAlgorithm(res2, 0.01, 0.0, 100000) {
             fill(it)
             val src = sparseConvolve(kernels, false)
             // eval error

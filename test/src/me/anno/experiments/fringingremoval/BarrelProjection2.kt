@@ -3,7 +3,7 @@ package me.anno.experiments.fringingremoval
 import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.maths.Maths
-import me.anno.maths.Optimization.simplexAlgorithm
+import me.anno.maths.optimization.GradientDescent.simplexAlgorithm
 import me.anno.utils.OS.desktop
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager

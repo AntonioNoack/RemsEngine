@@ -1,7 +1,7 @@
 package me.anno.ui.editor.graph
 
 import me.anno.graph.visual.node.Node
-import me.anno.maths.Optimization
+import me.anno.maths.optimization.GradientDescent
 
 object NodePositionOptimization {
 
@@ -10,7 +10,7 @@ object NodePositionOptimization {
         val size = nodes.size
 
         // define the node positions as a general optimization problem
-        val (_, solution) = Optimization.simplexAlgorithm(
+        val (_, solution) = GradientDescent.simplexAlgorithm(
             DoubleArray(size * 2) { if (it.and(1) == 1) 0.0 else it.toDouble() },
             0.1, 0.0, 200
         ) { v ->

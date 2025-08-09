@@ -53,7 +53,7 @@ class TriangleTest {
     @Test
     fun testSubCross2f() {
         val random = Random(1234)
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val a = Vector2f(random.nextFloat(), random.nextFloat())
             val b = Vector2f(random.nextFloat(), random.nextFloat())
             val c = Vector2f(random.nextFloat(), random.nextFloat())
@@ -66,7 +66,7 @@ class TriangleTest {
     @Test
     fun testCrossDot3f() {
         val random = Random(1234)
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val ab = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val ac = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val n = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
@@ -81,7 +81,7 @@ class TriangleTest {
     @Test
     fun testSubCross3f() {
         val random = Random(1234)
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val a = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val b = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val c = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
@@ -94,7 +94,7 @@ class TriangleTest {
     @Test
     fun testSubCrossDot3f() {
         val random = Random(1234)
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val a = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val b = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val c = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
@@ -108,7 +108,7 @@ class TriangleTest {
     @Test
     fun testSubCrossDot3d() {
         val random = Random(1234)
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val a = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())
             val b = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())
             val c = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())
@@ -122,7 +122,7 @@ class TriangleTest {
     @Test
     fun testHalfSubCrossDot3f() {
         val random = Random(1234)
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val a = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val b = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val c = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
@@ -136,7 +136,7 @@ class TriangleTest {
     @Test
     fun testTriangleArea3f() {
         val random = Random(1234)
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val a = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val b = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val c = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
@@ -150,7 +150,7 @@ class TriangleTest {
     @Test
     fun testTriangleArea2f() {
         val random = Random(1234)
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val a = Vector2f(random.nextFloat(), random.nextFloat())
             val b = Vector2f(random.nextFloat(), random.nextFloat())
             val c = Vector2f(random.nextFloat(), random.nextFloat())
@@ -170,7 +170,7 @@ class TriangleTest {
         val a = Vector2f()
         val b = Vector2f()
         val c = Vector2f()
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             do {
                 a.set(random.nextFloat(), random.nextFloat())
                 b.set(random.nextFloat(), random.nextFloat())
@@ -199,7 +199,7 @@ class TriangleTest {
         val a = Vector3f()
         val b = Vector3f()
         val c = Vector3f()
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             do {
                 a.set(random.nextFloat(), random.nextFloat(), random.nextFloat())
                 b.set(random.nextFloat(), random.nextFloat(), random.nextFloat())
@@ -227,7 +227,7 @@ class TriangleTest {
         val c = Vector2f()
         val uvw = Vector3f()
         val point = Vector2f()
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             a.set(random.nextFloat(), random.nextFloat())
             b.set(random.nextFloat(), random.nextFloat())
             c.set(random.nextFloat(), random.nextFloat())
@@ -249,7 +249,7 @@ class TriangleTest {
         val c = Vector2d()
         val uvw = Vector3d()
         val point = Vector2d()
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             a.set(random.nextDouble(), random.nextDouble())
             b.set(random.nextDouble(), random.nextDouble())
             c.set(random.nextDouble(), random.nextDouble())
@@ -266,7 +266,7 @@ class TriangleTest {
     @Test
     fun testLinePointTFactor3f() {
         val random = Random(1234)
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val start = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val dir = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat()).normalize()
             val t = random.nextFloat() * 10f - 5f
@@ -280,7 +280,7 @@ class TriangleTest {
     @Test
     fun testLinePointTFactor3d() {
         val random = Random(1234)
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val start = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())
             val dir = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble()).normalize()
             val t = random.nextDouble() * 10.0 - 5.0
@@ -357,7 +357,7 @@ class TriangleTest {
         val dstNormal = Vector3f()
         val dstPosition = Vector3f()
         var hits = 0
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val a = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val b = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val c = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
@@ -387,7 +387,7 @@ class TriangleTest {
         val dstNormal = Vector3d()
         val dstPosition = Vector3d()
         var hits = 0
-        for (i in 0 until numTries) {
+        repeat(numTries) {
             val a = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())
             val b = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())
             val c = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())

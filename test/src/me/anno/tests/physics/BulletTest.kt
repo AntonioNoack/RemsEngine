@@ -26,7 +26,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
-import me.anno.maths.Optimization.simplexAlgorithm
+import me.anno.maths.optimization.GradientDescent.simplexAlgorithm
 import me.anno.tests.FlakyTest
 import me.anno.tests.LOGGER
 import me.anno.tests.physics.constraints.createBridgeMeshes

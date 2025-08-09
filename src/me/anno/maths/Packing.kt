@@ -1,5 +1,6 @@
 package me.anno.maths
 
+@Suppress("unused")
 object Packing {
 
     fun pack16(high8: Int, low8: Int): Int {

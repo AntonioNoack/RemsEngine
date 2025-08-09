@@ -1,6 +1,6 @@
 package me.anno.experiments
 
-import me.anno.maths.Optimization
+import me.anno.maths.optimization.GradientDescent
 import kotlin.math.abs
 import kotlin.math.hypot
 
@@ -40,7 +40,7 @@ fun error(x: Double, y: Double): Double {
 fun main() {
 
     // solve
-    val (err, xy) = Optimization.simplexAlgorithm(
+    val (err, xy) = GradientDescent.simplexAlgorithm(
         doubleArrayOf(1.5, 0.5), 0.1,
         0.0, 512
     ) { (x, y) ->

@@ -8,7 +8,7 @@ import kotlin.math.cbrt
 import kotlin.math.cos
 import kotlin.math.sqrt
 
-object EquationSolver {
+object PolynomialSolver {
 
     private const val TOO_LARGE_RATIO = 1e9 // idk...
 

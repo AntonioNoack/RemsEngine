@@ -4,8 +4,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
-import me.anno.maths.Optimization.simplexAlgorithm
-import me.anno.maths.geometry.DualContouring3d.Grad3d
+import me.anno.maths.optimization.GradientDescent.simplexAlgorithm
 import me.anno.maths.geometry.MarchingSquares.findZero
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt

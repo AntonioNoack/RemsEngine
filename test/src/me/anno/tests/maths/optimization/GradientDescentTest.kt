@@ -1,7 +1,7 @@
-package me.anno.tests.utils
+package me.anno.tests.maths.optimization
 
 import me.anno.maths.Maths
-import me.anno.maths.Optimization
+import me.anno.maths.optimization.GradientDescent
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -24,7 +24,7 @@ object GradientDescentTest {
     @Test
     fun testHimmelblauOptimization() {
         val maxError = 1e-16
-        val solution = Optimization.simplexAlgorithm(doubleArrayOf(0.0, 0.0), 1.0, maxError, 200) {
+        val solution = GradientDescent.simplexAlgorithm(doubleArrayOf(0.0, 0.0), 1.0, maxError, 200) {
             himmelblau(it[0], it[1])
         }.second
         assertEquals(himmelblau(solution[0], solution[1]), 0.0, maxError)

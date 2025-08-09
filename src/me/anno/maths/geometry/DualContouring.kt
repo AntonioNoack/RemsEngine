@@ -3,8 +3,7 @@ package me.anno.maths.geometry
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
-import me.anno.maths.Optimization
-import me.anno.maths.geometry.DualContouring.Grad2d
+import me.anno.maths.optimization.GradientDescent
 import me.anno.maths.geometry.MarchingSquares.findZero
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
@@ -149,7 +148,7 @@ object DualContouring {
 
             qef.findExtremum(g)
 
-            val s = Optimization.simplexAlgorithm(
+            val s = GradientDescent.simplexAlgorithm(
                 floatArrayOf(g.x + x0, g.y + y0),
                 0.25f, 0f, 32
             ) { params ->

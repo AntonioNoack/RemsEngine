@@ -1,11 +1,11 @@
-package me.anno.maths
+package me.anno.maths.optimization
 
 import me.anno.Time
 import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-object Optimization {
+object GradientDescent {
 
     var ctr = 0
 
@@ -14,7 +14,7 @@ object Optimization {
         firstStepSize: Float,
         goodEnoughError: Float,
         maxSteps: Int,
-        err: (v1: FloatArray) -> Float
+        err: FloatTargetFunction
     ): Pair<Float, FloatArray> {
         val expansion = 1.3f
         val contraction = -0.5f
@@ -28,7 +28,7 @@ object Optimization {
         maxSteps: Int,
         expansion: Float,
         contraction: Float,
-        err: (v1: FloatArray) -> Float
+        err: FloatTargetFunction
     ): Pair<Float, FloatArray> {
 
         val l = v0.size
@@ -37,7 +37,7 @@ object Optimization {
             firstStepSize
         }
 
-        var lastError = err(v0)
+        var lastError = err.eval(v0)
 
         // 1e-7, but there may be numerical issues;
         // which cause stair-stepping, which would be an issue
@@ -56,7 +56,7 @@ object Optimization {
                     val lastX = v0[axis]
                     val nextX = lastX + step
                     v0[axis] = nextX
-                    val nextError = err(v0)
+                    val nextError = err.eval(v0)
                     if (nextError <= goodEnoughError) return Pair(nextError, v0)
                     if (nextError < lastError) {
                         // better: expand and keep
@@ -92,7 +92,7 @@ object Optimization {
         firstStepSize: Double,
         goodEnoughError: Double,
         maxSteps: Int,
-        err: (v1: DoubleArray) -> Double
+        err: DoubleTargetFunction
     ): Pair<Double, DoubleArray> {
         val expansion = 1.3
         val contraction = -0.5
@@ -106,11 +106,11 @@ object Optimization {
         goodEnoughError: Double,
         maxSteps: Int,
         maxTrials: Int,
-        err: (v1: DoubleArray) -> Double
+        err: DoubleTargetFunction
     ): Pair<Double, DoubleArray> {
         var bestValue = v0
         val dims = bestValue.size
-        var bestError = err(bestValue)
+        var bestError = err.eval(bestValue)
         val dv = DoubleArray(dims)
         var testValue = DoubleArray(dims)
         val rnd = Random(Time.nanoTime)
@@ -128,7 +128,7 @@ object Optimization {
             for (j in 0 until dims) {
                 testValue[j] += w * dv[j]
             }
-            val e1 = err(testValue)
+            val e1 = err.eval(testValue)
             if (e1 < bestError) {
                 // good :)
                 bestError = e1
@@ -154,7 +154,7 @@ object Optimization {
         maxSteps: Int,
         expansion: Double,
         contraction: Double,
-        err: (v1: DoubleArray) -> Double
+        err: DoubleTargetFunction
     ): Pair<Double, DoubleArray> {
 
         val l = v0.size
@@ -163,7 +163,7 @@ object Optimization {
             firstStepSize
         }
 
-        var lastError = err(v0)
+        var lastError = err.eval(v0)
 
         // 1e-16, but there may be numerical issues,
         // which cause stair-stepping, which would be an issue
@@ -182,7 +182,7 @@ object Optimization {
                     val lastX = v0[axis]
                     val nextX = lastX + step
                     v0[axis] = nextX
-                    val nextError = err(v0)
+                    val nextError = err.eval(v0)
                     if (nextError <= goodEnoughError) return Pair(nextError, v0)
                     if (nextError < lastError) {
                         // better: expand and keep
