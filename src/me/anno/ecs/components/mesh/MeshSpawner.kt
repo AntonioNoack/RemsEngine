@@ -49,6 +49,12 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
                 instancedFill(pipeline)
     }
 
+    fun fillAllSpace(dstUnion: AABBd) {
+        dstUnion.all()
+        localAABB.all()
+        if (dstUnion !== globalAABB) globalAABB.all()
+    }
+
     fun instancedFill(pipeline: Pipeline): Boolean {
         forEachMesh(pipeline) { mesh, materialOverride, transform ->
 
