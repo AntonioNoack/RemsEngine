@@ -14,13 +14,12 @@ object FileAllocation : AllocationManager<File, ByteArray> {
         // JVM needs to free it
     }
 
-    override fun copy(key: File, from: Int, fromData: ByteArray, to: IntRange, toData: ByteArray) {
-        copy(from, fromData, to, toData)
-        key.range = to
+    override fun copyData(from: Int, fromData: ByteArray, to: IntRange, toData: ByteArray) {
+        fromData.copyInto(toData, to.first, from, from + to.size)
     }
 
-    override fun copy(from: Int, fromData: ByteArray, to: IntRange, toData: ByteArray) {
-        fromData.copyInto(toData, to.first, from, from + to.size)
+    override fun setRange(key: File, value: IntRange) {
+        key.range = value
     }
 
     override fun getRange(key: File): IntRange {

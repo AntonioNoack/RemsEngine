@@ -160,7 +160,10 @@ abstract class OpenGLBuffer(
         GFX.checkIsGFXThread()
 
         assertTrue(newLimit > 0)
-        if (isPointerValid(pointer)) glDeleteBuffers(pointer)
+        if (isPointerValid(pointer)) {
+            glDeleteBuffers(pointer)
+            pointer = 0
+        }
 
         prepareUpload()
         bindBuffer(target, pointer)
@@ -221,6 +224,7 @@ abstract class OpenGLBuffer(
 
             // actual copy
             toBuffer.bind()
+            // println("glBufferSubData(${toBuffer.target},#${toBuffer.pointer},offset $to,$fromBuffer)")
             GL46C.glBufferSubData(toBuffer.target, to, fromBuffer)
             GFX.check()
 
@@ -228,9 +232,16 @@ abstract class OpenGLBuffer(
             fromBuffer.limit(oldLimit)
             fromBuffer.position(oldPosition)
         } else {
+
+            if (this === toBuffer) {
+                assertTrue(from + size <= to || to + size <= from, "Copied ranges must not overlap!")
+                // according to https://registry.khronos.org/OpenGL-Refpages/gl4/html/glCopyBufferSubData.xhtml
+            }
+
             GFX.check()
-            GL46C.glBindBuffer(GL46C.GL_COPY_READ_BUFFER, pointer)
-            GL46C.glBindBuffer(GL46C.GL_COPY_WRITE_BUFFER, toBuffer.pointer)
+            bindBuffer(GL46C.GL_COPY_READ_BUFFER, pointer)
+            bindBuffer(GL46C.GL_COPY_WRITE_BUFFER, toBuffer.pointer)
+            // println("glCopyBufferSubData(#${pointer}->#${toBuffer.pointer},$from->$to,x$size)")
             GL46C.glCopyBufferSubData(
                 GL46C.GL_COPY_READ_BUFFER,
                 GL46C.GL_COPY_WRITE_BUFFER,
@@ -396,7 +407,7 @@ abstract class OpenGLBuffer(
 
         // element buffer is stored in VAO -> cannot cache it here
         // (at least https://www.khronos.org/opengl/wiki/Vertex_Specification says so)
-        var boundBuffers = IntArray(1)
+        val boundBuffers = IntArray(1)
         fun bindBuffer(slot: Int, buffer: Int, force: Boolean = false) {
             val index = slot - GL46C.GL_ARRAY_BUFFER
             if (index !in boundBuffers.indices) {

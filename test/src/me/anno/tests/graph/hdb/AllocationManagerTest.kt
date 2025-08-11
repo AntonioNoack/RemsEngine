@@ -25,6 +25,12 @@ class AllocationManagerTest {
 
         val copyOperations = ArrayList<CopyOperation>()
         val allocationSizes = ArrayList<Int>()
+
+        override fun setRange(key: TestData, value: IntRange) {
+            key.position = value.first
+            assertEquals(value.size, key.length)
+        }
+
         override fun getRange(key: TestData): IntRange {
             return key.position until key.position + key.length
         }
@@ -38,14 +44,8 @@ class AllocationManagerTest {
         override fun deallocate(data: Int) {
         }
 
-        override fun copy(from: Int, fromData: Int, to: IntRange, toData: Int) {
+        override fun copyData(from: Int, fromData: Int, to: IntRange, toData: Int) {
             copyOperations.add(CopyOperation(from, fromData, to, toData))
-        }
-
-        override fun copy(key: TestData, from: Int, fromData: Int, to: IntRange, toData: Int) {
-            copy(from, fromData, to, toData)
-            key.position = to.first
-            assertEquals(key.length, to.size)
         }
 
         override fun roundUpStorage(requiredSize: Int): Int {

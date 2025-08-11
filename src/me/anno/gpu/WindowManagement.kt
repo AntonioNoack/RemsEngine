@@ -136,8 +136,8 @@ object WindowManagement {
             // wait for the last frame to be finished,
             // before we actually destroy the window and its framebuffer
             destroyed = true
-            GFX.glThread = null // no longer valid after closing all windows
-            GFXState.onDestroyContext()
+            glThread = null // no longer valid after closing all windows
+            GFXState.onDestroyContext() // set session to the next ID
             clock.stop("Finishing last frame", 0.0)
         }
         synchronized(glfwLock) {
@@ -373,13 +373,13 @@ object WindowManagement {
         // Start new thread to have the OpenGL context current in and that does the rendering.
         if (useSeparateGLFWThread) {
             Threads.runTaskThread("OpenGL") {
-                GFX.glThread = Thread.currentThread()
+                glThread = Thread.currentThread()
                 runRenderLoop0(window0)
                 runRenderLoop()
             }
             runWindowUpdateLoop()
         } else {
-            GFX.glThread = Thread.currentThread()
+            glThread = Thread.currentThread()
             runRenderLoop0(window0)
             runRenderLoopWithWindowUpdates()
             EngineBase.instance?.onShutdown()
@@ -420,7 +420,9 @@ object WindowManagement {
     @JvmStatic
     fun renderFrame() {
         val time = Time.nanoTime
-        RenderStep.beforeRenderSteps()
+        synchronized(openglLock) {
+            RenderStep.beforeRenderSteps()
+        }
         if (!renderWindows(time)) {
             keepProcessingHiddenWindows()
         }

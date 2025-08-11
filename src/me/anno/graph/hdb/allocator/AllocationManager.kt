@@ -1,5 +1,6 @@
 package me.anno.graph.hdb.allocator
 
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.binarySearch
 import me.anno.utils.types.size
@@ -80,7 +81,7 @@ interface AllocationManager<Key, Data : Any> {
         sortedElements: ArrayList<Key>,
         sortedRanges: ArrayList<IntRange>,
         newKey: Key, newData: Data, newDataRange: IntRange,
-        available: Int, oldData: Data,
+        available: Int, dstData: Data,
         allowReturningNewData: Boolean
     ): Pair<ReplaceType, Data> {
 
@@ -95,7 +96,7 @@ interface AllocationManager<Key, Data : Any> {
                 ReplaceType.Append to append(
                     sortedElements, sortedRanges,
                     newKey, newData, newDataRange,
-                    newSize, available, oldData
+                    newSize, available, dstData
                 )
             }
         }
@@ -106,7 +107,9 @@ interface AllocationManager<Key, Data : Any> {
         val r0 = sortedRanges.first()
         if (newSize <= r0.first) {
             val newRange = 0 until newSize
-            copy(newKey, newDataStart, newData, newRange, oldData)
+
+            copyKey(newKey, newDataStart, newData, newRange, dstData)
+
             sortedElements.add(0, newKey)
             if (newSize == r0.first) {
                 // compact with first, if fills in gap perfectly
@@ -114,7 +117,7 @@ interface AllocationManager<Key, Data : Any> {
             } else {
                 sortedRanges.add(0, newRange)
             }
-            return ReplaceType.InsertInto to oldData
+            return ReplaceType.InsertInto to dstData
         }
 
         // check if we can insert it in-between
@@ -123,8 +126,10 @@ interface AllocationManager<Key, Data : Any> {
             val rj = sortedRanges[i]
             val start = ri.last + 1
             if (start + newSize <= rj.first) {
+
                 val newRange = start until start + newSize
-                copy(newKey, newDataStart, newData, newRange, oldData)
+                copyKey(newKey, newDataStart, newData, newRange, dstData)
+
                 val idx = sortedElements.binarySearch { // find the element, which belongs to ri by end-position
                     (getRange(it).last + 1).compareTo(start)
                 }
@@ -141,7 +146,7 @@ interface AllocationManager<Key, Data : Any> {
                     // append onto 'ri'
                     sortedRanges[i - 1] = ri.first until start + newSize
                 }
-                return ReplaceType.InsertInto to oldData
+                return ReplaceType.InsertInto to dstData
             }
         }
 
@@ -150,18 +155,18 @@ interface AllocationManager<Key, Data : Any> {
         val start = re.first + re.size
         if (start + newSize < available) {
             val newRange = start until start + newSize
-            copy(newKey, newDataStart, newData, newRange, oldData)
+            copyKey(newKey, newDataStart, newData, newRange, dstData)
             sortedElements.add(newKey)
             // extend last range
             sortedRanges[sortedRanges.lastIndex] = re.first..newRange.last
-            return ReplaceType.InsertInto to oldData
+            return ReplaceType.InsertInto to dstData
         }
 
         // we have to append it
         return ReplaceType.Append to append(
             sortedElements, sortedRanges,
             newKey, newData, newDataRange,
-            newSize, available, oldData
+            newSize, available, dstData
         )
     }
 
@@ -185,7 +190,7 @@ interface AllocationManager<Key, Data : Any> {
             // append it
             sortedRanges.add(newRange)
         }
-        copy(newKey, newDataRange.first, newData, newRange, newData1)
+        copyKey(newKey, newDataRange.first, newData, newRange, newData1)
         return newData1
     }
 
@@ -207,18 +212,21 @@ interface AllocationManager<Key, Data : Any> {
         return available > maximumAcceptableSize(requiredSize)
     }
 
-    fun pack(elements: Collection<Key>, oldData: Data): Data {
-        val requiredSize = sumSize(elements)
+    fun pack(keys: Collection<Key>, oldData: Data): Data {
+        return pack(keys, oldData, sumSize(keys)).first
+    }
+
+    fun pack(keys: Collection<Key>, oldData: Data, requiredSize: Int): Pair<Data, Int> {
         val newData = allocate(requiredSize)
         var pos = 0
-        for (keys in elements) {
-            val oldRange = getRange(keys)
+        for (key in keys) {
+            val oldRange = getRange(key)
             val newRange = pos until pos + oldRange.size
-            copy(keys, oldRange.first, oldData, newRange, newData)
+            copyKey(key, oldRange.first, oldData, newRange, newData)
             pos += oldRange.size
         }
         deallocate(oldData)
-        return newData
+        return newData to pos
     }
 
     /**
@@ -252,7 +260,7 @@ interface AllocationManager<Key, Data : Any> {
                 // it is compact, but we need extra storage...
                 val allocSize = roundUpStorage(requiredSize)
                 val newData = allocate(allocSize)
-                copy(0, oldData, 0 until compactSize, newData)
+                copyData(0, oldData, 0 until compactSize, newData)
                 deallocate(oldData)
                 return newData
             }
@@ -260,15 +268,7 @@ interface AllocationManager<Key, Data : Any> {
 
         val requiredSize = sumSize1(ranges) + extraSize
         val allocSize = roundUpStorage(requiredSize)
-        val newData = allocate(allocSize)
-        var pos = 0
-        for (keys in elements) {
-            val oldRange = getRange(keys)
-            val newRange = pos until pos + oldRange.size
-            copy(keys, oldRange.first, oldData, newRange, newData)
-            pos += oldRange.size
-        }
-        deallocate(oldData)
+        val (newData, pos) = pack(elements, oldData, allocSize)
         ranges.clear()
         ranges.add(0 until pos)
         return newData
@@ -278,6 +278,7 @@ interface AllocationManager<Key, Data : Any> {
         return requiredSize + (requiredSize ushr 1)
     }
 
+    fun setRange(key: Key, value: IntRange)
     fun getRange(key: Key): IntRange
 
     fun allocate(newSize: Int): Data
@@ -288,6 +289,11 @@ interface AllocationManager<Key, Data : Any> {
      * */
     fun allocationKeepsOldData(): Boolean
 
-    fun copy(key: Key, from: Int, fromData: Data, to: IntRange, toData: Data)
-    fun copy(from: Int, fromData: Data, to: IntRange, toData: Data)
+    fun copyData(from: Int, fromData: Data, to: IntRange, toData: Data)
+
+    fun copyKey(key: Key, from: Int, fromData: Data, to: IntRange, toData: Data) {
+        assertEquals(getRange(key).size, to.size)
+        copyData(from, fromData, to, toData)
+        setRange(key, to)
+    }
 }

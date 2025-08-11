@@ -20,6 +20,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.graph.hdb.allocator.AllocationManager
 import me.anno.maths.Maths.min
 import me.anno.utils.Clock
+import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.ByteBufferPool
@@ -75,9 +76,14 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         }
     }
 
-    private val entries = HashMap<Key, MeshEntry<Mesh>>()
-    private val sortedEntries = ArrayList<MeshEntry<Mesh>>()
-    private val sortedRanges = ArrayList<IntRange>()
+    @InternalAPI
+    val entries = HashMap<Key, MeshEntry<Mesh>>()
+
+    @InternalAPI
+    val sortedEntries = ArrayList<MeshEntry<Mesh>>()
+
+    @InternalAPI
+    val sortedRanges = ArrayList<IntRange>()
 
     private var buffer0 = StaticBuffer("umr0", attributes, 0, BufferUsage.DYNAMIC)
     private var buffer1 = StaticBuffer("umr1", attributes, 0, BufferUsage.DYNAMIC)
@@ -250,6 +256,10 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         LOGGER.warn("Drawing a bulk-mesh instanced doesn't make sense")
     }
 
+    override fun setRange(key: MeshEntry<Mesh>, value: IntRange) {
+        key.range = value
+    }
+
     override fun getRange(key: MeshEntry<Mesh>): IntRange {
         return key.range
     }
@@ -258,7 +268,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         val buffer = buffer1
         val oldSize = buffer.vertexCount
         buffer.vertexCount = newSize
-        if (newSize > 0) {
+        if (newSize > 0 && newSize != oldSize) {
             val clock = Clock(LOGGER)
             LOGGER.info("Changing buffer size from $oldSize to $newSize")
             buffer.uploadEmpty(newSize.toLong() * stride)
@@ -277,13 +287,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         return requiredSize * 2
     }
 
-    override fun copy(key: MeshEntry<Mesh>, from: Int, fromData: StaticBuffer, to: IntRange, toData: StaticBuffer) {
-        val fromData1 = key.buffer
-        copy(0, fromData1, to, toData)
-        key.range = to
-    }
-
-    override fun copy(from: Int, fromData: StaticBuffer, to: IntRange, toData: StaticBuffer) {
+    override fun copyData(from: Int, fromData: StaticBuffer, to: IntRange, toData: StaticBuffer) {
         fromData.copyElementsTo(toData, from.toLong(), to.first.toLong(), to.size.toLong())
     }
 
