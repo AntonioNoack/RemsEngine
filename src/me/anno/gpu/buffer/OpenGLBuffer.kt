@@ -21,6 +21,7 @@ import me.anno.utils.assertions.assertGreaterThanEquals
 import me.anno.utils.assertions.assertIs
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.pooling.WrapDirect.wrapDirect
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
@@ -35,7 +36,11 @@ import org.lwjgl.opengl.GL46C.glDeleteBuffers
 import org.lwjgl.opengl.GL46C.glFlushMappedBufferRange
 import org.lwjgl.opengl.GL46C.glMapBuffer
 import org.lwjgl.opengl.GL46C.glUnmapBuffer
+import java.nio.Buffer
 import java.nio.ByteBuffer
+import java.nio.FloatBuffer
+import java.nio.IntBuffer
+import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.max
 
@@ -183,6 +188,93 @@ abstract class OpenGLBuffer(
         assertEquals(fromLayout.stride, toLayout.stride)
         val stride = toLayout.stride
         copyBytesTo(toBuffer, from * stride, to * stride, size * stride)
+    }
+
+    // todo test this
+    fun uploadElementsPartially(fromOffsetInDataI: Int, fromData: Any, sizeInElements: Int, toOffsetInElements: Int) {
+        if (sizeInElements == 0) return
+        assertTrue(sizeInElements > 0)
+        assertTrue(toOffsetInElements >= 0)
+        uploadBytesPartially(
+            fromOffsetInDataI, fromData, sizeInElements.toLong() * stride,
+            toOffsetInElements.toLong() * stride
+        )
+    }
+
+    fun uploadBytesPartially(fromOffsetInDataI: Int, fromData: Any, sizeInBytes: Long, toOffsetInBytes: Long) {
+
+        val toBuffer = this
+        val size = sizeInBytes
+
+        // initial checks
+        if (size == 0L) return
+        assertGreaterThanEquals(size, 0, "Size must be non-negative")
+
+        // just in case, ensure the buffers have data;
+        // might fail us on Android, where OpenGL can lose its session
+        ensureBuffer()
+        assertTrue(isPointerValid(pointer))
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Copying to ${toBuffer.name}: from $fromOffsetInDataI to $toOffsetInBytes, x$size")
+        }
+
+        if (toOffsetInBytes < 0 || locallyAllocated < toOffsetInBytes + size) {
+            throw IllegalStateException("Illegal copy $fromOffsetInDataI to $toOffsetInBytes [from], $fromOffsetInDataI + $size vs $locallyAllocated")
+        }
+
+        // actual copy
+        toBuffer.bind()
+        // println("glBufferSubData(${toBuffer.target},#${toBuffer.pointer},offset $to,$fromBuffer)")
+        val fromOffsetInDataL = fromOffsetInDataI.toLong()
+        if (fromData is Buffer) assertEquals(0, fromOffsetInDataL)
+        when (fromData) {
+
+            // easy
+            is ByteBuffer -> {
+                assertEquals(fromData.position(), fromOffsetInDataI)
+                assertEquals(sizeInBytes, fromData.remaining().toLong())
+                GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, fromData)
+            }
+            is ShortBuffer -> {
+                assertEquals(fromData.position(), fromOffsetInDataI)
+                assertEquals(sizeInBytes, fromData.remaining().toLong() shl 1)
+                GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, fromData)
+            }
+            is IntBuffer -> {
+                assertEquals(fromData.position(), fromOffsetInDataI)
+                assertEquals(sizeInBytes, fromData.remaining().toLong() shl 2)
+                GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, fromData)
+            }
+            is FloatBuffer -> {
+                assertEquals(fromData.position(), fromOffsetInDataI)
+                assertEquals(sizeInBytes, fromData.remaining().toLong() shl 2)
+                GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, fromData)
+            }
+
+            is ByteArray -> {
+                val (tmp, clean) = fromData.wrapDirect(fromOffsetInDataI, sizeInBytes.toInt())
+                GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, tmp)
+                clean()
+            }
+            is ShortArray -> {
+                val (tmp, clean) = fromData.wrapDirect(fromOffsetInDataI, (sizeInBytes shr 1).toInt())
+                GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, tmp)
+                clean()
+            }
+            is IntArray -> {
+                val (tmp, clean) = fromData.wrapDirect(fromOffsetInDataI, (sizeInBytes shr 2).toInt())
+                GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, tmp)
+                clean()
+            }
+            is FloatArray -> {
+                val (tmp, clean) = fromData.wrapDirect(fromOffsetInDataI, (sizeInBytes shr 2).toInt())
+                GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, tmp)
+                clean()
+            }
+            else -> throw NotImplementedError("Unknown type for uploadBytesPartially")
+        }
+        GFX.check()
     }
 
     fun copyBytesTo(toBuffer: OpenGLBuffer, from: Long, to: Long, size: Long) {

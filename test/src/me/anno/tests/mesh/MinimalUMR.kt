@@ -2,7 +2,7 @@ package me.anno.tests.mesh
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
+import me.anno.ecs.components.mesh.unique.UniqueMeshRendererImpl
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -60,7 +60,7 @@ private val vertexData = MeshVertexData(
 )
 
 class MinimalUMR :
-    UniqueMeshRenderer<Int, Mesh>(attributes, vertexData, DrawMode.TRIANGLES), OnUpdate {
+    UniqueMeshRendererImpl<Int, Mesh>(attributes, vertexData, DrawMode.TRIANGLES), OnUpdate {
 
     override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         fillAllSpace(dstUnion)

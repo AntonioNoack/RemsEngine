@@ -180,6 +180,10 @@ fun assertEquals(expected: Int, actual: Int, message: String = "expected equal v
     assertTrue(expected == actual) { "$message, expected != actual: $expected != $actual" }
 }
 
+fun assertEquals(expected: Long, actual: Long, message: String = "expected equal values") {
+    assertTrue(expected == actual) { "$message, expected != actual: $expected != $actual" }
+}
+
 fun assertEquals(expected: Char, actual: Char, message: String = "expected equal values") {
     assertTrue(expected == actual) { "$message, expected != actual: $expected != $actual" }
 }

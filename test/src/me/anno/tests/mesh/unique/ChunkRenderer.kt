@@ -4,11 +4,11 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
+import me.anno.ecs.components.mesh.unique.UniqueMeshRendererImpl
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.GLSLType
@@ -21,7 +21,7 @@ import me.anno.utils.Color.convertABGR2ARGB
 import org.joml.Vector3i
 
 class ChunkRenderer(val material: Material, val world: TestWorld) :
-    UniqueMeshRenderer<Vector3i, Mesh>(attributes, blockVertexData, DrawMode.TRIANGLES) {
+    UniqueMeshRendererImpl<Vector3i, Mesh>(attributes, blockVertexData, DrawMode.TRIANGLES) {
 
     companion object {
         val attributes = bind(

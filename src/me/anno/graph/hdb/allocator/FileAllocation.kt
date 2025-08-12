@@ -5,7 +5,7 @@ import me.anno.utils.InternalAPI
 import me.anno.utils.types.size
 
 @InternalAPI
-object FileAllocation : AllocationManager<File, ByteArray> {
+object FileAllocation : AllocationManager<File, ByteArray, ByteArray> {
     override fun allocate(newSize: Int): ByteArray {
         return ByteArray(newSize)
     }
@@ -14,8 +14,12 @@ object FileAllocation : AllocationManager<File, ByteArray> {
         // JVM needs to free it
     }
 
-    override fun copyData(from: Int, fromData: ByteArray, to: IntRange, toData: ByteArray) {
+    override fun moveData(from: Int, fromData: ByteArray, to: IntRange, toData: ByteArray) {
         fromData.copyInto(toData, to.first, from, from + to.size)
+    }
+
+    override fun insertData(from: Int, fromData: ByteArray, to: IntRange, toData: ByteArray) {
+        moveData(from, fromData, to, toData)
     }
 
     override fun setRange(key: File, value: IntRange) {

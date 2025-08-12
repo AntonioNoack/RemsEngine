@@ -18,7 +18,7 @@ class AllocationManagerTest {
         val to: IntRange, val toData: Int,
     )
 
-    class TestManager : AllocationManager<TestData, Int> {
+    class TestManager : AllocationManager<TestData, Int, Int> {
 
         val sortedElements = ArrayList<TestData>()
         val sortedRanges = ArrayList<IntRange>()
@@ -44,8 +44,12 @@ class AllocationManagerTest {
         override fun deallocate(data: Int) {
         }
 
-        override fun copyData(from: Int, fromData: Int, to: IntRange, toData: Int) {
+        override fun moveData(from: Int, fromData: Int, to: IntRange, toData: Int) {
             copyOperations.add(CopyOperation(from, fromData, to, toData))
+        }
+
+        override fun insertData(from: Int, fromData: Int, to: IntRange, toData: Int) {
+            moveData(from, fromData, to, toData)
         }
 
         override fun roundUpStorage(requiredSize: Int): Int {
@@ -87,8 +91,8 @@ class AllocationManagerTest {
             manager.sortedElements,
             manager.sortedRanges,
             key, newData,
-            manager.getRange(key), availableSpace,
-            storage, false
+            availableSpace,
+            storage
         )
         storage = newStorage
 
@@ -150,8 +154,8 @@ class AllocationManagerTest {
         val newData = TestData(55, 100)
         val (type, storage1) = manager.insert(
             manager.sortedElements, manager.sortedRanges,
-            newData, -17, manager.getRange(newData), availableSpace0,
-            storage0, false
+            newData, -17, availableSpace0,
+            storage0
         )
         // check insertion
         val insertCopy = CopyOperation(
@@ -192,8 +196,8 @@ class AllocationManagerTest {
         val newData = TestData(55, 150)
         val (type, storage1) = manager.insert(
             manager.sortedElements, manager.sortedRanges,
-            newData, -17, manager.getRange(newData), availableSpace0,
-            storage0, false
+            newData, -17, availableSpace0,
+            storage0,
         )
         // check insertion
         val insertCopy = CopyOperation(
@@ -222,8 +226,8 @@ class AllocationManagerTest {
         val newData = TestData(55, 150)
         val (type, storage1) = manager.insert(
             manager.sortedElements, manager.sortedRanges,
-            newData, -17, manager.getRange(newData), availableSpace0,
-            storage0, false
+            newData, -17, availableSpace0,
+            storage0,
         )
         // check insertion
         val insertCopy = CopyOperation(

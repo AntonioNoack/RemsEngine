@@ -6,7 +6,7 @@ import me.anno.ecs.annotations.EditorField
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.unique.MeshEntry
-import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
+import me.anno.ecs.components.mesh.unique.UniqueMeshRendererImpl
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.PrefabSaveable
@@ -44,7 +44,7 @@ import kotlin.math.sign
  * Mesh: IntArray of packed values: [uint8: px, uint8: py, uint16: spiteId]
  * */
 class SpriteLayer :
-    UniqueMeshRenderer<Vector2i, IntArray>(attributes, spriteVertexData, DrawMode.TRIANGLES),
+    UniqueMeshRendererImpl<Vector2i, IntArray>(attributes, spriteVertexData, DrawMode.TRIANGLES),
     OnUpdate, CustomEditMode {
 
     companion object {

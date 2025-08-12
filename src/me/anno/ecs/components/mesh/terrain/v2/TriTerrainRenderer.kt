@@ -3,17 +3,17 @@ package me.anno.ecs.components.mesh.terrain.v2
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
+import me.anno.ecs.components.mesh.unique.UniqueMeshRendererImpl
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.io.files.FileReference
 import me.anno.utils.structures.lists.Lists.wrap
 
-class TriTerrainRenderer : UniqueMeshRenderer<Mesh, Mesh>(attributes, MeshVertexData.DEFAULT, DrawMode.TRIANGLES) {
+class TriTerrainRenderer : UniqueMeshRendererImpl<Mesh, Mesh>(attributes, MeshVertexData.DEFAULT, DrawMode.TRIANGLES) {
 
     val terrain = TriTerrainChunk(this)
     var material: Material? = null

@@ -6,7 +6,7 @@ import me.anno.utils.structures.lists.Lists.binarySearch
 import me.anno.utils.types.size
 import org.apache.logging.log4j.LogManager
 
-interface AllocationManager<Key, Data : Any> {
+interface AllocationManager<Key, StoredData, InsertData> {
 
     companion object {
         private val LOGGER = LogManager.getLogger(AllocationManager::class)
@@ -80,25 +80,18 @@ interface AllocationManager<Key, Data : Any> {
     fun insert(
         sortedElements: ArrayList<Key>,
         sortedRanges: ArrayList<IntRange>,
-        newKey: Key, newData: Data, newDataRange: IntRange,
-        available: Int, dstData: Data,
-        allowReturningNewData: Boolean
-    ): Pair<ReplaceType, Data> {
+        newKey: Key, newData: InsertData,
+        available: Int, dstData: StoredData
+    ): Pair<ReplaceType, StoredData> {
 
+        val newDataRange = getRange(newKey)
         val newSize = newDataRange.size
         if (sortedRanges.isEmpty()) {
-            return if (allowReturningNewData) {
-                // easy: just replace
-                sortedElements.add(newKey)
-                sortedRanges.add(newDataRange)
-                ReplaceType.WriteCompletely to newData
-            } else {
-                ReplaceType.Append to append(
-                    sortedElements, sortedRanges,
-                    newKey, newData, newDataRange,
-                    newSize, available, dstData
-                )
-            }
+            return ReplaceType.Append to append(
+                sortedElements, sortedRanges,
+                newKey, newData, newDataRange,
+                newSize, available, dstData
+            )
         }
 
         val newDataStart = newDataRange.first
@@ -175,9 +168,9 @@ interface AllocationManager<Key, Data : Any> {
      * */
     private fun append(
         sortedElements: ArrayList<Key>, sortedRanges: ArrayList<IntRange>,
-        newKey: Key, newData: Data, newDataRange: IntRange, newSize: Int,
-        available: Int, oldData: Data
-    ): Data {
+        newKey: Key, newData: InsertData, newDataRange: IntRange, newSize: Int,
+        available: Int, oldData: StoredData
+    ): StoredData {
         val newData1 = pack(sortedElements, sortedRanges, newKey, available, oldData)
         val start = sortedRanges.lastOrNull()?.run { last + 1 } ?: 0
         val newRange = start until start + newSize
@@ -212,17 +205,18 @@ interface AllocationManager<Key, Data : Any> {
         return available > maximumAcceptableSize(requiredSize)
     }
 
-    fun pack(keys: Collection<Key>, oldData: Data): Data {
+    fun pack(keys: Collection<Key>, oldData: StoredData): StoredData {
         return pack(keys, oldData, sumSize(keys)).first
     }
 
-    fun pack(keys: Collection<Key>, oldData: Data, requiredSize: Int): Pair<Data, Int> {
+    fun pack(keys: Collection<Key>, oldData: StoredData, requiredSize: Int): Pair<StoredData, Int> {
         val newData = allocate(requiredSize)
         var pos = 0
         for (key in keys) {
             val oldRange = getRange(key)
             val newRange = pos until pos + oldRange.size
-            copyKey(key, oldRange.first, oldData, newRange, newData)
+            moveData(oldRange.first, oldData, newRange, newData)
+            setRange(key, newRange)
             pos += oldRange.size
         }
         deallocate(oldData)
@@ -248,8 +242,8 @@ interface AllocationManager<Key, Data : Any> {
      * */
     fun pack(
         elements: Collection<Key>, ranges: ArrayList<IntRange>,
-        elementX: Key, available: Int, oldData: Data
-    ): Data {
+        elementX: Key, available: Int, oldData: StoredData
+    ): StoredData {
         val extraSize = getRange(elementX).size
         val compactSize = getCompactSizeIfCompact(ranges)
         if (compactSize > 0) {
@@ -259,10 +253,7 @@ interface AllocationManager<Key, Data : Any> {
             } else if (allocationKeepsOldData()) {
                 // it is compact, but we need extra storage...
                 val allocSize = roundUpStorage(requiredSize)
-                val newData = allocate(allocSize)
-                copyData(0, oldData, 0 until compactSize, newData)
-                deallocate(oldData)
-                return newData
+                return resizeTo(oldData, compactSize, allocSize)
             }
         }
 
@@ -274,6 +265,13 @@ interface AllocationManager<Key, Data : Any> {
         return newData
     }
 
+    fun resizeTo(oldData: StoredData, compactSize: Int, allocSize: Int): StoredData {
+        val newData = allocate(allocSize)
+        moveData(0, oldData, 0 until compactSize, newData)
+        deallocate(oldData)
+        return newData
+    }
+
     fun roundUpStorage(requiredSize: Int): Int {
         return requiredSize + (requiredSize ushr 1)
     }
@@ -281,19 +279,20 @@ interface AllocationManager<Key, Data : Any> {
     fun setRange(key: Key, value: IntRange)
     fun getRange(key: Key): IntRange
 
-    fun allocate(newSize: Int): Data
-    fun deallocate(data: Data)
+    fun allocate(newSize: Int): StoredData
+    fun deallocate(data: StoredData)
 
     /**
      * return false, if any allocate()-call clears all data and needs all data reinserted
      * */
     fun allocationKeepsOldData(): Boolean
 
-    fun copyData(from: Int, fromData: Data, to: IntRange, toData: Data)
+    fun moveData(from: Int, fromData: StoredData, to: IntRange, toData: StoredData)
+    fun insertData(from: Int, fromData: InsertData, to: IntRange, toData: StoredData)
 
-    fun copyKey(key: Key, from: Int, fromData: Data, to: IntRange, toData: Data) {
+    fun copyKey(key: Key, from: Int, fromData: InsertData, to: IntRange, toData: StoredData) {
         assertEquals(getRange(key).size, to.size)
-        copyData(from, fromData, to, toData)
+        insertData(from, fromData, to, toData)
         setRange(key, to)
     }
 }

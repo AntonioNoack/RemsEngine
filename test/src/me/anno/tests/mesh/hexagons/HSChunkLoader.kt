@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.unique.MeshEntry
-import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
+import me.anno.ecs.components.mesh.unique.UniqueMeshRendererImpl
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.ecs.components.mesh.utils.MeshVertexData.Companion.flatNormalsFragment
 import me.anno.ecs.components.mesh.utils.MeshVertexData.Companion.flatNormalsNorTan
@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 class HSChunkLoader(
     val sphere: HexagonSphere, val world: HexagonSphereMCWorld,
     val transparent: Boolean?, val material: Material
-) : UniqueMeshRenderer<HexagonSphere.Chunk, Mesh>(attributes, hexVertexData, DrawMode.TRIANGLES), OnUpdate {
+) : UniqueMeshRendererImpl<HexagonSphere.Chunk, Mesh>(attributes, hexVertexData, DrawMode.TRIANGLES), OnUpdate {
 
     companion object {
         val attributes = bind(

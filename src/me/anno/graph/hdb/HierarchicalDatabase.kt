@@ -307,8 +307,7 @@ class HierarchicalDatabase(
 
         val (type, data) = FileAllocation.insert(
             sf.sortedFiles, sf.sortedRanges, file,
-            value.bytes, value.range,
-            oldData.size, oldData, true
+            value.bytes, oldData.size, oldData,
         )
         synchronized(files) { folder.files[hash] = file }
 
