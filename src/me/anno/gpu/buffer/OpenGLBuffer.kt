@@ -26,6 +26,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.lwjgl.opengl.GL15C.glGetBufferSubData
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_DYNAMIC_STORAGE_BIT
 import org.lwjgl.opengl.GL46C.GL_MAP_WRITE_BIT
@@ -399,6 +400,57 @@ abstract class OpenGLBuffer(
             ByteBufferPool.free(nioBuffer)
             nioBuffer = null
         }
+    }
+
+    fun readAsFloatArray(
+        startIndex: Long = 0L,
+        values: FloatArray = FloatArray(((elementCount - startIndex) * stride.shr(2)).toInt())
+    ): FloatArray {
+        assertEquals(0, stride.and(3))
+        ensureBuffer()
+        bindBuffer(target, pointer)
+        GFX.check()
+        glGetBufferSubData(target, startIndex * stride, values)
+        GFX.check()
+        return values
+    }
+
+    fun readAsIntArray(
+        startIndex: Long = 0L,
+        values: IntArray = IntArray(((elementCount - startIndex) * stride.shr(2)).toInt())
+    ): IntArray {
+        assertEquals(0, stride.and(3))
+        ensureBuffer()
+        bindBuffer(target, pointer)
+        GFX.check()
+        glGetBufferSubData(target, startIndex * stride, values)
+        GFX.check()
+        return values
+    }
+
+    fun readAsByteBuffer(
+        startIndex: Long = 0L,
+        values: ByteBuffer// = ByteBufferPool.allocateDirect(((elementCount - startIndex) * stride).toInt())
+    ): ByteBuffer {
+        ensureBuffer()
+        bindBuffer(target, pointer)
+        GFX.check()
+        glGetBufferSubData(target, startIndex * stride, values)
+        GFX.check()
+        return values
+    }
+
+    fun readAsShortArray(
+        startIndex: Long = 0L,
+        values: ShortArray = ShortArray(((elementCount - startIndex) * stride.shr(1)).toInt())
+    ): ShortArray {
+        assertEquals(0, stride.and(1))
+        ensureBuffer()
+        bindBuffer(target, pointer)
+        GFX.check()
+        glGetBufferSubData(target, startIndex * stride, values)
+        GFX.check()
+        return values
     }
 
     companion object {

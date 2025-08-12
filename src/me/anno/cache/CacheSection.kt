@@ -34,9 +34,8 @@ open class CacheSection<K, V : Any>(val name: String) : Comparable<CacheSection<
 
     @Suppress("unused")
     fun forEach(callback: (K, AsyncCacheData<V>) -> Unit) {
-        removeIf { k, v ->
-            callback(k, v)
-            false
+        synchronized(cache) {
+            cache.forEach(callback)
         }
     }
 
@@ -53,9 +52,9 @@ open class CacheSection<K, V : Any>(val name: String) : Comparable<CacheSection<
 
     fun removeEntry(key: K, delete: Boolean = true): AsyncCacheData<V>? {
         return synchronized(cache) {
-            val v = cache.remove(key)
-            if (delete) v?.destroy()
-            v
+            val value = cache.remove(key)
+            if (delete) value?.destroy()
+            value
         }
     }
 

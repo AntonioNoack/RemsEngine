@@ -17,29 +17,4 @@ class ComputeBuffer(name: String, attr: AttributeLayout, elementCount: Int, type
         val byteSize = attributes.totalSize(elementCount)
         return ByteBufferPool.allocateDirect(byteSize)
     }
-
-    @Suppress("unused")
-    fun readDataF(
-        startIndex: Long = 0L,
-        values: FloatArray = FloatArray(((elementCount - startIndex) * stride / 4).toInt())
-    ): FloatArray {
-        ensureBuffer()
-        bindBuffer(target, pointer)
-        GFX.check()
-        glGetBufferSubData(target, startIndex * stride, values)
-        GFX.check()
-        return values
-    }
-
-    fun readDataI(
-        startIndex: Long = 0L,
-        values: IntArray = IntArray(((elementCount - startIndex) * stride / 4).toInt())
-    ): IntArray {
-        ensureBuffer()
-        bindBuffer(target, pointer)
-        GFX.check()
-        glGetBufferSubData(target, startIndex * stride, values)
-        GFX.check()
-        return values
-    }
 }

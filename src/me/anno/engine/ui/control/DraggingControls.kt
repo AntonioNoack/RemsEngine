@@ -889,24 +889,6 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         EditorState.selection = emptyList()
     }
 
-    val blenderAddon = BlenderControlsAddon()
-
-    override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
-        if (!blenderAddon.onCharTyped(x, y, codepoint)) super.onCharTyped(x, y, codepoint)
-    }
-
-    override fun onEscapeKey(x: Float, y: Float) {
-        if (!blenderAddon.onEscapeKey(x, y)) super.onEscapeKey(x, y)
-    }
-
-    override fun onBackSpaceKey(x: Float, y: Float) {
-        if (!blenderAddon.onBackSpaceKey(x, y)) super.onBackSpaceKey(x, y)
-    }
-
-    override fun onEnterKey(x: Float, y: Float) {
-        if (!blenderAddon.onEnterKey(x, y)) super.onEnterKey(x, y)
-    }
-
     override fun isKeyInput() = true
     override fun acceptsChar(char: Int) = true
 

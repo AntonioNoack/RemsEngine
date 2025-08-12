@@ -16,7 +16,6 @@ class AccumulationTest {
     @Execution(ExecutionMode.SAME_THREAD)
     fun testAccumulate() {
         val src = IntArray(100) { it + 1 }
-        val dst = IntArray(src.size)
 
         val buffer = ComputeBuffer("values", bind(Attribute("v", AttributeType.UINT32, 1)), src.size)
         val tmp = ComputeBuffer("tmp", buffer.attributes, buffer.elementCount)
@@ -37,7 +36,7 @@ class AccumulationTest {
         val dstBuffer = Accumulation.accumulateI32(buffer, tmp)
 
         // read data from buffer
-        val data = dstBuffer.readDataI(0L, dst)
+        val data = dstBuffer.readAsIntArray(0L)
         for (i in src.indices) {
             Assertions.assertEquals(((i + 1) * (i + 2)) / 2, data[i])
         }
