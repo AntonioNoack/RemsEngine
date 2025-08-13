@@ -29,7 +29,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
     var indices = indices
         set(value) {
             field = value
-            isUpToDate = false
+            cpuSideChanged()
         }
 
     var elementsType = AttributeType.UINT32

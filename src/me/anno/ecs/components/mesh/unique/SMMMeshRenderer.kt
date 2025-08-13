@@ -177,7 +177,7 @@ class SMMMeshRenderer(material: Material) :
         assertEquals(data.vertexCount * stride, dataBuffer.position()) {
             "${data.vertexCount} * $stride != ${dataBuffer.position()}"
         }
-        data.isUpToDate = false
+        data.cpuSideChanged()
         return data
     }
 

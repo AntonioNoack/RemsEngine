@@ -18,7 +18,7 @@ object BLASBuffer {
         val data = ComputeBuffer("BLAS", blasAttr, numNodes)
         val nioBuffer = data.getOrCreateNioBuffer().asFloatBuffer()
         fillBLAS(blasRoots, triangleIndexMultiplier = 3, nioBuffer)
-        data.isUpToDate = false
+        data.cpuSideChanged()
         return data
     }
 }

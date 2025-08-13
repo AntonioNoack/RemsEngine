@@ -166,7 +166,7 @@ abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUs
             else addGPUTask("Buffer.destroy()", 1) { doDestroy(buffer) }
         }
         pointer = INVALID_POINTER
-        isUpToDate = false
+        cpuSideChanged()
         if (nioBuffer != null) {
             ByteBufferPool.free(nioBuffer)
         }

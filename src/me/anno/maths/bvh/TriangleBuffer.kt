@@ -33,7 +33,7 @@ object TriangleBuffer {
         val buffer = ComputeBuffer("BLAS", attr, numTriangles * 3)
         // write triangle into memory
         fillTris(roots, buffers, buffer.getOrCreateNioBuffer().asFloatBuffer(), pixelsPerVertex)
-        buffer.isUpToDate = false
+        buffer.cpuSideChanged()
         return buffer
     }
 }

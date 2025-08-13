@@ -65,8 +65,9 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     private var buffer0 = StaticBuffer("umr0", attributes, 0, BufferUsage.DYNAMIC)
     private var buffer1 = StaticBuffer("umr1", attributes, 0, BufferUsage.DYNAMIC)
 
-    val stride get() = attributes.stride
+    val stride: Int get() = attributes.stride
     val values: List<Mesh> get() = sortedEntries
+    val buffer: StaticBuffer get() = buffer0
 
     @DebugProperty
     @NotSerializedProperty

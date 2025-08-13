@@ -28,7 +28,7 @@ class BufferReadTest {
         repeat(size shr 2) {
             nio.putInt(rnd.nextInt())
         }
-        buffer.isUpToDate = false
+        buffer.cpuSideChanged()
         return buffer
     }
 
@@ -44,6 +44,7 @@ class BufferReadTest {
         val readValues = ByteBufferPool.allocateDirect(size)
         assertEquals(size, readValues.remaining())
         assertSame(readValues, buffer.readAsByteBuffer(0, readValues))
+        buffer.destroy()
     }
 
     @Test
@@ -57,6 +58,7 @@ class BufferReadTest {
         for (i in 0 until size.shr(2)) {
             assertEquals(nio.getInt(i.shl(2)), readValues[i])
         }
+        buffer.destroy()
     }
 
     @Test
@@ -70,6 +72,7 @@ class BufferReadTest {
         for (i in 0 until size.shr(2)) {
             assertEquals(nio.getFloat(i.shl(2)), readValues[i])
         }
+        buffer.destroy()
     }
 
     @Test
@@ -83,5 +86,6 @@ class BufferReadTest {
         for (i in 0 until size.shr(1)) {
             assertEquals(nio.getShort(i.shl(1)), readValues[i])
         }
+        buffer.destroy()
     }
 }

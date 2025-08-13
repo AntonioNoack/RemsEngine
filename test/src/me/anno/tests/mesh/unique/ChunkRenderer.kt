@@ -92,7 +92,7 @@ class ChunkRenderer(val material: Material, val world: TestWorld) :
             data.putFloat(dz + pos[i * 3 + 2])
             data.putInt(convertABGR2ARGB(col[i]))
         }
-        buffer.isUpToDate = false
+        buffer.cpuSideChanged()
         return buffer
     }
 }

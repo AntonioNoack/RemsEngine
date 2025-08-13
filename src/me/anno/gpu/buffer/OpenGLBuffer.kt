@@ -73,6 +73,10 @@ abstract class OpenGLBuffer(
         }
     }
 
+    fun cpuSideChanged() {
+        isUpToDate = false
+    }
+
     open fun onSessionChange() {
         pointer = INVALID_POINTER
         isUpToDate = false
@@ -173,6 +177,7 @@ abstract class OpenGLBuffer(
 
         prepareUpload()
         bindBuffer(target, pointer)
+        elementCount = (newLimit / stride).toInt()
 
         glBufferStorage(target, newLimit, GL_DYNAMIC_STORAGE_BIT)
         // GL46C.glBufferData(type, newLimit, usage.id)
@@ -227,31 +232,32 @@ abstract class OpenGLBuffer(
         toBuffer.bind()
         // println("glBufferSubData(${toBuffer.target},#${toBuffer.pointer},offset $to,$fromBuffer)")
         val fromOffsetInDataL = fromOffsetInDataI.toLong()
-        if (fromData is Buffer) assertEquals(0, fromOffsetInDataL)
+        if (fromData is Buffer) {
+            assertTrue(fromData.isDirect)
+            assertEquals(fromData.position(), fromOffsetInDataI)
+            assertEquals(0, fromOffsetInDataL)
+        }
         when (fromData) {
 
             // easy
             is ByteBuffer -> {
-                assertEquals(fromData.position(), fromOffsetInDataI)
                 assertEquals(sizeInBytes, fromData.remaining().toLong())
                 GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, fromData)
             }
             is ShortBuffer -> {
-                assertEquals(fromData.position(), fromOffsetInDataI)
                 assertEquals(sizeInBytes, fromData.remaining().toLong() shl 1)
                 GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, fromData)
             }
             is IntBuffer -> {
-                assertEquals(fromData.position(), fromOffsetInDataI)
                 assertEquals(sizeInBytes, fromData.remaining().toLong() shl 2)
                 GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, fromData)
             }
             is FloatBuffer -> {
-                assertEquals(fromData.position(), fromOffsetInDataI)
                 assertEquals(sizeInBytes, fromData.remaining().toLong() shl 2)
                 GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, fromData)
             }
 
+            // unnecessary copying
             is ByteArray -> {
                 val (tmp, clean) = fromData.wrapDirect(fromOffsetInDataI, sizeInBytes.toInt())
                 GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, tmp)
@@ -272,7 +278,7 @@ abstract class OpenGLBuffer(
                 GL46C.glBufferSubData(toBuffer.target, toOffsetInBytes, tmp)
                 clean()
             }
-            else -> throw NotImplementedError("Unknown type for uploadBytesPartially")
+            else -> throw NotImplementedError("Unknown type for uploadBytesPartially: ${fromData.javaClass}")
         }
         GFX.check()
     }
@@ -407,7 +413,7 @@ abstract class OpenGLBuffer(
     fun put(v: FloatArray, index: Int, length: Int): OpenGLBuffer {
         val nio = getOrCreateNioBuffer()
         assertTrue(nio.remaining().shr(2) >= length)
-        isUpToDate = false
+        cpuSideChanged()
         val pos = nio.position()
         nio.asFloatBuffer().put(v, index, length)
         nio.position(pos + length * 4)
@@ -440,13 +446,13 @@ abstract class OpenGLBuffer(
 
     fun put(f: Float): OpenGLBuffer {
         getOrCreateNioBuffer().putFloat(f)
-        isUpToDate = false
+        cpuSideChanged()
         return this
     }
 
     fun putByte(b: Byte): OpenGLBuffer {
         getOrCreateNioBuffer().put(b)
-        isUpToDate = false
+        cpuSideChanged()
         return this
     }
 
@@ -456,7 +462,7 @@ abstract class OpenGLBuffer(
             .put(c.g().toByte())
             .put(c.b().toByte())
             .put(c.a().toByte())
-        isUpToDate = false
+        cpuSideChanged()
         return this
     }
 
@@ -467,13 +473,13 @@ abstract class OpenGLBuffer(
 
     fun putShort(b: Short): OpenGLBuffer {
         getOrCreateNioBuffer().putShort(b)
-        isUpToDate = false
+        cpuSideChanged()
         return this
     }
 
     fun putInt(b: Int): OpenGLBuffer {
         getOrCreateNioBuffer().putInt(b)
-        isUpToDate = false
+        cpuSideChanged()
         return this
     }
 

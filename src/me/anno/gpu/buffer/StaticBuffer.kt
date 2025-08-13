@@ -36,7 +36,7 @@ open class StaticBuffer(
             buffer.position(0)
             buffer.limit(buffer.capacity())
         }
-        isUpToDate = false
+        cpuSideChanged()
         drawLength = 0
     }
 

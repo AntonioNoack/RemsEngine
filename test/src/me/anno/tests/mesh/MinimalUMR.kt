@@ -136,7 +136,7 @@ class MinimalUMR :
             nio.putShort(positions[i + 2].toInt().toShort())
             nio.putShort(0)
         }
-        buffer.isUpToDate = false
+        buffer.cpuSideChanged()
         return buffer
     }
 }

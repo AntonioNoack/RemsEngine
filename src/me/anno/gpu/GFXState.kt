@@ -297,6 +297,10 @@ object GFXState {
         }
     }
 
+    /**
+     * Binds the current scissor window or null.
+     * Components: x,y,width,height.
+     * */
     val scissorTest = object : SecureStack<Vector4i?>(null) {
         override fun onChangeValue(newValue: Vector4i?, oldValue: Vector4i?) {
             if (newValue != null) {

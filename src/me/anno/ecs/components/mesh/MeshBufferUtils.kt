@@ -244,7 +244,7 @@ object MeshBufferUtils {
             }
         }
         nio.position(layout.totalSize(numVertices))
-        buffer.isUpToDate = false
+        buffer.cpuSideChanged()
     }
 
     fun Mesh.createMeshBufferImpl() {
