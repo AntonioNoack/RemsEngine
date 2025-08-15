@@ -75,8 +75,21 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
 
     var totalNumPrimitives = 0L
 
+    /**
+     * If value > 1, your shader must load vertex attributes from the buffer on its own.
+     * Override bindBuffer() to bind it.
+     * */
+    var verticesPerEntry: Int = 1
+        set(value) {
+            field = max(value, 1)
+        }
+
     override fun ensureBuffer() {
         // not really anything to do for now...
+    }
+
+    open fun bindBuffer(shader: Shader, buffer: StaticBuffer) {
+        buffer.bind(shader)
     }
 
     val clock = Clock(LOGGER)
@@ -130,20 +143,20 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         pipeline.addMesh(this, this, transform)
     }
 
-    private fun push(buffer: StaticBuffer, start: Int, end: Int) {
+    private fun push(start: Int, end: Int) {
         if (start >= end) return
         if (tmpLengths.position() == tmpLengths.capacity()) {
-            finish(buffer)
+            finish()
         }
         tmpStarts.put(start)
         tmpLengths.put(end - start)
     }
 
-    private fun finish(buffer: StaticBuffer) {
+    private fun finish() {
         if (tmpLengths.position() > 0) {
             tmpStarts.flip()
             tmpLengths.flip()
-            glMultiDrawArrays(buffer.drawMode.id, tmpStarts, tmpLengths)
+            glMultiDrawArrays(drawMode.id, tmpStarts, tmpLengths)
             tmpStarts.clear()
             tmpLengths.clear()
         }
@@ -160,7 +173,8 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         GFXState.bind()
         // doesn't matter as long as it's greater than zero; make it the actual value for debugging using DebugGPUStorage
         buffer.drawLength = max(min(totalNumPrimitives, Int.MAX_VALUE.toLong()).toInt(), 1)
-        buffer.bind(shader)
+        bindBuffer(shader, buffer)
+        val factor = max(verticesPerEntry, 1)
         val frustum = pipeline?.frustum
         var transform = transform?.globalTransform
         // small optimization: most UniqueMeshRenderers will be at the origin
@@ -172,17 +186,21 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
             if (shallRenderEntry(frustum, transform, entry)) {
                 val range = getRange(entry)
                 if (range.first != currEnd) {
-                    push(buffer, currStart, currEnd)
-                    counter += currEnd - currStart
+                    push(currStart * factor, currEnd * factor)
+                    counter += (currEnd - currStart) * factor
                     currStart = range.first
                 }
                 currEnd = range.last + 1
             }
         }
-        push(buffer, currStart, currEnd)
-        counter += currEnd - currStart
-        numPrimitives = counter
-        finish(buffer)
+        push(currStart * factor, currEnd * factor)
+        counter += (currEnd - currStart) * factor
+        numPrimitives = when (drawMode) {
+            DrawMode.POINTS -> counter
+            DrawMode.LINES, DrawMode.LINE_STRIP -> counter shr 1
+            DrawMode.TRIANGLES, DrawMode.TRIANGLE_STRIP -> counter / 3
+        }
+        finish()
         buffer.unbind()
     }
 

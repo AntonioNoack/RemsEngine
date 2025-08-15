@@ -133,8 +133,6 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         lastStack = null
     }
 
-    private val tmpAABB = AABBd()
-
     fun getTransform(index: Int): Transform {
         ensureTransforms(index + 1)
         return transforms[index]
