@@ -43,7 +43,7 @@ import org.joml.Vector4f
 
 object TrackShader : ECSMeshShader("Track") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        return key.vertexData.onFragmentShader + listOf(
+        return key.vertexData.onFragmentShader + key.instanceData.onFragmentShader + listOf(
             ShaderStage(
                 "material", createFragmentVariables(key) +
                         Variable(GLSLType.V1F, "trackScrolling"),

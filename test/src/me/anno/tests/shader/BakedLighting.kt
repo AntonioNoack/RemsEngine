@@ -128,7 +128,7 @@ object BakedLightingShader : ECSMeshShader("BakedLighting") {
     var bakedIllumTex: ITexture2D? = null
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        return key.vertexData.onFragmentShader + listOf(
+        return key.vertexData.onFragmentShader + key.instanceData.onFragmentShader + listOf(
             ShaderStage(
                 "material", createFragmentVariables(key) +
                         listOf(

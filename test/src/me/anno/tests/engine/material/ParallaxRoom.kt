@@ -52,7 +52,7 @@ object ParallaxRoomShader : ECSMeshShader("ParallaxRoom") {
     //  - if passes through, find collision with 2nd, 3rd and 4th wall
     //  - color is compressed HDR... -> emissive
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        return key.vertexData.onFragmentShader + listOf(
+        return key.vertexData.onFragmentShader + key.instanceData.onFragmentShader + listOf(
             ShaderStage(
                 "material",
                 createFragmentVariables(key) + listOf(
@@ -134,7 +134,7 @@ object ParallaxRoomShader : ECSMeshShader("ParallaxRoom") {
 
 object PRGlassShader : ECSMeshShader("ParallaxRoom-Glass") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        return key.vertexData.onFragmentShader + listOf(
+        return key.vertexData.onFragmentShader + key.instanceData.onFragmentShader + listOf(
             ShaderStage(
                 "material",
                 createFragmentVariables(key) + listOf(Variable(GLSLType.V4F, "roomDepth")),

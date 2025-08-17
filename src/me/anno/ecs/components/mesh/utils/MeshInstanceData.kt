@@ -15,18 +15,20 @@ class MeshInstanceData(
     val transformNorTan: List<ShaderStage>,
     val transformColors: List<ShaderStage>,
     val transformMotionVec: List<ShaderStage>,
+    val onFragmentShader: List<ShaderStage>
 ) {
 
     constructor(
         transformPosition: ShaderStage,
         transformNorTan: ShaderStage,
         transformColors: ShaderStage?,
-        transformMotionVec: ShaderStage
+        transformMotionVec: ShaderStage,
     ) : this(
         listOf(transformPosition),
         listOf(transformNorTan),
         transformColors.wrap(),
-        listOf(transformMotionVec)
+        listOf(transformMotionVec),
+        emptyList()
     )
 
     companion object {
@@ -97,7 +99,8 @@ class MeshInstanceData(
                     ),
                     "prevLocalTransform = loadMat4x3(instancePrevTrans0,instancePrevTrans1,instancePrevTrans2);\n"
                 ).add(ShaderLib.loadMat4x3)
-            ) + DEFAULT.transformMotionVec
+            ) + DEFAULT.transformMotionVec,
+            emptyList()
         )
 
         val TRS = MeshInstanceData(
@@ -131,7 +134,7 @@ class MeshInstanceData(
                         Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
                     ), "prevPosition = vec4(finalPosition,1.0);\n"
                 )
-            )
+            ), emptyList()
         )
     }
 }

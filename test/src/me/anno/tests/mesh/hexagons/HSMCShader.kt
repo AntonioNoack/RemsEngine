@@ -68,7 +68,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         // return super.createFragmentStages(key)
-        return key.vertexData.onFragmentShader + listOf(ShaderStage(
+        return key.vertexData.onFragmentShader + key.instanceData.onFragmentShader + listOf(ShaderStage(
             "material",
             createFragmentVariables(key).filter {
                 when (it.name) {

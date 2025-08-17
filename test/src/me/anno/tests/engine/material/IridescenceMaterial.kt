@@ -41,7 +41,7 @@ class IridescenceMaterial : Material() {
 
 object IridescenceShader : ECSMeshShader("Iridescence") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        return key.vertexData.onFragmentShader + listOf(
+        return key.vertexData.onFragmentShader + key.instanceData.onFragmentShader + listOf(
             ShaderStage(
                 "material",
                 createFragmentVariables(key) + listOf(

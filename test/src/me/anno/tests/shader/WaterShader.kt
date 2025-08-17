@@ -50,7 +50,7 @@ import me.anno.utils.types.Booleans.hasFlag
 
 object WaterShader : ECSMeshShader("Water") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        return key.vertexData.onFragmentShader + listOf(
+        return key.vertexData.onFragmentShader + key.instanceData.onFragmentShader + listOf(
             ShaderStage(
                 "material", createFragmentVariables(key) +
                         DepthTransforms.depthVars + listOf(

@@ -522,7 +522,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     // just like the gltf pbr shader define all material properties
     open fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        return key.vertexData.onFragmentShader + listOf(
+        return key.vertexData.onFragmentShader + key.instanceData.onFragmentShader + listOf(
             ShaderStage(
                 "material", createFragmentVariables(key),
                 concatDefines(key).toString() +

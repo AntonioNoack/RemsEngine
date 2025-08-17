@@ -45,7 +45,7 @@ fun main() {
 
 object ShineAroundLightsShader : ECSMeshShader("ShineAroundLights") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        return key.vertexData.onFragmentShader + listOf(
+        return key.vertexData.onFragmentShader + key.instanceData.onFragmentShader + listOf(
             ShaderStage(
                 "material", createFragmentVariables(key) + listOf(
                     Variable(GLSLType.V3F, "localPosition"),
