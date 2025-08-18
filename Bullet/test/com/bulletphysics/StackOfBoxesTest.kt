@@ -13,14 +13,6 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
 import com.bulletphysics.dynamics.constraintsolver.SliderConstraint
 import com.bulletphysics.linearmath.Transform
-import me.anno.ecs.Component
-import me.anno.ecs.Entity
-import me.anno.ecs.annotations.DebugAction
-import me.anno.ecs.systems.OnUpdate
-import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.ui.UIColors
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test

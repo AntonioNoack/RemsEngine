@@ -5,7 +5,8 @@ import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugPoint
+import me.anno.engine.debug.DebugShapes.showDebugTriangle
 import me.anno.engine.debug.DebugTriangle
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
@@ -125,12 +126,12 @@ class ConvexHullShape(val points: FloatArray, val triangles: IntArray?) :
                 val a = vertices[triangles[i]]
                 val b = vertices[triangles[i + 1]]
                 val c = vertices[triangles[i + 2]]
-                DebugShapes.debugTriangles.add(DebugTriangle(a, b, c, color, 0f))
+                showDebugTriangle(DebugTriangle(a, b, c, color, 0f))
             }
         } else {
             for (i in vertices.indices) {
                 val v = vertices[i]
-                DebugShapes.debugPoints.add(DebugPoint(v, color, 0f))
+                showDebugPoint(DebugPoint(v, color, 0f))
             }
         }
     }

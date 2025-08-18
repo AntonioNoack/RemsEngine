@@ -36,7 +36,7 @@ object Splines {
             pt.getLocalPosition(posNormals[i4 + 2], +1.0)
             pt.getLocalForward(posNormals[i4 + 3])
             /*fun showDir(v: Vector3d, d: Vector3d) {
-                DebugShapes.debugArrows.add(DebugLine(v, v + d * 2.0, UIColors.greenYellow, 1e3f))
+                showDebugArrow(DebugLine(v, v + d * 2.0, UIColors.greenYellow, 1e3f))
             }
             showDir(posNormals[i4], posNormals[i4 + 1])
             showDir(posNormals[i4 + 2], posNormals[i4 + 3])*/
@@ -104,7 +104,7 @@ object Splines {
         /*for (i in result.indices step 2) {
             val v = result[i]
             val d = result[i + 1]
-            DebugShapes.debugArrows.add(DebugLine(v, d, UIColors.axisXColor, 0f))
+            showDebugArrow(DebugLine(v, d, UIColors.axisXColor, 0f))
         }*/
 
         return result
@@ -151,8 +151,8 @@ object Splines {
         d0.mulAdd(-extend, p0, dst0)
         d1.mulAdd(+extend, p1, dst1)
 
-        // DebugShapes.debugPoints.add(DebugPoint(dst0, UIColors.gold, 1e3f))
-        // DebugShapes.debugPoints.add(DebugPoint(dst1, UIColors.gold, 1e3f))
+        // showDebugPoint(DebugPoint(dst0, UIColors.gold, 1e3f))
+        // showDebugPoint(DebugPoint(dst1, UIColors.gold, 1e3f))
     }
 
     /**

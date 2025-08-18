@@ -1,7 +1,7 @@
 package me.anno.ecs.components.collider
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugTriangle
 import me.anno.engine.debug.DebugTriangle
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
@@ -62,7 +62,7 @@ class ConvexCollider : Collider() {
                 val a = vertices[indices[idx]]
                 val b = vertices[indices[idx + 1]]
                 val c = vertices[indices[idx + 2]]
-                DebugShapes.debugTriangles.add(
+                showDebugTriangle(
                     DebugTriangle(
                         a, b, c,
                         triColor, 0f

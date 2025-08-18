@@ -3,7 +3,7 @@ package me.anno.games.trainbuilder.rail
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugArrow
 import me.anno.ui.UIColors
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
@@ -32,7 +32,7 @@ class RailSplitController(
         val p1 = Vector3d((if (input.nextPiece == output0) output0 else output1).end)
         p0.y += 10.0
         p1.y += 10.0
-        DebugShapes.debugArrows.add(DebugLine(p0, p1, UIColors.dodgerBlue, 0.5f))
+        showDebugArrow(DebugLine(p0, p1, UIColors.dodgerBlue, 0.5f))
     }
 
     fun link(useOutput1: Boolean) {

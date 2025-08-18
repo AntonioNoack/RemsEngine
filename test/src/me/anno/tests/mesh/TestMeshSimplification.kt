@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.terrain.HeightMap
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.ecs.components.mesh.utils.IndexGenerator.generateIndices
 import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugPoint
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.noise.PerlinNoise
@@ -53,7 +53,7 @@ fun simplifyMesh(mesh: Mesh, ratio: Float, level: Int): Mesh {
         val v = helper.vertices[i]
         v.position.get(newPositions, i * 3)
         if (v.border && showBorders) {
-            DebugShapes.debugPoints.add(DebugPoint(v.position, UIColors.fireBrick, 1e3f))
+            showDebugPoint(DebugPoint(v.position, UIColors.fireBrick, 1e3f))
         }
     }
 

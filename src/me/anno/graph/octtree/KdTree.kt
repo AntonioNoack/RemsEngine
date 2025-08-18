@@ -38,7 +38,7 @@ abstract class KdTree<Point, Value>(
     }
 
     abstract fun chooseSplitDimension(min: Point, max: Point): Int
-    abstract fun overlaps(min0: Point, max0: Point, min1: Point, max1: Point): Boolean
+    abstract fun overlapsOtherTree(min0: Point, max0: Point, min1: Point, max1: Point): Boolean
 
     open fun getPoint(data: Value): Point = getMin(data)
     open fun getMin(data: Value): Point = getPoint(data)
@@ -48,10 +48,10 @@ abstract class KdTree<Point, Value>(
     abstract fun min(a: Point, b: Point, dst: Point): Point
     abstract fun max(a: Point, b: Point, dst: Point): Point
     abstract fun copy(a: Point): Point
-    abstract fun distanceMetric(p: Point, min: Point, max: Point): Double
+    abstract fun distanceToBounds(p: Point, min: Point, max: Point): Double
 
-    open fun distanceMetric(p: Point, value: Value): Double {
-        return distanceMetric(p, getMin(value), getMax(value))
+    open fun distanceToValue(p: Point, value: Value): Double {
+        return distanceToBounds(p, getMin(value), getMax(value))
     }
 
     open fun createChild(
@@ -231,7 +231,7 @@ abstract class KdTree<Point, Value>(
                     val value = values.getOrNull(i) ?: break
                     val minI = node.getMin(value)
                     val maxI = node.getMax(value)
-                    if (overlaps(min, max, minI, maxI)) {
+                    if (overlapsOtherTree(min, max, minI, maxI)) {
                         if (hasFound(value)) {
                             found = value
                             break
@@ -277,19 +277,23 @@ abstract class KdTree<Point, Value>(
         } != null
     }
 
-    fun overlaps(other: KdTree<Point, *>): Boolean {
-        return overlaps(min, max, other.min, other.max)
+    fun overlapsOtherTree(other: KdTree<Point, *>): Boolean {
+        return overlapsBounds(other.min, other.max)
     }
 
-    fun overlaps(other: Value): Boolean {
-        return overlaps(min, max, getMin(other), getMax(other))
+    open fun overlapsValue(other: Value): Boolean {
+        return overlapsBounds(getMin(other), getMax(other))
     }
 
-    fun overlaps(valueA: Value, valueB: Value): Boolean {
-        return overlaps(
+    fun pairOverlaps(valueA: Value, valueB: Value): Boolean {
+        return overlapsOtherTree(
             getMin(valueA), getMax(valueA),
             getMin(valueB), getMax(valueB)
         )
+    }
+
+    fun overlapsBounds(min: Point, max: Point): Boolean {
+        return overlapsOtherTree(this.min, this.max, min, max)
     }
 
     fun find(hasFound: (Value) -> Boolean): Boolean {
@@ -353,14 +357,14 @@ abstract class KdTree<Point, Value>(
         val left = left
         val right = right
         if (left != null && right != null) {
-            if (overlaps(left.min, left.max, minI, maxI)) {
+            if (overlapsOtherTree(left.min, left.max, minI, maxI)) {
                 if (left.remove(d)) {
                     size--
                     recalculateBoundsLeftRight(left, right)
                     return true
                 }
             }
-            if (overlaps(right.min, right.max, minI, maxI)) {
+            if (overlapsOtherTree(right.min, right.max, minI, maxI)) {
                 if (right.remove(d)) {
                     size--
                     recalculateBoundsLeftRight(left, right)
@@ -400,11 +404,11 @@ abstract class KdTree<Point, Value>(
         val left = left
         val right = right
         if (left != null && right != null) {
-            if (overlaps(left.min, left.max, oldMin, oldMax) && left.update(d, oldMin, oldMax)) {
+            if (overlapsOtherTree(left.min, left.max, oldMin, oldMax) && left.update(d, oldMin, oldMax)) {
                 recalculateBoundsLeftRight(left, right)
                 return true
             }
-            if (overlaps(right.min, right.max, oldMin, oldMax) && right.update(d, oldMin, oldMax)) {
+            if (overlapsOtherTree(right.min, right.max, oldMin, oldMax) && right.update(d, oldMin, oldMax)) {
                 recalculateBoundsLeftRight(left, right)
                 return true
             }
@@ -425,11 +429,11 @@ abstract class KdTree<Point, Value>(
         val left = left
         val right = right
         if (left != null && right != null) {
-            if (overlaps(left.min, left.max, oldMin, oldMax)) {
+            if (overlapsOtherTree(left.min, left.max, oldMin, oldMax)) {
                 val v0 = left.find(d, oldMin, oldMax)
                 if (v0 != null) return v0
             }
-            if (overlaps(right.min, right.max, oldMin, oldMax)) {
+            if (overlapsOtherTree(right.min, right.max, oldMin, oldMax)) {
                 val v0 = right.find(d, oldMin, oldMax)
                 if (v0 != null) return v0
             }

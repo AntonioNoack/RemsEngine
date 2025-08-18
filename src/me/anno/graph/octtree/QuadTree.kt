@@ -14,7 +14,7 @@ abstract class QuadTree<Data>(maxNumChildren: Int) :
     override fun max(a: Vector2d, b: Vector2d, dst: Vector2d) = a.max(b, dst)
     override fun copy(a: Vector2d) = Vector2d(a)
 
-    override fun distanceMetric(p: Vector2d, min: Vector2d, max: Vector2d): Double {
+    override fun distanceToBounds(p: Vector2d, min: Vector2d, max: Vector2d): Double {
         // signed distance box function in 2d
         val dx = max(min.x - p.x, p.x - max.x)
         val dy = max(min.y - p.y, p.y - max.y)
@@ -26,7 +26,7 @@ abstract class QuadTree<Data>(maxNumChildren: Int) :
         return min(inside, 0.0) + outside
     }
 
-    override fun overlaps(min0: Vector2d, max0: Vector2d, min1: Vector2d, max1: Vector2d): Boolean {
+    override fun overlapsOtherTree(min0: Vector2d, max0: Vector2d, min1: Vector2d, max1: Vector2d): Boolean {
         return max0.x >= min1.x && max0.y >= min1.y &&
                 min0.x <= max1.x && min0.y <= max1.y
     }

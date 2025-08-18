@@ -74,7 +74,7 @@ class AgentController1a(
             Raycast.TRIANGLE_FRONT, data.collisionMask, false, emptySet(), RayHit(dist)
         )
         val hr = Raycast.raycast(meshEntity, query)
-        // DebugShapes.debugLines.add(DebugLine(start, Vector3d(raycastDir).mul(dist).add(start), -1))
+        // showDebugLine(DebugLine(start, Vector3d(raycastDir).mul(dist).add(start), -1))
         val np = if (hr) query.result.positionWS else Vector3d(nextPos)
         val dt = Time.deltaTime
         np.mix(lp, dtTo01(dt * 3.0))

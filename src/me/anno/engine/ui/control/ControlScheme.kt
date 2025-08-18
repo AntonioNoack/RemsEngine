@@ -10,8 +10,8 @@ import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes.debugLines
-import me.anno.engine.debug.DebugShapes.debugPoints
+import me.anno.engine.debug.DebugShapes.showDebugLine
+import me.anno.engine.debug.DebugShapes.showDebugPoint
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.ui.EditorState
@@ -264,12 +264,12 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
                 0.1f * result.distance.toFloat() * tan(renderView.fovYRadians * 0.5f)
             )
             // draw collision point
-            debugPoints.add(DebugPoint(pos, -1))
+            showDebugPoint(DebugPoint(pos, -1))
             // draw collision normal
-            debugLines.add(DebugLine(pos, pos.add(normal, Vector3d()), black or 0x00ff00))
+            showDebugLine(DebugLine(pos, pos.add(normal, Vector3d()), black or 0x00ff00))
         } else {
             // draw red point in front of the camera
-            debugPoints.add(DebugPoint(Vector3d(dir).mul(20.0).add(start), black or 0xff0000))
+            showDebugPoint(DebugPoint(Vector3d(dir).mul(20.0).add(start), black or 0xff0000))
         }
     }
 

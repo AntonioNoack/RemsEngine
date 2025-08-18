@@ -9,7 +9,7 @@ import me.anno.ecs.components.text.TextComponent
 import me.anno.ecs.components.text.TextureTextComponent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugLine
 import me.anno.engine.ui.control.DraggingControlSettings
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -55,7 +55,7 @@ fun main() {
 
     for (z in listOf(4.0, 2.0, 0.0)) {
         for (x in listOf(0.0, 5.0, 10.0)) {
-            DebugShapes.debugLines.add(
+            showDebugLine(
                 DebugLine(
                     Vector3d(x, -5.0, z), Vector3d(x, 5.0, z),
                     0x77ff77 or black, 1e3f

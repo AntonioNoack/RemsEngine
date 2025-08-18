@@ -1,7 +1,8 @@
 package me.anno.recast
 
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugArrow
+import me.anno.engine.debug.DebugShapes.showDebugLine
 import me.anno.maths.Maths.posMod
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3d
@@ -34,7 +35,7 @@ object NavMeshUtils {
         for (i in 1 until centers.size) {
             val from = centers[i - 1]
             val to = centers[i]
-            DebugShapes.debugArrows.add(DebugLine(from, to, color, 0f))
+            showDebugArrow(DebugLine(from, to, color, 0f))
         }
     }
 
@@ -46,7 +47,7 @@ object NavMeshUtils {
         for (vi in vertices.indices) {
             val va = vertices[vi]
             val vb = vertices[posMod(vi + 1, vertices.size)]
-            DebugShapes.debugLines.add(DebugLine(va, vb, color, 0f))
+            showDebugLine(DebugLine(va, vb, color, 0f))
         }
     }
 

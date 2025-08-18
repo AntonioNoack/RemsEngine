@@ -42,7 +42,7 @@ object KdTreePairs {
         remaining: ArrayList<Any?>
     ): Boolean {
 
-        if (!overlaps(other)) return false
+        if (!overlapsOtherTree(other)) return false
         val ownChildren = values
         val otherChildren = other.values
         val sameNode = other === this
@@ -66,7 +66,7 @@ object KdTreePairs {
                         // preventing returning (a,a)
                         if (!returnSelfPairs && a === b) continue
 
-                        if (overlaps(aMin, aMax, bMin, bMax)) {
+                        if (overlapsOtherTree(aMin, aMax, bMin, bMax)) {
                             if (hasFound(a, b)) {
                                 // returning (a,b)
                                 return true

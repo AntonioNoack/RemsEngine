@@ -6,7 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugArrow
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.Key
@@ -34,7 +34,7 @@ class SimpleShootingControls : Component(), CustomEditMode {
                     val impulse = Vector3d(query.direction).mul(force)
                     hitRigidbody.applyImpulse(relativePos, impulse)
                 } else {
-                    DebugShapes.debugArrows.add(
+                    showDebugArrow(
                         DebugLine(
                             Vector3d(query.start),
                             Vector3d(query.result.positionWS),

@@ -7,8 +7,8 @@ import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes.debugLines
-import me.anno.engine.debug.DebugShapes.debugPoints
+import me.anno.engine.debug.DebugShapes.showDebugLine
+import me.anno.engine.debug.DebugShapes.showDebugPoint
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.Pipeline
@@ -173,7 +173,7 @@ class SDFHeightMap : SDFShape(), OnDrawGUI {
         // draw test ray on CPU side to make sure it's correct
         val pos = Vector3f(-1f, 0.19f, 0f)
         var pos0 = Vector3d(pos)
-        debugPoints.add(DebugPoint(pos0, -1, Time.nanoTime))
+        showDebugPoint(DebugPoint(pos0, -1, Time.nanoTime))
 
         val dir = Vector3f(pos).normalize(-1f)
 
@@ -189,8 +189,8 @@ class SDFHeightMap : SDFShape(), OnDrawGUI {
             val pos1 = Vector3d(pos)
                 .sub(0.5, 0.0, 0.5).div(0.5, 1.0, 0.5)
                 .div(scale)
-            debugPoints.add(DebugPoint(pos1, color, Time.nanoTime))
-            debugLines.add(DebugLine(pos0, pos1, color, Time.nanoTime))
+            showDebugPoint(DebugPoint(pos1, color, Time.nanoTime))
+            showDebugLine(DebugLine(pos0, pos1, color, Time.nanoTime))
             pos0 = pos1
         }
 

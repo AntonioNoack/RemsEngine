@@ -107,7 +107,7 @@ class HSChunkLoader(
         dir.set(pos)
         val pos3 = Vector3f(pos)
         chunks.removeIf { (key, bounds) ->
-            // DebugShapes.debugTexts.add(DebugText(Vector3d(key.center), "${key.tri} ${key.si} ${key.sj}", -1, 0f))
+            // showDebugText(DebugText(Vector3d(key.center), "${key.tri} ${key.si} ${key.sj}", -1, 0f))
             if (!bounds.isEmpty() && bounds.distance(pos3) > 1.5f * maxAngleDifference) {
                 remove(key, true)
                 true

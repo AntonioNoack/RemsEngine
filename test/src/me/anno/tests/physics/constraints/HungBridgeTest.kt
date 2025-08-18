@@ -15,12 +15,11 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugArrow
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.UIColors
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -151,7 +150,7 @@ fun main() {
                     b.transform.globalTransform.transformPosition(globalB)
 
                     // visualize these points
-                    DebugShapes.debugArrows.add(
+                    showDebugArrow(
                         DebugLine(
                             Vector3d(globalA), Vector3d(globalB),
                             UIColors.paleGoldenRod, 0f

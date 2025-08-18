@@ -8,7 +8,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.WindowRenderFlags
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugLine
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.Color.white
@@ -17,7 +17,6 @@ import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.add
 import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Quaternionf
@@ -142,7 +141,7 @@ fun main() {
     val color = white.withAlpha(0.05f)
     for (i in 0 until n) {
         for (j in 0 until m) {
-            DebugShapes.debugLines.add(
+            showDebugLine(
                 DebugLine(
                     boid.pos2[i], boid.pos2[boid.following[m * i + j]],
                     color, 1e9f

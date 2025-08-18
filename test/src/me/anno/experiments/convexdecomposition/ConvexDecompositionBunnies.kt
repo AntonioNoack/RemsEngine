@@ -1,6 +1,5 @@
 package me.anno.experiments.convexdecomposition
 
-import me.anno.maths.geometry.convexhull.ConvexHull
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
 import me.anno.bullet.bodies.StaticBody
@@ -14,12 +13,14 @@ import me.anno.ecs.systems.Systems.registerSystem
 import me.anno.engine.DefaultAssets.plane
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugLine
+import me.anno.engine.debug.DebugShapes.showDebugTriangle
 import me.anno.engine.debug.DebugTriangle
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths
 import me.anno.maths.Maths.TAU
 import me.anno.maths.geometry.convexhull.ConvexDecomposition
+import me.anno.maths.geometry.convexhull.ConvexHull
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.downloads
@@ -38,10 +39,10 @@ fun visualizeHulls(hulls: List<ConvexHull>) {
             val p0 = vertices[triangles[i]]
             val p1 = vertices[triangles[i + 1]]
             val p2 = vertices[triangles[i + 2]]
-            DebugShapes.debugTriangles.add(DebugTriangle(p0, p1, p2, faceColor, 1e3f))
-            DebugShapes.debugLines.add(DebugLine(p0, p1, lineColor, 1e3f))
-            DebugShapes.debugLines.add(DebugLine(p1, p2, lineColor, 1e3f))
-            DebugShapes.debugLines.add(DebugLine(p2, p0, lineColor, 1e3f))
+            showDebugTriangle(DebugTriangle(p0, p1, p2, faceColor, 1e3f))
+            showDebugLine(DebugLine(p0, p1, lineColor, 1e3f))
+            showDebugLine(DebugLine(p1, p2, lineColor, 1e3f))
+            showDebugLine(DebugLine(p2, p0, lineColor, 1e3f))
         }
     }
 }

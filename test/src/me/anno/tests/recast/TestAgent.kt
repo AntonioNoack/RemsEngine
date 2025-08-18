@@ -2,7 +2,7 @@ package me.anno.tests.recast
 
 import me.anno.ecs.components.FillSpace
 import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugPoint
 import me.anno.recast.NavMeshAgent
 import me.anno.recast.NavMeshData
 import me.anno.recast.NavMeshUtils
@@ -32,7 +32,7 @@ class TestAgent(
         if (enableDrawing) {
             // draw current position
             val pos = crowdAgent!!.currentPosition
-            DebugShapes.debugPoints.add(DebugPoint(Vector3d(pos), 0x2277ff or black, 0f))
+            showDebugPoint(DebugPoint(Vector3d(pos), 0x2277ff or black, 0f))
             // draw current path
             val c = crowdAgent!!.corridor
             NavMeshUtils.drawPath(data.navMesh, data.meshData, c.path, 0x555555 or black)

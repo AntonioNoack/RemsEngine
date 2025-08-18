@@ -16,6 +16,9 @@ class PathFinding<Node : Any>(capacityGuess: Int = 16) {
     companion object {
         private val LOGGER = LogManager.getLogger(PathFinding::class)
 
+        // pooled values to avoid allocations
+        private val POOL = Stack { DataNode<Any?>() }
+
         fun <Node> dijkstraCallback(
             queryForward: (from: Node, DijkstraForwardResponse<Node>) -> Unit
         ): (from: Node, AStarForwardResponse<Node>) -> Unit {
@@ -57,9 +60,6 @@ class PathFinding<Node : Any>(capacityGuess: Int = 16) {
         val score1 = assertNotNull(cache[p1], "cache[p1] is null").score
         score0.compareTo(score1)
     }
-
-    // pooled values to avoid allocations
-    private val pool = Stack { DataNode<Any?>() }
 
     /**
      * searches for the shortest path within a graph;
@@ -190,11 +190,11 @@ class PathFinding<Node : Any>(capacityGuess: Int = 16) {
         }
 
         // forward tracking
-        val poolStartIndex = pool.index
+        val poolStartIndex = POOL.index
 
         for (start in starts) {
             @Suppress("UNCHECKED_CAST")
-            cache[start] = pool.create().set(0.0, distStartEnd, null) as DataNode<Node>
+            cache[start] = POOL.create().set(0.0, distStartEnd, null) as DataNode<Node>
             queue.add(start)
         }
 
@@ -225,7 +225,7 @@ class PathFinding<Node : Any>(capacityGuess: Int = 16) {
                         val oldScore = cache[to]
                         if (oldScore == null) {
                             @Suppress("UNCHECKED_CAST")
-                            cache[to] = pool.create().set(newDistance, newScore, from) as DataNode<Node>
+                            cache[to] = POOL.create().set(newDistance, newScore, from) as DataNode<Node>
                             queue.add(to)
                         } else {
                             if (newDistance < oldScore.distance) {
@@ -259,7 +259,7 @@ class PathFinding<Node : Any>(capacityGuess: Int = 16) {
             path.reverse()
             path
         } else null
-        pool.index = poolStartIndex
+        POOL.index = poolStartIndex
 
         cache.clear()
         queue.clear()

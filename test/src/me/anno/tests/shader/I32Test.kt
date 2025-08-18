@@ -39,7 +39,8 @@ class TestI32Stack(val space: Float) : InstancedI32Stack(
         ),
         MeshInstanceData.DEFAULT.transformNorTan,
         MeshInstanceData.DEFAULT.transformColors,
-        MeshInstanceData.DEFAULT.transformMotionVec
+        MeshInstanceData.DEFAULT.transformMotionVec,
+        MeshInstanceData.DEFAULT.onFragmentShader
     )
 )
 

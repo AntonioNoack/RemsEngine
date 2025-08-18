@@ -4,8 +4,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes
-import me.anno.engine.raycast.RayQuery
+import me.anno.engine.debug.DebugShapes.showDebugPoint
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.RenderView
@@ -107,7 +106,7 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
     fun buildMesh() {
         if (anchor1 == null) {
             // todo add a circular piece...
-            DebugShapes.debugPoints.add(
+            showDebugPoint(
                 DebugPoint(
                     Vector3d(anchor0!!).add(0.0, 1.0, 0.0),
                     Color.black, 0f

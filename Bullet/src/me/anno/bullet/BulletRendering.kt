@@ -11,7 +11,8 @@ import me.anno.bullet.bodies.PhysicalBody
 import me.anno.bullet.bodies.PhysicsBody
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugArrow
+import me.anno.engine.debug.DebugShapes.showDebugPoint
 import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.gpu.buffer.LineBuffer.addLine
@@ -116,7 +117,7 @@ object BulletRendering {
         val n = point.normalWorldOnB
         val d = 0.05 * cam.distance(a.x, a.y, a.z)
         val b2 = Vector3d(a.x + n.x * d, a.y + n.y * d, a.z + n.z * d)
-        DebugShapes.debugArrows.add(DebugLine(a, b2, color, 0f))
+        showDebugArrow(DebugLine(a, b2, color, 0f))
     }
 
     private fun BulletPhysics.drawAABBs() {
@@ -149,7 +150,7 @@ object BulletRendering {
                     forLoopSafely(shape.points.size, 3) { idx ->
                         val p1 = Vector3d(shape.points, idx)
                         tmpTrans.transformPosition(p1)
-                        DebugShapes.debugPoints.add(DebugPoint(p1, -1, 0f))
+                        showDebugPoint(DebugPoint(p1, -1, 0f))
                     }
                 }
             } catch (e: Exception) {

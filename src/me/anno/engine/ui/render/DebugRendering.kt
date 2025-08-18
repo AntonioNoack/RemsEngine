@@ -244,7 +244,7 @@ object DebugRendering {
     private fun drawDebugPoints(view: RenderView) {
         val points = DebugShapes.debugPoints
         for (i in points.indices) {
-            val point = points[i]
+            val point = points.getOrNull(i) ?: break
             drawDebugPoint(view, point.position, point.color)
         }
     }
@@ -255,7 +255,7 @@ object DebugRendering {
         val dirY = JomlPools.vec3d.create()
         val dirZ = JomlPools.vec3d.create()
         for (i in arrows.indices) {
-            val arrow = arrows[i]
+            val arrow = arrows.getOrNull(i) ?: break
             LineBuffer.addLine(arrow.from, arrow.to, arrow.color)
             arrow.to.sub(arrow.from, dirY)
             val len = dirY.length()
@@ -278,7 +278,7 @@ object DebugRendering {
     private fun drawDebugLines() {
         val lines = DebugShapes.debugLines
         for (i in lines.indices) {
-            val line = lines[i]
+            val line = lines.getOrNull(i) ?: break
             LineBuffer.addLine(line.p0, line.p1, line.color)
         }
     }
@@ -286,7 +286,7 @@ object DebugRendering {
     private fun drawDebugAABBs() {
         val aabbs = DebugShapes.debugAABBs
         for (i in aabbs.indices) {
-            val aabb = aabbs[i]
+            val aabb = aabbs.getOrNull(i) ?: break
             DrawAABB.drawAABB(aabb.bounds, aabb.color)
         }
     }
@@ -294,7 +294,7 @@ object DebugRendering {
     private fun drawDebugTriangles() {
         val triangles = DebugShapes.debugTriangles
         for (i in triangles.indices) {
-            val tri = triangles[i]
+            val tri = triangles.getOrNull(i) ?: break
             TriangleBuffer.addTriangle(tri.p0, tri.p1, tri.p2, tri.color)
         }
     }
@@ -303,7 +303,7 @@ object DebugRendering {
         val cameraPosition = RenderState.cameraPosition
         val rays = DebugShapes.debugRays
         for (i in rays.indices) {
-            val ray = rays[i]
+            val ray = rays.getOrNull(i) ?: break
             val pos = ray.start
             val dir = ray.direction
             val color = ray.color

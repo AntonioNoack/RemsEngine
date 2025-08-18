@@ -14,7 +14,7 @@ abstract class OctTree<Value>(maxNumValues: Int) :
     override fun max(a: Vector3d, b: Vector3d, dst: Vector3d) = a.max(b, dst)
     override fun copy(a: Vector3d) = Vector3d(a)
 
-    override fun distanceMetric(p: Vector3d, min: Vector3d, max: Vector3d): Double {
+    override fun distanceToBounds(p: Vector3d, min: Vector3d, max: Vector3d): Double {
         // signed distance box function in 3d
         val dx = max(min.x - p.x, p.x - max.x)
         val dy = max(min.y - p.y, p.y - max.y)
@@ -28,7 +28,7 @@ abstract class OctTree<Value>(maxNumValues: Int) :
         return min(inside, 0.0) + outside
     }
 
-    override fun overlaps(min0: Vector3d, max0: Vector3d, min1: Vector3d, max1: Vector3d): Boolean {
+    override fun overlapsOtherTree(min0: Vector3d, max0: Vector3d, min1: Vector3d, max1: Vector3d): Boolean {
         return max0.x >= min1.x && max0.y >= min1.y && max0.z >= min1.z &&
                 min0.x <= max1.x && min0.y <= max1.y && min0.z <= max1.z
     }

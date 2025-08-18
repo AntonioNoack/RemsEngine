@@ -5,7 +5,7 @@ import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.TriangleShape
 import com.bulletphysics.linearmath.Transform
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugLine
 import me.anno.maths.chunks.spherical.Hexagon
 import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.maths.chunks.spherical.HexagonTriangleQuery
@@ -13,7 +13,6 @@ import me.anno.utils.Color.a
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Triangles
-import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -166,9 +165,9 @@ class HexagonSpherePhysics(
             val da = Vector3d(a)
             val db = Vector3d(b)
             val dc = Vector3d(c)
-            DebugShapes.debugLines.add(DebugLine(da, db, color, 0f))
-            DebugShapes.debugLines.add(DebugLine(db, dc, color, 0f))
-            DebugShapes.debugLines.add(DebugLine(dc, da, color, 0f))
+            showDebugLine(DebugLine(da, db, color, 0f))
+            showDebugLine(DebugLine(db, dc, color, 0f))
+            showDebugLine(DebugLine(dc, da, color, 0f))
         }
     }
 

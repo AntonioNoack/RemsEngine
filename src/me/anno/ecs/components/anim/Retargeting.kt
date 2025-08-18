@@ -20,7 +20,8 @@ import me.anno.ecs.components.anim.Retargetings.srcMat
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugText
+import me.anno.engine.debug.DebugShapes.showDebugTriangle
 import me.anno.engine.debug.DebugText
 import me.anno.engine.debug.DebugTriangle
 import me.anno.engine.inspector.Inspectable
@@ -146,7 +147,7 @@ class Retargeting : PrefabSaveable(), Renderable {
             matrices[i].transformPosition(pos)
             val pos1 = Vector3d(pos)
             transform.transformPosition(pos1)
-            DebugShapes.debugTexts.add(DebugText(pos1, bone.name, color, 0f))
+            showDebugText(DebugText(pos1, bone.name, color, 0f))
         }
     }
 
@@ -375,7 +376,7 @@ class Retargeting : PrefabSaveable(), Renderable {
         // draw triangles
         forLoopSafely(list.size, 3) { i ->
             val triangle = DebugTriangle(list[i], list[i + 1], list[i + 2], color, 0f)
-            DebugShapes.debugTriangles.add(triangle)
+            showDebugTriangle(triangle)
         }
     }
 

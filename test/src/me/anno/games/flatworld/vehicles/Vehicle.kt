@@ -4,12 +4,12 @@ import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugShapes.showDebugArrow
 import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.maths.Maths.dtTo01
-import me.anno.maths.Maths.mix
 import me.anno.games.flatworld.FlatWorld
 import me.anno.games.flatworld.streets.StreetSegment
+import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.mix
 import org.joml.Vector3d
 import kotlin.math.atan2
 import kotlin.math.max
@@ -65,7 +65,7 @@ class Vehicle(
         if (previousVehicle?.currentSegment != null) {
             // show link to previous vehicle with arrow
             val dy = Vector3d(0.0, 1.0, 0.0)
-            DebugShapes.debugArrows.add(
+            showDebugArrow(
                 DebugLine(
                     prevPosition + dy, previousVehicle.prevPosition + dy,
                     -1, 0f

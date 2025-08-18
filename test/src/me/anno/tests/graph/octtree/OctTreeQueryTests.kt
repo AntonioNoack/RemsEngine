@@ -52,7 +52,7 @@ class OctTreeQueryTests {
             flags: Int, other: KdTree<Point, Value>?,
             hasFound: (Value, Value) -> Boolean,
         ): Boolean {
-            if (other == null || !overlaps(other)) return false
+            if (other == null || !overlapsOtherTree(other)) return false
             val ownChildren = values
             val otherChildren = other.values
             val sameNode = other === this
@@ -76,7 +76,7 @@ class OctTreeQueryTests {
                             // preventing returning (a,a)
                             if (!returnSelfPairs && a === b) continue
 
-                            if (overlaps(aMin, aMax, bMin, bMax)) {
+                            if (overlapsOtherTree(aMin, aMax, bMin, bMax)) {
                                 if (hasFound(a, b)) {
                                     // returning (a,b)
                                     return true
@@ -211,7 +211,7 @@ class OctTreeQueryTests {
     private fun findValidPairs(tree: Node, spheres: List<Sphere>): Set<Pair<Sphere, Sphere>> {
         return spheres.flatMap { sphereA ->
             spheres.filter { sphereB ->
-                tree.overlaps(sphereA, sphereB)
+                tree.pairOverlaps(sphereA, sphereB)
             }.map { sphereB -> sphereA to sphereB }
         }.toSet()
     }

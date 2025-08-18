@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.SimpleMeshJoiner
-import me.anno.engine.debug.DebugShapes.debugTexts
+import me.anno.engine.debug.DebugShapes.showDebugText
 import me.anno.engine.debug.DebugText
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
@@ -53,7 +53,7 @@ fun main() {
         for (si in 0 until s) {
             for (sj in 0 until s - si) {
                 val chunk = sphere.queryChunk(tri, si, sj)
-                debugTexts.add(
+                showDebugText(
                     DebugText(
                         Vector3d(sphere.getChunkCenter(tri, si, sj)),
                         "$tri/$si/$sj", -1, duration

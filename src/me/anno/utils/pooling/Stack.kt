@@ -13,13 +13,17 @@ import kotlin.reflect.KClass
 class Stack<V : Any>(private val createInstance: () -> V) {
 
     companion object {
+
         @JvmStatic
         private val LOGGER = LogManager.getLogger(Stack::class)
-        val stacks = ArrayList<WeakReference<Stack<*>>>()
+        private val stacks = ArrayList<WeakReference<Stack<*>>>()
+
         fun resetAll() {
-            stacks.removeIf { it.get() == null }
-            for (i in stacks.indices) {
-                (stacks.getOrNull(i) ?: continue).get()?.reset()
+            synchronized(stacks) {
+                stacks.removeIf { it.get() == null }
+                for (i in stacks.indices) {
+                    (stacks.getOrNull(i) ?: continue).get()?.reset()
+                }
             }
         }
 
@@ -31,7 +35,9 @@ class Stack<V : Any>(private val createInstance: () -> V) {
     constructor(clazz: KClass<V>) : this(getConstructor(clazz))
 
     init {
-        stacks.add(WeakReference(this))
+        synchronized(stacks) {
+            stacks.add(WeakReference(this))
+        }
     }
 
     private class LocalStack<V : Any>(

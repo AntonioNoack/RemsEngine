@@ -149,7 +149,7 @@ class SplineSpawner : MeshSpawner() {
                 transform.localScale = sc
             }
 
-            // DebugShapes.debugPoints.add(DebugPoint(p0, -1, 0f))
+            // showDebugPoint(DebugPoint(p0, -1, 0f))
             if (callback(mesh, material, transform)) break
         }
     }
