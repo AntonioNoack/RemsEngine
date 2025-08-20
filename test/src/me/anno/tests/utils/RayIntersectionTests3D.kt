@@ -3,7 +3,7 @@ package me.anno.tests.utils
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.types.LineIntersection.lineIntersection
+import me.anno.utils.types.RayIntersection.rayIntersection
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d
@@ -11,12 +11,12 @@ import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
 
-class LineIntersectionTests3D {
+class RayIntersectionTests3D {
     @Test
     fun testSampleD() {
         val result = Vector2d()
         assertTrue(
-            lineIntersection(
+            rayIntersection(
                 Vector3d(-1.0, -1.0, 0.0), Vector3d(1.0, 0.0, 0.0),
                 Vector3d(0.0, 1.0, -1.0), Vector3d(0.0, 0.0, 1.0),
                 result
@@ -37,7 +37,7 @@ class LineIntersectionTests3D {
 
             val result = Vector2d()
             assertTrue(
-                lineIntersection(
+                rayIntersection(
                     hit - dir1 * dist1, dir1,
                     hit - dir2 * dist2, dir2,
                     result
@@ -48,9 +48,9 @@ class LineIntersectionTests3D {
     }
 
     @Test
-    fun testParallelLinesD() {
+    fun testParallelRaysD() {
         assertFalse(
-            lineIntersection(
+            rayIntersection(
                 Vector3d(-1.0, -1.0, 0.0), Vector3d(1.0, 0.0, 0.0),
                 Vector3d(0.0, 1.0, -1.0), Vector3d(1.0, 0.0, 0.0)
             )
@@ -61,7 +61,7 @@ class LineIntersectionTests3D {
     fun testSampleF() {
         val result = Vector2f()
         assertTrue(
-            lineIntersection(
+            rayIntersection(
                 Vector3f(-1.0, -1.0, 0.0), Vector3f(1.0, 0.0, 0.0),
                 Vector3f(0.0, 1.0, -1.0), Vector3f(0.0, 0.0, 1.0),
                 result
@@ -82,7 +82,7 @@ class LineIntersectionTests3D {
 
             val result = Vector2f()
             assertTrue(
-                lineIntersection(
+                rayIntersection(
                     hit - dir1 * dist1, dir1,
                     hit - dir2 * dist2, dir2,
                     result
@@ -93,9 +93,9 @@ class LineIntersectionTests3D {
     }
 
     @Test
-    fun testParallelLinesF() {
+    fun testParallelRaysF() {
         assertFalse(
-            lineIntersection(
+            rayIntersection(
                 Vector3f(-1.0, -1.0, 0.0), Vector3f(1.0, 0.0, 0.0),
                 Vector3f(0.0, 1.0, -1.0), Vector3f(1.0, 0.0, 0.0)
             )

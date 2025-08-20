@@ -5,18 +5,18 @@ import me.anno.maths.Maths.TAUf
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.types.LineIntersection.lineIntersection
+import me.anno.utils.types.RayIntersection.rayIntersection
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
 
-class LineIntersectionTests2D {
+class RayIntersectionTests2D {
     @Test
     fun testSampleD() {
         val result = Vector2d()
         assertTrue(
-            lineIntersection(
+            rayIntersection(
                 Vector2d(-1.0, 0.0), Vector2d(1.0, 0.0),
                 Vector2d(0.0, -1.0), Vector2d(0.0, 1.0),
                 result
@@ -37,7 +37,7 @@ class LineIntersectionTests2D {
 
             val result = Vector2d()
             assertTrue(
-                lineIntersection(
+                rayIntersection(
                     hit - dir1 * dist1, dir1,
                     hit - dir2 * dist2, dir2,
                     result
@@ -48,9 +48,9 @@ class LineIntersectionTests2D {
     }
 
     @Test
-    fun testParallelLinesD() {
+    fun testParallelRaysD() {
         assertFalse(
-            lineIntersection(
+            rayIntersection(
                 Vector2d(-1.0, 0.0), Vector2d(1.0, 0.0),
                 Vector2d(0.0, -1.0), Vector2d(1.0, 0.0)
             )
@@ -61,7 +61,7 @@ class LineIntersectionTests2D {
     fun testSampleF() {
         val result = Vector2f()
         assertTrue(
-            lineIntersection(
+            rayIntersection(
                 Vector2f(-1.0, 0.0), Vector2f(1.0, 0.0),
                 Vector2f(0.0, -1.0), Vector2f(0.0, 1.0),
                 result
@@ -82,7 +82,7 @@ class LineIntersectionTests2D {
 
             val result = Vector2f()
             assertTrue(
-                lineIntersection(
+                rayIntersection(
                     hit - dir1 * dist1, dir1,
                     hit - dir2 * dist2, dir2,
                     result
@@ -93,9 +93,9 @@ class LineIntersectionTests2D {
     }
 
     @Test
-    fun testParallelLinesF() {
+    fun testParallelRaysF() {
         assertFalse(
-            lineIntersection(
+            rayIntersection(
                 Vector2f(-1.0, 0.0), Vector2f(1.0, 0.0),
                 Vector2f(0.0, -1.0), Vector2f(1.0, 0.0)
             )

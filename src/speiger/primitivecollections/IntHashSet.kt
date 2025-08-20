@@ -4,6 +4,7 @@ import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.IntCallback
+import speiger.primitivecollections.callbacks.IntPredicate
 
 /**
  * Wrapper around LongHashSet
@@ -46,4 +47,7 @@ class IntHashSet(
             callback.callback(value.toInt())
         }
     }
+
+    fun removeIf(predicate: IntPredicate) =
+        content.removeIf { predicate.test(it.toInt()) }
 }

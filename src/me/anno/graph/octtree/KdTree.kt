@@ -330,7 +330,8 @@ abstract class KdTree<Point, Value>(
             val children = node.values
             if (children != null) {
                 for (i in children.indices) {
-                    action(children[i])
+                    val child = children.getOrNull(i) ?: break
+                    action(child)
                 }
             } else {
                 val left = node.left

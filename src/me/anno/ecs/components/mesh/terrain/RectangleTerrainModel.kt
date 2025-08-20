@@ -11,14 +11,14 @@ import kotlin.math.max
 object RectangleTerrainModel {
 
     fun generateRegularQuadHeightMesh(
-        width: Int, height: Int, flipY: Boolean,
+        numPointsX: Int, numPointsZ: Int, flipY: Boolean,
         cellSize: Float, mesh: Mesh,
         heightMap: HeightMap, normalMap: NormalMap, colorMap: ColorMap? = null
     ): Mesh {
-        generateRegularQuadHeightMesh(width, height, flipY, cellSize, mesh, true)
-        generateQuadIndices(width, height, flipY, mesh)
-        fillInYAndNormals(width, height, heightMap, normalMap, mesh)
-        if (colorMap != null) fillInColor(width, height, colorMap, mesh)
+        generateRegularQuadHeightMesh(numPointsX, numPointsZ, flipY, cellSize, mesh, true)
+        generateQuadIndices(numPointsX, numPointsZ, flipY, mesh)
+        fillInYAndNormals(numPointsX, numPointsZ, heightMap, normalMap, mesh)
+        if (colorMap != null) fillInColor(numPointsX, numPointsZ, colorMap, mesh)
         mesh.invalidateGeometry()
         return mesh
     }
@@ -65,18 +65,18 @@ object RectangleTerrainModel {
         }
     }
 
-    fun generateQuadIndices(width: Int, height: Int, flipY: Boolean, mesh: Mesh) {
+    fun generateQuadIndices(numPointsX: Int, numPointsZ: Int, flipY: Boolean, mesh: Mesh) {
         var k = 0
-        val indexCount = max(0, width - 1) * max(0, height - 1) * 6
+        val indexCount = max(0, numPointsX - 1) * max(0, numPointsZ - 1) * 6
         val indices = mesh.indices.resize(indexCount)
         mesh.indices = indices
-        for (y in 0 until height - 1) {
-            var i00 = y * width
-            for (x in 0 until width - 1) {
+        for (zi in 0 until numPointsZ - 1) {
+            var i00 = zi * numPointsX
+            for (xi in 0 until numPointsX - 1) {
 
                 val i01 = i00 + 1
-                val i10 = i00 + width
-                val i11 = i01 + width
+                val i10 = i00 + numPointsX
+                val i11 = i01 + numPointsX
 
                 indices[k++] = i00
                 if (flipY) {
@@ -97,29 +97,29 @@ object RectangleTerrainModel {
     }
 
     fun generateSparseQuadIndices(
-        originalWidth: Int, originalHeight: Int,
-        sparseWidth: Int, sparseHeight: Int, flipY: Boolean,
+        originalNumPointsX: Int, originalNumPointsZ: Int,
+        sparseNumPointsX: Int, sparseNumPointsZ: Int, flipY: Boolean,
         sparseMesh: Mesh
     ) {
 
-        val sparseSize = sparseWidth * sparseHeight
+        val sparseSize = sparseNumPointsX * sparseNumPointsZ
         val indices = sparseMesh.indices.resize(sparseSize * 6)
 
-        val xs = IntArray(sparseWidth) { WorkSplitter.partition(it, originalWidth, sparseWidth) }
+        val xs = IntArray(sparseNumPointsX) { WorkSplitter.partition(it, originalNumPointsX, sparseNumPointsX) }
 
         var k = 0
-        for (y in 0 until sparseHeight - 1) {
-            val y0 = WorkSplitter.partition(y, originalHeight, sparseHeight)
-            val y1 = WorkSplitter.partition(y + 1, originalHeight, sparseHeight)
-            for (x in 0 until sparseWidth - 1) {
+        for (y in 0 until sparseNumPointsZ - 1) {
+            val y0 = WorkSplitter.partition(y, originalNumPointsZ, sparseNumPointsZ)
+            val y1 = WorkSplitter.partition(y + 1, originalNumPointsZ, sparseNumPointsZ)
+            for (x in 0 until sparseNumPointsX - 1) {
 
                 val x0 = xs[x]
                 val x1 = xs[x + 1]
 
-                val i00 = y0 * originalWidth + x0
-                val i01 = y0 * originalWidth + x1
-                val i10 = y1 * originalWidth + x0
-                val i11 = y1 * originalWidth + x1
+                val i00 = y0 * originalNumPointsX + x0
+                val i01 = y0 * originalNumPointsX + x1
+                val i10 = y1 * originalNumPointsX + x0
+                val i11 = y1 * originalNumPointsX + x1
 
                 indices[k++] = i00
                 if (flipY) {

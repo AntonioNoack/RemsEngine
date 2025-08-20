@@ -23,23 +23,23 @@ object PlaneModel {
     )
 
     fun createPlane(
-        tilesU: Int, tilesV: Int,
+        numTilesU: Int, numTilesV: Int,
         center: Vector3f = Vector3f(),
         du: Vector3f = Vector3f(1f, 0f, 0f),
         dv: Vector3f = Vector3f(0f, 0f, 1f),
     ): Mesh = createPlane(
-        tilesU, tilesV,
+        numTilesU, numTilesV,
         Vector3f(center).sub(du).sub(dv), Vector3f(center).sub(du).add(dv),
         Vector3f(center).add(du).sub(dv), Vector3f(center).add(du).add(dv)
     )
 
     fun createPlane(
-        tilesU: Int, tilesV: Int,
+        numTilesU: Int, numTilesV: Int,
         p00: Vector3f, p01: Vector3f,
         p10: Vector3f, p11: Vector3f,
     ): Mesh {
-        val su = tilesU + 1
-        val sv = tilesV + 1
+        val su = numTilesU + 1
+        val sv = numTilesV + 1
         val vertexCount = su * sv
         val positions = FloatArray(vertexCount * 3)
         val uvs = FloatArray(vertexCount * 2)

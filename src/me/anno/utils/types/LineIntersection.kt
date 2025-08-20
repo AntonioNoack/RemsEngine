@@ -1,5 +1,6 @@
 package me.anno.utils.types
 
+import me.anno.utils.pooling.JomlPools
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d
@@ -12,112 +13,75 @@ import kotlin.math.abs
  * */
 object LineIntersection {
 
-    const val MIN_DENOMINATOR_64 = 1e-307
-    const val MIN_DENOMINATOR_32 = 1e-37f
-
+    /**
+     * Finds the closest positions of the lines (pos0a, pos0b) and (pos1a, pos1b).
+     * Returns the parameters for these positions, meaning closest0 = mix(pos0a,pos0b,dst.x) and closest1 = mix(pos1a,pos1b,dst.y).
+     * Returns whether a result was found. No result can be found if the lines are close to being parallel.
+     * */
     @JvmStatic
     fun lineIntersection(
-        pos0: Vector3d, dir0: Vector3d,
-        pos1: Vector3d, dir1: Vector3d,
+        pos0a: Vector3d, pos0b: Vector3d,
+        pos1a: Vector3d, pos1b: Vector3d,
         dst: Vector2d? = null
     ): Boolean {
-
-        val p13x = pos0.x - pos1.x
-        val p13y = pos0.y - pos1.y
-        val p13z = pos0.z - pos1.z
-
-        val d1321 = dir0.dot(p13x, p13y, p13z)
-        val d1343 = dir1.dot(p13x, p13y, p13z)
-        val d4321 = dir0.dot(dir1)
-        val d2121 = dir0.lengthSquared()
-        val d4343 = dir1.lengthSquared()
-        val denominator = d2121 * d4343 - d4321 * d4321
-        if (abs(denominator) < MIN_DENOMINATOR_64) return false
-
-        val numerator = d1343 * d4321 - d1321 * d4343
-        val mua = numerator / denominator
-        val mub = (d1343 + d4321 * mua) / d4343
-
-        dst?.set(mua, mub)
-        return true
+        val dir0 = pos0b.sub(pos0a, JomlPools.vec3d.create())
+        val dir1 = pos1b.sub(pos1a, JomlPools.vec3d.create())
+        val result = RayIntersection.rayIntersection(pos0a, dir0, pos1a, dir1, dst)
+        JomlPools.vec3d.sub(2)
+        return result
     }
 
+    /**
+     * Finds the closest positions of the lines (pos0a, pos0b) and (pos1a, pos1b).
+     * Returns the parameters for these positions, meaning closest0 = mix(pos0a,pos0b,dst.x) and closest1 = mix(pos1a,pos1b,dst.y).
+     * Returns whether a result was found. No result can be found if the lines are close to being parallel.
+     * */
     @JvmStatic
     fun lineIntersection(
-        pos0: Vector3f, dir0: Vector3f,
-        pos1: Vector3f, dir1: Vector3f,
+        pos0a: Vector3f, pos0b: Vector3f,
+        pos1a: Vector3f, pos1b: Vector3f,
         dst: Vector2f? = null
     ): Boolean {
-
-        val p13x = pos0.x - pos1.x
-        val p13y = pos0.y - pos1.y
-        val p13z = pos0.z - pos1.z
-
-        val d1321 = dir0.dot(p13x, p13y, p13z)
-        val d1343 = dir1.dot(p13x, p13y, p13z)
-        val d4321 = dir0.dot(dir1)
-        val d2121 = dir0.lengthSquared()
-        val d4343 = dir1.lengthSquared()
-        val denominator = d2121 * d4343 - d4321 * d4321
-        if (abs(denominator) < MIN_DENOMINATOR_32) return false
-
-        val numerator = d1343 * d4321 - d1321 * d4343
-        val mua = numerator / denominator
-        val mub = (d1343 + d4321 * mua) / d4343
-
-        dst?.set(mua, mub)
-        return true
+        val dir0 = pos0b.sub(pos0a, JomlPools.vec3f.create())
+        val dir1 = pos1b.sub(pos1a, JomlPools.vec3f.create())
+        val result = RayIntersection.rayIntersection(pos0a, dir0, pos1a, dir1, dst)
+        JomlPools.vec3f.sub(2)
+        return result
     }
 
+    /**
+     * Finds the closest positions of the lines (pos0a, pos0b) and (pos1a, pos1b).
+     * Returns the parameters for these positions, meaning closest0 = mix(pos0a,pos0b,dst.x) and closest1 = mix(pos1a,pos1b,dst.y).
+     * Returns whether a result was found. No result can be found if the lines are close to being parallel.
+     * */
     @JvmStatic
     fun lineIntersection(
-        pos0: Vector2d, dir0: Vector2d,
-        pos1: Vector2d, dir1: Vector2d,
+        pos0a: Vector2d, pos0b: Vector2d,
+        pos1a: Vector2d, pos1b: Vector2d,
         dst: Vector2d? = null
     ): Boolean {
-
-        val p13x = pos0.x - pos1.x
-        val p13y = pos0.y - pos1.y
-
-        val d1321 = dir0.dot(p13x, p13y)
-        val d1343 = dir1.dot(p13x, p13y)
-        val d4321 = dir0.dot(dir1)
-        val d2121 = dir0.lengthSquared()
-        val d4343 = dir1.lengthSquared()
-        val denominator = d2121 * d4343 - d4321 * d4321
-        if (abs(denominator) < MIN_DENOMINATOR_64) return false
-
-        val numerator = d1343 * d4321 - d1321 * d4343
-        val mua = numerator / denominator
-        val mub = (d1343 + d4321 * mua) / d4343
-
-        dst?.set(mua, mub)
-        return true
+        val dir0 = pos0b.sub(pos0a, JomlPools.vec2d.create())
+        val dir1 = pos1b.sub(pos1a, JomlPools.vec2d.create())
+        val result = RayIntersection.rayIntersection(pos0a, dir0, pos1a, dir1, dst)
+        JomlPools.vec2d.sub(2)
+        return result
     }
 
+    /**
+     * Finds the closest positions of the lines (pos0a, pos0b) and (pos1a, pos1b).
+     * Returns the parameters for these positions, meaning closest0 = mix(pos0a,pos0b,dst.x) and closest1 = mix(pos1a,pos1b,dst.y).
+     * Returns whether a result was found. No result can be found if the lines are close to being parallel.
+     * */
     @JvmStatic
     fun lineIntersection(
-        pos0: Vector2f, dir0: Vector2f,
-        pos1: Vector2f, dir1: Vector2f,
+        pos0a: Vector2f, pos0b: Vector2f,
+        pos1a: Vector2f, pos1b: Vector2f,
         dst: Vector2f? = null
     ): Boolean {
-
-        val p13x = pos0.x - pos1.x
-        val p13y = pos0.y - pos1.y
-
-        val d1321 = dir0.dot(p13x, p13y)
-        val d1343 = dir1.dot(p13x, p13y)
-        val d4321 = dir0.dot(dir1)
-        val d2121 = dir0.lengthSquared()
-        val d4343 = dir1.lengthSquared()
-        val denominator = d2121 * d4343 - d4321 * d4321
-        if (abs(denominator) < MIN_DENOMINATOR_32) return false
-
-        val numerator = d1343 * d4321 - d1321 * d4343
-        val mua = numerator / denominator
-        val mub = (d1343 + d4321 * mua) / d4343
-
-        dst?.set(mua, mub)
-        return true
+        val dir0 = pos0b.sub(pos0a, JomlPools.vec2f.create())
+        val dir1 = pos1b.sub(pos1a, JomlPools.vec2f.create())
+        val result = RayIntersection.rayIntersection(pos0a, dir0, pos1a, dir1, dst)
+        JomlPools.vec2f.sub(2)
+        return result
     }
 }

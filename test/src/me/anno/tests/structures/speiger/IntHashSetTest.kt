@@ -1,0 +1,87 @@
+package me.anno.tests.structures.speiger
+
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertTrue
+import org.junit.jupiter.api.Test
+import speiger.primitivecollections.IntHashSet
+
+class IntHashSetTest {
+
+    private fun createInstance() = IntHashSet(4)
+
+    @Test
+    fun testRehashing() {
+        val set = createInstance()
+        for (i in 0 until 100) set.add(i)
+        assertEquals(100, set.size)
+        for (i in 0 until 100) assertTrue(i in set)
+        assertFalse(-1 in set)
+        assertFalse(100 in set)
+    }
+
+    @Test
+    fun testRemove() {
+        val set = createInstance()
+        for (i in 0 until 100) set.add(i)
+        assertEquals(100, set.size)
+        assertTrue(set.maxFill >= 100)
+        for (i in 10 until 90) assertTrue(set.remove(i))
+        assertFalse(set.remove(-1))
+        assertFalse(set.remove(100))
+        assertEquals(20, set.size)
+        assertTrue(set.maxFill < 100)
+        for (i in 0 until 100) assertEquals(i < 10 || i >= 90, i in set)
+        assertFalse(-1 in set)
+        assertFalse(100 in set)
+    }
+
+    @Test
+    fun testRemoveIf() {
+        val set = createInstance()
+        for (i in 0 until 1000) set.add(i)
+        assertEquals(1000, set.size)
+        assertTrue(set.maxFill >= 1000)
+
+        assertEquals(800, set.removeIf { key ->
+            key in 100 until 900
+        })
+        assertEquals(0, set.removeIf { key ->
+            key in 100 until 900
+        })
+
+        assertEquals(200, set.size)
+        assertTrue(set.maxFill < 1000)
+
+        for (i in 0 until 1000) {
+            assertEquals(i !in 100 until 900, set.contains(i))
+        }
+    }
+
+    @Test
+    fun testClear() {
+        val set = createInstance()
+        for (i in 0 until 100) set.add(i)
+        assertEquals(100, set.size)
+        assertFalse(set.isEmpty())
+
+        set.clear()
+        assertTrue(set.isEmpty())
+        for (i in 0 until 100) assertTrue(i !in set)
+    }
+
+    @Test
+    fun testForEachKey() {
+        val map = createInstance()
+        for (i in 0 until 1000) map.add(i)
+        val keys = HashSet<Int>()
+        map.forEach { key ->
+            assertTrue(keys.add(key))
+        }
+        assertFalse(-1 in keys)
+        assertFalse(1000 in keys)
+        for (i in 0 until 1000) {
+            assertTrue(i in keys)
+        }
+    }
+}
