@@ -6,6 +6,9 @@ import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.utils.structures.arrays.IntArrayList
 
+/**
+ * Use one of the following implementations: MinSizeTablePanel, WeightBasedTablePanel, or implement your own.
+ * */
 abstract class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) {
 
     val placeholder = Panel(style)
