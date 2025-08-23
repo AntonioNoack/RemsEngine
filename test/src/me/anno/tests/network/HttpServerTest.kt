@@ -2,9 +2,12 @@ package me.anno.tests.network
 
 import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.Reference.getReference
+import me.anno.network.Packet
 import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.network.http.HttpProtocol
+import me.anno.utils.Sleep
+import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -12,6 +15,9 @@ import org.apache.logging.log4j.LogManager
  * this shows how a webserver could run on the same port as the game server
  * */
 fun main() {
+
+    Packet.debugPackets = true
+    LogManager.define("Server", Level.DEBUG)
 
     // WARNING: do not copy this 1:1, as this has a lot of security flaws, e.g., you can access all files on the computer this is hosted on
     val logger = LogManager.getLogger("HttpServerTest")
@@ -64,5 +70,12 @@ fun main() {
             }
         }
     })
-    server.start(80, -1)
+
+    val tcpPort = 80
+    println("Running server on port $tcpPort")
+    server.start(tcpPort, -1)
+
+    while (true) {
+        Sleep.work(true)
+    }
 }

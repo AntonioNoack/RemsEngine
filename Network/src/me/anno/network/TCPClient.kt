@@ -2,6 +2,8 @@ package me.anno.network
 
 import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.network.SocketChannelInputStream.Companion.getInputStream
+import me.anno.network.SocketChannelOutputStream.Companion.getOutputStream
 import me.anno.utils.Sleep.waitUntilOrThrow
 import me.anno.utils.Threads
 import org.apache.logging.log4j.LogManager
@@ -9,34 +11,37 @@ import java.io.Closeable
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
-import java.net.InetAddress
-import java.net.Socket
+import java.net.InetSocketAddress
 import java.net.SocketException
+import java.nio.channels.SocketChannel
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeoutException
-import javax.net.ssl.SSLSocketFactory
 
-open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: Int) : Closeable {
+open class TCPClient(
+    val socket: SocketChannel,
+    val protocol: Protocol,
+    var randomId: Int,
+    val server: Server?
+) : Closeable {
+
+    // todo implement SSL sockets...
 
     companion object {
         private val LOGGER = LogManager.getLogger(TCPClient::class)
-        fun createSocket(address: InetAddress, port: Int, protocol: Protocol): Socket {
-            return if (protocol.networkProtocol == NetworkProtocol.TCP_SSL) {
-                SSLSocketFactory.getDefault().createSocket(address, port)
-            } else {
-                Socket(address, port)
-            }
+        fun createSocket(address: InetSocketAddress, protocol: Protocol): SocketChannel {
+            println("Trying to connect to $address")
+            return SocketChannel.open(address)
         }
     }
 
-    constructor(address: InetAddress, port: Int, protocol: Protocol, name: String, uuid: String = name) :
-            this(createSocket(address, port, protocol), protocol, 0) {
+    constructor(address: InetSocketAddress, protocol: Protocol, name: String, uuid: String = name) :
+            this(createSocket(address, protocol), protocol, 0, null) {
         this.name = name
         this.uuid = uuid
     }
 
-    constructor(socket: Socket, protocol: Protocol, name: String, uuid: String = name) :
-            this(socket, protocol, 0) {
+    constructor(socket: SocketChannel, protocol: Protocol, name: String, uuid: String = name) :
+            this(socket, protocol, 0, null) {
         this.name = name
         this.uuid = uuid
     }
@@ -50,8 +55,8 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
 
     var closingReason = ""
 
-    val dis = DataInputStream(socket.getInputStream())
-    val dos = DataOutputStream(socket.getOutputStream())
+    val dis = DataInputStream(socket.getInputStream(server))
+    val dos = DataOutputStream(socket.getOutputStream(server))
 
     val buffer = ResetByteArrayInputStream(32)
     val bufferDis = DataInputStream(buffer)
@@ -69,7 +74,7 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
      * */
     var localTimeOffset = 0L
 
-    val isClosed get() = socket.isClosed || !socket.isConnected || !socket.isBound || isClosed2
+    val isClosed get() = !socket.isConnected || isClosed2
     val randomIdString get() = randomId.toUInt().toString(16)
     var isRunning = false
 
@@ -187,9 +192,8 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
 
     fun startClientSide(shutdown: () -> Boolean = { false }) {
         if (synchronized(dos) {
-                val socket = socket
                 dos.writeInt(protocol.bigEndianMagic)
-                protocol.clientHandshake(socket, this)
+                protocol.clientHandshake(this)
             }) {
             isRunning = true
             protocol.clientRun(this, shutdown)
@@ -215,8 +219,9 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
     override fun close() {
         isClosed2 = true
         isRunning = false
-        socket.close()
         dis.close()
         dos.close()
+        socket.close()
+        println("Closed connection")
     }
 }

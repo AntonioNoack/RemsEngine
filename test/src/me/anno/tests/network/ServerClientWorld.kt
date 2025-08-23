@@ -25,7 +25,9 @@ import org.apache.logging.log4j.LogManager
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.Socket
+import java.nio.channels.SocketChannel
 import kotlin.concurrent.thread
 
 const val tcpPort = 65113
@@ -112,8 +114,8 @@ fun createClient(i: Int): Panel {
     return controls
 }
 
-fun connect(): Socket {
-    return TCPClient.createSocket(InetAddress.getByName("localhost"), tcpPort, tcpProtocol)
+fun connect(): SocketChannel {
+    return TCPClient.createSocket(InetSocketAddress(InetAddress.getByName("localhost"), tcpPort), tcpProtocol)
 }
 
 class LocalClient(val instance: Instance) : TCPClient(connect(), tcpProtocol, instance.name, instance.uuid)

@@ -10,6 +10,7 @@ import me.anno.network.packets.PingPacket
 import me.anno.utils.Threads
 import java.io.IOException
 import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
@@ -64,9 +65,9 @@ fun test1() {
 
     // "connect" evil client
     if (false) {
-        val evilClient = TCPClient(local, server.tcpPort, protocol, "Evil")
+        val evilClient = TCPClient(InetSocketAddress(local, server.tcpPort), protocol, "Evil")
         evilClient.dos.writeInt(protocol.bigEndianMagic)
-        protocol.clientHandshake(evilClient.socket, evilClient)
+        protocol.clientHandshake(evilClient)
         evilClient.isRunning = true
         Threads.runWorkerThread("Evil-Ping") {
             // keep the connection alive
@@ -83,7 +84,7 @@ fun test1() {
     }
 
     // connect friendly client
-    val friendlyClient = TCPClient(local, server.tcpPort, protocol, "Friendly")
+    val friendlyClient = TCPClient(InetSocketAddress(local, server.tcpPort), protocol, "Friendly")
     friendlyClient.startClientSideAsync()
 
     println("connected friendly")

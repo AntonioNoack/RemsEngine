@@ -4,25 +4,28 @@ import me.anno.Engine
 import me.anno.Time
 import me.anno.io.Streams.readBE32
 import me.anno.maths.Maths
+import me.anno.network.SocketChannelInputStream.Companion.getInputStream
 import me.anno.utils.Color.hex32
+import me.anno.utils.Sleep
 import me.anno.utils.Threads
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.UnsafeArrayList
 import org.apache.logging.log4j.LogManager
+import speiger.primitivecollections.IntToObjectHashMap
 import java.io.Closeable
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.EOFException
 import java.io.IOException
-import java.net.DatagramPacket
-import java.net.DatagramSocket
-import java.net.InetAddress
-import java.net.ServerSocket
-import java.net.Socket
+import java.net.InetSocketAddress
+import java.net.SocketAddress
 import java.net.SocketException
-import java.net.SocketTimeoutException
-import javax.net.ssl.SSLServerSocketFactory
+import java.nio.ByteBuffer
+import java.nio.channels.DatagramChannel
+import java.nio.channels.ServerSocketChannel
+import java.nio.channels.SocketChannel
 import kotlin.random.Random
+
 
 // to do there should be lobbies, where players are assigned to other servers, with seamless transfers...
 // todo ssl encryption -> you need to generate and register certificates for that to work...
@@ -50,11 +53,11 @@ open class Server : Closeable {
     private val nextRandomId = Random((Maths.random() * 1e16).toLong())
     private val clients = UnsafeArrayList<TCPClient>(1024)
     private val hashedClients = createArrayList<ArrayList<TCPClient>>(512) { ArrayList() }
-    private val protocols = HashMap<Int, Protocol>()
+    private val protocols = IntToObjectHashMap<Protocol>()
 
-    private var tcpSocket: ServerSocket? = null
-    private var udpSocket: DatagramSocket? = null
-    private val run get() = !shutdown && !Engine.shutdown
+    private var tcpSocket: ServerSocketChannel? = null
+    private var udpSocket: DatagramChannel? = null
+    val run get() = !shutdown && !Engine.shutdown
 
     fun stop() {
         shutdown = true
@@ -87,56 +90,68 @@ open class Server : Closeable {
         }
     }
 
+    fun startTCP(tcpPort: Int) {
+        val socket = ServerSocketChannel.open()
+        socket.configureBlocking(false)
+        socket.bind(InetSocketAddress(tcpPort))
+
+        synchronized(this) {
+            tcpSocket?.close()
+            tcpSocket = socket
+            this.tcpPort = tcpPort
+        }
+        Threads.runWorkerThread("Server-TCP") {
+            runTCP(socket)
+        }
+    }
+
+    fun startUDP(udpPort: Int, closeTCPIfUDPFails: Boolean) {
+        val socket = try {
+            val channel = DatagramChannel.open()
+            channel.configureBlocking(false)
+            channel.bind(InetSocketAddress(udpPort))
+            channel
+        } catch (e: Exception) {
+            if (closeTCPIfUDPFails) {
+                this.tcpSocket?.close()
+                this.tcpSocket = null
+            }
+            throw e
+        }
+        synchronized(this) {
+            udpSocket?.close()
+            udpSocket = socket
+            this.udpPort = udpPort
+        }
+        Threads.runWorkerThread("Server-UDP") {
+            runUDP(socket)
+        }
+    }
+
     /**
      * will throw IOException if TCP/UDP port is already in use
      * */
     fun start(tcpPort: Int, udpPort: Int, closeTCPIfUDPFails: Boolean = true) {
-        if (tcpPort in 0..0xffff && protocols.any {
-                val v = it.value.networkProtocol
-                v == NetworkProtocol.TCP || v == NetworkProtocol.TCP_SSL
+        if (tcpPort in 0..0xffff && protocols.any { _, value ->
+                val protocol = value.networkProtocol
+                protocol == NetworkProtocol.TCP || protocol == NetworkProtocol.TCP_SSL
             }) {
-            val socket = if (protocols.any { it.value.networkProtocol == NetworkProtocol.TCP_SSL })
-                SSLServerSocketFactory.getDefault().createServerSocket(tcpPort) else ServerSocket(tcpPort)
-            socket.soTimeout = timeoutMillis
-            synchronized(this) {
-                tcpSocket?.close()
-                tcpSocket = socket
-                this.tcpPort = tcpPort
-            }
-            Threads.runTaskThread("Server-TCP") {
-                runTCP(socket)
-            }
+            startTCP(tcpPort)
         }
-        if (udpPort in 0..0xffff && protocols.any {
-                it.value.networkProtocol == NetworkProtocol.UDP
+        if (udpPort in 0..0xffff && protocols.any { _, value ->
+                value.networkProtocol == NetworkProtocol.UDP
             }) {
-            val socket = try {
-                DatagramSocket(udpPort)
-            } catch (e: Exception) {
-                if (closeTCPIfUDPFails) {
-                    this.tcpSocket?.close()
-                    this.tcpSocket = null
-                }
-                throw e
-            }
-            synchronized(this) {
-                udpSocket?.close()
-                udpSocket = socket
-                this.udpPort = udpPort
-            }
-            Threads.runTaskThread("Server-UDP") {
-                runUDP(socket)
-            }
+            startUDP(udpPort, closeTCPIfUDPFails)
         }
     }
 
-    open fun acceptsIP(address: InetAddress, port: Int): Boolean {
+    open fun acceptsIP(address: SocketAddress): Boolean {
         // ip blacklist/whitelist
         return true
     }
 
-    open fun createClient(clientSocket: Socket, protocol: Protocol, randomId: Int): TCPClient {
-        return TCPClient(clientSocket, protocol, randomId)
+    open fun createClient(clientSocket: SocketChannel, protocol: Protocol, randomId: Int): TCPClient {
+        return TCPClient(clientSocket, protocol, randomId, this)
     }
 
     private var usedIds = HashSet<Int>()
@@ -163,19 +178,20 @@ open class Server : Closeable {
 
     var logRejections = true
 
-    private fun runTCP(socket: ServerSocket) {
+    private fun runTCP(socket: ServerSocketChannel) {
         try {
             while (run) {
-                val clientSocket = try {
-                    socket.accept()
-                } catch (e: SocketTimeoutException) {
+                val clientSocket = socket.accept()
+                if (clientSocket == null) {
+                    Sleep.sleepShortly(true)
                     continue
                 }
-                if (acceptsIP(clientSocket.inetAddress, clientSocket.port)) {
-                    Threads.runTaskThread("Client ${clientSocket.inetAddress}:${clientSocket.port}") {
+
+                if (acceptsIP(clientSocket.remoteAddress)) {
+                    Threads.runTaskThread("Client ${clientSocket.remoteAddress}") {
                         var tcpClient2: TCPClient? = null
                         try {
-                            val input = clientSocket.getInputStream()
+                            val input = clientSocket.getInputStream(this, 4)
                             val magic = input.readBE32()
                             val protocol = protocols[magic]
                             if (protocol != null) {
@@ -203,7 +219,7 @@ open class Server : Closeable {
                                 LOGGER.info("Protocol ${str32(magic)} is unknown")
                                 clientSocket.close()
                             }
-                        } catch (e: EOFException) {
+                        } catch (_: EOFException) {
                             // unregister client
                             clientSocket.close()
                         } catch (e: IOException) {
@@ -223,20 +239,34 @@ open class Server : Closeable {
         }
     }
 
-    private fun runUDP(socket: DatagramSocket) {
-        val buffer = ByteArray(NetworkProtocol.UDP.limit)
-        val udpPacket = DatagramPacket(buffer, buffer.size)
-        val input = ResetByteArrayInputStream(buffer)
+    private fun runUDP(channel: DatagramChannel) {
+
+        val array = ByteArray(NetworkProtocol.UDP.limit)
+        val buffer = ByteBuffer.wrap(array)
+
+        val input = ResetByteArrayInputStream(array)
         val dis = DataInputStream(input)
-        val output = ResetByteArrayOutputStream(buffer)
+        val output = ResetByteArrayOutputStream(array)
         val dos = DataOutputStream(output)
         try {
             while (run) {
                 // all malformed packets just are ignored
-                socket.receive(udpPacket)
-                if (Packet.debugPackets) LOGGER.debug("Got udp packet of size ${udpPacket.length}, offset: ${udpPacket.offset}")
-                if (udpPacket.length < 12) continue // protocol + packet + random id
-                if (acceptsIP(udpPacket.address, udpPacket.port)) {
+                buffer.position(0).limit(buffer.capacity())
+                val senderAddress = channel.receive(buffer)
+                if (senderAddress == null) {
+                    Sleep.sleepShortly(true)
+                    continue
+                }
+
+                val udpLength = buffer.position()
+                val udpOffset = 0
+                buffer.position(0).limit(udpLength)
+
+                println("Got UDP client: $senderAddress, $udpLength @$udpOffset")
+
+                if (Packet.debugPackets) LOGGER.debug("Got udp packet of size ${udpLength}, offset: $udpOffset")
+                if (udpLength < 12) continue // protocol + packet + random id
+                if (acceptsIP(senderAddress)) {
                     input.reset()
                     val protocolMagic = dis.readInt()
                     val packetMagic = dis.readInt()
@@ -246,7 +276,7 @@ open class Server : Closeable {
                         str32(protocolMagic), str32(packetMagic), hex32(randomId)
                     )
                     val protocol = protocols[protocolMagic] ?: continue
-                    val client = findTcpClient(udpPacket.address, randomId) ?: continue
+                    val client = findTcpClient(senderAddress, randomId) ?: continue
                     val request = protocol.find(packetMagic) ?: continue
                     if (Packet.debugPackets) LOGGER.debug("Got udp packet from ${client.name}, ${client.randomIdString}")
                     when (request) {
@@ -255,7 +285,9 @@ open class Server : Closeable {
                                 dos.writeInt(response.bigEndianMagic)
                                 response.send(this, client, dos)
                                 dos.flush()
-                                socket.send(udpPacket)
+
+                                buffer.position(0).limit(output.size)
+                                channel.send(buffer, senderAddress)
                             }
                         }
                         is ThreadLocal<*> -> {
@@ -263,7 +295,9 @@ open class Server : Closeable {
                                 dos.writeInt(response.bigEndianMagic)
                                 response.send(this, client, dos)
                                 dos.flush()
-                                socket.send(udpPacket)
+
+                                buffer.position(0).limit(output.size)
+                                channel.send(buffer, senderAddress)
                             }
                         }
                     }
@@ -289,11 +323,11 @@ open class Server : Closeable {
         synchronized(clients) { clients.remove(client) }
     }
 
-    private fun findTcpClient(address: InetAddress, randomId: Int): TCPClient? {
+    private fun findTcpClient(address: SocketAddress, randomId: Int): TCPClient? {
         val clients = hashedClients[hash(randomId)]
         synchronized(clients) {
             for (c in clients) {
-                if (c.socket.inetAddress == address) {
+                if (c.socket.remoteAddress == address) {
                     return c
                 }
             }
@@ -310,7 +344,7 @@ open class Server : Closeable {
             if (client != null) {
                 try {
                     callback(client)
-                } catch (e: IOException) {
+                } catch (_: IOException) {
                     removeClient(client)
                     client.close()
                     index--

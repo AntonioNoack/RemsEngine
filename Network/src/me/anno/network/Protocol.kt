@@ -77,7 +77,7 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
      * return true, if the handshake was fine
      * return false to exit the connection (or throw an Exception)
      * */
-    open fun clientHandshake(socket: Socket, client: TCPClient): Boolean {
+    open fun clientHandshake(client: TCPClient): Boolean {
         val dis = client.dis
         val dos = client.dos
         client.randomId = dis.readInt()

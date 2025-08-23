@@ -16,6 +16,7 @@ import me.anno.utils.assertions.assertLessThan
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.SocketTimeoutException
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
@@ -82,7 +83,7 @@ class NetworkTest {
         fun createClient(name: String): TCPClient {
             allReachTheEnd.incrementAndGet()
             val address = InetAddress.getByName("localhost")
-            val tcpSocket = TCPClient.createSocket(address, server.tcpPort, tcpProtocol)
+            val tcpSocket = TCPClient.createSocket(InetSocketAddress(address, server.tcpPort), tcpProtocol)
             val tcpClient = TCPClient(tcpSocket, tcpProtocol, name)
             tcpClient.startClientSideAsync()
             Threads.runTaskThread("$name.udp") {

@@ -2,23 +2,31 @@ package me.anno.network
 
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import java.net.DatagramPacket
-import java.net.DatagramSocket
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
+import java.nio.channels.DatagramChannel
 
 class UDPSender(val protocol: Protocol, val client: TCPClient) {
 
-    private val socket = DatagramSocket()
-    private val address = client.socket.inetAddress
+    private val socket = run {
+        val channel = DatagramChannel.open()
+        channel.configureBlocking(true)
+        channel
+    }
 
-    private val bufferData = ByteArray(NetworkProtocol.UDP.limit)
+    private val targetAddress = InetSocketAddress(
+        (client.socket.remoteAddress as InetSocketAddress).address,
+        client.udpPort
+    )
 
-    private val outBuffer = ResetByteArrayOutputStream(bufferData)
+    private val array = ByteArray(NetworkProtocol.UDP.limit)
+    private val buffer = ByteBuffer.wrap(array)
+
+    private val outBuffer = ResetByteArrayOutputStream(array)
     private val dos = DataOutputStream(outBuffer)
 
-    private val inBuffer = ResetByteArrayInputStream(bufferData)
+    private val inBuffer = ResetByteArrayInputStream(array)
     private val dis = DataInputStream(inBuffer)
-
-    private val packet0 = DatagramPacket(outBuffer.buffer, outBuffer.size, address, client.udpPort)
 
     fun send(packet: Packet, receive: Boolean) {
         if (receive) send(packet) {}
@@ -30,12 +38,18 @@ class UDPSender(val protocol: Protocol, val client: TCPClient) {
         dos.writeInt(protocol.bigEndianMagic)
         dos.writeInt(packet.bigEndianMagic)
         dos.writeInt(client.randomId)
-        packet.send(null, client, dos)
-        packet0.length = outBuffer.size
-        socket.send(packet0)
+        packet.send(client.server, client, dos)
+        dos.flush()
+
+        buffer.position(0).limit(outBuffer.size)
+        socket.send(buffer, targetAddress)
+
         if (onReceive != null) {
-            socket.receive(packet0)
-            inBuffer.size = packet0.offset
+
+            buffer.position(0).limit(buffer.capacity())
+            socket.receive(buffer)
+
+            inBuffer.size = buffer.position()
             val magic = dis.readInt()
             when (val packet2 = protocol.find(magic)) {
                 is Packet -> synchronized(packet2) {
@@ -58,5 +72,4 @@ class UDPSender(val protocol: Protocol, val client: TCPClient) {
     fun close() {
         socket.close()
     }
-
 }
