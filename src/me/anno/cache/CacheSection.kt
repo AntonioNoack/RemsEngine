@@ -8,6 +8,7 @@ import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
 import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.utils.assertions.assertFail
+import me.anno.utils.assertions.assertSame
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.structures.maps.Maps.removeIf
@@ -125,13 +126,19 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
         return getEntryWithIfNotGeneratingCallback(key, timeout, queue, { key, entry ->
             fun retry() {
                 synchronized(limiter) {
-                    val first = limiter.firstOrNull()
-                    if (first == null || limiter.size < limit) {
+                    var last = limiter.lastOrNull()
+                    while (true) {
+                        if (last != null && last.hasValue) {
+                            assertSame(last, limiter.removeLast())
+                        } else break
+                        last = limiter.lastOrNull()
+                    }
+                    if (last == null || limiter.size < limit) {
                         onGeneratedLimited(entry)
-                        if (queue != null) queue += { generator(key, entry) }
-                        else generator(key, entry)
+                        if (queue != null) queue += { generateSafely(key, entry, generator) }
+                        else generateSafely(key, entry, generator)
                     } else {
-                        first.waitFor { retry() }
+                        last.waitFor { retry() }
                     }
                 }
             }

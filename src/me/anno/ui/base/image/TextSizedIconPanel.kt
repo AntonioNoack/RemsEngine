@@ -14,4 +14,10 @@ open class TextSizedIconPanel(source: FileReference, style: Style) : IconPanel(s
         minW = size
         minH = size
     }
+
+    override fun clone(): IconPanel {
+        val clone = TextSizedIconPanel(source, style)
+        copyInto(clone)
+        return clone
+    }
 }

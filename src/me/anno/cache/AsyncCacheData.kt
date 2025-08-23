@@ -1,7 +1,9 @@
 package me.anno.cache
 
 import me.anno.cache.CacheTime.cacheTime
+import me.anno.engine.Events.getCalleeName
 import me.anno.utils.Sleep
+import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.utils.async.Callback
 import kotlin.math.max
 
@@ -42,25 +44,18 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     private val waitForCallbacks = ArrayList<(V?) -> Unit>()
 
     private fun processCallbacks() {
-        synchronized(waitForCallbacks) {
-            val value = value
-            for (i in waitForCallbacks.indices) {
-                try {
-                    waitForCallbacks[i](value)
-                } catch (e: Exception) {
-                    // we must not be stopped
-                    e.printStackTrace()
-                }
-            }
-            waitForCallbacks.clear()
+        val value = value
+        while (true) {
+            val last = synchronized(waitForCallbacks) {
+                waitForCallbacks.removeLastOrNull()
+            } ?: break
+            runOnNonGFXThread("Callback") { last(value) }
         }
     }
 
     private fun addCallback(callback: (V?) -> Unit) {
-        synchronized(waitForCallbacks) {
-            if (hasValue) callback(value)
-            else waitForCallbacks.add(callback)
-        }
+        synchronized(waitForCallbacks) { waitForCallbacks.add(callback) }
+        if (hasValue || hasBeenDestroyed) processCallbacks()
     }
 
     fun reset(timeoutMillis: Long) {
@@ -72,14 +67,14 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     }
 
     @Deprecated(message = ASYNC_WARNING)
-    fun waitFor(): V? {
-        Sleep.waitUntil(true) { hasValue }
+    fun waitFor(debugName: String = getCalleeName()): V? {
+        Sleep.waitUntil(debugName,true) { hasValue }
         return value
     }
 
     @Deprecated(message = ASYNC_WARNING)
     fun waitFor(async: Boolean): V? {
-        if (!async) waitFor()
+        if (!async) waitFor(getCalleeName())
         return value
     }
 
@@ -116,6 +111,7 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
         (value as? ICacheData)?.destroy()
         value = null
         hasBeenDestroyed = true
+        processCallbacks()
     }
 
     override fun toString(): String {

@@ -1,9 +1,9 @@
 package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
+import me.anno.utils.types.Booleans.toInt
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
-import speiger.primitivecollections.callbacks.LongLongPredicate
 import speiger.primitivecollections.callbacks.LongObjectCallback
 import speiger.primitivecollections.callbacks.LongObjectPredicate
 
@@ -104,5 +104,19 @@ class LongToObjectHashMap<V>(
     fun removeIf(predicate: LongObjectPredicate<V>): Int {
         @Suppress("UNCHECKED_CAST")
         return removeIfImpl { predicate.test(keys[it], values[it] as V) }
+    }
+
+    fun count(predicate: LongObjectPredicate<V>): Int {
+        var found = 0
+        forEach { k, v -> found = predicate.test(k, v).toInt() }
+        return found
+    }
+
+    fun any(predicate: LongObjectPredicate<V>): Boolean {
+        var found = false
+        forEach { k, v ->
+            found = found || predicate.test(k, v)
+        }
+        return found
     }
 }

@@ -71,6 +71,10 @@ class IntToObjectHashMap<V>(
 
     fun keysToHashSet() = IntHashSet(content.keysToHashSet())
 
+    fun any(predicate: IntObjectPredicate<V>): Boolean {
+        return content.any { k, v -> predicate.test(k.toInt(), v) }
+    }
+
     // definitely not ideal...
     val values: Iterable<V>
         get() {

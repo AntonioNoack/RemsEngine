@@ -22,7 +22,9 @@ object Events {
         if (!Build.isDebug) return ""
         val trace = Exception().stackTrace
         val entry = trace
-            .firstOrNull { it.className != "me.anno.utils.Sleep" && it.methodName != "getCalleeName" }
+            .firstOrNull { it.className != "me.anno.utils.Sleep" &&
+                    it.className != "me.anno.cache.AsyncCacheData" &&
+                    it.methodName != "getCalleeName" }
             ?: return "?"
         return entry.toString()
     }
