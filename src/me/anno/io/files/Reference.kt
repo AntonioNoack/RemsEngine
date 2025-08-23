@@ -298,11 +298,11 @@ object Reference {
 
     @JvmStatic
     fun appendPath(parent: String, name: String): String {
-        if (name == "/") return parent
         val pe = parent.endsWith("/")
         val ne = name.startsWith("/")
         return when {
-            // parent.isBlank2() -> name
+            parent.isBlank2() -> name
+            name == "/" -> parent
             pe && ne -> "${parent.substring(0, parent.lastIndex)}$name"
             pe || ne -> "$parent$name"
             else -> "$parent/$name"
