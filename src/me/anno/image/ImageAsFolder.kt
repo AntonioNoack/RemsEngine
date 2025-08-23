@@ -213,7 +213,6 @@ object ImageAsFolder {
                     readImageFromBytes(file, result, bytes, forGPU)
                 } else {
                     result.value = null
-                    result.hasValue = true
                 }
             }
         } else SignatureCache[file].waitFor { signature ->

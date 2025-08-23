@@ -1,5 +1,6 @@
 package me.anno.tests.audio
 
+import me.anno.Build
 import me.anno.ecs.Entity
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.audio.AudioComponentBase
@@ -9,6 +10,7 @@ import me.anno.utils.OS.music
 
 fun main() {
 
+    Build.isDebug = false
     OfficialExtensions.initForTests()
 
     // test 2d and 3d audio in a scene:

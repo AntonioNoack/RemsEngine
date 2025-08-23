@@ -131,7 +131,7 @@ object SearchAlgorithm {
         val childrenResult = AsyncCacheData<List<FileReference>>()
         self.folder.listChildren(childrenResult)
         Sleep.waitUntil("SearchAlgorithm",true, {
-            childrenResult.retryHasValue() || id != self.searchTask.id.get()
+            childrenResult.hasValue || id != self.searchTask.id.get()
         }) {
             if (id != self.searchTask.id.get()) {
                 // calculation after us wants to continue;

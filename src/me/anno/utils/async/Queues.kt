@@ -40,8 +40,8 @@ object Queues {
 
         // changing to 10 doesn't make the frame rate smoother :/
         val framesForWork = 5
-        val isGLThread = Thread.currentThread() == glThread
-        if (isGLThread) {
+        val isGFXThread = Thread.currentThread() == glThread
+        if (isGFXThread) {
             GFX.checkWithoutCrashing("workQueue")
         }
 
@@ -55,7 +55,7 @@ object Queues {
                 RuntimeException(task.name, e)
                     .printStackTrace()
             }
-            if (isGLThread || queue === gpuTasks) {
+            if (isGFXThread || queue === gpuTasks) {
                 GFX.checkWithoutCrashing(task.name)
             }
             workDone += task.cost
@@ -66,7 +66,10 @@ object Queues {
             }
             if (workDone >= workTodo) return false
             if (workTime > timeLimitNanos) return false // too much work
-            FBStack.reset() // so we can reuse resources in different tasks
+            if (isGFXThread) {
+                // so we can reuse resources in different tasks
+                FBStack.reset()
+            }
         }
     }
 }

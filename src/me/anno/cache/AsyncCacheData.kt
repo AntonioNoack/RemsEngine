@@ -1,11 +1,8 @@
 package me.anno.cache
 
-import me.anno.Time.nanoTime
 import me.anno.cache.CacheTime.cacheTime
-import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
-import kotlin.math.abs
 import kotlin.math.max
 
 /**
@@ -23,9 +20,14 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
 
     val hasExpired: Boolean get() = cacheTime > timeoutCacheTime
     var timeoutCacheTime: Long = 0L
+        private set
 
     var hasValue = false
+        private set
+
     var hasBeenDestroyed = false
+        private set
+
     var value: V? = null
         set(value) {
             if (hasBeenDestroyed) {
@@ -34,21 +36,31 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
                 field = value
             }
             hasValue = true
+            processCallbacks()
         }
 
-    var lastRetryNanos = 0L
-    var retryCallback: (() -> Unit)? = null
+    private val waitForCallbacks = ArrayList<(V?) -> Unit>()
 
-    fun retryHasValue(): Boolean {
-        // todo if this has been destroyed, undo the destruction
-        //  but also somehow register this for future destruction...
-        if (hasValue || hasBeenDestroyed) return true
-        val time = nanoTime
-        if (abs(time - lastRetryNanos) >= RETRY_PERIOD_NANOS) {
-            retryCallback?.invoke()
-            lastRetryNanos = time
+    private fun processCallbacks() {
+        synchronized(waitForCallbacks) {
+            val value = value
+            for (i in waitForCallbacks.indices) {
+                try {
+                    waitForCallbacks[i](value)
+                } catch (e: Exception) {
+                    // we must not be stopped
+                    e.printStackTrace()
+                }
+            }
+            waitForCallbacks.clear()
         }
-        return hasValue
+    }
+
+    private fun addCallback(callback: (V?) -> Unit) {
+        synchronized(waitForCallbacks) {
+            if (hasValue) callback(value)
+            else waitForCallbacks.add(callback)
+        }
     }
 
     fun reset(timeoutMillis: Long) {
@@ -61,12 +73,9 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
 
     @Deprecated(message = ASYNC_WARNING)
     fun waitFor(): V? {
-        Sleep.waitUntil(true, hasValueCondition)
+        Sleep.waitUntil(true) { hasValue }
         return value
     }
-
-    // prevent dynamic allocations a little
-    private val hasValueCondition = { retryHasValue() }
 
     @Deprecated(message = ASYNC_WARNING)
     fun waitFor(async: Boolean): V? {
@@ -75,34 +84,24 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     }
 
     fun waitFor(callback: (V?) -> Unit) {
-        if (hasValue) {
-            callback(value)
-        } else {
-            Sleep.waitUntil(true, hasValueCondition) {
-                callback(value)
-            }
-        }
+        addCallback(callback)
     }
 
     fun waitFor(extraCondition: (V?) -> Boolean, callback: (V?) -> Unit) {
-        Sleep.waitUntil(true, { retryHasValue() && extraCondition(value) }) {
+        Sleep.waitUntil(true, { hasValue && extraCondition(value) }) {
             callback(value)
         }
     }
 
     fun <W> waitUntilDefined(valueMapper: (V) -> W?, callback: (W) -> Unit) {
-        Sleep.waitUntilDefined(true, {
-            if (retryHasValue()) {
-                val value = value
-                if (value != null && !hasBeenDestroyed) valueMapper(value)
-                else null
-            } else null
-        }, callback)
+        waitFor { value ->
+            val newValue = if (value != null) valueMapper(value) else null
+            if (newValue != null) callback(newValue)
+        }
     }
 
     fun waitFor(callback: Callback<V>) {
-        Sleep.waitUntil(true, hasValueCondition) {
-            val value = value
+        waitFor { value ->
             if (value != null) callback.ok(value)
             else callback.err(null)
         }
@@ -165,8 +164,6 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     companion object {
 
         const val ASYNC_WARNING = "Avoid blocking, it's also not supported in browsers"
-
-        private const val RETRY_PERIOD_NANOS = 50 * MILLIS_TO_NANOS
 
         private val nothingCacheData = AsyncCacheData<Any>(null)
 

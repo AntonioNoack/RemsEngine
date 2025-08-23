@@ -15,7 +15,6 @@ import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.acquire
-import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.types.Floats.roundToLongOr
 import me.anno.utils.types.Ints.isPowerOf2
@@ -124,7 +123,8 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
     fun getBuffer(
         file: FileReference, time0: Double, time1: Double,
         bufferSize: Int, repeat: LoopingState
-    ) = getBuffer(getKey(file, time0, time1, bufferSize, repeat))
+    ): AsyncCacheData<Pair<ShortArray, ShortArray>> =
+        getBuffer(getKey(file, time0, time1, bufferSize, repeat))
 
     fun getBuffer(index: Long, stream: AudioFileStream): AsyncCacheData<Pair<ShortArray, ShortArray>> {
         val t0 = stream.frameIndexToTime(index)
