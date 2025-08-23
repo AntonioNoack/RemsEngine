@@ -52,10 +52,11 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
         val localIndex = frameIndex % bufferLength
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout)
         val result = AsyncCacheData<GPUFrame>()
-        videoData.waitUntilDefined({ data ->
-            data.getFrame(localIndex, needsToBeCreated)
+        videoData.waitUntilDefined({ frameList ->
+            val frame = frameList.getFrame(localIndex, needsToBeCreated)
+            frame ?: if (frameList.isDestroyed || frameList.isFinished) Unit else null
         }, { frame ->
-            result.value = frame
+            result.value = frame as? GPUFrame
         })
         return result
     }

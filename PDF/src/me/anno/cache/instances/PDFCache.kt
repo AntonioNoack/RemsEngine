@@ -128,7 +128,7 @@ object PDFCache {
             addGPUTask("PDFCache.getTexture()", image.width, image.height) {
                 result.value = Texture2D(src.name, image, true)
             }
-        }.waitFor()
+        }.waitFor("PDFCache.getTexture")
         return tex?.createdOrNull() as? Texture2D
     }
 
@@ -140,20 +140,20 @@ object PDFCache {
     fun getImageCached(doc: PDDocument, dpi: Float, pageNumber: Int): Image? {
         return images.getEntry(Key(doc, dpi, pageNumber), 10_000) { key, result ->
             result.value = getImage(key.doc, key.dpi, key.pageNumber)
-        }.waitFor()
+        }.waitFor("PDFCache.getImageCached")
     }
 
     fun getImageCachedBySize(doc: PDDocument, size: Int, pageNumber: Int): Image? {
         return images.getEntry(SizeKey(doc, size, pageNumber), 10_000) { key, result ->
             result.value = getImageBySize(key.doc, key.size, key.pageNumber)
-        }.waitFor()
+        }.waitFor("PDFCache.getImageCachedBySize")
     }
 
     @Suppress("unused")
     fun getImageCachedByHeight(doc: PDDocument, height: Int, pageNumber: Int): Image? {
         return images.getEntry(HeightKey(doc, height, pageNumber), 10_000) { key, result ->
             result.value = getImageByHeight(key.doc, key.height, key.pageNumber)
-        }.waitFor()
+        }.waitFor("PDFCache.getImageCachedByHeight")
     }
 
     fun getImageBySize(doc: PDDocument, size: Int, pageNumber: Int): Image {

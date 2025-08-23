@@ -176,14 +176,16 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     }
 
     private fun defineSkin(comp: AnimMeshComponent, mesh: IMesh, childIndices: IntArrayList) {
-        val skeleton = SkeletonCache.getEntry(mesh.skeleton).waitFor()
+        val skeleton = SkeletonCache.getEntry(mesh.skeleton)
+            .waitFor("GLTFWriter.defineSkin")
         if (skeleton != null) {
             // add bone/skeleton hierarchy
             val baseId = nodes.size
             defineBoneHierarchy(skeleton.bones, childIndices)
             meshCompToSkin[comp] = skins.add(SkinData(skeleton, baseId until nodes.size))
             for (state in comp.animations) {
-                val animation = AnimationCache.getEntry(state.source).waitFor() ?: continue
+                val animation = AnimationCache.getEntry(state.source)
+                    .waitFor("GLTFWriter.defineSkin.animation") ?: continue
                 animations.add(AnimationData(skeleton, animation, baseId))
             }
         }

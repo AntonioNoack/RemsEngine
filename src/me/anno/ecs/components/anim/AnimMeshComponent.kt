@@ -98,7 +98,8 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
 
     override fun defineVertexTransform(shader: GPUShader, transform: Transform, mesh: IMesh): Boolean {
 
-        val skeleton = SkeletonCache.getEntry(mesh.skeleton).waitFor()
+        val skeleton = SkeletonCache.getEntry(mesh.skeleton)
+            .waitFor("AnimMeshComponent.defineVertexTransform")
         if (skeleton == null) {
             lastWarning = "Skeleton missing"
             return false

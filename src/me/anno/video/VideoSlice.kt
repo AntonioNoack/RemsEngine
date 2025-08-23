@@ -12,7 +12,7 @@ class VideoSlice(
 ) : ICacheData {
 
     val frames = ArrayList<GPUFrame>()
-    var finished = false
+    var isFinished = false
 
     fun getFrame(localIndex: Int, needsToBeCreated: Boolean): GPUFrame? {
         val frame = frames.getOrNull(localIndex)

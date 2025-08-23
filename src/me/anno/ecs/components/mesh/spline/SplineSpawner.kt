@@ -89,7 +89,8 @@ class SplineSpawner : MeshSpawner() {
     override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
 
         val entity = entity ?: return
-        val material = MaterialCache.getEntry(materialOverride).waitFor()
+        val material = MaterialCache.getEntry(materialOverride)
+            .waitFor("SplineSpawner.forEachMesh")
         if (spacing <= 0.0) return
 
         val meshFiles = meshFiles

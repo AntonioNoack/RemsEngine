@@ -5,12 +5,13 @@ import me.anno.Time
 import me.anno.audio.openal.SoundBuffer
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.IgnoredException
-import me.anno.utils.Threads
 import me.anno.image.Image
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.jvm.utils.BetterProcessBuilder
+import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.Sleep
+import me.anno.utils.Threads
 import me.anno.utils.hpc.HeavyProcessing
 import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrame
@@ -205,12 +206,12 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         var lt = Time.nanoTime
         Sleep.waitUntil("waitForMetadata(${file?.name})", true, {
             // if the last line is too long ago, e.g., because the source is not readable as an image, return
-            val timeLimit = 30e9
+            val timeLimit = 30 * SECONDS_TO_NANOS
             if (codec == FFMPEGMetaParser.invalidCodec) true
-            else if (parser.lastLineTime != 0L && Time.nanoTime - parser.lastLineTime > timeLimit) true
+            else if (parser.lastLineTime != 0L && abs(Time.nanoTime - parser.lastLineTime) > timeLimit) true
             else {
                 val t = Time.nanoTime
-                if (abs(t - lt) > 1e9) {
+                if (abs(t - lt) > SECONDS_TO_NANOS) {
                     LOGGER.debug("Waiting for metadata on {}, {} x {}, {}", file, width, height, codec)
                     lt = t
                 }

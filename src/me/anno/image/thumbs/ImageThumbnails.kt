@@ -1,5 +1,6 @@
 package me.anno.image.thumbs
 
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.ImageAsFolder
@@ -111,7 +112,10 @@ object ImageThumbnails {
         val sh = meta.videoHeight / scale
 
         val (w, h) = ImageScale.scaleMax(sw, sh, size)
-        if (w < 2 || h < 2) return
+        if (w < 2 || h < 2) {
+            callback.err(null)
+            return
+        }
 
         val fps = min(5.0, meta.videoFPS)
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
@@ -119,11 +123,13 @@ object ImageThumbnails {
 
         VideoCache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L)
             .waitFor(callback.mapAsync { frame, cb2 ->
-                val texture = frame.toTexture()
-                if (ThumbnailCache.useCacheFolder) {
-                    val dst = texture.createImage(flipY = false, withAlpha = true)
-                    ThumbnailCache.saveNUpload(srcFile, false, dstFile, dst, cb2)
-                } else cb2.ok(texture)
+                addGPUTask("FrameToImage", frame.width, frame.height) {
+                    val texture = frame.toTexture()
+                    if (ThumbnailCache.useCacheFolder) {
+                        val dst = texture.createImage(flipY = false, withAlpha = true)
+                        ThumbnailCache.saveNUpload(srcFile, false, dstFile, dst, cb2)
+                    } else cb2.ok(texture)
+                }
             })
     }
 

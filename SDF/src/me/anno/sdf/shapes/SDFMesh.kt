@@ -68,7 +68,7 @@ open class SDFMesh : SDFSmoothShape() {
 
     override val boundsInfluencedBySmoothness: Boolean get() = true
 
-    fun loadMesh() = MeshCache.getEntry(meshFile).waitFor()
+    fun loadMesh() = MeshCache.getEntry(meshFile).waitFor("SDFMesh")
 
     var technique = SDFMeshTechnique.TEXTURE
         set(value) {

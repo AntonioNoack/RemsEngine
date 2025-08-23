@@ -157,7 +157,11 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
         callback: Callback<ITexture2D>
     ) {
         val (w, h) = scaleMax(tex.width, tex.height, size)
-        if (w < 2 || h < 2) return // cannot generate texture anyway, no point in loading it
+        if (w < 2 || h < 2) {
+            // cannot generate texture anyway, no point in loading it
+            callback.err(null)
+            return
+        }
         if (isGFXThread()) {
             if (tex is Texture2D && tex.isDestroyed) {
                 // fail, we were too slow waiting for a GFX queue call
@@ -258,7 +262,10 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
     ) {
         val sw = src.width
         val sh = src.height
-        if (min(sw, sh) < 1) return
+        if (min(sw, sh) < 1) {
+            callback.err(null)
+            return
+        }
 
         if (isGFXThread()) {
             return worker.plusAssign {
@@ -343,13 +350,19 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
         val sh = src.height
         if (max(sw, sh) < size) {
             size /= 2
-            if (size < 3) return
+            if (size < 3) {
+                callback.err(null)
+                return
+            }
             srcFile.getFileHash { hash ->
                 findScale(src, srcFile, size0, hash, callback, callback1)
             }
         } else {
             val (w, h) = scaleMax(sw, sh, size)
-            if (w < 2 || h < 2) return
+            if (w < 2 || h < 2) {
+                callback.err(null)
+                return
+            }
             callback1(src.resized(w, h, false))
         }
     }
@@ -366,23 +379,30 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
         val sh = src.height
         if (max(sw, sh) < size) {
             size /= 2
-            if (size < 3) return
-            val key = getCacheKey(srcFile, hash, size)
-            shallReturnIfExists(srcFile, key, callback) { shallReturn ->
-                if (!shallReturn) {
-                    findScale(src, srcFile, size, hash, callback, callback1)
+            if (size < 3) {
+                callback.err(null)
+            } else {
+                val key = getCacheKey(srcFile, hash, size)
+                shallReturnIfExists(srcFile, key, callback) { shallReturn ->
+                    if (!shallReturn) {
+                        findScale(src, srcFile, size, hash, callback, callback1)
+                    }
                 }
             }
         } else {
             val (w, h) = scaleMax(sw, sh, size)
-            if (w < 2 || h < 2) return
-            callback1(src.resized(w, h, false))
+            if (w < 2 || h < 2) {
+                callback.err(null)
+            } else callback1(src.resized(w, h, false))
         }
     }
 
     @JvmStatic
     fun generate(srcFile: FileReference, size: Int, callback: Callback<ITexture2D>) {
-        if (size < 3) return
+        if (size < 3) {
+            callback.err(null)
+            return
+        }
         if (useCacheFolder) {
             srcFile.getFileHash { hash ->
                 val key = getCacheKey(srcFile, hash, size)
@@ -475,7 +495,10 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
     @JvmStatic
     fun generate(srcFile: FileReference, dstFile: HDBKey, size: Int, callback: Callback<ITexture2D>) {
 
-        if (size < 3) return
+        if (size < 3) {
+            callback.err(null)
+            return
+        }
 
         // for some stuff, the icons are really nice
         // for others, we need our previews

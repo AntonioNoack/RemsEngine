@@ -126,17 +126,17 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
         return getEntryWithIfNotGeneratingCallback(key, timeout, queue, { key, entry ->
             fun retry() {
                 synchronized(limiter) {
-                    var last = limiter.lastOrNull()
+                    var last = limiter.firstOrNull()
                     while (true) {
                         if (last != null && last.hasValue) {
-                            assertSame(last, limiter.removeLast())
+                            assertSame(last, limiter.removeFirst())
                         } else break
-                        last = limiter.lastOrNull()
+                        last = limiter.firstOrNull()
                     }
                     if (last == null || limiter.size < limit) {
                         onGeneratedLimited(entry)
                         if (queue != null) queue += { generateSafely(key, entry, generator) }
-                        else generateSafely(key, entry, generator)
+                        else runAsync(getTaskName(name, key)) { generateSafely(key, entry, generator) }
                     } else {
                         last.waitFor { retry() }
                     }

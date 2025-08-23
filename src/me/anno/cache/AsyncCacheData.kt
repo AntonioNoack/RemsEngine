@@ -2,8 +2,10 @@ package me.anno.cache
 
 import me.anno.cache.CacheTime.cacheTime
 import me.anno.engine.Events.getCalleeName
+import me.anno.utils.Logging.hash32
 import me.anno.utils.Sleep
 import me.anno.utils.Threads.runOnNonGFXThread
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import kotlin.math.max
 
@@ -18,6 +20,7 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
 
     constructor(value: V?) : this() {
         this.value = value
+        assertTrue(hasValue)
     }
 
     val hasExpired: Boolean get() = cacheTime > timeoutCacheTime
@@ -67,8 +70,14 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     }
 
     @Deprecated(message = ASYNC_WARNING)
-    fun waitFor(debugName: String = getCalleeName()): V? {
-        Sleep.waitUntil(debugName,true) { hasValue }
+    fun waitFor(): V? {
+        Sleep.waitUntil("AsyncCacheData.waitFor", true) { hasValue }
+        return value
+    }
+
+    @Deprecated(message = ASYNC_WARNING)
+    fun waitFor(debugName: String): V? {
+        Sleep.waitUntil(debugName, true) { hasValue }
         return value
     }
 
@@ -88,10 +97,13 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
         }
     }
 
-    fun <W> waitUntilDefined(valueMapper: (V) -> W?, callback: (W) -> Unit) {
+    fun <W> waitUntilDefined(valueMapper: (V) -> W?, callback: (W?) -> Unit) {
         waitFor { value ->
-            val newValue = if (value != null) valueMapper(value) else null
-            if (newValue != null) callback(newValue)
+            if (value != null) {
+                Sleep.waitUntilDefined(true, {
+                    valueMapper(value)
+                }, callback)
+            } else callback(null)
         }
     }
 
@@ -117,10 +129,10 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     override fun toString(): String {
         val value = value
         return if (value == null) {
-            "AsyncCacheData<null>(#${hashCode()},$hasValue)"
+            "AsyncCacheData<null>(#${hash32(this)},$hasValue)"
         } else {
             @Suppress("UNNECESSARY_NOT_NULL_ASSERTION") // necessary, because Intellij complains without it
-            "AsyncCacheData<${"$value, ${value!!::class.simpleName}, ${value.hashCode()}"}>(${hashCode()},$hasValue)"
+            "AsyncCacheData<${"$value, ${value!!::class.simpleName}, ${value.hashCode()}"}>(${hash32(this)},$hasValue)"
         }
     }
 

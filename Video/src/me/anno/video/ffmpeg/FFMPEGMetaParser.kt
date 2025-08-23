@@ -83,7 +83,7 @@ class FFMPEGMetaParser {
 
         lastLineTime = Time.nanoTime
         if (line.isBlank2()) return
-        if ("Server returned" in line) {
+        if ("Server returned" in line || "Nothing was written into output file" in line) {
             stream.codec = invalidCodec
             stream.width = 1
             stream.height = 1

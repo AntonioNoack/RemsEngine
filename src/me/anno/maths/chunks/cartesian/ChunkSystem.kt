@@ -111,7 +111,8 @@ abstract class ChunkSystem<Chunk : Any, Element>(
     }
 
     open fun getElementAt(globalX: Int, globalY: Int, globalZ: Int): Element {
-        val chunk = getChunkAt(globalX, globalY, globalZ, true)!!.waitFor()!!
+        val chunk = getChunkAt(globalX, globalY, globalZ, true)!!
+            .waitFor("ChunkSystem.getElementAt")!!
         val lx = globalX and maskX
         val ly = globalY and maskY
         val lz = globalZ and maskZ

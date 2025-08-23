@@ -44,7 +44,7 @@ object VideoCacheImpl {
                 if (data.isDestroyed) it.destroy()
                 else data.frames.add(it)
             }, {
-                data.finished = true
+                data.isFinished = true
             }
         )
         result.value = data

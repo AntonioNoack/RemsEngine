@@ -75,7 +75,7 @@ object Reference {
     @JvmStatic
     fun getRealReference(path: String): FileReference {
         return fileCache.getEntry(path, fileTimeout, generator)
-            .waitFor() ?: createReference(path)
+            .waitFor("getRealReference") ?: createReference(path)
     }
 
     @JvmStatic

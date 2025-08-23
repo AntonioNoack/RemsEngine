@@ -331,7 +331,9 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                 }
                 for (file in files) {
                     if (file.isDirectory) continue
-                    val prefab = PrefabCache[file].waitFor()?.prefab ?: continue
+                    val prefab = PrefabCache[file]
+                        .waitFor("ECSFileExplorer.assignMaterialToMeshes")
+                        ?.prefab ?: continue
                     when (prefab.clazzName) {
                         "Entity" -> {
                             // iterate through, find MeshComponents, extract their mesh, and associated materials

@@ -128,8 +128,8 @@ class ECSSceneTab(
             }
             is Retargeting -> {
                 val bounds = AABBd()
-                val srcSkeleton = SkeletonCache.getEntry(root.srcSkeleton).waitFor()
-                val dstSkeleton = SkeletonCache.getEntry(root.dstSkeleton).waitFor()
+                val srcSkeleton = SkeletonCache.getEntry(root.srcSkeleton).waitFor("ECSMeshTab.srcSkeleton")
+                val dstSkeleton = SkeletonCache.getEntry(root.dstSkeleton).waitFor("ECSMeshTab.dstSkeleton")
                 if (srcSkeleton != null) bounds.set(skeletalBounds(srcSkeleton))
                 if (dstSkeleton != null) bounds.union(skeletalBounds(dstSkeleton))
                 resetCamera(bounds)
