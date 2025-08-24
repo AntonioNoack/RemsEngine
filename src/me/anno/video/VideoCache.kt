@@ -38,7 +38,7 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
             val fps2 = if (meta.videoFrameCount < 2) 1.0 else fps
             val key = VideoFramesKey(file, scale, bufferIndex, bufferLength2, fps2)
             val generator = generateVideoFrames
-            if (generator != null) getEntryLimitedWithRetry(key, timeout, videoGenLimit, generator)
+            if (generator != null) getEntry(key, timeout, generator)
             else AsyncCacheData.empty()
         }
     }

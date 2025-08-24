@@ -82,6 +82,12 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     }
 
     @Deprecated(message = ASYNC_WARNING)
+    fun waitFor(debugName: String, async: Boolean): V? {
+        if (!async) waitFor(debugName)
+        return value
+    }
+
+    @Deprecated(message = ASYNC_WARNING)
     fun waitFor(async: Boolean): V? {
         if (!async) waitFor(getCalleeName())
         return value

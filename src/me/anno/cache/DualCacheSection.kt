@@ -72,10 +72,9 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
         oldValue?.destroy()
     }
 
-    fun <K1S : K1, K2S : K2> getDualEntryWithIfNotGeneratingCallback(
+    fun <K1S : K1, K2S : K2> getDualEntry(
         key1: K1S, key2: K2S, timeoutMillis: Long,
-        generator: (key1: K1S, key2: K2S, dst: AsyncCacheData<V>) -> Unit,
-        ifNotGenerating: (() -> Unit)?
+        generator: (key1: K1S, key2: K2S, dst: AsyncCacheData<V>) -> Unit
     ): AsyncCacheData<V> {
 
         checkKey(key1)
@@ -101,15 +100,10 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
             runAsync(getTaskName(name, key1, key2)) {
                 generateDualSafely(key1, key2, entry, generator)
             }
-        } else ifNotGenerating?.invoke()
+        }
 
         return entry
     }
-
-    fun <K1S : K1, K2S : K2> getDualEntry(
-        key1: K1S, key2: K2S, timeoutMillis: Long,
-        generator: (K1S, K2S, AsyncCacheData<V>) -> Unit
-    ): AsyncCacheData<V> = getDualEntryWithIfNotGeneratingCallback(key1, key2, timeoutMillis, generator, null)
 
     fun update() {
         synchronized(dualCache) {

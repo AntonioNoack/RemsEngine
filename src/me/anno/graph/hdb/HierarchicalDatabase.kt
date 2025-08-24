@@ -240,11 +240,11 @@ class HierarchicalDatabase(
     }
 
     private fun getDataAsync(sf: StorageFile, callback: Callback<ByteArray>) {
-        cache.getEntryAsync(sf.index, cacheTimeoutMillis, { keyI, result ->
+        cache.getEntry(sf.index, cacheTimeoutMillis, { keyI, result ->
             val file = getFile(keyI)
             if (file.exists) file.readBytes(result)
             else result.value = null
-        }, callback)
+        }).waitFor(callback)
     }
 
     private fun getDataFromCacheOnly(sf: StorageFile): ByteArray? {

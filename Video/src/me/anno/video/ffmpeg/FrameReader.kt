@@ -40,6 +40,7 @@ abstract class FrameReader<FrameType>(
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
+                Sleep.waitUntil(true) { limiter.get() == 0 }
                 isFinished = true
             }
             finishedCallback(frames)
@@ -58,13 +59,14 @@ abstract class FrameReader<FrameType>(
 
         limiter.addAndGet(1)
         readFrame(width, height, frameIndex, input) { frame ->
-            limiter.addAndGet(-1)
             if (frame != null) {
-                synchronized(frames) {
-                    frames.add(frame)
-                }
+                synchronized(frames) { frames.add(frame) }
+                limiter.addAndGet(-1)
                 nextFrameCallback(frame)
-            } else onError()
+            } else {
+                limiter.addAndGet(-1)
+                onError()
+            }
             if (isDestroyed) destroy()
         }
     }

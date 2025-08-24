@@ -38,7 +38,7 @@ object ImageReaderExt {
                                     image.flipY()
                                     callback.call(image, null)
                                 })
-                            } else callback.err(IOException("No frame was found"))
+                            } else callback.err(IOException("No frame was found in $file"))
                         }
                     )
                 } else {

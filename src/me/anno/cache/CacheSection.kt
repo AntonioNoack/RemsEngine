@@ -8,8 +8,6 @@ import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
 import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.utils.assertions.assertFail
-import me.anno.utils.assertions.assertSame
-import me.anno.utils.async.Callback
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
@@ -88,96 +86,15 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
         oldValue?.destroy()
     }
 
-    private val limiter = ArrayList<AsyncCacheData<Value>>()
-    fun <KeyI : Key> getEntryLimited(
-        key: KeyI, timeout: Long,
-        limit: Int, generator: (KeyI, AsyncCacheData<Value>) -> Unit
-    ): AsyncCacheData<Value> = getEntryLimited(key, timeout, null, limit, generator)
-
-    private fun onGeneratedLimited(entry: AsyncCacheData<Value>) {
-        if (entry.hasValue) return
-        // register to waiting queue
-        limiter.add(entry)
-        entry.waitFor {
-            // unregister from waiting queue
-            synchronized(limiter) {
-                limiter.remove(entry)
-            }
-        }
-    }
-
-    fun <KeyI : Key> getEntryLimited(
-        key: KeyI, timeout: Long, queue: ProcessingQueue?,
-        limit: Int, generator: (KeyI, AsyncCacheData<Value>) -> Unit
-    ): AsyncCacheData<Value> {
-        synchronized(limiter) {
-            val first = limiter.firstOrNull()
-            if (first == null || limiter.size < limit) {
-                // create a new entry
-                val entry = getEntryWithIfNotGeneratingCallback(key, timeout, queue, generator, null)
-                onGeneratedLimited(entry)
-                return entry
-            }
-        }
-
-        val existing = getEntryWithoutGenerator(key, timeout)
-        if (existing != null) return existing
-
-        return getEntryWithIfNotGeneratingCallback(key, timeout, queue, { key, entry ->
-            fun retry() {
-                synchronized(limiter) {
-                    var last = limiter.firstOrNull()
-                    while (true) {
-                        if (last != null && last.hasValue) {
-                            assertSame(last, limiter.removeFirst())
-                        } else break
-                        last = limiter.firstOrNull()
-                    }
-                    if (last == null || limiter.size < limit) {
-                        onGeneratedLimited(entry)
-                        if (queue != null) queue += { generateSafely(key, entry, generator) }
-                        else runAsync(getTaskName(name, key)) { generateSafely(key, entry, generator) }
-                    } else {
-                        last.waitFor { retry() }
-                    }
-                }
-            }
-            retry()
-        }, null)
-    }
-
-    fun <KeyI : Key> getEntryLimitedWithRetry(
-        key: KeyI, timeout: Long,
-        limit: Int, generator: (KeyI, AsyncCacheData<Value>) -> Unit
-    ): AsyncCacheData<Value> = getEntryLimited(key, timeout, limit, generator)
-
-    fun <KeyI : Key> getEntryLimitedWithRetry(
-        key: KeyI, timeout: Long, queue: ProcessingQueue?,
-        limit: Int, generator: (KeyI, AsyncCacheData<Value>) -> Unit
-    ): AsyncCacheData<Value> = getEntryLimited(key, timeout, queue, limit, generator)
-
-    fun <KeyI : Key> getEntryWithIfNotGeneratingCallback(
+    fun <KeyI : Key> getEntry(
         key: KeyI, timeoutMillis: Long,
-        generator: (KeyI, AsyncCacheData<Value>) -> Unit,
-        ifNotGenerating: (() -> Unit)?
-    ): AsyncCacheData<Value> = getEntryWithIfNotGeneratingCallback(key, timeoutMillis, null, generator, ifNotGenerating)
+        generator: (KeyI, AsyncCacheData<Value>) -> Unit
+    ): AsyncCacheData<Value> = getEntry(key, timeoutMillis, null, generator)
 
-    fun getEntryAsync(
-        key: Key, timeoutMillis: Long,
-        generator: (Key, AsyncCacheData<Value>) -> Unit,
-        resultCallback: Callback<Value>
-    ) {
-        getEntry(key, timeoutMillis, generator)
-            .waitFor(resultCallback)
-    }
-
-    fun <KeyI : Key> getEntryWithIfNotGeneratingCallback(
+    fun <KeyI : Key> getEntry(
         key: KeyI, timeoutMillis: Long,
-        queue: ProcessingQueue?,
-        generator: (KeyI, AsyncCacheData<Value>) -> Unit,
-        ifNotGenerating: (() -> Unit)?
+        queue: ProcessingQueue?, generator: (KeyI, AsyncCacheData<Value>) -> Unit
     ): AsyncCacheData<Value> {
-
         checkKey(key)
 
         // new, async cache
@@ -202,22 +119,10 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
             } else runAsync(getTaskName(name, key)) {
                 generateSafely(key, entry, generator)
             }
-        } else {
-            ifNotGenerating?.invoke()
         }
 
         return entry
     }
-
-    fun <KeyI : Key> getEntry(
-        key: KeyI, timeoutMillis: Long,
-        generator: (KeyI, AsyncCacheData<Value>) -> Unit
-    ): AsyncCacheData<Value> = getEntryWithIfNotGeneratingCallback(key, timeoutMillis, generator, null)
-
-    fun <KeyI : Key> getEntry(
-        key: KeyI, timeoutMillis: Long,
-        queue: ProcessingQueue?, generator: (KeyI, AsyncCacheData<Value>) -> Unit
-    ): AsyncCacheData<Value> = getEntryWithIfNotGeneratingCallback(key, timeoutMillis, queue, generator, null)
 
     fun update() {
         // todo we have a target of 60 FPS, if we're running slower than that, make Cache-decay slower, too

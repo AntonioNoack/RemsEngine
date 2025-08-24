@@ -58,12 +58,10 @@ fun main() {
             }
             callback()
         } else if (testAsync) {
-            cache.getEntryAsync(i, timeout, { _, result ->
+            cache.getEntry(i, timeout, { _, result ->
                 runTask()
                 result.value = 1
-            }, { _, _ ->
-                callback()
-            })
+            }).waitFor { callback() }
         } else {
             cache.getEntry(i, timeout) { _, result ->
                 runTask()

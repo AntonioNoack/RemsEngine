@@ -2,6 +2,8 @@ package me.anno.tests.engine
 
 import me.anno.engine.RemsEngine
 
+// todo bug: thumbnails are no longer properly loading in pictures folder...
+
 // todo when clicking on prefab file (material) input, we need the following options:
 //  - create temporary file (testing only)
 //  - create file stored in project

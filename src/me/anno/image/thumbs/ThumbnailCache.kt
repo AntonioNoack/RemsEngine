@@ -101,7 +101,7 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
                 val size = getSize(neededSize)
                 val lastModified = file.lastModified
                 val key = ThumbnailKey(file, lastModified, size)
-                textures.getEntryLimitedWithRetry(key, timeout, 4, generator)
+                textures.getEntry(key, timeout, generator)
             }
         }
     }

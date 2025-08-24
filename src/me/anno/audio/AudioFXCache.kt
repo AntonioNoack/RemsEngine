@@ -15,6 +15,7 @@ import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.acquire
+import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.types.Floats.roundToLongOr
 import me.anno.utils.types.Ints.isPowerOf2
@@ -30,6 +31,7 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
 
     private val audioDataCache = CacheSection<PipelineKey, AudioData>("AudioDataCache")
     private val rangeCache = CacheSection<RangeKey, ShortData>("AudioFXRanges")
+    private val audioRangeQueue = ProcessingQueue("AudioRanges")
 
     val SPLITS = 256
 
@@ -180,7 +182,7 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
     ): AsyncCacheData<ShortData> {
         if (!bufferSize.isPowerOf2()) return AsyncCacheData.empty()
         val key = RangeKey(index0, index1, identifier)
-        return rangeCache.getEntryLimitedWithRetry(key, timeoutMillis, 4) { key, result ->
+        return rangeCache.getEntry(key, timeoutMillis, audioRangeQueue) { key, result ->
             val splits = SPLITS
             val values = SAPool[splits * 2, false, true]
             try {

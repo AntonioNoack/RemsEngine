@@ -175,8 +175,9 @@ object Reference {
         }
 
         if (OS.isWindows) {
-            assertTrue(isAllowedWindowsPath(absolutePath)) {
-                "Invalid file ($absolutePath)"
+            if (!isAllowedWindowsPath(absolutePath)) {
+                LOGGER.warn("Invalid file! '$absolutePath'")
+                return InvalidRef
             }
         }
 
