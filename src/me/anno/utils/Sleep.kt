@@ -191,7 +191,9 @@ object Sleep {
             val thisThread = Thread.currentThread()
             workingThread = thisThread
             Events.workEventTasks() // needs to be executed for asynchronous waitUntil()-tasks
-            GPUTasks.workGPUTasks(canBeKilled)
+            if (GFX.isGFXThread()) {
+                GPUTasks.workGPUTasks(canBeKilled)
+            } // else not allowed
             assertSame(workingThread, thisThread)
             workingThread = prevThread
         }

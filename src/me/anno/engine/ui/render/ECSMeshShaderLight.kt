@@ -25,6 +25,8 @@ import me.anno.utils.types.Booleans.hasFlag
 
 // todo test whether this delivers any performance gain on Android
 //  if not, maybe remove it
+//  if we keep it, merge common functions with ECSMeshShader
+
 open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), "") {
 
     companion object {
@@ -115,7 +117,7 @@ open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), 
         return loadVertex(key, key.flags)
     }
 
-    fun loadVertex(key: ShaderKey, flags: Int): List<ShaderStage> {
+    open fun loadVertex(key: ShaderKey, flags: Int): List<ShaderStage> {
         val vertexData = key.vertexData
         return vertexData.loadPosition +
                 f(vertexData.loadNorTan, flags.hasFlag(NEEDS_COLORS)) +
@@ -135,7 +137,7 @@ open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), 
      * transforms the vertex from local space into camera-space,
      * based on instanced rendering if applicable
      * */
-    fun transformVertex(key: ShaderKey): List<ShaderStage> {
+    open fun transformVertex(key: ShaderKey): List<ShaderStage> {
         val flags = key.flags
         val instanceData = key.instanceData
         return instanceData.transformPosition +
@@ -147,7 +149,7 @@ open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), 
     /**
      * calculates gl_Position, and currPosition/prevPosition for motion vectors if needed
      * */
-    fun finishVertex(key: ShaderKey): ShaderStage {
+    open fun finishVertex(key: ShaderKey): ShaderStage {
         return if (!key.flags.hasFlag(NEEDS_MOTION_VECTORS)) {
             // easy default
             ShaderStage(
@@ -173,7 +175,7 @@ open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), 
     /**
      * applies skeletal animation onto the vertex, if needed
      * */
-    fun animateVertex(key: ShaderKey): List<ShaderStage> {
+    open fun animateVertex(key: ShaderKey): List<ShaderStage> {
         val flags = key.flags
         if (!flags.hasFlag(IS_ANIMATED)) return emptyList()
         val stage = ShaderStage("v-anim", createAnimVariables(key), animCode0())

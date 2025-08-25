@@ -124,9 +124,9 @@ class FFMPEGMetaParser {
             if (videoTypeIndex > -1 && videoTypeIndex + 2 < data.size && data[videoTypeIndex + 1] == "(") {
                 var codec = data[videoTypeIndex + 2]
                 if (data[videoTypeIndex + 3] == "[") {
-                    val eidx = data.indexOf2("]", videoTypeIndex + 3, true)
-                    if (eidx > 0) {
-                        codec += data.subList(videoTypeIndex + 3, eidx + 1).joinToString("")
+                    val endIndex = data.indexOf2("]", videoTypeIndex + 3, true)
+                    if (endIndex > 0) {
+                        codec += data.subList(videoTypeIndex + 3, endIndex + 1).joinToString("")
                     }
                 }
                 LOGGER.debug("Found codec {}", codec)

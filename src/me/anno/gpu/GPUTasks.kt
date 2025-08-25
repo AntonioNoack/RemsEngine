@@ -70,6 +70,7 @@ object GPUTasks {
 
     @JvmStatic
     fun workGPUTasksUntilShutdown() {
+        GFX.checkIsGFXThread()
         while (!Engine.shutdown) {
             workGPUTasks(true)
         }
