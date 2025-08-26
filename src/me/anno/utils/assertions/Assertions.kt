@@ -125,27 +125,27 @@ fun assertEquals(expected: Any?, actual: Any?, message: () -> String) {
 }
 
 fun assertEquals(expected: ByteArray?, actual: ByteArray?, message: String = "expected equal values") {
-    assertEquals(expected?.toList(), actual?.toList(), message)
+    assertEquals(expected?.asList(), actual?.asList(), message)
 }
 
 fun assertEquals(expected: ShortArray?, actual: ShortArray?, message: String = "expected equal values") {
-    assertEquals(expected?.toList(), actual?.toList(), message)
+    assertEquals(expected?.asList(), actual?.asList(), message)
 }
 
 fun assertEquals(expected: IntArray?, actual: IntArray?, message: String = "expected equal values") {
-    assertEquals(expected?.toList(), actual?.toList(), message)
+    assertEquals(expected?.asList(), actual?.asList(), message)
 }
 
 fun assertEquals(expected: LongArray?, actual: LongArray?, message: String = "expected equal values") {
-    assertEquals(expected?.toList(), actual?.toList(), message)
+    assertEquals(expected?.asList(), actual?.asList(), message)
 }
 
 fun assertEquals(expected: FloatArray?, actual: FloatArray?, message: String = "expected equal values") {
-    assertEquals(expected?.toList(), actual?.toList(), message)
+    assertEquals(expected?.asList(), actual?.asList(), message)
 }
 
 fun assertEquals(expected: DoubleArray?, actual: DoubleArray?, message: String = "expected equal values") {
-    assertEquals(expected?.toList(), actual?.toList(), message)
+    assertEquals(expected?.asList(), actual?.asList(), message)
 }
 
 fun assertContentEquals(expected: ByteArray?, actual: ByteArray?, message: String = "expected equal values") {

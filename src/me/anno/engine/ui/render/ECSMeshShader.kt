@@ -538,7 +538,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         )
     }
 
-    fun createColorFragmentStage(): String {
+    open fun createColorFragmentStage(): String {
         return normalTanBitanCalculation +
                 normalMapCalculation +
                 emissiveCalculation +

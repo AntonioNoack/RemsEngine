@@ -8,8 +8,6 @@ import me.anno.engine.RemsEngine
 //  - create prefab based on that in project
 //  - create temporary file based on that
 
-// todo implement trees like https://www.youtube.com/watch?v=GOfttJQ-FGw
-
 /**
  * This start-the-engine function is located in the test project,
  * because here all extensions are available, while the main project turns into a "base" project.
