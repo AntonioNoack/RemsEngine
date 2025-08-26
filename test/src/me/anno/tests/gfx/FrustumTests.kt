@@ -1,6 +1,7 @@
 package me.anno.tests.gfx
 
 import me.anno.engine.ui.render.Frustum
+import me.anno.maths.noise.RandomUtils.nextGaussianF
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.toRadians
@@ -8,8 +9,35 @@ import org.joml.AABBd
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
+import kotlin.random.Random
 
-class CullTest {
+class FrustumTests {
+
+    @Test
+    fun testAllBounds() {
+        val frustum = Frustum()
+        val random = Random(165)
+        val allBounds = AABBd().all()
+        repeat(100) {
+            frustum.definePerspective(
+                0.1f, 10f, 1f, 100, 1f,
+                Vector3d(
+                    random.nextGaussianF(),
+                    random.nextGaussianF(),
+                    random.nextGaussianF()
+                ), Quaternionf().rotationTo(
+                    random.nextFloat() - 0.5f,
+                    random.nextFloat() - 0.5f,
+                    random.nextFloat() - 0.5f,
+                    random.nextFloat() - 0.5f,
+                    random.nextFloat() - 0.5f,
+                    random.nextFloat() - 0.5f
+                )
+            )
+            assertTrue(frustum.isVisible(allBounds))
+        }
+    }
+
     @Test
     fun simpleTest() {
         val frustum = Frustum()
