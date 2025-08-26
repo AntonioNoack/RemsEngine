@@ -20,6 +20,7 @@ import me.anno.io.Streams.readLE32F
 import me.anno.io.base64.Base64
 import me.anno.io.binary.ByteArrayIO.readLE32
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
@@ -99,6 +100,7 @@ class GLTFReader(val src: FileReference) {
     private val innerFolder = InnerFolder(src)
     private val materialFolder = InnerFolder(innerFolder, "materials")
     private val meshFolder = InnerFolder(innerFolder, "meshes")
+    private val textureFolder = InnerFolder(innerFolder, "textures")
 
     private val buffers = ArrayList<ByteSlice>()
     private val embeddedFiles = ArrayList<Pair<String, ByteArray>>()
@@ -255,15 +257,16 @@ class GLTFReader(val src: FileReference) {
         return instance as? List<*> ?: emptyList<Any?>()
     }
 
-    private inline fun <V> forEachMap(attrName: String, dst: ArrayList<V>, map: (Map<*, *>) -> V): List<V> {
+    private inline fun <V> forEachMap(attrName: String, dst: ArrayList<V>, map: (Map<*, *>, Int) -> V): List<V> {
         return forEachMap(json[attrName], dst, map)
     }
 
-    private inline fun <V> forEachMap(instance: Any?, dst: ArrayList<V>, map: (Map<*, *>) -> V): List<V> {
+    private inline fun <V> forEachMap(instance: Any?, dst: ArrayList<V>, map: (Map<*, *>, Int) -> V): List<V> {
         val list = getList(instance)
         dst.ensureCapacity(list.size)
-        for (i in list.indices) {
-            dst.add(map(getMap(list[i])))
+        for (index in list.indices) {
+            val item = list[index]
+            dst.add(map(getMap(item), index))
         }
         return dst
     }
@@ -283,7 +286,7 @@ class GLTFReader(val src: FileReference) {
     private fun readNodes() {
         val tmp4x4 = Matrix4d()
         val tmp16 = DoubleArray(16)
-        forEachMap("nodes", nodes) { node ->
+        forEachMap("nodes", nodes) { node, _ ->
             val node1 = Node(nodes.size)
             node1.name = node["name"] as? String
             node1.children = getList(node["children"]).map { getInt(it) }
@@ -378,10 +381,10 @@ class GLTFReader(val src: FileReference) {
         val tmp3 = Vector3f()
         val tmp4 = Quaternionf()
 
-        forEachMap("animations", animations) { anim ->
+        forEachMap("animations", animations) { anim, _ ->
 
             samplers.clear()
-            forEachMap(anim["samplers"], samplers) { node ->
+            forEachMap(anim["samplers"], samplers) { node, _ ->
                 val sampler = AnimSampler()
                 sampler.times = loadFloatArray(getInt(node["input"], -1), 1)
                 sampler.values = loadFloatArray(getInt(node["output"], -1), -1)
@@ -516,7 +519,7 @@ class GLTFReader(val src: FileReference) {
     private fun readSkins() {
         val tmp = Matrix4f()
         val skeletons1 = InnerFolder(innerFolder, "skeletons")
-        forEachMap("skins", skins) { src ->
+        forEachMap("skins", skins) { src, _ ->
 
             val prefab = Prefab("Skeleton")
 
@@ -675,20 +678,27 @@ class GLTFReader(val src: FileReference) {
     }
 
     private fun readImages(): List<FileReference> {
-        return forEachMap("images", ArrayList()) { image ->
-            if ("uri" in image) resolveUri(image["uri"].toString())
-            else {
+        return forEachMap("images", ArrayList()) { image, index ->
+            if ("uri" in image) {
+                val uri = image["uri"].toString()
+                val uriFile = resolveUri(uri)
+                if (uriFile != InvalidRef) {
+                    val fileName = "$index.${uriFile.lcExtension}"
+                    InnerLinkFile(textureFolder, fileName, uriFile)
+                } else uriFile
+            } else {
                 // instead of URI, there could also be bufferView: 8, mimeType: image/png
                 // extension can be deduced from mimeType-property
                 val extension = getExtensionFromMimeType(image["mimeType"] as? String)
+                val fileName = "$index.$extension"
                 val buffer = bufferViews[getInt(image["bufferView"])]
-                InnerTmpByteFile(buffer.bytes(), extension)
+                textureFolder.createByteChild(fileName, buffer.bytes())
             }
         }
     }
 
     private fun readBufferViews() {
-        forEachMap("bufferViews", bufferViews) { view ->
+        forEachMap("bufferViews", bufferViews) { view, _ ->
             val idx = getInt(view["buffer"])
             assertTrue(idx in buffers.indices)
             val buffer = buffers[idx]
@@ -700,7 +710,7 @@ class GLTFReader(val src: FileReference) {
     }
 
     private fun readAccessors() {
-        forEachMap("accessors", accessors) { accessor ->
+        forEachMap("accessors", accessors) { accessor, _ ->
             val view0 = bufferViews[getInt(accessor["bufferView"])]
             val offset = getInt(accessor["byteOffset"])
             val view = if (offset == 0) view0
@@ -722,7 +732,7 @@ class GLTFReader(val src: FileReference) {
     }
 
     private fun readMaterials() {
-        forEachMap("materials", materials) { material ->
+        forEachMap("materials", materials) { material, _ ->
             val prefab = Prefab("Material")
             val name = (material["name"] as? String ?: "").ifBlank { "${materials.size}" }
             prefab["name"] = name
@@ -790,7 +800,7 @@ class GLTFReader(val src: FileReference) {
     // todo lights
 
     private fun readSamplers(): List<Sampler> {
-        return forEachMap("samplers", ArrayList()) { sampler ->
+        return forEachMap("samplers", ArrayList()) { sampler, _ ->
             val mag = getInt(sampler["magFilter"])
             val wrap = getInt(sampler["wrapS"])
             val filter = if (mag == Filtering.LINEAR.mag) Filtering.LINEAR else Filtering.NEAREST
@@ -800,7 +810,7 @@ class GLTFReader(val src: FileReference) {
     }
 
     private fun readTextures(images: List<FileReference>, samplers: List<Sampler>) {
-        forEachMap("textures", textures) { texture ->
+        forEachMap("textures", textures) { texture, _ ->
             val source = images[getInt(texture["source"])]
             val sampler = samplers[getInt(texture["sampler"])]
             Texture(source, sampler)
@@ -864,9 +874,9 @@ class GLTFReader(val src: FileReference) {
 
     private fun readMeshes() {
         val usedNames = HashSet<String>()
-        forEachMap("meshes", meshes) { mesh ->
+        forEachMap("meshes", meshes) { mesh, _ ->
             val name = mesh["name"] as? String
-            forEachMap(mesh["primitives"], ArrayList()) { prim ->
+            forEachMap(mesh["primitives"], ArrayList()) { prim, _ ->
                 val prefab = Prefab("Mesh")
                 for ((attrName, value) in getMap(prim["attributes"])) {
                     val id = getInt(value)
