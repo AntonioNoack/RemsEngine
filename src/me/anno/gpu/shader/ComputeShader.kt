@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GLNames
 import me.anno.gpu.shader.ComputeShaderStats.Companion.stats
+import me.anno.gpu.shader.Shader.Companion.builder
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -43,12 +44,21 @@ class ComputeShader(
     override fun compile() {
 
         checkGroupSizeBounds()
-        val source = "" +
-                "#version $version\n" +
-                "// $name\n" +
-                "layout(local_size_x = ${groupSize.x}, local_size_y = ${groupSize.y}, local_size_z = ${groupSize.z}) in;\n" +
-                matMul +
-                source
+
+        builder.clear()
+        builder.append("#version ").append(version).append('\n')
+        for (line in source.split('\n')
+            .filter { it.trim().startsWith("#extension ") }) {
+            builder.append(line).append('\n')
+        }
+
+        builder.append("// ").append(name).append('\n')
+        builder.append("layout(local_size_x = ${groupSize.x}, local_size_y = ${groupSize.y}, local_size_z = ${groupSize.z}) in;\n")
+        builder.append(matMul)
+        builder.append(source.replace("#extension", "// #extension"))
+
+        val source = builder.toString()
+        builder.clear()
 
         updateSession()
 
