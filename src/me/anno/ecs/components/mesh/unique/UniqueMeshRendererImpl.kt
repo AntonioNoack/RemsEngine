@@ -9,7 +9,10 @@ import me.anno.gpu.buffer.CompactAttributeLayout
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.pooling.Pools
+import me.anno.utils.types.Ranges.size
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3
@@ -25,14 +28,14 @@ import org.joml.Matrix4x3
  * todo can we guarantee that we only insert data once? if so, we can delete the mesh immediately :3
  * */
 abstract class UniqueMeshRendererImpl<Key, Mesh2>(
-    attributes: CompactAttributeLayout, vertexData: MeshVertexData, drawMode: DrawMode
-) : UniqueMeshRenderer<Key, MeshEntry<Mesh2>>(attributes, vertexData, drawMode) {
+    attributes: CompactAttributeLayout, vertexData: MeshVertexData, indexedRendering: Boolean, drawMode: DrawMode
+) : UniqueMeshRenderer<Key, MeshEntry<Mesh2>>(attributes, vertexData, indexedRendering, drawMode) {
 
     /**
      * Implement this method to pack your custom mesh type into a StaticBuffer to be copied around.
      * Returning null will ignore your element.
      * */
-    abstract fun createBuffer(key: Key, mesh: Mesh2): StaticBuffer?
+    open fun createBuffer(key: Key, mesh: Mesh2): Pair<StaticBuffer, IntArray?>? = null
 
     /**
      * defines what the world looks like for Raycasting,
@@ -40,7 +43,7 @@ abstract class UniqueMeshRendererImpl<Key, Mesh2>(
      * */
     override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
         var i = 0
-        for ((key, entry) in entries) {
+        for ((key, entry) in umrVertexData.entries) {
             val transform = getTransform(i++)
             val material = getTransformAndMaterial(key, transform)
             val mesh = entry.mesh as? IMesh ?: continue
@@ -55,8 +58,7 @@ abstract class UniqueMeshRendererImpl<Key, Mesh2>(
         // calculate local aabb
         val local = boundsF
         local.clear()
-        for (i in sortedEntries.indices) {
-            val entry = sortedEntries[i]
+        for (entry in umrVertexData.entries.values) {
             local.union(entry.localBounds)
         }
         localAABB.set(local)
@@ -70,9 +72,10 @@ abstract class UniqueMeshRendererImpl<Key, Mesh2>(
     }
 
     fun add(key: Key, mesh: Mesh2, bounds: AABBd): Boolean {
-        if (key in entries) return false
+        if (key in umrVertexData.entries) return false
         val buffer = createBuffer(key, mesh) ?: return false
-        val entry = MeshEntry(mesh, bounds, buffer)
+        val (vertexBuffer, indexBuffer) = buffer
+        val entry = MeshEntry(mesh, bounds, vertexBuffer, indexBuffer)
         return add(key, entry)
     }
 
@@ -87,19 +90,47 @@ abstract class UniqueMeshRendererImpl<Key, Mesh2>(
         } else true
     }
 
-    override fun setRange(key: MeshEntry<Mesh2>, value: IntRange) {
-        key.range = value
+    override fun getVertexRange(mesh: MeshEntry<Mesh2>): IntRange {
+        return mesh.vertexRange
     }
 
-    override fun getRange(key: MeshEntry<Mesh2>): IntRange {
-        return key.range
+    override fun setVertexRange(mesh: MeshEntry<Mesh2>, value: IntRange) {
+        mesh.vertexRange = value
     }
 
-    override fun deallocate(data: StaticBuffer) {
-        // we just swap between buffer0 and buffer1, so we must not destroy anything
+    override fun getIndexRange(mesh: MeshEntry<Mesh2>): IntRange {
+        return mesh.indexRange
     }
 
-    override fun insertData(from: Int, fromData: MeshEntry<Mesh2>, to: IntRange, toData: StaticBuffer) {
-        moveData(from, fromData.buffer, to, toData)
+    override fun setIndexRange(mesh: MeshEntry<Mesh2>, value: IntRange) {
+        mesh.indexRange = value
+    }
+
+    override fun insertVertexData(from: Int, fromData: MeshEntry<Mesh2>, to: IntRange, toData: StaticBuffer) {
+        umrVertexData.moveData(from, fromData.vertexBuffer, to, toData)
+    }
+
+    override fun insertIndexData(from: Int, fromData: MeshEntry<Mesh2>, to: IntRange, toData: StaticBuffer) {
+        assertEquals(0, from)
+
+        // to do if indices are missing, we could fill them procedurally with a compute shader :)
+        val offset = fromData.vertexRange.first
+        println("Insert indices $offset, $to")
+        val fromIndices = fromData.indices
+        val movedIndices = Pools.intArrayPool[to.size, false, false]
+        if (fromIndices != null) {
+            for (i in 0 until to.size) {
+                movedIndices[i] = fromIndices[i] + offset
+            }
+        } else {
+            for (i in 0 until to.size) {
+                movedIndices[i] = i + offset
+            }
+        }
+        toData.uploadBytesPartially(
+            from, movedIndices,
+            to.size * 4L, to.start * 4L
+        )
+        Pools.intArrayPool.returnBuffer(movedIndices)
     }
 }

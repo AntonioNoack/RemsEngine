@@ -49,7 +49,7 @@ class ChunkLoader(val chunkRenderer: ChunkRenderer, val world: TestWorld) : Comp
             val bounds = mesh.getBounds()
             bounds.translate(x0.toFloat(), y0.toFloat(), z0.toFloat())
             addGPUTask("ChunkUpload", 1) { // change back to GPU thread
-                chunkRenderer.set(chunkId, MeshEntry(mesh, bounds, data))
+                chunkRenderer[chunkId] = MeshEntry(mesh, bounds, data.first, data.second)
             }
         }
     }

@@ -14,8 +14,8 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.AABBd
@@ -105,6 +105,7 @@ class StaticMeshManager : System(), Renderable, OnUpdate {
             val key = SMMKey(comp, mesh, i)
             val buffer = umr.createBuffer(key, mesh)
             if (buffer != null) {
+                val (vertexBuffer, indexBuffer) = buffer
                 // bounds need to be transformed from local to global
                 val bounds = AABBd(mesh.getBounds())
                 val transform = comp.transform
@@ -112,7 +113,7 @@ class StaticMeshManager : System(), Renderable, OnUpdate {
                     transform.validate()
                     bounds.transformAABB(transform.globalTransform)
                 }
-                umr.add(key, MeshEntry(mesh, bounds, buffer))
+                umr.add(key, MeshEntry(mesh, bounds, vertexBuffer, indexBuffer))
             }
         }
         comp.manager = this

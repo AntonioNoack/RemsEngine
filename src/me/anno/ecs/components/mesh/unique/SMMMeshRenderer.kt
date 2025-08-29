@@ -22,7 +22,7 @@ import org.joml.Vector3f
 import java.nio.ByteBuffer
 
 class SMMMeshRenderer(material: Material) :
-    UniqueMeshRendererImpl<SMMKey, Mesh>(attributes, MeshVertexData.DEFAULT, DrawMode.TRIANGLES) {
+    UniqueMeshRendererImpl<SMMKey, Mesh>(attributes, MeshVertexData.DEFAULT, false, DrawMode.TRIANGLES) {
 
     override val hasVertexColors: Int get() = 1
     override val materials: List<FileReference> = listOf(material.ref)
@@ -170,7 +170,7 @@ class SMMMeshRenderer(material: Material) :
         return null
     }
 
-    override fun createBuffer(key: SMMKey, mesh: Mesh): StaticBuffer? {
+    override fun createBuffer(key: SMMKey, mesh: Mesh): Pair<StaticBuffer, IntArray?>? {
         val data = getData0(key, mesh) ?: return null
         val dataBuffer = data.getOrCreateNioBuffer()
         val stride = attributes.stride
@@ -178,7 +178,7 @@ class SMMMeshRenderer(material: Material) :
             "${data.vertexCount} * $stride != ${dataBuffer.position()}"
         }
         data.cpuSideChanged()
-        return data
+        return data to null
     }
 
     override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {

@@ -5,11 +5,20 @@ import me.anno.gpu.buffer.StaticBuffer
 import org.joml.AABBd
 import org.joml.AABBf
 
-open class MeshEntry<Mesh>(val mesh: Mesh, val localBounds: AABBd, val buffer: StaticBuffer) : ICacheData {
+open class MeshEntry<Mesh>(
+    val mesh: Mesh, val localBounds: AABBd,
+    val vertexBuffer: StaticBuffer, val indices: IntArray?
+) : ICacheData {
 
-    constructor(mesh: Mesh, bounds: AABBf, buffer: StaticBuffer) : this(mesh, AABBd(bounds), buffer)
+    companion object {
+        private val emptyRange = 0 until 0
+    }
 
-    var range = 0 until buffer.vertexCount
+    constructor(mesh: Mesh, bounds: AABBf, vertexBuffer: StaticBuffer, indices: IntArray?) :
+            this(mesh, AABBd(bounds), vertexBuffer, indices)
+
+    var vertexRange = 0 until vertexBuffer.vertexCount
+    var indexRange = indices?.indices ?: emptyRange
 
     override fun equals(other: Any?): Boolean {
         return other is MeshEntry<*> && mesh == other.mesh
@@ -22,6 +31,6 @@ open class MeshEntry<Mesh>(val mesh: Mesh, val localBounds: AABBd, val buffer: S
     override fun destroy() {
         super.destroy()
         if (mesh is ICacheData) mesh.destroy()
-        buffer.destroy()
+        vertexBuffer.destroy()
     }
 }

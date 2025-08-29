@@ -3,7 +3,7 @@ package me.anno.graph.hdb.allocator
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.binarySearch
-import me.anno.utils.types.size
+import me.anno.utils.types.Ranges.size
 import org.apache.logging.log4j.LogManager
 
 interface AllocationManager<Key, StoredData, InsertData> {

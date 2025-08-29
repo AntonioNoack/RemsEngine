@@ -15,7 +15,7 @@ import me.anno.io.files.ImportType.METADATA
 import me.anno.io.files.ImportType.TEXT
 import me.anno.io.files.ImportType.VIDEO
 import me.anno.utils.Color.hex8
-import me.anno.utils.types.size
+import me.anno.utils.types.Ranges.size
 import java.nio.ByteBuffer
 import kotlin.math.min
 

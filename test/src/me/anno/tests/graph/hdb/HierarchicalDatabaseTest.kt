@@ -8,7 +8,7 @@ import me.anno.tests.FlakyTest
 import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNull
-import me.anno.utils.types.size
+import me.anno.utils.types.Ranges.size
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

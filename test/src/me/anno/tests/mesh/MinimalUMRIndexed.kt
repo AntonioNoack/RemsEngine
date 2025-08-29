@@ -3,6 +3,7 @@ package me.anno.tests.mesh
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.unique.UniqueMeshRendererImpl
+import me.anno.ecs.components.mesh.utils.IndexGenerator.generateIndices
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -17,34 +18,18 @@ import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.lists.Lists.wrap
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import kotlin.math.max
 
-// I have the issue that I have lots of meshes, and they get corrupted once some got deleted
-//  I have no idea why that is
-//  also, RenderDoc segfaults when we use them, so something is definitely wrong
-//  first, try to find out what crashes RenderDoc. Maybe it's the solution already
-
-// ->
-// 843 Incorrect API Use High Undefined 0
-// No vertex buffer bound to attribute 0: positions (buffer slot 0) at draw!
-// This can be caused by deleting a buffer early, before all draws using it have been made
-
-// done: we accidentally deleted the buffer without recreating it in uploadEmpty(),
-//  and that caused us to use that invalid buffer for rendering
-
-// bug: where is the corruption coming from??? -> use-after-free 😅
-
 fun main() {
     forceLoadRenderDoc()
     val scene = Entity()
-        .add(MinimalUMR())
-        .add(MinimalUMR())
-        .add(MinimalUMR())
+        .add(MinimalUMRIndexed())
 
-    testSceneWithUI("RenderDoc UMR Segfaults", scene)
+    testSceneWithUI("Indexed UMR", scene)
 }
 
 private val attributes = bind(
@@ -59,8 +44,8 @@ private val vertexData = MeshVertexData(
     MeshVertexData.flatNormalsFragment.wrap(),
 )
 
-class MinimalUMR :
-    UniqueMeshRendererImpl<Int, Mesh>(attributes, vertexData, false, DrawMode.TRIANGLES), OnUpdate {
+class MinimalUMRIndexed :
+    UniqueMeshRendererImpl<Int, Mesh>(attributes, vertexData, true, DrawMode.TRIANGLES), OnUpdate {
 
     override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
         fillAllSpace(dstUnion)
@@ -127,8 +112,11 @@ class MinimalUMR :
     }
 
     override fun createBuffer(key: Int, mesh: Mesh): Pair<StaticBuffer, IntArray?>? {
+        mesh.generateIndices()
+
         val positions = mesh.positions ?: return null
-        val buffer = StaticBuffer("umr", me.anno.tests.mesh.attributes, positions.size / 3)
+        val indices = mesh.indices!!
+        val buffer = StaticBuffer("umr", attributes, positions.size / 3)
         val nio = buffer.getOrCreateNioBuffer()
         forLoopSafely(positions.size, 3) { i ->
             nio.putShort(positions[i].toInt().toShort())
@@ -137,6 +125,7 @@ class MinimalUMR :
             nio.putShort(0)
         }
         buffer.cpuSideChanged()
-        return buffer to null
+        assertEquals(0, indices.size % 3)
+        return buffer to indices
     }
 }

@@ -11,39 +11,40 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.Frustum
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Buffer
-import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.CompactAttributeLayout
 import me.anno.gpu.buffer.DrawMode
+import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
-import me.anno.graph.hdb.allocator.AllocationManager
 import me.anno.maths.Maths.min
 import me.anno.utils.Clock
-import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.types.size
+import me.anno.utils.types.Ranges.size
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3
+import org.lwjgl.PointerBuffer
+import org.lwjgl.opengl.GL15C.GL_ELEMENT_ARRAY_BUFFER
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
 import org.lwjgl.opengl.GL46C.glMultiDrawArrays
+import org.lwjgl.opengl.GL46C.glMultiDrawElements
 import java.nio.IntBuffer
 import kotlin.math.max
 
 /**
- * renderer for static geometry, that still can be partially loaded/unloaded
+ * renderer for static geometry, that still can be partially loaded/unloaded;
+ * e.g., this is ideal for rendering irregular terrain meshes
  *
  * all instances must use the same material (for now),
  * but we do support fully custom MeshVertexData
- *
- * todo somehow use indexed meshes (less load on the vertex shader)
  * */
 abstract class UniqueMeshRenderer<Key, Mesh>(
     val attributes: CompactAttributeLayout,
     override val vertexData: MeshVertexData,
+    indexedRendering: Boolean,
     val drawMode: DrawMode
-) : MeshSpawner(), IMesh, ICacheData, AllocationManager<Mesh, StaticBuffer, Mesh> {
+) : MeshSpawner(), IMesh, ICacheData {
 
     /**
      * Return transform and material for that specific mesh for traditional methods.
@@ -53,21 +54,21 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
      * */
     open fun getTransformAndMaterial(key: Key, transform: Transform): Material? = null
 
-    @InternalAPI
-    val entries = HashMap<Key, Mesh>()
+    val umrIndexData = if (indexedRendering) UMRIndexData(this) else null
+    val umrVertexData = UMRVertexData(this)
 
-    @InternalAPI
-    val sortedEntries = ArrayList<Mesh>()
+    abstract fun getVertexRange(mesh: Mesh): IntRange
+    abstract fun setVertexRange(mesh: Mesh, value: IntRange)
 
-    @InternalAPI
-    val sortedRanges = ArrayList<IntRange>()
+    abstract fun getIndexRange(mesh: Mesh): IntRange
+    abstract fun setIndexRange(mesh: Mesh, value: IntRange)
 
-    private var buffer0 = StaticBuffer("umr0", attributes, 0, BufferUsage.DYNAMIC)
-    private var buffer1 = StaticBuffer("umr1", attributes, 0, BufferUsage.DYNAMIC)
+    abstract fun insertVertexData(from: Int, fromData: Mesh, to: IntRange, toData: StaticBuffer)
+    abstract fun insertIndexData(from: Int, fromData: Mesh, to: IntRange, toData: StaticBuffer)
 
     val stride: Int get() = attributes.stride
-    val values: List<Mesh> get() = sortedEntries
-    val buffer: StaticBuffer get() = buffer0
+    val values: List<Mesh> get() = umrVertexData.sortedEntries
+    val buffer: StaticBuffer get() = umrVertexData.buffer
 
     @DebugProperty
     @NotSerializedProperty
@@ -78,6 +79,8 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     /**
      * If value > 1, your shader must load vertex attributes from the buffer on its own.
      * Override bindBuffer() to bind it.
+     *
+     * Not tested with indices yet.
      * */
     var verticesPerEntry: Int = 1
         set(value) {
@@ -95,41 +98,31 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     val clock = Clock(LOGGER)
 
     operator fun set(key: Key, entry: Mesh): Boolean {
-        val prev = entries[key]
+        val prev = umrVertexData.entries[key]
         if (prev != null) remove(key, entry != prev)
         return add(key, entry)
     }
 
-    operator fun get(key: Key): Mesh? = entries[key]
+    operator fun get(key: Key): Mesh? = umrVertexData.entries[key]
 
-    fun add(key: Key, entry: Mesh): Boolean {
-        if (key in entries) return false
-        val b0 = buffer0
-        val b1 = buffer1
-        clock.start()
-        val bx = insert(
-            sortedEntries, sortedRanges, entry, entry,
-            b0.vertexCount, b0,
-        ).second
-        clock.stop("Insert", 0.01)
-        entries[key] = entry
-        totalNumPrimitives += getRange(entry).size
-        assertTrue(bx === b0 || bx === b1)
-        this.buffer1 = if (bx === b1) b0 else b1
-        this.buffer0 = if (bx === b1) b1 else b0
-        invalidateBounds()
-        return true
+    fun add(key: Key, mesh: Mesh): Boolean {
+        val added = umrVertexData.add(key, mesh)
+        if (added) {
+            umrIndexData?.add(key, mesh)
+            totalNumPrimitives += getVertexRange(mesh).size
+            invalidateBounds()
+        }
+        return added
     }
 
     fun remove(key: Key, destroyMesh: Boolean): Mesh? {
-        val entry = this@UniqueMeshRenderer.entries.remove(key) ?: return null
-        assertTrue(remove(entry, sortedEntries, sortedRanges))
-        totalNumPrimitives -= getRange(entry).size
-        if (destroyMesh && entry is ICacheData) {
-            entry.destroy()
+        val removed = umrVertexData.remove(key, destroyMesh)
+        if (removed != null) {
+            umrIndexData?.remove(key, destroyMesh)
+            totalNumPrimitives -= getVertexRange(removed).size
+            invalidate()
         }
-        invalidate()
-        return entry
+        return removed
     }
 
     var isValid = true
@@ -145,56 +138,70 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
 
     private fun push(start: Int, end: Int) {
         if (start >= end) return
-        if (tmpLengths.position() == tmpLengths.capacity()) {
+        if (tmpLengths.position() == DRAW_CAPACITY) {
             finish()
         }
-        tmpStarts.put(start)
+        if (umrIndexData != null) {
+            // *4, because this is in bytes, and our indices are 4 bytes each
+            tmpStartsI.put(start * 4L)
+        } else {
+            tmpStarts.put(start)
+        }
         tmpLengths.put(end - start)
     }
 
     private fun finish() {
         if (tmpLengths.position() > 0) {
-            tmpStarts.flip()
             tmpLengths.flip()
-            glMultiDrawArrays(drawMode.id, tmpStarts, tmpLengths)
+            tmpStarts.flip()
+            tmpStartsI.flip()
+            if (umrIndexData != null) {
+                glMultiDrawElements(drawMode.id, tmpLengths, INDEX_TYPE, tmpStartsI)
+            } else {
+                glMultiDrawArrays(drawMode.id, tmpStarts, tmpLengths)
+            }
             tmpStarts.clear()
+            tmpStartsI.clear()
             tmpLengths.clear()
         }
     }
 
     override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {
         if (totalNumPrimitives == 0L) return
-        val buffer = buffer0
+        val buffer = umrVertexData.buffer
         if (!buffer.isUpToDate) {
             LOGGER.warn("Buffer ${hash32(buffer)} isn't ready")
             return
         }
-        var counter = 0L
         GFXState.bind()
         // doesn't matter as long as it's greater than zero; make it the actual value for debugging using DebugGPUStorage
         buffer.drawLength = max(min(totalNumPrimitives, Int.MAX_VALUE.toLong()).toInt(), 1)
         bindBuffer(shader, buffer)
+
+        if (umrIndexData != null) {
+            val buffer = umrIndexData.buffer
+            buffer.ensureBuffer()
+            OpenGLBuffer.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.pointer)
+        }
+
         val factor = max(verticesPerEntry, 1)
         val frustum = pipeline?.frustum
         var transform = transform?.globalTransform
         // small optimization: most UniqueMeshRenderers will be at the origin
         if (transform != null && transform.isIdentity()) transform = null
-        var currStart = 0
-        var currEnd = 0
-        for (i in sortedEntries.indices) {
-            val entry = sortedEntries[i]
-            if (shallRenderEntry(frustum, transform, entry)) {
-                val range = getRange(entry)
-                if (range.first != currEnd) {
-                    push(currStart * factor, currEnd * factor)
-                    counter += (currEnd - currStart) * factor
-                    currStart = range.first
-                }
-                currEnd = range.last + 1
+        val self = this
+        val iterator = object : UMRIterator<Mesh> {
+            override fun filter(entry: Mesh): Boolean = shallRenderEntry(frustum, transform, entry)
+            override fun getRange(entry: Mesh): IntRange =
+                if (umrIndexData != null) getIndexRange(entry)
+                else getVertexRange(entry)
+
+            override fun push(start: Int, endExcl: Int) {
+                self.push(start * factor, endExcl * factor)
             }
         }
-        push(currStart * factor, currEnd * factor)
-        counter += (currEnd - currStart) * factor
+        val iterData = umrIndexData ?: umrVertexData
+        val counter = iterator.iterateRanges(iterData.sortedEntries) * factor
         numPrimitives = when (drawMode) {
             DrawMode.POINTS -> counter
             DrawMode.LINES, DrawMode.LINE_STRIP -> counter shr 1
@@ -213,63 +220,26 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         LOGGER.warn("Drawing a bulk-mesh instanced doesn't make sense")
     }
 
-    override fun allocate(newSize: Int): StaticBuffer {
-        val buffer = buffer1
-        val oldSize = buffer.vertexCount
-        buffer.vertexCount = newSize
-        if (newSize > 0 && newSize != oldSize) {
-            val clock = Clock(LOGGER)
-            LOGGER.info("Changing buffer size from $oldSize to $newSize")
-            buffer.uploadEmpty(newSize.toLong() * stride)
-            clock.stop("UploadEmpty")
-        }
-        return buffer
-    }
-
-    override fun deallocate(data: StaticBuffer) {
-        // we just swap between buffer0 and buffer1, so we must not destroy anything
-    }
-
-    override fun allocationKeepsOldData(): Boolean = true
-
-    override fun roundUpStorage(requiredSize: Int): Int {
-        return requiredSize * 2
-    }
-
-    override fun moveData(from: Int, fromData: StaticBuffer, to: IntRange, toData: StaticBuffer) {
-        fromData.copyElementsTo(toData, from.toLong(), to.first.toLong(), to.size.toLong())
-    }
-
     override fun destroy() {
-        buffer0.destroy()
-        buffer1.destroy()
-        for ((_, entry) in entries) {
-            if (entry is ICacheData) {
-                entry.destroy()
-            }
-        }
+        umrVertexData.destroy()
     }
 
     open fun clear(destroyMeshes: Boolean) {
-        entries.clear()
-        for (entry in sortedEntries) {
-            if (destroyMeshes && entry is ICacheData) {
-                entry.destroy()
-            }
-        }
-        sortedEntries.clear()
-        sortedRanges.clear()
+        umrVertexData.clear(destroyMeshes)
         numPrimitives = 0
     }
 
     companion object {
         private val LOGGER = LogManager.getLogger(UniqueMeshRenderer::class)
+        private const val INDEX_TYPE = GL_UNSIGNED_INT
+
+        private const val DRAW_CAPACITY = 1024
         private fun createBuffer(): IntBuffer {
-            val tmpCapacity = 16 * 1024
-            return ByteBufferPool.allocateDirect(tmpCapacity).asIntBuffer()
+            return ByteBufferPool.allocateDirect(4 * DRAW_CAPACITY).asIntBuffer()
         }
 
         private val tmpStarts = createBuffer()
         private val tmpLengths = createBuffer()
+        private val tmpStartsI = PointerBuffer.allocateDirect(DRAW_CAPACITY)
     }
 }

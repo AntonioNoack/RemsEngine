@@ -44,7 +44,7 @@ import kotlin.math.sign
  * Mesh: IntArray of packed values: [uint8: px, uint8: py, uint16: spiteId]
  * */
 class SpriteLayer :
-    UniqueMeshRendererImpl<Vector2i, IntArray>(attributes, spriteVertexData, DrawMode.TRIANGLES),
+    UniqueMeshRendererImpl<Vector2i, IntArray>(attributes, spriteVertexData, false, DrawMode.TRIANGLES),
     OnUpdate, CustomEditMode {
 
     companion object {
@@ -97,10 +97,10 @@ class SpriteLayer :
         )
     }
 
-    override fun createBuffer(key: Vector2i, mesh: IntArray): StaticBuffer? {
+    override fun createBuffer(key: Vector2i, mesh: IntArray): Pair<StaticBuffer, IntArray?>? {
         val k = material.numTiles.x
         if (mesh.isEmpty() || k < 1) return null
-        return getDataSafely(key, mesh)
+        return getDataSafely(key, mesh) to null
     }
 
     fun getDataSafely(key: Vector2i, mesh: IntArray): StaticBuffer {
@@ -256,7 +256,7 @@ class SpriteLayer :
         bounds.maxX += dx + 1f // extend bounds for 1x1-sized cells
         bounds.maxY += dy + 1f
         val buffer = getDataSafely(key, faces)
-        return MeshEntry(faces, bounds, buffer)
+        return MeshEntry(faces, bounds, buffer, null)
     }
 
     private fun fillMeshData(srcChunk: IntArray, dstData: IntArray, dstBounds: AABBf) {

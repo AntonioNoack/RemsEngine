@@ -1,6 +1,6 @@
 package me.anno.graph.hdb
 
-import me.anno.utils.types.size
+import me.anno.utils.types.Ranges.size
 import java.io.ByteArrayInputStream
 
 class ByteSlice(val bytes: ByteArray, val range: IntRange) {

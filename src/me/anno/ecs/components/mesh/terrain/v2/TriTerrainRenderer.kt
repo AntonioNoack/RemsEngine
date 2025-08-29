@@ -13,7 +13,8 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.io.files.FileReference
 import me.anno.utils.structures.lists.Lists.wrap
 
-class TriTerrainRenderer : UniqueMeshRendererImpl<Mesh, Mesh>(attributes, MeshVertexData.DEFAULT, DrawMode.TRIANGLES) {
+class TriTerrainRenderer :
+    UniqueMeshRendererImpl<Mesh, Mesh>(attributes, MeshVertexData.DEFAULT, false, DrawMode.TRIANGLES) {
 
     val terrain = TriTerrainChunk(this)
     var material: Material? = null
@@ -21,7 +22,7 @@ class TriTerrainRenderer : UniqueMeshRendererImpl<Mesh, Mesh>(attributes, MeshVe
     override val materials: List<FileReference>
         get() = material?.ref.wrap()
 
-    override fun createBuffer(key: Mesh, mesh: Mesh): StaticBuffer? {
+    override fun createBuffer(key: Mesh, mesh: Mesh): Pair<StaticBuffer, IntArray?>? {
         val positions = mesh.positions ?: return null
         if (positions.isEmpty()) return null
         val normals = mesh.normals!!
@@ -35,7 +36,7 @@ class TriTerrainRenderer : UniqueMeshRendererImpl<Mesh, Mesh>(attributes, MeshVe
             buffer.putByte(normals[i3 + 2])
             buffer.putByte(0)
         }
-        return buffer
+        return buffer to null
     }
 
     override fun getTransformAndMaterial(key: Mesh, transform: Transform): Material? {

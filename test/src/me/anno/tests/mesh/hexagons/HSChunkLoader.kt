@@ -16,8 +16,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.GPUTasks.gpuTasks
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.GLSLType
@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 class HSChunkLoader(
     val sphere: HexagonSphere, val world: HexagonSphereMCWorld,
     val transparent: Boolean?, val material: Material
-) : UniqueMeshRendererImpl<HexagonSphere.Chunk, Mesh>(attributes, hexVertexData, DrawMode.TRIANGLES), OnUpdate {
+) : UniqueMeshRendererImpl<HexagonSphere.Chunk, Mesh>(attributes, hexVertexData, false, DrawMode.TRIANGLES), OnUpdate {
 
     companion object {
         val attributes = bind(
@@ -75,7 +75,7 @@ class HSChunkLoader(
         dstUnion.all()
     }
 
-    override fun createBuffer(key: HexagonSphere.Chunk, mesh: Mesh): StaticBuffer? {
+    override fun createBuffer(key: HexagonSphere.Chunk, mesh: Mesh): Pair<StaticBuffer, IntArray?>? {
         val positions = mesh.positions ?: return null
         val colors = mesh.color0 ?: return null
         if (positions.isEmpty()) return null
@@ -86,7 +86,7 @@ class HSChunkLoader(
             buffer.put(positions, i * 3, 3)
             buffer.putRGBA(colors[i])
         }
-        return buffer
+        return buffer to null
     }
 
     override fun getTransformAndMaterial(key: HexagonSphere.Chunk, transform: Transform): Material {
@@ -130,10 +130,11 @@ class HSChunkLoader(
                 val mesh = createMesh(sphere.queryChunk(key), world, transparent)
                 val buffer = createBuffer(key, mesh)
                 if (buffer != null) {
+                    val (vertexBuffer, indices) = buffer
                     addGPUTask("chunk", sphere.chunkCount) {
-                        buffer.ensureBufferAsync {
+                        vertexBuffer.ensureBufferAsync {
                             GFX.check()
-                            add(key, MeshEntry(mesh, mesh.getBounds(), buffer))
+                            add(key, MeshEntry(mesh, mesh.getBounds(), vertexBuffer, indices))
                             GFX.check()
                             chunks[key] = mesh.getBounds()
                             GFX.check()

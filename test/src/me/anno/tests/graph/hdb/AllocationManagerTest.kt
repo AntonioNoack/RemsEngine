@@ -6,7 +6,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.isSorted
-import me.anno.utils.types.size
+import me.anno.utils.types.Ranges.size
 import org.junit.jupiter.api.Test
 
 class AllocationManagerTest {

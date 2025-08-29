@@ -21,7 +21,7 @@ import me.anno.utils.Color.convertABGR2ARGB
 import org.joml.Vector3i
 
 class ChunkRenderer(val material: Material, val world: TestWorld) :
-    UniqueMeshRendererImpl<Vector3i, Mesh>(attributes, blockVertexData, DrawMode.TRIANGLES) {
+    UniqueMeshRendererImpl<Vector3i, Mesh>(attributes, blockVertexData, false, DrawMode.TRIANGLES) {
 
     companion object {
         val attributes = bind(
@@ -77,7 +77,7 @@ class ChunkRenderer(val material: Material, val world: TestWorld) :
         return material
     }
 
-    override fun createBuffer(key: Vector3i, mesh: Mesh): StaticBuffer? {
+    override fun createBuffer(key: Vector3i, mesh: Mesh): Pair<StaticBuffer, IntArray?>? {
         if (mesh.numPrimitives == 0L) return null
         val pos = mesh.positions!!
         val col = mesh.color0!!
@@ -86,13 +86,13 @@ class ChunkRenderer(val material: Material, val world: TestWorld) :
         val dx = key.x * csx
         val dy = key.y * csy
         val dz = key.z * csz
-        for (i in 0 until buffer.vertexCount) {
+        for (i in 0 until buffer.elementCount) {
             data.putFloat(dx + pos[i * 3])
             data.putFloat(dy + pos[i * 3 + 1])
             data.putFloat(dz + pos[i * 3 + 2])
             data.putInt(convertABGR2ARGB(col[i]))
         }
         buffer.cpuSideChanged()
-        return buffer
+        return buffer to null
     }
 }
