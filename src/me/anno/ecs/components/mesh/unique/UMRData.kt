@@ -89,15 +89,19 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
 
     override fun allocate(newSize: Int): StaticBuffer {
         val buffer = buffer1
+        resize(buffer, newSize)
+        return buffer
+    }
+
+    fun resize(buffer: StaticBuffer, newSize: Int) {
         val oldSize = buffer.vertexCount
         buffer.vertexCount = newSize
         if (newSize > 0 && newSize != oldSize) {
             val clock = Clock(LOGGER)
             LOGGER.info("Changing buffer size from $oldSize to $newSize")
-            buffer.uploadEmpty(newSize.toLong() * stride)
+            buffer.uploadEmpty(newSize.toLong() * buffer.stride)
             clock.stop("UploadEmpty")
         }
-        return buffer
     }
 
     override fun deallocate(data: StaticBuffer) {
@@ -105,7 +109,7 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
     }
 
     override fun allocationKeepsOldData(): Boolean = true
-    override fun roundUpStorage(requiredSize: Int): Int =requiredSize * 2
+    override fun roundUpStorage(requiredSize: Int): Int = requiredSize * 2
 
     override fun moveData(from: Int, fromData: StaticBuffer, to: IntRange, toData: StaticBuffer) {
         // when this is executed for vertices, all responsible indices must be found and adjusted!

@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.ui.base.Search
+import me.anno.ui.base.Search.Companion.containsPieces
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -97,5 +98,11 @@ class SearchTest {
     fun testQuickSearchMissingOneChar() {
         assertTrue(Search("wg").matches("wog"))
         assertFalse(Search("wg").matches("woog"))
+    }
+
+    @Test
+    fun testDepthTest() {
+        assertTrue(containsPieces( "Depth Test","depth te"))
+        assertTrue(Search("depth test").matches("Depth Test"))
     }
 }

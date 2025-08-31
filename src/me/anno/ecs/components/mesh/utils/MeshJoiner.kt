@@ -23,21 +23,17 @@ import kotlin.math.min
  * like static meshes in Unity / Unreal Engine
  * */
 abstract class MeshJoiner<V>(
-    private val hasColors: Boolean,
-    private val hasBones: Boolean,
-    private val mayHaveUVs: Boolean
+    val hasColors: Boolean,
+    val hasBones: Boolean,
+    val mayHaveUVs: Boolean
 ) {
 
     abstract fun getMesh(element: V): Mesh
-
     abstract fun getTransform(element: V, dst: Matrix4x3f)
 
     open fun getVertexColor(element: V): Int = -1
-
     open fun getMaterials(element: V): List<FileReference> = emptyList()
-
     open fun getBoneIndex(element: V): Byte = 0
-
     open fun multiplyColors(element: V): Boolean = false
 
     open fun onFinishedMesh(index0: Int, index1: Int) {}

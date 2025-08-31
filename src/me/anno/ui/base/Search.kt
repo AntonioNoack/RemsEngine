@@ -225,11 +225,16 @@ class Search(val userInput: String) {
                 val letter = userInput[partIndex]
                 var nextIndex = name.indexOf(letter, index, true)
                 if (nextIndex < 0) return false
+
                 // only allowed to skip, if the distance is 0/1, or the next letter is upper-case
                 val allowSkip = index == 0 || nextIndex < index + 2 || name[nextIndex].isUpperCase()
                 if (!allowSkip) {
                     val nextIndex2 = name.indexOf(letter.uppercase(), nextIndex + 1, false)
-                    if (nextIndex2 < 0) return false
+                    if (nextIndex2 < 0) {
+                        // todo this is a bad solution... we'll probably find samples, where this logic isn't good
+                        // this had to be introduced, because "depth test" -> "test" would not match with "Depth Test"
+                        return name.contains(userInput,true)
+                    }
                     nextIndex = nextIndex2
                 }
                 index = max(index + 1, nextIndex)
