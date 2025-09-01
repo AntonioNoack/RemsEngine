@@ -71,6 +71,15 @@ open class StaticBuffer(
             .order(ByteOrder.nativeOrder())
     }
 
+    fun zeroElements(first: Int, length: Int) {
+        zeroBytes(first * stride, length * stride)
+    }
+
+    fun zeroBytes(first: Int, length: Int) {
+        ensureBuffer()
+        BufferFillShader.fill(this, first, length, 0)
+    }
+
     companion object {
 
         /**

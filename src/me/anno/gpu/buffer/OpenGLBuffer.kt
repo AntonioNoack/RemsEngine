@@ -15,6 +15,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
+import me.anno.utils.Sleep
 import me.anno.utils.Threads
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertGreaterThanEquals
@@ -27,13 +28,19 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL15C.glGetBufferSubData
 import org.lwjgl.opengl.GL46C
+import org.lwjgl.opengl.GL46C.GL_ALREADY_SIGNALED
+import org.lwjgl.opengl.GL46C.GL_CONDITION_SATISFIED
 import org.lwjgl.opengl.GL46C.GL_DYNAMIC_STORAGE_BIT
 import org.lwjgl.opengl.GL46C.GL_MAP_WRITE_BIT
+import org.lwjgl.opengl.GL46C.GL_SYNC_FLUSH_COMMANDS_BIT
+import org.lwjgl.opengl.GL46C.GL_SYNC_GPU_COMMANDS_COMPLETE
 import org.lwjgl.opengl.GL46C.glBufferStorage
+import org.lwjgl.opengl.GL46C.glClientWaitSync
 import org.lwjgl.opengl.GL46C.glDeleteBuffers
+import org.lwjgl.opengl.GL46C.glFenceSync
 import org.lwjgl.opengl.GL46C.glFlushMappedBufferRange
+import org.lwjgl.opengl.GL46C.glGetBufferSubData
 import org.lwjgl.opengl.GL46C.glMapBuffer
 import org.lwjgl.opengl.GL46C.glUnmapBuffer
 import java.nio.Buffer
@@ -551,8 +558,40 @@ abstract class OpenGLBuffer(
         return values
     }
 
-    companion object {
+    /**
+     * Use this method to read back elements without lag.
+     * The data in tmpBuffer will be available immediately using any readAsX-method.
+     * */
+    fun readElementsAsync(
+        startIndex: Long, length: Long, destroyTmpBuffer: Boolean,
+        callback: (tmpBuffer: OpenGLBuffer) -> Unit
+    ) = readBytesAsync(startIndex * stride, length * stride, destroyTmpBuffer, callback)
 
+    /**
+     * Use this method to read back bytes without lag.
+     * The data in tmpBuffer will be available immediately using any readAsX-method.
+     *
+     * If you read back data of the same size repeatedly, you should probably cache tmpBuffer.
+     * */
+    fun readBytesAsync(
+        startIndex: Long, length: Long, destroyTmpBuffer: Boolean,
+        callback: (tmpBuffer: OpenGLBuffer) -> Unit
+    ) {
+        val tmpBuffer = StaticBuffer("asyncCopy", attributes, 0, BufferUsage.STREAM)
+        tmpBuffer.uploadEmpty(length)
+        copyBytesTo(tmpBuffer, startIndex, 0L, length)
+
+        val fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0)
+        Sleep.waitUntil(true, {
+            val status = glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0)
+            status == GL_CONDITION_SATISFIED || status == GL_ALREADY_SIGNALED
+        }, {
+            callback(tmpBuffer)
+            if (destroyTmpBuffer) tmpBuffer.destroy()
+        })
+    }
+
+    companion object {
         private val LOGGER = LogManager.getLogger(OpenGLBuffer::class)
 
         // element buffer is stored in VAO -> cannot cache it here

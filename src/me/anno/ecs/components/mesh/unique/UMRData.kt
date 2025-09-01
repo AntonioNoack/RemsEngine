@@ -66,6 +66,13 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
         return entry
     }
 
+    fun zero(key: Key): Boolean {
+        val entry = entries[key] ?: return false
+        val range = getRange(entry)
+        if (!range.isEmpty()) buffer.zeroElements(range.first, range.size)
+        return true
+    }
+
     fun clear(destroyMeshes: Boolean) {
         entries.clear()
         for (entry in sortedEntries) {

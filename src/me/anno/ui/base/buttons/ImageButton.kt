@@ -25,7 +25,7 @@ open class ImageButton(
 
     var guiScale = 1f
 
-    private val icon get() = TextureCache[path, 10_000].value
+    val icon get() = TextureCache[path, 10_000].value
 
     override fun calculateSize(w: Int, h: Int) {
         val icon = TextureCache[path, 10_000].waitFor()
