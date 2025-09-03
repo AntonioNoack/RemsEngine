@@ -98,8 +98,8 @@ object Events {
     }
 
     fun workEventTasks() {
-        workImmediateTasks()
         workWaitingTasks()
+        workImmediateTasks()
         workScheduledTasks()
     }
 
@@ -113,17 +113,12 @@ object Events {
         for (i in waitingTasks.indices) {
             val task = waitingTasks[i]
             if (task.condition()) {
-                try {
-                    task.runnable?.invoke()
-                } catch (e: Throwable) {
-                    e.printStackTrace()
-                } finally {
-                    task.runnable = null
-                }
+                eventTasks.add(task)
+                task.canBeRemoved = true
             }
         }
         synchronized(waitingTasks) {
-            waitingTasks.removeIf { it.runnable == null }
+            waitingTasks.removeIf { it.canBeRemoved }
         }
     }
 

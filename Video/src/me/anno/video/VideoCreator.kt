@@ -2,7 +2,6 @@ package me.anno.video
 
 import me.anno.Engine
 import me.anno.Time
-import me.anno.utils.Threads
 import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
@@ -23,6 +22,7 @@ import me.anno.io.Streams.writeBE32
 import me.anno.io.files.FileReference
 import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.maths.Maths.min
+import me.anno.utils.Threads
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.pooling.ByteBufferPool
@@ -243,8 +243,9 @@ open class VideoCreator(
         } catch (_: IOException) {
 
         }
-        process.waitFor()
-        if (output.exists) LOGGER.info("Saved video without audio to $output")
+        val exitCode = process.waitFor()
+        if (output.exists) LOGGER.info("Saved video without audio to $output, returned $exitCode")
+        else LOGGER.warn("Process returned $exitCode")
     }
 
     companion object {
