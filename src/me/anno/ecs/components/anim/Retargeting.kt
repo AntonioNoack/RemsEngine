@@ -247,7 +247,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                 }
                 // tmpV.mul(translationScale)
                 if (frameIndex == 0 && dstBoneIndex == 0) {
-                    println("retargeting setting transform: $pos,$rot,$sca")
+                    // println("retargeting setting transform: $pos,$rot,$sca")
                 }
                 dst.setTranslation(frameIndex, dstBoneIndex, pos)
                 dst.setRotation(frameIndex, dstBoneIndex, rot)

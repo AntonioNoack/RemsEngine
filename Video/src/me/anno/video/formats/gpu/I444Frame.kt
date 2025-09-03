@@ -9,7 +9,9 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Streams.readNBytes2
+import me.anno.utils.async.Callback
 import me.anno.utils.pooling.Pools
+import java.io.IOException
 import java.io.InputStream
 
 class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
@@ -36,25 +38,29 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
     private val y = Texture2D("i444-y-frame", width, height, 1)
     private val uv = Texture2D("i444-uv-frame", width, height, 1)
 
-    override fun load(input: InputStream, callback: (GPUFrame?) -> Unit) {
-        if (isDestroyed) return
+    override fun load(input: InputStream, callback: Callback<GPUFrame>) {
+        if (isDestroyed) return callback.err(IOException("Already destroyed"))
 
-        val s0 = width * height
-        val yData = input.readNBytes2(s0, Pools.byteBufferPool)
-        blankDetector.putChannel(yData, 0)
-        val uData = input.readNBytes2(s0, Pools.byteBufferPool)
-        blankDetector.putChannel(uData, 1)
-        val vData = input.readNBytes2(s0, Pools.byteBufferPool)
-        blankDetector.putChannel(vData, 2)
+        try {
+            val s0 = width * height
+            val yData = input.readNBytes2(s0, Pools.byteBufferPool)
+            blankDetector.putChannel(yData, 0)
+            val uData = input.readNBytes2(s0, Pools.byteBufferPool)
+            blankDetector.putChannel(uData, 1)
+            val vData = input.readNBytes2(s0, Pools.byteBufferPool)
+            blankDetector.putChannel(vData, 2)
 
-        // merge the u and v planes
-        val interlaced = interlaceReplace(uData, vData)
-        addGPUTask("I444-Y", width, height) {
-            if (!isDestroyed && !y.isDestroyed && !uv.isDestroyed) {
-                y.createMonochrome(yData, false)
-                uv.createRG(interlaced, false)
-            } else warnAlreadyDestroyed(yData, interlaced)
-            callback(this)
+            // merge the u and v planes
+            val interlaced = interlaceReplace(uData, vData)
+            addGPUTask("I444-Y", width, height) {
+                if (!isDestroyed && !y.isDestroyed && !uv.isDestroyed) {
+                    y.createMonochrome(yData, false)
+                    uv.createRG(interlaced, false)
+                } else warnAlreadyDestroyed(yData, interlaced)
+                callback.ok(this)
+            }
+        } catch (e: Exception) {
+            callback.err(e)
         }
     }
 

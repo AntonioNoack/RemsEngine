@@ -523,7 +523,6 @@ open class Texture2D(
         val height = height
         val numTiles = min((width * height) / (256 * 256), height)
         val useTiles = numTiles >= 4 && dataI.capacity() > 16
-        println("use tiles? $useTiles")
         if (useTiles) {
             addGPUTask("IntImage.createTiled[0]", width, height) {
                 if (!isDestroyed) {
@@ -553,9 +552,7 @@ open class Texture2D(
                 }
             }
         } else {
-            println("enqueuing create task")
             addGPUTask("IntImage.create", width, height) {
-                println("create it $isDestroyed")
                 if (!isDestroyed) {
                     create(creationType, uploadingType, dataI)
                     callback.ok(this)

@@ -1,7 +1,11 @@
 package me.anno.audio.streams
 
+import me.anno.animation.LoopingState
+import me.anno.audio.AudioData
+import me.anno.audio.PipelineKey
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.cache.AsyncCacheData
+import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertNotNull
@@ -42,7 +46,7 @@ abstract class AudioStream(
             return posMod(progressedSamples, bufferSize.toLong())
         }
 
-        private val EMPTY_PAIR: Pair<ShortArray?, ShortArray?> = Pair(null, null)
+        private val EMPTY_PAIR = AudioData(ShortArray(0), ShortArray(0))
     }
 
     private val filledBuffers = PairArrayList<ShortBuffer, ByteBuffer>(8)
@@ -82,7 +86,7 @@ abstract class AudioStream(
 
     var isPlaying = false
 
-    abstract fun getBuffer(bufferIndex: Long): AsyncCacheData<Pair<ShortArray?, ShortArray?>>
+    abstract fun getBuffer(bufferIndex: Long): AsyncCacheData<AudioData>
 
     fun requestNextBuffer(bufferIndex: Long, session: Int) {
         isWaitingForBuffer = true
@@ -102,7 +106,7 @@ abstract class AudioStream(
         when {
             center -> {
                 val (left, right) = getBuffer(bufferIndex).waitFor() ?: EMPTY_PAIR
-                if (left != null && right != null) {
+                if (left.size >= bufferSize && right.size >= bufferSize) {
                     for (i in 0 until bufferSize) {
                         stereoBuffer.put(floatToShort((left[i] + right[i]) * 0.5f))
                     }
@@ -110,7 +114,7 @@ abstract class AudioStream(
             }
             stereo -> {
                 val (left, right) = getBuffer(bufferIndex).waitFor() ?: EMPTY_PAIR
-                if (left != null && right != null) {
+                if (left.size >= bufferSize && right.size >= bufferSize) {
                     for (i in 0 until bufferSize) {
                         stereoBuffer.put(left[i])
                         stereoBuffer.put(right[i])
@@ -119,7 +123,7 @@ abstract class AudioStream(
             }
             left -> {
                 val (left, _) = getBuffer(bufferIndex).waitFor() ?: EMPTY_PAIR
-                if (left != null) {
+                if (left.size >= bufferSize) {
                     for (i in 0 until bufferSize) {
                         stereoBuffer.put(left[i])
                     }
@@ -127,7 +131,7 @@ abstract class AudioStream(
             }
             else -> {
                 val (_, right) = getBuffer(bufferIndex).waitFor() ?: EMPTY_PAIR
-                if (right != null) {
+                if (right.size >= bufferSize) {
                     for (i in 0 until bufferSize) {
                         stereoBuffer.put(right[i])
                     }

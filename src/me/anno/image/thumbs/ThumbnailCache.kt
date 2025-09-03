@@ -23,6 +23,8 @@ import me.anno.image.Image
 import me.anno.image.ImageAsFolder
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMax
+import me.anno.image.raw.GPUFrameImage
+import me.anno.image.raw.GPUImage
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
@@ -267,12 +269,22 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
             return
         }
 
-        if (isGFXThread()) {
-            return worker.plusAssign {
-                transformNSaveNUpload(
-                    srcFile, checkRotation, src, dstFile,
-                    size, callback, true
-                )
+        val isGfxThread = isGFXThread()
+        if ((isGfxThread != (src is GPUImage || src is GPUFrameImage))) {
+            return if (isGfxThread) {
+                worker.plusAssign {
+                    transformNSaveNUpload(
+                        srcFile, checkRotation, src, dstFile,
+                        size, callback, true
+                    )
+                }
+            } else {
+                addGPUTask(srcFile.absolutePath, src.width, src.height) {
+                    transformNSaveNUpload(
+                        srcFile, checkRotation, src, dstFile,
+                        size, callback, true
+                    )
+                }
             }
         }
 

@@ -1,6 +1,5 @@
 package me.anno.audio
 
-import me.anno.Time.nanoTime
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioCache.playbackSampleRate
 import me.anno.audio.AudioPools.SAPool
@@ -12,7 +11,6 @@ import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
-import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.hpc.ProcessingQueue
@@ -25,7 +23,7 @@ import java.util.concurrent.Semaphore
 import kotlin.math.max
 import kotlin.math.min
 
-object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioData>("AudioFX0") {
+object AudioFXCache : CacheSection<PipelineKey, AudioData>("AudioFX0") {
 
     private val LOGGER = LogManager.getLogger(AudioFXCache::class)
 
@@ -34,52 +32,6 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
     private val audioRangeQueue = ProcessingQueue("AudioRanges")
 
     val SPLITS = 256
-
-    data class PipelineKey(
-        val file: FileKey,
-        val time0: Double,
-        val time1: Double,
-        val bufferSize: Int,
-        val repeat: LoopingState,
-    )
-
-    class AudioData(
-        val key: PipelineKey,
-        var timeLeft: ShortArray,
-        var timeRight: ShortArray
-    ) : ICacheData {
-
-        override fun equals(other: Any?): Boolean {
-            return other === this || (other is AudioData && other.key == key)
-        }
-
-        override fun hashCode(): Int {
-            return key.hashCode()
-        }
-
-        var isDestroyed = 0L
-        override fun destroy() {
-            // LOGGER.info("Destroying ${hashCode()} $key")
-            // printStackTrace()
-            // GFX.checkIsGFXThread()
-            // todo why is it being destroyed twice????
-            /*if (isDestroyed > 0L){
-                Engine.shutdown()
-                throw IllegalStateException("Cannot destroy twice, now $gameTime, then: $isDestroyed!")
-            }*/
-            isDestroyed = nanoTime
-            /*FAPool.returnBuffer(timeLeft)
-            FAPool.returnBuffer(freqLeft)
-            FAPool.returnBuffer(timeRight)
-            FAPool.returnBuffer(freqRight)*/
-        }
-    }
-
-    fun getBuffer(pipelineKey: PipelineKey): AsyncCacheData<Pair<ShortArray, ShortArray>> {
-        return getBuffer1(pipelineKey).mapNext { buffer ->
-            Pair(buffer.timeLeft, buffer.timeRight)
-        }
-    }
 
     // limit the calls to this function, at max 32 simultaneously
     // this fixes the running out of memory issues from 13-15th May 2021
@@ -101,7 +53,7 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
             getEntry(key, timeoutMillis) { it, result ->
                 val stream = AudioStreamRaw(it.file.file, it.repeat, meta, it.time0, it.time1)
                 val pair = stream.getBuffer(it.bufferSize, it.time0, it.time1)
-                result.value = AudioData(it, pair.first, pair.second)
+                result.value = AudioData(pair.first, pair.second)
             }.waitFor { value ->
                 rawDataLimiter.release()
                 result.value = value
@@ -117,18 +69,18 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
     }
 
     fun getBuffer1(pipelineKey: PipelineKey): AsyncCacheData<AudioData> {
-        return getMeta(pipelineKey.file.file).mapNext2 { meta ->
-            getBuffer0(meta, pipelineKey)
-        }
+        val meta = getMeta(pipelineKey.file.file).waitFor()
+            ?: return AsyncCacheData.empty()
+        return getBuffer0(meta, pipelineKey)
     }
 
     fun getBuffer(
         file: FileReference, time0: Double, time1: Double,
         bufferSize: Int, repeat: LoopingState
-    ): AsyncCacheData<Pair<ShortArray, ShortArray>> =
-        getBuffer(getKey(file, time0, time1, bufferSize, repeat))
+    ): AsyncCacheData<AudioData> =
+        getBuffer1(getKey(file, time0, time1, bufferSize, repeat))
 
-    fun getBuffer(index: Long, stream: AudioFileStream): AsyncCacheData<Pair<ShortArray, ShortArray>> {
+    fun getBuffer(index: Long, stream: AudioFileStream): AsyncCacheData<AudioData> {
         val t0 = stream.frameIndexToTime(index)
         val t1 = stream.frameIndexToTime(index + 1)
         return getBuffer(stream.file, t0, t1, bufferSize, stream.repeat)
@@ -221,7 +173,8 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
                 if (i == index0 || lastBufferIndex != bufferIndex) {
                     val time0 = getTime(bufferIndex)
                     val time1 = getTime(bufferIndex + 1)
-                    buffer = getBuffer(file, time0, time1, bufferSize, repeat).waitFor()!!
+                    val data = getBuffer(file, time0, time1, bufferSize, repeat).waitFor()!!
+                    buffer = data.timeLeft to data.timeRight
                     lastBufferIndex = bufferIndex
                 }
 

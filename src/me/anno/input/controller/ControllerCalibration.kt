@@ -95,8 +95,11 @@ class ControllerCalibration() : Saveable() {
         fun loadCalibration(guid: String): ControllerCalibration? {
             val file = getCalibrationFile(guid)
             if (!file.exists || file.isDirectory) return null
-            return JsonStringReader.readFirstOrNull(file, EngineBase.workspace, ControllerCalibration::class)
-                .waitFor()
+            return JsonStringReader.readFirstOrNull(
+                file.readTextSync(),
+                EngineBase.workspace,
+                ControllerCalibration::class
+            )
         }
 
         fun saveCalibration(guid: String, calibration: ControllerCalibration) {

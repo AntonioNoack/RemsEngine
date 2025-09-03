@@ -16,15 +16,18 @@ import java.util.concurrent.PriorityBlockingQueue
 object Events {
 
     private val eventTasks: Queue<NamedTask> = ConcurrentLinkedQueue()
+    private val waitingTasks = ArrayList<WaitingTask>()
     private val scheduledTasks: Queue<ScheduledTask> = PriorityBlockingQueue(16)
 
     fun getCalleeName(): String {
         if (!Build.isDebug) return ""
         val trace = Exception().stackTrace
         val entry = trace
-            .firstOrNull { it.className != "me.anno.utils.Sleep" &&
-                    it.className != "me.anno.cache.AsyncCacheData" &&
-                    it.methodName != "getCalleeName" }
+            .firstOrNull {
+                it.className != "me.anno.utils.Sleep" &&
+                        it.className != "me.anno.cache.AsyncCacheData" &&
+                        it.methodName != "getCalleeName"
+            }
             ?: return "?"
         return entry.toString()
     }
@@ -52,6 +55,13 @@ object Events {
 
     fun addEvent(deltaMillis: Long, event: () -> Unit) {
         addEvent(getCalleeName(), deltaMillis, event)
+    }
+
+    fun addWaitingTask(name: String, canBeKilled: Boolean, condition: () -> Boolean, runnable: () -> Unit) {
+        val waitingTasks = waitingTasks
+        synchronized(waitingTasks) {
+            waitingTasks.add(WaitingTask(name, canBeKilled, condition, runnable))
+        }
     }
 
     fun workTasks(tasks: Queue<NamedTask>) {
@@ -89,7 +99,32 @@ object Events {
 
     fun workEventTasks() {
         workImmediateTasks()
+        workWaitingTasks()
         workScheduledTasks()
+    }
+
+    fun workWaitingTasks() {
+        val waitingTasks = waitingTasks
+        if (Engine.shutdown) {
+            synchronized(waitingTasks) {
+                waitingTasks.removeIf { it.canBeKilled }
+            }
+        }
+        for (i in waitingTasks.indices) {
+            val task = waitingTasks[i]
+            if (task.condition()) {
+                try {
+                    task.runnable?.invoke()
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                } finally {
+                    task.runnable = null
+                }
+            }
+        }
+        synchronized(waitingTasks) {
+            waitingTasks.removeIf { it.runnable == null }
+        }
     }
 
     init {
@@ -102,13 +137,10 @@ object Events {
      * if you want this to execute, just properly request shutdown from the Engine
      * */
     private fun finishEventTasks() {
-        workEventTasks()
-        while (scheduledTasks.isNotEmpty()) {
-            try {
-                scheduledTasks.poll()!!.runnable()
-            } catch (e: Throwable) {
-                e.printStackTrace()
-            }
+        while (true) {
+            workEventTasks()
+            // could cause the engine to hang 🤔
+            if (eventTasks.isEmpty() && scheduledTasks.isEmpty() && waitingTasks.isEmpty()) break
         }
     }
 }

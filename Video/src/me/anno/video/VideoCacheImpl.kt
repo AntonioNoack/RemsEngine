@@ -13,8 +13,10 @@ object VideoCacheImpl {
     private val LOGGER = LogManager.getLogger(VideoCacheImpl::class)
 
     fun generateVideoFrames(key: VideoFramesKey, result: AsyncCacheData<VideoSlice>) {
+
         val file = key.file
         val scale = key.scale
+
         val signature = SignatureCache[file].waitFor()?.name
         val meta = MediaMetadata.getMeta(file, signature).waitFor()
         if (meta == null) {
@@ -23,30 +25,33 @@ object VideoCacheImpl {
             return
         }
 
-        val data = VideoSlice(
+        val slice = VideoSlice(
             key, meta.videoWidth / scale, meta.videoHeight / scale,
-            meta.videoWidth, meta.videoFPS, meta.videoFrameCount
+            meta.videoWidth, meta.videoFPS, meta.videoFrameCount,
+            result
         )
+        result.value = slice // set this as early as possible to prevent waiting
 
         val frame0 = key.bufferIndex * key.bufferLength
-        if (frame0 <= -key.bufferLength || frame0 >= Maths.max(1, data.numTotalFramesInSrc))
+        if (frame0 <= -key.bufferLength || frame0 >= Maths.max(1, slice.numTotalFramesInSrc))
             LOGGER.warn(
-                "Access of frames is out of bounds: $frame0/${key.bufferLength}/${data.numTotalFramesInSrc} by ${
+                "Access of frames is out of bounds: $frame0/${key.bufferLength}/${slice.numTotalFramesInSrc} by ${
                     file.absolutePath.shorten(200)
                 }"
             )
         // what about video webp? I think it's pretty rare...
+        var localIndex = 0 // is there a cleaner way?
         FFMPEGStream.getImageSequenceGPU(
-            file, signature, data.w, data.h, key.bufferIndex * key.bufferLength,
+            file, signature, slice.w, slice.h, key.bufferIndex * key.bufferLength,
             if (file.lcExtension == "webp" || file.lcExtension == "wav") 1 else key.bufferLength,
-            key.fps, data.originalWidth, data.originalFPS,
-            data.numTotalFramesInSrc, {
-                if (data.isDestroyed) it.destroy()
-                else data.frames.add(it)
+            key.fps, slice.originalWidth, slice.originalFPS,
+            slice.numTotalFramesInSrc, { frame ->
+                val index = localIndex++
+                if (index in slice.indices) slice.frames[index] = frame
+                if (result.hasBeenDestroyed || index !in slice.indices) frame.destroy()
             }, {
-                data.isFinished = true
+                slice.hasFinished = true
             }
         )
-        result.value = data
     }
 }

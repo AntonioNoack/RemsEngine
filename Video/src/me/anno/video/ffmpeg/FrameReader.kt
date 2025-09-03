@@ -3,6 +3,7 @@ package me.anno.video.ffmpeg
 import me.anno.cache.IgnoredException
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep
+import me.anno.utils.async.Callback
 import me.anno.video.ffmpeg.FFMPEGMetaParser.Companion.invalidCodec
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
@@ -58,12 +59,13 @@ abstract class FrameReader<FrameType>(
         if (isDestroyed || isFinished) return
 
         limiter.addAndGet(1)
-        readFrame(width, height, frameIndex, input) { frame ->
+        readFrame(width, height, frameIndex, input) { frame, err ->
             if (frame != null) {
                 synchronized(frames) { frames.add(frame) }
                 limiter.addAndGet(-1)
                 nextFrameCallback(frame)
             } else {
+                err?.printStackTrace()
                 limiter.addAndGet(-1)
                 onError()
             }
@@ -71,7 +73,7 @@ abstract class FrameReader<FrameType>(
         }
     }
 
-    abstract fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream, callback: (FrameType?) -> Unit)
+    abstract fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream, callback: Callback<FrameType>)
 
     private fun onError() {
         isFinished = true

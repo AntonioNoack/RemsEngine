@@ -2,20 +2,26 @@ package me.anno.video.formats.gpu
 
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.io.Streams.readNBytes2
+import me.anno.utils.async.Callback
 import me.anno.utils.pooling.Pools
+import java.io.IOException
 import java.io.InputStream
 
 class RGBAFrame(width: Int, height: Int) : RGBFrame(width, height, 4) {
-    override fun load(input: InputStream, callback: (GPUFrame?) -> Unit) {
-        if (isDestroyed) return
+    override fun load(input: InputStream, callback: Callback<GPUFrame>) {
+        if (isDestroyed) return callback.err(IOException("Already destroyed"))
 
-        val data = input.readNBytes2(width * height * 4, Pools.byteBufferPool)
-        blankDetector.putRGBA(data)
-        addGPUTask("RGBA", width, height) {
-            if (!isDestroyed && !rgb.isDestroyed) {
-                rgb.createRGBA(data, false)
-            } else warnAlreadyDestroyed(data, null)
-            callback(this)
+        try {
+            val data = input.readNBytes2(width * height * 4, Pools.byteBufferPool)
+            blankDetector.putRGBA(data)
+            addGPUTask("RGBA", width, height) {
+                if (!isDestroyed && !rgb.isDestroyed) {
+                    rgb.createRGBA(data, false)
+                } else warnAlreadyDestroyed(data, null)
+                callback.ok(this)
+            }
+        } catch (e: Exception) {
+            callback.err(e)
         }
     }
 }

@@ -32,12 +32,10 @@ interface StreamReader {
         return reader.allInstances
     }
 
-    fun read(file: FileReference, workspace: FileReference, safely: Boolean): AsyncCacheData<List<Saveable>> {
-        val result = AsyncCacheData<List<Saveable>>()
+    fun read(file: FileReference, workspace: FileReference, safely: Boolean, result: AsyncCacheData<List<Saveable>>) {
         file.inputStream(result.map { input ->
             read(input, workspace, file.absolutePath, safely)
         })
-        return result
     }
 
     fun read(data: InputStream, workspace: FileReference, safely: Boolean): List<Saveable> {
@@ -46,9 +44,11 @@ interface StreamReader {
 
     fun <Type : Saveable> readFirstOrNull(
         data: FileReference, workspace: FileReference,
-        clazz: KClass<Type>, safely: Boolean = true
-    ): AsyncCacheData<Type> {
-        return read(data, workspace, safely)
-            .mapNext { it.firstInstanceOrNull2(clazz) }
+        clazz: KClass<Type>, safely: Boolean,
+        result: AsyncCacheData<Type>
+    ) {
+        val tmp = AsyncCacheData<List<Saveable>>()
+        read(data, workspace, safely, tmp)
+        tmp.waitFor { result.value = it?.firstInstanceOrNull2(clazz) }
     }
 }

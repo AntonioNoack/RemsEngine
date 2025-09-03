@@ -4,6 +4,7 @@ import me.anno.cache.IgnoredException
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.io.files.FileReference
 import me.anno.utils.assertions.assertFail
+import me.anno.utils.async.Callback
 import me.anno.video.ffmpeg.FrameReader
 import java.io.EOFException
 import java.io.IOException
@@ -15,12 +16,12 @@ class GPUFrameReader(
     finishedCallback: (List<GPUFrame>) -> Unit
 ) : FrameReader<GPUFrame>(file, frame0, bufferLength, nextFrameCallback, finishedCallback) {
 
-    override fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream, callback: (GPUFrame?) -> Unit) {
+    override fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream, callback: Callback<GPUFrame>) {
         var frame: GPUFrame? = null
         try {
             frame = createGPUFrame(w, h, frameIndex, codec, file)
             frame.load(input, callback)
-            return
+            return // load-method must call callback
         } catch (_: EOFException) {
             // e.printStackTrace()
         } catch (e: IOException) {
@@ -30,7 +31,7 @@ class GPUFrameReader(
             e.printStackTrace()
         }
         frame?.destroy()
-        return callback(null)
+        return callback.err(null)
     }
 
     override fun destroy() {

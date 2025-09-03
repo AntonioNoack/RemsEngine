@@ -149,7 +149,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                                 val isSelf = it.matches(oldRoot)
                                 val isUnderSelf = oldRoot.getRestIfStartsWith(it.path, 0)
                                 if (isSelf || isUnderSelf != null) {
-                                    println("Removing $it, because $isSelf || $isUnderSelf")
+                                    // println("Removing $it, because $isSelf || $isUnderSelf")
                                     val path = isUnderSelf ?: Path.ROOT_PATH // correct???
                                     adds.add(it.withPath(path, false))
                                     srcPrefab.addedPaths?.remove(it.path to it.nameId)

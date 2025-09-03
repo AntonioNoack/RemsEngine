@@ -2,6 +2,7 @@ package me.anno.jvm
 
 import me.anno.Engine
 import me.anno.cache.AsyncCacheData
+import me.anno.cache.CacheSection
 import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
@@ -37,6 +38,8 @@ object SpellcheckingImpl {
     private val queues = HashMap<Language, TaskQueue>()
     private val LOGGER = LogManager.getLogger(Spellchecking::class)
 
+    private val mapCache = CacheSection<Pair<String, Language>, List<Suggestion>>("SpellcheckingMap")
+
     private const val timeout = 600_000L // 10 min
 
     fun check(sentence: CharSequence, allowFirstLowercase: Boolean): AsyncCacheData<List<Suggestion>> {
@@ -60,15 +63,19 @@ object SpellcheckingImpl {
             val offset = sentence
                 .withIndex()
                 .indexOfFirst { (index, _) -> !sentence.substring(0, index + 1).isBlank2() }
-            if (offset > 0) value.mapNext { entry ->
-                entry.map { s0 ->
-                    Suggestion(
-                        s0.start + offset,
-                        s0.end + offset,
-                        s0.message,
-                        s0.shortMessage,
-                        s0.improvements
-                    )
+            if (offset > 0) {
+                mapCache.getEntry(sentence.toString() to language, 1000) { sentence, result ->
+                    value.waitFor { suggestions ->
+                        result.value = suggestions?.map { s0 ->
+                            Suggestion(
+                                s0.start + offset,
+                                s0.end + offset,
+                                s0.message,
+                                s0.shortMessage,
+                                s0.improvements
+                            )
+                        }
+                    }
                 }
             } else value
         } else value

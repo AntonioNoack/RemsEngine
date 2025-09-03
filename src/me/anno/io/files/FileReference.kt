@@ -16,7 +16,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.async.Callback.Companion.mapAsync
-import me.anno.utils.files.LocalFile.toLocalPath
+import me.anno.utils.files.LocalFile
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.arrays.ByteArrayList
 import me.anno.utils.types.Strings
@@ -412,7 +412,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun toLocalPath(workspace: FileReference = EngineBase.workspace): String {
-        return absolutePath.toLocalPath(workspace)
+        return LocalFile.toLocalPath(this, workspace)
     }
 
     open fun listChildren(callback: Callback<List<FileReference>>) {
@@ -476,6 +476,18 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         assertEquals('/', absolutePath[oldName.length])
         val commonSubFile = absolutePath.substring(oldName.length + 1)
         return newName.getChild(commonSubFile)
+    }
+
+    /**
+     * Replaces the sub-path of oldName with newName, if possible.
+     * If not, returns null.
+     * */
+    fun replacePath(oldName: String, newName: String): String? {
+        if (absolutePath == oldName) return newName
+        if (!isSubFolderOf(oldName)) return null
+        assertEquals('/', absolutePath[oldName.length])
+        val commonSubFile = absolutePath.substring(oldName.length + 1)
+        return newName + commonSubFile
     }
 
     /**

@@ -159,7 +159,6 @@ object SearchAlgorithm {
                 // this may be expensive
                 runOnNonGFXThread("SearchResults") {
                     addSearching(resultSet, childFiles, newSearch)
-                    println("finished async $id")
                 }
             }
         } else {

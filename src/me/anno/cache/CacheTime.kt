@@ -12,7 +12,7 @@ import me.anno.maths.Maths.clamp
  * */
 object CacheTime {
 
-    var cacheTime = 0L
+    var cacheTimeMillis = 0L
         private set
 
     private var lastUpdateFrameIndex = 0
@@ -24,7 +24,7 @@ object CacheTime {
 
         // 1 ms is ok: if anyone is running at more than 1000 fps their cache might empty a bit faster ^^
         lastUpdateFrameIndex = currFrameIndex
-        cacheTime += clamp((Time.rawDeltaTime * 1000.0).toInt(), 1, MAX_CACHE_DT_MILLIS)
+        cacheTimeMillis += clamp((Time.rawDeltaTime * 1000.0).toInt(), 1, MAX_CACHE_DT_MILLIS)
     }
 
 }

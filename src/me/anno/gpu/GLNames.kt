@@ -1,7 +1,7 @@
 package me.anno.gpu
 
 import me.anno.Build
-import me.anno.Time
+import me.anno.utils.Clock
 import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.ARBImaging
@@ -59,10 +59,9 @@ object GLNames {
         val glConstants = glConstants ?: return
         // literally 300 times faster than the Kotlin code... what is Kotlin doing???
         // 3.5 ms instead of 1000 ms
-        val t2 = Time.nanoTime
+        val clock = Clock(LOGGER)
         discoverOpenGLNames(clazz.java)
-        val t3 = Time.nanoTime
-        LOGGER.debug("Took ${(t3 - t2) * 1e-9f}s for loading ${glConstants.size} OpenGL names")
+        clock.stop("Loading ${glConstants.size} OpenGL Names")
     }
 
     @JvmStatic

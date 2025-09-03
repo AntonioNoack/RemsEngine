@@ -125,8 +125,6 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
     }
 
     fun update() {
-        // todo we have a target of 60 FPS, if we're running slower than that, make Cache-decay slower, too
-        //  issue: we need a separate clock for the cache... 🤔
         synchronized(cache) {
             // avoiding allocations for clean memory debugging XD
             cache.removeIf { (_, value) ->

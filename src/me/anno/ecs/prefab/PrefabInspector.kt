@@ -458,7 +458,7 @@ class PrefabInspector(var prefabSource: FileReference) {
             // check, that we actually can save this file;
             //  we must not override resources like .obj files
             val testRead = try {
-                JsonStringReader.readFirstOrNull(sourceFile, workspace, Prefab::class)
+                JsonStringReader.readFirstOrNull(sourceFile.readTextSync(), workspace, Prefab::class)
             } catch (_: Exception) {
                 null
             }

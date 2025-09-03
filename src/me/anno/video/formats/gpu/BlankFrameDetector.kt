@@ -155,7 +155,10 @@ class BlankFrameDetector {
             return isBlankFrameNullable(threshold) { delta ->
                 val frameIndex2 = frameIndex + delta
                 val bufferIndex = frameIndex2 / bufferSize
-                VideoCache.getVideoFrameWithoutGenerator(src, scale, frameIndex2, bufferIndex, bufferSize, fps)
+                VideoCache.getVideoFrameWithoutGenerator(
+                    src, scale, frameIndex2,
+                    bufferIndex, bufferSize, fps
+                ).value
             }
         }
 

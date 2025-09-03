@@ -5,70 +5,92 @@ import me.anno.cache.CacheSection
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
+import me.anno.utils.Logging.hash32
 import me.anno.video.formats.gpu.GPUFrame
 import kotlin.math.max
 import kotlin.math.min
 
-object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
+object VideoCache {
+
+    private val slices = CacheSection<VideoFramesKey, VideoSlice>("Videos")
+    private val frames = CacheSection<VideoFrameKey, GPUFrame>("Frames")
+
+    fun clear() {
+        slices.clear()
+        frames.clear()
+    }
 
     const val framesPerSlice = 512
     const val scale = 4
     const val minSize = 16
     const val minSizeForScaling = scale * minSize
-    var videoGenLimit = 16
 
     var getProxyFile: ((file: FileReference, sliceIndex: Int) -> AsyncCacheData<FileReference>)? = null
     var getProxyFileDontUpdate: ((file: FileReference, sliceIndex: Int) -> FileReference?)? = null
     var generateVideoFrames: ((key: VideoFramesKey, result: AsyncCacheData<VideoSlice>) -> Unit)? = null
 
-    private fun getVideoFramesWithoutGenerator(
+    fun getVideoFramesWithoutGenerator(key: VideoFramesKey): AsyncCacheData<VideoSlice>? =
+        slices.getEntryWithoutGenerator(key)
+
+    fun getVideoFramesWithoutGenerator(
         file: FileReference, scale: Int,
         bufferIndex: Int, bufferLength: Int, fps: Double
-    ): VideoSlice? {
-        return getEntryWithoutGenerator(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps))?.value
-    }
+    ): AsyncCacheData<VideoSlice>? =
+        getVideoFramesWithoutGenerator(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps))
 
-    private fun getVideoFrames(
+    fun getVideoFrames(
         file: FileReference, scale: Int,
         bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long,
     ): AsyncCacheData<VideoSlice> {
-        return MediaMetadata.getMeta(file).mapNext2 { meta ->
-            val bufferLength2 = Maths.clamp(bufferLength, 1, max(1, meta.videoFrameCount))
-            val fps2 = if (meta.videoFrameCount < 2) 1.0 else fps
-            val key = VideoFramesKey(file, scale, bufferIndex, bufferLength2, fps2)
-            val generator = generateVideoFrames
-            if (generator != null) getEntry(key, timeout, generator)
-            else AsyncCacheData.empty()
-        }
+
+        val meta = MediaMetadata.getMeta(file).waitFor()
+            ?: return AsyncCacheData.empty()
+        val bufferLength2 = Maths.clamp(bufferLength, 1, max(1, meta.videoFrameCount))
+        val fps2 = if (meta.videoFrameCount < 2) 1.0 else fps
+
+        val key = VideoFramesKey(file, scale, bufferIndex, bufferLength2, fps2)
+        return getVideoFrames(key, timeout)
     }
 
-    fun getVideoFrame(
+    private fun getVideoFrames(key: VideoFramesKey, timeout: Long): AsyncCacheData<VideoSlice> {
+        val generator = generateVideoFrames
+        return if (generator != null) slices.getEntry(key, timeout, generator)
+        else AsyncCacheData.empty()
+    }
+
+    fun getVideoFrameImpl(
         file: FileReference, scale: Int,
         frameIndex: Int, bufferIndex: Int, bufferLength: Int,
-        fps: Double, timeout: Long,
-        needsToBeCreated: Boolean = true
+        fps: Double, timeout: Long
     ): AsyncCacheData<GPUFrame> {
+
         val localIndex = frameIndex % bufferLength
-        val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout)
-        val result = AsyncCacheData<GPUFrame>()
-        videoData.waitUntilDefined({ frameList ->
-            val frame = frameList.getFrame(localIndex, needsToBeCreated)
-            frame ?: if (frameList.isDestroyed || frameList.isFinished) Unit else null
-        }, { frame ->
-            result.value = frame as? GPUFrame
-        })
-        return result
+        val meta = MediaMetadata.getMeta(file).waitFor()
+            ?: return AsyncCacheData.empty()
+        val bufferLength2 = Maths.clamp(bufferLength, 1, max(1, meta.videoFrameCount))
+        val fps2 = if (meta.videoFrameCount < 2) 1.0 else fps
+
+        val key0 = VideoFrameKey(file, scale, bufferIndex, bufferLength2, fps2, localIndex)
+        return frames.getEntry(key0, timeout) { key, result ->
+            val key2 = VideoFramesKey(key.file, key.scale, key.bufferIndex, key.bufferLength, key.fps)
+            val frames = getVideoFrames(key2, timeout)
+            frames.waitFor { slice ->
+                if (slice != null) result.content = slice[key.localIndex].content
+                else result.value = null
+            }
+        }
     }
 
     fun getVideoFrameWithoutGenerator(
         file: FileReference, scale: Int,
         frameIndex: Int, bufferIndex: Int,
         bufferLength: Int, fps: Double
-    ): GPUFrame? {
-        val videoData = getVideoFramesWithoutGenerator(file, scale, bufferIndex, bufferLength, fps) ?: return null
-        val frame = videoData.frames.getOrNull(frameIndex % bufferLength)
-        return if (frame?.isCreated == true) frame else null
+    ): AsyncCacheData<GPUFrame> {
+        val videoData = getVideoFramesWithoutGenerator(file, scale, bufferIndex, bufferLength, fps)
+            ?.value ?: return AsyncCacheData.empty()
+        val localIndex = frameIndex % bufferLength
+        return videoData[localIndex]
     }
 
     /**
@@ -95,7 +117,7 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
                 if (proxyFrame.hasValue) return proxyFrame
             }
         }
-        return getVideoFrame(file, scale, index, bufferIndex, bufferLength, fps, timeout)
+        return getVideoFrameImpl(file, scale, index, bufferIndex, bufferLength, fps, timeout)
     }
 
     fun useProxy(scale: Int, bufferLength0: Int, meta: MediaMetadata?): Boolean {
@@ -103,9 +125,6 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
                 (meta != null && min(meta.videoWidth, meta.videoHeight) >= minSizeForScaling)
     }
 
-    /**
-     * returned frames are guaranteed to be created
-     * */
     @Suppress("unused")
     fun getVideoFrameWithoutGenerator(
         meta: MediaMetadata, index: Int,
@@ -128,10 +147,11 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
                     }
                 }
             }
-            return getVideoFrameWithoutGenerator(
+            val frame = getVideoFrameWithoutGenerator(
                 meta.file, scale, index,
                 bufferIndex, bufferLength, fps
-            ) ?: continue
+            ).value
+            if (frame?.isCreated == true) return frame
         }
         return null
     }
@@ -165,6 +185,6 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
     ): AsyncCacheData<GPUFrame> {
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
-        return getVideoFrame(file, scale, index, bufferIndex, bufferLength, fps, timeout)
+        return getVideoFrameImpl(file, scale, index, bufferIndex, bufferLength, fps, timeout)
     }
 }

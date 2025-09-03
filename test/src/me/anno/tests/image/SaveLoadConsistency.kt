@@ -44,7 +44,7 @@ fun testVideo(image: FileReference) {
         TextureCache.clear()
         val t0 = Time.nanoTime
         VideoCache.clear()
-        val gpu = VideoCache.getVideoFrame(src, 1, 0, 0, 1, 1.0, 50_000L,  needsToBeCreated = true)
+        val gpu = VideoCache.getVideoFrameImpl(src, 1, 0, 0, 1, 1.0, 50_000L)
             .waitFor() ?: throw NullPointerException("Missing $src")
         if (gpu.width != w || gpu.height != h) throw IllegalStateException()
         useFrame(dst1) {

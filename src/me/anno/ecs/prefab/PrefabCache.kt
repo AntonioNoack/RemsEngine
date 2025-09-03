@@ -73,11 +73,12 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
         return getFileEntry(source, false, timeoutMillis, loadPrefabPair)
     }
 
-    fun newInstance(
-        resource: FileReference?,
-        depth: Int = maxPrefabDepth
-    ): AsyncCacheData<Saveable> {
-        return this[resource, depth].mapNext { pair -> pair.newInstance() }
+    fun newInstance(resource: FileReference?, depth: Int = maxPrefabDepth): AsyncCacheData<Saveable> {
+        val result = AsyncCacheData<Saveable>()
+        this[resource, depth].waitFor { prefab ->
+            result.value = prefab?.newInstance()
+        }
+        return result
     }
 
     fun printDependencyGraph(prefab: FileReference): String {
@@ -126,27 +127,34 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
             return AsyncCacheData.empty()
         }
         val depth1 = depth - 1
-        return PrefabCache[prefab, depth1].mapNextNullable { pair ->
+        val result = AsyncCacheData<PrefabSaveable>()
+        PrefabCache[prefab, depth1].waitFor { pair ->
             val instance = pair
                 ?.prefab
                 ?.newInstance(depth1)
                 ?: Saveable.createOrNull(clazzName) as? PrefabSaveable
                 ?: Entity()
             instance.prefabPath = Path.ROOT_PATH
-            instance
+            result.value = instance
         }
+        return result
     }
+
+    private val jsonCache = CacheSection<FileReference, Saveable>("JsonCache")
 
     fun loadJson(resource: FileReference?): AsyncCacheData<Saveable> {
         return when (resource) {
             InvalidRef, null -> AsyncCacheData.empty()
             is PrefabReadable -> AsyncCacheData(resource.readPrefab())
-            else -> JsonStringReader.read(resource, EngineBase.workspace, true).mapNext { read ->
-                val prefab = read.firstOrNull()
-                if (prefab == null) LOGGER.warn("No Prefab found in $resource:${resource::class.simpleName}! $read")
-                // else LOGGER.info("Read ${prefab.changes?.size} changes from $resource")
-                (prefab as? Prefab)?.wasCreatedFromJson = true
-                prefab
+            else -> jsonCache.getEntry(resource, 10_000) { resource, result ->
+                result.waitFor { saveable ->
+                    if (saveable == null) LOGGER.warn("No Prefab found in $resource:${resource::class.simpleName}!")
+                    if (saveable is Prefab) saveable.wasCreatedFromJson = true
+                }
+                JsonStringReader.readFirstOrNull(
+                    resource, EngineBase.workspace,
+                    Saveable::class, true, result
+                )
             }
         }
     }

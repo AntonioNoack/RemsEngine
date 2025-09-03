@@ -45,7 +45,7 @@ class GPUFrameTest {
     }
 
     private fun frameToImage(frame: GPUFrame, bytes: ByteArray): Image {
-        frame.load(ByteArrayInputStream(bytes)) {}
+        frame.load(ByteArrayInputStream(bytes)) { _, err -> err?.printStackTrace() }
         Sleep.waitUntil(true) { frame.isCreated }
         val asTexture = frame.toTexture()
         val clonedImage = asTexture.createImage(flipY = false, withAlpha = true)

@@ -3,8 +3,10 @@ package me.anno.video.formats.gpu
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Streams.readNBytes2
+import me.anno.utils.async.Callback
 import me.anno.utils.pooling.Pools
 import me.anno.video.formats.gpu.I444Frame.Companion.yuvStage
+import java.io.IOException
 import java.io.InputStream
 
 class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
@@ -22,22 +24,26 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
         return imageSize + 2L * halfImageSize
     }
 
-    override fun load(input: InputStream, callback: (GPUFrame?) -> Unit) {
-        if (isDestroyed) return
+    override fun load(input: InputStream, callback: Callback<GPUFrame>) {
+        if (isDestroyed) return callback.err(IOException("Already destroyed"))
 
-        val yData = input.readNBytes2(imageSize, Pools.byteBufferPool)
-        blankDetector.putChannel(yData, 0)
-        val uData = input.readNBytes2(halfImageSize, Pools.byteBufferPool)
-        blankDetector.putChannel(uData, 1)
-        val vData = input.readNBytes2(halfImageSize, Pools.byteBufferPool)
-        blankDetector.putChannel(vData, 2)
-        val interlaced = interlaceReplace(uData, vData)
-        addGPUTask("I420-UV", width, height) {
-            if (!isDestroyed && !y.isDestroyed && !uv.isDestroyed) {
-                y.createMonochrome(yData, false)
-                uv.createRG(interlaced, false)
-            } else warnAlreadyDestroyed(yData, interlaced)
-            callback(this)
+        try {
+            val yData = input.readNBytes2(imageSize, Pools.byteBufferPool)
+            blankDetector.putChannel(yData, 0)
+            val uData = input.readNBytes2(halfImageSize, Pools.byteBufferPool)
+            blankDetector.putChannel(uData, 1)
+            val vData = input.readNBytes2(halfImageSize, Pools.byteBufferPool)
+            blankDetector.putChannel(vData, 2)
+            val interlaced = interlaceReplace(uData, vData)
+            addGPUTask("I420-UV", width, height) {
+                if (!isDestroyed && !y.isDestroyed && !uv.isDestroyed) {
+                    y.createMonochrome(yData, false)
+                    uv.createRG(interlaced, false)
+                } else warnAlreadyDestroyed(yData, interlaced)
+                callback.ok(this)
+            }
+        } catch (e: Exception) {
+            callback.err(e)
         }
     }
 

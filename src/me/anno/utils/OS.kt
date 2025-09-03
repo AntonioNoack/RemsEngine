@@ -2,6 +2,7 @@ package me.anno.utils
 
 import me.anno.io.files.BundledRef
 import me.anno.io.files.Reference.getReference
+import java.io.File
 
 /**
  * the os is important for some things, e.g., the allowed file names, and the home directory;
@@ -68,4 +69,7 @@ object OS {
     // val res = getReference(BundledRef.prefix) // getChild() is not supported on all platforms, so I'd rather not provide this
     @JvmStatic
     val screenshots by lazy { pictures.getChild("Screenshots") }
+
+    @JvmStatic
+    val application by lazy { getReference(File(".").absolutePath) }
 }

@@ -3,6 +3,7 @@ package me.anno.tests.audio
 import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioCache.playbackSampleRate
+import me.anno.audio.AudioData
 import me.anno.audio.AudioFXCache
 import me.anno.cache.AsyncCacheData
 import me.anno.engine.OfficialExtensions
@@ -58,7 +59,7 @@ class AudioReaderTest {
         }
     }
 
-    fun loadWavFile(src: FileReference, duration: Double): AsyncCacheData<Pair<ShortArray, ShortArray>> {
+    fun loadWavFile(src: FileReference, duration: Double): AsyncCacheData<AudioData> {
         return AudioFXCache.getBuffer(src, 0.0, duration, numSamples(duration), LoopingState.PLAY_ONCE)
     }
 

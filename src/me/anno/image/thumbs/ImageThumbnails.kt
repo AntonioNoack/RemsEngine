@@ -9,12 +9,14 @@ import me.anno.image.hdr.HDRReader
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.utils.InternalAPI
+import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.mapAsync
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.getImportTypeByExtension
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -123,12 +125,16 @@ object ImageThumbnails {
 
         VideoCache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L)
             .waitFor(callback.mapAsync { frame, cb2 ->
-                addGPUTask("FrameToImage", frame.width, frame.height) {
-                    val texture = frame.toTexture()
-                    if (ThumbnailCache.useCacheFolder) {
-                        val dst = texture.createImage(flipY = false, withAlpha = true)
-                        ThumbnailCache.saveNUpload(srcFile, false, dstFile, dst, cb2)
-                    } else cb2.ok(texture)
+                Sleep.waitUntil(true, { frame.isCreated || frame.isDestroyed }) {
+                    if (frame.isCreated) {
+                        val texture = frame.toTexture()
+                        if (ThumbnailCache.useCacheFolder) {
+                            val dst = texture.createImage(flipY = false, withAlpha = true)
+                            ThumbnailCache.saveNUpload(srcFile, false, dstFile, dst, cb2)
+                        } else cb2.ok(texture)
+                    } else {
+                        cb2.err(IOException("Frame was already destroyed"))
+                    }
                 }
             })
     }

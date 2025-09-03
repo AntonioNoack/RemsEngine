@@ -8,8 +8,11 @@ import me.anno.utils.OS
 
 /**
  * Files are usually to be stored relatively to a standard path like Documents.
- * We use special names like $DOCUMENTS$ to represent them.
+ *
+ * Originally, I replaced them with $DOCUMENTS$, $HOME$ and such, but there is a much better way:
+ * The Linux way, using ~/ and ./
  * */
+@Suppress("CanUnescapeDollarLiteral")
 object LocalFile {
 
     private val registeredFiles = HashMap<String, () -> FileReference>()
@@ -18,40 +21,51 @@ object LocalFile {
         return if ('\\' in this) replace('\\', '/') else this
     }
 
-    fun register(name: String, location: () -> FileReference) {
+    private fun register(name: String, location: () -> FileReference) {
         registeredFiles[name] = location
     }
 
-    fun register(name: String, location: FileReference) {
+    private fun register(name: String, location: FileReference) {
         registeredFiles[name] = { location }
     }
 
-    fun checkIsChild(fileStr: String, parent: FileReference?, pathName: String): String? {
-        parent ?: return null
-        var parentStr = parent.toString().unifySlashes()
-        if (!parentStr.endsWith('/')) {
-            parentStr += '/'
-        }
-        return if (fileStr.startsWith(parentStr)) {
-            "$pathName/${fileStr.substring(parentStr.length)}"
-        } else null
+    fun toLocalPath(file: FileReference, workspace: FileReference = EngineBase.workspace): String {
+        val fileStr = file.absolutePath
+        if (fileStr.contains("://")) return fileStr // URL-syntax
+
+        val workspace = getWorkspace(workspace)
+        val workspaceFile = file.replacePath(workspace.absolutePath, "./")
+        if (workspaceFile != null) return workspaceFile
+
+        val homeFile = file.replacePath(OS.home.absolutePath, "~/")
+        if (homeFile != null) return homeFile
+
+        return file.absolutePath
     }
 
-    fun String.toLocalPath(workspace: FileReference = EngineBase.workspace): String {
-        val fileStr = unifySlashes()
-        if (fileStr.contains("://")) return fileStr
-        // todo if there is a project file somewhere above this current file, use that project
-        val match0 = checkIsChild(fileStr, workspace.nullIfUndefined(), "\$WORKSPACE\$")
-        if (match0 != null) return match0
-        for ((pathName, folderGetter) in registeredFiles) {
-            val match = checkIsChild(fileStr, folderGetter(), pathName)
-            if (match != null) return match
-        }
-        return fileStr
+    private fun getWorkspace(workspace: FileReference): FileReference {
+        return workspace
+            .ifUndefined(EngineBase.workspace)
+            .ifUndefined(OS.application)
     }
 
     fun String.toGlobalFile(workspace: FileReference = EngineBase.workspace): FileReference {
         val fileStr = unifySlashes()
+        return when {
+            fileStr.startsWith("./") -> {
+                getWorkspace(workspace).getChild(fileStr.substring(2))
+            }
+            fileStr.startsWith("~/") -> {
+                OS.home.getChild(fileStr.substring(2))
+            }
+            fileStr.count { it == '$' } >= 2 && !fileStr.contains("://") -> {
+                toGlobalFileLegacy(fileStr, workspace)
+            }
+            else -> getReference(fileStr)
+        }
+    }
+
+    private fun toGlobalFileLegacy(fileStr: String, workspace: FileReference): FileReference {
         val i1 = fileStr.lastIndexOf("$/")
         if (i1 < 0) return getReference(fileStr)
         val i0 = fileStr.lastIndexOf("$", i1 - 1)

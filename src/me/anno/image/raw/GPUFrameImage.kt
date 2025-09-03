@@ -45,6 +45,16 @@ class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Bool
         asIntImage().write(dst, quality)
     }
 
+    override fun resized(dstWidth: Int, dstHeight: Int, allowUpscaling: Boolean): Image {
+        return if (dstWidth * dstHeight * 2 < width * height) {
+            val newTexture = Texture2D("resized", dstWidth, dstHeight, 1)
+            frame.toTexture(newTexture)
+            GPUImage(newTexture, numChannels)
+        } else {
+            asIntImage().resized(dstWidth, dstHeight, allowUpscaling)
+        }
+    }
+
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         frame.toTexture(texture)
         callback.ok(texture)

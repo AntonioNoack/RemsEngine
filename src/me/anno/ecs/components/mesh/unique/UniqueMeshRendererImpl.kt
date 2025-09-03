@@ -115,7 +115,6 @@ abstract class UniqueMeshRendererImpl<Key, Mesh2>(
 
         // to do if indices are missing, we could fill them procedurally with a compute shader :)
         val offset = fromData.vertexRange.first
-        println("Insert indices $offset, $to")
         val fromIndices = fromData.indices
         val movedIndices = Pools.intArrayPool[to.size, false, false]
         if (fromIndices != null) {

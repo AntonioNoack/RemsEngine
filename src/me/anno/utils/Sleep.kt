@@ -4,7 +4,6 @@ import me.anno.Engine.shutdown
 import me.anno.Time
 import me.anno.cache.AsyncCacheData
 import me.anno.engine.Events
-import me.anno.engine.Events.addEvent
 import me.anno.engine.Events.getCalleeName
 import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks
@@ -115,7 +114,7 @@ object Sleep {
     @JvmStatic
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun acquire(canBeKilled: Boolean, semaphore: Semaphore, permits: Int = 1) {
-        this.waitUntil(getCalleeName(), canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
+        waitUntil(getCalleeName(), canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
     }
 
     @JvmStatic
@@ -146,13 +145,7 @@ object Sleep {
 
     @JvmStatic
     fun waitUntil(name: String, canBeKilled: Boolean, isFinished: () -> Boolean, callback: () -> Unit) {
-        if (isFinished()) {
-            callback()
-        } else if (shouldContinueWaiting(canBeKilled)) { // wait a little
-            addEvent(name, 1) {
-                waitUntil(name, canBeKilled, isFinished, callback)
-            }
-        } // else cancelled
+        Events.addWaitingTask(name, canBeKilled, isFinished, callback)
     }
 
     /**
@@ -162,7 +155,7 @@ object Sleep {
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun <V> waitUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?): V? {
         var value: V? = null
-        this.waitUntil(canBeKilled) {
+        waitUntil(canBeKilled) {
             value = getValueOrNull()
             value != null
         }

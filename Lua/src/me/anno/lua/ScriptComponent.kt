@@ -106,12 +106,13 @@ open class ScriptComponent : Component(), OnUpdate, OnEnable {
         fun getFunction(name: String, source: FileReference, instructionLimit: Int = 10_000): LuaValue? {
             return luaCache.getFileEntry(source, false, timeoutMillis) { key, result ->
                 val vm = defineVM()
-                key.file.readText(result.mapNext { text ->
+                key.file.readText { text, err ->
+                    err?.printStackTrace()
                     LOGGER.debug(text)
                     val code0 = vm.load(text)
                     val code1 = if (Build.isDebug) wrapIntoLimited(code0, vm, instructionLimit) else code0
-                    code1.call()
-                })
+                    result.value = code1.call()
+                }
                 // val code = file.inputStream().use { LuaC.instance.compile(it, "${source.absolutePath}-$date") }
                 // val func = LuaClosure(code, global.get())
             }.waitFor()?.get(name)

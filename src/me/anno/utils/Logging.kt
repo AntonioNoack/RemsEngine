@@ -1,8 +1,6 @@
 package me.anno.utils
 
 import me.anno.utils.Color.hex32
-import java.util.Queue
-import java.util.concurrent.LinkedBlockingQueue
 import kotlin.math.max
 
 object Logging {
@@ -26,6 +24,8 @@ object Logging {
     /**
      * returns a short random string with letters and numbers,
      * such that most instances have different codes, and it won't ever change over the lifetime of an instance
+     *
+     * return "00000000" for null
      * */
     @JvmStatic
     fun hash32(instance: Any?): String {
@@ -35,9 +35,12 @@ object Logging {
     /**
      * returns a random i32,
      * such that most instances have different codes, and it won't ever change over the lifetime of an instance
+     *
+     * return 0 for null
      * */
     @JvmStatic
     fun hash32raw(instance: Any?): Int {
+        if (instance == null) return 0
         return System.identityHashCode(instance)
     }
 }

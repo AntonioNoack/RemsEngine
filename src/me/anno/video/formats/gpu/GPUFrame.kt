@@ -20,6 +20,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.async.Callback
 import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.maps.LazyMap
 import org.apache.logging.log4j.LogManager
@@ -102,7 +103,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
         return dst
     }
 
-    abstract fun load(input: InputStream, callback: (GPUFrame?) -> Unit)
+    abstract fun load(input: InputStream, callback: Callback<GPUFrame>)
 
     open fun bindUVCorrection(shader: Shader) {
         val w = width

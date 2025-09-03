@@ -104,7 +104,7 @@ object Reference {
     private fun needsRelativePathReplacements(str2: String): Boolean {
         return "/../" in str2 || str2.endsWith("/..") ||
                 "/./" in str2 || str2.endsWith("/.") || str2.startsWith("./") ||
-                "//" in str2 || str2.startsWith("/") || str2.endsWith("/")
+                "//" in str2/* || str2.startsWith("/")*/ || str2.endsWith("/")
     }
 
     @JvmStatic
@@ -114,6 +114,9 @@ object Reference {
             .split('/')
             .toMutableList()
         var i = 0
+        if (parts.isNotEmpty() && parts[0] == "") { // paths may start with a slash on Linux
+            i++
+        }
         while (i < parts.size) {
             val part = parts[i]
             when (part) {

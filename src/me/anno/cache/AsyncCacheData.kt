@@ -1,13 +1,10 @@
 package me.anno.cache
 
-import me.anno.cache.CacheTime.cacheTime
 import me.anno.engine.Events.getCalleeName
 import me.anno.utils.Logging.hash32
 import me.anno.utils.Sleep
-import me.anno.utils.Threads.runOnNonGFXThread
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
-import kotlin.math.max
+import me.anno.video.VideoSlice
 
 /**
  * Represents a value to be filled in whenever.
@@ -16,57 +13,40 @@ import kotlin.math.max
  * To get asynchronous access to the value, just use this.value.
  * For synchronous access (listeners), use this.waitFor().
  * */
-open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
+open class AsyncCacheData<V : Any>(
+    content: IAsyncCacheContent<V>
+) : ICacheData, Callback<V> {
 
+    constructor() : this(AsyncCacheContent<V>())
     constructor(value: V?) : this() {
-        this.value = value
-        assertTrue(hasValue)
+        call(value, null)
     }
 
-    val hasExpired: Boolean get() = cacheTime > timeoutCacheTime
-    var timeoutCacheTime: Long = 0L
-        private set
-
-    var hasValue = false
-        private set
-
-    var hasBeenDestroyed = false
-        private set
-
-    var value: V? = null
+    val hasValue: Boolean get() = content.hasValue
+    val hasExpired: Boolean get() = content.hasExpired
+    val hasBeenDestroyed: Boolean get() = content.hasBeenDestroyed
+    val timeoutCacheTime: Long get() = content.timeoutCacheTime
+    var value: V?
+        get() = content.value
         set(value) {
-            if (hasBeenDestroyed) {
-                (value as? ICacheData)?.destroy()
-            } else {
-                field = value
+            content.value = value
+        }
+
+    var content: IAsyncCacheContent<V> = content
+        set(value) {
+            val oldCallbacks = field.waitForCallbacks
+
+            // must be assigned before callbacks are processed,
+            // because our listeners might ask this for value
+            field = value
+
+            synchronized(oldCallbacks) {
+                value.addCallbacks(oldCallbacks)
             }
-            hasValue = true
-            processCallbacks()
         }
-
-    private val waitForCallbacks = ArrayList<(V?) -> Unit>()
-
-    private fun processCallbacks() {
-        val value = value
-        while (true) {
-            val last = synchronized(waitForCallbacks) {
-                waitForCallbacks.removeLastOrNull()
-            } ?: break
-            runOnNonGFXThread("Callback") { last(value) }
-        }
-    }
-
-    private fun addCallback(callback: (V?) -> Unit) {
-        synchronized(waitForCallbacks) { waitForCallbacks.add(callback) }
-        if (hasValue || hasBeenDestroyed) processCallbacks()
-    }
-
-    fun reset(timeoutMillis: Long) {
-        timeoutCacheTime = cacheTime + timeoutMillis
-    }
 
     fun update(timeoutMillis: Long) {
-        timeoutCacheTime = max(timeoutCacheTime, cacheTime + timeoutMillis)
+        content.update(timeoutMillis)
     }
 
     @Deprecated(message = ASYNC_WARNING)
@@ -94,7 +74,7 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     }
 
     fun waitFor(callback: (V?) -> Unit) {
-        addCallback(callback)
+        content.addCallback(callback)
     }
 
     fun waitFor(extraCondition: (V?) -> Boolean, callback: (V?) -> Unit) {
@@ -103,55 +83,39 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
         }
     }
 
-    fun <W> waitUntilDefined(valueMapper: (V) -> W?, callback: (W?) -> Unit) {
-        waitFor { value ->
-            if (value != null) {
-                Sleep.waitUntilDefined(true, {
-                    valueMapper(value)
-                }, callback)
-            } else callback(null)
-        }
-    }
-
     fun waitFor(callback: Callback<V>) {
         waitFor { value ->
             if (value != null) callback.ok(value)
             else callback.err(null)
+            if (callback is AsyncCacheData<*> && hasBeenDestroyed) {
+                callback.destroy()
+            }
         }
     }
 
     override fun call(value: V?, exception: Exception?) {
-        this.value = value
+        content.value = value
         exception?.printStackTrace()
     }
 
     override fun destroy() {
-        (value as? ICacheData)?.destroy()
-        value = null
-        hasBeenDestroyed = true
-        processCallbacks()
+        content.destroy()
     }
 
     override fun toString(): String {
         val value = value
         return if (value == null) {
-            "AsyncCacheData<null>(#${hash32(this)},$hasValue)"
+            "AsyncCacheData<null>(#${hash32(this)},${flags()})"
         } else {
             @Suppress("UNNECESSARY_NOT_NULL_ASSERTION") // necessary, because Intellij complains without it
-            "AsyncCacheData<${"$value, ${value!!::class.simpleName}, ${value.hashCode()}"}>(${hash32(this)},$hasValue)"
+            "AsyncCacheData<${"$value, ${value!!::class.simpleName}, ${value.hashCode()}"}>(${hash32(this)},${flags()})"
         }
     }
 
-    fun <W : Any> mapNext(mapping: (V) -> W?): AsyncCacheData<W> {
-        val result = AsyncCacheData<W>()
-        mapResult(result, mapping)
-        return result
-    }
-
-    fun <W : Any> mapNextNullable(mapping: (V?) -> W?): AsyncCacheData<W> {
-        val result = AsyncCacheData<W>()
-        waitFor { ownValue -> result.value = mapping(ownValue) }
-        return result
+    private fun flags(): String {
+        return (if (hasValue) if (value != null) "V" else "v" else "") +
+                (if (hasBeenDestroyed) "x" else "") +
+                (content.waitForCallbacks.size.toString())
     }
 
     fun <W : Any> mapResult(result: AsyncCacheData<W>, mapping: (V) -> W?) {
@@ -163,16 +127,6 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
             if (ownValue != null) mapping(ownValue)
             else result.value = null
         }
-    }
-
-    fun <W : Any> mapNext2(mapping: (V) -> AsyncCacheData<W>): AsyncCacheData<W> {
-        val result = AsyncCacheData<W>()
-        waitFor { value ->
-            if (value != null) {
-                mapping(value).waitFor(result)
-            } else result.value = null
-        }
-        return result
     }
 
     companion object {
