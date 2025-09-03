@@ -14,6 +14,8 @@ class BGRFrame(w: Int, h: Int) : RGBFrame(w, h) {
 
         try {
             val data = input.readNBytes2(width * height * 3, Pools.byteBufferPool)
+                ?: return callback.err(null)
+
             blankDetector.putRGB(data)
             convertRGB2BGR(data)
 

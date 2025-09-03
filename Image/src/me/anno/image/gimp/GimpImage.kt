@@ -55,7 +55,7 @@ class GimpImage {
                 }
             }
             // could be made more efficient, but probably doesn't matter
-            val fileThing = data.readNBytes2(5, true).decodeToString()
+            val fileThing = data.readNBytes2(5, true)?.decodeToString() ?: ""
             if (!fileThing.startsWith("textures/fileExplorer") && !(fileThing[0] == 'v' && fileThing[4] == 0.toChar())) {
                 return IOException("Expected 'file' or 'v'-version")
             }

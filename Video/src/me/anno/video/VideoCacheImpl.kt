@@ -25,6 +25,14 @@ object VideoCacheImpl {
             return
         }
 
+        if (key.bufferIndex > 0) {
+            val startTimeSeconds = key.bufferIndex * key.bufferLength / key.fps
+            if (meta.videoDuration < startTimeSeconds) {
+                result.value = null
+                return
+            }
+        }
+
         val slice = VideoSlice(
             key, meta.videoWidth / scale, meta.videoHeight / scale,
             meta.videoWidth, meta.videoFPS, meta.videoFrameCount,

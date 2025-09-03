@@ -53,7 +53,7 @@ object NumPyReader {
         val major = data.read()
         /*val minor =*/ data.read()
         val headerLen = if (major >= 2) data.readLE32() else data.readLE16()
-        val header = data.readNBytes2(headerLen, true).decodeToString().trim()
+        val header = data.readNBytes2(headerLen, true)!!.decodeToString().trim()
         if (!header.startsWith("{") || !header.endsWith("}")) {
             return IOException("Header broken $header")
         }
@@ -92,20 +92,20 @@ object NumPyReader {
             "c16" -> if (littleEndian) DoubleArray(doubleSize) { data.readLE64F() }
             else DoubleArray(doubleSize) { data.readBE64F() }
             // integers
-            "i1", "u1" -> data.readNBytes2(totalSize, true)
+            "i1", "u1" -> data.readNBytes2(totalSize, true)!!
             "i2", "u2" -> if (littleEndian) ShortArray(totalSize) { data.readLE16().toShort() }
             else ShortArray(totalSize) { data.readBE16().toShort() }
             "i4", "u4" -> if (littleEndian) IntArray(totalSize) { data.readLE32() }
             else IntArray(totalSize) { data.readBE32() }
             "i8", "u8" -> LongArray(totalSize) { if (littleEndian) data.readLE64() else data.readBE64() }
             // strings
-            "S1" -> data.readNBytes2(totalSize, true).decodeToString()
+            "S1" -> data.readNBytes2(totalSize, true)!!.decodeToString()
             else -> {
                 if (sub.startsWith("S")) {
                     val individualLength = sub.substring(1).toIntOrNull()
                         ?: return IOException("Unsupported string descriptor $descriptor")
                     Array(totalSize) {
-                        data.readNBytes2(individualLength, true).decodeToString()
+                        data.readNBytes2(individualLength, true)!!.decodeToString()
                     }
                 } else return IOException("Unknown descriptor type $descriptor")
             }

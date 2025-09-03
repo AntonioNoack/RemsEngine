@@ -13,6 +13,8 @@ class RGBAFrame(width: Int, height: Int) : RGBFrame(width, height, 4) {
 
         try {
             val data = input.readNBytes2(width * height * 4, Pools.byteBufferPool)
+                ?: return callback.err(null)
+
             blankDetector.putRGBA(data)
             addGPUTask("RGBA", width, height) {
                 if (!isDestroyed && !rgb.isDestroyed) {

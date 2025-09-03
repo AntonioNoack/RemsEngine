@@ -31,7 +31,7 @@ object JPGThumbnails {
         val maxSize = 65536 + 4096
         file.inputStream(maxSize.toLong()) { it, _ ->
             if (it != null) {
-                val data = it.readNBytes2(maxSize, false)
+                val data = it.readNBytes2(maxSize, false)!!
                 callback(findData(data))
             } else callback(null)
         }

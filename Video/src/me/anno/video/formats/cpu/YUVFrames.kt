@@ -111,14 +111,14 @@ object YUVFrames {
     }
 
     // this seems to work, and to be correct
-    fun loadI444Frame(w: Int, h: Int, input: InputStream): Image {
+    fun loadI444Frame(w: Int, h: Int, input: InputStream): Image? {
 
         val s0 = w * h
 
         val pool = Pools.byteBufferPool
-        val yData = input.readNBytes2(s0, pool)
-        val uData = input.readNBytes2(s0, pool)
-        val vData = input.readNBytes2(s0, pool)
+        val yData = input.readNBytes2(s0, pool) ?: return null
+        val uData = input.readNBytes2(s0, pool)!!
+        val vData = input.readNBytes2(s0, pool)!!
 
         val data = createIntArray(s0)
         for (it in 0 until s0) {
@@ -132,20 +132,20 @@ object YUVFrames {
         return IntImage(w, h, data, false)
     }
 
-    fun loadI420Frame(w: Int, h: Int, input: InputStream): Image {
+    fun loadI420Frame(w: Int, h: Int, input: InputStream): Image? {
 
         val s0 = w * h
-
-        val pool = Pools.byteBufferPool
-        val yData = input.readNBytes2(s0, pool)
 
         // this is correct, confirmed by example
         val w2 = (w + 1) shr 1
         val h2 = (h + 1) shr 1
 
+        val pool = Pools.byteBufferPool
+        val yData = input.readNBytes2(s0, pool) ?: return null
+
         val s1 = w2 * h2
-        val uData = input.readNBytes2(s1, pool)
-        val vData = input.readNBytes2(s1, pool)
+        val uData = input.readNBytes2(s1, pool)!!
+        val vData = input.readNBytes2(s1, pool)!!
 
         val result = createIntArray(s0)
         val hx = h + h.and(1) - 1 // same if odd, 1 less else

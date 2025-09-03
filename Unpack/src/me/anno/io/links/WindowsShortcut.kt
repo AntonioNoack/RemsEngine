@@ -159,7 +159,7 @@ class WindowsShortcut {
         fun get(file: FileReference, callback: Callback<WindowsShortcut>) {
             file.inputStream { it, exc ->
                 if (it != null) {
-                    val data = it.readNBytes2(LENGTH_LIMIT, false)
+                    val data = it.readNBytes2(LENGTH_LIMIT, false)!!
                     val data1 = WindowsShortcut()
                     val err = data1.read(data)
                     callback.call(if (err != null) null else data1, err)

@@ -44,10 +44,11 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
         try {
             val s0 = width * height
             val yData = input.readNBytes2(s0, Pools.byteBufferPool)
+                ?: return callback.err(null)
             blankDetector.putChannel(yData, 0)
-            val uData = input.readNBytes2(s0, Pools.byteBufferPool)
+            val uData = input.readNBytes2(s0, Pools.byteBufferPool)!!
             blankDetector.putChannel(uData, 1)
-            val vData = input.readNBytes2(s0, Pools.byteBufferPool)
+            val vData = input.readNBytes2(s0, Pools.byteBufferPool)!!
             blankDetector.putChannel(vData, 2)
 
             // merge the u and v planes

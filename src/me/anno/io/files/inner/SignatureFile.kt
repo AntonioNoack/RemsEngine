@@ -24,7 +24,7 @@ interface SignatureFile {
                     file.signature = Signature.find(file.data!!)
                 } else {
                     val bytes = input.readNBytes2(Signature.sampleSize, false)
-                    file.signature = Signature.find(bytes)
+                    file.signature = if (bytes != null) Signature.find(bytes) else null
                 }
             }
         }

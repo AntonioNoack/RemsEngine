@@ -17,6 +17,8 @@ class Y4Frame(w: Int, h: Int) : GPUFrame(w, h, 1) {
 
         try {
             val data = input.readNBytes2(width * height, Pools.byteBufferPool)
+                ?: return callback.err(null)
+
             blankDetector.putR(data)
             addGPUTask("Y4", width, height) {
                 if (!isDestroyed && !y.isDestroyed) {

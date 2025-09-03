@@ -8,6 +8,7 @@ import me.anno.utils.Threads
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Ranges.size
+import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
 import java.io.EOFException
 import java.io.IOException
@@ -23,24 +24,23 @@ import kotlin.math.min
 @Suppress("unused")
 object Streams {
 
+    private val LOGGER = LogManager.getLogger(Streams::class)
     private val tmpBuffer = threadLocal { ByteArray(1024) }
 
     // defined with a 2, if already present (newer Java versions)
     @JvmStatic
-    fun InputStream.readNBytes2(n: Int, throwEOF: Boolean): ByteArray =
-        readNBytes2(n, ByteArray(n), throwEOF)
+    fun InputStream.readNBytes2(n: Int, returnNullOnEOF: Boolean): ByteArray? =
+        readNBytes2(n, ByteArray(n), returnNullOnEOF)
 
     @JvmStatic
-    fun InputStream.readNBytes2(n: Int, bytes: ByteArray, throwEOF: Boolean): ByteArray {
+    fun InputStream.readNBytes2(n: Int, bytes: ByteArray, returnNullOnEOF: Boolean): ByteArray? {
         var totalReadN = 0
         while (totalReadN < n) {
             val ithReadN = read(bytes, totalReadN, n - totalReadN)
             if (ithReadN < 0) {
-                if (throwEOF) {
-                    throw EOFException()
-                } else {
+                return if (returnNullOnEOF) null else {
                     // end :/ -> return sub array
-                    return bytes.copyOf(totalReadN)
+                    bytes.copyOf(totalReadN)
                 }
             }
             totalReadN += ithReadN
@@ -63,7 +63,7 @@ object Streams {
     }
 
     @JvmStatic
-    fun InputStream.readNBytes2(n: Int, bytes: ByteBuffer, throwEOF: Boolean): Any {
+    fun InputStream.readNBytes2(n: Int, bytes: ByteBuffer, returnNullOnEOF: Boolean): ByteBuffer? {
         bytes.position(0)
         bytes.limit(n)
         val tmp = tmpBuffer.get()
@@ -72,7 +72,7 @@ object Streams {
         while (totalReadN < n) {
             val ithReadN = read(tmp, 0, min(n - totalReadN, tmp.size))
             if (ithReadN < 0) {
-                if (throwEOF) return EOFException()
+                if (returnNullOnEOF) return null
                 else break
             }
             bytes.put(tmp, 0, ithReadN)
@@ -83,15 +83,13 @@ object Streams {
     }
 
     @JvmStatic
-    fun InputStream.readNBytes2(n: Int, pool: ByteBufferPool): ByteBuffer {
+    fun InputStream.readNBytes2(n: Int, pool: ByteBufferPool): ByteBuffer? {
 
         val tmp = tmpBuffer.get()
 
         // don't request a buffer from the pool, if we won't need one anyway
         val firstReadN = read(tmp, 0, min(n, tmp.size))
-        if (firstReadN < 0) {
-            throw EOFException()
-        }
+        if (firstReadN < 0) return null
 
         val bytes = pool[n, false, false]
         bytes.position(0)
@@ -103,7 +101,8 @@ object Streams {
             val ithReadN = read(tmp, 0, min(n - pos, tmp.size))
             if (ithReadN < 0) {
                 pool.returnBuffer(bytes)
-                throw EOFException("Only found $pos/$n bytes")
+                LOGGER.warn("Only found $pos/$n bytes")
+                return null
             }
             bytes.put(tmp, 0, ithReadN)
             pos += ithReadN
@@ -320,8 +319,7 @@ object Streams {
         val builder = StringBuilder()
         while (true) {
             val n = read()
-            if (n == 0) break
-            if (n < 0) throw EOFException()
+            if (n <= 0) break
             builder.append(n.toChar())
         }
         return builder.toString()
@@ -332,7 +330,7 @@ object Streams {
      * */
     @JvmStatic
     fun InputStream.readString(length: Int): String {
-        return readNBytes2(length, true).decodeToString()
+        return readNBytes2(length, true)?.decodeToString() ?: ""
     }
 
     /**

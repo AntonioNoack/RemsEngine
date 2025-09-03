@@ -6,7 +6,8 @@ import java.io.DataOutputStream
 
 class Attribute(clazz: Clazz, input: DataInputStream) {
     val name = clazz.constantPool[input.readUnsignedShort()] as String
-    val data = input.readNBytes2(input.readInt(), true)
+    val data = input.readNBytes2(input.readInt(), true)!!
+
     override fun toString(): String {
         return "'$name'+=${data.size}"
     }

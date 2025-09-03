@@ -3,7 +3,6 @@ package me.anno.io.files
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
-import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.Signature.Companion.sampleSize
 import me.anno.io.files.inner.SignatureFile
@@ -27,7 +26,7 @@ object SignatureCache : CacheSection<FileKey, Signature>("Signatures") {
                 file.inputStream(sampleSize.toLong()) { input, err ->
                     if (input != null) {
                         val bytes = input.readNBytes2(sampleSize, false)
-                        val sign = Signature.find(bytes)
+                        val sign = if (bytes != null) Signature.find(bytes) else null
                         result.value = sign
                     } else {
                         result.value = null

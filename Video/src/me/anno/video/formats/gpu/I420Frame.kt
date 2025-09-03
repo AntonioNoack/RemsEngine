@@ -29,10 +29,11 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
 
         try {
             val yData = input.readNBytes2(imageSize, Pools.byteBufferPool)
+                ?: return callback.err(null)
             blankDetector.putChannel(yData, 0)
-            val uData = input.readNBytes2(halfImageSize, Pools.byteBufferPool)
+            val uData = input.readNBytes2(halfImageSize, Pools.byteBufferPool)!!
             blankDetector.putChannel(uData, 1)
-            val vData = input.readNBytes2(halfImageSize, Pools.byteBufferPool)
+            val vData = input.readNBytes2(halfImageSize, Pools.byteBufferPool)!!
             blankDetector.putChannel(vData, 2)
             val interlaced = interlaceReplace(uData, vData)
             addGPUTask("I420-UV", width, height) {

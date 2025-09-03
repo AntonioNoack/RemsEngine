@@ -19,6 +19,8 @@ open class RGBFrame(w: Int, h: Int, numChannels: Int) : GPUFrame(w, h, numChanne
 
         try {
             val data = input.readNBytes2(width * height * 3, Pools.byteBufferPool)
+                ?: return callback.err(null)
+
             blankDetector.putRGB(data)
             addGPUTask("RGB", width, height) {
                 if (!isDestroyed && !rgb.isDestroyed) {

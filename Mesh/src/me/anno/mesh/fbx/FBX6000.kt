@@ -63,7 +63,7 @@ object FBX6000 {
                 'I'.code -> stream.readLE32()
                 'D'.code -> stream.readLE64F()
                 'S'.code -> str(stream.readLE32())
-                'R'.code -> stream.readNBytes2(stream.readLE32(), true)
+                'R'.code -> stream.readNBytes2(stream.readLE32(), true)!!
                 'C'.code -> stream.read().toChar()
                 'L'.code -> stream.readLE64()
                 'Y'.code -> stream.readLE16() // ??

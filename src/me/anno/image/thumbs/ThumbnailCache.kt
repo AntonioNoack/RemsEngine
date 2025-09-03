@@ -189,7 +189,7 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
         if (!isDirectory && length > 0) {
             inputStream(hashReadLimit.toLong(), true) { reader, _ ->
                 if (reader != null) {
-                    val sampleBytes = reader.readNBytes2(hashReadLimit, false)
+                    val sampleBytes = reader.readNBytes2(hashReadLimit, false) ?: ByteArray(0)
                     callback(CRC64.update(sampleBytes, 0, sampleBytes.size, baseHash))
                 } else callback(baseHash)
             }

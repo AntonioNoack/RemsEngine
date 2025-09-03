@@ -12,6 +12,7 @@ import me.anno.video.formats.cpu.RGBFrames.loadRGBFrame
 import me.anno.video.formats.cpu.RGBFrames.loadY4Frame
 import me.anno.video.formats.cpu.YUVFrames.loadI420Frame
 import me.anno.video.formats.cpu.YUVFrames.loadI444Frame
+import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 
@@ -37,7 +38,8 @@ class CPUFrameReader(
                 "Y4", "Y800" -> loadY4Frame(w, h, input) // seems correct, awkward, that it has the same name
                 else -> return callback.err(IOException("Unsupported Codec $codec for $file"))
             }
-            return callback.ok(frame)
+            if (frame != null) return callback.ok(frame)
+            else callback.err(null) // eof
         } catch (e: Exception) {
             return callback.err(e)
         }

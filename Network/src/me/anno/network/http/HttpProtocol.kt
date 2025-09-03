@@ -70,7 +70,7 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
         // read the rest as binary
         val capacity = meta["Content-Length"].toIntOrDefault(0)
         if (capacity in 0..maxCapacity) {
-            val data = client.dis.readNBytes2(capacity, false)
+            val data = client.dis.readNBytes2(capacity, false)!!
             try {
                 handleRequest(server, client, path, args, meta, data)
             } catch (e: Exception) {

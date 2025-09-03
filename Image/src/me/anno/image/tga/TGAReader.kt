@@ -11,6 +11,7 @@ import me.anno.utils.Color.rgb
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.tuples.IntPair
+import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 import kotlin.math.min
@@ -115,6 +116,7 @@ object TGAReader {
             val bytesInColorMap = (cMapDepth * colorMapSize) shr 3
             val colorSize = min(cMapDepth / 3, 8)
             val rawMapData = input.readNBytes2(bytesInColorMap, true)
+                ?: return EOFException()
 
             // Only go to the trouble of constructing the color map
             // table if this is declared a color mapped image.
