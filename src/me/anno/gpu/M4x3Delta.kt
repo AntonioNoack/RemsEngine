@@ -139,8 +139,6 @@ object M4x3Delta {
 
     @JvmStatic
     fun Matrix4f.mul4x3delta(m: Matrix4x3): Matrix4f {
-        // false = column major, however the labelling of these things is awkward
-        // A_ji, as far, as I can see
         val pos = RenderState.cameraPosition
         return mul(
             m.m00, m.m01, m.m02, 0f,
@@ -158,8 +156,6 @@ object M4x3Delta {
 
     @JvmStatic
     fun Matrix4x3f.set4x3delta(m: Matrix4x3, pos: Vector3d): Matrix4x3f {
-        // false = column major, however the labelling of these things is awkward
-        // A_ji, as far, as I can see
         return set(
             m.m00, m.m01, m.m02,
             m.m10, m.m11, m.m12,
