@@ -32,6 +32,20 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/box2d/JBox2d.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/jna-5.7.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/jna-platform-5.7.0.jar" path-in-jar="/" />
+      <element id="module-output" name="Box2d" />
+      <element id="module-output" name="Bullet" />
+      <element id="module-output" name="Export" />
+      <element id="module-output" name="Image" />
+      <element id="module-output" name="JVM" />
+      <element id="module-output" name="Lua" />
+      <element id="module-output" name="Mesh" />
+      <element id="module-output" name="Network" />
+      <element id="module-output" name="OpenXR" />
+      <element id="module-output" name="PDF" />
+      <element id="module-output" name="Recast" />
+      <element id="module-output" name="SDF" />
+      <element id="module-output" name="Unpack" />
+      <element id="module-output" name="Video" />
     </root>
   </artifact>
 </component>

@@ -75,7 +75,7 @@ class HexMCWorldSave {
         val len = stream.readBE32()
         val sub = ChunkS(len)
         repeat(len) {
-            sub[stream.readBE64()] = stream.readNBytes2(sy, true)
+            sub[stream.readBE64()] = stream.readNBytes2(sy, true)!!
         }
         return sub
     }

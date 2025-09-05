@@ -1,4 +1,4 @@
-package me.anno.bugs.todo
+package me.anno.bugs.done
 
 import me.anno.engine.DefaultAssets
 import me.anno.engine.ui.render.RenderMode

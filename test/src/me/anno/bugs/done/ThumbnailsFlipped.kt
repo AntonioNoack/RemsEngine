@@ -1,4 +1,4 @@
-package me.anno.bugs.todo
+package me.anno.bugs.done
 
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.OfficialExtensions

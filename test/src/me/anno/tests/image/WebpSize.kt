@@ -41,7 +41,7 @@ object WebpSize {
      * */
     fun getWebpImageSize(stream: InputStream): Any {
         val minSize = 30
-        val buffer = stream.readNBytes2(minSize, false)
+        val buffer = stream.readNBytes2(minSize, false)!!
         if (buffer.size < minSize) {
             return IOException("File too small to be a valid WebP")
         }
