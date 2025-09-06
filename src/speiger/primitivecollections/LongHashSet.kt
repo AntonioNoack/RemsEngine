@@ -8,25 +8,20 @@ import speiger.primitivecollections.callbacks.LongPredicate
 /**
  * Space-efficient LongToHashMap without any values
  * */
-class LongHashSet(
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
-) : LongToHashMap<Unit>(minCapacity, loadFactor) {
+class LongHashSet : LongToHashMap<Unit> {
 
-    override fun createValues(size: Int) {
-    }
+    constructor(
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : super(minCapacity, loadFactor)
 
-    override fun fillNullValues(values: Unit) {
-    }
+    constructor(base: LongHashSet) : super(base)
 
-    override fun copyOver(
-        dstValues: Unit, dstIndex: Int,
-        srcValues: Unit, srcIndex: Int
-    ) {
-    }
-
-    override fun setNull(dstValues: Unit, dstIndex: Int) {
-    }
+    override fun createValues(size: Int) {}
+    override fun fillNullValues(values: Unit) {}
+    override fun copyOver(dstValues: Unit, dstIndex: Int, srcValues: Unit, srcIndex: Int) {}
+    override fun copyOver(dstValues: Unit, srcValues: Unit) {}
+    override fun setNull(dstValues: Unit, dstIndex: Int) {}
 
     fun add(key: Long): Boolean {
         val slot = findIndex(key)
@@ -61,4 +56,6 @@ class LongHashSet(
 
     fun removeIf(predicate: LongPredicate) =
         removeIfImpl { predicate.test(keys[it]) }
+
+    override fun clone(): LongHashSet = LongHashSet(this)
 }

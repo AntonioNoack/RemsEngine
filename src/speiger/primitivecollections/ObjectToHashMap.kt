@@ -12,10 +12,25 @@ import kotlin.math.min
 /**
  * Converted from LongToHashMap
  * */
-abstract class ObjectToHashMap<K, AV>(
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
-) : BaseHashMap<Array<Any?>, AV>(minCapacity, loadFactor) {
+abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
+
+    constructor(
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : super(minCapacity, loadFactor)
+
+    constructor(
+        loadFactor: Float,
+        nullIndex: Int
+    ) : super(loadFactor, nullIndex)
+
+    constructor(base: ObjectToHashMap<K, AV>) :
+            super(base.loadFactor, base.nullIndex) {
+        base.keys.copyInto(keys)
+        copyOver(values, base.values)
+        size = base.size
+        containsNull = base.containsNull
+    }
 
     override fun createKeys(size: Int): Array<Any?> = arrayOfNulls(size + 1)
     override fun fillNullKeys(keys: Array<Any?>) = keys.fill(null)

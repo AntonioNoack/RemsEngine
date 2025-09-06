@@ -10,13 +10,15 @@ import speiger.primitivecollections.callbacks.ObjectIntPredicate
  * Wrapper around LongToLongHashMap
  * */
 class ObjectToIntHashMap<K>(
-    missingValue: Int,
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
+    @InternalAPI
+    val content: ObjectToLongHashMap<K>
 ) : PrimitiveCollection {
 
-    @InternalAPI
-    val content = ObjectToLongHashMap<K>(missingValue.toLong(), minCapacity, loadFactor)
+    constructor(
+        missingValue: Int,
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : this(ObjectToLongHashMap<K>(missingValue.toLong(), minCapacity, loadFactor))
 
     override val size get() = content.size
     override val maxFill get() = content.maxFill
@@ -71,4 +73,6 @@ class ObjectToIntHashMap<K>(
     fun forEachKey(callback: (K) -> Unit) = content.forEachKey(callback)
     fun removeIf(predicate: ObjectIntPredicate<K>): Int =
         content.removeIf { key, value -> predicate.test(key, value.toInt()) }
+
+    override fun clone(): ObjectToIntHashMap<K> = ObjectToIntHashMap<K>(content.clone())
 }

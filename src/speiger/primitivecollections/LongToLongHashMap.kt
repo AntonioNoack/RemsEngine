@@ -10,11 +10,24 @@ import speiger.primitivecollections.callbacks.LongLongPredicate
  * Long2LongOpenHashMap from https://github.com/Speiger/Primitive-Collections/,
  * Converted to Kotlin and trimmed down to my needs.
  * */
-class LongToLongHashMap(
-    val missingValue: Long,
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
-) : LongToHashMap<LongArray>(minCapacity, loadFactor) {
+class LongToLongHashMap : LongToHashMap<LongArray> {
+
+    val missingValue: Long
+
+    constructor(
+        missingValue: Long,
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : super(minCapacity, loadFactor) {
+        this.missingValue = missingValue
+    }
+
+    constructor(
+        missingValue: Long,
+        base: LongToLongHashMap
+    ) : super(base) {
+        this.missingValue = missingValue
+    }
 
     override fun createValues(size: Int): LongArray = LongArray(size)
     override fun fillNullValues(values: LongArray) {
@@ -26,6 +39,10 @@ class LongToLongHashMap(
         srcValues: LongArray, srcIndex: Int
     ) {
         dstValues[dstIndex] = srcValues[srcIndex]
+    }
+
+    override fun copyOver(dstValues: LongArray, srcValues: LongArray) {
+        srcValues.copyInto(dstValues)
     }
 
     override fun setNull(dstValues: LongArray, dstIndex: Int) {
@@ -101,4 +118,6 @@ class LongToLongHashMap(
     fun removeIf(predicate: LongLongPredicate): Int {
         return removeIfImpl { predicate.test(keys[it], values[it]) }
     }
+
+    override fun clone() = LongToLongHashMap(missingValue, this)
 }

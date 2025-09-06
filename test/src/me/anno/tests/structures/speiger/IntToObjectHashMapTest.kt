@@ -73,6 +73,21 @@ class IntToObjectHashMapTest {
     }
 
     @Test
+    fun testClone() {
+        val base = createInstance()
+        for (i in 0 until 1000) {
+            base[i] = i * i + 5
+        }
+        val clone = base.clone()
+        assertEquals(1000, clone.size)
+        assertFalse(clone.containsKey(-1))
+        for (i in 0 until 1000) {
+            assertTrue(clone.containsKey(i))
+            assertEquals(i * i + 5, clone[i])
+        }
+    }
+
+    @Test
     fun testClear() {
         val map = createInstance()
         assertNull(map[0])

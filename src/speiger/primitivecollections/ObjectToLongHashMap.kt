@@ -9,11 +9,24 @@ import speiger.primitivecollections.callbacks.ObjectLongPredicate
 /**
  * Adjusted from LongToLongHashMap
  * */
-class ObjectToLongHashMap<K>(
-    val missingValue: Long,
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
-) : ObjectToHashMap<K, LongArray>(minCapacity, loadFactor) {
+class ObjectToLongHashMap<K> : ObjectToHashMap<K, LongArray> {
+
+    val missingValue: Long
+
+    constructor(
+        missingValue: Long,
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : super(minCapacity, loadFactor) {
+        this.missingValue = missingValue
+    }
+
+    constructor(
+        missingValue: Long,
+        base: ObjectToLongHashMap<K>
+    ) : super(base) {
+        this.missingValue = missingValue
+    }
 
     override fun createValues(size: Int): LongArray = LongArray(size)
     override fun fillNullValues(values: LongArray) = values.fill(0L)
@@ -23,6 +36,10 @@ class ObjectToLongHashMap<K>(
         srcValues: LongArray, srcIndex: Int
     ) {
         dstValues[dstIndex] = srcValues[srcIndex]
+    }
+
+    override fun copyOver(dstValues: LongArray, srcValues: LongArray) {
+        srcValues.copyInto(dstValues)
     }
 
     override fun setNull(dstValues: LongArray, dstIndex: Int) {
@@ -101,4 +118,6 @@ class ObjectToLongHashMap<K>(
         @Suppress("UNCHECKED_CAST")
         return removeIfImpl { predicate.test(keys[it] as K, values[it]) }
     }
+
+    override fun clone(): ObjectToLongHashMap<K> = ObjectToLongHashMap(missingValue, this)
 }

@@ -72,6 +72,22 @@ class LongToIntHashMapTest {
             assertEquals(if (i in 100 until 900) -1 else i * i + 5, map[i.toLong()])
         }
     }
+
+    @Test
+    fun testClone() {
+        val base = createInstance()
+        for (i in 0 until 1000) {
+            base[i.toLong()] = i * i + 5
+        }
+        val clone = base.clone()
+        assertEquals(1000, clone.size)
+        assertFalse(clone.containsKey(-1))
+        for (i in 0 until 1000) {
+            assertTrue(clone.containsKey(i.toLong()))
+            assertEquals(i * i + 5, clone[i.toLong()])
+        }
+    }
+
     @Test
     fun testClear() {
         val map = createInstance()

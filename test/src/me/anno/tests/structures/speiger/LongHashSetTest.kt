@@ -59,6 +59,17 @@ class LongHashSetTest {
     }
 
     @Test
+    fun testClone() {
+        val set = createInstance()
+        for (i in 0 until 100L) set.add(i)
+        val clone = set.clone()
+        assertEquals(100, clone.size)
+        for (i in 0 until 100L) assertTrue(i in clone)
+        assertFalse(-1 in clone)
+        assertFalse(100 in clone)
+    }
+
+    @Test
     fun testClear() {
         val set = createInstance()
         for (i in 0 until 100) set.add(i.toLong())

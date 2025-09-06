@@ -15,4 +15,9 @@ interface PrimitiveCollection {
      * Removes all entries; reduces the current capacity to size, if capacity > size.
      * */
     fun clearAndTrim(size: Int)
+
+    /**
+     * Creates a new instance with the same values
+     * */
+    fun clone(): PrimitiveCollection
 }

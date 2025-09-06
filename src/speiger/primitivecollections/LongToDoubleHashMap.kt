@@ -11,13 +11,15 @@ import speiger.primitivecollections.callbacks.LongDoublePredicate
  * Wrapper around LongToLongHashMap
  * */
 class LongToDoubleHashMap(
-    missingValue: Double,
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
+    @InternalAPI
+    val content: LongToLongHashMap
 ) : PrimitiveCollection {
 
-    @InternalAPI
-    val content = LongToLongHashMap(missingValue.toRawBits(), minCapacity, loadFactor)
+    constructor(
+        missingValue: Double,
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : this(LongToLongHashMap(missingValue.toRawBits(), minCapacity, loadFactor))
 
     override val size get() = content.size
     override val maxFill get() = content.maxFill
@@ -67,5 +69,7 @@ class LongToDoubleHashMap(
     fun keysToHashSet() = content.keysToHashSet()
     fun forEachKey(callback: LongCallback) = content.forEachKey(callback)
     fun removeIf(predicate: LongDoublePredicate): Int =
-        content.removeIf { key, value -> predicate.test(key,Double.fromBits(value)) }
+        content.removeIf { key, value -> predicate.test(key, Double.fromBits(value)) }
+
+    override fun clone(): LongToDoubleHashMap = LongToDoubleHashMap(content.clone())
 }

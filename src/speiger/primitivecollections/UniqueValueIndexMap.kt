@@ -1,5 +1,6 @@
 package speiger.primitivecollections
 
+import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 
@@ -7,12 +8,16 @@ import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
  * Collects unique values, and gives each element an index
  * */
 class UniqueValueIndexMap<K>(
-    missingId: Int,
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
+    @InternalAPI
+    val content: ObjectToIntHashMap<K>
 ) : PrimitiveCollection {
 
-    private val content = ObjectToIntHashMap<K>(missingId, minCapacity, loadFactor)
+    constructor(
+        missingId: Int,
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : this(ObjectToIntHashMap<K>(missingId, minCapacity, loadFactor))
+
     val values = ArrayList<K>()
 
     override val size: Int get() = content.size
@@ -39,4 +44,6 @@ class UniqueValueIndexMap<K>(
     operator fun get(value: K): Int {
         return content[value]
     }
+
+    override fun clone(): UniqueValueIndexMap<K> = UniqueValueIndexMap<K>(content.clone())
 }

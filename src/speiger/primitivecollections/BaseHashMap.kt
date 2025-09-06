@@ -1,5 +1,6 @@
 package speiger.primitivecollections
 
+import me.anno.maths.Maths.clamp
 import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
@@ -8,14 +9,7 @@ import speiger.primitivecollections.callbacks.SlotPredicate
 import kotlin.math.max
 
 abstract class BaseHashMap<AK, AV>(
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
-) : PrimitiveCollection {
-
-    /**
-     * 0 is used as an empty-cell-marker and may be a key in this set
-     * */
-    var containsNull = false
+    val loadFactor: Float,
 
     /**
      * Where the key 0L is stored.
@@ -23,30 +17,34 @@ abstract class BaseHashMap<AK, AV>(
      * For size 16, an array of size 17 is created, and nullIndex = 16.
      * */
     var nullIndex: Int
+) : PrimitiveCollection {
+
+    constructor(
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : this(
+        clamp(loadFactor, 0.1f, 0.9f),
+        HashUtil.arraySize(minCapacity, loadFactor)
+    )
+
+    /**
+     * 0 is used as an empty-cell-marker and may be a key in this set
+     * */
+    var containsNull = false
 
     /**
      * first size when being created and always >= 16
      * */
-    var minCapacity: Int
+    var minCapacity: Int = max(nullIndex, 16)
 
-    val loadFactor: Float
-
-    final override var maxFill = 0
+    final override var maxFill = getMaxFill(nullIndex, loadFactor)
     final override var size = 0
 
     @InternalAPI
-    var mask = 0
+    var mask = nullIndex - 1
 
     val minFill get() = maxFill ushr 2
 
-    init {
-        val loadFactor = if (loadFactor in 0.1f..1f) loadFactor else DEFAULT_LOAD_FACTOR
-        this.loadFactor = loadFactor
-        nullIndex = HashUtil.arraySize(minCapacity, loadFactor)
-        this.minCapacity = max(nullIndex, 16)
-        mask = nullIndex - 1
-        maxFill = getMaxFill(nullIndex, loadFactor)
-    }
 
     @InternalAPI
     var keys = createKeys(nullIndex + 1)
@@ -70,10 +68,8 @@ abstract class BaseHashMap<AK, AV>(
     abstract fun fillNullKeys(keys: AK)
     abstract fun fillNullValues(values: AV)
 
-    abstract fun copyOver(
-        dstValues: AV, dstIndex: Int,
-        srcValues: AV, srcIndex: Int
-    )
+    abstract fun copyOver(dstValues: AV, dstIndex: Int, srcValues: AV, srcIndex: Int)
+    abstract fun copyOver(dstValues: AV, srcValues: AV)
 
     abstract fun setNull(dstValues: AV, dstIndex: Int)
 

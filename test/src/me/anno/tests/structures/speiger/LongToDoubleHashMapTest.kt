@@ -72,6 +72,21 @@ class LongToDoubleHashMapTest {
     }
 
     @Test
+    fun testClone() {
+        val base = createInstance()
+        for (i in 0 until 1000L) {
+            base[i] = i * i + 5.0
+        }
+        val clone = base.clone()
+        assertEquals(1000, clone.size)
+        assertFalse(clone.containsKey(-1))
+        for (i in 0 until 1000L) {
+            assertTrue(clone.containsKey(i))
+            assertEquals(i * i + 5.0, clone[i])
+        }
+    }
+
+    @Test
     fun testClear() {
         val map = createInstance()
         for (i in 0 until 1000L) {

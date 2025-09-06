@@ -14,10 +14,25 @@ import kotlin.math.min
  * Base of Long2LongOpenHashMap from https://github.com/Speiger/Primitive-Collections/,
  * Converted to Kotlin and trimmed down to my needs.
  * */
-abstract class LongToHashMap<AV>(
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
-) : BaseHashMap<LongArray, AV>(minCapacity, loadFactor) {
+abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
+
+    constructor(
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : super(minCapacity, loadFactor)
+
+    constructor(
+        loadFactor: Float,
+        nullIndex: Int
+    ) : super(loadFactor, nullIndex)
+
+    constructor(base: LongToHashMap<AV>) :
+            super(base.loadFactor, base.nullIndex) {
+        base.keys.copyInto(keys)
+        copyOver(values, base.values)
+        size = base.size
+        containsNull = base.containsNull
+    }
 
     override fun createKeys(size: Int): LongArray = LongArray(size)
     override fun fillNullKeys(keys: LongArray) = keys.fill(0L)

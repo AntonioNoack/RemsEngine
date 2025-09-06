@@ -13,10 +13,14 @@ import speiger.primitivecollections.callbacks.LongObjectPredicate
  *
  * This improves our smooth normal calculation from 54ms for 110k triangles down to 32ms (1.68x speedup).
  * */
-class LongToObjectHashMap<V>(
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
-) : LongToHashMap<Array<V?>>(minCapacity, loadFactor) {
+class LongToObjectHashMap<V> : LongToHashMap<Array<V?>> {
+
+    constructor(
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : super(minCapacity, loadFactor)
+
+    constructor(base: LongToObjectHashMap<V>) : super(base)
 
     override fun createValues(size: Int): Array<V?> {
         @Suppress("UNCHECKED_CAST")
@@ -32,6 +36,10 @@ class LongToObjectHashMap<V>(
         srcValues: Array<V?>, srcIndex: Int
     ) {
         dstValues[dstIndex] = srcValues[srcIndex]
+    }
+
+    override fun copyOver(dstValues: Array<V?>, srcValues: Array<V?>) {
+        srcValues.copyInto(dstValues)
     }
 
     override fun setNull(dstValues: Array<V?>, dstIndex: Int) {
@@ -119,4 +127,6 @@ class LongToObjectHashMap<V>(
         }
         return found
     }
+
+    override fun clone(): LongToObjectHashMap<V> = LongToObjectHashMap(this)
 }

@@ -1,5 +1,6 @@
 package speiger.primitivecollections
 
+import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.IntCallback
@@ -11,11 +12,14 @@ import speiger.primitivecollections.callbacks.IntObjectPredicate
  * The overhead isn't that big, and it saves us from having lots of duplicated code.
  * */
 class IntToObjectHashMap<V>(
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
+    @InternalAPI
+    val content: LongToObjectHashMap<V>
 ) : PrimitiveCollection {
 
-    val content = LongToObjectHashMap<V>(minCapacity, loadFactor)
+    constructor(
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : this(LongToObjectHashMap<V>(minCapacity, loadFactor))
 
     override val size get() = content.size
     override val maxFill: Int get() = content.maxFill
@@ -74,6 +78,8 @@ class IntToObjectHashMap<V>(
     fun any(predicate: IntObjectPredicate<V>): Boolean {
         return content.any { k, v -> predicate.test(k.toInt(), v) }
     }
+
+    override fun clone(): IntToObjectHashMap<V> = IntToObjectHashMap(content.clone())
 
     // definitely not ideal...
     val values: Iterable<V>

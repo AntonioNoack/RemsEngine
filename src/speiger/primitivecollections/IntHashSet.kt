@@ -50,4 +50,6 @@ class IntHashSet(
 
     fun removeIf(predicate: IntPredicate) =
         content.removeIf { predicate.test(it.toInt()) }
+
+    override fun clone(): IntHashSet = IntHashSet(content.clone())
 }

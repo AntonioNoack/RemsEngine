@@ -11,13 +11,15 @@ import speiger.primitivecollections.callbacks.LongIntPredicate
  * Wrapper around LongToLongHashMap
  * */
 class LongToIntHashMap(
-    missingValue: Int,
-    minCapacity: Int = DEFAULT_MIN_CAPACITY,
-    loadFactor: Float = DEFAULT_LOAD_FACTOR
+    @InternalAPI
+    val content: LongToLongHashMap
 ) : PrimitiveCollection {
 
-    @InternalAPI
-    val content = LongToLongHashMap(missingValue.toLong(), minCapacity, loadFactor)
+    constructor(
+        missingValue: Int,
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR
+    ) : this(LongToLongHashMap(missingValue.toLong(), minCapacity, loadFactor))
 
     override val size get() = content.size
     override val maxFill get() = content.maxFill
@@ -68,4 +70,6 @@ class LongToIntHashMap(
     fun forEachKey(callback: LongCallback) = content.forEachKey(callback)
     fun removeIf(predicate: LongIntPredicate): Int =
         content.removeIf { key, value -> predicate.test(key, value.toInt()) }
+
+    override fun clone(): LongToIntHashMap = LongToIntHashMap(content.clone())
 }

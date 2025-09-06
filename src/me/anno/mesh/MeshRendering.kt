@@ -29,9 +29,7 @@ object MeshRendering {
         val helperMeshes = helperMeshes
         if (helperMeshes != null) {
             val helperMesh = helperMeshes.getOrNull(materialIndex)
-            if (helperMesh != null) {
-                helperMesh.triBuffer?.drawInstanced(shader, instanceData)
-            }
+            helperMesh?.triBuffer?.drawInstanced(shader, instanceData)
         } else if (materialIndex == 0) {
             (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
         }
