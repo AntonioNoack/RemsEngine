@@ -482,6 +482,7 @@ object Strings {
     @JvmStatic
     fun CharSequence.toDouble(i0: Int, i1: Int, defaultValue: Double = 0.0): Double {
         // support NaN, +/-Infinity
+        if (i1 <= i0) return defaultValue
         if (startsWith("NaN", i0)) return Double.NaN
         if (startsWith("Inf", i0) || startsWith("+Inf", i0)) return Double.POSITIVE_INFINITY
         if (startsWith("-Inf", i0)) return Double.NEGATIVE_INFINITY

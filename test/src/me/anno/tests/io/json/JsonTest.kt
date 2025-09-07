@@ -1,4 +1,4 @@
-package me.anno.tests.io
+package me.anno.tests.io.json
 
 import me.anno.export.ExportSettings
 import me.anno.export.platform.LinuxPlatforms

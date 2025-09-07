@@ -1,11 +1,10 @@
-package me.anno.tests.io
+package me.anno.tests.io.json
 
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.projects.FileEncoding
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable
-import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.saveable.UnknownSaveable
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
@@ -48,7 +47,7 @@ class JsonWriterPathTest {
 
     val instances0 = listOf(
         // complex objects with references like paths
-        Path.ROOT_PATH,
+        Path.Companion.ROOT_PATH,
         // objects with circular references
            Circular(1),
            Circular(2, Circular(3)),
@@ -59,9 +58,9 @@ class JsonWriterPathTest {
     fun testAnyPropertyWriter(encoding: FileEncoding) {
 
         // register classes
-        registerCustomClass(UnknownSaveable())
-        registerCustomClass(Path())
-        registerCustomClass(Circular())
+        Saveable.Companion.registerCustomClass(UnknownSaveable())
+        Saveable.Companion.registerCustomClass(Path())
+        Saveable.Companion.registerCustomClass(Circular())
 
         // prepare mega-instance will all properties
         val instance = UnknownSaveable()

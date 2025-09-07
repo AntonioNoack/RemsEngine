@@ -1,13 +1,11 @@
-package me.anno.tests.io
+package me.anno.tests.io.yaml
 
 import me.anno.engine.projects.FileEncoding
 import me.anno.io.files.InvalidRef
-import me.anno.io.json.generic.JsonLike.jsonLikeToJson
-import me.anno.io.json.generic.JsonLike.yamlBytesToJsonLike
-import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.io.json.generic.JsonLike
+import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.UnknownSaveable
-import me.anno.tests.io.CompleteFileEncodingTest.Circular
-import me.anno.tests.io.CompleteFileEncodingTest.Companion.checkEquals
+import me.anno.tests.io.CompleteFileEncodingTest
 import me.anno.utils.structures.lists.Lists.firstInstance2
 import org.joml.Vector2i
 import org.joml.Vector3f
@@ -23,8 +21,8 @@ class YamlArray2DTest {
          "x",
         Vector2i(1, 2),
         Vector3f(-.5f, 10f, 5f),
-          Vector3i(1, 2, 3),
-        Circular(1),
+        Vector3i(1, 2, 3),
+        CompleteFileEncodingTest.Circular(1),
     )
 
     val instances = instances0 + instances0.map { listOf(it, it) } +
@@ -36,8 +34,8 @@ class YamlArray2DTest {
         val encoding = FileEncoding.YAML
 
         // register classes
-        registerCustomClass(UnknownSaveable())
-        registerCustomClass(Circular())
+        Saveable.Companion.registerCustomClass(UnknownSaveable())
+        Saveable.Companion.registerCustomClass(CompleteFileEncodingTest.Circular())
 
         // prepare mega-instance will all properties
         val instance = UnknownSaveable()
@@ -48,9 +46,9 @@ class YamlArray2DTest {
         // serialization
         val bytes = encoding.encode(instance, InvalidRef)
         println(bytes.decodeToString())
-        val jsonLike = yamlBytesToJsonLike(bytes)
+        val jsonLike = JsonLike.yamlBytesToJsonLike(bytes)
         println(jsonLike)
-        println(jsonLikeToJson(jsonLike))
+        println(JsonLike.jsonLikeToJson(jsonLike))
 
         // deserialization
         val clone = encoding.decode(bytes, InvalidRef, false)
@@ -58,7 +56,7 @@ class YamlArray2DTest {
 
         // equality check
         for ((idx, v) in instances.withIndex()) {
-            checkEquals(v, clone["p$idx"])
+            CompleteFileEncodingTest.checkEquals(v, clone["p$idx"])
         }
     }
 
@@ -73,8 +71,8 @@ class YamlArray2DTest {
                 "    - - 1\n" +
                 "      - x\n" +
                 "      - y"
-        val jsonLike = yamlBytesToJsonLike(bytes.encodeToByteArray())
+        val jsonLike = JsonLike.yamlBytesToJsonLike(bytes.encodeToByteArray())
         println(jsonLike)
-        println(jsonLikeToJson(jsonLike))
+        println(JsonLike.jsonLikeToJson(jsonLike))
     }
 }

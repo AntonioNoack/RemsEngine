@@ -8,6 +8,7 @@ import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.io.xml.generic.XMLWriter
 import me.anno.io.xml.saveable.XML2JSON
+import me.anno.io.yaml.YAMLWriter.yamlToString
 import me.anno.io.yaml.generic.YAMLReader
 import me.anno.io.yaml.saveable.YAML2JSON
 import me.anno.utils.assertions.assertEquals
@@ -16,6 +17,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.AnyToLong
+import java.io.StringWriter
 
 /**
  * converts values from jsonLike-format to saveable-compatible-json
@@ -44,8 +46,7 @@ object JsonLike {
 
     fun jsonToYAML(json: String): String {
         val jsonNode = JsonReader(json).readArray()
-        val yamlNode = YAML2JSON.toYAML(MAIN_NODE_NAME, jsonNode, 0)
-        return yamlNode.toString()
+        return yamlToString(jsonNode)
     }
 
     fun jsonToXML(json: String, pretty: Boolean): String {
@@ -148,6 +149,7 @@ object JsonLike {
     }
 
     fun validateJsonProperty(type: String, value: Any?): Any? {
+        println("Validating json property $type,$value,${value?.javaClass}")
         return when {
             isFloatType(type) -> AnyToDouble.getDouble(value, 0.0)
             isIntType(type) -> AnyToLong.getLong(value, 0L)
@@ -173,12 +175,12 @@ object JsonLike {
             }
             value is List<*> && type.endsWith("[]") -> {
                 val elementType = type.substring(0, type.length - 2)
-                value.mapIndexed { idx, it ->
+                value.mapIndexed { idx, valueI ->
                     if (idx == 0) {
                         // first index stores the length
-                        it.toString().toInt()
+                        valueI.toString().toInt()
                     } else {
-                        validateJsonProperty(elementType, it)
+                        validateJsonProperty(elementType, valueI)
                     }
                 }
             }
