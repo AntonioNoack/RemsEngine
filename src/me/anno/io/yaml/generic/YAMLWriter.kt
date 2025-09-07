@@ -1,10 +1,9 @@
-package me.anno.io.yaml
+package me.anno.io.yaml.generic
 
 import me.anno.io.json.generic.JsonFormatter
 
 object YAMLWriter {
-    fun yamlToString(yaml: Any): String {
-        val writer = StringBuilder()
+    fun StringBuilder.appendYAML(yaml: Any): String {
         val inset = "  "
         fun write(value: Any?, depth: Int, isInList: Boolean) {
             when (value) {
@@ -13,37 +12,37 @@ object YAMLWriter {
                         var first = true
                         for ((key, value) in value) {
                             if (!isInList || !first) {
-                                writer.append('\n')
-                                for (j in 0 until depth) writer.append(inset)
+                                append('\n')
+                                for (j in 0 until depth) append(inset)
                             }
-                            writer.append(key.toString()).append(": ")
+                            append(key.toString()).append(": ")
                             write(value, depth + 1, false)
                             first = false
                         }
                     } else {
-                        writer.append("{}")
+                        append("{}")
                     }
                 }
                 is List<*> -> {
                     if (value.all { it is Number || (it is String && it.toDoubleOrNull() != null) }) {
-                        writer.append("[")
+                        append("[")
                         for (i in value.indices) {
-                            if (i > 0) writer.append(", ")
-                            writer.append(value[i].toString())
+                            if (i > 0) append(", ")
+                            append(value[i].toString())
                         }
-                        writer.append("]")
+                        append("]")
                     } else {
                         for (i in value.indices) {
                             if (!isInList || i > 0) {
-                                writer.append('\n')
-                                for (j in 0 until depth) writer.append(inset)
+                                append('\n')
+                                for (j in 0 until depth) append(inset)
                             }
-                            writer.append("- ")
+                            append("- ")
                             write(value[i], depth + 1, true)
                         }
                     }
                 }
-                is Number -> writer.append(value.toString())
+                is Number -> append(value.toString())
                 else -> {
                     val value = value.toString()
                     if (value.isEmpty() || value.any {
@@ -52,14 +51,20 @@ object YAMLWriter {
                                     it !in 'a'..'z' &&
                                     it !in ",.-_+#*!§$%&/="
                         }) {
-                        JsonFormatter.appendEscapedString(value, writer)
+                        JsonFormatter.appendEscapedString(value, this)
                     } else {
-                        writer.append(value)
+                        append(value)
                     }
                 }
             }
         }
         write(yaml, 0, false)
+        return toString()
+    }
+
+    fun yamlToString(yaml: Any): String {
+        val writer = StringBuilder()
+        writer.appendYAML(yaml)
         return writer.toString()
     }
 }
