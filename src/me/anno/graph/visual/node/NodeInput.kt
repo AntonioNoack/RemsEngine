@@ -74,8 +74,8 @@ class NodeInput : NodeConnector {
             registerType("Texture3D") { it as? Texture3D }
             registerType("File", Companion::anyToFile)
             registerType("FileReference", Companion::anyToFile)
-            registerType("Bool", AnyToBool::anyToBool)
-            registerType("Boolean", AnyToBool::anyToBool)
+            registerType("Bool", AnyToBool::getBool)
+            registerType("Boolean", AnyToBool::getBool)
             registerType("IntArray") { it as? IntArray }
             registerType("LongArray") { it as? LongArray }
             registerType("FloatArray") { it as? FloatArray }

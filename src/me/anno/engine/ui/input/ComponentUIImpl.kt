@@ -45,8 +45,8 @@ object ComponentUIImpl {
         property: IProperty<Any?>, style: Style,
     ): Panel {
         return BooleanInput(
-            nameDesc, AnyToBool.anyToBool(value),
-            AnyToBool.anyToBool(default), style
+            nameDesc, AnyToBool.getBool(value),
+            AnyToBool.getBool(default), style
         ).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)

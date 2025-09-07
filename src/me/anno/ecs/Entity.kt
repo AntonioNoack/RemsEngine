@@ -676,8 +676,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             }
             "children" -> addMembers(value, internalChildren) { if (it is Entity) addChild(it) }
             "components" -> addMembers(value, internalComponents) { if (it is Component) addComponent(it) }
-            "isCollapsed" -> isCollapsed = AnyToBool.anyToBool(value)
-            "isEnabled" -> isEnabled = AnyToBool.anyToBool(value)
+            "isCollapsed" -> isCollapsed = AnyToBool.getBool(value)
+            "isEnabled" -> isEnabled = AnyToBool.getBool(value)
             else -> super.setProperty(name, value)
         }
     }

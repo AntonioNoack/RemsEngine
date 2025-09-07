@@ -1,7 +1,7 @@
 package me.anno.utils.types
 
 object AnyToBool {
-    fun anyToBool(v: Any?): Boolean {
+    fun getBool(v: Any?): Boolean {
         return when (v) {
             is Boolean -> v
             is Int -> v != 0

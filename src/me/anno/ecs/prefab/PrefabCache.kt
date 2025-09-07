@@ -33,7 +33,9 @@ import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.io.xml.saveable.XML2JSON
 import me.anno.io.yaml.generic.YAMLReader
+import me.anno.io.yaml.generic.YAMLReaderV2
 import me.anno.io.yaml.saveable.YAML2JSON
+import me.anno.io.yaml.saveable.YAML2JSONv2
 import me.anno.utils.Logging.hash32
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertEquals
@@ -191,14 +193,15 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
         file.inputStream { str, err ->
             if (str != null) {
                 val reader = str.bufferedReader()
-                val node = YAMLReader.parseYAML(reader, beautify = false)
-                val jsonLike = YAML2JSON.fromYAML(node)
+                val node = YAMLReaderV2.parseYAML(reader, beautify = false)
+                val jsonLike = YAML2JSONv2.fromYAML(node)
                 readJSONLike(file, jsonLike, callback)
             } else callback.err(err)
         }
     }
 
     private fun readJSONLike(file: FileReference, jsonLike: Any?, callback: Callback<Saveable>) {
+        // todo implement a reader without to-string conversion
         val json = jsonLikeToJson(jsonLike)
         val prefab = JsonStringReader.readFirstOrNull(json, EngineBase.workspace, Saveable::class)
         onReadPrefab(file, prefab, callback)

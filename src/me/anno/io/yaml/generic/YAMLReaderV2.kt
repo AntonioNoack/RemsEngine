@@ -6,7 +6,6 @@ import me.anno.io.yaml.generic.YAMLReader.findColon
 import me.anno.utils.types.Strings.titlecase
 import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
-import kotlin.math.max
 
 /**
  * todo: replace our existing YAMLReader with this one in all places
@@ -183,27 +182,29 @@ object YAMLReaderV2 {
         return cleanValue(root)
     }
 
-    fun cleanValue(value: Any): Any {
+    private fun cleanValue(value: Any): Any {
         return when (value) {
-            is Map<*, *> -> {
+            is MutableMap<*, *> -> {
                 @Suppress("UNCHECKED_CAST")
-                value as Map<String, Any>
+                value as MutableMap<String, Any>
                 if (value.size == 1 && value.keys.first() == LIST_KEY) {
                     // replace the map with the list contained
                     cleanValue(value.values.first())
                 } else {
-                    value.mapValues { (key, valueI) ->
-                        cleanValue(valueI)
-                    }
+                    value.replaceAll { _, valueI -> cleanValue(valueI) }
+                    value
                 }
             }
-            is List<*> -> {
-                if (value.all { map -> map is Map<*, *> && map.size == 1 && map.keys.first() == LIST_KEY }) {
-                    cleanValue(value.map { (it as Map<*, *>).values.first() })
-                } else {
-                    value.map { child -> cleanValue(child!!) }
+            is MutableList<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                value as MutableList<Any>
+                for (i in value.indices) {
+                    value[i] = cleanValue(value[i])
                 }
+                value
             }
+            is Map<*, *> -> cleanValue(HashMap(value))
+            is List<*> -> cleanValue(ArrayList(value))
             else -> value
         }
     }

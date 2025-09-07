@@ -7,6 +7,7 @@ import java.io.BufferedReader
 import java.io.IOException
 import kotlin.math.max
 
+@Deprecated("Please use YAMLReaderV2")
 object YAMLReader {
 
     const val LIST_KEY = ""

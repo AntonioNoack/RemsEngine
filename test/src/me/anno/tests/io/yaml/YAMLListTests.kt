@@ -1,6 +1,5 @@
 package me.anno.tests.io.yaml
 
-import me.anno.io.yaml.generic.YAMLReader
 import me.anno.io.yaml.generic.YAMLReaderV2
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotNull
