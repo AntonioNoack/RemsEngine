@@ -56,7 +56,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     init {
         if ('\\' in absolutePath) LOGGER.warn("Path must not contain backwards slashes, '$absolutePath'")
-        if (absolutePath.endsWith("/") && !absolutePath.endsWith("://")) {
+        if (absolutePath.endsWith("/") && !absolutePath.endsWith("://") && absolutePath != "/") {
             LOGGER.warn("Path must not end with slash, except for protocol roots, '$absolutePath'")
         }
     }
@@ -67,7 +67,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             absolutePath.indexOf2('?', lastIndex + 1),
             absolutePath.indexOf2('&', lastIndex + 1)
         )
-        name = absolutePath.substring(lastIndex + 1, endIndex)
+        name =
+            if (absolutePath == "/") "/"
+            else absolutePath.substring(lastIndex + 1, endIndex)
         val extIndex = name.lastIndexOf('.')
         if (extIndex < 0) {
             extension = ""

@@ -99,6 +99,13 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
         var lastProgram = -1
         var showUniformWarnings = false
 
+        fun restoreBinding(lastProgram: Int) {
+            if (lastProgram >= 0) {
+                GPUShader.lastProgram = lastProgram
+                glUseProgram(lastProgram)
+            }
+        }
+
         fun invalidateBinding() {
             lastProgram = -1
         }

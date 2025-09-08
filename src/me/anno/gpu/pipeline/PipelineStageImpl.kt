@@ -465,9 +465,9 @@ class PipelineStageImpl(
                 GFXState.depthMask.use(writeDepth) {
                     GFXState.cullMode.use(cullMode) {
                         GFXState.drawLines.use(Mesh.drawDebugLines) {
-                            GFX.check()
+                            // GFX.check()
                             draw()
-                            GFX.check()
+                            // GFX.check()
                         }
                     }
                 }

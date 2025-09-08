@@ -147,9 +147,14 @@ object GFX {
         LOGGER.info("OpenGL Version: ${GL46C.glGetString(GL46C.GL_VERSION)}")
         LOGGER.info("GLSL Version: ${GL46C.glGetString(GL46C.GL_SHADING_LANGUAGE_VERSION)}")
         LOGGER.info("GPU: ${GL46C.glGetString(GL46C.GL_RENDERER)}, Vendor: ${GL46C.glGetString(GL46C.GL_VENDOR)}")
+
+        // error checking is a total hog on Linux, but the auto-reporting isn't too bad
+        shouldCheckErrors = isDebug && !OS.isLinux
+
         // these are not defined in WebGL
         glVersion = GL46C.glGetInteger(GL46C.GL_MAJOR_VERSION) * 10 + GL46C.glGetInteger(GL46C.GL_MINOR_VERSION)
         LOGGER.info("OpenGL Version Id $glVersion")
+
         GL46C.glPixelStorei(GL46C.GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
         val capabilities = WindowManagement.capabilities
         supportsAnisotropicFiltering = capabilities?.GL_EXT_texture_filter_anisotropic ?: false
@@ -228,7 +233,7 @@ object GFX {
     @JvmStatic
     fun check(name: String = "") {
         // assumes that the first access is indeed from the OpenGL thread
-        if (isDebug) {
+        if (shouldCheckErrors) {
             checkIsGFXThread()
             val error = glGetError()
             if (error != 0) {
@@ -240,7 +245,7 @@ object GFX {
 
     @JvmStatic
     fun checkWithoutCrashing(name: String) {
-        if (isDebug && glThread == Thread.currentThread()) {
+        if (shouldCheckErrors && glThread == Thread.currentThread()) {
             checkIsGFXThread()
             checkWithoutCrashingImpl(name)
         }
@@ -258,13 +263,16 @@ object GFX {
 
     @JvmStatic
     fun checkIfGFX(name: String) {
-        if (isDebug && isGFXThread()) {
+        if (shouldCheckErrors && isGFXThread()) {
             checkWithoutCrashingImpl(name)
         }
     }
 
     fun isPointerValid(pointer: Long): Boolean = pointer > 0
     fun isPointerValid(pointer: Int): Boolean = pointer > 0
+
+    var shouldCheckErrors = false
+
     const val INVALID_POINTER = 0
     const val INVALID_POINTER64 = 0L
     const val INVALID_SESSION = -1

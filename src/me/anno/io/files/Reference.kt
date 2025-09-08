@@ -65,7 +65,7 @@ object Reference {
     fun getReference(rawPath: String?): FileReference {
         // handling a few special cases:
         if (rawPath == null || rawPath.isBlank2()) return InvalidRef
-        if (rawPath == "root") return FileRootRef
+        if (rawPath == "root" || rawPath == "/") return FileRootRef
         if (rawPath == BundledRef.PREFIX) return BundledRef.origin
         // proper resolution
         val path = sanitizePath(rawPath)
@@ -314,9 +314,9 @@ object Reference {
     }
 
     fun getParent(absolutePath: String): FileReference {
-        if (absolutePath.endsWith("://")) return FileRootRef
+        if (absolutePath.endsWith("://") || absolutePath == "/") return FileRootRef
         var index = absolutePath.lastIndexOf('/')
-        return if (index < 0) {
+        return if (index <= 0) { // = 0 is required for Linux
             if (absolutePath == FileRootRef.name) InvalidRef
             else FileRootRef
         } else {

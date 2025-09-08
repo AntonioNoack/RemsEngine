@@ -52,14 +52,14 @@ object GPUTasks {
 
     @JvmStatic
     fun workGPUTasks(all: Boolean) {
-        // todo just in case, clear gfx state here:
-        //  we might be waiting on the gfx thread, and if so, state would be different than usual
         synchronized(nextGPUTasks) {
             gpuTasks.addAll(nextGPUTasks)
             nextGPUTasks.clear()
         }
-        if (workQueue(gpuTasks, getBudget(), all)) {
-            workQueue(lowPriorityGPUTasks, getBudget(), all)
+        GFXContext.useState {
+            if (workQueue(gpuTasks, getBudget(), all)) {
+                workQueue(lowPriorityGPUTasks, getBudget(), all)
+            }
         }
     }
 

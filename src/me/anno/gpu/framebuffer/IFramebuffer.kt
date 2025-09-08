@@ -1,6 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXContext
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.Shader
@@ -173,7 +174,7 @@ interface IFramebuffer {
     }
 
     private fun setClearValue() {
-        GFXState.bindDepthMask()
+        GFXContext.bindDepthMask()
         glClearDepth(GFXState.depthMode.currentValue.skyDepth)
     }
 

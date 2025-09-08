@@ -25,7 +25,7 @@ object RenderStep {
         GPUShader.invalidateBinding()
         Texture2D.destroyTextures()
         OpenGLBuffer.invalidateBinding()
-        GFXState.invalidateState()
+        GFXContext.invalidateState()
         Pools.freeUnusedEntries()
         AudioStream.byteBufferPool.freeUnusedEntries()
         Stack.resetAll()

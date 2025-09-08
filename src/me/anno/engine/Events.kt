@@ -4,6 +4,8 @@ import me.anno.Build
 import me.anno.Engine
 import me.anno.Time
 import me.anno.gpu.GFX.checkIfGFX
+import me.anno.gpu.GFXContext
+import me.anno.gpu.GFXState
 import me.anno.maths.Maths
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -98,9 +100,11 @@ object Events {
     }
 
     fun workEventTasks() {
-        workWaitingTasks()
-        workImmediateTasks()
-        workScheduledTasks()
+        GFXContext.useState {
+            workWaitingTasks()
+            workImmediateTasks()
+            workScheduledTasks()
+        }
     }
 
     fun workWaitingTasks() {
@@ -111,7 +115,7 @@ object Events {
             }
         }
         for (i in waitingTasks.indices) {
-            val task = waitingTasks[i]
+            val task = waitingTasks.getOrNull(i) ?: break
             if (task.condition()) {
                 eventTasks.add(task)
                 task.canBeRemoved = true

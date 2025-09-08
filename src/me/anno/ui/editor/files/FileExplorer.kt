@@ -2,7 +2,6 @@ package me.anno.ui.editor.files
 
 import me.anno.Time
 import me.anno.cache.IgnoredException
-import me.anno.utils.Threads
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent
@@ -60,6 +59,7 @@ import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.ui.editor.files.SearchAlgorithm.createResults
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.hex32
+import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
@@ -68,6 +68,7 @@ import me.anno.utils.OS.music
 import me.anno.utils.OS.pictures
 import me.anno.utils.OS.videos
 import me.anno.utils.OSFeatures
+import me.anno.utils.Threads
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.files.OpenFileExternally.editInStandardProgram
@@ -257,8 +258,12 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
         val rootGroup = SettingCategory(NameDesc("Roots"), false, style)
         favourites.add(rootGroup.showByDefault())
-        for (root in FileRootRef.listChildren()) {
-            rootGroup.content.add(FavouritePanel(this, root, true, style))
+        if (OS.isAndroid || OS.isLinux) {
+            rootGroup.content.add(FavouritePanel(this, FileRootRef, true, style))
+        } else {
+            for (root in FileRootRef.listChildren()) {
+                rootGroup.content.add(FavouritePanel(this, root, true, style))
+            }
         }
     }
 

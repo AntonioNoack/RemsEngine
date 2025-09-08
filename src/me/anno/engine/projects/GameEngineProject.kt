@@ -7,7 +7,6 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.EngineBase
 import me.anno.engine.Events
-import me.anno.engine.ScenePrefab
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
@@ -185,7 +184,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
 
         val lastSceneRef = lastScene
         if (!lastSceneRef.exists && lastSceneRef != InvalidRef) {
-            val prefab = Prefab("Entity", ScenePrefab)
+            val prefab = Prefab("Entity")
             lastSceneRef.getParent().tryMkdirs()
             val encoding = encoding.getForExtension(lastSceneRef)
             lastSceneRef.writeBytes(encoding.encode(prefab, InvalidRef))

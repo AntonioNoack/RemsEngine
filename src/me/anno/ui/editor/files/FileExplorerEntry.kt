@@ -3,7 +3,6 @@ package me.anno.ui.editor.files
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL
-import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.mesh.IMesh
@@ -49,6 +48,7 @@ import me.anno.input.Key
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.IsDirectoryCache
 import me.anno.io.files.inner.InnerLinkFile
@@ -73,6 +73,7 @@ import me.anno.ui.editor.files.FileExplorerIcons.getDefaultIconPath
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.OpenFileExternally.editInStandardProgram
 import me.anno.utils.files.OpenFileExternally.openInExplorer

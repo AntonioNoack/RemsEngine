@@ -191,7 +191,7 @@ open class Material : PrefabSaveable(), Renderable {
     open fun bind(shader: GPUShader) {
 
         // all the data, the shader needs to know from the material
-        GFX.check()
+        // GFX.check()
 
         val white = TextureLib.whiteTexture
         val n001 = TextureLib.normalTexture
@@ -206,7 +206,7 @@ open class Material : PrefabSaveable(), Renderable {
         val normalTex = bindTexture(shader, "normalMap", normalMap, n001, f, c)
         bindTexture(shader, "diffuseMap", diffuseMap, white, f, c)
 
-        GFX.check()
+        // GFX.check()
 
         shader.v4f("diffuseBase", diffuseBase)
         shader.v2f(
@@ -225,7 +225,7 @@ open class Material : PrefabSaveable(), Renderable {
         shader.v1f("lodBias", Materials.lodBias)
         shader.v2f("jitterInPixels", Materials.jitterInPixels)
 
-        GFX.check()
+        // GFX.check()
 
         if (clearCoatStrength > 0f) {
             shader.v4f("clearCoat", clearCoatColor, clearCoatStrength)
@@ -240,7 +240,7 @@ open class Material : PrefabSaveable(), Renderable {
             }
         }
 
-        GFX.check()
+        // GFX.check()
     }
 
     override fun fill(pipeline: Pipeline, transform: Transform) {

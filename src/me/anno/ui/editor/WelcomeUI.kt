@@ -41,6 +41,7 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.black
 import me.anno.utils.GFXFeatures
+import me.anno.utils.OS
 import me.anno.utils.Threads
 import me.anno.utils.async.Callback
 import me.anno.utils.files.OpenFileExternally.openInExplorer
@@ -302,7 +303,7 @@ interface WelcomeUI {
         // cannot be moved down
         val fileInput = FileInput(
             NameDesc("Project Location", "", "ui.newProject.location"), style,
-            EngineBase.workspace.getChild(lastName), emptyList(),
+            (EngineBase.workspace.nullIfUndefined() ?: OS.documents).getChild(lastName), emptyList(),
             true
         )
 
@@ -311,12 +312,14 @@ interface WelcomeUI {
             var invalidName = ""
 
             fun fileNameIsOk(file: FileReference): Boolean {
+                if (file == FileRootRef) return true
                 val parent = file.getParent()
                 val parentIsRoot = parent == FileRootRef
                 if (parentIsRoot) {
                     if (file.name.isEmpty()) return true // root drive
                     if (file.name.length == 2 && file.name[0].isLetter() && file.name[1] == ':') return true // windows drive letter
                 }
+                println("Comparing $file -> ${file.name} -> ${file.name.toAllowedFilename()}")
                 if (file.name.toAllowedFilename() != file.name) {
                     invalidName = file.name
                     return false

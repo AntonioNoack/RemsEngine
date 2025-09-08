@@ -45,7 +45,6 @@ import org.lwjgl.opengl.GL46C.glFramebufferRenderbuffer
 import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL46C.glGenFramebuffers
 import org.lwjgl.opengl.GL46C.glObjectLabel
-import org.lwjgl.opengl.GL46C.glUseProgram
 
 /**
  * Creates textures to render onto; can be instantiated before GFX/on any thread;
@@ -376,10 +375,7 @@ class Framebuffer(
         }
         Texture2D.restoreBindState(1, tex1)
         Texture2D.restoreBindState(0, tex0)
-        if (prevShader >= 0) {
-            GPUShader.lastProgram = prevShader
-            glUseProgram(prevShader)
-        }
+        GPUShader.restoreBinding(prevShader)
     }
 
     fun checkIsComplete() {

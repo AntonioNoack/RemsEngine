@@ -23,50 +23,35 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.utils.InternalAPI
-import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.stacks.SecureStack
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4i
 import org.lwjgl.opengl.GL46C
-import org.lwjgl.opengl.GL46C.GL_BACK
-import org.lwjgl.opengl.GL46C.GL_BLEND
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
-import org.lwjgl.opengl.GL46C.GL_CULL_FACE
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
-import org.lwjgl.opengl.GL46C.GL_FILL
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
-import org.lwjgl.opengl.GL46C.GL_FRONT
-import org.lwjgl.opengl.GL46C.GL_FRONT_AND_BACK
-import org.lwjgl.opengl.GL46C.GL_LINE
-import org.lwjgl.opengl.GL46C.GL_LOWER_LEFT
-import org.lwjgl.opengl.GL46C.GL_NEGATIVE_ONE_TO_ONE
 import org.lwjgl.opengl.GL46C.GL_RENDERBUFFER
 import org.lwjgl.opengl.GL46C.GL_SCISSOR_TEST
 import org.lwjgl.opengl.GL46C.GL_STENCIL_TEST
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D
-import org.lwjgl.opengl.GL46C.GL_ZERO_TO_ONE
 import org.lwjgl.opengl.GL46C.glBindVertexArray
-import org.lwjgl.opengl.GL46C.glClipControl
-import org.lwjgl.opengl.GL46C.glColorMask
 import org.lwjgl.opengl.GL46C.glCreateVertexArrays
-import org.lwjgl.opengl.GL46C.glCullFace
-import org.lwjgl.opengl.GL46C.glDepthFunc
-import org.lwjgl.opengl.GL46C.glDepthMask
 import org.lwjgl.opengl.GL46C.glDisable
 import org.lwjgl.opengl.GL46C.glEnable
 import org.lwjgl.opengl.GL46C.glFramebufferRenderbuffer
 import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL46C.glGenFramebuffers
-import org.lwjgl.opengl.GL46C.glPolygonMode
 import org.lwjgl.opengl.GL46C.glScissor
 
 /**
  * holds rendering-related state,
  * currently, with OpenGL, this must be used from a single thread only!
  * all functions feature rendering-callbacks, so you can change settings without having to worry about the previously set state by your caller
+ *
+ * When we support Vulkan one day, I might make render state even more explicit.
+ * This is a good start on that: collecting all OpenGL state in one place.
  * */
 object GFXState {
 
@@ -74,125 +59,6 @@ object GFXState {
 
     var session = 0
         private set
-
-    fun invalidateState() {
-        lastBlendMode = Unit
-        lastDepthMode = null
-        lastDepthMask = null
-        lastCullMode = null
-        lastDrawLines = null
-        lastColorMask = -1
-    }
-
-    private var lastBlendMode: Any? = Unit
-    private var lastDepthMode: DepthMode? = null
-    private var lastDepthMask: Boolean? = null
-    private var lastCullMode: CullMode? = null
-    private var lastDrawLines: Boolean? = null
-    private var lastColorMask: Int = -1
-
-    private fun bindBlendMode(newValue: Any?) {
-        if (newValue == lastBlendMode) return
-        when (newValue) {
-            null -> glDisable(GL_BLEND)
-            BlendMode.INHERIT -> {
-                val stack = blendMode
-                var index = stack.index
-                var self: Any?
-                do {
-                    self = stack.values[index--]
-                } while (self == BlendMode.INHERIT)
-                return bindBlendMode(self)
-            }
-            is BlendMode -> {
-                if (lastBlendMode == Unit || lastBlendMode == null) {
-                    glEnable(GL_BLEND)
-                }
-                newValue.forceApply()
-            }
-            is List<*> -> {
-                if (lastBlendMode == Unit || lastBlendMode == null) {
-                    glEnable(GL_BLEND)
-                }
-                for (i in newValue.indices) {
-                    val v = newValue[i] as BlendMode
-                    v.forceApply(i)
-                }
-            }
-            else -> assertFail("Unknown blend mode type")
-        }
-        lastBlendMode = newValue
-    }
-
-    private fun bindDepthMode() {
-        val newValue = depthMode.currentValue
-        if (lastDepthMode == newValue) return
-        glDepthFunc(newValue.id)
-        val reversedDepth = newValue.reversedDepth
-        if (lastDepthMode?.reversedDepth != reversedDepth) {
-            if (GFX.supportsClipControl) {
-                glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
-            } else {
-                LOGGER.warn("Reversed depth is not supported (because it's pointless without glClipControl")
-            }
-        }
-        lastDepthMode = newValue
-    }
-
-    fun bindDepthMask() {
-        val newValue = depthMask.currentValue
-        if (lastDepthMask == newValue) return
-        glDepthMask(newValue)
-        lastDepthMask = newValue
-    }
-
-    fun bindColorMask() {
-        val newValue = colorMask.currentValue and 15
-        if (lastColorMask == newValue) return
-        glColorMask(
-            newValue.hasFlag(COLOR_MASK_R),
-            newValue.hasFlag(COLOR_MASK_G),
-            newValue.hasFlag(COLOR_MASK_B),
-            newValue.hasFlag(COLOR_MASK_A)
-        )
-        lastColorMask = newValue
-    }
-
-    private fun bindDrawLines() {
-        val newValue = drawLines.currentValue
-        if (lastDrawLines == newValue) return
-        glPolygonMode(GL_FRONT_AND_BACK, if (newValue) GL_LINE else GL_FILL)
-        lastDrawLines = newValue
-    }
-
-    private fun bindCullMode() {
-        var newValue = cullMode.currentValue
-        if (drawLines.currentValue) newValue = CullMode.BOTH
-        if (lastCullMode == newValue) return
-        when (newValue) {
-            CullMode.BOTH -> {
-                glDisable(GL_CULL_FACE) // both visible -> disabled
-            }
-            CullMode.FRONT -> {
-                glEnable(GL_CULL_FACE)
-                glCullFace(GL_BACK) // front visible -> back hidden
-            }
-            CullMode.BACK -> {
-                glEnable(GL_CULL_FACE)
-                glCullFace(GL_FRONT) // back visible -> front hidden
-            }
-        }
-        lastCullMode = newValue
-    }
-
-    fun bind() {
-        bindBlendMode(blendMode.currentValue)
-        bindDepthMode()
-        bindDepthMask()
-        bindColorMask()
-        bindCullMode()
-        bindDrawLines()
-    }
 
     /**
      * in OpenGL ES (e.g. on Android),
@@ -209,12 +75,16 @@ object GFXState {
         GPUShader.invalidateBinding()
         Texture2D.invalidateBinding()
         OpenGLBuffer.invalidateBinding()
-        invalidateState()
+        GFXContext.invalidateState()
         val vao = glCreateVertexArrays()
         glBindVertexArray(vao)
         if (session != 1) {
             clearGPUCaches()
         }
+    }
+
+    fun bind() {
+        GFXContext.bind()
     }
 
     fun onDestroyContext() {

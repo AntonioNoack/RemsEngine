@@ -13,7 +13,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
-object FileRootRef : FileReference("root") {
+object FileRootRef : FileReference("/") {
 
     private val LOGGER = LogManager.getLogger(FileRootRef::class)
 
@@ -44,7 +44,12 @@ object FileRootRef : FileReference("root") {
 
     override fun listChildren(callback: Callback<List<FileReference>>) {
         Threads.runTaskThread("$absolutePath.listChildren") { // can be extremely slow
-            var results = File.listRoots().map { getReference(it.absolutePath) }
+            var results = if (OS.isLinux || OS.isAndroid) {
+                (File("/").list() ?: emptyArray())
+                    .map { path -> getReference("/$path") }
+            } else {
+                File.listRoots().map { getReference(it.absolutePath) }
+            }
             if (OS.isWindows) {
                 @Suppress("SuspiciousCollectionReassignment")
                 results += findWSLInstances()
