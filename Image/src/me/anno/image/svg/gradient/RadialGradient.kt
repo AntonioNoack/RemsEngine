@@ -3,6 +3,7 @@ package me.anno.image.svg.gradient
 import me.anno.image.svg.SVGMesh
 import me.anno.io.xml.generic.XMLNode
 import me.anno.maths.Maths.length
+import me.anno.utils.types.AnyToFloat.getFloat
 import org.joml.Vector2f
 
 /**
@@ -20,12 +21,8 @@ class RadialGradient(mesh: SVGMesh, xmlNode: XMLNode) : Gradient1D(xmlNode) {
         parseStops(mesh, xmlNode.children)
     }
 
-    val position = Vector2f(
-        xmlNode["cx"]?.toFloatOrNull() ?: 0f,
-        xmlNode["cy"]?.toFloatOrNull() ?: 0f
-    )
-
-    val r = xmlNode["r"]?.toFloatOrNull() ?: 0.5f
+    val position = Vector2f(getFloat(xmlNode["cx"]), getFloat(xmlNode["cy"]))
+    val r = getFloat(xmlNode["r"], 0.5f)
 
     override fun fillFormula(formula: Formula) {
         formula.position.set(0.5f - position.x, 0.5f - position.y)
@@ -38,5 +35,4 @@ class RadialGradient(mesh: SVGMesh, xmlNode: XMLNode) : Gradient1D(xmlNode) {
     }
 
     override fun toString(): String = "RadialGradient($position, $r)"
-
 }

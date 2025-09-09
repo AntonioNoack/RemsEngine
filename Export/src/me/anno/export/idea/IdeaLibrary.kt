@@ -19,14 +19,14 @@ class IdeaLibrary(val project: IdeaProject, val name: String) {
 
         fun loadLibrary(project: IdeaProject, source: InputStream): IdeaLibrary {
             val root = source.use {
-                XMLReader(it.reader()).read() as XMLNode
+                XMLReader(it.reader()).readXMLNode()!!
             }
             assertEquals("component", root.type)
             assertEquals("libraryTable", root["name"])
             val data = root.children
                 .filterIsInstance<XMLNode>()
                 .first { it.type == "library" }
-            val result = IdeaLibrary(project, data["name"]!!)
+            val result = IdeaLibrary(project, data["name"] as String)
             val classes = data.children
                 .filterIsInstance<XMLNode>()
                 .firstOrNull { it.type == "CLASSES" } ?: return result

@@ -193,8 +193,11 @@ class GLTFReader(val src: FileReference) {
             if (remaining >= 0) {
                 if (chunkType == JSON_CHUNK_MAGIC || chunkType == BINARY_CHUNK_MAGIC) {
                     val slice = ByteSlice(input, position until position + chunkSize)
-                    if (chunkType == JSON_CHUNK_MAGIC) json = JsonReader(slice.stream()).readObject()
-                    else buffers.add(slice)
+                    if (chunkType == JSON_CHUNK_MAGIC) {
+                        json = JsonReader(slice.stream()).readObject()
+                    } else {
+                        buffers.add(slice)
+                    }
                 }
                 position += chunkSize
             } else break

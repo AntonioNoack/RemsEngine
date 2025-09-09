@@ -37,7 +37,7 @@ class InnerZipFileV2(
 
         private fun createFileSystem(): FileSystem {
             val path = Paths.get(sourcePath)
-            return FileSystems.newFileSystem(path, emptyMap<String, Any?>())
+            return FileSystems.newFileSystem(path, null as ClassLoader?)
         }
 
         private var fileSystem = createFileSystem()

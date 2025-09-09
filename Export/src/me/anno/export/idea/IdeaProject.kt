@@ -94,7 +94,7 @@ class IdeaProject(val projectDir: FileReference) {
 
         private fun loadModules(projectDir: FileReference, moduleConfig: InputStream): List<FileReference> {
             val node0 = moduleConfig.use {
-                XMLReader(it.reader()).read() as XMLNode
+                XMLReader(it.reader()).readXMLNode()!!
             }
             assertEquals("project", node0.type)
             val node1 = node0.children.filterIsInstance<XMLNode>()

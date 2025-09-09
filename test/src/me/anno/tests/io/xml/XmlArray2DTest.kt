@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
  * */
 class XmlArray2DTest {
 
-    val p = Path.Companion.fromString("a15,hi/b7,jo/c9,test")!!
+    val p = Path.fromString("a15,hi/b7,jo/c9,test")!!
     val instances = listOf(
         'x', '0',
         charArrayOf('a', 'b'),
@@ -32,9 +32,9 @@ class XmlArray2DTest {
         val encoding = FileEncoding.PRETTY_XML
 
         // register classes
-        Saveable.Companion.registerCustomClass(UnknownSaveable())
-        Saveable.Companion.registerCustomClass(CompleteFileEncodingTest.Circular())
-        Saveable.Companion.registerCustomClass(Path())
+        Saveable.registerCustomClass(UnknownSaveable())
+        Saveable.registerCustomClass(CompleteFileEncodingTest.Circular())
+        Saveable.registerCustomClass(Path())
 
         // prepare mega-instance will all properties
         val instance = UnknownSaveable()
@@ -55,7 +55,7 @@ class XmlArray2DTest {
 
         // equality check
         for ((idx, v) in instances.withIndex()) {
-            CompleteFileEncodingTest.Companion.checkEquals(v, clone["p$idx"])
+            CompleteFileEncodingTest.checkEquals(v, clone["p$idx"])
         }
     }
 }

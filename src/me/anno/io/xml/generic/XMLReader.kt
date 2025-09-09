@@ -1,79 +1,94 @@
 package me.anno.io.xml.generic
 
+import me.anno.io.generic.GenericReader
+import me.anno.io.generic.GenericWriter
 import me.anno.utils.assertions.assertEquals
 import org.apache.logging.log4j.LogManager
 import java.io.Reader
 
 /**
  * Reads an XML file into a String|XMLNode|null|Exception
- *
- * todo transform this class into using a stack explicitly
  * */
-open class XMLReader(input: Reader) : XMLReaderBase(input) {
+open class XMLReader(input: Reader) : XMLReaderBase(input), GenericReader {
+
+    override fun read(writer: GenericWriter) {
+        readImpl(writer)
+    }
 
     /**
-     * returns String | XMLNode | Marker
+     * returns XMLNode or null
      * */
-    fun read() = read(-1)
-    fun read(firstChar: Int): Any {
-        val first = if (firstChar < 0) skipSpaces() else firstChar
-        if (first == -1) return endOfReader
-        if (first != '<'.code) return readStringUntilNextNode(first)
-        val type = readTypeUntilSpaceOrEnd(type0, -1)
-        return when {
-            type.startsWith("?") -> skipXMLVersion()
-            type.startsWith("!--") -> skipComment()
-            type.startsWith("!doctype", true) -> skipDocType()
-            type.startsWith("![cdata[", true) -> readCData(type)
-            type.startsWith('/') -> endElement
-            else -> readXMLNode(type.toString())
-        }
+    fun readXMLNode(): XMLNode? {
+        val reader = XMLObjectReader()
+        readImpl(reader)
+        return reader.result as? XMLNode
     }
 
-    @Suppress("SpellCheckingInspection")
-    private fun skipXMLVersion(): Any {
-        // <?xml version="1.0" encoding="utf-8"?>
-        // I don't really care about it
-        // read until ?>
-        // or <?xpacket end="w"?>
-        readUntil("?>")
-        return read(-1)
-    }
-
-    private fun skipComment(): Any {
-        // search until -->
-        readUntil("-->")
-        return read(-1)
-    }
-
-    private fun skipDocType(): Any {
-        var depth = 1
-        while (depth > 0) {
-            when (input.read()) {
-                '<'.code -> depth++
-                '>'.code -> depth--
+    private fun readImpl(writer: GenericWriter): Any? {
+        while (true) {
+            val first = skipSpaces()
+            if (first == -1) return endOfReader
+            if (first != '<'.code) {
+                val value = readStringUntilNextNode(first)
+                writer.write(value, isString = true)
+                return null
             }
-        }
-        return read(-1)
-    }
-
-    private fun readXMLNodeBody(xmlNode: XMLNode): Any {
-        // read the body (all children)
-        var next: Int = -1
-        children@ while (true) {
-            val child = read(next)
-            next = -1
-            when (child) {
-                endElement, endOfReader -> return xmlNode
+            val type = readTypeUntilSpaceOrEnd(type0, -1)
+            when {
+                type.startsWith("?") -> skipXMLVersion()
+                type.startsWith("!--") -> skipComment()
+                type.startsWith("!doctype", true) -> skipDocType()
+                type.startsWith("![cdata[", true) -> {
+                    writer.write(readCData(type), isString = true)
+                    return null
+                }
+                type.startsWith('/') -> {
+                    assertEquals('>'.code, readChar())
+                    return endElement
+                }
                 else -> {
-                    xmlNode.children.add(child)
-                    if (child is String) next = '<'.code
+                    readXMLNode(writer, type.toString())
+                    return null
                 }
             }
         }
     }
 
-    private fun readProperties(xmlNode: XMLNode): Int {
+    @Suppress("SpellCheckingInspection")
+    private fun skipXMLVersion() {
+        // <?xml version="1.0" encoding="utf-8"?>
+        // I don't really care about it
+        // read until ?>
+        // or <?xpacket end="w"?>
+        readUntil("?>")
+    }
+
+    private fun skipComment() {
+        // search until -->
+        readUntil("-->")
+    }
+
+    private fun skipDocType() {
+        var depth = 1
+        while (depth > 0) {
+            val char = readChar()
+            when (char) {
+                '<'.code -> depth++
+                '>'.code -> depth--
+                -1 -> return
+            }
+        }
+    }
+
+    private fun readXMLNodeBody(writer: GenericWriter) {
+        // read the body (all children)
+        while (true) {
+            val end = readImpl(writer)
+            if (end != null) break
+        }
+    }
+
+    private fun readProperties(writer: GenericWriter): Int {
         // read the properties
         while (true) {
             // name="value"
@@ -81,46 +96,51 @@ open class XMLReader(input: Reader) : XMLReaderBase(input) {
                 '/'.code, '>'.code, -1 -> return next
                 else -> {
                     val propName = readTypeUntilSpaceOrEnd(keyBuilder, next)
-                    val propEnd = last
-                    assertEquals(propEnd, '='.code)
+                    assertEquals('='.code, readChar())
                     val start = skipSpaces()
                     assert(start, '"', '\'')
                     val value = readStringUntilQuotes(start)
-                    xmlNode[propName.toString()] = value.toString()
+
+                    writer.attr(propName.toString())
+                    writer.write(value, true)
                 }
             }
         }
     }
 
-    private fun readXMLNode(type: String): Any {
-        var end = last
+    private fun readXMLNode(writer: GenericWriter, type: String): Any? {
+        var end = readChar()
         if (end == -1) return endOfReader
 
-        val xmlNode = XMLNode(type)
-        if (end.toChar().isWhitespace()) {
+        writer.beginObject(type)
+
+        if (end.toChar().isWhitespace()) { // <a href...
             // read the properties
-            end = readProperties(xmlNode)
+            end = readProperties(writer)
         }
 
         when (end) {
             '/'.code -> {
                 // / is the end of an element
-                assertEquals(input.read(), '>'.code)
-                return xmlNode
+                assertEquals('>'.code, readChar())
             }
             '>'.code -> {
                 // read the body (all children)
-                readXMLNodeBody(xmlNode)
-                return xmlNode
+                writer.attr(CHILDREN_NAME)
+                writer.beginArray()
+                readXMLNodeBody(writer)
+                writer.endArray()
             }
             else -> {
                 LOGGER.warn("Unknown end symbol ${end.toChar()}")
-                return xmlNode
             }
         }
+        writer.endObject()
+        return null
     }
 
     companion object {
         private val LOGGER = LogManager.getLogger(XMLReader::class)
+        const val CHILDREN_NAME = "!"
     }
 }

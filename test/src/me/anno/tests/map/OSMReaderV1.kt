@@ -1,9 +1,11 @@
 package me.anno.tests.map
 
+import me.anno.io.generic.ObjectReader.Companion.TAG_NAME
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.structures.lists.Lists.count2
-import me.anno.utils.types.Strings.toDouble
+import me.anno.utils.types.AnyToDouble.getDouble
+import me.anno.utils.types.AnyToLong.getLong
 import me.anno.utils.types.Strings.toLong
 import java.io.InputStream
 
@@ -14,12 +16,12 @@ object OSMReaderV1 {
      * */
     fun readOSM1(input: InputStream, shallReadTags: Boolean = false, map: OSMap = OSMap()): OSMap {
 
-        val xml = XMLReader(input.reader()).read() as XMLNode
+        val xml = XMLReader(input.reader()).readXMLNode()!!
         val boundsNode = xml.children.first { it is XMLNode && it.type == "bounds" } as XMLNode
-        map.minLon = boundsNode["minlon"]!!.toDouble()
-        map.minLat = boundsNode["minlat"]!!.toDouble()
-        map.maxLon = boundsNode["maxlon"]!!.toDouble()
-        map.maxLat = boundsNode["maxlat"]!!.toDouble()
+        map.minLon = getDouble(boundsNode["minlon"])
+        map.minLat = getDouble(boundsNode["minlat"])
+        map.maxLon = getDouble(boundsNode["maxlon"])
+        map.maxLat = getDouble(boundsNode["maxlat"])
 
         val facX = map.lonScale
         val facY = map.latScale
@@ -30,7 +32,8 @@ object OSMReaderV1 {
             return if (count > 0) {
                 val tags = HashMap<String, String>(count)
                 for (tag in child.children) {
-                    if (tag !is XMLNode || tag.type != "tag") continue
+                    tag as? XMLNode ?: continue
+                    if (tag.type != "tag") continue
                     val k = tag["k"] ?: continue
                     val v = tag["v"] ?: continue
                     tags[k] = v
@@ -40,21 +43,24 @@ object OSMReaderV1 {
         }
 
         for (child in xml.children) {
-            if (child is XMLNode && child.type == "node") {
+            child as? XMLNode ?: continue
+            if (child.type == "node") {
                 val id = (child["id"] ?: continue).toLong()
-                val lat = (child["lat"]!!.toDouble() - map.minLat) * facY - 1.0
-                val lon = (child["lon"]!!.toDouble() - map.minLon) * facX - 1.0
+                val lat = (getDouble(child["lat"]) - map.minLat) * facY - 1.0
+                val lon = (getDouble(child["lon"]) - map.minLon) * facX - 1.0
                 map.nodes[id] = OSMNode(-lat.toFloat(), lon.toFloat(), readTags(child))
             }
         }
 
         for (child in xml.children) {
-            if (child is XMLNode && child.type == "way") {
+            child as? XMLNode ?: continue
+            if (child.type == "way") {
                 val id = (child["id"] ?: continue).toLong()
                 val nds = ArrayList<OSMNode>(child.children.count2 { it is XMLNode && it.type == "nd" })
                 for (nd in child.children) {
-                    if (nd is XMLNode && nd.type == "nd") {
-                        val node = map.nodes[nd["ref"]!!.toLong()]!!
+                    nd as? XMLNode ?: continue
+                    if (nd.type == "nd") {
+                        val node = map.nodes[getLong(nd["ref"])]!!
                         nds.add(node)
                         node.used = true
                     }
@@ -68,25 +74,26 @@ object OSMReaderV1 {
         }
 
         for (child in xml.children) {
-            if (child is XMLNode && child.type == "relation") {
+            child as? XMLNode ?: continue
+            if (child.type == "relation") {
                 val id = (child["id"] ?: continue).toLong()
                 val members = child.children.filterIsInstance<XMLNode>()
                     .filter { it.type == "member" }
                 map.relations[id] = OSMRelation(
                     members.filter { it["type"] == "way" }
-                        .groupBy { it["role"]!! }
+                        .groupBy { it["role"] as String }
                         .mapValues { m ->
                             m.value.mapNotNull {
-                                val element = map.ways[it["ref"]!!.toLong()]
+                                val element = map.ways[getLong(it["ref"])]
                                 element?.used = true
                                 element
                             }
                         },
                     members.filter { it["type"] == "node" }
-                        .groupBy { it["role"]!! }
+                        .groupBy { it["role"] as String }
                         .mapValues { m ->
                             m.value.mapNotNull {
-                                val element = map.nodes[it["ref"]!!.toLong()]
+                                val element = map.nodes[getLong(it["ref"])]
                                 element?.used = true
                                 element
                             }

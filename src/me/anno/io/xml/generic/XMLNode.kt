@@ -1,5 +1,11 @@
 package me.anno.io.xml.generic
 
+/**
+ * Separate from YAML and JSON, an XML node has a type and always has a children array, and limited attributes.
+ * Attributes can only contain String. Children are either Nodes or Strings, but keeping Strings separate is tricky.
+ *
+ * Because of that, when storing Prefabs as XML, the structure looks a little messy.
+ * */
 class XMLNode(var type: String) {
 
     val attributes: MutableMap<String, String> = LinkedHashMap()

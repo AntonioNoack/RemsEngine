@@ -16,7 +16,7 @@ object JsonFormatter {
         fun breakLine() {
             shouldSwitchLine = false
             result.append('\n')
-            for (j in 0 until depth) {
+            repeat(depth) {
                 result.append(indentation)
             }
             lineStartIndex = result.length

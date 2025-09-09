@@ -67,14 +67,14 @@ object OSMReaderV2 {
             return ((lon - minLon) * lonScale).toFloat()
         }
 
-        object : XMLScanner(file.reader()) {
+        object : XMLScanner {
             override fun onStart(depth: Int, type: CharSequence): Boolean {
                 return shallReadTags || type != "tag"
             }
 
             override fun onEnd(depth: Int, type: CharSequence) {
                 when (type) {
-                    "bounds" -> if (depth == 1) {
+                    "bounds" -> if (depth == 0) {
                         lonScale = map.lonScale
                         latScale = map.latScale
                         minLon = map.minLon
@@ -181,7 +181,7 @@ object OSMReaderV2 {
                     }
                 }
             }
-        }.scan()
+        }.scan(file.reader())
 
         println("loaded ${map.nodes.size} nodes + ${map.ways.size} ways + ${map.relations.size} relations")
 

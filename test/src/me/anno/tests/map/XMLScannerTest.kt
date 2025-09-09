@@ -23,7 +23,7 @@ class XMLScannerTest {
         val numOSMNodes = 2
         val expectedXMLNodes = numOSMNodes + 2 // +1 for osm, +1 for bounds
         var countedXMLNodes = 0
-        object : XMLScanner(source.reader()) {
+        object : XMLScanner {
             override fun onStart(depth: Int, type: CharSequence): Boolean {
                 println("Start($type@$depth)")
                 countedXMLNodes++
@@ -44,7 +44,7 @@ class XMLScannerTest {
             override fun onEnd(depth: Int, type: CharSequence) {
                 println("End($type@$depth)")
             }
-        }.scan()
+        }.scan(source.reader())
         assertEquals(expectedXMLNodes, countedXMLNodes)
     }
 }

@@ -1,5 +1,8 @@
 package me.anno.io.json.generic
 
+import me.anno.io.generic.GenericReader
+import me.anno.io.generic.GenericWriter
+import me.anno.io.generic.ObjectReader
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFail
@@ -14,7 +17,7 @@ import java.io.Reader
  * to avoid the import of FasterXML (17 MB) or similar, we create our own light-weight solution to reading JSON files;
  * this has no reflection support, so it is safe to use (except for OutOfMemoryError), but you have to implement the mapping yourself
  * */
-open class JsonReader(val data: Reader) {
+open class JsonReader(val data: Reader) : GenericReader {
 
     companion object {
         fun isHex(c: Char): Boolean {
@@ -38,7 +41,7 @@ open class JsonReader(val data: Reader) {
         }
     }
 
-    constructor(stream: InputStream): this(stream.reader())
+    constructor(stream: InputStream) : this(stream.reader())
     constructor(data: ByteArray) : this(ByteArrayInputStream(data))
     constructor(data: String) : this(data.reader())
 
@@ -153,7 +156,7 @@ open class JsonReader(val data: Reader) {
         }
     }
 
-    fun readNumber(): String {
+    fun readNumber(): CharSequence {
         return readNumber(type0).toString()
     }
 
@@ -179,25 +182,44 @@ open class JsonReader(val data: Reader) {
         }
     }
 
-    fun readObject(readOpeningBracket: Boolean = true, filter: ((String) -> Boolean)? = null): HashMap<String, Any?> {
-        if (readOpeningBracket) assertEquals(skipSpace(), '{')
-        var next = skipSpace()
-        val obj = LinkedHashMap<String, Any?>()
-        while (true) {
-            when (next) {
-                '}' -> return obj
-                '"' -> {
-                    val name = readString(false)
-                    assertEquals(skipSpace(), ':')
-                    if (filter == null || filter(name)) {
-                        obj[name] = readValue(skipSpace(), filter)
-                    } else skipValue()
-                    next = skipSpace()
+    fun readObject(readOpeningBracket: Boolean, writer: GenericWriter) {
+        if (writer.beginObject(null)) {
+            if (readOpeningBracket) assertEquals(skipSpace(), '{')
+            var next = skipSpace()
+            loop@ while (true) {
+                when (next) {
+                    '}' -> break@loop
+                    '"' -> {
+                        val name = readString(false)
+                        assertEquals(skipSpace(), ':')
+                        if (writer.attr(name)) {
+                            readValue(skipSpace(), writer)
+                        } else {
+                            writer.write(null)
+                            skipValue()
+                        }
+                        next = skipSpace()
+                    }
+                    ',' -> next = skipSpace()
+                    else -> assert(next, '}', '"')
                 }
-                ',' -> next = skipSpace()
-                else -> assert(next, '}', '"')
+            }
+        } else {
+            skipObject(readOpeningBracket)
+        }
+        writer.endObject()
+    }
+
+    fun readObject(filter: ((CharSequence) -> Boolean)? = null): HashMap<String, Any?> {
+        val reader = object : ObjectReader() {
+            override fun attr(tag: CharSequence): Boolean {
+                super.attr(tag)
+                return if (filter != null) filter(tag) else true
             }
         }
+        read(reader)
+        @Suppress("UNCHECKED_CAST")
+        return reader.result as HashMap<String, Any?>
     }
 
     fun skipObject(readOpeningBracket: Boolean = true) {
@@ -218,33 +240,39 @@ open class JsonReader(val data: Reader) {
         }
     }
 
-    fun readValue(next: Char, filter: ((String) -> Boolean)? = null): Any? {
-        return when (next) {
+    override fun read(writer: GenericWriter) {
+        readValue(skipSpace(), writer)
+    }
+
+    fun readValue(next: Char, writer: GenericWriter) {
+        when (next) {
             in '0'..'9', '.', '+', '-' -> {
                 putBack(next)
-                readNumber()
+                writer.write(readNumber(), isString = false)
             }
-            '"' -> readString(false)
-            '[' -> readArray(false)
-            '{' -> readObject(false, filter)
+            '"' -> {
+                writer.write(readString(false), isString = true)
+            }
+            '[' -> readArray(false, writer)
+            '{' -> readObject(false, writer)
             't', 'T' -> {
                 assert(next(), 'r', 'R')
                 assert(next(), 'u', 'U')
                 assert(next(), 'e', 'E')
-                true
+                writer.write(true)
             }
             'f', 'F' -> {
                 assert(next(), 'a', 'A')
                 assert(next(), 'l', 'L')
                 assert(next(), 's', 'S')
                 assert(next(), 'e', 'E')
-                false
+                writer.write(false)
             }
             'n', 'N' -> {
                 assert(next(), 'u', 'U')
                 assert(next(), 'l', 'L')
                 assert(next(), 'l', 'L')
-                null
+                writer.write(null)
             }
             else -> assertFail("Expected value, got $next")
         }
@@ -277,18 +305,29 @@ open class JsonReader(val data: Reader) {
         }
     }
 
-    fun readArray(readOpeningBracket: Boolean = true): ArrayList<Any?> {
-        if (readOpeningBracket) assertEquals(skipSpace(), '[')
-        var next = skipSpace()
-        val result = ArrayList<Any?>()
-        while (true) {
-            when (next) {
-                ']' -> return result
-                ',' -> {}
-                else -> result.add(readValue(next))
+    fun readArray(): ArrayList<Any?> {
+        val reader = ObjectReader()
+        read(reader)
+        @Suppress("UNCHECKED_CAST")
+        return reader.result as ArrayList<Any?>
+    }
+
+    fun readArray(readOpeningBracket: Boolean, writer: GenericWriter) {
+        if (writer.beginArray()) {
+            if (readOpeningBracket) assertEquals(skipSpace(), '[')
+            var next = skipSpace()
+            loop@ while (true) {
+                when (next) {
+                    ']' -> break@loop
+                    ',' -> {}
+                    else -> readValue(next, writer)
+                }
+                next = skipSpace()
             }
-            next = skipSpace()
+        } else {
+            skipArray(readOpeningBracket)
         }
+        writer.endArray()
     }
 
     fun skipArray(readOpeningBracket: Boolean = true) {

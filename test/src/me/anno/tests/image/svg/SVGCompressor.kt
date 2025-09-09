@@ -8,6 +8,7 @@ import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.maths.Maths.sq
 import me.anno.utils.OS.downloads
+import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Matrix3x2f
@@ -31,8 +32,8 @@ fun main() {
 
 fun compressSVG(src: FileReference, dst: FileReference) {
     val str = src.inputStreamSync().reader()
-    val svg = XMLReader(str).read() as XMLNode
-    val viewBox = svg["viewBox"]!!.split(' ').map { it.toFloat() }
+    val svg = XMLReader(str).readXMLNode()!!
+    val viewBox = (svg["viewBox"] as String).split(' ').map { it.toFloat() }
     val bld = ComparableStringBuilder(src.length().toInt())
     val dw = 999
     val dh = 999
@@ -125,7 +126,7 @@ fun compressSVG(src: FileReference, dst: FileReference) {
         bld.append(" d=\"")
         var x = 0f
         var y = 0f
-        readSVGPath(xml["d"]!!, { bld.append('z') }, { s, vi ->
+        readSVGPath(xml["d"] as String, { bld.append('z') }, { s, vi ->
             when (s) {
                 'H' -> { // absolute
                     val v = tr.ax(vi, 0f)
@@ -256,7 +257,7 @@ fun compressSVG(src: FileReference, dst: FileReference) {
         when ((xml as? XMLNode)?.type) {
             "path" -> appendPath(xml)
             "g" -> {
-                val trI = xml["transform"]
+                val trI = xml["transform"] as? String
                 val group = trI != null && trI.contains("rotate")
                 val attr = xml.attributes.any { it.key != "transform" } || group
                 if (group) {
@@ -281,25 +282,25 @@ fun compressSVG(src: FileReference, dst: FileReference) {
                 }
             }
             "polygon" -> {
-                val points = xml["points"]!!.split(' ')
-                    .filter { ',' in it }.map {
+                val points = (xml["points"] as String).split(' ')
+                    .filter { ',' in it }.joinToString(" ") {
                         val s = it.split(',')
                         val xi = s[0].toFloat()
                         val yi = s[1].toFloat()
                         "${tr.ax(xi, yi)},${tr.ay(xi, yi)}"
-                    }.joinToString(" ")
+                    }
                 bld.append("<polygon points=\"").append(points).append("\"")
                 attr(xml) { it != "points" }
                 bld.append("/>")
             }
             "rect" -> {
-                val rx = f(tr.rx(max(xml["rx"]?.toFloat() ?: 0f, 0f)))
-                val ry = f(tr.ry(max(xml["ry"]?.toFloat() ?: 0f, 0f)))
+                val rx = f(tr.rx(max(getFloat(xml["rx"]), 0f)))
+                val ry = f(tr.ry(max(getFloat(xml["ry"]), 0f)))
 
-                val x = f(tr.ax(xml["x"]?.toFloat() ?: 0f))
-                val y = f(tr.ay(xml["y"]?.toFloat() ?: 0f))
-                val w = f(tr.rx(xml["width"]!!.toFloat()))
-                val h = f(tr.ry(xml["height"]!!.toFloat()))
+                val x = f(tr.ax(getFloat(xml["x"])))
+                val y = f(tr.ay(getFloat(xml["y"])))
+                val w = f(tr.rx(getFloat(xml["width"])))
+                val h = f(tr.ry(getFloat(xml["height"])))
 
                 if (w > 0 && h > 0) {
                     bld.append("<rect x=\"$x\" y=\"$y\" width=\"$w\" height=\"$h\"")
@@ -315,10 +316,10 @@ fun compressSVG(src: FileReference, dst: FileReference) {
                 }
             }
             "circle" -> {
-                val r = f(abs(tr.rx(xml["r"]!!.toFloat())))
+                val r = f(abs(tr.rx(getFloat(xml["r"]))))
                 if (r > 0) {
-                    val cxi = xml["cx"]!!.toFloat()
-                    val cyi = xml["cy"]!!.toFloat()
+                    val cxi = getFloat(xml["cx"])
+                    val cyi = getFloat(xml["cy"])
                     val cx = f(tr.ax(cxi, cyi))
                     val cy = f(tr.ay(cxi, cyi))
                     bld.append("<circle cx=\"$cx\" cy=\"$cy\" r=\"$r\"")
@@ -332,11 +333,11 @@ fun compressSVG(src: FileReference, dst: FileReference) {
                 }
             }
             "ellipse" -> {
-                val rx = f(abs(tr.rx(xml["rx"]!!.toFloat())))
-                val ry = f(abs(tr.ry(xml["ry"]!!.toFloat())))
+                val rx = f(abs(tr.rx(getFloat(xml["rx"]))))
+                val ry = f(abs(tr.ry(getFloat(xml["ry"]))))
                 if (rx > 0 && ry > 0) {
-                    val cxi = xml["cx"]!!.toFloat()
-                    val cyi = xml["cy"]!!.toFloat()
+                    val cxi = getFloat(xml["cx"])
+                    val cyi = getFloat(xml["cy"])
                     val cx = f(tr.ax(cxi, cyi))
                     val cy = f(tr.ay(cxi, cyi))
                     bld.append("<ellipse cx=\"$cx\" cy=\"$cy\" rx=\"$rx\" ry=\"$ry\"")

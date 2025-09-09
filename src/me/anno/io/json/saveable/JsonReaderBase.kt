@@ -74,9 +74,9 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
     override fun readObject(): Saveable {
         assertEquals(skipSpace(), '"')
         val firstProperty = readString()
-        assertEquals(firstProperty, "class", "Expected first property to be 'class'")
-        assertEquals(skipSpace(), ':')
-        assertEquals(skipSpace(), '"')
+        assertEquals("class", firstProperty, "Expected first property to be 'class'")
+        assertEquals(':', skipSpace())
+        assertEquals('"', skipSpace())
         val clazz = readString()
         val nc0 = skipSpace()
         val obj = getNewClassInstance(clazz)

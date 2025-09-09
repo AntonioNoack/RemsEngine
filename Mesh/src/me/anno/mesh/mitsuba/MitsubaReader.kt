@@ -28,10 +28,11 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.algorithms.ForLoop.forLoop
+import me.anno.utils.types.AnyToFloat.getFloat
+import me.anno.utils.types.AnyToInt.getInt
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
@@ -201,7 +202,7 @@ object MitsubaReader {
 
         val folder = sceneMain.getParent()
 
-        val scene = XMLReader(inputStream.reader()).read() as XMLNode
+        val scene = XMLReader(inputStream.reader()).readXMLNode()!!
         if (scene.type != "scene") throw IOException("Wrong type: ${scene.type}")
 
         val byId = HashMap<String, XMLNode>()
@@ -211,13 +212,12 @@ object MitsubaReader {
 
         fun registerIds(node: XMLNode) {
             for (child in node.children) {
-                if (child is XMLNode) {
-                    if (child.type != "ref") {
-                        val id = child["id"]
-                        if (id != null) byId[id] = child
-                    }
-                    registerIds(child)
+                child as? XMLNode ?: continue
+                if (child.type != "ref") {
+                    val id = child["id"]
+                    if (id != null) byId[id] = child
                 }
+                registerIds(child)
             }
         }
         registerIds(scene)
@@ -240,15 +240,17 @@ object MitsubaReader {
                 }
             }
             for (child in node.children) {
-                if (child is XMLNode) regIds(child)
+                child as? XMLNode ?: continue
+                regIds(child)
             }
         }
         regIds(scene)
 
         fun resolveReferences(node: XMLNode) {
             var i = 0
-            while (i < node.children.size) {
-                val child = node.children[i++]
+            val children = node.children
+            while (i < children.size) {
+                val child = children[i++]
                 child as? XMLNode ?: continue
                 if (child.type == "ref") {
                     val resolved = byId[child["id"]]
@@ -278,7 +280,7 @@ object MitsubaReader {
         val materials = HashMap<String, FileReference>()
         fun regMaterials(node: XMLNode) {
             if (node.type == "bsdf") {
-                val id = node["id"]!!
+                val id = node["id"] as String
                 val self = if (node["type"] == "twosided") node.children.filterIsInstance<XMLNode>()
                     .firstOrNull { it.type == "bsdf" } ?: node else node
                 val material = Material()
@@ -319,7 +321,8 @@ object MitsubaReader {
                     // <rgb name="specularReflectance" value="0.59 0.59 0.59"/>
                     // metallic = |diffuse|/(|diffuse + specular|)
                     // exponent -> metallic
-                    val exponent0 = self.children.firstOrNull { it is XMLNode && it["name"] == "exponent" } as? XMLNode
+                    val exponent0 =
+                        self.children.firstOrNull { it is XMLNode && it["name"] == "exponent" } as? XMLNode
                     val specular0 =
                         self.children.firstOrNull { it is XMLNode && it["name"] == "specularReflectance" } as? XMLNode
                     val diffuse0 =
@@ -327,7 +330,7 @@ object MitsubaReader {
                     val exponent = exponent0?.get("value")
                     val specular = specular0?.get("value")
                     val diffuse = diffuse0?.get("value")
-                    val v = shininessToRoughness(exponent?.toFloatOrNull() ?: 50f)
+                    val v = shininessToRoughness(getFloat(exponent, 50f))
                     if (specular != null || diffuse != null) {
                         val spec = (if (specular != null) readColor(specular0.type, specular) else null) ?: Vector3f(0f)
                         val diff = (if (diffuse != null) readColor(diffuse0.type, diffuse) else null) ?: Vector3f(1f)
@@ -404,239 +407,233 @@ object MitsubaReader {
                 materials[id] = prefab2.sourceFile
             }
             for (child in node.children) {
-                if (child is XMLNode) regMaterials(child)
+                child as? XMLNode ?: continue
+                regMaterials(child)
             }
         }
         regMaterials(scene)
 
         for (child in scene.children) {
-            if (child is XMLNode) {
-                when (child.type) {
-                    "sensor" -> {
+            child as? XMLNode ?: continue
+            when (child.type) {
+                "sensor" -> {
 
-                        // <sensor type="perspective">
-                        //		<float name="farClip" value="100"/>
-                        //		<float name="focusDistance" value="6.20808"/>
-                        //		<float name="fov" value="57.2848"/>
-                        //		<string name="fovAxis" value="x"/>
-                        //		<float name="nearClip" value="0.1"/>
-                        //		<transform name="toWorld">
-                        //			<lookat target="-0.837797, -4.84986, 0.200282" origin="-0.905029, -5.8466, 0.244796" up="-0.00295064, 0.0448131, 0.998991"/>
-                        //		</transform>
-                        //
-                        //		<sampler type="independent">
-                        //			<integer name="sampleCount" value="32"/>
-                        //		</sampler>
-                        //
-                        //		<film type="multifilm">
-                        //			<integer name="height" value="576"/>
-                        //			<integer name="width" value="1024"/>
-                        //			<rfilter type="box"/>
-                        //		</film>
-                        //	</sensor>
+                    // <sensor type="perspective">
+                    //		<float name="farClip" value="100"/>
+                    //		<float name="focusDistance" value="6.20808"/>
+                    //		<float name="fov" value="57.2848"/>
+                    //		<string name="fovAxis" value="x"/>
+                    //		<float name="nearClip" value="0.1"/>
+                    //		<transform name="toWorld">
+                    //			<lookat target="-0.837797, -4.84986, 0.200282" origin="-0.905029, -5.8466, 0.244796" up="-0.00295064, 0.0448131, 0.998991"/>
+                    //		</transform>
+                    //
+                    //		<sampler type="independent">
+                    //			<integer name="sampleCount" value="32"/>
+                    //		</sampler>
+                    //
+                    //		<film type="multifilm">
+                    //			<integer name="height" value="576"/>
+                    //			<integer name="width" value="1024"/>
+                    //			<rfilter type="box"/>
+                    //		</film>
+                    //	</sensor>
 
-                        fun nodeToVec(txt: String?): Vector3f? {
-                            val v = txt?.split(',', ' ')?.mapNotNull { it.trim().toFloatOrNull() }
-                            return if (v != null && v.size == 3) Vector3f(v[0], v[1], v[2]) else null
-                        }
+                    fun nodeToVec(txt: String?): Vector3f? {
+                        val v = txt?.split(',', ' ')?.mapNotNull { it.trim().toFloatOrNull() }
+                        return if (v != null && v.size == 3) Vector3f(v[0], v[1], v[2]) else null
+                    }
 
-                        // rotate world such that +y = up
-                        // only works correctly, if there is a single camera
-                        val transform = child.children.filterIsInstance<XMLNode>()
-                            .firstOrNull { it.type == "transform" && it["name"] == "toWorld" }
-                        val lookAt = transform?.children?.filterIsInstance<XMLNode>()
-                            ?.firstOrNull { it.type == "lookat" }
-                        if (lookAt != null) {
-                            val up = nodeToVec(lookAt["up"])
-                            if (up != null) {
-                                up.normalize()
-                                when {
-                                    // is x ever up?
-                                    abs(up.y) > 0.9f && up.y < 0f ->
-                                        prefab["rotation"] = Quaterniond().rotateX(PI)
-                                    abs(up.z) > 0.9f ->
-                                        prefab["rotation"] = Quaterniond().rotateX(-sign(up.z) * PI / 2.0)
-                                }
+                    // rotate world such that +y = up
+                    // only works correctly, if there is a single camera
+                    val transform = child.children.filterIsInstance<XMLNode>()
+                        .firstOrNull { it.type == "transform" && it["name"] == "toWorld" }
+                    val lookAt = transform?.children?.filterIsInstance<XMLNode>()
+                        ?.firstOrNull { it.type == "lookat" }
+                    if (lookAt != null) {
+                        val up = nodeToVec(lookAt["up"])
+                        if (up != null) {
+                            up.normalize()
+                            when {
+                                // is x ever up?
+                                abs(up.y) > 0.9f && up.y < 0f ->
+                                    prefab["rotation"] = Quaterniond().rotateX(PI)
+                                abs(up.z) > 0.9f ->
+                                    prefab["rotation"] = Quaterniond().rotateX(-sign(up.z) * PI / 2.0)
                             }
                         }
+                    }
 
-                        // add camera to scene
-                        val cameraEntity = prefab.add(Path.ROOT_PATH, 'e', "Entity", child["id"] ?: createId(child))
-                        val camera = prefab.add(cameraEntity, 'c', "Camera", "Camera")
+                    // add camera to scene
+                    val camId = child["id"] ?: createId(child)
+                    val cameraEntity = prefab.add(Path.ROOT_PATH, 'e', "Entity", camId)
+                    val camera = prefab.add(cameraEntity, 'c', "Camera", "Camera")
 
-                        if (lookAt != null) {
-                            val origin = nodeToVec(lookAt["origin"])
-                            if (origin != null) {
-                                prefab[cameraEntity, "position"] = Vector3d(origin)
-                                val target = nodeToVec(lookAt["target"])
-                                if (target != null) {
-                                    val up = nodeToVec(lookAt["up"]) ?: Vector3f(0f, 1f, 0f)
-                                    prefab[cameraEntity, "rotation"] =
-                                        Quaterniond(Quaternionf().lookAlong(target.sub(origin), up))
-                                }
+                    if (lookAt != null) {
+                        val origin = nodeToVec(lookAt["origin"])
+                        if (origin != null) {
+                            prefab[cameraEntity, "position"] = Vector3d(origin)
+                            val target = nodeToVec(lookAt["target"])
+                            if (target != null) {
+                                val up = nodeToVec(lookAt["up"]) ?: Vector3f(0f, 1f, 0f)
+                                prefab[cameraEntity, "rotation"] =
+                                    Quaterniond(Quaternionf().lookAlong(target.sub(origin), up))
                             }
                         }
+                    }
 
-                        for (data in child.children) {
-                            data as? XMLNode ?: continue
-                            val value = data["value"]
-                            val float = value?.toFloatOrNull()
-                            when (data["name"]) {
-                                "farClip" -> if (float != null) prefab[camera, "far"] = float.toDouble()
-                                "nearClip" -> if (float != null) prefab[camera, "near"] = float.toDouble()
-                                "fov" -> {
-                                    if (float != null) {
-                                        val xAxis = child.children.filterIsInstance<XMLNode>()
-                                            .any { it["name"] == "fovAxis" && it["value"] == "x" }
-                                        if (xAxis) {
-                                            // <film type="multifilm">
-                                            //	 <integer name="height" value="576"/>
-                                            //	 <integer name="width" value="1024"/>
-                                            //	 <rfilter type="box"/>
-                                            // </film>
-                                            val film = child.children.filterIsInstance<XMLNode>()
-                                                .firstOrNull { it.type == "film" }
-                                            if (film != null) {
-                                                var width = 1f
-                                                var height = 1f
-                                                for (value1 in film.children) {
-                                                    if (value1 is XMLNode && value1["value"] != null) {
-                                                        when (value1["name"]) {
-                                                            "width" -> width = value1["value"]?.toFloatOrNull() ?: width
-                                                            "height" -> height =
-                                                                value1["value"]?.toFloatOrNull() ?: height
-                                                        }
-                                                    }
+                    for (data in child.children) {
+                        data as? XMLNode ?: continue
+                        val value = data["value"]
+                        val float = value?.toFloatOrNull() ?: continue
+                        when (data["name"]) {
+                            "farClip" -> prefab[camera, "far"] = float.toDouble()
+                            "nearClip" -> prefab[camera, "near"] = float.toDouble()
+                            "fov" -> {
+                                val xAxis = child.children.filterIsInstance<XMLNode>()
+                                    .any { it["name"] == "fovAxis" && it["value"] == "x" }
+                                if (xAxis) {
+                                    // <film type="multifilm">
+                                    //	 <integer name="height" value="576"/>
+                                    //	 <integer name="width" value="1024"/>
+                                    //	 <rfilter type="box"/>
+                                    // </film>
+                                    val film = child.children.filterIsInstance<XMLNode>()
+                                        .firstOrNull { it.type == "film" }
+                                    if (film != null) {
+                                        var width = 1f
+                                        var height = 1f
+                                        for (value1 in film.children) {
+                                            value1 as? XMLNode ?: continue
+                                            if (value1["value"] != null) {
+                                                when (value1["name"]) {
+                                                    "width" -> width = getFloat(value1["value"], width)
+                                                    "height" -> height = getFloat(value1["value"], height)
                                                 }
-                                                val valueY = tan(atan(float.toRadians() / 2f) * height / width) * 2f
-                                                prefab[camera, "fovY"] = valueY.toDegrees()
-                                            }
-                                        } else {
-                                            prefab[camera, "fovY"] = float
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    "shape" -> {
-
-                        // todo support emitters -> add lights somehow
-                        // <shape type="serialized" id="Lamp1Luminaire-mesh_0">
-                        //		<string name="filename" value="bidir.serialized"/>
-                        //		<integer name="shapeIndex" value="7"/>
-                        //		<transform name="toWorld">
-                        //			<matrix value="0.199416 1.29956e-07 -5.68055e-15 -1.77091 0 -8.71675e-09 -0.199416 1.00249 -1.29956e-07 0.199416 -8.71675e-09 1.00405 0 0 0 1"/>
-                        //		</transform>
-                        //
-                        //		<ref name="bsdf" id="Luminaire1Material"/>
-                        //
-                        //		<emitter type="area" id="Lamp1Luminaire-emission">
-                        //			<rgb name="radiance" value="500.000000 500.000000 500.000000"/>
-                        //			<float name="samplingWeight" value="1.000000"/>
-                        //		</emitter>
-                        //	</shape>
-
-                        // read shape / open it to the scene tree :)
-                        var meshRef: FileReference = InvalidRef
-                        when (val type = child.attributes["type"]) {
-                            "sphere" -> {
-                                // spawn sphere
-                                meshRef = UVSphereModel.sphereMesh.ref
-                            }
-                            "serialized" -> {
-                                // read/reference serialized mesh
-                                // <string name="filename" value="sponza.serialized"/>
-                                // <integer name="shapeIndex" value="7"/>
-                                var file = ""
-                                var index = 0
-                                for (v in child.children) {
-                                    if (v is XMLNode) {
-                                        when (v["name"]) {
-                                            "filename" -> file = v["value"] ?: file
-                                            "shapeIndex", "shape_index" -> index = v["value"].toIntOrDefault(index)
-                                        }
-                                    }
-                                }
-                                if (file.isNotBlank2()) {
-                                    meshRef = folder.getChild(file).getChild("$index.json")
-                                }
-                            }
-                            "obj" -> {
-                                var file = ""
-                                for (v in child.children) {
-                                    if (v is XMLNode && v["name"] == "filename") {
-                                        file = v["value"] ?: file
-                                    }
-                                }
-                                if (file.isNotBlank2()) {
-                                    meshRef = folder.getChild(file)
-                                }
-                            }
-                            else -> LOGGER.warn("Unknown mesh type: $type")
-                        }
-                        /*<transform name="toWorld">
-                            <matrix value="1 0 0 0.00724 0 1 1.39626e-07 0.093312 0 -1.39626e-07 1 0.00149 0 0 0 1"/>
-                        </transform>*/
-                        val matrix = Matrix4x3f()
-                        val transformNode = child.children.filterIsInstance<XMLNode>().firstOrNull {
-                            it.type == "transform" &&
-                                    it["name"] == "toWorld"
-                        }
-                        if (transformNode != null) {
-                            for (node in transformNode.children) {
-                                if (node is XMLNode) {
-                                    when (node.type) {
-                                        "matrix" -> {
-                                            val value = node["value"] ?: continue
-                                            val v = value.split(' ')
-                                                .filter { it.isNotBlank2() }
-                                                .map { it.trim().toFloat() }
-                                            if (v.size == 16) {
-                                                matrix.set(
-                                                    v[0], v[4], v[8],
-                                                    v[1], v[5], v[9],
-                                                    v[2], v[6], v[10],
-                                                    v[3], v[7], v[11]
-                                                )
                                             }
                                         }
-                                        "translate" -> {
-                                            matrix.translate(
-                                                node["x"]?.toFloatOrNull() ?: 0f,
-                                                node["y"]?.toFloatOrNull() ?: 0f,
-                                                node["z"]?.toFloatOrNull() ?: 0f
-                                            )
-                                        }
-                                        "scale" -> {
-                                            matrix.scale(
-                                                node["x"]?.toFloatOrNull() ?: 1f,
-                                                node["y"]?.toFloatOrNull() ?: 1f,
-                                                node["z"]?.toFloatOrNull() ?: 1f
-                                            )
-                                        }
+                                        val valueY = tan(atan(float.toRadians() / 2f) * height / width) * 2f
+                                        prefab[camera, "fovY"] = valueY.toDegrees()
                                     }
+                                } else {
+                                    prefab[camera, "fovY"] = float
                                 }
                             }
                         }
+                    }
+                }
+                "shape" -> {
 
-                        val material = child.children.filterIsInstance<XMLNode>()
-                            .firstOrNull { it.type == "bsdf" }
+                    // todo support emitters -> add lights somehow
+                    // <shape type="serialized" id="Lamp1Luminaire-mesh_0">
+                    //		<string name="filename" value="bidir.serialized"/>
+                    //		<integer name="shapeIndex" value="7"/>
+                    //		<transform name="toWorld">
+                    //			<matrix value="0.199416 1.29956e-07 -5.68055e-15 -1.77091 0 -8.71675e-09 -0.199416 1.00249 -1.29956e-07 0.199416 -8.71675e-09 1.00405 0 0 0 1"/>
+                    //		</transform>
+                    //
+                    //		<ref name="bsdf" id="Luminaire1Material"/>
+                    //
+                    //		<emitter type="area" id="Lamp1Luminaire-emission">
+                    //			<rgb name="radiance" value="500.000000 500.000000 500.000000"/>
+                    //			<float name="samplingWeight" value="1.000000"/>
+                    //		</emitter>
+                    //	</shape>
 
-                        val entity = prefab.add(Path.ROOT_PATH, 'e', "Entity", child["id"]!!)
-                        prefab[entity, "position"] = Vector3d(matrix.getTranslation(Vector3f()))
-                        prefab[entity, "rotation"] = Quaterniond(matrix.getUnnormalizedRotation(Quaternionf()))
-                        prefab[entity, "scale"] = Vector3d(matrix.getScale(Vector3f()))
-
-                        val mesh = prefab.add(entity, 'c', "MeshComponent", "Mesh")
-                        prefab[mesh, "meshFile"] = meshRef
-                        if (material != null) {
-                            prefab[mesh, "materials"] = listOf(materials[material["id"]!!])
+                    // read shape / open it to the scene tree :)
+                    var meshRef: FileReference = InvalidRef
+                    when (val type = child["type"]) {
+                        "sphere" -> {
+                            // spawn sphere
+                            meshRef = UVSphereModel.sphereMesh.ref
+                        }
+                        "serialized" -> {
+                            // read/reference serialized mesh
+                            // <string name="filename" value="sponza.serialized"/>
+                            // <integer name="shapeIndex" value="7"/>
+                            var file = ""
+                            var index = 0
+                            for (v in child.children) {
+                                v as? XMLNode ?: continue
+                                when (v["name"]) {
+                                    "filename" -> file = v["value"] ?: file
+                                    "shapeIndex", "shape_index" -> index = getInt(v["value"], index)
+                                }
+                            }
+                            if (file.isNotBlank2()) {
+                                meshRef = folder.getChild(file).getChild("$index.json")
+                            }
+                        }
+                        "obj" -> {
+                            var file = ""
+                            for (v in child.children) {
+                                v as? XMLNode ?: continue
+                                if (v["name"] == "filename") {
+                                    file = v["value"] ?: file
+                                }
+                            }
+                            if (file.isNotBlank2()) {
+                                meshRef = folder.getChild(file)
+                            }
+                        }
+                        else -> LOGGER.warn("Unknown mesh type: $type")
+                    }
+                    /*<transform name="toWorld">
+                        <matrix value="1 0 0 0.00724 0 1 1.39626e-07 0.093312 0 -1.39626e-07 1 0.00149 0 0 0 1"/>
+                    </transform>*/
+                    val matrix = Matrix4x3f()
+                    val transformNode = child.children.filterIsInstance<XMLNode>().firstOrNull {
+                        it.type == "transform" &&
+                                it["name"] == "toWorld"
+                    }
+                    if (transformNode != null) {
+                        for (node in transformNode.children) {
+                            node as? XMLNode ?: continue
+                            when (node.type) {
+                                "matrix" -> {
+                                    val value = node["value"] ?: continue
+                                    val v = value.split(' ')
+                                        .filter { it.isNotBlank2() }
+                                        .map { it.trim().toFloat() }
+                                    if (v.size == 16) {
+                                        matrix.set(
+                                            v[0], v[4], v[8],
+                                            v[1], v[5], v[9],
+                                            v[2], v[6], v[10],
+                                            v[3], v[7], v[11]
+                                        )
+                                    }
+                                }
+                                "translate" -> matrix.translate(
+                                    getFloat(node["x"]),
+                                    getFloat(node["y"]),
+                                    getFloat(node["z"])
+                                )
+                                "scale" -> matrix.scale(
+                                    getFloat(node["x"], 1f),
+                                    getFloat(node["y"], 1f),
+                                    getFloat(node["z"], 1f)
+                                )
+                            }
                         }
                     }
-                    "integrator" -> {
-                        // some general settings...
+
+                    val material = child.children.filterIsInstance<XMLNode>()
+                        .firstOrNull { it.type == "bsdf" }
+
+                    val entity = prefab.add(Path.ROOT_PATH, 'e', "Entity", child["id"] as String)
+                    prefab[entity, "position"] = Vector3d(matrix.getTranslation(Vector3f()))
+                    prefab[entity, "rotation"] = Quaterniond(matrix.getUnnormalizedRotation(Quaternionf()))
+                    prefab[entity, "scale"] = Vector3d(matrix.getScale(Vector3f()))
+
+                    val mesh = prefab.add(entity, 'c', "MeshComponent", "Mesh")
+                    prefab[mesh, "meshFile"] = meshRef
+                    if (material != null) {
+                        prefab[mesh, "materials"] = listOf(materials[material["id"]!!])
                     }
+                }
+                "integrator" -> {
+                    // some general settings...
                 }
             }
         }

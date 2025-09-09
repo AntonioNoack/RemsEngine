@@ -19,7 +19,7 @@ class IdeaModule(val project: IdeaProject) {
 
         fun loadModule(project: IdeaProject, source: InputStream): IdeaModule {
             val root = source.use {
-                XMLReader(it.reader()).read() as XMLNode
+                XMLReader(it.reader()).readXMLNode()!!
             }
             assertEquals("module", root.type)
             val modManager = root.children
@@ -31,8 +31,8 @@ class IdeaModule(val project: IdeaProject) {
             val result = IdeaModule(project)
             for (entry in orderEntries) {
                 when (entry["type"]) {
-                    "library" -> result.libraryDependencies.add(entry["name"]!!)
-                    "module" -> result.moduleDependencies.add(entry["module-name"]!!)
+                    "library" -> result.libraryDependencies.add(entry["name"] as String)
+                    "module" -> result.moduleDependencies.add(entry["module-name"] as String)
                 }
             }
             return result

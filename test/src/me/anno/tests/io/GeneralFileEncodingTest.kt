@@ -95,7 +95,7 @@ class GeneralFileEncodingTest {
 
         val bytes = encoding.encode(listOf(srcPrefab), workspace)
         val tmpFile = InnerTmpByteFile(bytes, encoding.extension)
-        println("Wrote ${bytes.decodeToString()}")
+        println("Wrote '${bytes.decodeToString()}'")
         assertTrue(tmpFile.exists)
 
         val signature = SignatureCache[tmpFile].waitFor()?.name

@@ -27,6 +27,7 @@ import me.anno.utils.async.Callback
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.add
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.isBlank2
@@ -132,12 +133,12 @@ class SVGMesh {
                 }
                 "g" -> {
                     val transform2 = child["transform"]
-                    if (transform2 != null) {
+                    if (transform2 is String) {
                         transform.pushMatrix()
                         applyTransform(transform, transform2)
                     }
                     parseChildren(child.children, child)
-                    if (transform2 != null) {
+                    if (transform2 is String) {
                         transform.popMatrix()
                     }
                 }
@@ -146,7 +147,7 @@ class SVGMesh {
                 }
                 "lineargradient" -> {
                     val id = child["id"]
-                    if (id != null) {
+                    if (id is String) {
                         /**
                         Example:
                         <linearGradient id="x" gradientUnits="userSpaceOnUse" x1="62.2648" y1="50.1708" x2="62.2648" y2="8.5885" gradientTransform="matrix(1 0 0 -1 0 128)">
@@ -165,23 +166,19 @@ class SVGMesh {
                 }
                 "radialgradient" -> {
                     val id = child["id"]
-                    if (id != null) {
+                    if (id is String) {
                         styles[id] = RadialGradient(this, child)
                     }
                 }
                 "style" -> {
                     val id = child["id"]
-                    when (val type = child["type"]?.lowercase()) {
+                    when (val type = (child["type"])?.lowercase()) {
                         "text/css" -> {
                             val content = child.children.filterIsInstance<String>().joinToString("\n")
                             CSSReader.read(this, content)
                         }
-                        null, "" -> {
-                            if (id != null) styles[id] = SVGStyle(this, child)
-                        }
-                        else -> {
-                            LOGGER.warn("Unknown style type $type")
-                        }
+                        null, "" -> if (id is String) styles[id] = SVGStyle(this, child)
+                        else -> LOGGER.warn("Unknown style type $type")
                     }
                 }
                 "metadata" -> {
@@ -480,7 +477,8 @@ class SVGMesh {
         val style = xml["style"]
         if (style != null) {
             val properties = style.split(';')
-            SimpleYAMLReader.read(properties.iterator(), false, xml.attributes)
+            @Suppress("UNCHECKED_CAST")
+            SimpleYAMLReader.read(properties.iterator(), false, xml as HashMap<String, String>)
         }
         val id = xml["id"]
         if (id != null) {
@@ -523,8 +521,8 @@ class SVGMesh {
 
     fun addLine(xml: XMLNode, style: SVGStyle, fill: Boolean) {
         init(style, fill)
-        moveTo(xml["x1"]!!.toFloat(), xml["y1"]!!.toFloat())
-        lineTo(xml["x2"]!!.toFloat(), xml["y2"]!!.toFloat())
+        moveTo(getFloat(xml["x1"]), getFloat(xml["y1"]))
+        lineTo(getFloat(xml["x2"]), getFloat(xml["y2"]))
         endElement()
     }
 
@@ -654,7 +652,7 @@ class SVGMesh {
     }
 
     fun addPolylineBody(xml: XMLNode) {
-        val data = xml["points"]!!
+        val data = xml["points"] as String
 
         var i = 0
         fun read(): Float {
@@ -745,7 +743,10 @@ class SVGMesh {
 
     fun addEllipse(xml: XMLNode, style: SVGStyle, fill: Boolean) {
         init(style, fill)
-        addSimpleEllipse(xml["cx"]!!.toFloat(), xml["cy"]!!.toFloat(), xml["rx"]!!.toFloat(), xml["ry"]!!.toFloat())
+        addSimpleEllipse(
+            getFloat(xml["cx"]), getFloat(xml["cy"]),
+            getFloat(xml["rx"]), getFloat(xml["ry"])
+        )
         endElement()
     }
 
@@ -765,13 +766,13 @@ class SVGMesh {
 
         init(style, fill)
 
-        val rx = max(xml["rx"]?.toFloat() ?: 0f, 0f)
-        val ry = max(xml["ry"]?.toFloat() ?: 0f, 0f)
+        val rx = max(getFloat(xml["rx"]), 0f)
+        val ry = max(getFloat(xml["ry"]), 0f)
 
-        val x = xml["x"]?.toFloat() ?: 0f
-        val y = xml["y"]?.toFloat() ?: 0f
-        val w = xml["width"]!!.toFloat()
-        val h = xml["height"]!!.toFloat()
+        val x = getFloat(xml["x"])
+        val y = getFloat(xml["y"])
+        val w = getFloat(xml["width"])
+        val h = getFloat(xml["height"])
 
         val curveSteps = max(rx, ry).roundToIntOr(2)
 
@@ -822,9 +823,9 @@ class SVGMesh {
 
     fun addCircle(xml: XMLNode, style: SVGStyle, fill: Boolean) {
         init(style, fill)
-        val r = xml["r"]!!.toFloat()
-        val cx = xml["cx"]!!.toFloat()
-        val cy = xml["cy"]!!.toFloat()
+        val r = getFloat(xml["r"])
+        val cx = getFloat(xml["cx"])
+        val cy = getFloat(xml["cy"])
         addSimpleEllipse(cx, cy, r, r)
         endElement()
     }
@@ -945,7 +946,7 @@ class SVGMesh {
             file.inputStream { str, exc ->
                 if (str != null) {
                     val svg = SVGMesh()
-                    svg.parse(XMLReader(str.reader()).read() as XMLNode)
+                    svg.parse(XMLReader(str.reader()).readXMLNode()!!)
                     val mesh = svg.mesh // may be null if the parsing failed / the svg is blank
                     if (mesh != null) {
                         val folder = InnerFolder(file)

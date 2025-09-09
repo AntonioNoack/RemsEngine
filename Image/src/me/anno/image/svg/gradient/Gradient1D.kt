@@ -187,8 +187,8 @@ open class Gradient1D {
         val stops = tmpStops
         hasStops = false
         for (index in stops.indices) {
-            val stop = stops[index]
-            if (stop is XMLNode && stop.type.equals("stop", true)) {
+            val stop = stops[index] as? XMLNode ?: continue
+            if (stop.type.equals("stop", true)) {
 
                 var colorStr = stop["stop-color"]
                 var opacityStr = stop["stop-opacity"]
@@ -206,7 +206,7 @@ open class Gradient1D {
                     }
 
                     val style = stop["style"]
-                    if (style != null) {
+                    if (style is String) {
                         val (c0, o0) = style.styleParseColor2()
                         if (c0 != null) colorStr = c0
                         if (o0 != null) opacityStr = o0

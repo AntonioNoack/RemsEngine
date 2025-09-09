@@ -9,10 +9,12 @@ import java.io.BufferedReader
 
 /**
  * todo: replace our existing YAMLReader with this one in all places
+ *
+ * todo replace this logic by a GenericReader
  * */
 object YAMLReaderV2 {
 
-    private val LOGGER = LogManager.getLogger(YAMLReader::class)
+    private val LOGGER = LogManager.getLogger(YAMLReaderV2::class)
 
     /**
      * reads the yaml file
@@ -32,8 +34,7 @@ object YAMLReaderV2 {
         }
 
         fun startList(depth: Int) {
-            val parent = findParent(depth)
-            when (parent) {
+            when (val parent = findParent(depth)) {
                 is HashMap<*, *> -> {
                     @Suppress("UNCHECKED_CAST")
                     parent as HashMap<String, Any>
@@ -59,8 +60,7 @@ object YAMLReaderV2 {
         }
 
         fun addProperty(depth: Int, key: String, value: Any) {
-            val parent = findParent(depth)
-            when (parent) {
+            when (val parent = findParent(depth)) {
                 is HashMap<*, *> -> {
                     @Suppress("UNCHECKED_CAST")
                     parent as HashMap<String, Any>
@@ -79,8 +79,7 @@ object YAMLReaderV2 {
         }
 
         fun addValue(depth: Int, value: Any) {
-            val parent = findParent(depth)
-            when (parent) {
+            when (val parent = findParent(depth)) {
                 is HashMap<*, *> -> {
                     @Suppress("UNCHECKED_CAST")
                     parent as HashMap<String, Any>
@@ -124,13 +123,12 @@ object YAMLReaderV2 {
                     value.substring(1, value.length - 1)
                 }
                 value.startsWith('"') -> {
-                    // todo unescape things
                     while (!value.endsWith('"')) {
                         // the line was too long, and unity introduced a line wrap...
                         // I have no idea, whether that is legal in YAML...
                         value += reader.readLine()?.trim() ?: break
                     }
-                    value.substring(1, value.length - 1)
+                    JsonReader(value).readString()
                 }
                 value == "" -> LinkedHashMap<String, Any>()
                 else -> value
@@ -159,7 +157,9 @@ object YAMLReaderV2 {
                     trimmed = trimmed.substring(2)
                 }
 
-                if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+                if (trimmed.startsWith('[') || trimmed.startsWith('{') ||
+                    trimmed.startsWith('"')
+                ) {
                     addValue(depth, parseValue(trimmed))
                 } else {
                     // process the line

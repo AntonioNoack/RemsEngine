@@ -33,6 +33,10 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerFile
+import me.anno.io.generic.GenericWriter.Companion.writeArray
+import me.anno.io.generic.GenericWriter.Companion.writeArrayByIndices
+import me.anno.io.generic.GenericWriter.Companion.writeArrayIndexed
+import me.anno.io.generic.GenericWriter.Companion.writeObject
 import me.anno.io.json.generic.JsonWriter
 import me.anno.io.saveable.Saveable
 import me.anno.maths.Maths.clamp
@@ -63,8 +67,8 @@ import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Vectors.toLinear
 import me.anno.utils.types.Ranges.size
+import me.anno.utils.types.Vectors.toLinear
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4x3f
@@ -73,8 +77,8 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
-import speiger.primitivecollections.UniqueValueIndexMap
 import speiger.primitivecollections.ObjectToIntHashMap
+import speiger.primitivecollections.UniqueValueIndexMap
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import kotlin.math.atan
@@ -100,9 +104,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     var maxNumBackPaths = 0
 
     private fun copyRaw(value: String) {
-        // raw copy
-        next()
-        output.write(value)
+        write(value, isString = false)
     }
 
     private val textures = UniqueValueIndexMap<IntPair>(-1) // source, sampler
@@ -209,7 +211,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         }
     }
 
-    private fun <K> writeArray(name: String, map: UniqueValueIndexMap<K>, write: (K) -> Unit) {
+    private fun <K> writeArray2(name: String, map: UniqueValueIndexMap<K>, write: (K) -> Unit) {
         if (map.isNotEmpty()) {
             attr(name)
             writeArray {
@@ -572,7 +574,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
 
     private fun attr(key: String, value: String) {
         attr(key)
-        write(value)
+        write(value, true)
     }
 
     private fun writeMesh(data: MeshData) {
@@ -935,7 +937,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
 
     private fun writeLights() {
         writeObject {
-            writeArray("lights", lights, ::writeLight)
+            writeArray2("lights", lights, ::writeLight)
         }
     }
 
@@ -958,7 +960,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                 else -> "?"
             }
             attr("type")
-            write(type)
+            write(type, true)
             when (light) {
                 is SpotLight -> {
                     attr("outerConeAngle")
@@ -1058,7 +1060,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         }
     }
 
-    fun <V> writeArray(name: String, elements: List<V>, writeElement: (V) -> Unit) {
+    fun <V> writeArray2(name: String, elements: List<V>, writeElement: (V) -> Unit) {
         if (elements.isNotEmpty()) {
             attr(name)
             writeArray(elements, writeElement)
@@ -1080,16 +1082,16 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             writeScenes()
             attr("nodes")
             writeArrayIndexed(nodes, ::writeNode)
-            writeArray("cameras", cameras, ::writeCamera)
-            writeArray("meshes", meshes, ::writeMesh)
-            writeArray("materials", materials, ::writeMaterial)
-            writeArray("textures", textures, ::writeTexture)
-            writeArray("samplers", samplers, ::writeSampler)
-            writeArray("skins", skins, ::writeSkin)
-            writeArray("animations", animations, ::writeAnimation)
-            writeArray("images", images, ::writeImage)
-            writeArray("accessors", accessors, ::writeAccessor)
-            writeArray("bufferViews", bufferViews, ::writeBufferView)
+            writeArray2("cameras", cameras, ::writeCamera)
+            writeArray2("meshes", meshes, ::writeMesh)
+            writeArray2("materials", materials, ::writeMaterial)
+            writeArray2("textures", textures, ::writeTexture)
+            writeArray2("samplers", samplers, ::writeSampler)
+            writeArray2("skins", skins, ::writeSkin)
+            writeArray2("animations", animations, ::writeAnimation)
+            writeArray2("images", images, ::writeImage)
+            writeArray2("accessors", accessors, ::writeAccessor)
+            writeArray2("bufferViews", bufferViews, ::writeBufferView)
             writeBuffers()
             writeExtensions()
         }

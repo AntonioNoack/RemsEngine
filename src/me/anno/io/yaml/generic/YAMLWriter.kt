@@ -3,18 +3,24 @@ package me.anno.io.yaml.generic
 import me.anno.io.json.generic.JsonFormatter
 
 object YAMLWriter {
-    fun StringBuilder.appendYAML(yaml: Any): String {
+
+    private fun StringBuilder.indent(depth: Int) {
         val inset = "  "
+        if (!isEmpty()) {
+            if (endsWith(' ')) setLength(length - 1)
+            append('\n')
+        }
+        repeat(depth) { append(inset) }
+    }
+
+    fun StringBuilder.appendYAML(yaml: Any): String {
         fun write(value: Any?, depth: Int, isInList: Boolean) {
             when (value) {
                 is Map<*, *> -> {
                     if (value.isNotEmpty()) {
                         var first = true
                         for ((key, value) in value) {
-                            if (!isInList || !first) {
-                                append('\n')
-                                for (j in 0 until depth) append(inset)
-                            }
+                            if (!isInList || !first) indent(depth)
                             append(key.toString()).append(": ")
                             write(value, depth + 1, false)
                             first = false
@@ -33,10 +39,7 @@ object YAMLWriter {
                         append("]")
                     } else {
                         for (i in value.indices) {
-                            if (!isInList || i > 0) {
-                                append('\n')
-                                for (j in 0 until depth) append(inset)
-                            }
+                            if (!isInList || i > 0) indent(depth)
                             append("- ")
                             write(value[i], depth + 1, true)
                         }

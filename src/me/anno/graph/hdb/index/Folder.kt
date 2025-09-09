@@ -12,6 +12,6 @@ class Folder(var name: String) {
     var storageFile: StorageFile? = null
 
     override fun toString(): String {
-        return "Folder@${hash32(this)}($name) { files: $files, children: $children, sf: ${storageFile?.index ?: -1} }"
+        return "Folder@${hash32(this)}($name) { files: #${files.size}, children: $children, sf: ${storageFile?.index ?: -1} }"
     }
 }

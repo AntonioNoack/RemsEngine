@@ -172,6 +172,28 @@ fun assertContentEquals(expected: DoubleArray?, actual: DoubleArray?, message: S
     assertEquals(expected, actual, message)
 }
 
+fun assertContentEquals(
+    expected: FloatArray?, actual: FloatArray?, absoluteThreshold: Float,
+    message: String = "expected equal values"
+) {
+    if (expected?.size != actual?.size) throw IllegalStateException(message)
+    if (expected == null || actual == null) return
+    for (i in expected.indices) {
+        assertEquals(expected[i], actual[i], absoluteThreshold, message)
+    }
+}
+
+fun assertContentEquals(
+    expected: DoubleArray?, actual: DoubleArray?, absoluteThreshold: Double,
+    message: String = "expected equal values"
+) {
+    if (expected?.size != actual?.size) throw IllegalStateException(message)
+    if (expected == null || actual == null) return
+    for (i in expected.indices) {
+        assertEquals(expected[i], actual[i], absoluteThreshold, message)
+    }
+}
+
 fun <V> assertContentEquals(expected: List<V>, actual: List<V>, message: String = "expected equal values") {
     assertEquals(expected, actual, message)
 }

@@ -2,7 +2,7 @@ package me.anno.image.svg.gradient
 
 import me.anno.image.svg.SVGMesh
 import me.anno.io.xml.generic.XMLNode
-import me.anno.parser.SimpleExpressionParser
+import me.anno.utils.types.AnyToFloat.getFloat
 import org.joml.Vector2f
 
 class LinearGradient(mesh: SVGMesh, xmlNode: XMLNode) : Gradient1D(xmlNode) {
@@ -12,13 +12,8 @@ class LinearGradient(mesh: SVGMesh, xmlNode: XMLNode) : Gradient1D(xmlNode) {
     }
 
     // gradient vector
-    val p0 = Vector2f(parseFloat(xmlNode["x1"], 0f), parseFloat(xmlNode["y1"], 0f))
-    val p1 = Vector2f(parseFloat(xmlNode["x2"], 1f), parseFloat(xmlNode["y2"], 0f))
-
-    private fun parseFloat(str: String?, default: Float): Float {
-        if (str == null) return default
-        return SimpleExpressionParser.parseDouble(str)?.toFloat() ?: default
-    }
+    val p0 = Vector2f(getFloat(xmlNode["x1"], 0f), getFloat(xmlNode["y1"], 0f))
+    val p1 = Vector2f(getFloat(xmlNode["x2"], 1f), getFloat(xmlNode["y2"], 0f))
 
     override fun fillFormula(formula: Formula) {
         val lengthSq = p1.distanceSquared(p0)
@@ -35,5 +30,4 @@ class LinearGradient(mesh: SVGMesh, xmlNode: XMLNode) : Gradient1D(xmlNode) {
     }
 
     override fun toString(): String = "LinearGradient($p0 $p1)"
-
 }

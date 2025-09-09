@@ -21,10 +21,10 @@ object XML2JSON {
         val node = XMLNode(name)
         when (json) {
             is List<*> -> {
-                node.attributes["isList"] = "1"
+                node["isList"] = "1"
                 for (i in json.indices) {
                     val child = toXML(LIST_ITEM_CLASS, json[i])
-                    val clazz = child.attributes["class"]
+                    val clazz = child["class"]
                     if (clazz != null) {
                         child.type = clazz
                         child.attributes.remove("class")
@@ -42,7 +42,7 @@ object XML2JSON {
                     if (ks == "i.*ptr") ks = "ptr"
                     val type = getType(k0)
                     if (isSimpleType(type) && isSmall(v)) {
-                        node.attributes[ks] = if (v is Number || v is String || v is Boolean) v.toString()
+                        node[ks] = if (v is Number || v is String || v is Boolean) v.toString()
                         else smallString(type, v)
                     } else {
                         node.children.add(toXML(ks, v))

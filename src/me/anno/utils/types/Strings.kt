@@ -327,7 +327,7 @@ object Strings {
     }
 
     @JvmStatic
-    fun writeEscaped(value: String, data: Writer, quotes: Char) {
+    fun writeEscaped(value: CharSequence, data: Writer, quotes: Char) {
         for (index in value.indices) {
             val char = value[index]
             val esc = getEscapeChar(char, quotes)
@@ -341,7 +341,7 @@ object Strings {
     }
 
     @JvmStatic
-    fun writeEscaped(value: String, data: JsonWriterBase, quotes: Char) {
+    fun writeEscaped(value: CharSequence, data: JsonWriterBase, quotes: Char) {
         for (index in value.indices) {
             val char = value[index]
             val esc = getEscapeChar(char, quotes)

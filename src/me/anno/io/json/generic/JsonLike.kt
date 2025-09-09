@@ -38,14 +38,14 @@ object JsonLike {
 
     fun xmlBytesToJsonLike(bytes: ByteArray): Any {
         val str = bytes.inputStream().reader()
-        val node = XMLReader(str).read() as XMLNode
+        val node = XMLReader(str).readXMLNode()!!
         assertEquals(MAIN_NODE_NAME, node.type)
         return XML2JSON.fromXML(node)
     }
 
     fun jsonToYAML(json: String): String {
         val jsonNode = JsonReader(json).readArray()
-        return yamlToString(jsonNode)
+        return yamlToString(mapOf(MAIN_NODE_NAME to jsonNode))
     }
 
     fun jsonToXML(json: String, pretty: Boolean): String {

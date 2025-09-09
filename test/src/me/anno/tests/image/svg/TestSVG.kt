@@ -1,7 +1,6 @@
 package me.anno.tests.image.svg
 
 import me.anno.image.svg.SVGMesh
-import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.OS.downloads
 import org.apache.logging.log4j.LogManager
@@ -25,10 +24,10 @@ fun main() {
 }
 
 fun testSVG(text: String) {
-    SVGMesh().parse(XMLReader(text.reader()).read() as XMLNode)
+    SVGMesh().parse(XMLReader(text.reader()).readXMLNode()!!)
 }
 
 fun testXML(text: String) {
     val logger = LogManager.getLogger("TestXML")
-    logger.info(XMLReader(text.reader()).read())
+    logger.info(XMLReader(text.reader()).readXMLNode())
 }

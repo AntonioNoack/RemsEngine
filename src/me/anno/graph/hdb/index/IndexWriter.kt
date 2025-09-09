@@ -1,5 +1,7 @@
 package me.anno.graph.hdb.index
 
+import me.anno.io.generic.GenericWriter.Companion.writeArray
+import me.anno.io.generic.GenericWriter.Companion.writeObject
 import me.anno.io.json.generic.JsonWriter
 import me.anno.utils.InternalAPI
 import me.anno.utils.types.Ranges.size
