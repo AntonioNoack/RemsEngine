@@ -115,15 +115,17 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
         super.onGameLoop(window, w, h)
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         try {
             // if we inspect/edit another prefab currently, we need to save that!
             PrefabInspector.currentInspector?.save()
             // save scene
             ECSSceneTabs.currentTab?.save()
+            return true
         } catch (e: Exception) {
             e.printStackTrace()
             Menu.msg(NameDesc(e.toString()))
+            return false
         }
     }
 
@@ -270,8 +272,11 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
         ActionManager.init()
     }
 
-    override fun openHistory() {
-        PrefabInspector.currentInspector?.history?.display()
+    override fun openHistory(): Boolean {
+        val inspector = PrefabInspector.currentInspector
+            ?: return false
+        inspector.history.display()
+        return true
     }
 
     companion object {

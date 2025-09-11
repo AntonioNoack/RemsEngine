@@ -89,9 +89,8 @@ abstract class EngineBase(
     open fun onGameInit() {}
     open fun onGameClose() {}
 
-    open fun openHistory() {}
-
-    open fun save() {}
+    open fun openHistory(): Boolean = false
+    open fun save(): Boolean = false
 
     open fun getDefaultFileLocation(): FileReference = InvalidRef
 

@@ -18,7 +18,7 @@ object BakeMesh {
     ): BooleanArray {
         val isSolid = BooleanArray(model.size)
         val outsideIsSolid1 = outsideIsSolid ?: GetBlockId { _, _, _ -> 0 }
-        val needsFace1 = needsFace ?: NeedsFace { a, b -> a != 0 && b == 0 }
+        val needsFace1 = needsFace ?: NeedsFace { inside, outside -> inside != 0 && outside == 0 }
         InsideOutsideIterator.forAllBlocks(
             model, blockSide,
             fillSolid(model, blockSide, insideIsSolid, insideIsSolid, needsFace1, isSolid),
@@ -73,9 +73,6 @@ object BakeMesh {
         }
     }
 
-    /**
-     * returns the ratio of removed blocks
-     * */
     fun bakeMesh(
         model: VoxelModel,
         blockSide: BlockSide,

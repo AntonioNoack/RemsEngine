@@ -32,7 +32,6 @@ import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
-import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -538,14 +537,14 @@ object Input {
         dragged = null
     }
 
-    fun copy(window: OSWindow) {
+    fun copy(window: OSWindow): Boolean {
         val mouseX = window.mouseX
         val mouseY = window.mouseY
         val ws = window.windowStack
         val inFocus = ws.inFocus
-        val inFocus0 = ws.inFocus0 ?: return
+        val inFocus0 = ws.inFocus0 ?: return false
         when (inFocus.size) {
-            0 -> return // should not happen
+            0 -> return false // should not happen
             1 -> {
                 val value = inFocus0.onCopyRequested(mouseX, mouseY)
                 if (value is List<*> && value.isNotEmpty() && value.all { it is FileReference }) {
@@ -553,8 +552,13 @@ object Input {
                 } else setClipboardContent(value?.toString())
             }
             else -> {
-                val parentValue = inFocus0.getMultiSelectablePanel()?.onCopyRequested(mouseX, mouseY)
-                if (parentValue != null) return setClipboardContent(parentValue.toString())
+                val parentValue = inFocus0.getMultiSelectablePanel()
+                    ?.onCopyRequested(mouseX, mouseY)
+                if (parentValue != null) {
+                    setClipboardContent(parentValue.toString())
+                    return true
+                }
+
                 // combine them into an array
                 fun defaultCopy() {
                     // create very simple, stupid array of values as strings
@@ -600,6 +604,7 @@ object Input {
                 }
             }
         }
+        return true
     }
 
     fun copy(window: OSWindow, panel: Panel) {
@@ -608,24 +613,33 @@ object Input {
         setClipboardContent(panel.onCopyRequested(mouseX, mouseY)?.toString())
     }
 
-    fun paste(window: OSWindow, panel: Panel? = window.windowStack.inFocus0) {
-        if (panel == null) return
-        val data = getClipboardContent() ?: return
+    fun paste(window: OSWindow, panel: Panel? = window.windowStack.inFocus0): Boolean {
+        if (panel == null) return false
+        val data = getClipboardContent() ?: return false
         when {
-            data is String -> panel.onPaste(window.mouseX, window.mouseY, data, "")
+            data is String -> {
+                panel.onPaste(window.mouseX, window.mouseY, data, "")
+                return true
+            }
             data is List<*> && data.firstOrNull() is FileReference -> {
                 panel.onPasteFiles(window.mouseX, window.mouseY, data.filterIsInstance<FileReference>())
+                return true
             }
-            else -> LOGGER.warn("Unsupported paste-type: ${data::class}")
+            else -> {
+                LOGGER.warn("Unsupported paste-type: ${data::class}")
+                return false
+            }
         }
     }
 
-    fun empty(window: OSWindow) {
+    fun empty(window: OSWindow): Boolean {
         // LOGGER.info("[Input] emptying, $inFocus0, ${inFocus0?.javaClass}")
-        window.windowStack.inFocus0?.onEmpty(window.mouseX, window.mouseY)
+        val focus = window.windowStack.inFocus0 ?: return false
+        focus.onEmpty(window.mouseX, window.mouseY)
+        return true
     }
 
-    fun import() {
+    fun import(): Boolean {
         if (lastFile == InvalidRef) lastFile = instance!!.getDefaultFileLocation()
         FileChooser.selectFiles(
             NameDesc("Import Files"), allowFiles = true,
@@ -638,6 +652,7 @@ object Input {
                 instance?.importFile(fileRef)
             }
         }
+        return true
     }
 
     fun isKeyDown(key: Key): Boolean {

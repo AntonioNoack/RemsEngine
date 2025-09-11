@@ -27,7 +27,7 @@ object EngineActions {
 
     fun register() {
 
-        val actions = listOf(
+        val actions = listOf<Pair<String, () -> Boolean>>(
             "ToggleFullscreen" to { GFX.focusedWindow?.toggleFullscreen(); true },
             "PrintLayout" to { printLayout();true },
             "PrintDictDefaults" to { Dict.printDefaults();true },
@@ -38,38 +38,21 @@ object EngineActions {
             },
             "Redo" to { PrefabInspector.currentInspector?.history?.redo() ?: false },
             "Undo" to { PrefabInspector.currentInspector?.history?.undo() ?: false },
-            "Save" to {
-                EngineBase.instance?.save()
-                true
-            },
-            "Paste" to {
-                Input.paste(GFX.someWindow)
-                true
-            },
-            "Copy" to {
-                Input.copy(GFX.someWindow)
-                true
-            },
+            "Save" to { EngineBase.instance?.save() ?: false },
+            "Paste" to { Input.paste(GFX.someWindow) },
+            "Copy" to { Input.copy(GFX.someWindow) },
             "Duplicate" to {
                 val window = GFX.someWindow
                 Input.copy(window)
                 Input.paste(window)
-                true
             },
             "Cut" to {
                 val window = GFX.someWindow
                 Input.copy(window)
                 Input.empty(window)
-                true
             },
-            "Import" to {
-                Input.import()
-                true
-            },
-            "OpenHistory" to {
-                EngineBase.instance?.openHistory()
-                true
-            },
+            "Import" to { Input.import() },
+            "OpenHistory" to { EngineBase.instance?.openHistory() ?: false },
             "SelectAll" to {
                 val ws = GFX.someWindow.windowStack
                 val inFocus0 = ws.inFocus0

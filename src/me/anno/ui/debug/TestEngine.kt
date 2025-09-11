@@ -41,12 +41,14 @@ open class TestEngine(nameDesc: NameDesc, val createMainPanel: () -> List<Panel>
         super.onGameLoop(window, w, h)
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         try {
             ECSSceneTabs.currentTab?.save()
+            return true
         } catch (e: Exception) {
             e.printStackTrace()
             Menu.msg(GFX.someWindow.windowStack, NameDesc(e.toString()))
+            return false
         }
     }
 
