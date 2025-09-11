@@ -57,7 +57,7 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
                 for (ti in 1 until other.splits.size) {
                     val t0 = other.splits[ti - 1]
                     val t1 = other.splits[ti]
-                    val st = rayRayClosestTs(s0, s1 - s0, t0, t1 - t0)
+                    val st = rayRayClosestTs(s0, s1 - s0, t0, t1 - t0, Vector2d())
                     val sx = clamp(st.x)
                     val tx = clamp(st.y)
                     val sv = s0.mix(s1, sx, Vector3d())
@@ -138,7 +138,7 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
     }
 
     fun distanceToRay(pos: Vector3d, dir: Vector3d, a: Vector3d, b: Vector3d): DistanceHit {
-        val ts = rayRayClosestTs(pos, dir, a, b - a)
+        val ts = rayRayClosestTs(pos, dir, a, b - a, Vector2d())
         val closest0 = pos + dir * max(ts.x, 0.0)
         val closest1 = a.mix(b, clamp(ts.y), Vector3d())
         return DistanceHit(closest0.distance(closest1), ts.y)
