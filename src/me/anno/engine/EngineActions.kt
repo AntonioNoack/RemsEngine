@@ -29,8 +29,8 @@ object EngineActions {
 
         val actions = listOf<Pair<String, () -> Boolean>>(
             "ToggleFullscreen" to { GFX.focusedWindow?.toggleFullscreen(); true },
-            "PrintLayout" to { printLayout();true },
-            "PrintDictDefaults" to { Dict.printDefaults();true },
+            "PrintLayout" to { printLayout(); true },
+            "PrintDictDefaults" to { Dict.printDefaults(); true },
             "DragEnd" to ::dragEnd,
             "ClearCache" to {
                 EngineBase.instance?.clearAll()
@@ -43,13 +43,11 @@ object EngineActions {
             "Copy" to { Input.copy(GFX.someWindow) },
             "Duplicate" to {
                 val window = GFX.someWindow
-                Input.copy(window)
-                Input.paste(window)
+                Input.copy(window) && Input.paste(window)
             },
             "Cut" to {
                 val window = GFX.someWindow
-                Input.copy(window)
-                Input.empty(window)
+                Input.copy(window) && Input.empty(window)
             },
             "Import" to { Input.import() },
             "OpenHistory" to { EngineBase.instance?.openHistory() ?: false },
