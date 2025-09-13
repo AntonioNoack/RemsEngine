@@ -5,6 +5,21 @@ import me.anno.utils.structures.arrays.IntArrayList
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * History implementation using toString-(de)serialization.
+ *
+ * Copied from History.kt:
+ * Use this class in the following way:
+ * Firstly, once you create a History instance, you should push the initial state into it.
+ * Then on every change, first apply your change, then push that changed state into the History instance.
+ *
+ * Override the 'apply()'-function to deserialize/use the given curr-state, and apply it to your scene, e.g., render that one going forward.
+ * For key presses, handle Redo and Undo, and lead them into this instance.
+ * If you're using Entities/Prefabs, Control+Z/Y may be captured by global actions before you could get them.
+ * You can override them using ActionManager.registerGlobalAction.
+ *
+ * The maximum number of stored states is by default 512. You can change Companion.maxChanged to adjust that.
+ * */
 abstract class StringHistory : History<String>("") {
 
     override fun getTitle(v: String): String {

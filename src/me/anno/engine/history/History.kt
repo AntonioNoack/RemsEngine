@@ -11,14 +11,38 @@ import org.apache.logging.log4j.LogManager
 import java.util.LinkedList
 import kotlin.math.max
 
+/**
+ * Use this class in the following way:
+ * Firstly, once you create a History instance, you should push the initial state into it.
+ * Then on every change, first apply your change, then push that changed state into the History instance.
+ *
+ * Override the 'apply()'-function to deserialize/use the given curr-state, and apply it to your scene, e.g., render that one going forward.
+ * For key presses, handle Redo and Undo, and lead them into this instance.
+ * If you're using Entities/Prefabs, Control+Z/Y may be captured by global actions before you could get them.
+ * You can override them using ActionManager.registerGlobalAction.
+ *
+ * The maximum number of stored states is by default 512. You can change Companion.maxChanged to adjust that.
+ * */
 abstract class History<V : Any>(startState: V) : Saveable() {
 
+    /**
+     * Deserialize/use the given curr-state, and apply it to your scene, e.g., render that one going forward.
+     * */
     abstract fun apply(prev: V, curr: V)
+
+    /**
+     * What to show for each item in the History-Panel (Control+H).
+     * */
     abstract fun getTitle(v: V): String
+
+    /**
+     * Check whether v is a valid state instance.
+     * (Important after deserialization)
+     * */
     abstract fun filter(v: Any?): V?
 
     var currentState: V = startState
-    var nextInsertIndex = 0
+    var nextInsertIndex: Int = 0
         set(value) {
             field = max(value, 0)
         }
@@ -29,15 +53,24 @@ abstract class History<V : Any>(startState: V) : Saveable() {
 
     val numStates get() = states.size
 
+    /**
+     * Removes the first states until targetSize has been reached.
+     * Most times, this will do nothing or just pop one element.
+     * */
     fun clearToSize(targetSize: Int = maxChanged) {
         synchronized(states) {
-            while (states.size > targetSize && targetSize > 0) {
-                states.removeFirst()
-                nextInsertIndex--
+            val toRemove = states.size - targetSize
+            if (toRemove > 0) {
+                states.subList(0, toRemove).clear()
+                nextInsertIndex -= toRemove
             }
         }
     }
 
+    /**
+     * Push the initial state or any new state.
+     * This function returns the index if you want to jump back to this state using redo(index).
+     * */
     fun put(change: V): Int {
         return synchronized(states) {
             states.add(change)
@@ -47,11 +80,18 @@ abstract class History<V : Any>(startState: V) : Saveable() {
         }
     }
 
+    /**
+     * Mark the next state as #nextInsertIndex.
+     * Apply any changes and set the current state.
+     * */
     fun nextState(nextInsertIndex: Int) {
         this.nextInsertIndex = nextInsertIndex
         nextState()
     }
 
+    /**
+     * Apply any changes and set the current state.
+     * */
     fun nextState() {
         val oldState = currentState
         val newState = states[nextInsertIndex - 1]
@@ -59,6 +99,10 @@ abstract class History<V : Any>(startState: V) : Saveable() {
         currentState = newState
     }
 
+    /**
+     * Go forward one step. Only possible after first undoing something.
+     * Returns whether that was possible.
+     * */
     fun redo(): Boolean {
         return synchronized(states) {
             if (nextInsertIndex < states.size) {
@@ -71,6 +115,9 @@ abstract class History<V : Any>(startState: V) : Saveable() {
         }
     }
 
+    /**
+     * Go back one step. Returns whether that was possible.
+     * */
     fun undo(delta: Int = 1): Boolean {
         if (delta <= 0) return false
         return synchronized(states) {
@@ -85,7 +132,7 @@ abstract class History<V : Any>(startState: V) : Saveable() {
         }
     }
 
-    private fun redo(index: Int) {
+    fun redo(index: Int) {
         if (index !in states.indices) return
         nextState(index + 1)
     }
