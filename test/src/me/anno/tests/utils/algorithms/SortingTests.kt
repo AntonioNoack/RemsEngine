@@ -10,9 +10,14 @@ class SortingTests {
     @Test
     fun testSorting() {
         val random = Random(1324)
-        val sorted = (0 until 100).toList()
-        val shuffled = sorted.shuffled(random)
-        assertNotEquals(sorted, shuffled)
-        assertEquals(sorted, shuffled.sorted2())
+        for (n in listOf(0, 1, 2, 5, 10, 100, 500)) {
+            val sorted = (0 until n).toList()
+            val shuffled = if (n < 5) sorted.reversed() else sorted.shuffled(random)
+            if (n > 1) assertNotEquals(sorted, shuffled)
+            println("shuffled: $shuffled")
+            val sorted2 = shuffled.sorted2()
+            println("sorted: $sorted2")
+            assertEquals(sorted, sorted2)
+        }
     }
 }

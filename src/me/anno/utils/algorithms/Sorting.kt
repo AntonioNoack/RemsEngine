@@ -23,48 +23,7 @@ object Sorting {
     }
 
     fun <V> MutableList<V>.sortWith2(from: Int, to: Int, comparator: Comparator<V>) {
-        if (to - from < 12) {
-            slowSort(from, to, comparator)
-        } else {
-            // could be made non-recursive, but that would need allocations....
-            val middle = (from + to) ushr 1
-            sortWith2(from, middle, comparator)
-            sortWith2(middle, to, comparator)
-            merge(from, middle, to, comparator)
-        }
+        MutableListSortable(this, comparator).sortWith2(from, to)
     }
 
-    private fun <V> MutableList<V>.merge(from: Int, middle: Int, to: Int, comparator: Comparator<V>) {
-        var fromI = from
-        var pivot = middle
-        @Suppress("ConvertTwoComparisonsToRangeCheck")
-        while (fromI < pivot && pivot < to) {
-            if (comparator.compare(get(fromI), get(pivot)) <= 0) {
-                fromI++
-            } else {
-                val tmp: V = get(pivot)
-                var k: Int = pivot
-                while (k > fromI) {
-                    set(k, get(k - 1))
-                    k--
-                }
-                set(fromI, tmp)
-                fromI++
-                pivot++
-            }
-        }
-    }
-
-    private fun <V> MutableList<V>.slowSort(from: Int, to: Int, comparator: Comparator<V>) {
-        for (i in from until to - 1) {
-            for (j in i + 1 until to) {
-                val vi = get(i)
-                val vj = get(j)
-                if (comparator.compare(vi, vj) > 0) {
-                    set(i, vj)
-                    set(j, vi)
-                }
-            }
-        }
-    }
 }
