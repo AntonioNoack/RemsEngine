@@ -41,9 +41,6 @@ class ConvexHulls {
 
     /**
      * Converts point cloud to polygonal representation.
-     *
-     * @param desc describes the input request
-     * @return conversion result
      */
     private fun createConvexHullImpl(
         vertices: List<Vector3d>,
@@ -53,8 +50,7 @@ class ConvexHulls {
 
         // normalize point cloud, remove duplicates, restore!
         // originally was O(n²), now is O(n log n) (Java HashMap becomes O(n log n) if over capacity)
-        val cleanVertices = cleanupVertices(vertices, normalEpsilon)
-        if (cleanVertices == null) return null
+        val cleanVertices = cleanupVertices(vertices, normalEpsilon) ?: return null
 
         val ok = calculateConvexHull(cleanVertices, maxNumVertices)
         if (!ok) return null
