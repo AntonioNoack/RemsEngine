@@ -10,7 +10,5 @@ abstract class InnerTmpAudioFile : InnerTmpFile("mp3"), AudioReadable {
         callback.err(IOException("Audio encoding not yet implemented"))
     }
 
-    override fun length(): Long {
-        return 100_000L // just a guess
-    }
+    override fun length(): Long = 100_000L // just a guess
 }

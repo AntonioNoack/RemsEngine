@@ -21,13 +21,13 @@ object ImageWriterImpl {
     private val LOGGER = LogManager.getLogger(ImageWriterImpl::class)
     fun writeImage(image: Image, output: OutputStream, format: String, quality: Float) {
 
-        if (format.equals("hdr", true) && image is IFloatImage && image.numChannels == 3) {
+        if (format.equals("hdr", true) && image is IFloatImage && image.numChannels in 1..3) {
             Image.writeHDR(image, output)
             return
         }
 
         val tryJPG = isLossyFormat(format)
-        val bImage = image.createBufferedImage(!tryJPG)
+        val bImage = image.createBufferedImage(image.hasAlphaChannel && !tryJPG)
         if (tryJPG && tryWritingJPG(bImage, output, quality)) {
             return
         }

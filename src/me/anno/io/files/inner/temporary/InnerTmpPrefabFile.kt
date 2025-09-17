@@ -30,9 +30,7 @@ class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json")
     val text by lazy { JsonStringWriter.toText(prefab, InvalidRef) }
     val bytes by lazy { text.encodeToByteArray() }
 
-    override fun length(): Long {
-        return 100_000L // just a guess
-    }
+    override fun length(): Long = 100_000L // just a guess
 
     override fun isSerializedFolder(callback: Callback<Boolean>) = callback.ok(false)
     override fun listChildren(callback: Callback<List<FileReference>>) = callback.ok(emptyList())
@@ -49,7 +47,5 @@ class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json")
         callback.ok(bytes.inputStream())
     }
 
-    override fun readPrefab(): Prefab {
-        return prefab
-    }
+    override fun readPrefab(): Prefab = prefab
 }

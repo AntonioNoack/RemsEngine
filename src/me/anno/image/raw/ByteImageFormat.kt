@@ -3,6 +3,7 @@ package me.anno.image.raw
 import me.anno.utils.Color.a
 import me.anno.utils.Color.argb
 import me.anno.utils.Color.b
+import me.anno.utils.Color.black
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgb
@@ -26,7 +27,8 @@ enum class ByteImageFormat(val numChannels: Int) {
 
     fun fromBytes(src: ByteArray, i: Int, hasAlphaChannel: Boolean): Int {
         return when (this) {
-            R -> src[i].toInt().and(255) * 0x10101
+            // alpha-channel is just here for consistency; technically not needed, because Image.hasAlphaChannel = false
+            R -> (src[i].toInt().and(255) * 0x10101) or black
             RG -> rgb(src[i], src[i + 1], 0)
             RGB -> rgb(src[i], src[i + 1], src[i + 2])
             BGR -> rgb(src[i + 2], src[i + 1], src[i])

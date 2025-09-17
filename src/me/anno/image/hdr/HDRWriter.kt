@@ -11,9 +11,20 @@ import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.pow
 
+/**
+ * Writes .hdr file format with three channels.
+ * Supports writing one to three channels (R/RG/RGB) properly.
+ * If there are more channels (RGBA), they will be ignored, because the file format doesn't support it.
+ *
+ * This simple implementation always uses RLE compression.
+ * */
 object HDRWriter {
 
-    fun writeHDR(w: Int, h: Int, stride: Int, pixels: FloatArray, out: OutputStream) {
+    fun writeHDR(
+        w: Int, h: Int,
+        offset: Int, stride: Int, numSrcChannels: Int,
+        pixels: FloatArray, out: OutputStream
+    ) {
         writeHDRHeader(w, h, out)
         val rowBytes = ByteArray(4 * (w + 2)) // +2 for faster RLE (no bounds checks needed), 4x for RGBE
         for (y in 0 until h) {
@@ -22,7 +33,7 @@ object HDRWriter {
             out.write(2)
             // "checksum"
             out.writeBE16(w)
-            convertFloatsToBytes(w, y * stride, pixels, rowBytes)
+            convertFloatsToBytes(w, offset + y * stride, numSrcChannels, pixels, rowBytes)
             rleEncodeBytes(w, rowBytes, out)
         }
     }
@@ -38,13 +49,13 @@ object HDRWriter {
         out.write('\n'.code)
     }
 
-    private fun convertFloatsToBytes(w: Int, srcI0: Int, pixels: FloatArray, rowBytes: ByteArray) {
+    private fun convertFloatsToBytes(w: Int, srcI0: Int, numSrcChannels: Int, pixels: FloatArray, rowBytes: ByteArray) {
         for (x in 0 until w) {
-            val srcI = srcI0 + x * 3
+            val srcI = srcI0 + x * numSrcChannels
             val dstI = x shl 2
             val r0 = pixels[srcI]
-            val g0 = pixels[srcI + 1]
-            val b0 = pixels[srcI + 2]
+            val g0 = if (numSrcChannels > 1) pixels[srcI + 1] else r0
+            val b0 = if (numSrcChannels > 2) pixels[srcI + 2] else r0
             val max = max(max(r0, g0), b0)
             if (max > 0) {
                 // Math.pow(2, exp - 128 - 8)
@@ -58,9 +69,14 @@ object HDRWriter {
                 rowBytes[dstI + 1] = Maths.clamp(g, 0, 255).toByte()
                 rowBytes[dstI + 2] = Maths.clamp(b, 0, 255).toByte()
                 rowBytes[dstI + 3] = (exp0 + 128f).toIntOr().toByte()
+            } else {
+                // else just zeros; exponent could be the same as the old value,
+                // but zero is rare probably anyway
+                rowBytes[dstI] = 0
+                rowBytes[dstI + 1] = 0
+                rowBytes[dstI + 2] = 0
+                rowBytes[dstI + 3] = 0
             }
-            // else just zeros; exponent could be the same as the old value,
-            // but zero is rare probably anyway
         }
     }
 

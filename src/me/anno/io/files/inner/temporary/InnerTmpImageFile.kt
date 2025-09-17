@@ -16,9 +16,7 @@ class InnerTmpImageFile(val image: Image, ext: String = "png") : InnerTmpFile(ex
         bos.toByteArray()
     }
 
-    override fun length(): Long {
-        return image.sizeGuess()
-    }
+    override fun length(): Long = image.sizeGuess()
 
     override fun isSerializedFolder(callback: Callback<Boolean>) = callback.ok(false)
     override fun listChildren(callback: Callback<List<FileReference>>) = callback.ok(emptyList())

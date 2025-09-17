@@ -42,8 +42,13 @@ object RenderDoc {
             // at least this is the default location for RenderDoc
             if (getReference(path).exists) {
                 LOGGER.info("Loading RenderDoc")
-                System.load(path)
-                WindowManagement.usesRenderDoc = true
+                try {
+                    System.load(path)
+                    WindowManagement.usesRenderDoc = true
+                    LOGGER.info("Successfully loaded RenderDoc from '$path'")
+                } catch (e: Throwable) {
+                    LOGGER.warn("Failed loading RenderDoc", e)
+                }
             } else LOGGER.warn("Did not find RenderDoc, searched '$path'")
         } catch (e: Exception) {
             LOGGER.warn("Could not initialize RenderDoc")

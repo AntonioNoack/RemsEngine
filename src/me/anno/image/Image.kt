@@ -254,10 +254,11 @@ abstract class Image(
         }
 
         fun writeHDR(image: Image, output: OutputStream) {
-            if (image is IFloatImage && image.numChannels >= 3) {
+            if (image is IFloatImage && image.numChannels in 1..3) {
                 val floatImage = image.toFloatImage(false)
                 HDRWriter.writeHDR(
-                    floatImage.width, floatImage.height, floatImage.stride,
+                    floatImage.width, floatImage.height,
+                    floatImage.offset, floatImage.stride, floatImage.numChannels,
                     floatImage.data, output
                 )
             } else {
