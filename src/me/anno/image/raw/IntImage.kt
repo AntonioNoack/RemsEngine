@@ -3,7 +3,7 @@ package me.anno.image.raw
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.Color.black
 import me.anno.utils.async.Callback
 import me.anno.utils.pooling.Pools

@@ -1,6 +1,6 @@
 package me.anno.utils
 
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.Color.a

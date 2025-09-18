@@ -17,7 +17,7 @@ import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.Clock
 import me.anno.utils.Logging.hash32
 import me.anno.utils.pooling.ByteBufferPool

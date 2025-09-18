@@ -8,7 +8,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.Style

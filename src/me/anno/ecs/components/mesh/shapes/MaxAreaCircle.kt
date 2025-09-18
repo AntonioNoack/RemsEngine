@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh.shapes
 
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.posMod
 import me.anno.utils.assertions.assertTrue
 

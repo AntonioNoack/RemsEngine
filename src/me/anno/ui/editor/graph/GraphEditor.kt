@@ -11,8 +11,6 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.saveable.SaveableArray
-import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu
@@ -22,6 +20,7 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
 import org.joml.Vector2f
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, style) {
@@ -110,7 +109,8 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
                 }
             }
         }
-        Menu.openMenu(windowStack,
+        Menu.openMenu(
+            windowStack,
             candidates.map { (sample, newNodeGenerator) ->
                 MenuOption(sample.nameDesc) {
                     // place node at mouse position
@@ -156,8 +156,8 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
         val y0 = start.y.toInt()
         val x1 = window.mouseXi
         val y1 = window.mouseYi
-        return Maths.max(x0, x1) >= child.x &&
-                Maths.max(y0, y1) >= child.y &&
+        return max(x0, x1) >= child.x &&
+                max(y0, y1) >= child.y &&
                 min(x0, x1) <= child.x + child.width &&
                 min(y0, y1) <= child.y + child.height
     }
@@ -262,12 +262,12 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
             val node = dragged.node
             val type = dragged.type
             if (dragged is NodeInput) {
-                val inIndex = Maths.max(0, node?.inputs?.indexOf(dragged) ?: 0)
+                val inIndex = max(0, node?.inputs?.indexOf(dragged) ?: 0)
                 val outIndex = 0
                 drawNodeConnection(mx, my, px0, py0, inIndex, outIndex, endColor, startColor, type)
             } else {
                 val inIndex = 0
-                val outIndex = Maths.max(0, node?.outputs?.indexOf(dragged) ?: 0)
+                val outIndex = max(0, node?.outputs?.indexOf(dragged) ?: 0)
                 drawNodeConnection(px0, py0, mx, my, inIndex, outIndex, startColor, endColor, type)
             }
         }

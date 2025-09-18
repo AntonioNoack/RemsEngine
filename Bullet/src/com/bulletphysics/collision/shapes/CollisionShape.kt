@@ -29,9 +29,9 @@ abstract class CollisionShape {
         identity.setIdentity()
         getBounds(identity, aabbMin, aabbMax)
 
-        val volume = Maths.max(aabbMax.x - aabbMin.x, 0.0) *
-                Maths.max(aabbMax.y - aabbMin.y, 0.0) *
-                Maths.max(aabbMax.z - aabbMin.z, 0.0)
+        val volume = max(aabbMax.x - aabbMin.x, 0.0) *
+                max(aabbMax.y - aabbMin.y, 0.0) *
+                max(aabbMax.z - aabbMin.z, 0.0)
 
         Stack.subTrans(1)
         Stack.subVec(2)

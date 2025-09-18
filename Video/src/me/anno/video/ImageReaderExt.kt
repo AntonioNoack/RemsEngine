@@ -6,16 +6,16 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
-import me.anno.maths.Maths
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
 import me.anno.video.ffmpeg.FFMPEGStream
 import java.io.IOException
+import kotlin.math.min
 
 object ImageReaderExt {
 
     private fun frameIndex(meta: MediaMetadata): Int {
-        return Maths.min(20, (meta.videoFrameCount - 1) / 3)
+        return min(20, (meta.videoFrameCount - 1) / 3)
     }
 
     fun tryFFMPEG(file: FileReference, signature: String?, forGPU: Boolean, callback: Callback<Image>) {

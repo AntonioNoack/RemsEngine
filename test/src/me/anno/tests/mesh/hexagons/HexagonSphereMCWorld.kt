@@ -2,7 +2,7 @@ package me.anno.tests.mesh.hexagons
 
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.chunks.spherical.Hexagon
 import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.maths.noise.FullNoise

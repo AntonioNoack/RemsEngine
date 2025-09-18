@@ -2,8 +2,8 @@ package me.anno.ecs.components.mesh
 
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.gpu.CullMode
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
 

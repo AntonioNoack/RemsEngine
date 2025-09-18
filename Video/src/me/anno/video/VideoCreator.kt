@@ -21,7 +21,7 @@ import me.anno.io.Streams.writeBE24
 import me.anno.io.Streams.writeBE32
 import me.anno.io.files.FileReference
 import me.anno.jvm.utils.BetterProcessBuilder
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.Threads
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.ProcessingQueue

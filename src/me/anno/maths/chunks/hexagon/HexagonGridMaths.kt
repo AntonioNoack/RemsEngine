@@ -2,7 +2,7 @@ package me.anno.maths.chunks.hexagon
 
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.TAU
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd

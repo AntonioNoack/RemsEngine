@@ -3,7 +3,7 @@ package me.anno.ecs.components.anim
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.base.BaseWriter
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.structures.Collections.filterIsInstance2
 import org.joml.Matrix4x3f
 

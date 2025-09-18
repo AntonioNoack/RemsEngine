@@ -169,8 +169,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             val window = window
             if (window != null) {
                 val size = max(window.height, 0)
-                if (lineThickness < 0) lineThickness = Maths.max(1, sqrt(size / 120f).roundToIntOr())
-                if (lineThicknessBold < 0) lineThicknessBold = Maths.max(1, sqrt(size / 50f).roundToIntOr())
+                if (lineThickness < 0) lineThickness = max(1, sqrt(size / 120f).roundToIntOr())
+                if (lineThicknessBold < 0) lineThicknessBold = max(1, sqrt(size / 50f).roundToIntOr())
             }
         }
     }
@@ -214,10 +214,10 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         val xi = coordsToWindowX(position.x).toInt() - panel.width / 2
         val yi = coordsToWindowY(position.y).toInt()
         panel.setPosSize(xi, yi, panel.minW, panel.minH)
-        scrollLeft = Maths.max(scrollLeft, x - xi)
-        scrollTop = Maths.max(scrollTop, y - yi)
-        scrollRight = Maths.max(scrollRight, (xi + panel.width) - xe)
-        scrollBottom = Maths.max(scrollBottom, (yi + panel.height) - ye)
+        scrollLeft = max(scrollLeft, x - xi)
+        scrollTop = max(scrollTop, y - yi)
+        scrollRight = max(scrollRight, (xi + panel.width) - xe)
+        scrollBottom = max(scrollBottom, (yi + panel.height) - ye)
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
@@ -236,11 +236,11 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         val maxSpeed = (width + height) / 6f // ~ 500px / s on FHD
         var dx2 = x - centerX
         var dy2 = y - centerY
-        val border = Maths.max(width / 10f, 4f)
+        val border = max(width / 10f, 4f)
         val speed = maxSpeed * min(
-            Maths.max(
-                Maths.max((this.x + border) - x, x - (this.x + this.width - border)),
-                Maths.max((this.y + border) - y, y - (this.y + this.height - border))
+            max(
+                max((this.x + border) - x, x - (this.x + this.width - border)),
+                max((this.y + border) - y, y - (this.y + this.height - border))
             ) / border, 1f
         )
         val multiplier = speed * Time.uiDeltaTime.toFloat() / Maths.length(dx2, dy2)
@@ -316,7 +316,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                     if (nodeInput is NodeInput) {
                         val pos = nodeInput.position
                         val inNode = nodeInput.node
-                        val inIndex = Maths.max(inNode?.inputs?.indexOf(nodeInput) ?: 0, 0)
+                        val inIndex = max(inNode?.inputs?.indexOf(nodeInput) ?: 0, 0)
                         val inColor = getTypeColor(nodeInput)
                         val px1 = coordsToWindowX(pos.x).toFloat()
                         val py1 = coordsToWindowY(pos.y).toFloat()

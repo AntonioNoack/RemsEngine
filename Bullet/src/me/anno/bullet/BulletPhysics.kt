@@ -52,7 +52,6 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Floats.toLongOr
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3
 import org.joml.Vector3d

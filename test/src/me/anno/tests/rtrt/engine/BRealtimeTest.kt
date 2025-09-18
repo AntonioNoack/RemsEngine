@@ -40,7 +40,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.bvh.BLASBuffer.createBLASBuffer
 import me.anno.maths.bvh.BLASNode
 import me.anno.maths.bvh.BLASTexture.createBLASTexture

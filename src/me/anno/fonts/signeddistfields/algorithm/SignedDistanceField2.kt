@@ -5,7 +5,7 @@ import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.types.Floats.toIntOr

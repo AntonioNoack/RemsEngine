@@ -2,7 +2,7 @@ package me.anno.maths.geometry
 
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.sq
 import me.anno.maths.optimization.GradientDescent.simplexAlgorithm
 import me.anno.maths.geometry.MarchingSquares.findZero

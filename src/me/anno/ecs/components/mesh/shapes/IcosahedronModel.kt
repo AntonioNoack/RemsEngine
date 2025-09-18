@@ -4,8 +4,8 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths.PHI
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.types.Arrays.resize

@@ -10,8 +10,8 @@ import me.anno.engine.ui.LineShapes.drawCone
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector2f.Companion.lengthSquared

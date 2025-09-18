@@ -155,18 +155,6 @@ object Maths {
     fun dtTo10(x: Double) = exp(-x)
 
     @JvmStatic
-    fun median(a: Float, b: Float, c: Float) = max(min(a, b), min(max(a, b), c))
-
-    @JvmStatic
-    fun median(a: Double, b: Double, c: Double) = max(min(a, b), min(max(a, b), c))
-
-    @JvmStatic
-    fun median(a: Int, b: Int, c: Int): Int = max(min(a, b), min(max(a, b), c))
-
-    @JvmStatic
-    fun median(a: Long, b: Long, c: Long) = max(min(a, b), min(max(a, b), c))
-
-    @JvmStatic
     fun smoothStep(x: Float): Float {
         return when {
             x <= 0f -> 0f
@@ -388,153 +376,6 @@ object Maths {
     }
 
     @JvmStatic
-    fun max(a: Int, b: Int): Int {
-        return if (a > b) a else b
-    }
-
-    @JvmStatic
-    fun max(a: Long, b: Long): Long {
-        return if (a > b) a else b
-    }
-
-    @JvmStatic
-    fun max(a: Float, b: Float): Float {
-        return if (a > b) a else b
-    }
-
-    @JvmStatic
-    fun max(a: Float, b: Float, c: Float): Float {
-        var value = if (a > b) a else b
-        value = if (value > c) value else c
-        return value
-    }
-
-    @JvmStatic
-    fun max(a: Float, b: Float, c: Float, d: Float): Float {
-        var value = if (a > b) a else b
-        value = if (value > c) value else c
-        value = if (value > d) value else d
-        return value
-    }
-
-    @JvmStatic
-    fun max(a: Float, b: Float, c: Float, d: Float, e: Float): Float {
-        var value = if (a > b) a else b
-        value = if (value > c) value else c
-        value = if (value > d) value else d
-        value = if (value > e) value else e
-        return value
-    }
-
-    @JvmStatic
-    fun max(a: Float, b: Float, c: Float, d: Float, e: Float, f: Float): Float {
-        var value = if (a > b) a else b
-        value = if (value > c) value else c
-        value = if (value > d) value else d
-        value = if (value > e) value else e
-        value = if (value > f) value else f
-        return value
-    }
-
-    @JvmStatic
-    fun max(a: Double, b: Double): Double {
-        return if (a > b) a else b
-    }
-
-    @JvmStatic
-    fun max(a: Double, b: Double, c: Double): Double {
-        var value = if (a > b) a else b
-        value = if (value > c) value else c
-        return value
-    }
-
-    @JvmStatic
-    fun max(a: Double, b: Double, c: Double, d: Double): Double {
-        var value = if (a > b) a else b
-        value = if (value > c) value else c
-        value = if (value > d) value else d
-        return value
-    }
-
-    @JvmStatic
-    fun max(a: Double, b: Double, c: Double, d: Double, e: Double): Double {
-        var value = if (a > b) a else b
-        value = if (value > c) value else c
-        value = if (value > d) value else d
-        value = if (value > e) value else e
-        return value
-    }
-
-    @JvmStatic
-    fun max(a: Double, b: Double, c: Double, d: Double, e: Double, f: Double): Double {
-        var value = if (a > b) a else b
-        value = if (value > c) value else c
-        value = if (value > d) value else d
-        value = if (value > e) value else e
-        value = if (value > f) value else f
-        return value
-    }
-
-    @JvmStatic
-    fun min(a: Int, b: Int): Int {
-        return if (a < b) a else b
-    }
-
-    @JvmStatic
-    fun min(a: Long, b: Long): Long {
-        return if (a < b) a else b
-    }
-
-    @JvmStatic
-    fun min(a: Int, b: Int, c: Int): Int {
-        return min(a, min(b, c))
-    }
-
-    @JvmStatic
-    fun min(a: Float, b: Float): Float {
-        return if (a < b) a else b
-    }
-
-    @JvmStatic
-    fun min(a: Double, b: Double): Double {
-        return if (a < b) a else b
-    }
-
-    @JvmStatic
-    fun min(a: Float, b: Float, c: Float): Float {
-        var value = if (a < b) a else b
-        value = if (value < c) value else c
-        return value
-    }
-
-    @JvmStatic
-    fun min(a: Float, b: Float, c: Float, d: Float): Float {
-        var value = if (a < b) a else b
-        value = if (value < c) value else c
-        value = if (value < d) value else d
-        return value
-    }
-
-    @JvmStatic
-    fun min(a: Float, b: Float, c: Float, d: Float, e: Float): Float {
-        var value = if (a < b) a else b
-        value = if (value < c) value else c
-        value = if (value < d) value else d
-        value = if (value < e) value else e
-        return value
-    }
-
-    @JvmStatic
-    fun min(a: Float, b: Float, c: Float, d: Float, e: Float, f: Float): Float {
-        var value = if (a < b) a else b
-        value = if (value < c) value else c
-        value = if (value < d) value else d
-        value = if (value < e) value else e
-        value = if (value < f) value else f
-        return value
-    }
-
-    @JvmStatic
     fun mix2d(v00: Float, v01: Float, v10: Float, v11: Float, fx: Float, fy: Float): Float {
         val gx = 1f - fx
         val v0x = gx * v00 + fx * v10
@@ -549,24 +390,6 @@ object Maths {
         val v1x = gx * v01 + fx * v11
         return (1.0 - fy) * v0x + fy * v1x
     }
-
-    @JvmStatic
-    fun absMax(a: Float, b: Float) = max(abs(a), abs(b))
-
-    @JvmStatic
-    fun absMax(a: Float, b: Float, c: Float) = max(abs(a), abs(b), abs(c))
-
-    @JvmStatic
-    fun absMax(a: Float, b: Float, c: Float, d: Float) = max(max(abs(a), abs(b)), max(abs(c), abs(d)))
-
-    @JvmStatic
-    fun absMax(a: Double, b: Double) = max(abs(a), abs(b))
-
-    @JvmStatic
-    fun absMax(a: Double, b: Double, c: Double) = max(max(abs(a), abs(b)), abs(c))
-
-    @JvmStatic
-    fun absMax(a: Double, b: Double, c: Double, d: Double) = max(max(abs(a), abs(b)), max(abs(c), abs(d)))
 
     @JvmStatic
     fun mixAngle(a: Float, b: Float, f: Float): Float {

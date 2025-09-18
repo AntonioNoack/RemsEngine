@@ -1,7 +1,7 @@
 package me.anno.graph.visual.scalar
 
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.types.Booleans.toLong
 import kotlin.math.abs
 import kotlin.math.max

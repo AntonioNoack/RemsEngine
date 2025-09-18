@@ -17,7 +17,7 @@ import me.anno.image.ImageCache
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.SECONDS_TO_NANOS
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.noise.PerlinNoise
 import me.anno.tests.physics.fluid.RWState
 import me.anno.ui.base.components.AxisAlignment

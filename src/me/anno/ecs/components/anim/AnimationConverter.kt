@@ -3,7 +3,7 @@ package me.anno.ecs.components.anim
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
 

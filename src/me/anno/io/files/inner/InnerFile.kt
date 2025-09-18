@@ -3,7 +3,7 @@ package me.anno.io.files.inner
 import me.anno.io.VoidOutputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.OutputStream

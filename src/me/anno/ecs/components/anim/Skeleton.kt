@@ -12,7 +12,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.Pools

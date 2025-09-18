@@ -3,7 +3,7 @@ package me.anno.input.controller
 import me.anno.utils.Color.black
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.ui.Style
 import me.anno.utils.types.Floats.f3s
 import org.apache.logging.log4j.LogManager

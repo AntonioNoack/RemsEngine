@@ -727,7 +727,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         const val CORNER_BOTTOM_LEFT = 8
 
         private val LOGGER = LogManager.getLogger(Panel::class)
-        val interactionPadding get() = Maths.max(0, DefaultConfig["ui.interactionPadding", 6])
+        val interactionPadding get() = max(0, DefaultConfig["ui.interactionPadding", 6])
         val minOpaqueAlpha = 63
     }
 }

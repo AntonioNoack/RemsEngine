@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.sq
 import me.anno.sdf.SDFComposer.dot2
 import me.anno.sdf.VariableCounter

@@ -25,7 +25,7 @@ import me.anno.graph.visual.render.Texture.Companion.mask
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 
 // inspired by https://threejs.org/examples/?q=post#webgl_postprocessing_pixel
 class PixelationNode : RenderViewNode(

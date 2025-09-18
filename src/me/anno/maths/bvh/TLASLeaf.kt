@@ -2,7 +2,7 @@ package me.anno.maths.bvh
 
 import me.anno.ecs.Component
 import me.anno.engine.raycast.RayHit
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
 import org.joml.Matrix4x3f

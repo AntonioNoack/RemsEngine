@@ -1,6 +1,6 @@
 package me.anno.utils.structures.lists
 
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.search.BinarySearch
 import me.anno.utils.structures.arrays.DoubleArrayList

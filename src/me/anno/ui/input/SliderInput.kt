@@ -7,7 +7,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.unmix
 import me.anno.ui.Panel

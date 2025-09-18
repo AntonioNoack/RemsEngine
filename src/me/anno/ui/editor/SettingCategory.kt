@@ -2,7 +2,7 @@ package me.anno.ui.editor
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding

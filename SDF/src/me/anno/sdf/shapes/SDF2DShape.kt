@@ -8,7 +8,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Booleans.hasFlag
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.ecs.components.collider.TwoDims
 import me.anno.sdf.modifiers.SDFHalfSpace
 import me.anno.utils.pooling.JomlPools

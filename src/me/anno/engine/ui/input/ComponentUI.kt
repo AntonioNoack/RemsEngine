@@ -49,7 +49,7 @@ import me.anno.io.saveable.UnknownSaveable
 import me.anno.language.translation.DefaultNames
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton

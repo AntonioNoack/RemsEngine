@@ -31,7 +31,7 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
 import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd

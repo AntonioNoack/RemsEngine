@@ -25,8 +25,8 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.maps.Maps.removeIf

@@ -59,8 +59,8 @@ import me.anno.image.raw.IntImage
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.maths.bvh.BLASNode

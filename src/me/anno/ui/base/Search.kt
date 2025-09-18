@@ -1,6 +1,6 @@
 package me.anno.ui.base
 
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2

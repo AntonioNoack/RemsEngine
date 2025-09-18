@@ -13,7 +13,7 @@ import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.QuadTreeF
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.sq
 import me.anno.ui.UIColors
 import me.anno.ui.debug.FrameTimings

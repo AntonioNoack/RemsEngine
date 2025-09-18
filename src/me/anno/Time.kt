@@ -2,7 +2,7 @@ package me.anno
 
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.ui.debug.FrameTimings
 import kotlin.math.abs
 import kotlin.math.min

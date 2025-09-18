@@ -3,8 +3,8 @@ package me.anno.maths.chunks.spherical
 import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.assertions.assertTrue

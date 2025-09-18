@@ -28,6 +28,7 @@ import java.util.Random
 import kotlin.math.atan2
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.max
 import kotlin.math.round
 
 fun main() {
@@ -126,7 +127,7 @@ fun compress(
         val dz = bounds.minZ
         val sx = 255 / bounds.deltaX
         val sy = 255 / bounds.deltaY
-        val sz = 255 / Maths.max(bounds.deltaZ, 1e-9f)
+        val sz = 255 / max(bounds.deltaZ, 1e-9f)
         out.writeLE32(dx)
         out.writeLE32(sx)
         out.writeLE32(dy)
@@ -199,7 +200,7 @@ fun main2() {
     }
     dst.normalize().write(OS.desktop.getChild("target.png"))
 
-    val rx = Maths.max(dst.width, dst.height).toDouble() * 5.0 / numLayers
+    val rx = max(dst.width, dst.height).toDouble() * 5.0 / numLayers
     val rnd = Random()
     val kernels = Array(numLayers) { li ->
         val i0 = li * totalSamples / numLayers
@@ -230,7 +231,7 @@ fun main2() {
         for (j in 0 until totalSamples) {
             val sampler = allSamplers[j]
             val k = j * 3
-            val wi = Maths.max(it[k + 2], 0.0)
+            val wi = max(it[k + 2], 0.0)
             sampler.position.set(it[k], it[k + 1])
             sampler.weight = wi
         }
@@ -283,8 +284,8 @@ class Sampler(val position: Vector2d, var weight: Double) {
 typealias SparseKernel = Array<Sampler>
 
 fun error(src: FloatImage, dst: FloatImage): Double {
-    val w = Maths.max(src.width, dst.width)
-    val h = Maths.max(src.height, dst.height)
+    val w = max(src.width, dst.width)
+    val h = max(src.height, dst.height)
     val s0 = pad(src, w, h)
     val d0 = pad(dst, w, h)
     var error = 0.0
@@ -323,8 +324,8 @@ fun sparseConvolve(kernels: Array<SparseKernel>, write: Boolean): FloatImage {
             bounds.union(p.x + e, p.y + e, 0.0)
         }
         // calculate extra size
-        val ex = ceil(Maths.max(bounds.maxX, -bounds.minX)).toInt() * 2
-        val ey = ceil(Maths.max(bounds.maxY, -bounds.minY)).toInt() * 2
+        val ex = ceil(max(bounds.maxX, -bounds.minX)).toInt() * 2
+        val ey = ceil(max(bounds.maxY, -bounds.minY)).toInt() * 2
         val tmp = FloatImage(image.width + ex, image.height + ey, 1)
         // convolve actually
         sparseConvolve(image, tmp, k)

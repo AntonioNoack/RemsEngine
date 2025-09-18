@@ -29,7 +29,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.mix
 import me.anno.tests.physics.fluid.FluidMeshShader.createFluidMesh
 import me.anno.tests.physics.fluid.FluidSimulator.splashShader

@@ -12,7 +12,7 @@ import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.EditorState
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.Color.white
 import me.anno.utils.pooling.JomlPools

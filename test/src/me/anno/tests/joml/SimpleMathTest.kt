@@ -1,6 +1,6 @@
 package me.anno.tests.joml
 
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.assertions.assertEquals
 import org.joml.Vector
 import org.joml.Vector2d

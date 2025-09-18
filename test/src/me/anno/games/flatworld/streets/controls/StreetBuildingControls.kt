@@ -14,7 +14,7 @@ import me.anno.games.flatworld.streets.StreetSegment
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.sq
 import me.anno.utils.Color
 import org.joml.Vector2d

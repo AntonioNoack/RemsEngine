@@ -8,7 +8,7 @@ import me.anno.input.Input
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.dtTo10
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.pow
 import me.anno.maths.noise.FullNoise

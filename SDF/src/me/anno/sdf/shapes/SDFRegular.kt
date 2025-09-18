@@ -4,7 +4,7 @@ import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.sdf.VariableCounter
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.PHIf
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.pow
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf

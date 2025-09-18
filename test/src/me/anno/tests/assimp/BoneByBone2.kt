@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.sin
 
 /**
@@ -51,7 +52,7 @@ fun main() {
 
     for (bone in SkeletonCache.getEntry(mesh.getMesh()?.skeleton).waitFor()!!.bones) {
         LOGGER.info(
-            "Bone ${bone.index}: ${bone.name}${" ".repeat(Maths.max(0, 80 - bone.name.length))}" +
+            "Bone ${bone.index}: ${bone.name}${" ".repeat(max(0, 80 - bone.name.length))}" +
                     "f0: ${animation.getTranslation(0, bone.index, Vector3f())}, " +
                     "${animation.getRotation(0, bone.index, Quaternionf())}"
         )

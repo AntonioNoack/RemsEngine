@@ -13,7 +13,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.maths.Maths.SECONDS_TO_NANOS
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.tests.rtrt.engine.createControls
 import me.anno.tests.rtrt.engine.pipeline
 import me.anno.tests.rtrt.engine.sky0BGR

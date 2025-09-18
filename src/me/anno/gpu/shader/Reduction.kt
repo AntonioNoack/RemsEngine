@@ -16,8 +16,8 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.maths.Maths.ceilDiv
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.utils.callbacks.F2F
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools

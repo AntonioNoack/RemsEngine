@@ -2,7 +2,7 @@ package me.anno.tests.mesh
 
 import me.anno.io.binary.ByteArrayIO.leMagic
 import me.anno.io.files.Signature
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.tests.LOGGER
 import me.anno.utils.OS

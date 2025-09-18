@@ -38,7 +38,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Packing.pack32
 import me.anno.maths.Packing.pack64
 import me.anno.maths.Packing.unpackHighFrom32

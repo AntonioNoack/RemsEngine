@@ -4,8 +4,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable
-import me.anno.maths.Maths
-import me.anno.maths.Maths.absMax
+import me.anno.maths.MinMax.absAbsMax
 import me.anno.utils.Color
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.types.Strings
@@ -36,6 +35,7 @@ import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
 import kotlin.math.abs
+import kotlin.math.min
 
 abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, true) {
 
@@ -742,7 +742,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     private fun writeList(size: Int, lastIndex: Int, writeValue: (Int) -> Unit) {
         open(true)
         append(size)
-        for (i in 0 until Maths.min(lastIndex + 1, size)) {
+        for (i in 0 until min(lastIndex + 1, size)) {
             append(',')
             writeValue(i)
         }
@@ -1022,8 +1022,8 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
     private fun clamp2x2Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        val sx = absMax(tmp[0], tmp[2]) * scale
-        val sy = absMax(tmp[1], tmp[3]) * scale
+        val sx = absAbsMax(tmp[0], tmp[2]) * scale
+        val sy = absAbsMax(tmp[1], tmp[3]) * scale
         forLoop(0, 4, 2) { i ->
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
@@ -1031,8 +1031,8 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     private fun clamp3x2Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        val sx = absMax(tmp[0], tmp[2]) * scale
-        val sy = absMax(tmp[1], tmp[3]) * scale
+        val sx = absAbsMax(tmp[0], tmp[2]) * scale
+        val sy = absAbsMax(tmp[1], tmp[3]) * scale
         forLoop(0, 6, 2) { i ->
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
@@ -1040,8 +1040,8 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     private fun clamp2x2Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        val sx = absMax(tmp[0], tmp[2]) * scale
-        val sy = absMax(tmp[1], tmp[3]) * scale
+        val sx = absAbsMax(tmp[0], tmp[2]) * scale
+        val sy = absAbsMax(tmp[1], tmp[3]) * scale
         forLoop(0, 4, 2) { i ->
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
@@ -1049,8 +1049,8 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     private fun clamp3x2Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        val sx = absMax(tmp[0], tmp[2]) * scale
-        val sy = absMax(tmp[1], tmp[3]) * scale
+        val sx = absAbsMax(tmp[0], tmp[2]) * scale
+        val sy = absAbsMax(tmp[1], tmp[3]) * scale
         forLoop(0, 6, 2) { i ->
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
@@ -1058,9 +1058,9 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     private fun clamp3x3Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        val sx = absMax(tmp[0], tmp[3], tmp[6]) * scale
-        val sy = absMax(tmp[1], tmp[4], tmp[7]) * scale
-        val sz = absMax(tmp[2], tmp[5], tmp[8]) * scale
+        val sx = absAbsMax(tmp[0], tmp[3], tmp[6]) * scale
+        val sy = absAbsMax(tmp[1], tmp[4], tmp[7]) * scale
+        val sz = absAbsMax(tmp[2], tmp[5], tmp[8]) * scale
         forLoop(0, 9, 3) { i ->
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
@@ -1069,9 +1069,9 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     private fun clamp3x3Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        val sx = absMax(tmp[0], tmp[3], tmp[6]) * scale
-        val sy = absMax(tmp[1], tmp[4], tmp[7]) * scale
-        val sz = absMax(tmp[2], tmp[5], tmp[8]) * scale
+        val sx = absAbsMax(tmp[0], tmp[3], tmp[6]) * scale
+        val sy = absAbsMax(tmp[1], tmp[4], tmp[7]) * scale
+        val sz = absAbsMax(tmp[2], tmp[5], tmp[8]) * scale
         forLoop(0, 9, 3) { i ->
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
@@ -1080,9 +1080,9 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     private fun clamp4x3Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        val sx = absMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
-        val sy = absMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
-        val sz = absMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
+        val sx = absAbsMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
+        val sy = absAbsMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
+        val sz = absAbsMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
         forLoop(0, 12, 3) { i ->
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
@@ -1091,9 +1091,9 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     private fun clamp4x3Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        val sx = absMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
-        val sy = absMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
-        val sz = absMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
+        val sx = absAbsMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
+        val sy = absAbsMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
+        val sz = absAbsMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
         forLoop(0, 12, 3) { i ->
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
@@ -1102,10 +1102,10 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     private fun clamp4x4Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        val sx = absMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
-        val sy = absMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
-        val sz = absMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
-        val sw = absMax(tmp[3], tmp[7], tmp[11], tmp[15]) * scale
+        val sx = absAbsMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
+        val sy = absAbsMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
+        val sz = absAbsMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
+        val sw = absAbsMax(tmp[3], tmp[7], tmp[11], tmp[15]) * scale
         forLoop(0, 16, 4) { i ->
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
@@ -1115,10 +1115,10 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     private fun clamp4x4Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        val sx = absMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
-        val sy = absMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
-        val sz = absMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
-        val sw = absMax(tmp[3], tmp[7], tmp[11], tmp[15]) * scale
+        val sx = absAbsMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
+        val sy = absAbsMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
+        val sz = absAbsMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
+        val sw = absAbsMax(tmp[3], tmp[7], tmp[11], tmp[15]) * scale
         forLoop(0, 16, 4) { i ->
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0

@@ -7,7 +7,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureHelper
 import me.anno.image.Image
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.async.Callback

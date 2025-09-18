@@ -23,8 +23,8 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.DrawSky
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.GPUClockNanos
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4d

@@ -33,7 +33,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.mesh.Shapes
 import me.anno.utils.InternalAPI
 import me.anno.utils.pooling.JomlPools

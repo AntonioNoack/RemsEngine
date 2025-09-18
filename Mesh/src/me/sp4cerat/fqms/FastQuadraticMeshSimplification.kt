@@ -1,6 +1,6 @@
 package me.sp4cerat.fqms
 
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Booleans.hasFlag

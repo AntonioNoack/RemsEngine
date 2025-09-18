@@ -7,7 +7,7 @@ import me.anno.io.Streams.readText
 import me.anno.io.Streams.writeString
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.WebRef.Companion.encodeURIComponent
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.tests.map.OSMReaderV2.readOSM2
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.toLongOr

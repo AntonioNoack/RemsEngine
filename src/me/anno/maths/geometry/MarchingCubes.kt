@@ -1,6 +1,6 @@
 package me.anno.maths.geometry
 
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.res
 import me.anno.utils.algorithms.ForLoop.forLoopSafely

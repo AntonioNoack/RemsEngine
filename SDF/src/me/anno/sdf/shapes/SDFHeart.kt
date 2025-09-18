@@ -4,8 +4,8 @@ import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.sdf.SDFComposer.dot2
 import me.anno.sdf.VariableCounter
 import me.anno.maths.Maths.SQRT2f
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.sq
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf

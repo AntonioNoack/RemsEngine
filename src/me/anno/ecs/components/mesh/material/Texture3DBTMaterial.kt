@@ -10,6 +10,7 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f
+import kotlin.math.max
 
 /**
  * [Texture3D] - block traced material.
@@ -37,7 +38,7 @@ open class Texture3DBTMaterial : Material() {
     }
 
     fun limitColors(count: Int) {
-        val div = Maths.max(1, count - 1)
+        val div = max(1, count - 1)
         val f0 = 1f + 1f / div
         val f1 = 1f - 255f / div
         val tmp = JomlPools.vec3f.borrow().set(color0)
@@ -52,7 +53,7 @@ open class Texture3DBTMaterial : Material() {
         if (ti >= 0) blocks.bindTrulyNearest(ti)
         shader.v3i("bounds", blocks.width, blocks.height, blocks.depth)
         // max amount of blocks that can be traversed
-        val maxSteps = Maths.max(1, blocks.width + blocks.height + blocks.depth)
+        val maxSteps = max(1, blocks.width + blocks.height + blocks.depth)
         shader.v1i("maxSteps", maxSteps)
         shader.v3f("color0", color0)
         shader.v3f("color1", color1)

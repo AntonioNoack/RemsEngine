@@ -28,7 +28,7 @@ import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.pow
 import org.joml.Vector3f
 

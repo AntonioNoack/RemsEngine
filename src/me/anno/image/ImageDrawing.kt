@@ -2,8 +2,8 @@ package me.anno.image
 
 import me.anno.gpu.texture.Clamping
 import me.anno.maths.Maths
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.mixARGB2

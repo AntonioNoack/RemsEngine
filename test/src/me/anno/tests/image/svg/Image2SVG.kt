@@ -13,7 +13,7 @@ import me.anno.image.raw.IntImage
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.tests.LOGGER

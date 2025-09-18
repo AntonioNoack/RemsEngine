@@ -1,7 +1,7 @@
 package me.anno.tests.mesh.hexagons.physics
 
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.maths.chunks.spherical.Hexagon
 import me.anno.maths.chunks.spherical.HexagonTriangleQuery
 import me.anno.tests.mesh.hexagons.HexagonSphereMCWorld

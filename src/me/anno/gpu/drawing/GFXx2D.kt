@@ -9,8 +9,8 @@ import me.anno.gpu.shader.FlatSymbols.flatShaderCircle
 import me.anno.gpu.shader.FlatSymbols.flatShaderHalfArrow
 import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f

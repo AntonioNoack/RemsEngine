@@ -12,6 +12,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -72,7 +73,7 @@ class AnimTextPanelTest(useLua: Boolean) : PanelListY(DefaultConfig.style) {
             p.font = font
             val phase = time * 10f - index * 0.75f
             val index1 = Maths.clamp(burnPalette.lastIndex - phase, 0f, burnPalette.size - 0.001f)
-            val scale = Maths.max(1f, 2f - phase / 2f)
+            val scale = max(1f, 2f - phase / 2f)
             AnimTextPanel.scale(sqrt(scale), scale)
             AnimTextPanel.rotate(1f - scale, cx, cy)
             // smooth index

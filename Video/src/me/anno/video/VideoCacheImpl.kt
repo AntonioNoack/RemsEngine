@@ -3,10 +3,10 @@ package me.anno.video
 import me.anno.cache.AsyncCacheData
 import me.anno.io.MediaMetadata
 import me.anno.io.files.SignatureCache
-import me.anno.maths.Maths
 import me.anno.utils.types.Strings.shorten
 import me.anno.video.ffmpeg.FFMPEGStream
 import org.apache.logging.log4j.LogManager
+import kotlin.math.max
 
 object VideoCacheImpl {
 
@@ -41,7 +41,7 @@ object VideoCacheImpl {
         result.value = slice // set this as early as possible to prevent waiting
 
         val frame0 = key.bufferIndex * key.bufferLength
-        if (frame0 <= -key.bufferLength || frame0 >= Maths.max(1, slice.numTotalFramesInSrc))
+        if (frame0 <= -key.bufferLength || frame0 >= max(1, slice.numTotalFramesInSrc))
             LOGGER.warn(
                 "Access of frames is out of bounds: $frame0/${key.bufferLength}/${slice.numTotalFramesInSrc} by ${
                     file.absolutePath.shorten(200)

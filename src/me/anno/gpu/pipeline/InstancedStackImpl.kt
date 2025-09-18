@@ -28,7 +28,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.maths.Maths.ceilDiv
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.GFXFeatures
 import me.anno.utils.algorithms.ForLoop.forLoop

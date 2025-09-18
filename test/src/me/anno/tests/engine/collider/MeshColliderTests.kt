@@ -4,7 +4,7 @@ import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.bvh.HitType
 import me.anno.utils.assertions.assertEquals
 import org.joml.AABBd

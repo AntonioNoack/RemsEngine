@@ -2,7 +2,7 @@ package me.anno.ui.editor.color.spaces
 
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.TAUf
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.ui.editor.color.ColorSpace
 import org.joml.Vector3f
 import kotlin.math.acos

@@ -25,7 +25,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.maths.Maths
 import me.anno.maths.Maths.fract
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.noise.FullNoise
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.structures.tuples.IntPair

@@ -12,7 +12,7 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.drawing.Perspective.setPerspective
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4f
 import org.joml.Matrix4x3

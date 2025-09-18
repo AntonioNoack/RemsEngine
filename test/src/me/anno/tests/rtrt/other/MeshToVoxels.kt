@@ -28,8 +28,8 @@ import me.anno.image.thumbs.AssetThumbHelper.getEndTime
 import me.anno.image.thumbs.AssetThumbHelper.removeMissingFiles
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.mesh.Shapes.smoothCube
 import me.anno.ui.debug.TestEngine.Companion.testUI

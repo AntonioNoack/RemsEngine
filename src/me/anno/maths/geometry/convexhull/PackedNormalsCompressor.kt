@@ -1,6 +1,6 @@
 package me.anno.maths.geometry.convexhull
 
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.types.Floats.toIntOr
 import org.joml.AABBd

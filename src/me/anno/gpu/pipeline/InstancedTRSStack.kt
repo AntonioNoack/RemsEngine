@@ -18,6 +18,7 @@ import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongTriple
+import kotlin.math.min
 
 /**
  * instanced stack, supporting position, uniform scale, and rotation
@@ -132,7 +133,7 @@ open class InstancedTRSStack(instanceData: MeshInstanceData, capacity: Int = 64)
 
                 buffer.clear()
 
-                val endIndex = Maths.min(totalEndIndex, baseIndex + batchSize)
+                val endIndex = min(totalEndIndex, baseIndex + batchSize)
                 val data = instances.posSizeRot
 
                 val cx = cameraPosition.x.toFloat()

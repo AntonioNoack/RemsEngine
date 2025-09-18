@@ -5,8 +5,8 @@ import me.anno.fonts.Font
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonWriterBase
-import me.anno.maths.Maths
 import me.anno.maths.Maths.fract
+import me.anno.maths.MinMax
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.arrays.IntArrayList
@@ -691,7 +691,7 @@ object Strings {
         // switching both sides may be valuable
         if (sx > sy + 5) return other.distance(this, ignoreCase)
         // create cache
-        val dist = IntArray(sx * Maths.max(sy, 3))
+        val dist = IntArray(sx * MinMax.max(sy, 3))
         for (x in 1 until sx) dist[x] = x
         for (y in 1 until sy) {
             var i2 = (y % 3) * sx
@@ -706,8 +706,8 @@ object Strings {
                     i > 1 && y > 1 &&
                             prev0.equals(other[y - 2], ignoreCase) &&
                             prev1.equals(this[i - 2], ignoreCase) ->
-                        Maths.min(dist[i0], dist[i2 - 1], dist[i1 + 1]) + 1
-                    else -> Maths.min(dist[i1], dist[i2 - 1], dist[i1 + 1]) + 1
+                        MinMax.min(dist[i0], dist[i2 - 1], dist[i1 + 1]) + 1
+                    else -> MinMax.min(dist[i1], dist[i2 - 1], dist[i1 + 1]) + 1
                 }
                 i0++
                 i1++

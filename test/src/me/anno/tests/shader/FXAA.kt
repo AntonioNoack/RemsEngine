@@ -23,6 +23,8 @@ import org.joml.Matrix4f
 import org.joml.Vector2f
 import org.joml.Vector3f
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 fun main() {
     testShader()
@@ -162,7 +164,7 @@ private fun testEdgeAA() {
                 var dx = abs(d3 - d1)
                 var dy = abs(d4 - d2)
                 var dirX = dx >= dy
-                if (Maths.min(dx, dy) * 1.1f > Maths.max(dx, dy)) {
+                if (min(dx, dy) * 1.1f > max(dx, dy)) {
                     // small corner: go to one of the edges, x/y doesn't matter
                     val ix = if (abs(d1 - d0) > abs(d3 - d0)) -1 else +1
                     d0 = sample(f, x + ix, y)
@@ -189,7 +191,7 @@ private fun testEdgeAA() {
                 pos--
                 neg--
                 val fraction = (pos + 0.5f) / (1f + pos + neg)
-                var blur = Maths.min(fraction, 1f - fraction)
+                var blur = min(fraction, 1f - fraction)
                 blur = blur * blur * (3 - 2 * blur) + 0f
                 // val blur = min(1f, 2 * abs(fraction - 0.5f))
                 val other =

@@ -6,7 +6,7 @@ import me.anno.io.Streams.skipN
 import me.anno.io.files.FileReference
 import me.anno.io.files.SignatureCache
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.video.ffmpeg.FFMPEGMetaParser

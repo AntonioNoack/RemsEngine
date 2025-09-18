@@ -7,6 +7,8 @@ import me.anno.utils.Color.rgba
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 import java.nio.ByteBuffer
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * comparison information between frames to detect frames,
@@ -63,8 +65,8 @@ class BlankFrameDetector {
 
     private fun isBlankFrameR(f0: Int, f2: Int, f4: Int): Int {
         // detects too many frames, we need to filter only the central one
-        val min = Maths.min(f0, f4)
-        val max = Maths.max(f0, f4)
+        val min = min(f0, f4)
+        val max = max(f0, f4)
         return if (f2 in min..max) 0 else 1
     }
 

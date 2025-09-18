@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.gpu.GFX
 import me.anno.input.Key
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.utils.TestWorld
 import me.anno.ui.base.buttons.TextButton.Companion.drawButtonBorder

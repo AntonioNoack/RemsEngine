@@ -3,7 +3,7 @@ package me.anno.games.flatworld.streets
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.ecs.components.mesh.spline.SplineProfile
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.utils.Color.black
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList

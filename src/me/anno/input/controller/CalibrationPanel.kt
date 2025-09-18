@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.gpu.drawing.DrawCurves.drawQuadraticBezier
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import org.joml.AABBf

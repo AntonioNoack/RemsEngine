@@ -13,6 +13,7 @@ import org.joml.Vector2f
 import org.joml.Vector2f.Companion.lengthSquared
 import org.joml.Vector3f
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
 import kotlin.math.sign
@@ -81,7 +82,7 @@ fun main() {
         val dist2 = Maths.clamp(Maths.unmix(0f, 2f / scale, dist1))
         val px1 = px + 0.5f
         val py1 = py + 0.5f
-        val grid = 0.1f * Maths.clamp(Maths.unmix(0.48f, 0.5f, Maths.max(abs(px1 - round(px1)), abs(py1 - round(py1)))))
+        val grid = 0.1f * Maths.clamp(Maths.unmix(0.48f, 0.5f, max(abs(px1 - round(px1)), abs(py1 - round(py1)))))
         val value = values.calc(px, py) * scale * t
         Maths.mix(1f, sign(value) * Maths.fract(value), dist2) + grid
     }

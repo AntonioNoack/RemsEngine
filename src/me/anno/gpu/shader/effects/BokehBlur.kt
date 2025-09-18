@@ -16,7 +16,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector4f
 import kotlin.math.sqrt

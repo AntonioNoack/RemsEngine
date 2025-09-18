@@ -2,7 +2,7 @@ package me.anno.games.creeperworld
 
 import me.anno.image.Image
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 
 class Multiplier(
     image: Image,

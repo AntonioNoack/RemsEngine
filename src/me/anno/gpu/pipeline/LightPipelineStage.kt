@@ -31,7 +31,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.structures.lists.SmallestKList
 import org.joml.Vector4f

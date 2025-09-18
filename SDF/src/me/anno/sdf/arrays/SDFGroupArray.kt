@@ -3,7 +3,7 @@ package me.anno.sdf.arrays
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.sdf.SDFGroup
 import me.anno.sdf.VariableCounter
 import org.joml.AABBf

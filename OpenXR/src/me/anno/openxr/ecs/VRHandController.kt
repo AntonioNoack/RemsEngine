@@ -22,7 +22,6 @@ import me.anno.openxr.OpenXRActions.Companion.AXIS_THUMBSTICK_Y
 import me.anno.openxr.OpenXRController.Companion.xrControllers
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector3d

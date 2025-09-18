@@ -6,7 +6,7 @@ import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.cache.ICacheData
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager

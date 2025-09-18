@@ -35,7 +35,7 @@ import me.anno.image.raw.FloatImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.sq
 import me.anno.maths.noise.PerlinNoise
 import me.anno.sdf.SDFComposer.sdfConstants

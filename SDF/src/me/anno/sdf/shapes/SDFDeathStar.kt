@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector3f

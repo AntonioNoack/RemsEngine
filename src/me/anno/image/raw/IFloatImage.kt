@@ -3,7 +3,7 @@ package me.anno.image.raw
 import me.anno.image.Image
 import me.anno.image.colormap.ColorMap
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.smoothStep
 import me.anno.utils.Color

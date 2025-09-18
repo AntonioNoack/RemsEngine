@@ -3,6 +3,7 @@ package me.anno.utils
 import me.anno.ecs.annotations.Docs
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.maths.MinMax.max
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
 import org.joml.Vector3d
@@ -148,7 +149,7 @@ object Color {
         val r = v.x
         val g = v.y
         val b = v.z
-        val div = Maths.max(r, Maths.max(g, b))
+        val div = max(r, g, b)
         return rgba(r * div, g * div, b * div, 1f)
     }
 

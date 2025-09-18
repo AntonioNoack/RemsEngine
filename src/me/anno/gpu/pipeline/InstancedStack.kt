@@ -1,7 +1,7 @@
 package me.anno.gpu.pipeline
 
 import me.anno.ecs.Transform
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.pooling.ObjectPool
 import me.anno.utils.pooling.Pools
 

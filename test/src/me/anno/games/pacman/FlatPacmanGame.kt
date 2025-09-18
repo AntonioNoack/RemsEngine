@@ -9,7 +9,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.missingTexture
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.games.pacman.logic.PacmanLogic
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3

@@ -14,7 +14,7 @@ import me.anno.input.controller.ControllerType
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.ui.base.menu.Menu
 import me.anno.utils.types.Booleans.flagDifference
 import org.apache.logging.log4j.LogManager

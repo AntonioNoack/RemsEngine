@@ -1,7 +1,7 @@
 package me.anno.maths
 
 import me.anno.maths.Maths.TAUf
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.cbrt

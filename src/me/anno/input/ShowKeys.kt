@@ -8,7 +8,7 @@ import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawTextOrFail
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.types.Strings.joinChars

@@ -17,11 +17,12 @@ import me.anno.graph.visual.states.StateMachine
 import me.anno.image.ImageScale
 import me.anno.input.Key
 import me.anno.maths.Maths
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.types.Strings.isNotBlank2
+import kotlin.math.min
 
 class NovelGamePanel(val stateMachine: StateMachine) : PanelList(DefaultConfig.style) {
     override val canDrawOverBorders: Boolean get() = true
@@ -112,7 +113,7 @@ class NovelGamePanel(val stateMachine: StateMachine) : PanelList(DefaultConfig.s
             drawBackground(x, y + height * 8 / 10, x + width, y + height)
 
             val progress = 10 * Maths.sq(1e-9 * (Time.nanoTime - textTime))
-            shownTextPanel.text = shownText.substring(0, Maths.min(progress.toInt(), shownText.length))
+            shownTextPanel.text = shownText.substring(0, min(progress.toInt(), shownText.length))
 
             drawChildren(x0, y0, x1, y1)
         }

@@ -4,7 +4,7 @@ import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf

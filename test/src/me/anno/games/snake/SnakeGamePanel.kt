@@ -7,12 +7,12 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.input.Key
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.black
 import java.util.Random
+import kotlin.math.max
+import kotlin.math.min
 
 class SnakeGamePanel : Panel(style) {
 

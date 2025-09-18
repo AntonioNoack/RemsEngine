@@ -1,7 +1,7 @@
 package me.anno.tests.mesh.hexagons
 
 import me.anno.maths.Maths.TAUf
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.chunks.spherical.Hexagon
 import me.anno.maths.chunks.spherical.HexagonSphere

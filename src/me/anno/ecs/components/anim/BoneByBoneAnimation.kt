@@ -3,7 +3,7 @@ package me.anno.ecs.components.anim
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.assertions.assertNotSame
 import me.anno.utils.pooling.JomlPools

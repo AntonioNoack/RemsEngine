@@ -1,7 +1,7 @@
 package me.anno.graph.visual.scalar
 
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.median
+import me.anno.maths.MinMax.median
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.smoothStep
 import me.anno.maths.Maths.unmix

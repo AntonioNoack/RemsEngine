@@ -122,10 +122,10 @@ abstract class WorkSplitter(val numThreads: Int) {
     ) {
         for (ty in ty0 until ty1) {
             val yi = y0 + ty * tileSize
-            val yj = Maths.min(yi + tileSize, y1)
+            val yj = min(yi + tileSize, y1)
             for (tx in tx0 until tx1) {
                 val xi = x0 + tx * tileSize
-                val xj = Maths.min(xi + tileSize, x1)
+                val xj = min(xi + tileSize, x1)
                 tiledTask.work(xi, yi, xj, yj)
             }
         }
@@ -138,9 +138,9 @@ abstract class WorkSplitter(val numThreads: Int) {
         var yi = y0
         while (yi < y1) {
             var xi = x0
-            val yj = Maths.min(yi + tileSize, y1)
+            val yj = min(yi + tileSize, y1)
             while (xi < x1) {
-                val xj = Maths.min(xi + tileSize, x1)
+                val xj = min(xi + tileSize, x1)
                 func.work(xi, yi, xj, yj)
                 xi = xj
             }

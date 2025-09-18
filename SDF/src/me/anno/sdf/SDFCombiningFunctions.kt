@@ -1,7 +1,8 @@
 package me.anno.sdf
 
-import me.anno.maths.Maths
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * like http://mercury.sexy/hg_sdf/
@@ -9,19 +10,19 @@ import kotlin.math.abs
 object SDFCombiningFunctions {
 
     fun sMinCubic(a: Float, b: Float, k: Float): Float {
-        if (k <= 0f) return Maths.min(a, b)
-        val h = Maths.max(k - abs(a - b), 0f) / k
+        if (k <= 0f) return min(a, b)
+        val h = max(k - abs(a - b), 0f) / k
         val m = h * h * h * 0.5f
         val s = m * k / 3f
-        return Maths.min(a, b) - s
+        return min(a, b) - s
     }
 
     fun sMaxCubic(a: Float, b: Float, k: Float): Float {
-        if (k <= 0f) return Maths.max(a, b)
-        val h = Maths.max(k - abs(a - b), 0f) / k
+        if (k <= 0f) return max(a, b)
+        val h = max(k - abs(a - b), 0f) / k
         val m = h * h * h * 0.5f
         val s = m * k / 3f
-        return Maths.max(a, b) + s
+        return max(a, b) + s
     }
 
     const val hgFunctions = "" +

@@ -30,7 +30,6 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
-import me.anno.maths.Maths
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
@@ -43,6 +42,7 @@ import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
+import kotlin.math.max
 import kotlin.math.min
 
 object DrawTexts {
@@ -245,7 +245,7 @@ object DrawTexts {
             val lineOffset = font.sizeInt * 3 / 2
             for (index in split.indices) {
                 val size = getTextSizeCharByChar(font, split[index], equalSpaced)
-                sizeX = Maths.max(getSizeX(size), sizeX)
+                sizeX = max(getSizeX(size), sizeX)
             }
             return getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
         }
@@ -287,7 +287,7 @@ object DrawTexts {
                     textColor, backgroundColor,
                     widthLimit, heightLimit, alignX, alignY, equalSpaced
                 )
-                sizeX = Maths.max(GFXx2D.getSizeX(size), sizeX)
+                sizeX = max(GFXx2D.getSizeX(size), sizeX)
             }
             return GFXx2D.getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
         }

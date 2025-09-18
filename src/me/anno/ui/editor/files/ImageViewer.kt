@@ -12,7 +12,7 @@ import me.anno.gpu.texture.TextureCache
 import me.anno.image.thumbs.ThumbnailCache
 import me.anno.input.Key
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.image.ImagePanel

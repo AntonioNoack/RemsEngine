@@ -27,6 +27,8 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.iff
 import org.joml.Matrix4f
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
 
@@ -45,7 +47,7 @@ object ScreenSpaceAmbientOcclusion {
     // memory limited...
 
     // could be set lower for older hardware, would need restart
-    private val MAX_SAMPLES = Maths.max(4, DefaultConfig["gpu.ssao.maxSamples", 512])
+    private val MAX_SAMPLES = max(4, DefaultConfig["gpu.ssao.maxSamples", 512])
     private val sampleKernel = LazyMap(::generateSampleKernel)
 
     @JvmStatic
@@ -103,7 +105,7 @@ object ScreenSpaceAmbientOcclusion {
 
     private val occlusionShaders = LazyList(3 * 8) {
         val base = it.shr(3)
-        val normalZW = if(it.hasFlag(1)) "zw" else "xy"
+        val normalZW = if (it.hasFlag(1)) "zw" else "xy"
         val depthMask = "xyzw"[it.shr(1).and(3)]
         val multisampling = base.hasFlag(4)
         val ssgi = base.hasFlag(8)
@@ -205,7 +207,7 @@ object ScreenSpaceAmbientOcclusion {
 
     private val blurShaders = LazyList(3 * 4 * 2) {
         val base = (it shr 3)
-        val normalZW = if(it.hasFlag(1)) "zw" else "xy"
+        val normalZW = if (it.hasFlag(1)) "zw" else "xy"
         val depthMask = "xyzw"[it.shr(1).and(3)]
         val blur = base.hasFlag(1)
         val ssgi = base.hasFlag(2)
@@ -377,7 +379,7 @@ object ScreenSpaceAmbientOcclusion {
             val ssao = calculate(
                 ssgi, depth, depthMaskI, normal, normalZW,
                 cameraMatrix, strength, radiusScale,
-                Maths.min(samples, MAX_SAMPLES), enableBlur,
+                min(samples, MAX_SAMPLES), enableBlur,
             )
             if (enableBlur || ssgi != null) {
                 average(

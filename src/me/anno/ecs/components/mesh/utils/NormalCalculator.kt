@@ -13,6 +13,7 @@ import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Triangles.subCross
 import org.joml.Vector3f
 import org.joml.Vector3f.Companion.lengthSquared
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -102,7 +103,7 @@ object NormalCalculator {
                 val i = j * 3
                 // dividing by the weight count is no enough, since the normal needs to be normalized,
                 // and avg(normals) will not have length 1, if there are different input normals
-                val weightInv = 1f / Maths.max(1e-38f, Maths.length(normals[i + 0], normals[i + 1], normals[i + 2]))
+                val weightInv = 1f / max(1e-38f, Maths.length(normals[i + 0], normals[i + 1], normals[i + 2]))
                 normals[i + 0] *= weightInv
                 normals[i + 1] *= weightInv
                 normals[i + 2] *= weightInv

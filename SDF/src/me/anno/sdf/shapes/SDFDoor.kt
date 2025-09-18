@@ -6,8 +6,8 @@ import me.anno.sdf.SDFComposer.dot2
 import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.sq
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf

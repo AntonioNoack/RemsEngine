@@ -5,7 +5,7 @@ import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.Graph
 import me.anno.io.base.BaseWriter
 import me.anno.io.json.saveable.JsonStringReader
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.editor.graph.GraphPanel

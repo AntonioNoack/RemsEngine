@@ -40,7 +40,7 @@ import me.anno.io.generic.GenericWriter.Companion.writeObject
 import me.anno.io.json.generic.JsonWriter
 import me.anno.io.saveable.Saveable
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.mesh.gltf.GLTFConstants.BINARY_CHUNK_MAGIC
 import me.anno.mesh.gltf.GLTFConstants.GL_ARRAY_BUFFER
 import me.anno.mesh.gltf.GLTFConstants.GL_ELEMENT_ARRAY_BUFFER

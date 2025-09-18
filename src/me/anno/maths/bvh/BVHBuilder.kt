@@ -8,7 +8,7 @@ import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.bvh.SplitMethod.Companion.mid
 import me.anno.maths.bvh.SplitMethod.Companion.pivot0
 import me.anno.utils.Clock

@@ -7,7 +7,7 @@ import me.anno.ecs.components.FillSpace
 import me.anno.ecs.systems.OnBeforeDraw
 import me.anno.engine.ui.render.RenderState
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4x3

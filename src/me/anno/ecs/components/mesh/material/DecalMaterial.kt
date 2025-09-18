@@ -14,7 +14,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.GPUShader
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Booleans.withFlag

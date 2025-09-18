@@ -6,11 +6,11 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.games.roadcraft.FallingSandShader.optY
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.GPUShader
-import me.anno.maths.Maths
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.sq
 import org.joml.Vector3f
 import org.joml.Vector3i
+import kotlin.math.max
 
 class FallingSandMaterial : Material() {
 
@@ -33,7 +33,7 @@ class FallingSandMaterial : Material() {
         super.bind(shader)
         shader.v3i("bounds", size)
         // max amount of blocks that can be traversed
-        val maxSteps = Maths.max(1, size.x + size.y + size.z)
+        val maxSteps = max(1, size.x + size.y + size.z)
         shader.v1i("maxSteps", maxSteps shr 1) // half is always enough
         shader.v1f("time", fract(Time.gameTime, 1000.0).toFloat() * flowSpeed / optY)
         shader.v3f("brightColorSq", sq(brightColor.x), sq(brightColor.y), sq(brightColor.z))

@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh.spline
 
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.posMod
 import me.anno.utils.algorithms.ForLoop.forLoop

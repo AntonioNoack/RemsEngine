@@ -1,7 +1,7 @@
 package me.anno.tests.geometry
 
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.maths.geometry.FibonacciSphere
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue

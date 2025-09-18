@@ -17,6 +17,7 @@ import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
+import kotlin.math.min
 import kotlin.random.Random
 
 /**
@@ -294,7 +295,7 @@ fun main() {
     gfx.font = Font.getFont("Roboto")?.run { deriveFont(h * 0.2f) }
 
     val border = 2 * padding
-    val scale = Maths.min((w - border) / bounds.deltaX, (h - border) / bounds.deltaY)
+    val scale = min((w - border) / bounds.deltaX, (h - border) / bounds.deltaY)
     var ox = w / 2 - bounds.centerX * scale
     var oy = h / 2 - bounds.centerY * scale
 

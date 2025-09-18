@@ -24,6 +24,7 @@ import me.anno.maths.Maths
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.iff
 import kotlin.math.exp
+import kotlin.math.max
 
 object Bloom {
 
@@ -61,7 +62,7 @@ object Bloom {
             if (i > 0 && (wi < minSize || hi < minSize)) return i
 
             // x blur pass
-            wi = Maths.max((wi + 1) shr 1, 1)
+            wi = max((wi + 1) shr 1, 1)
             shaderX.use()
             val bufferX = FBStack["bloomX", wi, hi, 4, BufferQuality.FP_16, 1, DepthBufferType.NONE]
             GFXState.useFrame(bufferX, renderer) {
@@ -71,7 +72,7 @@ object Bloom {
             }
 
             // y blur pass
-            hi = Maths.max((hi + 1) shr 1, 1)
+            hi = max((hi + 1) shr 1, 1)
             shaderY.use()
             val bufferY = FBStack["bloomY", wi, hi, 4, BufferQuality.FP_16, 1, DepthBufferType.NONE]
             GFXState.useFrame(bufferY, renderer) {

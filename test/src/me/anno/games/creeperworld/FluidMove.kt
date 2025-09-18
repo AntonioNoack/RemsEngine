@@ -1,6 +1,6 @@
 package me.anno.games.creeperworld
 
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import kotlin.math.abs
 
 class FluidMove : FluidWithNeighborShader {

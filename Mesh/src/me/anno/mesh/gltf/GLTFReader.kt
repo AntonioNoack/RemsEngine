@@ -26,8 +26,8 @@ import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
 import me.anno.io.json.generic.JsonReader
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.mesh.gltf.GLTFConstants.BINARY_CHUNK_MAGIC
 import me.anno.mesh.gltf.GLTFConstants.FILE_MAGIC
 import me.anno.mesh.gltf.GLTFConstants.GL_BYTE

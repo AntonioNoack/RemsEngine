@@ -1,6 +1,6 @@
 package me.anno.utils.types
 
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import java.io.InputStream
 import java.nio.ByteBuffer
 

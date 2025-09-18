@@ -9,7 +9,7 @@ import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.OSFeatures
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.assertions.assertEquals

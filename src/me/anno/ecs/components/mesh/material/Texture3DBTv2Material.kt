@@ -6,9 +6,9 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib
-import me.anno.maths.Maths
 import me.anno.utils.Logging
 import org.joml.Vector3i
+import kotlin.math.max
 
 /**
  * texture 3d - block traced material; with many-color and transparency support
@@ -40,7 +40,7 @@ open class Texture3DBTv2Material : Material() {
         if (ti >= 0) (blocks ?: TextureLib.whiteTex3d).bindTrulyNearest(ti)
         shader.v3i("bounds", size)
         // max amount of blocks that can be traversed
-        val maxSteps = Maths.max(1, size.x + size.y + size.z)
+        val maxSteps = max(1, size.x + size.y + size.z)
         shader.v1i("maxSteps", maxSteps)
         shader.v1b("useSDF", useSDF)
     }

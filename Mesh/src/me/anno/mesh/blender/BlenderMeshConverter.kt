@@ -3,7 +3,7 @@ package me.anno.mesh.blender
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.CullMode
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.mesh.Triangulation
 import me.anno.mesh.blender.impl.BCustomLayerType
 import me.anno.mesh.blender.impl.BInstantList

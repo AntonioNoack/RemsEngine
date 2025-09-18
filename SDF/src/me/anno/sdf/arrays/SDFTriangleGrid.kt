@@ -10,7 +10,7 @@ import me.anno.sdf.modifiers.PositionMapper
 import me.anno.sdf.random.SDFRandom.Companion.twoInputRandom
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.utils.types.Booleans.hasFlag
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector2f

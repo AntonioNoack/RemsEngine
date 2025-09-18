@@ -1,7 +1,7 @@
 package me.anno.tests.language
 
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import kotlin.math.sqrt
 
 class WordEmbedding {

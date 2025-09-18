@@ -9,21 +9,20 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.algorithms.ForLoop
-import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.max
 import kotlin.random.Random
 
 val maxRadius1 = 30f
 val maxRadius2 = 150f
 val speed = 30f
 
-val dr = Maths.max(maxRadius1, maxRadius2)
+val dr = max(maxRadius1, maxRadius2)
 val mr2 = maxRadius1 * maxRadius1
 val mr3 = maxRadius2 * maxRadius2
 

@@ -1,11 +1,11 @@
 package me.anno.games.creeperworld
 
 import me.anno.image.Image
-import me.anno.maths.Maths
 import me.anno.maths.paths.PathFinding
 import me.anno.utils.Color
 import me.anno.utils.Color.a
 import org.joml.Vector2i
+import kotlin.math.max
 import kotlin.math.min
 
 abstract class Agent(val image: Image) {
@@ -102,8 +102,8 @@ abstract class Agent(val image: Image) {
         val alpha = loadingState * 128 / completeState + 128
         val w = world.w
         val h = world.h
-        for (y in Maths.max(y0, 0) until min(y0 + image.height, h)) {
-            for (x in Maths.max(x0, 0) until min(x0 + image.width, w)) {
+        for (y in max(y0, 0) until min(y0 + image.height, h)) {
+            for (x in max(x0, 0) until min(x0 + image.width, w)) {
                 val color = image.getRGB(x - x0, y - y0)
                 dst[x + y * w] = Color.mixARGB(dst[x + y * w], color, (color.a() * alpha) ushr 8)
             }

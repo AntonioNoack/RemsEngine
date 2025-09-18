@@ -2,7 +2,7 @@ package me.anno.image
 
 import me.anno.image.raw.IntImage
 import me.anno.maths.Maths.fract
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.roundDiv
 import me.anno.utils.Color.a
 import me.anno.utils.Color.argb

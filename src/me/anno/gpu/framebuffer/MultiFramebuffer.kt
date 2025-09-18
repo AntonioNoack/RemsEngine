@@ -9,8 +9,8 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.lists.Lists.createArrayList
 

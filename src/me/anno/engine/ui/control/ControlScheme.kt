@@ -53,6 +53,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.tan
@@ -137,7 +138,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
 
     fun rotateCamera(dx: Float, dy: Float) {
         // right mouse key down -> move the camera
-        val speed = -settings.turnSpeed * 500f / Maths.max(windowStack.height, height)
+        val speed = -settings.turnSpeed * 500f / max(windowStack.height, height)
         rotateCamera(dy * speed, dx * speed, 0f)
     }
 

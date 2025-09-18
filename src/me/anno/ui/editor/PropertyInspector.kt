@@ -6,8 +6,8 @@ import me.anno.engine.inspector.Inspectable
 import me.anno.gpu.GFX
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack

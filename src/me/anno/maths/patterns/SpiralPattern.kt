@@ -1,7 +1,7 @@
 package me.anno.maths.patterns
 
 import me.anno.maths.Maths.TAUf
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.sq
 import org.joml.Vector3i
 import kotlin.math.atan2

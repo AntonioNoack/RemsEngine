@@ -11,6 +11,8 @@ import me.anno.sdf.SDFCombiningFunctions.sdMax
 import me.anno.sdf.SDFCombiningFunctions.sdMin
 import me.anno.sdf.SDFCombiningFunctions.smoothMinCubic
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 enum class CombinationMode(
     val id: Int,
@@ -101,19 +103,19 @@ enum class CombinationMode(
     },
     ENGRAVE(11, "sdEngrave", listOf(hgFunctions), false) {
         override fun combine(d0: Float, d1: Float, k: Float, group: SDFGroup): Float {
-            return Maths.max(d0, (d0 + group.smoothness - abs(d1)) * Maths.SQRT1_2f)
+            return max(d0, (d0 + group.smoothness - abs(d1)) * Maths.SQRT1_2f)
         }
     },
     GROOVE(12, "sdGroove", listOf(hgFunctions), false) {
         override fun combine(d0: Float, d1: Float, k: Float, group: SDFGroup): Float {
             val g = group.groove
-            return Maths.max(d0, Maths.min(d0 + g.x, g.y - abs(d1)))
+            return max(d0, min(d0 + g.x, g.y - abs(d1)))
         }
     },
     TONGUE(13, "sdTongue", listOf(hgFunctions), false) {
         override fun combine(d0: Float, d1: Float, k: Float, group: SDFGroup): Float {
             val g = group.groove
-            return Maths.min(d0, Maths.max(d0 - g.x, abs(d1) - g.y))
+            return min(d0, max(d0 - g.x, abs(d1) - g.y))
         }
     };
 

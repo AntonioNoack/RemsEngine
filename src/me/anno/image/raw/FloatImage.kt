@@ -120,7 +120,7 @@ class FloatImage(
             }
         }
         if (min < 0f || max > 0f) {
-            mul(1f / Maths.max(-min, max))
+            mul(1f / max(-min, max))
         }
         return this
     }

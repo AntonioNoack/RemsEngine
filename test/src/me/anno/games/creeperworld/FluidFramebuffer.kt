@@ -1,6 +1,6 @@
 package me.anno.games.creeperworld
 
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.tests.physics.fluid.RWState
 import me.anno.utils.Color
 import me.anno.utils.Color.a01

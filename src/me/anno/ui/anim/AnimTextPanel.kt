@@ -17,7 +17,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.color.spaces.HSLuv

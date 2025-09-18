@@ -6,7 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.systems.Updatable
 import me.anno.maths.Maths.fract
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.tests.utils.SpiderPrediction
 import me.anno.utils.hpc.threadLocal
 import org.joml.Vector2f

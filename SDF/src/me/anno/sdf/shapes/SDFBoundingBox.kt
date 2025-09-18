@@ -6,7 +6,7 @@ import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector4f
 import kotlin.math.abs

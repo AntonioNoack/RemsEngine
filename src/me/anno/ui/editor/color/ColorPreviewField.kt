@@ -5,7 +5,7 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.YUVHelper
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.a

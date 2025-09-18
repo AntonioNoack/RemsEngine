@@ -1,6 +1,6 @@
 package me.anno.io.files
 
-import me.anno.maths.Maths.max
+import me.anno.maths.MinMax.max
 import me.anno.utils.structures.NextEntryIterator
 import me.anno.utils.types.Strings.removeRange2
 import java.io.BufferedReader

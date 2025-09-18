@@ -16,7 +16,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
-import me.anno.maths.Maths.min
+import me.anno.maths.MinMax.min
 import me.anno.utils.OS.downloads
 import org.joml.Matrix4x3
 import org.joml.Vector2f
