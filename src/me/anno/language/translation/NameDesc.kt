@@ -11,7 +11,7 @@ class NameDesc(name: String, description: String, private val dictPath: String) 
 
     private val iName = name
     private val iDesc = description
-    private val replacements = ArrayList<Pair<String, String>>()
+    private val replacements = HashMap<String, String>()
     private val descPath = "$dictPath.desc"
 
     val englishName = iName
@@ -28,7 +28,7 @@ class NameDesc(name: String, description: String, private val dictPath: String) 
     }
 
     fun replace(src: String, dst: String): NameDesc {
-        replacements += src to dst
+        replacements[src] = dst
         return this
     }
 

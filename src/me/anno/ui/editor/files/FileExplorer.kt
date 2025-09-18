@@ -164,10 +164,14 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     open fun onDoubleClick(file: FileReference) {}
 
+    private val searchTermNaming = NameDesc("Search in %1", "", "ui.general.searchTerm")
+        .with("%1", initialLocation?.absolutePath ?: "")
+
     val searchBar = TextInput(
-        NameDesc("Search Term", "", "ui.general.searchTerm"), "", false,
+        searchTermNaming, "", false,
         style.getChild("deep")
     )
+
     var searchDepth = 3
     var isValid = 0f
 
@@ -194,6 +198,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     val history: History<FileReference> = History(initialLocation ?: documents)
     val folder: FileReference get() = history.value
+
     private var lastFolder: FileReference = InvalidRef
     private var fileToScrollTo: FileReference = InvalidRef
     private var panelToScrollTo: FileExplorerEntry? = null
@@ -436,6 +441,9 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
         if (folder != lastFolder) {
             saveClosestFile()
+            searchBar.tooltip = searchTermNaming
+                .with("%1", folder.absolutePath).name
+
             lastFolder = folder
             val fileName = DefaultConfig[getClosestFileKey(folder), ""]
             fileToScrollTo =
