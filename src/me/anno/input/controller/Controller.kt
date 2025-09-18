@@ -312,7 +312,7 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
 
         private fun mouseButtonDown(window: OSWindow, key: Key) {
             if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
-                Input.onMousePress(window, key)
+                Input.onMouseDown(window, key, Time.nanoTime)
             } else {
                 Output.systemMousePress(key)
             }
@@ -320,7 +320,7 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
 
         private fun mouseButtonUp(window: OSWindow, key: Key) {
             if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
-                Input.onMouseRelease(window, key)
+                Input.onMouseUp(window, key, Time.nanoTime)
             } else {
                 Output.systemMouseRelease(key)
             }

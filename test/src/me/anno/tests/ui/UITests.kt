@@ -6,14 +6,11 @@ import me.anno.engine.EngineBase
 import me.anno.engine.RemsEngine
 import me.anno.gpu.GFX
 import me.anno.input.Input
-import me.anno.input.Input.isKeyDown
 import me.anno.input.Key
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window
-import me.anno.utils.types.Booleans.toInt
-import org.lwjgl.glfw.GLFW
 
 open class UITests {
     companion object {
@@ -33,17 +30,15 @@ open class UITests {
     }
 
     fun hold(key: Key) {
-        if (key.isButton()) Input.onMousePress(osWindow, key)
-        else Input.onKeyPressed(osWindow, key, Time.nanoTime)
-        updateKeyModState()
+        if (key.isButton()) Input.onMouseDown(osWindow, key, Time.nanoTime)
+        else Input.onKeyDown(osWindow, key, Time.nanoTime)
     }
 
     fun release(key: Key, cp: Char? = null) {
-        if (key.isButton()) Input.onMouseRelease(osWindow, key)
-        else Input.onKeyReleased(osWindow, key)
-        updateKeyModState()
+        if (key.isButton()) Input.onMouseUp(osWindow, key, Time.nanoTime)
+        else Input.onKeyUp(osWindow, key)
         if (cp != null) {
-            Input.onCharTyped(osWindow, cp.code, 0)
+            Input.onCharTyped(osWindow, cp.code)
         }
     }
 
@@ -54,14 +49,6 @@ open class UITests {
 
     fun click(button: Key) {
         type(button)
-    }
-
-    fun updateKeyModState() {
-        Input.keyModState =
-            (isKeyDown(Key.KEY_LEFT_CONTROL) || isKeyDown(Key.KEY_RIGHT_CONTROL)).toInt(GLFW.GLFW_MOD_CONTROL) or
-                    (isKeyDown(Key.KEY_LEFT_SHIFT) or isKeyDown(Key.KEY_RIGHT_SHIFT)).toInt(GLFW.GLFW_MOD_SHIFT) or
-                    (isKeyDown(Key.KEY_LEFT_ALT) or isKeyDown(Key.KEY_RIGHT_ALT)).toInt(GLFW.GLFW_MOD_ALT) or
-                    (isKeyDown(Key.KEY_LEFT_SUPER) or isKeyDown(Key.KEY_RIGHT_SUPER)).toInt(GLFW.GLFW_MOD_SUPER)
     }
 
     fun moveMouseTo(panel: Panel) {

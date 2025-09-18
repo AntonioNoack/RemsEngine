@@ -3,14 +3,13 @@ package me.anno.input
 import me.anno.Time.nanoTime
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.OSWindow
-import me.anno.input.Input.keyModState
 import me.anno.input.Input.onCharTyped
-import me.anno.input.Input.onKeyPressed
-import me.anno.input.Input.onKeyReleased
+import me.anno.input.Input.onKeyDown
+import me.anno.input.Input.onKeyUp
 import me.anno.input.Input.onKeyTyped
 import me.anno.input.Input.onMouseMove
-import me.anno.input.Input.onMousePress
-import me.anno.input.Input.onMouseRelease
+import me.anno.input.Input.onMouseDown
+import me.anno.input.Input.onMouseUp
 import me.anno.input.Input.onMouseWheel
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
@@ -27,7 +26,7 @@ object GLFWListeners {
         val files = (0 until count).mapNotNull { nameIndex ->
             try {
                 getReference(GLFWDropCallback.getName(names, nameIndex))
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }
@@ -41,7 +40,7 @@ object GLFWListeners {
     }
 
     fun handleCharMods(window: OSWindow, codepoint: Int, mods: Int) {
-        addEvent { onCharTyped(window, codepoint, mods) }
+        addEvent { onCharTyped(window, codepoint) }
     }
 
     fun handleCursorPos(window: OSWindow, x: Double, y: Double) {
@@ -50,14 +49,14 @@ object GLFWListeners {
         }
     }
 
-    fun handleMouseButton(window: OSWindow, button: Int, action: Int, mods: Int) {
+    fun handleMouseButton(window: OSWindow, button: Int, action: Int) {
+        val nanoTime = nanoTime
         addEvent {
             val button1 = Key.byId(button)
             when (action) {
-                GLFW.GLFW_PRESS -> onMousePress(window, button1)
-                GLFW.GLFW_RELEASE -> onMouseRelease(window, button1)
+                GLFW.GLFW_PRESS -> onMouseDown(window, button1, nanoTime)
+                GLFW.GLFW_RELEASE -> onMouseUp(window, button1, nanoTime)
             }
-            keyModState = mods
         }
     }
 
@@ -82,12 +81,11 @@ object GLFWListeners {
         } else addEvent {
             val key1 = Key.byId(key)
             when (action) {
-                GLFW.GLFW_PRESS -> onKeyPressed(window, key1, time)
-                GLFW.GLFW_RELEASE -> onKeyReleased(window, key1)
+                GLFW.GLFW_PRESS -> onKeyDown(window, key1, time)
+                GLFW.GLFW_RELEASE -> onKeyUp(window, key1)
                 GLFW.GLFW_REPEAT -> onKeyTyped(window, key1)
             }
             // LOGGER.info("event $key $scancode $action $mods")
-            keyModState = mods
         }
     }
 
@@ -98,11 +96,11 @@ object GLFWListeners {
         GLFW.glfwSetCharModsCallback(window.pointer) { _, codepoint, mods ->
             handleCharMods(window, codepoint, mods)
         }
-        GLFW.glfwSetCursorPosCallback(window.pointer) { ptr, xPosition, yPosition ->
+        GLFW.glfwSetCursorPosCallback(window.pointer) { _, xPosition, yPosition ->
             handleCursorPos(window, xPosition, yPosition)
         }
         GLFW.glfwSetMouseButtonCallback(window.pointer) { _, button, action, mods ->
-            handleMouseButton(window, button, action, mods)
+            handleMouseButton(window, button, action)
         }
         GLFW.glfwSetScrollCallback(window.pointer) { _, xOffset, yOffset ->
             handleScroll(window, xOffset, yOffset)

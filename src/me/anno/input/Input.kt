@@ -28,7 +28,7 @@ import me.anno.ui.editor.treeView.TreeViewEntryPanel
 import me.anno.ui.input.InputPanel
 import me.anno.utils.files.FileChooser
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
-import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
@@ -61,38 +61,45 @@ object Input {
     val keysWentDown = HashSet<Key>()
     val keysWentUp = HashSet<Key>()
 
-    var lastShiftDown = 0L
+    private var lastShiftDownFrameIndex = -5
 
     var lastClickX = 0f
     var lastClickY = 0f
     var lastClickTime = 0L
-    var keyModState = 0
-        set(value) {// check for shift...
-            if (isShiftTrulyDown) lastShiftDown = Time.nanoTime
-            field = value
-        }
 
     var mouseMovementSinceMouseDown = 0f
     var maxClickDistance = 5f
     var minDragDistance = 20f
     var hadMouseMovement = false
 
-    val mouseHasMoved get() = mouseMovementSinceMouseDown > maxClickDistance
+    val mouseHasMoved
+        get() = mouseMovementSinceMouseDown > maxClickDistance
 
     var isLeftDown = false
     var isMiddleDown = false
     var isRightDown = false
 
-    val isControlDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_CONTROL)
+    val isControlDown: Boolean
+        get() = isKeyDown(Key.KEY_LEFT_CONTROL) || isKeyDown(Key.KEY_RIGHT_CONTROL)
 
     // 30ms shift lag for numpad, because shift disables it on Windows
-    val isShiftTrulyDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_SHIFT)
-    val isShiftDown: Boolean get() = isShiftTrulyDown || (lastShiftDown != 0L && abs(lastShiftDown - Time.nanoTime) < 30_000_000)
+    val isShiftTrulyDown: Boolean
+        get() = isKeyDown(Key.KEY_LEFT_SHIFT) || isKeyDown(Key.KEY_RIGHT_SHIFT)
+    val isShiftDown: Boolean
+        get() = isShiftTrulyDown || Time.frameIndex - lastShiftDownFrameIndex <= 2
 
-    @Suppress("unused")
-    val isCapsLockDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_CAPS_LOCK)
-    val isAltDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_ALT)
-    val isSuperDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_SUPER)
+    val isAltDown: Boolean
+        get() = isKeyDown(Key.KEY_LEFT_ALT) || isKeyDown(Key.KEY_RIGHT_ALT)
+    val isSuperDown: Boolean
+        get() = isKeyDown(Key.KEY_LEFT_SUPER) || isKeyDown(Key.KEY_RIGHT_SUPER)
+
+    val keyModState: Int
+        get() = isShiftDown.toInt(GLFW.GLFW_MOD_SHIFT) or
+                isControlDown.toInt(GLFW.GLFW_MOD_CONTROL) or
+                isAltDown.toInt(GLFW.GLFW_MOD_ALT) or
+                isSuperDown.toInt(GLFW.GLFW_MOD_SUPER) or
+                isKeyDown(Key.KEY_NUM_LOCK).toInt(GLFW.GLFW_MOD_NUM_LOCK) or
+                isKeyDown(Key.KEY_CAPS_LOCK).toInt(GLFW.GLFW_MOD_CAPS_LOCK)
 
     var mouseLockWindow: OSWindow? = null
     var mouseLockPanel: Panel? = null
@@ -117,7 +124,7 @@ object Input {
         keysWentUp.clear()
     }
 
-    fun onCharTyped(window: OSWindow, codepoint: Int, mods: Int) {
+    fun onCharTyped(window: OSWindow, codepoint: Int) {
         KeyNames.onCharTyped(codepoint)
         val event = UIEvent(
             window.currentWindow,
@@ -130,7 +137,6 @@ object Input {
             window.windowStack.inFocus0
                 ?.onCharTyped(window.mouseX, window.mouseY, codepoint)
         }
-        keyModState = mods
     }
 
     private fun callKeyEventIsCancelled(window: OSWindow, key: Key, type: UIEventType): Boolean {
@@ -142,9 +148,17 @@ object Input {
         return event.isCancelled
     }
 
-    fun onKeyPressed(window: OSWindow, key: Key, nanoTime: Long) {
+    /**
+     * Call this method from your Window manager, when you receive a key-press/down event.
+     * */
+    fun onKeyDown(window: OSWindow, key: Key, nanoTime: Long) {
         keysDown[key] = nanoTime
         keysWentDown += key
+
+        if (key == Key.KEY_LEFT_SHIFT || key == Key.KEY_RIGHT_SHIFT) {
+            lastShiftDownFrameIndex = Time.frameIndex
+        }
+
         if (!callKeyEventIsCancelled(window, key, UIEventType.KEY_DOWN)) {
             window.windowStack.inFocus0
                 ?.onKeyDown(window.mouseX, window.mouseY, key)
@@ -153,7 +167,10 @@ object Input {
         }
     }
 
-    fun onKeyReleased(window: OSWindow, key: Key) {
+    /**
+     * Call this method from your Window manager, when you receive a key release/up event.
+     * */
+    fun onKeyUp(window: OSWindow, key: Key) {
         keyUpCtr++
         keysWentUp += key
         if (!callKeyEventIsCancelled(window, key, UIEventType.KEY_UP)) {
@@ -163,6 +180,10 @@ object Input {
         keysDown.remove(key)
     }
 
+    /**
+     * Call this method from your Window manager, when you receive a key typed event.
+     * Contrary to onKeyUp, this repeats automatically after a while, e.g. for typing (char-typed is better for that).
+     * */
     fun onKeyTyped(window: OSWindow, key: Key) {
 
         if (callKeyEventIsCancelled(window, key, UIEventType.KEY_TYPED)) {
@@ -253,6 +274,9 @@ object Input {
         }
     }
 
+    /**
+     * Call this method from your Window manager, when you receive a mouse position update event.
+     * */
     fun onMouseMove(window: OSWindow, newX: Float, newY: Float) {
 
         var dx: Float
@@ -286,6 +310,10 @@ object Input {
     }
 
     var userCanScrollX = false
+
+    /**
+     * Call this method from your Window manager, when you receive a mouse wheel update event.
+     * */
     fun onMouseWheel(window: OSWindow, dx: Float, dy: Float, byMouse: Boolean) {
         mouseWheelSumX += dx
         mouseWheelSumY += dy
@@ -322,7 +350,10 @@ object Input {
     var windowWasClosed = false
     var maySelectByClick = false
 
-    fun onMousePress(window: OSWindow, button: Key) {
+    /**
+     * Call this method from your Window manager, when you receive a mouse button pressed/down event.
+     * */
+    fun onMouseDown(window: OSWindow, button: Key, nanoTime: Long) {
 
         val mouseX = window.mouseX
         val mouseY = window.mouseY
@@ -331,6 +362,10 @@ object Input {
         mouseDownY = mouseY
         mouseMovementSinceMouseDown = 0f
         keysWentDown += button
+
+        mouseStart = nanoTime
+        mouseKeysDown.add(button)
+        keysDown[button] = nanoTime
 
         when (button) {
             Key.BUTTON_LEFT -> isLeftDown = true
@@ -452,13 +487,12 @@ object Input {
 
             ActionManager.onKeyDown(window, button)
         }
-
-        mouseStart = Time.nanoTime
-        mouseKeysDown.add(button)
-        keysDown[button] = Time.nanoTime
     }
 
-    fun onMouseRelease(window: OSWindow, button: Key) {
+    /**
+     * Call this method from your Window manager, when you receive a mouse button release/up event.
+     * */
+    fun onMouseUp(window: OSWindow, button: Key, nanoTime: Long) {
 
         keyUpCtr++
         keysWentUp += button
@@ -481,7 +515,6 @@ object Input {
         ActionManager.onKeyTyped(window, button)
 
         val longClickMillis = DefaultConfig["longClick", 300]
-        val currentNanos = Time.nanoTime
         val isClick = !mouseHasMoved && !windowWasClosed
 
         val event = UIEvent(
@@ -500,7 +533,7 @@ object Input {
             }
 
             val longClickNanos = 1_000_000 * longClickMillis
-            val isDoubleClick = abs(lastClickTime - currentNanos) < longClickNanos &&
+            val isDoubleClick = abs(lastClickTime - nanoTime) < longClickNanos &&
                     length(mouseX - lastClickX, mouseY - lastClickY) < maxClickDistance
 
             val inFocus0 = window.windowStack.inFocus0
@@ -517,7 +550,7 @@ object Input {
                     ActionManager.onKeyDoubleClick(window, button)
                     inFocus0?.onDoubleClick(mouseX, mouseY, button)
                 } else {
-                    val mouseDuration = currentNanos - mouseStart
+                    val mouseDuration = nanoTime - mouseStart
                     val isLongClick = mouseDuration / 1_000_000 >= longClickMillis
                     inFocus0?.onMouseClicked(mouseX, mouseY, button, isLongClick)
                 }
@@ -525,7 +558,7 @@ object Input {
 
             lastClickX = mouseX
             lastClickY = mouseY
-            lastClickTime = currentNanos
+            lastClickTime = nanoTime
         }
 
         mouseKeysDown.remove(button)

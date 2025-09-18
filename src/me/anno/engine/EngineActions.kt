@@ -54,8 +54,9 @@ object EngineActions {
             "SelectAll" to {
                 val ws = GFX.someWindow.windowStack
                 val inFocus0 = ws.inFocus0
+                LOGGER.info("Selecting all... ${inFocus0?.className}")
                 inFocus0?.onSelectAll(ws.mouseX, ws.mouseY)
-                true
+                inFocus0 != null
             },
             "DebugGPUStorage" to {
                 DebugGPUStorage.openMenu()

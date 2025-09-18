@@ -43,9 +43,9 @@ enum class ButtonUpdateState {
             buttonDownTime: LongArray, buttonId: Int, button: Key
         ) {
             when (updateButtonState(time, pressed, buttonDownTime, buttonId)) {
-                DOWN -> Input.onKeyPressed(window, button, time)
+                DOWN -> Input.onKeyDown(window, button, time)
                 TYPE -> Input.onKeyTyped(window, button)
-                UP -> Input.onKeyReleased(window, button)
+                UP -> Input.onKeyUp(window, button)
                 else -> {}
             }
         }
