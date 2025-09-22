@@ -82,8 +82,12 @@ class AlphaBlendPass : TransparentPass() {
         }
     }
 
-    override fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl, colorInput: ITexture2D) {
-
+    override fun renderTransparentStage(
+        pipeline: Pipeline,
+        stage: PipelineStageImpl,
+        colorInput: ITexture2D,
+        depthInput: ITexture2D
+    ) {
         val old = GFXState.currentBuffer
         val tintingSum = getFramebufferWithAttachedDepth(listOf(TargetType.Float16x4))
         useFrame(old.width, old.height, true, tintingSum, transparentRenderer) {

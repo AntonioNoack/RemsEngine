@@ -15,7 +15,7 @@ import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
 import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
-import me.anno.graph.visual.render.scene.RenderGlassNode
+import me.anno.graph.visual.render.scene.RenderTransparentNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import org.joml.Vector4f
 
@@ -97,7 +97,7 @@ class FSR1Node : TimedRenderingNode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))

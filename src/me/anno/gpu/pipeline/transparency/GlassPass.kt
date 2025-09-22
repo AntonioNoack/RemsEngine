@@ -162,7 +162,12 @@ class GlassPass : TransparentPass() {
         }
     }
 
-    override fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl, colorInput: ITexture2D) {
+    override fun renderTransparentStage(
+        pipeline: Pipeline,
+        stage: PipelineStageImpl,
+        colorInput: ITexture2D,
+        depthInput: ITexture2D
+    ) {
 
         // todo baked ambient occlusion is somehow put into depth buffer, when we split FBs
 
@@ -172,7 +177,8 @@ class GlassPass : TransparentPass() {
             TargetType.Float16x4, // reflections + refraction (IOR)
             TargetType.Float16x2, // 2d normal
         ))
-        glassPassDepth = old.depthTexture
+        glassPassDepth = depthInput
+
         useFrame(old.width, old.height, true, tmp, GlassRenderer) {
             tmp.clearColor(0)
             val depthMode = if (GFX.supportsClipControl) DepthMode.CLOSE

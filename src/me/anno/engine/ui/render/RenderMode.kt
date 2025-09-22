@@ -65,7 +65,7 @@ import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderForwardNode
 import me.anno.graph.visual.render.scene.RenderForwardPlusNode
-import me.anno.graph.visual.render.scene.RenderGlassNode
+import me.anno.graph.visual.render.scene.RenderTransparentNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.scalar.FloatMathBinary
 import me.anno.graph.visual.vector.MathF2XNode
@@ -126,9 +126,9 @@ class RenderMode private constructor(
 
         fun QuickPipeline.thenAlphaBlendPass(): QuickPipeline {
             return then1(
-                RenderGlassNode(), mapOf(
+                RenderTransparentNode(), mapOf(
                     "Stage" to PipelineStage.TRANSPARENT,
-                    "IsGlass" to false
+                    "Transparent Pass" to 1
                 )
             )
         }
@@ -145,7 +145,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
@@ -163,7 +163,7 @@ class RenderMode private constructor(
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
-                .then(RenderGlassNode()) // todo bug: this is invisible :/
+                .then(RenderTransparentNode()) // todo bug: this is invisible :/
                 .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .finish()
@@ -182,7 +182,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
@@ -218,7 +218,7 @@ class RenderMode private constructor(
                 .then(BoxCullingNode())
                 .then1(RenderForwardNode(), opaqueNodeSettings)
                 .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.DECAL))
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .depthToSSAO()
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
@@ -238,7 +238,7 @@ class RenderMode private constructor(
                 .then(FillLightBucketsNode())
                 .then1(RenderForwardPlusNode(), opaqueNodeSettings)
                 .then1(RenderForwardPlusNode(), mapOf("Stage" to PipelineStage.DECAL))
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .depthToSSAO()
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
@@ -350,7 +350,7 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSGINode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
@@ -382,7 +382,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
@@ -410,7 +410,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .then(GizmoNode()) // gizmo node depends on 1:1 depth scale, so we cannot do FSR before it
@@ -450,7 +450,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .then1(GizmoNode(), mapOf("Samples" to 8))
@@ -477,7 +477,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
@@ -497,7 +497,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
@@ -526,7 +526,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .then1(GizmoNode(), mapOf("Samples" to 1))
@@ -547,7 +547,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then(DepthOfFieldNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
@@ -565,7 +565,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then(MotionBlurNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
@@ -584,7 +584,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .thenAlphaBlendPass()
                 .then(GizmoNode())
@@ -611,7 +611,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
         }
 
         fun createHDRPostProcessGraph(postProcessNode: ActionNode): FlowGraph {
@@ -645,7 +645,7 @@ class RenderMode private constructor(
                 .then(RenderLightsNode())
                 .then(CellShadingNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(AnimeOutlineNode())
                 .thenAlphaBlendPass() // cannot handle outlines for transparent things properly anyway -> after anime outlines

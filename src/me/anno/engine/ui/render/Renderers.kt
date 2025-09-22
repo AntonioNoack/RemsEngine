@@ -112,9 +112,7 @@ object Renderers {
     )
 
     @JvmField
-    val triangleSizeRenderer = object : Renderer(
-        "shadingEfficiency",
-    ) {
+    val triangleSizeRenderer = object : Renderer("shadingEfficiency") {
         override fun getVertexPostProcessing(flags: Int): List<ShaderStage> {
             return ShaderStage(
                 "uvw", listOf(Variable(GLSLType.V3F, "uvw", VariableMode.OUT)),

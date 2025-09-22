@@ -328,7 +328,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     override val numPrimitives
         get(): Long = countPrimitives()
 
-    fun numPrimitivesByType(numPositionValues: Int, drawMode: DrawMode): Int {
+    fun numPrimitivesByType(numPositionValues: Long, drawMode: DrawMode): Long {
         return when (drawMode) {
             DrawMode.POINTS -> numPositionValues / 3
             DrawMode.LINES -> numPositionValues / 6

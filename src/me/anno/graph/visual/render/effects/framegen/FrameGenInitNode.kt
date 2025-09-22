@@ -19,7 +19,7 @@ import me.anno.graph.visual.render.effects.UnditherNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
-import me.anno.graph.visual.render.scene.RenderGlassNode
+import me.anno.graph.visual.render.scene.RenderTransparentNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.posMod
@@ -69,7 +69,7 @@ class FrameGenInitNode : FlowGraphNode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then(RenderGlassNode())
+                .then(RenderTransparentNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))

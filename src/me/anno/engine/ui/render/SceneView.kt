@@ -91,9 +91,13 @@ class SceneView(val renderView: RenderView, style: Style) : PanelStack(style) {
             }
         }
 
-        fun testSceneWithUI(title: String, prefab: PrefabSaveable, renderMode: RenderMode) {
-            testSceneWithUI(title, prefab) {
-                (it.editControls as DraggingControls).settings.renderMode = renderMode
+        fun testSceneWithUI(
+            title: String, prefab: PrefabSaveable,
+            renderMode: RenderMode, init: ((SceneView) -> Unit)? = null
+        ) {
+            testSceneWithUI(title, prefab) { sceneView ->
+                (sceneView.editControls as DraggingControls).settings.renderMode = renderMode
+                init?.invoke(sceneView)
             }
         }
 

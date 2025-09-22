@@ -161,20 +161,24 @@ object MeshUtils {
     }
 
     fun Mesh.countPrimitives(): Long {
+        val baseLength = countBasePrimitives()
+        val size = proceduralLength.toLong()
+        return if (size <= 0) baseLength
+        else if (baseLength > 0) baseLength * size
+        else numPrimitivesByType(size, drawMode)
+    }
+
+    fun Mesh.countBasePrimitives(): Long {
         val indices = indices
         val positions = positions
         val drawMode = drawMode
         // println("indices: ${indices?.size}, positions: ${positions?.size}, drawMode: $drawMode")
         val numPositionValues = when {
-            indices != null -> indices.size * 3
-            positions != null -> positions.size
-            else -> 0
+            indices != null -> indices.size * 3L
+            positions != null -> positions.size.toLong()
+            else -> 0L
         }
-        val baseLength = numPrimitivesByType(numPositionValues, drawMode)
-        val size = proceduralLength
-        return if (size <= 0) baseLength.toLong()
-        else if (baseLength > 0) baseLength.toLong() * size
-        else numPrimitivesByType(size, drawMode).toLong()
+        return numPrimitivesByType(numPositionValues, drawMode)
     }
 
     val Mesh.numPoints: Int

@@ -11,6 +11,7 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
@@ -18,13 +19,13 @@ import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.maths.Maths.clamp
 
-class RenderGlassNode : RenderViewNode(
-    "RenderSceneGlass",
+class RenderTransparentNode : RenderViewNode(
+    "RenderSceneTransparent",
     listOf(
         "Int", "Width",
         "Int", "Height",
         "Int", "Samples",
-        "Boolean", "IsGlass",
+        "Int", "Transparent Pass",
         "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
         "Texture", "Illuminated",
         "Texture", "Depth",
@@ -36,7 +37,7 @@ class RenderGlassNode : RenderViewNode(
         setInput(1, 256) // width
         setInput(2, 256) // height
         setInput(3, 1) // samples
-        setInput(4, true) // glass
+        setInput(4, 0) // glass
         setInput(5, PipelineStage.GLASS) // stage
     }
 
@@ -45,7 +46,7 @@ class RenderGlassNode : RenderViewNode(
     val width get() = getIntInput(1)
     val height get() = getIntInput(2)
     val samples get() = clamp(getIntInput(3), 1, GFX.maxSamples)
-    val useGlassPass get() = getBoolInput(4)
+    val transparentPassIndex get() = getIntInput(4)
     val stage get() = getInput(5) as PipelineStage
     val prepassColor get() = getInput(6) as? Texture
     val prepassDepth get() = getInput(7) as? Texture
@@ -77,8 +78,9 @@ class RenderGlassNode : RenderViewNode(
                 defineInputs(framebuffer, prepassColor2, prepassDepth1, prepassDepth0.mask1Index)
                 val stageImpl = pipeline.stages.getOrNull(stage.id)
                 if (stageImpl != null && !stageImpl.isEmpty()) {
-                    val pass = if (useGlassPass) pipeline.glassPass else pipeline.alphaBlendPass
-                    pass.blendTransparentStage(pipeline, stageImpl, prepassColor2)
+                    val pass = pipeline.transparentPasses.getOrNull(transparentPassIndex)
+                    val prepassDepth2 = prepassDepth1 ?: TextureLib.depthTexture
+                    pass?.renderTransparentStage(pipeline, stageImpl, prepassColor2, prepassDepth2)
                 }
                 GFX.check()
             }

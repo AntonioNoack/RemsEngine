@@ -32,12 +32,12 @@ import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.DECAL_PASS
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.OPAQUE_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.OPAQUE_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.pipeline.occlusion.BoxOcclusionCulling
-import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.AlphaBlendPass
+import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.texture.TextureLib
@@ -83,8 +83,12 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
     var applyToneMapping = true
 
-    var glassPass: TransparentPass = GlassPass()
-    var alphaBlendPass: TransparentPass = AlphaBlendPass()
+    val transparentPasses = ArrayList<TransparentPass>()
+
+    init {
+        transparentPasses.add(GlassPass())
+        transparentPasses.add(AlphaBlendPass())
+    }
 
     val skyTimer = GPUClockNanos()
     val skyboxTimer = GPUClockNanos()
@@ -213,7 +217,9 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     override fun destroy() {
         bakedSkybox?.destroy()
         bakedSkybox = null
-        alphaBlendPass.destroy()
+        for (transparentPass in transparentPasses) {
+            transparentPass.destroy()
+        }
         skyTimer.destroy()
         skyboxTimer.destroy()
     }
