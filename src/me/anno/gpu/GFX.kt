@@ -44,15 +44,15 @@ object GFX {
      * window, that is in focus; may be null
      * */
     @JvmStatic
-    val focusedWindow
-        get(): OSWindow? = windows.firstOrNull2 { it.isInFocus && !it.shouldClose }
+    val focusedWindow: OSWindow?
+        get() = windows.firstOrNull2 { it.isInFocus && !it.shouldClose }
 
     /**
      * window, that is in focus, or arbitrary window, if undefined
      * */
     @JvmStatic
-    val someWindow
-        get(): OSWindow = focusedWindow
+    val someWindow: OSWindow
+        get() = focusedWindow
             ?: windows.firstOrNull()
             ?: firstWindow
 

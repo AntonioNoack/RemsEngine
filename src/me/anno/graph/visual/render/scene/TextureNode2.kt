@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package me.anno.graph.visual.render.scene
 
 import me.anno.gpu.shader.GLSLType
@@ -15,6 +13,7 @@ import me.anno.graph.visual.render.compiler.GraphCompiler
 import org.joml.Vector2f
 
 // todo texture size node
+@Suppress("unused")
 class TextureNode2 : CalculationNode(
     "Texture",
     // todo different color repeat modes in GLSL
