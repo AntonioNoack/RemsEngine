@@ -194,10 +194,10 @@ object Floats {
             } while (mantissa and 0x400 == 0) // while not normal
             mantissa = mantissa and 0x3ff // discard subnormal bit
         } // else +/-0 -> +/-0
-        return Float.fromBits( // combine all parts
-            (bits and 0x8000).shl(16) // sign  << (31 - 15)
-                    or ((exponent or mantissa) shl 13)  // value << ( 23 - 10 )
-        )
+        // combine all parts
+        val sign = (bits and 0x8000).shl(16) // sign << (31 - 15)
+        val value = ((exponent or mantissa) shl 13) // value << ( 23 - 10 )
+        return Float.fromBits(sign or value)
     }
 
     @JvmStatic
@@ -220,7 +220,7 @@ object Floats {
             v = fp32 and 0x7fffffff ushr 23 // tmp exp for subnormal calc
             sign or ((fp32 and 0x7fffff or 0x800000) +// add subnormal bit
                     (0x800000.ushr(v - 102)) // round depending on cut off
-                    ushr (126 - v)) // div by 2^(1-(exp-127+15)) and >> 13 | exp=0
+                        .ushr(126 - v)) // div by 2^(1-(exp-127+15)) and >> 13 | exp=0
         }
     }
 }

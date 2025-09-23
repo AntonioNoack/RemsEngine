@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package me.anno.graph.visual.vector
 
 import me.anno.graph.visual.CalculationNode

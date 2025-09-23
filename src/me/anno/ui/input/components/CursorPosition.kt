@@ -21,12 +21,12 @@ class CursorPosition(var x: Int, var y: Int) : Comparable<CursorPosition> {
         this.y = cp.y
     }
 
-    fun contains(end: CursorPosition, x: Int, y: Int): Boolean {
+    fun contains(end: CursorPosition, xi: Int, yi: Int): Boolean {
         return when {
-            y < this.y || y > end.y -> false
-            this.y == end.y -> x in this.x until end.x
-            y == this.y -> x >= this.x
-            y == end.y -> x < end.x
+            yi < y || yi > end.y -> false
+            y == end.y -> xi in x until end.x
+            yi == y -> xi >= x
+            yi == end.y -> xi < end.x
             else -> true
         }
     }
