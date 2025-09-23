@@ -5,8 +5,8 @@ import me.anno.utils.algorithms.Recursion
 // (how) can we call them from Lua? -> the Java way, because Lua is using Java reflection iirc
 object EntityStats {
 
-    val Entity.sizeOfHierarchy
-        get(): Int = calcSizeOfHierarchy(this)
+    val Entity.sizeOfHierarchy: Int
+        get() = calcSizeOfHierarchy(this)
 
     private fun calcSizeOfHierarchy(entity: Entity): Int {
         val children = entity.children
@@ -17,8 +17,8 @@ object EntityStats {
         return sum
     }
 
-    val Entity.totalNumEntities
-        get(): Int = calcTotalNumEntities(this)
+    val Entity.totalNumEntities: Int
+        get() = calcTotalNumEntities(this)
 
     private fun calcTotalNumEntities(entity: Entity): Int {
         var count = 0
@@ -29,8 +29,8 @@ object EntityStats {
         return count
     }
 
-    val Entity.totalNumComponents
-        get(): Int = calcTotalNumComponents(this)
+    val Entity.totalNumComponents: Int
+        get() = calcTotalNumComponents(this)
 
     private fun calcTotalNumComponents(entity: Entity): Int {
         var count = 0

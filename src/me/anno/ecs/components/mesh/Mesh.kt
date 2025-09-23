@@ -325,8 +325,8 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     override var hasBonesInBuffer = false
 
     @DebugProperty
-    override val numPrimitives
-        get(): Long = countPrimitives()
+    override val numPrimitives: Long
+        get() = countPrimitives()
 
     fun numPrimitivesByType(numPositionValues: Long, drawMode: DrawMode): Long {
         return when (drawMode) {

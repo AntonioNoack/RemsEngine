@@ -297,6 +297,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                 }
                 // todo create tree-hierarchy for these
                 //  -> padding left by bone depth
+
                 list.add(object : EnumInput(
                     NameDesc(bone.name), NameDesc(dstBoneMapping[i]),
                     options, style
