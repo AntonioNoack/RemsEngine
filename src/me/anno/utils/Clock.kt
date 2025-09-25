@@ -164,7 +164,7 @@ class Clock(
             benchmarkRun(i)
         }
         val elementCount = measuredRuns * numElements
-        return stop(usedFor, elementCount)
+        return stop(usedFor, 0.0, elementCount)
     }
 
     companion object {
