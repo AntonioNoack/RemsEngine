@@ -204,7 +204,7 @@ RenderDecalsNode: me.anno.graph.visual.render.scene.RenderDecalsNode
 RenderDeferredNode: me.anno.graph.visual.render.scene.RenderDeferredNode
 RenderForwardNode: me.anno.graph.visual.render.scene.RenderForwardNode
 RenderForwardPlusNode: me.anno.graph.visual.render.scene.RenderForwardPlusNode
-RenderGlassNode: me.anno.graph.visual.render.scene.RenderGlassNode
+RenderTransparentNode: me.anno.graph.visual.render.scene.RenderTransparentNode
 RenderLightsNode: me.anno.graph.visual.render.scene.RenderLightsNode
 RenderReturnNode: me.anno.graph.visual.render.RenderReturnNode
 Retargeting: me.anno.ecs.components.anim.Retargeting

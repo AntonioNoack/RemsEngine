@@ -8,10 +8,9 @@ import me.anno.ecs.components.physics.FlagMesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS.res
 
-// todo custom mesh doesn't work :(
+// todo custom flag mesh looks weird...
 fun main() {
     val flag = FlagMesh()
-    // flag.materials = listOf(Material().apply { diffuseMap = res.getChild("textures/UVChecker.png") }.ref)
     flag.material.diffuseMap = res.getChild("textures/UVChecker.png")
     flag.useCustomMesh = true
     flag.meshFile = CylinderModel.createCylinder(32, 2, true, true, null, 1f, Mesh()).ref

@@ -31,7 +31,7 @@ class IntHashSetTest {
         assertFalse(set.remove(100))
         assertEquals(20, set.size)
         assertTrue(set.maxFill < 100)
-        for (i in 0 until 100) assertEquals(i < 10 || i >= 90, i in set)
+        for (i in 0 until 100) assertEquals(i !in 10 until 90, i in set)
         assertFalse(-1 in set)
         assertFalse(100 in set)
     }

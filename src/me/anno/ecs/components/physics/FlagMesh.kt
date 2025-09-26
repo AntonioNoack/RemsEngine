@@ -1,8 +1,10 @@
 package me.anno.ecs.components.physics
 
 import me.anno.Time
+import me.anno.cache.FileCacheList
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
@@ -28,13 +30,13 @@ import me.anno.maths.Maths.fract
 import me.anno.maths.MinMax.max
 import me.anno.maths.noise.FullNoise
 import me.anno.utils.structures.maps.LazyMap
-import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withoutFlag
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector2f
+import org.joml.Vector2i
 import org.joml.Vector3f
 
 class FlagMesh : MeshComponent(), OnUpdate {
@@ -64,24 +66,24 @@ class FlagMesh : MeshComponent(), OnUpdate {
         material.clamping = Clamping.CLAMP
         material.translucency = 0.7f
         material.shader = shader
-        materials = listOf(material.ref)
+        materials = FileCacheList.of(material)
     }
 
-    private fun createTargets(key: IntPair, initial: FloatArray) {
+    private fun createTargets(key: Vector2i, initial: FloatArray) {
 
-        tex0.width = key.first
-        tex0.height = key.second
-        tex1.width = key.first
-        tex1.height = key.second
+        tex0.width = key.x
+        tex1.width = key.x
+        tex0.height = key.y
+        tex1.height = key.y
 
         // upload initial data
         tex0.destroy()
         tex0.ensure()
-        tex0.textures!![0].createRGB(initial, false)
+        tex0.textures[0].createRGB(initial, false)
 
         tex1.destroy()
         tex1.ensure()
-        tex1.textures!![0].createRGB(initial, false)
+        tex1.textures[0].createRGB(initial, false)
     }
 
     private var prevDt = 0.01f
@@ -133,16 +135,29 @@ class FlagMesh : MeshComponent(), OnUpdate {
         }
     }
 
+    private fun needsTextureUpdate(w: Int, h: Int): Boolean {
+        return tex0.width != w || tex0.height != h || !tex0.isCreated() || !tex1.isCreated()
+    }
+
     override fun onUpdate() {
 
         val w = resolutionX
         val h = resolutionY
         if (!useCustomMesh) {
-            if (tex0.width != w || tex0.height != h || !tex0.isCreated() || !tex1.isCreated()) {
-                val key = IntPair(w, h)
+            if (needsTextureUpdate(w, h)) {
+                val key = Vector2i(w, h)
                 val data = meshCache[key]
                 createTargets(key, data.positions!!)
                 meshFile = data.ref
+            }
+        } else {
+            val mesh = MeshCache[meshFile] as? Mesh
+            if (mesh != null && needsTextureUpdate(w, h)) {
+                val key = Vector2i(w, h)
+                var data = mesh.positions!!
+                if (data.size < w * h * 3) data = data.copyOf(w * h * 3)
+                createTargets(key, data)
+                meshFile = mesh.ref
             }
         }
 
@@ -183,7 +198,7 @@ class FlagMesh : MeshComponent(), OnUpdate {
 
         private val noise = FullNoise(1234L)
 
-        val meshCache = LazyMap<IntPair, Mesh> {
+        val meshCache = LazyMap<Vector2i, Mesh> {
 
             val (w, h) = it
             val mesh = Mesh()

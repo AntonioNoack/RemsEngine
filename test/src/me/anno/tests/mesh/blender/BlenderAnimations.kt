@@ -22,9 +22,11 @@ fun main() {
     val source = documents.getChild("Blender/AnimTest2.blend")
     BlenderReader.readAsFolder(source) { folder, exc ->
         if (folder != null) {
-            testSceneWithUI("Blender Animations", folder.getChild("Scene.json")) {
-                it.renderView.renderMode = RenderMode.BONE_INDICES
-            }
+            testSceneWithUI(
+                "Blender Animations",
+                folder.getChild("Scene.json"),
+                RenderMode.BONE_INDICES
+            )
         } else exc?.printStackTrace()
     }
 }

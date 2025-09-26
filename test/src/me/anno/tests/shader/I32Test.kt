@@ -46,8 +46,6 @@ class TestI32Stack(val space: Float) : InstancedI32Stack(
 
 /**
  * Shows how to use an i32-MeshSpawner
- *
- * todo bug: this has become invisible
  * */
 fun main() {
 
@@ -67,11 +65,15 @@ fun main() {
 
         override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
             // the size is changing constantly, so it would be best to calculate the maximum size
-            // if you're too lazy, use aabb.all()
+            // if you're too lazy, use fillAllSpace(dstUnion)
             val dx = width.toDouble()
             val dy = height.toDouble()
-            dstUnion.setMin(-dx, -dy, -thickness.toDouble())
-            dstUnion.setMax(+dx, +dy, (maxCount - 1) * space + thickness.toDouble())
+            dstUnion
+                .setMin(-dx, -dy, -thickness.toDouble())
+                .setMax(+dx, +dy, (maxCount - 1) * space + thickness.toDouble())
+
+            localAABB.set(dstUnion)
+            globalAABB.set(dstUnion)
         }
 
         override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {

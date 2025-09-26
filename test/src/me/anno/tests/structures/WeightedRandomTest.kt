@@ -18,11 +18,11 @@ class WeightedRandomTest {
         val weights = LazyMap { key: Int -> sq(key.toDouble()) }
         val random = Random(1234)
         val histogram = IntArray(values.size)
-        for (i in 0 until samples) {
+        repeat(samples) {
             val j = values.weightedRandomIndex(random, weights::get)
             histogram[j]++
         }
-        val sum = values.map(weights::get).sum()
+        val sum = values.sumOf(weights::get)
         val expected = values.map { samples * weights[it] / sum }
         for (i in values.indices) {
             val exp = expected[i]

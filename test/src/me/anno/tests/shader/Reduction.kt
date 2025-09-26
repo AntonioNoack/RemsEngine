@@ -1,6 +1,5 @@
 package me.anno.tests.shader
 
-import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.gpu.shader.Reduction
 import me.anno.gpu.texture.TextureCache
@@ -18,7 +17,7 @@ fun main() {
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
     val fileReference = OS.pictures.getChild("4k.jpg")
-    val image = TextureCache[fileReference].waitFor()!!
-    LOGGER.info(Reduction.reduce(image, Reduction.AVG).toHexColor())
-    Engine.requestShutdown()
+    TextureCache[fileReference].waitFor { image, _ ->
+        LOGGER.info(Reduction.reduce(image!!, Reduction.AVG).toHexColor())
+    }
 }

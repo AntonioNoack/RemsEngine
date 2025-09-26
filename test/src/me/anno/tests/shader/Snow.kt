@@ -261,7 +261,7 @@ fun main() {
         scene.add(snowControl0)
         registerCustomClass(SnowControl())
         list.add(SceneView.createSceneUI(scene) {
-            it.renderView.renderMode = snowRenderMode
+            it.renderMode = snowRenderMode
         }, 2f)
         list
     }

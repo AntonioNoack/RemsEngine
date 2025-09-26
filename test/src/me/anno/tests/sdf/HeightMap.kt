@@ -11,7 +11,5 @@ fun main() {
         maxSteps = 50
         source = OS.pictures.getChild("Maps/Bricks.png")
         maxHeight = 0.1f
-    }) {
-        it.renderView.renderMode = SDFPlugin.NumStepsRenderMode
-    }
+    }, SDFPlugin.NumStepsRenderMode)
 }

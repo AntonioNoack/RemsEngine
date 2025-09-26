@@ -9,6 +9,7 @@ import me.anno.engine.Events.addEvent
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
+import me.anno.engine.ui.control.DraggingControlSettings
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.control.PlayControls
 import me.anno.engine.ui.scenetabs.ECSSceneTab
@@ -47,6 +48,14 @@ class SceneView(val renderView: RenderView, style: Style) : PanelStack(style) {
                 field = value
                 add(value)
             }
+        }
+
+    var renderMode: RenderMode
+        get() = renderView.renderMode
+        set(value) {
+            val settings = editControls.settings
+            if (settings is DraggingControlSettings) settings.renderMode = value
+            else renderView.renderMode = value
         }
 
     // todo show the background renderer, when edited graph is RenderGraph

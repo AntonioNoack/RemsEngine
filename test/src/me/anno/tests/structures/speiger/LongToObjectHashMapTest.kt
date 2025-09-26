@@ -4,9 +4,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
-import speiger.primitivecollections.LongToLongHashMap
 import speiger.primitivecollections.LongToObjectHashMap
-import kotlin.ranges.contains
 
 class LongToObjectHashMapTest {
 
@@ -58,10 +56,10 @@ class LongToObjectHashMapTest {
         assertEquals(1000, map.size)
         assertTrue(map.maxFill >= 1000)
 
-        assertEquals(800, map.removeIf { key, value ->
+        assertEquals(800, map.removeIf { key, _ ->
             key in 100 until 900
         })
-        assertEquals(0, map.removeIf { key, value ->
+        assertEquals(0, map.removeIf { key, _ ->
             key in 100 until 900
         })
 

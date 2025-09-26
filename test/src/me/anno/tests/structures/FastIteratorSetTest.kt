@@ -51,11 +51,11 @@ class FastIteratorSetTest {
         set.add(2)
         set.add(3)
         assertEquals(listOf(1, 2, 3), set.asList().sorted())
-        for (i in 0 until 3) {
+        repeat(3) {
             set.setContains(2, false)
             assertEquals(listOf(1, 3), set.asList().sorted())
         }
-        for (i in 0 until 3) {
+        repeat(3) {
             set.setContains(7, true)
             assertEquals(listOf(1, 3, 7), set.asList().sorted())
         }

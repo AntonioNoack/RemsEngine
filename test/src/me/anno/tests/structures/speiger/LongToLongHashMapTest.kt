@@ -53,10 +53,10 @@ class LongToLongHashMapTest {
         assertEquals(1000, map.size)
         assertTrue(map.maxFill >= 1000)
 
-        assertEquals(800, map.removeIf { key, value ->
+        assertEquals(800, map.removeIf { key, _ ->
             key in 100 until 900
         })
-        assertEquals(0, map.removeIf { key, value ->
+        assertEquals(0, map.removeIf { key, _ ->
             key in 100 until 900
         })
 

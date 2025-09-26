@@ -87,7 +87,7 @@ fun main() {
         scene.add(rainControl)
         Saveable.registerCustomClass(SnowControl())
         list.add(SceneView.createSceneUI(scene) {
-            it.renderView.renderMode = rainRenderMode
+            it.renderMode = rainRenderMode
         }, 2f)
         list
     }

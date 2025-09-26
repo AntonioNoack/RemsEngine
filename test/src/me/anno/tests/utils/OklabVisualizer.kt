@@ -86,7 +86,5 @@ fun main() {
     Entity(scene)
         .add(MeshComponent(createColorsPoints(10000)))
         .setRotation(0f, PIf, 0f)
-    SceneView.testSceneWithUI("Oklab", scene) {
-        it.renderView.renderMode = RenderMode.COLOR
-    }
+    SceneView.testSceneWithUI("Oklab", scene, RenderMode.COLOR)
 }
