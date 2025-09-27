@@ -425,6 +425,7 @@ class Transform() : Saveable() {
         return globalTransform.getScale(tmp).y
     }
 
+    @Suppress("unused")
     fun getGlobalScaleZ(): Float {
         val tmp = JomlPools.vec3f.borrow()
         return globalTransform.getScale(tmp).z

@@ -45,7 +45,7 @@ class AtlasFontGenerator(override val fontKey: FontKey) : TextGenerator {
     }
 
     private fun getImageStack(callback: Callback<List<IntImage>>) {
-        cache.getEntry(fontKey.sizeIndex, 10_000) { sizeIndex, result ->
+        cache.getEntry(fontKey.sizeIndex, 10_000) { _, result ->
             val source = res.getChild("textures/ASCIIAtlas.png")
             ImageCache[source, 50].mapResult(result) { image ->
                 image.split(NUM_TILES_X, NUM_TILES_Y).map { tileImage ->

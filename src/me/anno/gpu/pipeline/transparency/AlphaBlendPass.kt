@@ -30,6 +30,7 @@ import me.anno.utils.structures.maps.LazyMap
  * with more layers, the colors should mix regardless of order (for now)
  *
  * todo we might want a third glass pass type: forward rendering and this blending, not just flat colors
+ *  e.g. for fading in objects like when placing objects
  * */
 class AlphaBlendPass : TransparentPass() {
     companion object {

@@ -20,7 +20,7 @@ object AttributeReadWrite {
     }
 
     private fun floatType(components: Int): String {
-        return GLSLType.Companion.floats[components - 1].glslName
+        return GLSLType.floats[components - 1].glslName
     }
 
     private fun uintType(components: Int): String {
@@ -34,7 +34,7 @@ object AttributeReadWrite {
     }
 
     private fun sintType(components: Int): String {
-        return GLSLType.Companion.integers[components - 1].glslName
+        return GLSLType.integers[components - 1].glslName
     }
 
     private fun floatAlignment(components: Int): Int {

@@ -2,7 +2,6 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFXState
 import org.joml.Matrix4f
-import kotlin.math.atan
 import kotlin.math.tan
 
 object Perspective {

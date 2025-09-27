@@ -203,7 +203,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
                         "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv) {\n" +
                         "   return texture(tex,uv);\n" +
                         "}\n" +
-                        stage.functions.joinToString("\n") { it.body } +
+                        stage.functions.joinToString("\n") +
                         "void main() {\n" +
                         "   vec2 finalUV = uv;\n" +
                         stage.body +

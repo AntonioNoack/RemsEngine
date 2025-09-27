@@ -7,6 +7,7 @@ import me.anno.gpu.GFX.INVALID_POINTER
 import me.anno.gpu.GFX.INVALID_SESSION
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.shader.builder.ShaderPrinting.bindPrintingBuffer
 import me.anno.gpu.shader.builder.Variable
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.sq
@@ -257,12 +258,12 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
     // todo this should be set automatically
     var failedCompilation = false
 
+    var hasPrinting = false
+
     /**
      * binds the shader, and returns whether this shader was actually bound
      * */
     fun use(): Boolean {
-        GFX.check()
-        // Frame.bindMaybe()
         GFX.check()
         if (program == 0 || session != GFXState.session) {
             clearState()
@@ -272,6 +273,7 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
         return if (program != lastProgram) {
             glUseProgram(program)
             GFX.check()
+            bindPrintingBuffer(this)
             lastProgram = program
             true
         } else false

@@ -21,7 +21,6 @@ import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.DitherMode
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.buffer16x256
 import me.anno.gpu.M4x3Delta.m4x3delta
@@ -259,8 +258,7 @@ class PipelineStageImpl(
             if (bestPtr != null) {
                 val tex = bestPtr.framebuffer!!
                 tex.getTexture0().bind(ti, Filtering.LINEAR, Clamping.CLAMP)
-                val normal = bestPtr.globalNormal
-                shader.v3f("reflectionPlaneNormal", normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat())
+                shader.v3f("reflectionPlaneNormal", bestPtr.globalNormal)
             }
         }
 

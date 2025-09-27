@@ -2,8 +2,8 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat11x2
 import me.anno.gpu.buffer.StaticBuffer
@@ -468,13 +468,15 @@ object DrawCurves {
         var ay = y0
         val f = 1f / steps
         for (i in 1 until steps) {
-            val t = i * f
-            val s = 1f - t
-            val v0 = s * s * s * s
-            val v1 = 4f * s * s * s * t
-            val v2 = 6f * s * s * t * t
-            val v3 = 4f * s * t * t * t
-            val v4 = t * t * t * t
+            val t1 = i * f
+            val t2 = t1 * t1
+            val s1 = 1f - t1
+            val s2 = s1 * s1
+            val v0 = s2 * s2
+            val v1 = 4f * s2 * s1 * t1
+            val v2 = 6f * s2 * t2
+            val v3 = 4f * s1 * t1 * t2
+            val v4 = t2 * t2
             val bx = x0 * v0 + x1 * v1 + x2 * v2 + x3 * v3 + x4 * v4
             val by = y0 * v0 + y1 * v1 + y2 * v2 + y3 * v3 + y4 * v4
             sum += hypot(bx - ax, by - ay)

@@ -6,6 +6,7 @@ import me.anno.fonts.signeddistfields.TextSDF
 import org.joml.AABBf
 
 abstract class TextDrawable : ICacheData {
+
     val bounds = AABBf()
 
     fun interface DrawBufferCallback {

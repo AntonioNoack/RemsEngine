@@ -20,6 +20,7 @@ import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_PORTABILITY
 import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_PUSH_GROUP
 import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR
 
+@Suppress("unused")
 object OpenGLDebug {
 
     @JvmStatic

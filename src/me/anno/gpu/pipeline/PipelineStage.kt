@@ -4,10 +4,6 @@ enum class PipelineStage(val id: Int) {
     OPAQUE(0),
     GLASS(1),
     DECAL(2),
-
-    // todo add a simple transparency stage
-    //  non reflective, just boring transparency
-    // todo implement a special pass for them, incl. order-independent transparency
     TRANSPARENT(3),
 
     // feel free to suggest other names to me,

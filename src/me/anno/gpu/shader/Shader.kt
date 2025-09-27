@@ -3,9 +3,9 @@ package me.anno.gpu.shader
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.ShaderLib.matMul
+import me.anno.gpu.shader.builder.ShaderPrinting.implementPrinting
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.shader.builder.Varying
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.indexOfFirst2
@@ -14,6 +14,7 @@ import org.lwjgl.opengl.GL46C
 
 // todo for debugging, it would be nice to be able to print stuff from a shader.
 //  (according to ChatGPT), we can write to SSBOs from a shader, and use atomics via atomicCounterIncrement, GL_ATOMIC_COUNTER_BUFFER
+//  printf("message %s, %ld, ...", data...) -> printBuffer[idx++*16] = #messageId
 
 // todo to get rid of the attribute limit, use SSBOs for loading data:
 //  data sources: per-instance | per-mesh
@@ -89,6 +90,12 @@ open class Shader(
         }
     }
 
+    fun getVaryingModifiers(v: Variable): String {
+        // matrix interpolation is not supported properly on my RTX3070. Although the value should be constant, the matrix is not.
+        val isFlat = v.isFlat || v.type.isNativeInt || v.type.glslName.startsWith("mat")
+        return if (isFlat) "flat " else ""
+    }
+
     override fun compile() {
 
         if (attributes.size > GFX.maxAttributes) {
@@ -101,12 +108,6 @@ open class Shader(
                 "Cannot use more than ${GFX.maxAttributes} attributes" +
                         " in $name, given: ${attributes.map { it.name }}"
             )
-        }
-
-        val varyings = varyings.map {
-            // matrix interpolation is not supported properly on my RTX3070. Although the value should be constant, the matrix is not.
-            val isFlat = it.isFlat || it.type.isNativeInt || it.type.glslName.startsWith("mat")
-            Varying(if (isFlat) "flat" else "", it.type, it.name)
         }
 
         if (glslVersion < 430 && ("layout(std430" in vertexShader || "layout(std430" in fragmentShader)) {
@@ -147,16 +148,19 @@ open class Shader(
                 uniformTypes[v.name] = v
             }
         }
-        for (v in varyings) {
-            builder.append(v.modifiers)
-            builder.append(" out ")
+
+        for (vi in varyings.indices) {
+            val v = varyings[vi]
+            builder.append(getVaryingModifiers(v))
+            builder.append("out ")
             builder.append(v.type.glslName)
             builder.append(' ')
-            builder.append(v.vShaderName)
+            builder.append(v.name)
             builder.append(";\n")
         }
 
         builder.append(vertexShader.replace("#extension ", "// #extension "))
+        hasPrinting = builder.implementPrinting()
 
         vertexSource = builder.toString()
         builder.clear()
@@ -170,12 +174,11 @@ open class Shader(
         appendPrecisions(fragmentVariables)
         builder.append(matMul)
 
-        for (v in varyings) {
-            if (v.modifiers.isNotEmpty()) {
-                builder.append(v.modifiers).append(" ")
-            }
+        for (vi in varyings.indices) {
+            val v = varyings[vi]
+            builder.append(getVaryingModifiers(v))
             builder.append("in ").append(v.type.glslName)
-                .append(' ').append(v.fShaderName).append(";\n")
+                .append(' ').append(v.name).append(";\n")
         }
 
         var outCtr = 0
@@ -205,6 +208,7 @@ open class Shader(
         else fragmentShader
 
         builder.append(base.replace("#extension ", "// #extension "))
+        hasPrinting = builder.implementPrinting() or hasPrinting
 
         fragmentSource = builder.toString()
         builder.clear()

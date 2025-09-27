@@ -31,15 +31,13 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         }
     }
 
-    val semanticLayers: List<SemanticLayer>
+    val semanticLayers = ArrayList<SemanticLayer>()
     val storageLayers: List<DeferredLayer>
     val emptySlots: List<EmptySlot>
 
     var isSRGBMask = 0
 
     init {
-
-        semanticLayers = ArrayList()
 
         val maxTextures = layerTypes.size
         val layerRemaining = IntArray(maxTextures)
@@ -231,6 +229,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         return buffer.getTextureI(semanticLayer.texIndex)
     }
 
+    @Suppress("unused")
     fun findTextureMS(buffer: IFramebuffer, semanticLayer: SemanticLayer?): ITexture2D? {
         if (semanticLayer == null) return null
         return buffer.getTextureIMS(semanticLayer.texIndex)

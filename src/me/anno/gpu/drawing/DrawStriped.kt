@@ -2,7 +2,6 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader

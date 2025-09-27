@@ -44,7 +44,7 @@ class MainStage {
         }
         uniqueFunctions.add(randomGLSL)
         for (function in stage.functions) {
-            uniqueFunctions.add(function.body)
+            uniqueFunctions.add(function)
         }
     }
 

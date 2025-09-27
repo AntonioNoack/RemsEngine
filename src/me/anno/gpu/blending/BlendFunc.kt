@@ -1,8 +1,8 @@
 package me.anno.gpu.blending
 
-@Suppress("unused")
 enum class BlendFunc(val hasParams: Boolean) {
     ADD(true),
+    @Suppress("unused")
     SUB(true),
     REV_SUB(true),
     MIN(false),

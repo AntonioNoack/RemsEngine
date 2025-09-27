@@ -16,7 +16,7 @@ class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
     override fun getDirectionAt(t: Float, dst: Vector2f): Vector2f = p1.sub(p0,dst)
     override fun length(): Float = p1.distance(p0)
 
-    override fun toString() = "[$p0 $p1]"
+    override fun toString() = "[$p0,$p1]"
 
     override fun union(bounds: AABBf, tmp: FloatArray) {
         bounds.union(p0.x, p0.y, 0f)

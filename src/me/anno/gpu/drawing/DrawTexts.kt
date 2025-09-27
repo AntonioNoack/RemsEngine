@@ -287,13 +287,13 @@ object DrawTexts {
                     textColor, backgroundColor,
                     widthLimit, heightLimit, alignX, alignY, equalSpaced
                 )
-                sizeX = max(GFXx2D.getSizeX(size), sizeX)
+                sizeX = max(getSizeX(size), sizeX)
             }
-            return GFXx2D.getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
+            return getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
         }
 
         if (text.isEmpty())
-            return GFXx2D.getSize(0, font.sizeInt)
+            return getSize(0, font.sizeInt)
 
         val shader = chooseShader(textColor, backgroundColor)
         GFX.check()
@@ -354,7 +354,7 @@ object DrawTexts {
 
             GFX.loadTexturesSync.pop()
 
-            return GFXx2D.getSize(fx - (x + dx), font.sizeInt)
+            return getSize(fx - (x + dx), font.sizeInt)
         } else {
 
             val group = TextGroup(font, text, 0.0)
@@ -391,7 +391,7 @@ object DrawTexts {
 
             GFX.loadTexturesSync.pop()
 
-            return GFXx2D.getSize(textWidth, font.sizeInt)
+            return getSize(textWidth, font.sizeInt)
         }
     }
 
@@ -440,12 +440,12 @@ object DrawTexts {
     ): Int {
 
         if (key.text.isEmpty()) {
-            return GFXx2D.getSize(0, font.sizeInt)
+            return getSize(0, font.sizeInt)
         }
 
         if (key.text.isBlank2()) {
             return FontManager.getSize(key).waitFor()
-                ?: GFXx2D.getSize(0, font.sizeInt)
+                ?: getSize(0, font.sizeInt)
         }
 
         GFX.check()
@@ -499,7 +499,7 @@ object DrawTexts {
 
         GFX.loadTexturesSync.pop()
 
-        return GFXx2D.getSize(charWidth, font.sizeInt)
+        return getSize(charWidth, font.sizeInt)
     }
 
     private fun draw(
@@ -540,7 +540,7 @@ object DrawTexts {
     ): Int {
 
         if (text.isEmpty()) {
-            return GFXx2D.getSize(0, font.sizeInt)
+            return getSize(0, font.sizeInt)
         }
 
         GFX.check()
@@ -605,7 +605,7 @@ object DrawTexts {
             }
             GFX.check()
         }
-        return GFXx2D.getSize(w, h)
+        return getSize(w, h)
     }
 
     fun getOffset(size: Int, alignment: AxisAlignment): Int {

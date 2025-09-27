@@ -151,6 +151,7 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
             for (i in startResultIndex until result.size) {
                 result[i].lineWidth = lineWidth
             }
+            @Suppress("AssignedValueIsNeverRead") // Intellij is broken
             startResultIndex = result.size
             currentY += fontHeight
             currentX = 0f

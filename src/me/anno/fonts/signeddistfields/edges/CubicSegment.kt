@@ -31,7 +31,7 @@ class CubicSegment(
     val p1 = if ((p10 == p0 || p10 == p3) && (p20 == p0 || p20 == p3)) mix(p0, p3, 1f / 3f) else p10
     val p2 = if ((p10 == p0 || p10 == p3) && (p20 == p0 || p20 == p3)) mix(p0, p3, 2f / 3f) else p20
 
-    override fun toString() = "[$p0 $p1 $p2 $p3]"
+    override fun toString() = "[$p0,$p1,$p2,$p3]"
 
     override fun getPointAt(t: Float, dst: Vector2f): Vector2f {
         val b = 1f - t

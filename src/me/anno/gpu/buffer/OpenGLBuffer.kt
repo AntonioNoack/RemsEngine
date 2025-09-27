@@ -38,6 +38,7 @@ import org.lwjgl.opengl.GL46C.GL_SYNC_GPU_COMMANDS_COMPLETE
 import org.lwjgl.opengl.GL46C.glBufferStorage
 import org.lwjgl.opengl.GL46C.glClientWaitSync
 import org.lwjgl.opengl.GL46C.glDeleteBuffers
+import org.lwjgl.opengl.GL46C.glDeleteSync
 import org.lwjgl.opengl.GL46C.glFenceSync
 import org.lwjgl.opengl.GL46C.glFlushMappedBufferRange
 import org.lwjgl.opengl.GL46C.glGetBufferSubData
@@ -52,7 +53,7 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.max
 
 abstract class OpenGLBuffer(
-    val name: String, val target: Int,
+    val name: String, var target: Int,
     var attributes: AttributeLayout,
     val usage: BufferUsage
 ) : ICacheData {
@@ -507,6 +508,18 @@ abstract class OpenGLBuffer(
         }
     }
 
+    fun read(): ByteBuffer {
+        val buffer = getOrCreateNioBuffer()
+        assertEquals(0, stride.and(3))
+        ensureBuffer()
+        bindBuffer(target, pointer)
+        GFX.check()
+        buffer.position(0).limit(elementCount * stride)
+        glGetBufferSubData(target, 0, buffer)
+        GFX.check()
+        return buffer
+    }
+
     fun readAsFloatArray(
         startIndex: Long = 0L,
         values: FloatArray = FloatArray(((elementCount - startIndex) * stride.shr(2)).toInt())
@@ -562,6 +575,7 @@ abstract class OpenGLBuffer(
      * Use this method to read back elements without lag.
      * The data in tmpBuffer will be available immediately using any readAsX-method.
      * */
+    @Suppress("unused")
     fun readElementsAsync(
         startIndex: Long, length: Long, destroyTmpBuffer: Boolean,
         callback: (tmpBuffer: OpenGLBuffer) -> Unit
@@ -588,6 +602,7 @@ abstract class OpenGLBuffer(
         }, {
             callback(tmpBuffer)
             if (destroyTmpBuffer) tmpBuffer.destroy()
+            glDeleteSync(fence)
         })
     }
 

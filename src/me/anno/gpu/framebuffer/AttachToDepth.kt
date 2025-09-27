@@ -22,6 +22,7 @@ object AttachToDepth {
         }
     }
 
+    @Suppress("unused")
     fun Texture2D.attachFramebufferToDepthImpl(name: String, targets: List<TargetType>): IFramebuffer? {
         return owner?.attachFramebufferToDepthImpl(name, targets)
     }

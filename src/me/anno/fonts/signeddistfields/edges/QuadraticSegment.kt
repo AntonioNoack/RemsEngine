@@ -21,7 +21,7 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
 
     val p1 = if (p0 == p10 || p10 == p2) avg(p0, p2) else p10
 
-    override fun toString() = "[$p0 $p1 $p2]"
+    override fun toString() = "[$p0,$p1,$p2]"
 
     override fun getPointAt(t: Float, dst: Vector2f): Vector2f {
         val f0 = sq(1f - t)

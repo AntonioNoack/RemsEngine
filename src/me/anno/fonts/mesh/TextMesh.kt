@@ -16,7 +16,6 @@ import org.joml.AABBf
 import org.joml.Vector2f
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 class TextMesh(val font: Font, val text: String) : TextDrawable() {
 

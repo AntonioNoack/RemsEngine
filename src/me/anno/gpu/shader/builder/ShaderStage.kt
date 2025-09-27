@@ -29,17 +29,12 @@ class ShaderStage(
         variables += variable
     }
 
-    val functions = ArrayList<Function>()
+    val functions = ArrayList<String>()
 
     val defines = ArrayList<String>()
 
-    fun add(func: Function): ShaderStage {
-        functions.add(func)
-        return this
-    }
-
     fun add(func: String): ShaderStage {
-        functions.add(Function(func))
+        functions.add(func)
         return this
     }
 
@@ -54,7 +49,7 @@ class ShaderStage(
         val idx2 = str.indexOf('{', idx + 9) + 1
         val idx3 = str.lastIndexOf('}')
         if (idx2 in 0 until idx3) {
-            functions.add(Function(str.substring(0, idx)))
+            functions.add(str.substring(0, idx))
         }
     }
 

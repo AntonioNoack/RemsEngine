@@ -22,7 +22,7 @@ class OcclusionQuery(var minSamples: Int = 16, everyNthFrame: Int = 16) :
     val wasVisible
         get(): Boolean {
             val result = drawnSamples
-            return result < 0 || result >= minSamples
+            return result !in 0 until minSamples
         }
 
     override fun toString(): String {

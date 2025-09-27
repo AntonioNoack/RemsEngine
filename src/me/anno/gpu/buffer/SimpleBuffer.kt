@@ -188,6 +188,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
         val flatLarge = createFlatLarge()
 
         @JvmField
+        @Suppress("unused")
         val flat01Mesh = Mesh().apply {
             positions = floatArrayOf(
                 -1f, -1f, 0f,
@@ -205,6 +206,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
         }
 
         @JvmStatic
+        @Suppress("unused")
         val flat01CubeX10 by lazy {
 
             // create a fine grid

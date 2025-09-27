@@ -682,7 +682,7 @@ fun bakeIllumination(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase) 
                                 "vec4 bakedRect = LOAD_PIXEL(tlasNodes, ivec2(nodeX+8u,nodeY));\n" +
                                 "intersectBLAS("
                     ) +
-                skyFragment.functions.map { it.body }
+                skyFragment.functions
                     .filter { it != quatRot } // already included
                     .joinToString("\n") +
                 "void main(){\n" +

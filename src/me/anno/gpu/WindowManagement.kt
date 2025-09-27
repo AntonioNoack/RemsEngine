@@ -18,6 +18,8 @@ import me.anno.gpu.GLNames.getErrorTypeName
 import me.anno.gpu.RenderDoc.loadRenderDoc
 import me.anno.gpu.RenderStep.renderStep
 import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
+import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.builder.ShaderPrinting
 import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.input.GLFWListeners
@@ -465,6 +467,7 @@ object WindowManagement {
                 }
             }
         }
+        ShaderPrinting.printFromBuffer()
         return workedTasks
     }
 
