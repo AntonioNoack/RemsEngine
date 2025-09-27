@@ -20,7 +20,6 @@ package org.recast4j.detour
 
 class Result<T> private constructor(val result: T?, val status: Status, val message: String?) {
 
-    fun failed() = status.isFailed
     fun succeeded() = status.isSuccess
 
     companion object {

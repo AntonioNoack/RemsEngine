@@ -244,7 +244,8 @@ open class OSWindow(var title: String) {
         contentScaleX = x[0]
         contentScaleY = y[0]
 
-        // todo when the content scale changes, we probably should scale our text automatically as well
+        // todo when the content scale changes, we probably should scale our text automatically as well ->
+        //  we should get a secondary monitor of a different resolution, and check it
         // this happens, when the user moved the window from a display with dpi1 to a display with different dpi
         GLFW.glfwSetWindowContentScaleCallback(window) { _: Long, xScale: Float, yScale: Float ->
             LOGGER.info("Window Content Scale changed: $xScale x $yScale")

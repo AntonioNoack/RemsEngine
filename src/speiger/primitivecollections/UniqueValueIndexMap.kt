@@ -8,7 +8,7 @@ import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
  * Collects unique values, and gives each element an index
  * */
 class UniqueValueIndexMap<K>(
-    @InternalAPI
+    @property:InternalAPI
     val content: ObjectToIntHashMap<K>
 ) : PrimitiveCollection {
 

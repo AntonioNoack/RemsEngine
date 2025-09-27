@@ -370,9 +370,9 @@ object RecastRegion {
 
     private fun sortCellsByLevel(
         startLevel: Int, chf: CompactHeightfield, srcReg: IntArray, nbStacks: Int,
-        stacks: List<IntArrayList>, loglevelsPerStack: Int
+        stacks: List<IntArrayList>, logLevelsPerStack: Int
     ) { // the levels per stack (2 in our case) as a bit shift
-        val startLevelI = startLevel shr loglevelsPerStack
+        val startLevelI = startLevel shr logLevelsPerStack
         val w = chf.width
         val h = chf.height
         for (j in 0 until nbStacks) {
@@ -387,7 +387,7 @@ object RecastRegion {
                     if (chf.areas[i] == RecastConstants.RC_NULL_AREA || srcReg[i] != 0) {
                         continue
                     }
-                    val level = chf.dist[i] shr loglevelsPerStack
+                    val level = chf.dist[i] shr logLevelsPerStack
                     var sId = startLevelI - level
                     if (sId >= nbStacks) {
                         continue
@@ -1275,10 +1275,10 @@ object RecastRegion {
         val h = chf.height
         val borderSize = chf.borderSize
         ctx?.startTimer(TelemetryType.REGIONS_WATERSHED)
-        val LOG_NB_STACKS = 3
-        val NB_STACKS = 1 shl LOG_NB_STACKS
-        val lvlStacks: MutableList<IntArrayList> = ArrayList()
-        for (i in 0 until NB_STACKS) {
+        val numStackBits = 3
+        val numStacks = 1 shl numStackBits
+        val lvlStacks = ArrayList<IntArrayList>()
+        repeat(numStacks) {
             lvlStacks.add(IntArrayList(1024))
         }
         val stack = IntArrayList(1024)
@@ -1288,8 +1288,8 @@ object RecastRegion {
         var level = chf.maxDistance + 1 and 1.inv()
 
         // TODO: Figure better formula, expandIters defines how much the
-        // watershed "overflows" and simplifies the regions. Tying it to
-        // agent radius was usually good indication how greedy it could be.
+        //  watershed "overflows" and simplifies the regions. Tying it to
+        //  agent radius was usually good indication how greedy it could be.
         // const int expandIters = 4 + walkableRadius * 2;
         val expandIters = 8
         if (borderSize > 0) {
@@ -1305,12 +1305,12 @@ object RecastRegion {
         chf.borderSize = borderSize
         var sId = -1
         while (level > 0) {
-            level = if (level >= 2) level - 2 else 0
-            sId = sId + 1 and NB_STACKS - 1
+            level = max(level - 2, 0)
+            sId = sId + 1 and numStacks - 1
 
             // ctx->startTimer(RC_TIMER_DIVIDE_TO_LEVELS);
             if (sId == 0) {
-                sortCellsByLevel(level, chf, srcReg, NB_STACKS, lvlStacks, 1)
+                sortCellsByLevel(level, chf, srcReg, numStacks, lvlStacks, 1)
             } else {
                 appendStacks(lvlStacks[sId - 1], lvlStacks[sId], srcReg) // copy left overs from last level
             }

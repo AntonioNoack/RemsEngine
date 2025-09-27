@@ -9,9 +9,6 @@ import com.bulletphysics.linearmath.BulletProfiling
  */
 object BulletStats {
 
-    @JvmField
-    var totalContactPoints: Int = 0
-
     // GjkPairDetector
     // temp globals, to improve GJK/EPA/penetration calculations
     @JvmField

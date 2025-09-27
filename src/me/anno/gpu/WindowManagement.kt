@@ -265,8 +265,8 @@ object WindowManagement {
     }
 
     private fun updateActualSize(instance: OSWindow) {
-        val w = intArrayOf(0)
-        val h = intArrayOf(1)
+        val w = IntArray(1)
+        val h = IntArray(1)
         GLFW.glfwGetFramebufferSize(instance.pointer, w, h)
         instance.width = w[0]
         instance.height = h[0]

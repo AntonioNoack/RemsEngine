@@ -85,13 +85,15 @@ object PropertyTracking {
                     },
                     style
                 )
-                // todo layout is very weird: we're given enough, but also too few space
+                // todo layout is very weird: we're given enough, but also too little space
                 val wrapper = CustomSizeContainer(isX = false, isY = true, tracking, style)
                 wrapper.alignmentY = AxisAlignment.MIN
                 list.add(list.children.indexOf(insertAfter) + 1, wrapper)
+                @Suppress("AssignedValueIsNeverRead")
                 dynPanel = wrapper
             } else {
                 dynPanel?.removeFromParent()
+                @Suppress("AssignedValueIsNeverRead")
                 dynPanel = null
             }
         }

@@ -21,14 +21,6 @@ class DeferredLayerType(
     val dataToWork: String,
 ) {
 
-    val texInName = glslName + "In"
-
-    val maskName = when (dataDims) {
-        1 -> "${glslName}_mask"
-        2 -> "${glslName}_zw"
-        else -> glslName
-    }
-
     override fun toString() = name
 
     constructor(
