@@ -93,7 +93,20 @@ object Vectors {
     }
 
     @JvmStatic
+    fun crossLength(ax: Double, ay: Double, az: Double, bx: Double, by: Double, bz: Double): Double {
+        return sqrt(crossLengthSq(ax, ay, az, bx, by, bz))
+    }
+
+    @JvmStatic
     fun crossLengthSq(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float): Float {
+        val cx = ay * bz - az * by
+        val cy = az * bx - ax * bz
+        val cz = ax * by - ay * bx
+        return cx * cx + cy * cy + cz * cz
+    }
+
+    @JvmStatic
+    fun crossLengthSq(ax: Double, ay: Double, az: Double, bx: Double, by: Double, bz: Double): Double {
         val cx = ay * bz - az * by
         val cy = az * bx - ax * bz
         val cz = ax * by - ay * bx

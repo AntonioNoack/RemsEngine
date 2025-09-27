@@ -77,10 +77,6 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
     // keep track of typed constraints referencing this rigid body
     val constraintRefs = ArrayList<TypedConstraint>()
 
-    // for experimental overriding of friction/contact solver func
-    var contactSolverType: Int = 0
-    var frictionSolverType: Int = 0
-
     init {
         friction = 0.5
         restitution = 0.0

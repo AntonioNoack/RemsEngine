@@ -10,8 +10,6 @@ import org.joml.Vector3d
  * */
 object Polygons {
 
-    // surely, we have this implemented already somewhere, find it
-    // -> only an ugly version in EarCut operating on FloatArray
     @JvmStatic
     fun getPolygonArea2f(points: List<Vector2f>): Float {
         var sum = 0f
@@ -24,8 +22,6 @@ object Polygons {
         return 0.5f * sum
     }
 
-    // surely, we have this implemented already somewhere, find it
-    // -> only an ugly version in EarCut operating on FloatArray
     @JvmStatic
     fun getPolygonArea2d(points: List<Vector2d>): Double {
         var sum = 0.0

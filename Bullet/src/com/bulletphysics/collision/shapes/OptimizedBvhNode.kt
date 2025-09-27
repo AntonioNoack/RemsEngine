@@ -11,9 +11,9 @@ import org.joml.Vector3d
 class OptimizedBvhNode : Serializable {
 
     @JvmField
-	val aabbMinOrg: Vector3d = Vector3d()
+	val aabbMinOrg = Vector3d()
     @JvmField
-	val aabbMaxOrg: Vector3d = Vector3d()
+	val aabbMaxOrg = Vector3d()
 
     @JvmField
 	var escapeIndex: Int = 0

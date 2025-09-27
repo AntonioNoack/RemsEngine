@@ -6,8 +6,8 @@ import com.bulletphysics.dynamics.constraintsolver.ContactConstraint
 import com.bulletphysics.dynamics.constraintsolver.TypedConstraint
 import com.bulletphysics.linearmath.MiscUtil.resize
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.util.DoubleArrayList
 import cz.advel.stack.Stack
+import me.anno.utils.structures.arrays.DoubleArrayList
 import org.joml.Vector3d
 import kotlin.math.max
 import kotlin.math.min
@@ -24,8 +24,8 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
     val forwardWS = ArrayList<Vector3d>()
     val axle = ArrayList<Vector3d>()
-    val forwardImpulse = DoubleArrayList()
-    val sideImpulse = DoubleArrayList()
+    val forwardImpulse = DoubleArrayList(8)
+    val sideImpulse = DoubleArrayList(8)
 
     private val tau = 0.0
     private val damping = 0.0
@@ -517,10 +517,10 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
                 val maxImpulse = wheelI.wheelsSuspensionForce * timeStep * wheelI.frictionSlip
 
-                forwardImpulse.set(wheel, rollingFriction) //wheelInfo.m_engineForce* timeStep;
+                forwardImpulse[wheel] = rollingFriction //wheelInfo.m_engineForce* timeStep;
 
-                val x = (forwardImpulse.get(wheel)) * fwdFactor
-                val y = (sideImpulse.get(wheel)) * sideFactor
+                val x = (forwardImpulse[wheel]) * fwdFactor
+                val y = (sideImpulse[wheel]) * sideFactor
 
                 val impulseSquared = (x * x + y * y)
                 if (impulseSquared > maxImpulse * maxImpulse) {
@@ -534,10 +534,10 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
         if (sliding) {
             for (wheel in wheels.indices) {
-                if (sideImpulse.get(wheel) != 0.0) {
+                if (sideImpulse[wheel] != 0.0) {
                     if (wheels[wheel].skidInfo < 1.0) {
-                        forwardImpulse.set(wheel, forwardImpulse.get(wheel) * wheels[wheel].skidInfo)
-                        sideImpulse.set(wheel, sideImpulse.get(wheel) * wheels[wheel].skidInfo)
+                        forwardImpulse[wheel] = forwardImpulse[wheel] * wheels[wheel].skidInfo
+                        sideImpulse[wheel] = sideImpulse[wheel] * wheels[wheel].skidInfo
                     }
                 }
             }

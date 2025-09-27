@@ -152,7 +152,6 @@ class SimulationIslandManager {
                 val colObj0 = manifold.body0
                 val colObj1 = manifold.body1
 
-                // todo: check sleeping conditions!
                 if (colObj0.activationState != ActivationState.SLEEPING ||
                     colObj1.activationState != ActivationState.SLEEPING
                 ) {

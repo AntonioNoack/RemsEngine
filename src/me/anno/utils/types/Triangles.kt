@@ -509,8 +509,21 @@ object Triangles {
     }
 
     @JvmStatic
+    fun getParallelogramArea(a: Vector3d, b: Vector3d, c: Vector3d): Double {
+        return crossLength(
+            b.x - a.x, b.y - a.y, b.z - a.z,
+            c.x - a.x, c.y - a.y, c.z - a.z
+        )
+    }
+
+    @JvmStatic
     fun getTriangleArea(a: Vector3f, b: Vector3f, c: Vector3f): Float {
         return getParallelogramArea(a, b, c) * 0.5f
+    }
+
+    @JvmStatic
+    fun getTriangleArea(a: Vector3d, b: Vector3d, c: Vector3d): Double {
+        return getParallelogramArea(a, b, c) * 0.5
     }
 
     @JvmStatic

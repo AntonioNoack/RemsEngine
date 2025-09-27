@@ -4,8 +4,11 @@ import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.maxAxis
 import cz.advel.stack.Stack
+import me.anno.utils.types.Triangles.getTriangleArea
 import me.anno.utils.types.Triangles.subCross
 import org.joml.Vector3d
+import kotlin.math.abs
+import kotlin.math.pow
 
 /**
  * Single triangle shape.
@@ -83,8 +86,8 @@ open class TriangleShape : PolyhedralConvexShape {
 
     override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         // moving convex shapes is not supported
-        // todo this is convex, so... approximate this as a mix of its three corners...
-        return inertia.set(0.0)
+        val area = getTriangleArea(vertices[0],vertices[1],vertices[2])
+        return inertia.set(abs(area).pow(1.5))
     }
 
     override fun isInside(pt: Vector3d, tolerance: Double): Boolean {

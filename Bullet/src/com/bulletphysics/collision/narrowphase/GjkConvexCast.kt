@@ -92,7 +92,7 @@ class GjkConvexCast : ConvexCast {
                     }
 
                     val projectedLinearVelocity = r.dot(n)
-                    lambda = lambda - dist / projectedLinearVelocity
+                    lambda -= dist / projectedLinearVelocity
 
                     if (lambda > 1.0) return false
                     if (lambda < 0.0) {

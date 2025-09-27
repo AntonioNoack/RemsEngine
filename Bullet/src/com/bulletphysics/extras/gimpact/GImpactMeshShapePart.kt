@@ -4,8 +4,8 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.StridingMeshInterface
 import com.bulletphysics.collision.shapes.TriangleCallback
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.util.IntArrayList
 import cz.advel.stack.Stack
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3d
 
 /**
@@ -63,7 +63,7 @@ class GImpactMeshShapePart : GImpactShapeInterface {
         throw NotImplementedError()
     }
 
-    override val primitiveManager: PrimitiveManagerBase?
+    override val primitiveManager: PrimitiveManagerBase
         get() = this.trimeshPrimitiveManager
 
     override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
@@ -88,7 +88,7 @@ class GImpactMeshShapePart : GImpactShapeInterface {
         return inertia
     }
 
-    override val gImpactShapeType: ShapeType?
+    override val gImpactShapeType: ShapeType
         get() = ShapeType.TRIMESH_SHAPE_PART
 
     override fun needsRetrieveTriangles(): Boolean {
@@ -143,17 +143,17 @@ class GImpactMeshShapePart : GImpactShapeInterface {
         collided.clear()
         boxSet.boxQuery(box, collided)
 
-        if (collided.size() == 0) {
+        if (collided.size == 0) {
             unlockChildShapes()
             return
         }
 
         val part = this.part
         val triangle = PrimitiveTriangle()
-        var i = collided.size()
+        var i = collided.size
         while ((i--) != 0) {
-            getPrimitiveTriangle(collided.get(i), triangle)
-            callback.processTriangle(triangle.vertices, part, collided.get(i))
+            getPrimitiveTriangle(collided[i], triangle)
+            callback.processTriangle(triangle.vertices, part, collided[i])
         }
         unlockChildShapes()
     }

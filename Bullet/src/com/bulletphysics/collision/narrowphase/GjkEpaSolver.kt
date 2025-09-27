@@ -234,39 +234,34 @@ class GjkEpaSolver {
         fun solveSimplex4(ao: Vector3d, ab: Vector3d, ac: Vector3d, ad: Vector3d): Boolean {
             // TODO: optimize
 
-            val crs = Stack.newVec()
+            val abc = Stack.newVec()
+            ab.cross(ac, abc)
 
-            val tmp = Stack.newVec()
-            ab.cross(ac, tmp)
+            val acd = Stack.newVec()
+            ac.cross(ad, acd)
 
-            val tmp2 = Stack.newVec()
-            ac.cross(ad, tmp2)
-
-            val tmp3 = Stack.newVec()
-            ad.cross(ab, tmp3)
+            val adb = Stack.newVec()
+            ad.cross(ab, adb)
 
             val result: Boolean
-            if (tmp.dot(ao) > GJK_IN_SIMPLEX_EPSILON) {
-                crs.set(tmp)
+            if (abc.dot(ao) > GJK_IN_SIMPLEX_EPSILON) {
                 order = 2
                 simplex[0].set(simplex[1])
                 simplex[1].set(simplex[2])
                 simplex[2].set(simplex[3])
-                result = solveSimplex3a(ao, ab, ac, crs)
-            } else if (tmp2.dot(ao) > GJK_IN_SIMPLEX_EPSILON) {
-                crs.set(tmp2)
+                result = solveSimplex3a(ao, ab, ac, abc)
+            } else if (acd.dot(ao) > GJK_IN_SIMPLEX_EPSILON) {
                 order = 2
                 simplex[2].set(simplex[3])
-                result = solveSimplex3a(ao, ac, ad, crs)
-            } else if (tmp3.dot(ao) > GJK_IN_SIMPLEX_EPSILON) {
-                crs.set(tmp3)
+                result = solveSimplex3a(ao, ac, ad, acd)
+            } else if (adb.dot(ao) > GJK_IN_SIMPLEX_EPSILON) {
                 order = 2
                 simplex[1].set(simplex[0])
                 simplex[0].set(simplex[2])
                 simplex[2].set(simplex[3])
-                result = solveSimplex3a(ao, ad, ab, crs)
+                result = solveSimplex3a(ao, ad, ab, adb)
             } else result = true
-            Stack.subVec(4)
+            Stack.subVec(3)
             return result
         }
 
@@ -279,10 +274,10 @@ class GjkEpaSolver {
         }
 
         fun searchOrigin(initRay: Vector3d): Boolean {
-            val tmp1 = Stack.newVec()
-            val tmp2 = Stack.newVec()
-            val tmp3 = Stack.newVec()
-            val tmp4 = Stack.newVec()
+            val ao = Stack.newVec()
+            val ab = Stack.newVec()
+            val ac = Stack.newVec()
+            val ad = Stack.newVec()
 
             iterations = 0
             order = -1
@@ -301,22 +296,22 @@ class GjkEpaSolver {
                     var found = false
                     when (order) {
                         1 -> {
-                            simplex[1].origin.negate(tmp1)
-                            simplex[0].origin.sub(simplex[1].origin, tmp2)
-                            found = solveSimplex2(tmp1, tmp2)
+                            simplex[1].origin.negate(ao)
+                            simplex[0].origin.sub(simplex[1].origin, ab)
+                            found = solveSimplex2(ao, ab)
                         }
                         2 -> {
-                            simplex[2].origin.negate(tmp1)
-                            simplex[1].origin.sub(simplex[2].origin, tmp2)
-                            simplex[0].origin.sub(simplex[2].origin, tmp3)
-                            found = solveSimplex3(tmp1, tmp2, tmp3)
+                            simplex[2].origin.negate(ao)
+                            simplex[1].origin.sub(simplex[2].origin, ab)
+                            simplex[0].origin.sub(simplex[2].origin, ac)
+                            found = solveSimplex3(ao, ab, ac)
                         }
                         3 -> {
-                            simplex[3].origin.negate(tmp1)
-                            simplex[2].origin.sub(simplex[3].origin, tmp2)
-                            simplex[1].origin.sub(simplex[3].origin, tmp3)
-                            simplex[0].origin.sub(simplex[3].origin, tmp4)
-                            found = solveSimplex4(tmp1, tmp2, tmp3, tmp4)
+                            simplex[3].origin.negate(ao)
+                            simplex[2].origin.sub(simplex[3].origin, ab)
+                            simplex[1].origin.sub(simplex[3].origin, ac)
+                            simplex[0].origin.sub(simplex[3].origin, ad)
+                            found = solveSimplex4(ao, ab, ac, ad)
                         }
                     }
                     if (found) {
@@ -341,18 +336,20 @@ class GjkEpaSolver {
                     val ab = Stack.newVec()
                     simplex[1].origin.sub(simplex[0].origin, ab)
 
-                    val b = arrayOf(Stack.newVec(), Stack.newVec(), Stack.newVec())
-                    b[0].set(1.0, 0.0, 0.0)
-                    b[1].set(0.0, 1.0, 0.0)
-                    b[2].set(0.0, 0.0, 1.0)
+                    val b0 = Stack.newVec()
+                    val b1 = Stack.newVec()
+                    val b2 = Stack.newVec()
+                    b0.set(1.0, 0.0, 0.0)
+                    b1.set(0.0, 1.0, 0.0)
+                    b2.set(0.0, 0.0, 1.0)
 
-                    ab.cross(b[0], b[0])
-                    ab.cross(b[1], b[1])
-                    ab.cross(b[2], b[2])
+                    ab.cross(b0, b0)
+                    ab.cross(b1, b1)
+                    ab.cross(b2, b2)
 
-                    val m0 = b[0].lengthSquared()
-                    val m1 = b[1].lengthSquared()
-                    val m2 = b[2].lengthSquared()
+                    val m0 = b0.lengthSquared()
+                    val m1 = b1.lengthSquared()
+                    val m2 = b2.lengthSquared()
 
                     val tmpQuat = Stack.newQuat()
                     ab.normalize(tmp)
@@ -362,7 +359,7 @@ class GjkEpaSolver {
                     r.set(tmpQuat)
 
                     val w = Stack.newVec()
-                    w.set(b[if (m0 > m1) if (m0 > m2) 0 else 2 else if (m1 > m2) 1 else 2])
+                    w.set(if (m0 > m1) if (m0 > m2) b0 else b2 else if (m1 > m2) b1 else b2)
                     w.normalize(tmp)
                     support(tmp, simplex[4])
                     r.transform(w)

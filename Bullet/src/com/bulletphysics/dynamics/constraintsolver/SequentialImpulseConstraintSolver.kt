@@ -12,9 +12,9 @@ import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.MiscUtil.resize
-import com.bulletphysics.util.IntArrayList
 import com.bulletphysics.util.ObjectPool
 import cz.advel.stack.Stack
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -36,8 +36,8 @@ import kotlin.math.sqrt
 class SequentialImpulseConstraintSolver : ConstraintSolver {
 
     /** ///////////////////////////////////////////////////////////////////////// */
-    private val bodiesPool = ObjectPool.Companion.get(SolverBody::class.java)
-    private val constraintsPool = ObjectPool.Companion.get(SolverConstraint::class.java)
+    private val bodiesPool = ObjectPool.get(SolverBody::class.java)
+    private val constraintsPool = ObjectPool.get(SolverConstraint::class.java)
 
     private val tmpSolverBodyPool = ArrayList<SolverBody>()
     private val tmpSolverConstraintPool = ArrayList<SolverConstraint>()
@@ -597,10 +597,10 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         resize(orderFrictionConstraintPool, numFrictionPool, 0)
 
         for (j in 0 until numConstraintPool) {
-            orderTmpConstraintPool.set(j, j)
+            orderTmpConstraintPool[j] = j
         }
         for (j in 0 until numFrictionPool) {
-            orderFrictionConstraintPool.set(j, j)
+            orderFrictionConstraintPool[j] = j
         }
     }
 

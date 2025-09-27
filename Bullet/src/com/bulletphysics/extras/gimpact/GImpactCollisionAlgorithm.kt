@@ -16,9 +16,9 @@ import com.bulletphysics.collision.shapes.StaticPlaneShape
 import com.bulletphysics.extras.gimpact.PlaneShape.getPlaneEquationTransformed
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.dot3
-import com.bulletphysics.util.IntArrayList
 import com.bulletphysics.util.ObjectPool
 import cz.advel.stack.Stack
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3d
 import org.joml.Vector4d
 
@@ -225,7 +225,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
 
         gimpactVsShapeFindPairs(orgTrans0, orgTrans1, shape0, shape1, collidedResults)
 
-        if (collidedResults.size() == 0) {
+        if (collidedResults.size == 0) {
             return
         }
         shape0.lockChildShapes()
@@ -235,9 +235,9 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         val childHasTransform0 = shape0.childrenHasTransform()
 
         val tmpTrans = Stack.newTrans()
-        var i = collidedResults.size()
+        var i = collidedResults.size
         while ((i--) != 0) {
-            val childIndex = collidedResults.get(i)
+            val childIndex = collidedResults[i]
             if (swapped) {
                 this.face1 = childIndex
             } else {
@@ -508,7 +508,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         pairSet: IntPairList
     ) {
         if (shape0.hasBoxSet() && shape1.hasBoxSet()) {
-            GImpactBvh.Companion.findCollision(shape0.boxSet, trans0, shape1.boxSet, trans1, pairSet)
+            GImpactBvh.findCollision(shape0.boxSet, trans0, shape1.boxSet, trans1, pairSet)
         } else {
             val boxShape0 = AABB()
             val boxShape1 = AABB()
@@ -622,7 +622,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
     }
 
     class CreateFunc : CollisionAlgorithmCreateFunc() {
-        private val pool = ObjectPool.Companion.get(GImpactCollisionAlgorithm::class.java)
+        private val pool = ObjectPool.get(GImpactCollisionAlgorithm::class.java)
 
         override fun createCollisionAlgorithm(
             ci: CollisionAlgorithmConstructionInfo,

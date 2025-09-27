@@ -1,7 +1,7 @@
 package com.bulletphysics.extras.gimpact
 
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.util.IntArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3d
 
 /**
@@ -117,22 +117,22 @@ class GImpactBvh {
                 curIndex += getEscapeNodeIndex(curIndex)
             }
         }
-        return collidedResults.size() > 0
+        return collidedResults.size > 0
     }
 
     /**
      * Returns the indices of the primitives in the primitive_manager field.
      */
-    fun boxQueryTrans(box: AABB, transform: Transform, collided_results: IntArrayList): Boolean {
-        val transbox = AABB(box)
-        transbox.applyTransform(transform)
-        return boxQuery(transbox, collided_results)
+    fun boxQueryTrans(box: AABB, transform: Transform, collidedResults: IntArrayList): Boolean {
+        val bounds = AABB(box)
+        bounds.applyTransform(transform)
+        return boxQuery(bounds, collidedResults)
     }
 
     /**
      * Returns the indices of the primitives in the primitive_manager field.
      */
-    fun rayQuery(ray_dir: Vector3d, ray_origin: Vector3d, collided_results: IntArrayList): Boolean {
+    fun rayQuery(rayDir: Vector3d, rayOrigin: Vector3d, collidedResults: IntArrayList): Boolean {
         var curIndex = 0
         val numNodes = this.nodeCount
 
@@ -142,11 +142,11 @@ class GImpactBvh {
             getNodeBound(curIndex, bound)
 
             // catch bugs in tree data
-            val aabbOverlap = bound.collideRay(ray_origin, ray_dir)
+            val aabbOverlap = bound.collideRay(rayOrigin, rayDir)
             val isleafnode = isLeafNode(curIndex)
 
             if (isleafnode && aabbOverlap) {
-                collided_results.add(getNodeData(curIndex))
+                collidedResults.add(getNodeData(curIndex))
             }
 
             if (aabbOverlap || isleafnode) {
@@ -157,7 +157,7 @@ class GImpactBvh {
                 curIndex += getEscapeNodeIndex(curIndex)
             }
         }
-        return collided_results.size() > 0
+        return collidedResults.isNotEmpty()
     }
 
     /**
@@ -211,7 +211,7 @@ class GImpactBvh {
         primitiveManager!!.getPrimitiveTriangle(getNodeData(nodeIndex), triangle)
     }
 
-    val nodePointer: BvhTreeNodeArray?
+    val nodePointer: BvhTreeNodeArray
         get() = bvhTree.nodePointer
 
     companion object {

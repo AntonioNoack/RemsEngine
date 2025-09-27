@@ -227,7 +227,7 @@ class OptimizedBvh : Serializable {
     fun build(
         triangles: StridingMeshInterface,
         useQuantizedAabbCompression: Boolean,
-        _aabbMin: Vector3d?, _aabbMax: Vector3d?
+        aabbMin: Vector3d?, aabbMax: Vector3d?
     ) {
         this.useQuantization = useQuantizedAabbCompression
 
@@ -236,15 +236,13 @@ class OptimizedBvh : Serializable {
 
         if (useQuantization) {
             // initialize quantization values
-            setQuantizationValues(_aabbMin!!, _aabbMax!!)
+            setQuantizationValues(aabbMin!!, aabbMax!!)
 
             val callback = QuantizedNodeTriangleCallback(quantizedLeafNodes, this)
-
             triangles.internalProcessAllTriangles(callback)
 
-            // now we have an array of leafnodes in m_leafNodes
+            // now we have an array of leafNodes in m_leafNodes
             numLeafNodes = quantizedLeafNodes.size()
-
             quantizedContiguousNodes.resize(2 * numLeafNodes)
         } else {
             val callback = NodeTriangleCallback(leafNodes)
@@ -257,11 +255,8 @@ class OptimizedBvh : Serializable {
             triangles.internalProcessAllTriangles(callback)
             Stack.subVec(2)
 
-            // now we have an array of leafnodes in m_leafNodes
+            // now we have an array of leafNodes in m_leafNodes
             numLeafNodes = leafNodes.size
-
-            // TODO: check
-            //contiguousNodes.resize(2*numLeafNodes);
             MiscUtil.resize(contiguousNodes, 2 * numLeafNodes, OptimizedBvhNode::class.java)
         }
 
