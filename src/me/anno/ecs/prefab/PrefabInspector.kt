@@ -195,17 +195,11 @@ class PrefabInspector(var prefabSource: FileReference) {
         }
 
         if (prefabSource is InnerTmpFile) {
-            list += TextPanel("Temporary file!", style).apply {
-                textColor = 0xff0000 or black
-                disableFocusColors()
-            }
+            list += TextPanel("Temporary file!", style.getChild("error"))
         }
 
         if (!prefab.isWritable) {
-            list += TextPanel("Unwritable file!", style).apply {
-                textColor = 0xffff00 or black
-                disableFocusColors()
-            }
+            list += TextPanel("Unwritable file!", style.getChild("warning"))
         }
 
         val pathInformation = instances.indices
@@ -228,10 +222,9 @@ class PrefabInspector(var prefabSource: FileReference) {
         }
 
         val isWritable = prefab.isWritable
-        val warningPanel = UpdatingTextPanel(500, style) {
+        val warningPanel = UpdatingTextPanel(500, style.getChild("error")) {
             instances.mapNotNull { it.lastWarning }.joinToString().ifBlank { null }
         }
-        warningPanel.textColor = 0xff0000 or black
         warningPanel.tooltip = "Click to hide this warning until the issue reappears."
         warningPanel.addLeftClickListener {
             // "marks" the warning as "read"

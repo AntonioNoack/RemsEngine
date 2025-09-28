@@ -2,6 +2,7 @@ package me.anno.ui.editor
 
 import me.anno.cache.AsyncCacheData
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle
 import me.anno.engine.EngineBase
 import me.anno.engine.Events.addEvent
 import me.anno.engine.GFXSettings
@@ -176,7 +177,7 @@ interface WelcomeUI {
             tp.tooltip = project.file.absolutePath
 
             if (!project.file.exists) {
-                tp.textColor = 0xff0000 or black
+                tp.textColor = DefaultStyle.errorRed
                 tp.tooltip = Dict["%1, not found!", "ui.recentProjects.projectNotFound"].replace(
                     "%1",
                     project.file.absolutePath
@@ -366,10 +367,10 @@ interface WelcomeUI {
             // change colors
             val base = fileInput.base2
             base.textColor = when (state) {
-                "warning" -> 0xffff00
-                "error" -> 0xff0000
-                "open" -> 0x77ff77
-                else -> 0x00ff00
+                "error" -> DefaultStyle.errorRed
+                "warning" -> DefaultStyle.warningYellow
+                "open" -> DefaultStyle.fineGreen
+                else -> DefaultStyle.greatGreen
             } or black
             usableFile = if (state == "error") {
                 null

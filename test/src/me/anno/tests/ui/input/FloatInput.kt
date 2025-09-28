@@ -10,7 +10,7 @@ fun main() {
     // enter was broken, and no longer calculating value
     disableRenderDoc()
     val pl = PanelList2D(style)
-    for (i in 0 until 50) {
+    repeat(50) {
         pl.add(FloatInput(style))
     }
     // fi.isInputAllowed = false

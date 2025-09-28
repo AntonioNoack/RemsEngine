@@ -1,5 +1,6 @@
 package me.anno.engine.ui.input
 
+import me.anno.config.DefaultStyle
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
 import me.anno.language.translation.DefaultNames
@@ -16,7 +17,6 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.editor.treeView.TreeViewEntryPanel
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.InputVisibility
-import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.structures.lists.Lists.count2
@@ -202,8 +202,8 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
         fun getColor(baseColor: Int, type: Int): Int {
             return mixARGB(
                 baseColor,
-                if (type < 0) 0xff0000 or black // bad -> red
-                else 0x00ff00 or black, // good -> green
+                if (type < 0) DefaultStyle.errorRed // bad
+                else DefaultStyle.greatGreen, // good
                 when (type) {
                     5 -> 1.0f
                     4 -> 0.7f

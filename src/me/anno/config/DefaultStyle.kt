@@ -24,6 +24,11 @@ object DefaultStyle {
     const val shinyBlue = black or 0x4986f5
     const val brightYellow = black or 0xffba50
 
+    const val errorRed = black or 0xff0000
+    const val warningYellow = black or 0xffff00
+    const val fineGreen = black or 0x77ff77
+    const val greatGreen = black or 0x00ff00
+
     val baseTheme = Style(null, null)
 
     init {
@@ -44,6 +49,14 @@ object DefaultStyle {
         default("options.textColor", fontGray, black)
         default("italic.propertyInspector.textColor", fontGray, black)
         default("link.textColor", shinyBlue, brightYellow)
+        default("error.textColor", errorRed)
+        default("error.textColorFocused", errorRed)
+        default("warning.textColor", warningYellow)
+        default("warning.textColorFocused", warningYellow)
+        default("fine.textColor", fineGreen)
+        default("fine.textColorFocused", fineGreen)
+        default("great.textColor", greatGreen)
+        default("great.textColorFocused", greatGreen)
 
         default("textColorFocused", white, shinyBlue)
 

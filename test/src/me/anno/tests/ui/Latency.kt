@@ -1,10 +1,10 @@
 package me.anno.tests.ui
 
+import me.anno.config.DefaultStyle
 import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.maths.Maths.length
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
-import me.anno.utils.Color.black
 
 /**
  * - move your mouse with constant speed
@@ -20,9 +20,9 @@ fun main() {
         val window = it.window!!
         val radius1 = length(window.mouseX - lx, window.mouseY - ly)
         val colors = intArrayOf(
-            0x00ff00 or black,
-            0xffff00 or black,
-            0xff0000 or black
+            DefaultStyle.greatGreen,
+            DefaultStyle.warningYellow,
+            DefaultStyle.errorRed
         )
         for (i in colors.indices) {
             val radiusI = radius1 * (i + 1)
