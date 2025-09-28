@@ -92,12 +92,12 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
     ): PartResult {
 
         val hasAutomaticLineBreak = lineBreakWidth > 0f
-        val result = ArrayList<StringPart>()
+        val parts = ArrayList<StringPart>()
         val tabSize = getExampleAdvance() * relativeTabSize
         val charSpacing = fontSize * relativeCharSpacing
-        var widthF = 0f
+        var totalWidth = 0f
         var currentX = 0f
-        var currentY = 0f
+        var totalHeight = 0f
         val fontHeight = getActualFontHeight()
         var startResultIndex = 0
 
@@ -135,9 +135,9 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                         if (index1 == splitIndex && chars[index0] == ' '.code) index0++ // cut off first space
                         index1 = tmp1
                     } else {
-                        result += StringPart(currentX, currentY, font, chars.joinChars(index0, index1), 0f)
+                        parts += StringPart(currentX, totalHeight, font, chars.joinChars(index0, index1), 0f)
                         currentX = nextX
-                        widthF = max(widthF, currentX)
+                        totalWidth = max(totalWidth, currentX)
                         index0 = index1
                         break
                     }
@@ -148,12 +148,13 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
         nextLine = {
             display()
             val lineWidth = max(0f, currentX - charSpacing)
-            for (i in startResultIndex until result.size) {
-                result[i].lineWidth = lineWidth
+            totalWidth = max(totalWidth, lineWidth)
+            for (i in startResultIndex until parts.size) {
+                parts[i].lineWidth = lineWidth
             }
             @Suppress("AssignedValueIsNeverRead") // Intellij is broken
-            startResultIndex = result.size
-            currentY += fontHeight
+            startResultIndex = parts.size
+            totalHeight += fontHeight
             currentX = 0f
         }
 
@@ -176,8 +177,8 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
         }
         nextLine()
 
-        val lineCount = max((currentY / fontHeight).roundToIntOr(), 1)
-        return PartResult(result, widthF, currentY, lineCount)
+        val lineCount = max((totalHeight / fontHeight).roundToIntOr(), 1)
+        return PartResult(parts, totalWidth, totalHeight, lineCount)
     }
 
     // used in Rem's Studio

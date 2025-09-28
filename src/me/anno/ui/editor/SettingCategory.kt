@@ -35,11 +35,15 @@ open class SettingCategory private constructor(
 
     init {
         titlePanel.addLeftClickListener {
-            if (isInputAllowed) InputVisibility.toggle(visibilityKey)
+            toggleVisibilityIfEnabled()
         }
         titlePanel.parent = this
         titlePanel.textColor = titlePanel.textColor.mulAlpha(0.5f)
         child.parent = this
+    }
+
+    fun toggleVisibilityIfEnabled() {
+        if (isInputAllowed) InputVisibility.toggle(visibilityKey)
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -115,6 +119,10 @@ open class SettingCategory private constructor(
 
     override fun addChild(child: PrefabSaveable) {
         content.addChild(child)
+    }
+
+    override fun onEnterKey(x: Float, y: Float) {
+        toggleVisibilityIfEnabled()
     }
 
     // todo show that visually somehow

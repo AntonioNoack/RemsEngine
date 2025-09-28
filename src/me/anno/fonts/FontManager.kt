@@ -13,7 +13,6 @@ import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.maths.Maths.ceilDiv
-import me.anno.utils.assertions.assertEquals
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
@@ -74,19 +73,16 @@ object FontManager {
         return textSizeCache.getEntry(key, textSizeTimeoutMillis, fontQueue, textSizeGenerator)
     }
 
-    private val textSizeGenerator = { keyI: TextCacheKey, result: AsyncCacheData<Int> ->
-        val awtFont = getFont(keyI)
-        val wl = if (keyI.widthLimit < 0) GFX.maxTextureSize else min(keyI.widthLimit, GFX.maxTextureSize)
-        val hl = if (keyI.heightLimit < 0) GFX.maxTextureSize else min(keyI.heightLimit, GFX.maxTextureSize)
-        result.value = awtFont.calculateSize(keyI.text, wl, hl)
+    private val textSizeGenerator = { key: TextCacheKey, result: AsyncCacheData<Int> ->
+        val font = getFont(key)
+        val wl = if (key.widthLimit < 0) GFX.maxTextureSize else min(key.widthLimit, GFX.maxTextureSize)
+        val hl = if (key.heightLimit < 0) GFX.maxTextureSize else min(key.heightLimit, GFX.maxTextureSize)
+        result.value = font.calculateSize(key.text, wl, hl)
     }
 
     fun getSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): AsyncCacheData<Int> {
         if (text.isEmpty()) return font.emptySize
-        val key = getTextCacheKey(font, text, widthLimit, heightLimit, false)
-        val key1 = getTextCacheKey(font, text, widthLimit, heightLimit, false)
-        assertEquals(key, key1)
-        return getSize(key)
+        return getSize(getTextCacheKey(font, text, widthLimit, heightLimit, false))
     }
 
     fun getBaselineY(font: Font): Float {
