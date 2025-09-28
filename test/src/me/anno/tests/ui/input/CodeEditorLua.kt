@@ -1,6 +1,7 @@
 package me.anno.tests.ui.input
 
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
@@ -40,6 +41,7 @@ fun testCodeEditor(title: String, editor: CodeEditor) {
 }
 
 fun main() {
+    OfficialExtensions.initForTests()
     val editor = CodeEditor(style)
     editor.setText(
         "" +

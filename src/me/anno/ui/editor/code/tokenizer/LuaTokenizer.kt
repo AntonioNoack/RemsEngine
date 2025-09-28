@@ -176,10 +176,9 @@ class LuaTokenizer(var customVariables: Set<String> = emptySet()) : LanguageToke
     override val blockCommentStart: String = "--[["
     override val blockCommentEnd: String = "]]"
 
-    override val brackets: List<Pair<String, String>>
-        get() = listOf(
-            "then" to "end",
-            "do" to "end",
-            "repeat" to "until"
-        )
+    override val brackets: List<Pair<String, String>> = listOf(
+        "then" to "end",
+        "do" to "end",
+        "repeat" to "until"
+    )
 }

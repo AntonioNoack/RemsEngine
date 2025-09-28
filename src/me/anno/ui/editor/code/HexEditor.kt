@@ -7,6 +7,7 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.Streams.readNBytes2
@@ -58,7 +59,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     var file: FileReference = InvalidRef
 
     val padding = Padding(4)
-    var font = Font("Courier New", 16)
+    var font = Font(monospaceFont.name, 16)
 
     var bytesPerLine = 16
     var spacing = 0.5f

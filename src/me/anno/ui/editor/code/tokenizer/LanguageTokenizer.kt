@@ -17,8 +17,8 @@ interface LanguageTokenizer {
     }
 
     val lineComment: String
-    val blockCommentStart: String
-    val blockCommentEnd: String
+    val blockCommentStart: String?
+    val blockCommentEnd: String?
 
     val brackets: List<Pair<String, String>>
 

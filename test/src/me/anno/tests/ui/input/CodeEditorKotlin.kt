@@ -1,10 +1,12 @@
 package me.anno.tests.ui.input
 
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.OfficialExtensions
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.code.tokenizer.KotlinTokenizer
 
 fun main() {
+    OfficialExtensions.initForTests()
     // to do define syntax highlighting for Kotlin language :), and later Java, too
     val editor = CodeEditor(style)
     editor.language = KotlinTokenizer

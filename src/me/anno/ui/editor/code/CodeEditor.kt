@@ -8,14 +8,15 @@ import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawStriped.drawRectStriped
 import me.anno.gpu.drawing.DrawTexts.drawText
+import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.language.spellcheck.Suggestion
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
-import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.pow
+import me.anno.maths.MinMax.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -79,7 +80,16 @@ open class CodeEditor(style: Style) : Panel(style) {
         private set
 
     val padding = Padding(4)
-    var font = Font("Courier New", 16)
+    var font = Font(monospaceFont.name, 16)
+        set(value) {
+            field = value
+            for (it in fonts.indices) {
+                fonts[it] = font
+                    .withBold(it.and(1) > 0)
+                    .withItalic(it.and(2) > 0)
+            }
+        }
+
     val fonts = createArrayList(4) {
         font.withBold(it.and(1) > 0)
             .withItalic(it.and(2) > 0)
