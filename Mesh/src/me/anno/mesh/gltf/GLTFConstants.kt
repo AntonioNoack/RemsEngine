@@ -1,5 +1,7 @@
 package me.anno.mesh.gltf
 
+import me.anno.io.binary.ByteArrayIO.leMagic
+
 internal object GLTFConstants {
     const val GL_BYTE = 0x1400
     const val GL_UNSIGNED_BYTE = 0x1401
@@ -10,10 +12,7 @@ internal object GLTFConstants {
     const val GL_ARRAY_BUFFER = 34962
     const val GL_ELEMENT_ARRAY_BUFFER = 34963
 
-    val FILE_MAGIC = leMagic('g', 'l', 'T', 'F')
-    val JSON_CHUNK_MAGIC = leMagic('J', 'S', 'O', 'N')
-    val BINARY_CHUNK_MAGIC = leMagic('B', 'I', 'N', 0.toChar())
-    fun leMagic(b: Char, g: Char, r: Char, a: Char): Int {
-        return (a.code shl 24) or (r.code shl 16) or (g.code shl 8) or b.code
-    }
+    val FILE_MAGIC = leMagic("glTF")
+    val JSON_CHUNK_MAGIC = leMagic("JSON")
+    val BINARY_CHUNK_MAGIC = leMagic("BIN\u0000")
 }

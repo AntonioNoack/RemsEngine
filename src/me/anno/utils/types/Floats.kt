@@ -174,6 +174,12 @@ object Floats {
         else toLong()
     }
 
+    @JvmStatic
+    fun Float.toHalf() = float32ToFloat16(this)
+
+    @JvmStatic
+    fun Int.fromHalf() = float16ToFloat32(this)
+
     // by x4u on https://stackoverflow.com/a/6162687/4979303
     @JvmStatic
     fun float16ToFloat32(bits: Int): Float {

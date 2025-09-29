@@ -17,7 +17,7 @@ import me.anno.utils.structures.arrays.ByteArrayList
 
 object TerrainSerialization {
 
-    private val MAGIC = beMagic('T', 'R', 'I', 'T')
+    private val MAGIC = beMagic("TRIT")
     private const val VERSION_1_0 = 0x1000
     private const val HEADER_SIZE = 12
     private const val ENTRY_SIZE = 20

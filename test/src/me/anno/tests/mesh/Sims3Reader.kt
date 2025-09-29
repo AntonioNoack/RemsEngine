@@ -39,7 +39,8 @@ fun main() {
         .order(ByteOrder.LITTLE_ENDIAN)
 
     val magic = input.int
-    if (magic != leMagic('D', 'B', 'P', 'F')) throw IOException("Incorrect magic: $magic")
+    @Suppress("SpellCheckingInspection")
+    if (magic != leMagic("DBPF")) throw IOException("Incorrect magic: $magic")
 
     val major = input.int
     val minor = input.int
