@@ -25,6 +25,43 @@ object YAMLReader {
         } else return i0
     }
 
+    fun parseEscapedString(source: CharSequence, i0: Int, i1: Int): String {
+        var i = i0
+        val builder = StringBuilder(max(i1 - i0, 16))
+        while (i < i1 - 1) { // check for escape sequences; last one doesn't need that care
+            fun undoReadingEscapeSequence() {
+                i-- // undo reading value
+                builder.append('\\')
+            }
+            when (val c = source[i++]) {
+                '\\' -> when (val ci = source[i++]) {
+                    '\'', '\\', '"' -> builder.append(ci)
+                    'n' -> builder.append('\n')
+                    'r' -> builder.append('\r')
+                    't' -> builder.append('\t')
+                    'b' -> builder.append('\b')
+                    'f' -> builder.append(12.toChar())
+                    'u' -> {
+                        if (i + 4 < i1) {
+                            val c0 = source[i++]
+                            val c1 = source[i++]
+                            val c2 = source[i++]
+                            val c3 = source[i++]
+                            val code = toHex(c0, c1, c2, c3)
+                            builder.append(code.joinChars())
+                        } else undoReadingEscapeSequence()
+                    }
+                    else -> undoReadingEscapeSequence()
+                }
+                else -> builder.append(c)
+            }
+        }
+        if (i < i1) {
+            builder.append(source[i++])
+        }
+        return builder.toString()
+    }
+
     /**
      * reads the yaml file
      * @param beautify removed m_ at the start of keys, and makes them all PascalCase for consistency
@@ -42,41 +79,11 @@ object YAMLReader {
         // will this be inlined? mmh...
         fun add(depth: Int, key: String, value0: String?) {
             var value1 = value0
-            if (value0 != null && value0.startsWith('\'') && value0.endsWith('\'')) {
-                var i = 1
-                val builder = StringBuilder(max(value0.length - 2, 16))
-                while (i < value0.length - 2) { // check for escape sequences; last one doesn't need that care
-                    fun undoReadingEscapeSequence() {
-                        i-- // undo reading value
-                        builder.append('\\')
-                    }
-                    when (val c = value0[i++]) {
-                        '\\' -> when (val ci = value0[i++]) {
-                            '\'', '\\', '"' -> builder.append(ci)
-                            'n' -> builder.append('\n')
-                            'r' -> builder.append('\r')
-                            't' -> builder.append('\t')
-                            'b' -> builder.append('\b')
-                            'f' -> builder.append(12.toChar())
-                            'u' -> {
-                                if (i + 5 < value0.length) {
-                                    val c0 = value0[i++]
-                                    val c1 = value0[i++]
-                                    val c2 = value0[i++]
-                                    val c3 = value0[i++]
-                                    val code = toHex(c0, c1, c2, c3)
-                                    builder.append(code.joinChars())
-                                } else undoReadingEscapeSequence()
-                            }
-                            else -> undoReadingEscapeSequence()
-                        }
-                        else -> builder.append(c)
-                    }
-                }
-                if (i < value0.length - 1) {
-                    builder.append(value0[i++])
-                }
-                value1 = builder.toString()
+            if (value0 != null &&
+                (value0.startsWith('\'') || value0.startsWith('"')) &&
+                value0.first() == value0.last()
+            ) {
+                value1 = parseEscapedString(value0, 1, value0.length - 1)
             }
             // find the depth in the stack
             // if the value is JSON-like object, parse it as well
