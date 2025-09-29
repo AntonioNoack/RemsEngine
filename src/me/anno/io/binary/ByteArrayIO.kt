@@ -14,18 +14,18 @@ object ByteArrayIO {
     }
 
     fun ByteArray.read(index: Int, default: Int = 0): Int {
-        if (index < 0 || index + 1 > size) return default
+        if (index !in 0 until size) return default
         return this[index].toInt().and(255)
     }
 
     fun ByteArray.readBE16(index: Int, default: Int = 0): Int {
-        if (index < 0 || index + 2 > size) return default
+        if (index !in 0 until size - 1) return default
         return readUnsafe(index).shl(8) +
                 readUnsafe(index + 1)
     }
 
     fun ByteArray.readBE32(index: Int, default: Int = 0): Int {
-        if (index < 0 || index + 4 > size) return default
+        if (index !in 0 until size - 3) return default
         return readUnsafe(index).shl(24) +
                 readUnsafe(index + 1).shl(16) +
                 readUnsafe(index + 2).shl(8) +
@@ -33,19 +33,19 @@ object ByteArrayIO {
     }
 
     fun ByteArray.readBE64(index: Int, default: Long = 0): Long {
-        if (index < 0 || index + 8 > size) return default
+        if (index !in 0 until size - 7) return default
         return readBE32(index).toLong().shl(32) +
                 readBE32(index + 4).toLong().and(0xffffffffL)
     }
 
     fun ByteArray.readLE16(index: Int, default: Int = 0): Int {
-        if (index < 0 || index + 2 > size) return default
+        if (index !in 0 until size - 1) return default
         return readUnsafe(index) +
                 readUnsafe(index + 1).shl(8)
     }
 
     fun ByteArray.readLE32(index: Int, default: Int = 0): Int {
-        if (index < 0 || index + 4 > size) return default
+        if (index !in 0 until size - 3) return default
         return readUnsafe(index) +
                 readUnsafe(index + 1).shl(8) +
                 readUnsafe(index + 2).shl(16) +
@@ -53,28 +53,28 @@ object ByteArrayIO {
     }
 
     fun ByteArray.readLE64(index: Int, default: Long = 0): Long {
-        if (index < 0 || index + 8 > size) return default
+        if (index !in 0 until size - 7) return default
         return readLE32(index).toLong().and(0xffffffffL) +
                 readLE32(index + 4).toLong().shl(32)
     }
 
     fun ByteArray.readBE32F(index: Int, default: Float = 0f): Float {
-        if (index < 0 || index + 4 > size) return default
+        if (index !in 0 until size - 3) return default
         return Float.fromBits(readBE32(index))
     }
 
     fun ByteArray.readBE64F(index: Int, default: Double = 0.0): Double {
-        if (index < 0 || index + 8 > size) return default
+        if (index !in 0 until size - 7) return default
         return Double.fromBits(readBE64(index))
     }
 
     fun ByteArray.readLE32F(index: Int, default: Float = 0f): Float {
-        if (index < 0 || index + 4 > size) return default
+        if (index !in 0 until size - 3) return default
         return Float.fromBits(readLE32(index))
     }
 
     fun ByteArray.readLE64F(index: Int, default: Double = 0.0): Double {
-        if (index < 0 || index + 8 > size) return default
+        if (index !in 0 until size - 7) return default
         return Double.fromBits(readLE64(index))
     }
 
@@ -193,43 +193,53 @@ object ByteArrayIO {
     }
 
     fun ByteArrayList.readBE16(index: Int, default: Int = 0): Int {
-        return if (index >= 0 && index + 2 <= size) values.readBE16(index, default) else default
+        if (index !in 0 until size - 1) return default
+        return values.readBE16(index, default)
     }
 
     fun ByteArrayList.readBE32(index: Int, default: Int = 0): Int {
-        return if (index >= 0 && index + 4 <= size) values.readBE32(index, default) else default
+        if (index !in 0 until size - 3) return default
+        return values.readBE32(index, default)
     }
 
     fun ByteArrayList.readBE32F(index: Int, default: Float = 0f): Float {
-        return if (index >= 0 && index + 4 <= size) values.readBE32F(index, default) else default
+        if (index !in 0 until size - 3) return default
+        return values.readBE32F(index, default)
     }
 
     fun ByteArrayList.readBE64(index: Int, default: Long = 0L): Long {
-        return if (index >= 0 && index + 8 <= size) values.readBE64(index, default) else default
+        if (index !in 0 until size - 7) return default
+        return values.readBE64(index, default)
     }
 
     fun ByteArrayList.readBE64F(index: Int, default: Double = 0.0): Double {
-        return if (index >= 0 && index + 8 <= size) values.readBE64F(index, default) else default
+        if (index !in 0 until size - 7) return default
+        return values.readBE64F(index, default)
     }
 
     fun ByteArrayList.readLE16(index: Int, default: Int = 0): Int {
-        return if (index >= 0 && index + 2 <= size) values.readLE16(index, default) else default
+        if (index !in 0 until size - 1) return default
+        return values.readLE16(index, default)
     }
 
     fun ByteArrayList.readLE32(index: Int, default: Int = 0): Int {
-        return if (index >= 0 && index + 4 <= size) values.readLE32(index, default) else default
+        if (index !in 0 until size - 3) return default
+        return values.readLE32(index, default)
     }
 
     fun ByteArrayList.readLE32F(index: Int, default: Float = 0f): Float {
-        return if (index >= 0 && index + 4 <= size) values.readLE32F(index, default) else default
+        if (index !in 0 until size - 3) return default
+        return values.readLE32F(index, default)
     }
 
     fun ByteArrayList.readLE64(index: Int, default: Long = 0L): Long {
-        return if (index >= 0 && index + 8 <= size) values.readLE64(index, default) else default
+        if (index !in 0 until size - 7) return default
+        return values.readLE64(index, default)
     }
 
     fun ByteArrayList.readLE64F(index: Int, default: Double = 0.0): Double {
-        return if (index >= 0 && index + 8 <= size) values.readLE64F(index, default) else default
+        if (index !in 0 until size - 7) return default
+        return values.readLE64F(index, default)
     }
 
     fun leMagic(c0: Char, c1: Char, c2: Char, c3: Char): Int {
