@@ -1,5 +1,7 @@
 package me.anno.tests.io.binary
 
+import me.anno.io.binary.ByteArrayIO.beMagic
+import me.anno.io.binary.ByteArrayIO.leMagic
 import me.anno.io.binary.ByteArrayIO.read
 import me.anno.io.binary.ByteArrayIO.readBE16
 import me.anno.io.binary.ByteArrayIO.readBE32
@@ -151,7 +153,7 @@ class ByteArrayIOTests {
     }
 
     @Test
-    fun testReadWriteByteArrayListBE(){
+    fun testReadWriteByteArrayListBE() {
         val list = ByteArrayList(16)
         list.writeBE64(PI)
         list.writeBE32(PIf)
@@ -165,7 +167,7 @@ class ByteArrayIOTests {
     }
 
     @Test
-    fun testReadWriteByteArrayListLE(){
+    fun testReadWriteByteArrayListLE() {
         val list = ByteArrayList(16)
         list.writeLE64(PI)
         list.writeLE32(PIf)
@@ -176,5 +178,11 @@ class ByteArrayIOTests {
         assertEquals(PIf, list.readLE32F(8))
         assertEquals(PIf.toRawBits(), list.readLE32(8))
         assertEquals(PIf.toHalf(), list.readLE16(12))
+    }
+
+    @Test
+    fun testCreatingMagicValues() {
+        assertEquals(0x61626364, beMagic("abcd"))
+        assertEquals(0x64636261, leMagic("abcd"))
     }
 }
