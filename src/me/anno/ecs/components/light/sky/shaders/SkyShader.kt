@@ -30,11 +30,11 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 // todo can we fade it out somehow when the resolution gets too low???
                 "float fbm(vec3 p){\n" +
                 "  float f = 0.0;\n" +
-                "  f += noise(p) * 0.50; p = matMul(fbmM, p);\n" +
-                "  f += noise(p) * 0.25; p = matMul(fbmM, (p * 1.1));\n" +
-                "  f += noise(p) * 0.16; p = matMul(fbmM, (p * 1.2));\n" +
-                "  f += noise(p) * 0.08; p = matMul(fbmM, (p * 1.3));\n" +
-                "  f += noise(p) * 0.04;\n" +
+                "  f += noise(p) * 0.516; p = matMul(fbmM, p);\n" +
+                "  f += noise(p) * 0.258; p = matMul(fbmM, (p * 1.1));\n" +
+                "  f += noise(p) * 0.129; p = matMul(fbmM, (p * 1.2));\n" +
+                "  f += noise(p) * 0.065; p = matMul(fbmM, (p * 1.3));\n" +
+                "  f += noise(p) * 0.032;\n" +
                 "  return f;\n" +
                 "}\n" +
                 "float fbm(vec2 p){ return fbm(vec3(p, 0.0)); }\n"
@@ -75,6 +75,8 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 Variable(GLSLType.V1F, "cumulus"), // 0.8
                 Variable(GLSLType.V3F, "cirrusOffset"), // 0.05
                 Variable(GLSLType.V3F, "cumulusOffset"), // 0.3
+                Variable(GLSLType.V1F, "avgCirrus"),
+                Variable(GLSLType.V1F, "avgCumulus"),
                 Variable(GLSLType.V4F, "nadir"),
                 Variable(GLSLType.V4F, "worldRot"),
                 Variable(GLSLType.V1B, "sphericalSky"),
@@ -148,19 +150,36 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
 
                 // falloff towards downwards
                 "if(pos0.y <= 0.0 && !sphericalSky){\n" +
+                "   if (cirrus > 0.0) {\n" +
+                "       float density = avgCirrus;\n" +
+                "       color = mix(color, extinction * 4.0, density * 0.3);\n" +
+                "   }\n" +
+                "   if (cumulus > 0.0) {\n" +
+                "       float density = avgCumulus;\n" +
+                "       float density3 = density;\n" + // layer 1/3
+                "       density3 += (1.0-density3) * density;\n" + // layer 2/3
+                "       density3 += (1.0-density3) * density;\n" + // layer 3/3
+                "       color = mix(color, extinction * density * 5.0, density3);\n" +
+                "   }\n" +
                 "   color = mix(nadir.rgb, color, exp(pos0.y * nadir.w));\n" +
                 "} else if(cirrus > 0.0 || cumulus > 0.0){\n" +
                 "   vec3 pxz = sphericalSky ? pos0 : vec3(pos.xz / max(pos.y, 0.001), 0.0);\n" +
                 // Cirrus Clouds
                 "   if(cirrus > 0.0) {\n" +
-                "       float density = smoothstep(1.0 - cirrus, 1.0, fbm(pxz * 2.0 + cirrusOffset)) * 0.3;\n" +
-                "       color = mix(color, extinction * 4.0, sphericalSky ? density : density * max(pos.y, 0.0));\n" +
+                "       vec3  cirrusSeed = pxz * 2.0 + cirrusOffset;\n" +
+                "       float cirrusNoise = fbm(cirrusSeed);\n" +
+                "       float density = smoothstep(1.0 - cirrus, 1.0, cirrusNoise);\n" +
+                "       if(!sphericalSky) { density = mix(avgCirrus, density, max(pos.y, 0.0)); }\n" +
+                "       color = mix(color, extinction * 4.0, density * 0.3);\n" +
                 "   }\n" +
                 // Cumulus Clouds
-                "   if(cumulus > 0.0) {\n" +
+                "   if (cumulus > 0.0) {\n" +
                 "       for (int i = 0; i < 3; i++){\n" +
-                "           float density = smoothstep(1.0 - cumulus, 1.0, fbm((0.7 + float(i) * 0.01) * pxz + cumulusOffset));\n" +
-                "           color = mix(color, extinction * density * 5.0, min(density, 1.0) * max(pos.y, 0.0));\n" +
+                "           vec3  cumulusSeed = (0.7 + float(i) * 0.01) * pxz + cumulusOffset;\n" +
+                "           float cumulusNoise = fbm(cumulusSeed);\n" +
+                "           float density = smoothstep(1.0 - cumulus, 1.0, cumulusNoise);\n" +
+                "           if(!sphericalSky) { density = mix(avgCumulus, density, max(pos.y, 0.0)); }\n" +
+                "           color = mix(color, extinction * density * 5.0, density);\n" +
                 "       }\n" +
                 "   }\n" +
                 "}\n" +

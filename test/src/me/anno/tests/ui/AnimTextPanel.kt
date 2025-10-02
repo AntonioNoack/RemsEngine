@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.lua.ui.LuaAnimTextPanel
 import me.anno.maths.Maths
+import me.anno.maths.Smoothstep.smoothstepFactor
 import me.anno.maths.noise.FullNoise
 import me.anno.ui.anim.AnimTextPanel
 import me.anno.ui.base.groups.PanelListY
@@ -49,7 +50,7 @@ class AnimTextPanelTest(useLua: Boolean) : PanelListY(DefaultConfig.style) {
             val growTime = 0.4f
             val dissolveTime = 1.0f
             val phase = time - index * 0.03f
-            val s = Maths.smoothStep((phase) / growTime)
+            val s = smoothstepFactor(phase / growTime)
             AnimTextPanel.translate(0f, (1f - s) * p.font.size / 2f)
             AnimTextPanel.scale(1f, s)
             green.withAlpha(min(1f, 20f * (dissolveTime - phase)))

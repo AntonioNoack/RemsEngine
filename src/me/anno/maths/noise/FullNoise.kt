@@ -1,8 +1,9 @@
 package me.anno.maths.noise
 
 import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.smoothStepGradientUnsafe
-import me.anno.maths.Maths.smoothStepUnsafe
+import me.anno.maths.Smoothstep.smoothstepFactorUnsafe
+import me.anno.maths.Smoothstep.smoothstepMixGradientUnsafe
+import me.anno.maths.Smoothstep.smoothstepMixUnsafe
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector2d
 import org.joml.Vector2f
@@ -127,7 +128,7 @@ class FullNoise(val seed: Long) {
         val xf = x - xi
         val v0 = get(ix)
         val v1 = get(ix + 1)
-        return smoothStepUnsafe(v0, v1, xf)
+        return smoothstepMixUnsafe(v0, v1, xf)
     }
 
     fun getSmoothGradient(x: Float): Float {
@@ -136,7 +137,7 @@ class FullNoise(val seed: Long) {
         val xf = x - xi
         val v0 = get(ix)
         val v1 = get(ix + 1)
-        return (v1 - v0) * smoothStepGradientUnsafe(xf)
+        return (v1 - v0) * smoothstepMixGradientUnsafe(xf)
     }
 
     operator fun get(x: Float, y: Float): Float {
@@ -210,8 +211,8 @@ class FullNoise(val seed: Long) {
         val yi = floor(y)
         val ix = xi.toInt()
         val iy = yi.toInt()
-        val xf = smoothStepUnsafe(x - xi)
-        val yf = smoothStepUnsafe(y - yi)
+        val xf = smoothstepFactorUnsafe(x - xi)
+        val yf = smoothstepFactorUnsafe(y - yi)
         val v00 = get(ix, iy).toDouble()
         val v01 = get(ix, iy + 1).toDouble()
         val v10 = get(ix + 1, iy).toDouble()
@@ -220,8 +221,8 @@ class FullNoise(val seed: Long) {
         val v0x = v00 * yg + v01 * yf
         val v1x = v10 * yg + v11 * yf
         if (dst != null) {
-            val xff = smoothStepGradientUnsafe(x - xi)
-            val yff = smoothStepGradientUnsafe(y - yi)
+            val xff = smoothstepMixGradientUnsafe(x - xi)
+            val yff = smoothstepMixGradientUnsafe(y - yi)
             val xg = 1.0 - xf
             val v0y = v00 * xg + v10 * xf
             val v1y = v01 * xg + v11 * xf
@@ -306,9 +307,9 @@ class FullNoise(val seed: Long) {
         val ix = xi.toInt()
         val iy = yi.toInt()
         val iz = zi.toInt()
-        val xf = smoothStepUnsafe(x - xi)
-        val yf = smoothStepUnsafe(y - yi)
-        val zf = smoothStepUnsafe(z - zi)
+        val xf = smoothstepFactorUnsafe(x - xi)
+        val yf = smoothstepFactorUnsafe(y - yi)
+        val zf = smoothstepFactorUnsafe(z - zi)
         val v000 = get(ix, iy, iz)
         val v001 = get(ix, iy, iz + 1)
         val v010 = get(ix, iy + 1, iz)
@@ -449,10 +450,10 @@ class FullNoise(val seed: Long) {
         val iy = yi.toInt()
         val iz = zi.toInt()
         val iw = wi.toInt()
-        val xf = smoothStepUnsafe(x - xi)
-        val yf = smoothStepUnsafe(y - yi)
-        val zf = smoothStepUnsafe(z - zi)
-        val wf = smoothStepUnsafe(w - wi)
+        val xf = smoothstepFactorUnsafe(x - xi)
+        val yf = smoothstepFactorUnsafe(y - yi)
+        val zf = smoothstepFactorUnsafe(z - zi)
+        val wf = smoothstepFactorUnsafe(w - wi)
         val v0000 = get(ix, iy, iz, iw).toDouble()
         val v0010 = get(ix, iy, iz + 1, iw).toDouble()
         val v0100 = get(ix, iy + 1, iz, iw).toDouble()

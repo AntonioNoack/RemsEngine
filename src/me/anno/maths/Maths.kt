@@ -155,60 +155,6 @@ object Maths {
     fun dtTo10(x: Double) = exp(-x)
 
     @JvmStatic
-    fun smoothStep(x: Float): Float {
-        return when {
-            x <= 0f -> 0f
-            x < 1f -> x * x * (3f - 2f * x)
-            else -> 1f
-        }
-    }
-
-    @JvmStatic
-    fun smoothStep(x: Double): Double {
-        return when {
-            x <= 0.0 -> 0.0
-            x < 1.0 -> x * x * (3.0 - 2.0 * x)
-            else -> 1.0
-        }
-    }
-
-    @JvmStatic
-    fun smoothStepUnsafe(x: Float): Float {
-        return x * x * (3f - 2f * x)
-    }
-
-    @JvmStatic
-    fun smoothStepUnsafe(x: Double): Double {
-        return x * x * (3.0 - 2.0 * x)
-    }
-
-    @JvmStatic
-    fun smoothStepGradientUnsafe(x: Float): Float {
-        val k = x - 0.5f
-        return 1.5f - k * k * 6f
-    }
-
-    @JvmStatic
-    fun smoothStepGradientUnsafe(x: Double): Double {
-        val k = x - 0.5
-        return 1.5 - k * k * 6.0
-    }
-
-    @JvmStatic
-    fun smoothStep(a: Float, b: Float, x: Float): Float {
-        return when {
-            x <= 0f -> a
-            x < 1f -> mix(a, b, x * x * (3f - 2f * x))
-            else -> b
-        }
-    }
-
-    @JvmStatic
-    fun smoothStepUnsafe(a: Float, b: Float, x: Float): Float {
-        return mix(a, b, x * x * (3f - 2f * x))
-    }
-
-    @JvmStatic
     fun clamp01(x: Float) = clamp(x, 0f, 1f)
 
     @JvmStatic

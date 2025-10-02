@@ -5,7 +5,8 @@ import me.anno.image.colormap.ColorMap
 import me.anno.maths.Maths.clamp
 import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.smoothStep
+import me.anno.maths.Smoothstep.smoothstepFactor
+import me.anno.maths.Smoothstep.smoothstepMix
 import me.anno.utils.Color
 import kotlin.math.floor
 
@@ -73,22 +74,22 @@ abstract class IFloatImage(
                 val fy = y2 - y0
                 val i0 = y0.toInt() * width
                 val i1 = i0 + width
-                smoothStep(getValue(i0, channel), getValue(i1, channel), fy)
+                smoothstepMix(getValue(i0, channel), getValue(i1, channel), fy)
             }
             height == 1 -> {
                 val x2 = clamp(x, 0f, wm1f)
                 val x0 = min(floor(x2), wm2f)
                 val fx = x2 - x0
                 val i0 = x0.toInt()
-                smoothStep(getValue(i0, channel), getValue(i0 + 1, channel), fx)
+                smoothstepMix(getValue(i0, channel), getValue(i0 + 1, channel), fx)
             }
             else -> {
                 val x2 = clamp(x, 0f, wm1f)
                 val y2 = clamp(y, 0f, hm1f)
                 val x0 = min(floor(x2), wm2f)
                 val y0 = min(floor(y2), hm2f)
-                val fx = smoothStep(x2 - x0)
-                val fy = smoothStep(y2 - y0)
+                val fx = smoothstepFactor(x2 - x0)
+                val fy = smoothstepFactor(y2 - y0)
                 val i0 = x0.toInt() + y0.toInt() * width
                 val i1 = i0 + width
                 mix(

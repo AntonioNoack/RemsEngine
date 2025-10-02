@@ -16,10 +16,13 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.DefaultSun
 import me.anno.gpu.shader.GLSLType
+import me.anno.maths.Maths.mix
+import me.anno.maths.Smoothstep.smoothstep
 import me.anno.utils.pooling.JomlPools
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.exp
 import kotlin.math.max
 
 open class Skybox : SkyboxBase(), OnUpdate {
@@ -112,6 +115,8 @@ open class Skybox : SkyboxBase(), OnUpdate {
         material.shader = defaultShader
         material.shaderOverrides["cirrus"] = TypeValue(GLSLType.V1F) { cirrus }
         material.shaderOverrides["cumulus"] = TypeValue(GLSLType.V1F) { cumulus }
+        material.shaderOverrides["avgCirrus"] = TypeValue(GLSLType.V1F) { fbmSmoothstepAverage(cirrus) }
+        material.shaderOverrides["avgCumulus"] = TypeValue(GLSLType.V1F) { fbmSmoothstepAverage(cumulus) }
         material.shaderOverrides["nadir"] = TypeValue(GLSLType.V4F, nadir)
         material.shaderOverrides["cirrusOffset"] = TypeValue(GLSLType.V3F, cirrusOffset)
         material.shaderOverrides["cumulusOffset"] = TypeValue(GLSLType.V3F, cumulusOffset)
@@ -162,5 +167,41 @@ open class Skybox : SkyboxBase(), OnUpdate {
     companion object {
         val defaultShader = SkyShader("skybox")
         val defaultSky = Skybox()
+
+        /**
+         * Estimate the average value of smoothstep(1-density, 1, fbmNoise),
+         * where fbm is a perlin-noise function with values from 0 to 1.
+         * */
+        fun fbmSmoothstepAverage(density: Float): Float {
+            val invDensity = 1f - density
+            val numSteps = 12
+            val minX = max(invDensity, 0f)
+            val maxX = 1f
+
+            var average = 0f
+            var prevCdf = 0f
+            var prevY = smoothstep(invDensity, 1f, 0f)
+            for (i in 0 until numSteps) {
+                val x = mix(minX, maxX, i / (numSteps - 1f))
+                val currCdf = if (i == numSteps - 1) 1f else fbm01CDF(x)
+                val currY = smoothstep(invDensity, 1f, x)
+
+                val avgValue = (currY + prevY) * 0.5f
+                val probability = currCdf - prevCdf
+                average += probability * avgValue
+
+                prevCdf = currCdf
+                prevY = currY
+            }
+            return average
+        }
+
+        /**
+         * The fbm-noise (values 0 to 1) is assumed to have a normal distribution,
+         * and its integral (CDF) is estimated to be 1/(e^(6-12*x)+1).
+         * */
+        fun fbm01CDF(x: Float): Float {
+            return 1f / (exp((0.5f - x) * 12f) + 1f)
+        }
     }
 }

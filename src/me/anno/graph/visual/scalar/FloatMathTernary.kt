@@ -1,10 +1,10 @@
 package me.anno.graph.visual.scalar
 
 import me.anno.maths.Maths.clamp
-import me.anno.maths.MinMax.median
 import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.smoothStep
 import me.anno.maths.Maths.unmix
+import me.anno.maths.MinMax.median
+import me.anno.maths.Smoothstep.smoothstep
 
 enum class FloatMathTernary(
     val id: Int,
@@ -35,7 +35,7 @@ enum class FloatMathTernary(
             UNMIX -> unmix(a, b, c)
             MIX_CLAMPED -> mix(a, b, clamp(c))
             UNMIX_CLAMPED -> clamp(unmix(a, b, c))
-            SMOOTHSTEP3 -> smoothStep(unmix(a, b, c))
+            SMOOTHSTEP3 -> smoothstep(a, b, c)
             ADD3 -> a + b + c
             MUL3 -> a * b * c
             MUL_ADD -> a * b + c

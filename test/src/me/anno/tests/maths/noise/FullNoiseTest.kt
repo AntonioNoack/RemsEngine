@@ -1,7 +1,8 @@
 package me.anno.tests.maths.noise
 
 import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.smoothStepUnsafe
+import me.anno.maths.Smoothstep.smoothstepFactorUnsafe
+import me.anno.maths.Smoothstep.smoothstepMixUnsafe
 import me.anno.maths.noise.FullNoise
 import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertEquals
@@ -54,7 +55,7 @@ class FullNoiseTest {
             val v00 = grid[x]
             val v10 = grid[x + 1]
             for (dx in 0..dxi) {
-                val vx = smoothStepUnsafe(dx.toFloat() / dxi)
+                val vx = smoothstepFactorUnsafe(dx.toFloat() / dxi)
                 val expected = mix(v00, v10, vx)
                 assertEquals(expected, noise.getSmooth(x + dx.toFloat() / dxi), 1e-5f)
             }
@@ -131,9 +132,9 @@ class FullNoiseTest {
                 val v10 = grid[x + 1][y]
                 val v11 = grid[x + 1][y + 1]
                 for (dy in 0 until dyi) {
-                    val vy = smoothStepUnsafe(dy.toFloat() / dyi)
+                    val vy = smoothstepFactorUnsafe(dy.toFloat() / dyi)
                     for (dx in 0..dxi) {
-                        val vx = smoothStepUnsafe(dx.toFloat() / dxi)
+                        val vx = smoothstepFactorUnsafe(dx.toFloat() / dxi)
                         val expected = mix(
                             mix(v00, v01, vy),
                             mix(v10, v11, vy),
@@ -252,11 +253,11 @@ class FullNoiseTest {
                     val v101 = grid[x + 1][y][z + 1]
                     val v111 = grid[x + 1][y + 1][z + 1]
                     for (dz in 0 until dzi) {
-                        val vz = smoothStepUnsafe(dz.toFloat() / dzi)
+                        val vz = smoothstepFactorUnsafe(dz.toFloat() / dzi)
                         for (dy in 0 until dyi) {
-                            val vy = smoothStepUnsafe(dy.toFloat() / dyi)
+                            val vy = smoothstepFactorUnsafe(dy.toFloat() / dyi)
                             for (dx in 0..dxi) {
-                                val vx = smoothStepUnsafe(dx.toFloat() / dxi)
+                                val vx = smoothstepFactorUnsafe(dx.toFloat() / dxi)
                                 val expected = mix(
                                     mix(
                                         mix(v000, v010, vy),
@@ -433,13 +434,13 @@ class FullNoiseTest {
                         val v1011 = grid[x + 1][y][z + 1][w + 1]
                         val v1111 = grid[x + 1][y + 1][z + 1][w + 1]
                         for (dw in 0 until dwi) {
-                            val vw = smoothStepUnsafe(dw.toFloat() / dwi)
+                            val vw = smoothstepFactorUnsafe(dw.toFloat() / dwi)
                             for (dz in 0 until dzi) {
-                                val vz = smoothStepUnsafe(dz.toFloat() / dzi)
+                                val vz = smoothstepFactorUnsafe(dz.toFloat() / dzi)
                                 for (dy in 0 until dyi) {
-                                    val vy = smoothStepUnsafe(dy.toFloat() / dyi)
+                                    val vy = smoothstepFactorUnsafe(dy.toFloat() / dyi)
                                     for (dx in 0..dxi) {
-                                        val vx = smoothStepUnsafe(dx.toFloat() / dxi)
+                                        val vx = smoothstepFactorUnsafe(dx.toFloat() / dxi)
                                         val expected = mix(
                                             mix(
                                                 mix(
