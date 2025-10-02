@@ -1,6 +1,7 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.collider.Axis
 import me.anno.gpu.buffer.LineBuffer.addLine
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.mix
@@ -41,7 +42,7 @@ object LineShapes {
         widthY: Double = widthX,
         tipZ: Double = -1.0,
         baseZ: Double = 0.0,
-        imm: Matrix4x3d? = null,
+        localTransform: Matrix4x3d? = null,
         color: Int = defaultColor
     ) {
 
@@ -55,10 +56,10 @@ object LineShapes {
         positions[4].set(0.0, 0.0, baseZ)
 
         val transform = getDrawMatrix(entity)
-        if (transform != null || imm != null) {
+        if (transform != null || localTransform != null) {
             for (i in 0 until 5) {
                 val position = positions[i]
-                imm?.transformPosition(position)
+                localTransform?.transformPosition(position)
                 transform?.transformPosition(position)
             }
         }
@@ -69,6 +70,61 @@ object LineShapes {
             // frame
             addLine(positions[i], positions[(i + 1) and 3], color)
         }
+    }
+
+    fun drawCylinder(
+        entity: Entity?, radius: Double, halfHeight: Double, axis: Axis,
+        color: Int = defaultColor
+    ) {
+        val transform = getDrawMatrix(entity)
+        drawCylinder(transform, radius, halfHeight, axis, color)
+    }
+
+    fun drawCylinder(
+        transform: Matrix4x3?, radius: Double, halfHeight: Double, axis: Axis,
+        color: Int = defaultColor
+    ) {
+        when (axis) {
+            Axis.X -> drawCylinderX(transform, radius, halfHeight, color)
+            Axis.Y -> drawCylinderY(transform, radius, halfHeight, color)
+            Axis.Z -> drawCylinderZ(transform, radius, halfHeight, color)
+        }
+    }
+
+    fun drawCylinderX(
+        transform: Matrix4x3?, radius: Double, halfHeight: Double,
+        color: Int = defaultColor
+    ) {
+        drawLine(transform, -halfHeight, -radius, 0.0, +halfHeight, -radius, 0.0, color)
+        drawLine(transform, -halfHeight, +radius, 0.0, +halfHeight, +radius, 0.0, color)
+        drawLine(transform, -halfHeight, 0.0, -radius, +halfHeight, 0.0, -radius, color)
+        drawLine(transform, -halfHeight, 0.0, +radius, +halfHeight, 0.0, +radius, color)
+        drawCircle(transform, radius, 1, 2, +halfHeight, null, color)
+        drawCircle(transform, radius, 1, 2, -halfHeight, null, color)
+    }
+
+    fun drawCylinderY(
+        transform: Matrix4x3?, radius: Double, halfHeight: Double,
+        color: Int = defaultColor
+    ) {
+        drawLine(transform, -radius, -halfHeight, 0.0, -radius, +halfHeight, 0.0, color)
+        drawLine(transform, +radius, -halfHeight, 0.0, +radius, +halfHeight, 0.0, color)
+        drawLine(transform, 0.0, -halfHeight, -radius, 0.0, +halfHeight, -radius, color)
+        drawLine(transform, 0.0, -halfHeight, +radius, 0.0, +halfHeight, +radius, color)
+        drawCircle(transform, radius, 0, 2, +halfHeight, null, color)
+        drawCircle(transform, radius, 0, 2, -halfHeight, null, color)
+    }
+
+    fun drawCylinderZ(
+        transform: Matrix4x3?, radius: Double, halfHeight: Double,
+        color: Int = defaultColor
+    ) {
+        drawLine(transform, -radius, 0.0, -halfHeight, -radius, 0.0, +halfHeight, color)
+        drawLine(transform, +radius, 0.0, -halfHeight, +radius, 0.0, +halfHeight, color)
+        drawLine(transform, 0.0, -radius, -halfHeight, 0.0, -radius, +halfHeight, color)
+        drawLine(transform, 0.0, +radius, -halfHeight, 0.0, +radius, +halfHeight, color)
+        drawCircle(transform, radius, 0, 1, +halfHeight, null, color)
+        drawCircle(transform, radius, 0, 1, -halfHeight, null, color)
     }
 
     fun drawArrowZ(from: Vector3d, to: Vector3d, color: Int = defaultColor) {
@@ -273,6 +329,15 @@ object LineShapes {
         color: Int = defaultColor
     ) {
         val transform = getDrawMatrix(entity)
+        drawLine(transform, x0, y0, z0, x1, y1, z1, color)
+    }
+
+    fun drawLine(
+        transform: Matrix4x3?,
+        x0: Double, y0: Double, z0: Double,
+        x1: Double, y1: Double, z1: Double,
+        color: Int = defaultColor
+    ) {
         val positions = tmpVec3d
         val p0 = positions[0]
         val p1 = positions[1]
@@ -461,8 +526,22 @@ object LineShapes {
         angle0: Double = 0.0,
         deltaAngle: Double = TAU,
     ) {
-        val segments = NUM_CIRCLE_SEGMENTS
         val transform = getDrawMatrix(entity)
+        drawCircle(transform, radius, cosAxis, sinAxis, otherAxis, offset, color, angle0, deltaAngle)
+    }
+
+    fun drawCircle(
+        transform: Matrix4x3?,
+        radius: Double,
+        cosAxis: Int,
+        sinAxis: Int,
+        otherAxis: Double,
+        offset: Vector3d? = null,
+        color: Int = defaultColor,
+        angle0: Double = 0.0,
+        deltaAngle: Double = TAU,
+    ) {
+        val segments = NUM_CIRCLE_SEGMENTS
         val positions = tmpVec3d
         val fullCircle = deltaAngle >= TAU
         var segments1 = segments

@@ -107,4 +107,11 @@ object Reflections {
     fun getEnumById(clazz: Class<*>, id: Int): Enum<*>? {
         return getEnumByIdMap(clazz)[id]
     }
+
+    @Suppress("unused")
+    fun <V : Enum<*>> getEnumById2(clazz: Class<V>, id: Int): V? {
+        val instance = getEnumById(clazz, id) ?: return null
+        @Suppress("UNCHECKED_CAST")
+        return if (clazz.isInstance(instance)) instance as V else null
+    }
 }

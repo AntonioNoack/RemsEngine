@@ -21,6 +21,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4d
 import org.joml.Matrix4f
+import org.joml.Matrix4x3
 import org.joml.Quaterniond
 import speiger.primitivecollections.LongToObjectHashMap
 import kotlin.math.PI
@@ -229,8 +230,9 @@ object MovingGrid {
     private fun drawAxes(scale: Double) {
         val length = 1e3 * scale
         val alpha = 127 shl 24
-        LineShapes.drawLine(null, -length, 0.0, 0.0, +length, 0.0, 0.0, colorX or alpha)
-        LineShapes.drawLine(null, 0.0, -length, 0.0, 0.0, +length, 0.0, colorY or alpha)
-        LineShapes.drawLine(null, 0.0, 0.0, -length, 0.0, 0.0, +length, colorZ or alpha)
+        val transform: Matrix4x3? = null
+        LineShapes.drawLine(transform, -length, 0.0, 0.0, +length, 0.0, 0.0, colorX or alpha)
+        LineShapes.drawLine(transform, 0.0, -length, 0.0, 0.0, +length, 0.0, colorY or alpha)
+        LineShapes.drawLine(transform, 0.0, 0.0, -length, 0.0, 0.0, +length, colorZ or alpha)
     }
 }
