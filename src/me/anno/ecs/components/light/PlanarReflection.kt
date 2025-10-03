@@ -71,10 +71,10 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         val h = instance.height
 
         pipeline.ignoredComponent = this
-        val frustumLen = pipeline.frustum.length
+        val frustumLen = pipeline.frustum.numPlanes
         draw(pipeline, w, h, instance.cameraMatrix, instance.cameraPosition)
         pipeline.ignoredComponent = null
-        pipeline.frustum.length = frustumLen
+        pipeline.frustum.numPlanes = frustumLen
 
         // restore state just in case we have multiple planes or similar
         instance.setRenderState()
@@ -131,7 +131,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         pipeline.frustum.showPlanes()
 
         // define last frustum plane
-        pipeline.frustum.planes[pipeline.frustum.length++].set(mirrorPos, mirrorNormal)
+        pipeline.frustum.planes[pipeline.frustum.numPlanes++].set(mirrorPos, mirrorNormal)
 
         pipeline.fill(root)
         addDefaultLightsIfRequired(pipeline, root, null)

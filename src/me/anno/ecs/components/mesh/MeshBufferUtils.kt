@@ -49,7 +49,7 @@ object MeshBufferUtils {
                     return oldValue
                 } else oldValue.destroy()
             }
-            IndexBuffer(base.name, base, indices)
+            IndexBuffer("${base.name}Indices", base, indices)
         } else {
             oldValue?.destroy()
             null

@@ -29,77 +29,97 @@ open class PanelList2D(var isY: Boolean, style: Style) : PanelList2(style) {
     var listAlignmentX = ListAlignment.SCALE_CHILDREN
     var listAlignmentY = ListAlignment.SCALE_CHILDREN
 
-    private fun getI0Min(i: Int, cw: Int, sp: Int): Int {
-        return i * (cw + sp) + sp
+    private fun getI0Min(childIndex: Int, childSize: Int, spacing: Int): Int {
+        return childIndex * (childSize + spacing) + spacing
     }
 
-    private fun getI1Min(i: Int, cw: Int, sp: Int): Int {
-        return getI0Min(i, cw, sp) + cw
+    private fun getI1Min(childIndex: Int, childSize: Int, spacing: Int): Int {
+        return getI0Min(childIndex, childSize, spacing) + childSize
     }
 
-    private fun getI0Max(i: Int, n: Int, cw: Int, w: Int, sp: Int): Int {
-        return w - getI1Min(n - 1 - i, cw, sp)
+    private fun getI0Max(childIndex: Int, numChildren: Int, childSize: Int, totalSize: Int, spacing: Int): Int {
+        return totalSize - getI1Min(numChildren - 1 - childIndex, childSize, spacing)
     }
 
-    private fun getI0SC(i: Int, n: Int, w: Int, sp: Int): Int {
-        return sp * (i + 1) + WorkSplitter.partition(w - (n + 1) * sp, i, max(n, 1))
+    private fun getI0ScaleChildren(childIndex: Int, numChildren: Int, totalSize: Int, spacing: Int): Int {
+        return spacing * (childIndex + 1) + WorkSplitter.partition(
+            totalSize - (numChildren + 1) * spacing,
+            childIndex, max(numChildren, 1)
+        )
     }
 
-    private fun getI0SS(i: Int, n: Int, cw: Int, w: Int): Int {
-        return WorkSplitter.partition(w - n * cw, i + 1, n + 1) + i * cw
+    private fun getI0ScaleSpaces(childIndex: Int, numChildren: Int, childSize: Int, totalSize: Int): Int {
+        return WorkSplitter.partition(
+            totalSize - numChildren * childSize,
+            childIndex + 1, numChildren + 1
+        ) + childIndex * childSize
     }
 
-    private fun getI0(i: Int, n: Int, cw: Int, w: Int, sp: Int, scaleLogic: ListAlignment): Int {
+    private fun getI0(
+        childIndex: Int, numChildren: Int, childSize: Int, totalSize: Int,
+        spacing: Int, scaleLogic: ListAlignment
+    ): Int {
         return when (scaleLogic) {
-            ListAlignment.ALIGN_MIN -> getI0Min(i, cw, sp)
-            ListAlignment.ALIGN_MAX -> getI0Max(i, n, cw, w, sp)
-            ListAlignment.ALIGN_CENTER -> (getI0Min(i, cw, sp) + getI0Max(i, n, cw, w, sp)).shr(1)
-            ListAlignment.SCALE_CHILDREN -> getI0SC(i, n, w, sp)
-            ListAlignment.SCALE_SPACES -> getI0SS(i, n, cw, w)
+            ListAlignment.ALIGN_MIN -> getI0Min(childIndex, childSize, spacing)
+            ListAlignment.ALIGN_MAX -> getI0Max(childIndex, numChildren, childSize, totalSize, spacing)
+            // average of left and right
+            ListAlignment.ALIGN_CENTER -> (getI0Min(childIndex, childSize, spacing) +
+                    getI0Max(childIndex, numChildren, childSize, totalSize, spacing)).shr(1)
+            ListAlignment.SCALE_CHILDREN -> getI0ScaleChildren(childIndex, numChildren, totalSize, spacing)
+            ListAlignment.SCALE_SPACES -> getI0ScaleSpaces(childIndex, numChildren, childSize, totalSize)
         }
     }
 
-    private fun getI1(i: Int, n: Int, cw: Int, w: Int, sp: Int, scaleLogic: ListAlignment, i0: Int): Int {
-        return if (scaleLogic == ListAlignment.SCALE_CHILDREN) {
-            getI0SC(i + 1, n, w, sp) - sp
-        } else i0 + cw // easy
+    private fun getI1(
+        childIndex: Int, numChildren: Int, childSize: Int, totalSize: Int,
+        spacing: Int, scaleLogic: ListAlignment, i0: Int
+    ): Int = if (scaleLogic == ListAlignment.SCALE_CHILDREN) {
+        // where the next child would be, minus spacing
+        getI0ScaleChildren(childIndex + 1, numChildren, totalSize, spacing) - spacing
+    } else {
+        // easy
+        i0 + childSize
     }
 
-    private fun getIInv(x: Int, n: Int, cw: Int, w: Int, sp: Int, scaleLogic: ListAlignment): Int {
-        return clamp(
-            when (scaleLogic) {
-                ListAlignment.ALIGN_MIN -> (x - sp) / max(cw, 1)
-                ListAlignment.ALIGN_MAX -> (n - 1) - (w - x) / max(cw, 1)
-                ListAlignment.ALIGN_CENTER -> (x - (w - cw * n).shr(1)) / max(cw, 1)
-                else -> WorkSplitter.partition(x, cw, max(w, 1))
-            }, 0, n - 1
-        )
-    }
+    private fun getIInv(
+        valueInI01: Int, numChildren: Int, childSize: Int, totalSize: Int,
+        spacing: Int, scaleLogic: ListAlignment
+    ): Int = clamp(
+        when (scaleLogic) {
+            ListAlignment.ALIGN_MIN -> (valueInI01 - spacing) / max(childSize, 1)
+            ListAlignment.ALIGN_MAX -> (numChildren - 1) - (totalSize - valueInI01) / max(childSize, 1)
+            ListAlignment.ALIGN_CENTER ->
+                (valueInI01 - (totalSize - childSize * numChildren).shr(1)) / max(childSize, 1)
+            else -> WorkSplitter.partition(valueInI01, childSize, max(totalSize, 1))
+        }, 0, numChildren - 1
+    )
 
     private fun isInfinite(total: Int): Boolean {
         return total >= 1_000_000_000
     }
 
-    private fun getSize(n: Int, cw: Int, sp: Int, total: Int, scaleLogic: ListAlignment): Int {
-        return when (scaleLogic) {
-            ListAlignment.ALIGN_MIN, ListAlignment.ALIGN_CENTER, ListAlignment.ALIGN_MAX -> n * (cw + sp) + sp
-            ListAlignment.SCALE_CHILDREN ->
-                if (isInfinite(total)) n * (cw + sp) + sp
-                else max(total, sp * (n + 1))
-            ListAlignment.SCALE_SPACES ->
-                if (isInfinite(total)) n * (cw + sp) + sp
-                else max(total, cw * n)
-        }
+    private fun getMinSize(
+        numChildren: Int, childSize: Int, spacing: Int, totalSize: Int,
+        scaleLogic: ListAlignment
+    ): Int = when (scaleLogic) {
+        ListAlignment.ALIGN_MIN, ListAlignment.ALIGN_CENTER, ListAlignment.ALIGN_MAX -> numChildren * (childSize + spacing) + spacing
+        ListAlignment.SCALE_CHILDREN ->
+            if (isInfinite(totalSize)) numChildren * (childSize + spacing) + spacing
+            else max(totalSize, spacing * (numChildren + 1))
+        ListAlignment.SCALE_SPACES ->
+            if (isInfinite(totalSize)) numChildren * (childSize + spacing) + spacing
+            else max(totalSize, childSize * numChildren)
     }
 
-    private fun getChildSize(n: Int, cw: Int, sp: Int, total: Int, scaleLogic: ListAlignment): Int {
-        return when (scaleLogic) {
-            ListAlignment.ALIGN_MIN, ListAlignment.ALIGN_CENTER, ListAlignment.ALIGN_MAX -> cw
-            ListAlignment.SCALE_CHILDREN ->
-                if (isInfinite(total)) cw
-                else max(0, total - sp * (n + 1)) / max(n, 1)
-            ListAlignment.SCALE_SPACES -> cw
-        }
+    private fun getChildSize(
+        numChildren: Int, childSize: Int, spacing: Int, totalSize: Int,
+        scaleLogic: ListAlignment
+    ): Int = when (scaleLogic) {
+        ListAlignment.ALIGN_MIN, ListAlignment.ALIGN_CENTER, ListAlignment.ALIGN_MAX -> childSize
+        ListAlignment.SCALE_CHILDREN ->
+            if (isInfinite(totalSize)) childSize
+            else max(0, totalSize - spacing * (numChildren + 1)) / max(numChildren, 1)
+        ListAlignment.SCALE_SPACES -> childSize
     }
 
     override val canDrawOverBorders: Boolean get() = true
@@ -143,8 +163,8 @@ open class PanelList2D(var isY: Boolean, style: Style) : PanelList2(style) {
             numTilesX = ceilDiv(numChildren, numTilesY)
         }
 
-        minW = getSize(numTilesX, childWidth, spacing, wi, listAlignmentX)
-        minH = getSize(numTilesY, childHeight, spacing, hi, listAlignmentY)
+        minW = getMinSize(numTilesX, childWidth, spacing, wi, listAlignmentX)
+        minH = getMinSize(numTilesY, childHeight, spacing, hi, listAlignmentY)
         val calcChildWidth = getChildSize(numTilesX, childWidth, spacing, wi, listAlignmentX)
         val calcChildHeight = getChildSize(numTilesY, childHeight, spacing, hi, listAlignmentY)
 
