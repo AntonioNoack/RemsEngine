@@ -18,8 +18,10 @@ interface UMRIterator<Mesh> {
             if (filter(entry)) {
                 val range = getRange(entry)
                 if (range.first != currEnd) {
-                    push(currStart, currEnd)
-                    counter += (currEnd - currStart)
+                    if (currEnd > currStart) {
+                        push(currStart, currEnd)
+                        counter += (currEnd - currStart)
+                    }
                     currStart = range.first
                 }
                 currEnd = range.last + 1
@@ -27,8 +29,8 @@ interface UMRIterator<Mesh> {
         }
         if (currEnd > currStart) {
             push(currStart, currEnd)
+            counter += (currEnd - currStart)
         }
-        counter += (currEnd - currStart)
         return counter
     }
 }
