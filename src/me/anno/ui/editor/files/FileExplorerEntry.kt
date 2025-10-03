@@ -39,8 +39,9 @@ import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
-import me.anno.image.ImageScale
+import me.anno.image.ImageScale.scaleMax
 import me.anno.image.ImageScale.scaleMaxPreview
+import me.anno.image.ImageScale.scaleMin
 import me.anno.image.thumbs.AssetThumbnails
 import me.anno.image.thumbs.ThumbnailCache
 import me.anno.input.Clipboard
@@ -48,7 +49,6 @@ import me.anno.input.Key
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.IsDirectoryCache
 import me.anno.io.files.inner.InnerLinkFile
@@ -56,6 +56,8 @@ import me.anno.io.utils.TrashManager.moveToTrash
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.maths.Maths.dtTo10
+import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
 import me.anno.ui.Panel
@@ -81,6 +83,8 @@ import me.anno.utils.files.OpenFileExternally.openInStandardProgram
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.count2
+import me.anno.utils.structures.tuples.IntPair
+import me.anno.utils.types.Booleans.toFloat
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings
@@ -158,11 +162,24 @@ open class FileExplorerEntry(
             minW = 65536 // must be large to fill all space
             minH = titleSize
         } else {
-            val size = min(w, h - titleSize)
-            minW = size
-            minH = size + titleSize
+
+            val isDirectory = IsDirectoryCache.isDirectory(file)
+            val thumbImage = if (isDirectory.value != null) ThumbnailCache[file, width] else null
+
+            if (thumbImage != null) {
+                // based on thumbnail dimensions
+                val (w2, h2) = scaleMax(thumbImage.width, thumbImage.height, w, h)
+                minW = w2
+                minH = max(h2, titleSize)
+            } else {
+                val size = min(w, h - titleSize)
+                minW = size
+                minH = size + titleSize
+            }
         }
     }
+
+    private var smoothHover = 0f
 
     override fun onUpdate() {
         super.onUpdate()
@@ -175,6 +192,7 @@ open class FileExplorerEntry(
 
         // needs to be disabled in the future, I think
         isVisible = !file.isHidden
+        smoothHover = mix(isHovered.toFloat(), smoothHover, dtTo10(5f * Time.deltaTime.toFloat()))
 
         background.color = when {
             isInFocus || file in rightClickedFiles -> darkerBackgroundColor
@@ -229,14 +247,29 @@ open class FileExplorerEntry(
 
     private fun drawDefaultIcon(x0: Int, y0: Int, x1: Int, y1: Int) {
         val image = TextureCache[iconPath].value ?: whiteTexture
-        drawTexture(x0, y0, x1, y1, image)
+        drawTexturePreserveAspect(x0, y0, x1, y1, image, true)
     }
 
-    private fun drawTexture(x0: Int, y0: Int, x1: Int, y1: Int, image: ITexture2D) {
+    private fun drawTexturePreserveAspect(
+        x0: Int, y0: Int, x1: Int, y1: Int, image: ITexture2D,
+        isIcon: Boolean
+    ) {
+
         val w = x1 - x0
         val h = y1 - y0
         // if aspect ratio is extreme, use a different scale
-        var (iw, ih) = scaleMaxPreview(image.width, image.height, abs(w), abs(h), 5)
+        var (iw, ih) = if (isIcon) {
+            val padding = h / 6
+            scaleMaxPreview(image.width, image.height, abs(w) - padding, abs(h) - padding, 5)
+        } else {
+            val (iw1, ih1) = scaleMaxPreview(image.width, image.height, abs(w), abs(h), 5)
+            val (iw0, ih0) = scaleMin(image.width, image.height, abs(w), abs(h))
+            IntPair(
+                mix(iw0, iw1, smoothHover),
+                mix(ih0, ih1, smoothHover)
+            )
+        }
+
         iw *= w.sign
         ih *= h.sign
         val isHDR = image.isHDR
@@ -313,13 +346,22 @@ open class FileExplorerEntry(
                 return
             }
         }
-        val image = getImage() ?: whiteTexture
+
+        val isDirectory = IsDirectoryCache.isDirectory(file)
+        val thumbImage = if (isDirectory.value != null) ThumbnailCache[file, width] else null
+
+        val image = thumbImage
+            ?: getDefaultIcon()?.createdOrNull()
+            ?: whiteTexture
+
+        val isIcon = thumbImage == null
+
         val rot = (image as? Texture2D)?.rotation
         image.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
         if (rot == null || rot.isNull()) {
-            drawTexture(x0, y0, x1, y1, image)
+            drawTexturePreserveAspect(x0, y0, x1, y1, image, isIcon)
         } else if (rot.angleCW == 0 && rot.mirrorVertical && !rot.mirrorHorizontal) {
-            drawTexture(x0, y1, x1, y0, image)
+            drawTexturePreserveAspect(x0, y1, x1, y0, image, isIcon)
         } else {
             // todo draw image without overflowing into other things
             // todo maybe use transform for that :)
@@ -330,7 +372,7 @@ open class FileExplorerEntry(
 
             // transform.rotateY(45f.toRadians())
 
-            drawTexture(x0, y0, x1, y1, image)
+            drawTexturePreserveAspect(x0, y0, x1, y1, image, isIcon)
 
             transform.popMatrix()
             /* GFX.clip2(x0, y0, x1, y1) {
@@ -358,7 +400,7 @@ open class FileExplorerEntry(
         val image = video?.getFrame()
         if (image != null) {
             val size = width - 2 * padding
-            val (nw, nh) = ImageScale.scaleMin(image.width, image.height, size, size)
+            val (nw, nh) = scaleMin(image.width, image.height, size, size)
             drawTexture((x0 + x1 - nw) / 2, (y0 + y1 - nh) / 2, nw, nh, image)
             drawCircle(x0, y0, x1, y1)
         } else {
@@ -541,7 +583,7 @@ open class FileExplorerEntry(
         val w = width
         val h = height
 
-        padding = h / 16
+        padding = if (listMode) h / 16 else 0
 
         // why not twice the padding?????
         // only once centers it...
@@ -551,7 +593,7 @@ open class FileExplorerEntry(
         if (listMode) {
             drawListMode(x0, y0, x1, y1, x, y, w, h)
         } else {
-            drawTileMode(x0, y0, x1, y1, x, y, w, h, remainingW, remainingH)
+            drawTileMode(x0, y0, x1, y1, x, y, w, h, remainingW)
         }
     }
 
@@ -610,7 +652,7 @@ open class FileExplorerEntry(
     private fun drawTileMode(
         x0: Int, y0: Int, x1: Int, y1: Int,
         x: Int, y: Int, w: Int, h: Int,
-        remainingW: Int, remainingH: Int
+        remainingW: Int
     ) {
 
         val t0 = System.nanoTime()
@@ -621,16 +663,11 @@ open class FileExplorerEntry(
         lines = if (showTitle) max(ceil(extraHeight / fontSize).toInt(), 1) else 0
 
         val textH = (lines * fontSize).toInt()
-        val imageH = remainingH - textH
-
         val t1 = System.nanoTime()
 
         Clipping.clip2Dual(
             x0, y0, x1, y1,
-            x + padding,
-            y + padding,
-            x + remainingW,
-            y + padding + imageH,
+            x, y, x + w, y + h,
             ::drawThumb
         )
 

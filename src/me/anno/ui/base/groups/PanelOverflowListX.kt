@@ -53,12 +53,12 @@ open class PanelOverflowListX(style: Style) : PanelList2(style) {
         minH = sumHeight + padding.height
     }
 
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+    override fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
 
-        val w = width - padding.width
+        val w = width
 
         var maxWidth = 0
-        var yi = y + padding.top
+        var yi = y
 
         var rowWidth = 0
         var rowHeight = 0
@@ -83,7 +83,7 @@ open class PanelOverflowListX(style: Style) : PanelList2(style) {
             val lineWidth = lineWidths.getOrDefault(lineIndex, w)
             val extraSpace = max(w - lineWidth, 0)
             val dx = lineAlignmentX.getOffset(extraSpace, 0)
-            child.setPosSizeAligned(x + padding.left + rowWidth + dx, yi, child.minW, child.minH)
+            child.setPosSizeAligned(x + rowWidth + dx, yi, child.minW, child.minH)
 
             // append to this row
             rowWidth += spacing + child.minW

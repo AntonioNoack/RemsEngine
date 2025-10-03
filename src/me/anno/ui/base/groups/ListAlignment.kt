@@ -5,5 +5,5 @@ enum class ListAlignment(val id: Int) {
     ALIGN_CENTER(1),
     ALIGN_MAX(2),
     SCALE_CHILDREN(3),
-    SCALE_SPACES(4)
+    SCALE_SPACES(4),
 }

@@ -81,6 +81,27 @@ import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.max
 
+// todo implement gallery like on Android:
+//  wide-mode:
+//   - wide images take up one row,
+//   - all rows are the same height
+//   - zoom in, hide borders
+//   - black borders with light gray edge
+//   - upto 2-3 skinny images per row (depending on how many fit)
+//  overview modes (zooming out):
+//   - exactly 3+ images per row
+//   - all rows are the squares (of the same height)
+//  make this a valid mode in FileExplorer somehow... it is very nice for viewing images
+//   -> create a button to toggle between all modes
+//  or switch to it if we have thumbnails for all items???
+//  or make it default???
+//  -> this kind of is a special PanelList2D mode
+//  -> (optionally) make PanelList2D behave special for 2 elements
+//  -> and change our FileExplorer items to use the whole space,
+//     and write the text on top (bigger preview image = better)
+
+
+
 // todo star assets, and they will always (?) come first in sorting
 
 // todo dynamically change aspect ratio based on content for better coverage?
@@ -196,7 +217,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         }
     }
 
-    val history: History<FileReference> = History(initialLocation ?: documents)
+    val history = History(initialLocation ?: documents)
     val folder: FileReference get() = history.value
 
     private var lastFolder: FileReference = InvalidRef
@@ -240,7 +261,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     }
 
     val uContent = PanelListX(style)
-    val content2d: PanelList2D = PanelList2D(isY, style)
+    val content2d = PanelList2D(isY, style)
 
     var lastFiles = emptyList<String>()
     var lastSearch: Search? = null

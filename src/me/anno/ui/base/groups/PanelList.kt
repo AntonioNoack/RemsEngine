@@ -72,6 +72,17 @@ abstract class PanelList(style: Style) : PanelGroup(style) {
         newChild.scrollTo()
     }
 
+    final override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+        placeChildrenWithoutPadding(
+            x + padding.left,
+            y + padding.top,
+            width - padding.width,
+            height - padding.height
+        )
+    }
+
+    abstract fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int)
+
     override fun copyInto(dst: PrefabSaveable) {
         copyIntoExceptChildren(dst)
         if (dst !is PanelList) return

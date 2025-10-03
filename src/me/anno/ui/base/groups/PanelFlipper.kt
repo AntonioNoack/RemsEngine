@@ -11,7 +11,6 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.groups.PanelContainer.Companion.setPosSizeWithPadding
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toRadians
 import kotlin.math.abs
@@ -88,13 +87,13 @@ open class PanelFlipper(style: Style) : PanelList(style) {
 
     var rotationStrengthRadians = 90f.toRadians()
 
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+    override fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
         when (transitionType) {
             TransitionType.INSTANT -> {
                 val posIndex = position.roundToIntOr()
                 for ((index, child) in children.withIndex()) {
                     if (index == posIndex) {
-                        setPosSizeWithPadding(child, x, y, width, height, padding)
+                        child.setPosSizeAligned(x, y, width, height)
                     } else {
                         child.setPosSize(x, y, 0, 0)
                     }
@@ -103,7 +102,7 @@ open class PanelFlipper(style: Style) : PanelList(style) {
             TransitionType.SWIPE_HORIZONTAL, TransitionType.ROTATE_HORIZONTAL -> {
                 for ((index, child) in children.withIndex()) {
                     val offset = (width * (index - position)).roundToIntOr()
-                    setPosSizeWithPadding(child, x + offset, y, width, height, padding)
+                    child.setPosSizeAligned(x + offset, y, width, height)
                     child.weight2 = (index - position) * rotationStrengthRadians // unused field abused ^^
                     // todo for rotated children, set their approximate position properly
                 }
@@ -111,7 +110,7 @@ open class PanelFlipper(style: Style) : PanelList(style) {
             TransitionType.SWIPE_VERTICAL, TransitionType.ROTATE_VERTICAL -> {
                 for ((index, child) in children.withIndex()) {
                     val offset = (height * (index - position)).roundToIntOr()
-                    setPosSizeWithPadding(child, x, y + offset, width, height, padding)
+                    child.setPosSizeAligned(x, y + offset, width, height)
                     child.weight2 = (index - position) * rotationStrengthRadians // unused field abused ^^
                 }
             }

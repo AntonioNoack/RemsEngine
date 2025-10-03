@@ -20,7 +20,7 @@ class SquareGridLayoutPanel(val sx: Int, val sy: Int, createPanel: (xi: Int, yi:
         }
     }
 
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+    override fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
         val childSize = min(width / sx, height / sy)
         val usedWidth = childSize * sx
         val usedHeight = childSize * sy

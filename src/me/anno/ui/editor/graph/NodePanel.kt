@@ -131,7 +131,7 @@ class NodePanel(
         }
     }
 
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+    override fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
         val font = gp.font
         val textSize = font.sampleHeight
         val titleOffset = textSize * 3 / 2

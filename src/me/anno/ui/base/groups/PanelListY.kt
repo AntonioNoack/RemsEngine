@@ -83,34 +83,30 @@ open class PanelListY(style: Style) : PanelList2(style) {
         return null
     }
 
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+    override fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
 
-        val availableW = width - padding.width
-        val availableH = height - padding.height
-
-        val childX = x + padding.left
-        var currentY = y + padding.top
+        var currentY = y
         val currentY0 = currentY
 
         val children = children
         if (allChildrenHaveSameSize && children.isNotEmpty()) {
-            val idealH = availableH / max(1, children.count2 { it.isVisible })
+            val idealH = height / max(1, children.count2 { it.isVisible })
             val childH = if (children[0].weight > 0f) idealH else min(children[0].minH, idealH)
             for (i in children.indices) {
                 val child = children[i]
                 if (child.isVisible) {
-                    child.setPosSize(childX, currentY, availableW, childH)
+                    child.setPosSize(x, currentY, width, childH)
                     currentY += childH + spacing
-                } else child.setPosSize(childX, currentY, 0, 0)
+                } else child.setPosSize(x, currentY, 0, 0)
             }
         } else {
             var perWeight = 0f
             var shrinkingFactor = 1f
-            if (availableH > sumConst && sumWeight > 1e-7f) {
-                val availableForWeighted = availableH - sumConstWW
+            if (height > sumConst && sumWeight > 1e-7f) {
+                val availableForWeighted = height - sumConstWW
                 perWeight = availableForWeighted / sumWeight
-            } else if (availableH < sumConst) {
-                shrinkingFactor = availableH.toFloat() / sumConst.toFloat()
+            } else if (height < sumConst) {
+                shrinkingFactor = height.toFloat() / sumConst.toFloat()
             }
             for (i in children.indices) {
                 val child = children[i]
@@ -121,18 +117,18 @@ open class PanelListY(style: Style) : PanelList2(style) {
                         (shrinkingFactor * child.minH)
                     }.roundToIntOr()
                     val currentH = currentY - currentY0
-                    val remainingH = availableH - currentH
+                    val remainingH = height - currentH
                     childH = min(childH, remainingH)
-                    if (child.minW != availableW || child.minH != childH) {
+                    if (child.minW != width || child.minH != childH) {
                         // update the children, if they need to be updated
-                        child.calculateSize(availableW, childH)
+                        child.calculateSize(width, childH)
                     }
                     //if (child.x != childX || child.y != currentY || child.w != availableW || child.h != childH) {
                     // something changes, or constraints are used
-                    child.setPosSizeAligned(childX, currentY, availableW, childH)
+                    child.setPosSizeAligned(x, currentY, width, childH)
                     //}
                     currentY += childH + spacing
-                } else child.setPosSize(childX, currentY, 0, 0)
+                } else child.setPosSize(x, currentY, 0, 0)
             }
         }
     }

@@ -1,10 +1,9 @@
 package me.anno.ui.base.groups
 
 import me.anno.ui.Style
-import me.anno.ui.base.groups.PanelContainer.Companion.setPosSizeWithPadding
 import kotlin.math.max
 
-open class PanelStack( style: Style) : PanelList(style) {
+open class PanelStack(style: Style) : PanelList(style) {
 
     override fun calculateSize(w: Int, h: Int) {
         var neededW = 0
@@ -22,10 +21,10 @@ open class PanelStack( style: Style) : PanelList(style) {
         minH = neededH + padding.height
     }
 
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+    override fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
         val children = children
         for (index in children.indices) {
-            setPosSizeWithPadding(children[index], x, y, width, height, padding)
+            children[index].setPosSizeAligned(x, y, width, height)
         }
     }
 

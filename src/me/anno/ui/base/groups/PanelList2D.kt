@@ -8,7 +8,6 @@ import me.anno.ui.Style
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.structures.lists.Lists.count2
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Related Classes:
@@ -28,6 +27,8 @@ open class PanelList2D(var isY: Boolean, style: Style) : PanelList2(style) {
 
     var listAlignmentX = ListAlignment.SCALE_CHILDREN
     var listAlignmentY = ListAlignment.SCALE_CHILDREN
+
+    var ifSizeIsTwoUseAspectRatioGrid = true
 
     private fun getI0Min(childIndex: Int, childSize: Int, spacing: Int): Int {
         return childIndex * (childSize + spacing) + spacing
@@ -144,36 +145,120 @@ open class PanelList2D(var isY: Boolean, style: Style) : PanelList2(style) {
     var numTilesX = 1
     var numTilesY = 1
 
-    var maxTilesX = Int.MAX_VALUE
-    var maxTilesY = Int.MAX_VALUE
+    var minTilesX: Int = 2
+        set(value) {
+            field = max(1, value)
+        }
+
+    var minTilesY: Int = 2
+        set(value) {
+            field = max(1, value)
+        }
+
+    var maxTilesX: Int = Int.MAX_VALUE
+        set(value) {
+            field = max(1, value)
+        }
+
+    var maxTilesY: Int = Int.MAX_VALUE
+        set(value) {
+            field = max(1, value)
+        }
+
+    var aspectRatioMode: Boolean = false
+    var targetAspect = 3f
+
+    fun useAspectRatioMode(w: Int, h: Int): Boolean =
+        ((if (isY) w / childWidth else h / childHeight) <= 2) && ifSizeIsTwoUseAspectRatioGrid
 
     override fun calculateSize(w: Int, h: Int) {
+        aspectRatioMode = useAspectRatioMode(w, h)
+        if (aspectRatioMode) calculateSizeAspect(w, h)
+        else calculateSizeNormal(w, h)
+    }
 
+    private fun calculateSizeAspect(w: Int, h: Int) {
+        if (isY) minW = w
+        else minH = h
+
+        if (isY) minH = spacing
+        else minW = spacing
+
+        targetAspect =
+            (if (isY) w.toFloat() / childHeight
+            else h.toFloat() / childWidth) * 0.75f
+
+        var currAspect = 0f
+        var numRows = 0
+        for (i in children.indices) {
+            val child = children[i]
+            if (!child.isVisible) continue
+
+            val aspect = getAspectRatio(child, true)
+            if (nextRow(currAspect, aspect)) {
+                // next row
+                if (isY) minH += childHeight + spacing
+                else minW += childWidth + spacing
+                currAspect = 0f
+                numRows++
+            } else {
+                currAspect += aspect
+            }
+        }
+
+        if (currAspect > 0f) {
+            if (isY) minH += childHeight + spacing
+            else minW += childWidth + spacing
+            numRows++
+        }
+
+        if (isY) {
+            numTilesX = 3
+            numTilesY = numRows
+        } else {
+            numTilesY = 3
+            numTilesX = numRows
+        }
+    }
+
+    private fun getAspectRatio(child: Panel, compute: Boolean): Float {
+        if (compute) child.calculateSize(childWidth, childHeight)
+        val cw = child.minW.toFloat()
+        val ch = child.minH.toFloat()
+        val rawAspectRatio = if (isY) cw / ch else ch / cw
+        return clamp(rawAspectRatio, 0.333f, 3f)
+    }
+
+    private fun calculateSizeNormal(w: Int, h: Int) {
         val children = children
         val wi = w - padding.width
         val hi = h - padding.height
+
         val numChildren = children.count2 { it.isVisible }
         if (isY || isInfinite(hi)) {
-            val w2 = if (isInfinite(wi)) childWidth * numChildren else wi
-            numTilesX = min(max(1, (w2 + spacing) / max(1, childWidth + spacing)), maxTilesX)
+            numTilesX = clamp(idealNumTiles(wi, numChildren, childWidth), minTilesX, maxTilesX)
             numTilesY = ceilDiv(numChildren, numTilesX)
         } else {
-            val h2 = if (isInfinite(hi)) childHeight * numChildren else hi
-            numTilesY = min(max(1, (h2 + spacing) / max(1, childHeight + spacing)), maxTilesY)
+            numTilesY = clamp(idealNumTiles(hi, numChildren, childHeight), minTilesY, maxTilesY)
             numTilesX = ceilDiv(numChildren, numTilesY)
         }
 
         minW = getMinSize(numTilesX, childWidth, spacing, wi, listAlignmentX)
         minH = getMinSize(numTilesY, childHeight, spacing, hi, listAlignmentY)
+
         val calcChildWidth = getChildSize(numTilesX, childWidth, spacing, wi, listAlignmentX)
         val calcChildHeight = getChildSize(numTilesY, childHeight, spacing, hi, listAlignmentY)
-
         for (i in children.indices) {
             val child = children[i]
             if (child.isVisible) {
                 child.calculateSize(calcChildWidth, calcChildHeight)
             }
         }
+    }
+
+    private fun idealNumTiles(wi: Int, numChildren: Int, childSize: Int): Int {
+        val size2 = if (isInfinite(wi)) childSize * numChildren else wi
+        return (size2 + spacing) / max(1, childSize + spacing)
     }
 
     fun getItemIndexAt(cx: Int, cy: Int): Int {
@@ -200,42 +285,110 @@ open class PanelList2D(var isY: Boolean, style: Style) : PanelList2(style) {
         child.setPosSizeAligned(x + x0, y + y0, x1 - x0, y1 - y0)
     }
 
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
-        placeChildrenWithoutPadding(
-            x + padding.left,
-            y + padding.top,
-            width - padding.width,
-            height - padding.height
-        )
-    }
+    override fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
+        if (aspectRatioMode) {
+            var sumAspect = 0f
 
-    fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
-        if (isY) {
-            var i = 0
-            var iy = 0
-            children@ while (true) {
-                for (ix in 0 until numTilesX) {
-                    var child: Panel
-                    do {
-                        child = children.getOrNull(i++) ?: break@children
-                    } while (!child.isVisible)
-                    placeChild(child, ix, iy, x, y, width, height)
+            var xi = x + spacing
+            var yi = y + spacing
+
+            var rowStartIndex = 0
+            var numElements = 0
+
+            @Suppress("AssignedValueIsNeverRead") // IntelliSense is broken
+            fun finishRow(rowEndIndex: Int) {
+
+                for (i in rowStartIndex until rowEndIndex) {
+                    val child = children[i]
+                    if (!child.isVisible) continue
+
+                    val aspect = getAspectRatio(child, false)
+
+                    val remaining =
+                        if (isY) x + width - numElements * spacing - xi
+                        else y + height - numElements * spacing - yi
+
+                    val childSize = (remaining * aspect / sumAspect).toInt()
+
+                    if (isY) child.setPosSizeAligned(xi, yi, childSize, childHeight)
+                    else child.setPosSizeAligned(xi, yi, childWidth, childSize)
+
+                    if (isY) xi += childSize + spacing
+                    else yi += childSize + spacing
+
+                    sumAspect -= aspect
+                    numElements--
                 }
-                iy++
+
+                // next row
+                if (isY) yi += childHeight + spacing
+                else xi += childWidth + spacing
+
+                if (isY) xi = x + spacing
+                else yi = y + spacing
+
+                sumAspect = 0f
+
+                rowStartIndex = rowEndIndex
+            }
+
+            for (i in children.indices) {
+                val child = children[i]
+                if (!child.isVisible) continue
+
+                val aspect = getAspectRatio(child, false)
+                numElements++
+
+                val prevSumAspect = sumAspect
+                sumAspect += aspect
+
+                if (nextRow(prevSumAspect, aspect)) {
+                    finishRow(i + 1)
+                }
+            }
+
+            if (sumAspect > 0f) {
+                finishRow(children.size)
             }
         } else {
-            var i = 0
-            var ix = 0
-            children@ while (true) {
-                for (iy in 0 until numTilesY) {
-                    var child: Panel
-                    do {
-                        child = children.getOrNull(i++) ?: break@children
-                    } while (!child.isVisible)
-                    placeChild(child, ix, iy, x, y, width, height)
-                }
-                ix++
+            if (isY) placeChildrenYNormally(x, y, width, height)
+            else placeChildrenXNormally(x, y, width, height)
+        }
+    }
+
+    private fun nextRow(prevSumAspect: Float, aspect: Float): Boolean {
+        // is this logic good???
+        return (prevSumAspect == 0f && aspect >= targetAspect) ||
+                (prevSumAspect + aspect * 0.5f >= targetAspect)
+    }
+
+    private fun placeChildrenYNormally(x: Int, y: Int, width: Int, height: Int) {
+        var i = 0
+        var iy = 0
+        children@ while (true) {
+            for (ix in 0 until numTilesX) {
+                var child: Panel
+                do {
+                    child = children.getOrNull(i++) ?: break@children
+                } while (!child.isVisible)
+                placeChild(child, ix, iy, x, y, width, height)
             }
+            iy++
+        }
+    }
+
+    private fun placeChildrenXNormally(x: Int, y: Int, width: Int, height: Int) {
+        var i = 0
+        var ix = 0
+        children@ while (true) {
+            for (iy in 0 until numTilesY) {
+                var child: Panel
+                do {
+                    child = children.getOrNull(i++) ?: break@children
+                } while (!child.isVisible)
+                placeChild(child, ix, iy, x, y, width, height)
+            }
+            ix++
         }
     }
 

@@ -113,16 +113,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         minH = h
     }
 
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
-        placeChildrenWithoutPadding(
-            x + padding.left,
-            y + padding.top,
-            width - padding.width,
-            height - padding.height
-        )
-    }
-
-    fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
+    override fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
         if (children.size == 1) {
             val child = children.first()
             child.setPosSize(x, y, width, height)

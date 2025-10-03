@@ -254,4 +254,8 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         dst.z = 0.0
         return dst
     }
+
+    override fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
+        // not yet implemented
+    }
 }

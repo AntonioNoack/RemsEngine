@@ -186,7 +186,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         }
     }
 
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+    override fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
         ensureChildren()
         // place all children
         val graph = graph ?: return
