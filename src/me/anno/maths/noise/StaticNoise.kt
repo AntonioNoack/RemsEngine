@@ -25,7 +25,12 @@ object StaticNoise {
     private const val INV_DOUBLE = 1.0 / (1L shl 53)
     private const val MASK_DOUBLE = MASK.toDouble()
 
-    fun getRandomBool(seed: Long, probability: Float = 0.5f): Boolean {
+    /**
+     * Probability is a value between 0 and 1.
+     * If the value is 0, the event never happens.
+     * If the value is 1, the event always happens.
+     * */
+    fun getRandomBool(seed: Long, probability: Float): Boolean {
         // this should be fine for probabilities from 1 downTo 1e-12
         val seed1 = getNextSeed(initialMix(seed))
         return seed1 < probability * MASK_DOUBLE
