@@ -14,6 +14,8 @@ import kotlin.math.sqrt
  * */
 object StaticNoise {
 
+    const val MASK: Long = (1L shl 48) - 1
+
     // 48 bits is the best we can do for our magic
     // this magic was especially chosen for its great non-period properties
     // we also choose the same values as Java, so you could replace Random(seed).nextLong() with getRandomLong(seed)
@@ -21,17 +23,12 @@ object StaticNoise {
     private const val ADDEND: Long = 0xBL
     private const val INV_FLOAT = 1f / (1L shl 24)
     private const val INV_DOUBLE = 1.0 / (1L shl 53)
-    const val MASK: Long = (1L shl 48) - 1
+    private const val MASK_DOUBLE = MASK.toDouble()
 
     fun getRandomBool(seed: Long, probability: Float = 0.5f): Boolean {
-        // fix this for small probabilities?
-        //   issues only occur for events with probability ~ 1e-6
-        return if (probability < 0.0001f) {
-            // now issues only appear with 1e-15 probability (never)
-            getRandomDouble(seed) < probability
-        } else {
-            getRandomFloat(seed) < probability
-        }
+        // this should be fine for probabilities from 1 downTo 1e-12
+        val seed1 = getNextSeed(initialMix(seed))
+        return seed1 < probability * MASK_DOUBLE
     }
 
     fun getRandomInt(seed: Long): Int {
