@@ -30,6 +30,7 @@ import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import me.anno.utils.types.Strings.shorten
+import org.apache.logging.log4j.LogManager
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics2D
@@ -261,8 +262,11 @@ class AWTFont(
     override fun getSupportLevel(fonts: List<AWTFont>, char: Int, lastSupportLevel: Int): Int {
         for (index in fonts.indices) {
             val font = fonts[index]
-            if (font.awtFont.canDisplay(char)) return index
+            if (font.awtFont.canDisplay(char)) {
+                return index
+            }
         }
+        LOGGER.warn("Glyph '$char' cannot be displayed")
         return lastSupportLevel
     }
 
@@ -359,6 +363,8 @@ class AWTFont(
     override fun toString(): String = engineFont.toString()
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(AWTFont::class)
 
         private fun getStringWidth(group: TextGroup) = group.offsets.last() - group.offsets.first()
         private fun createGroup(font: me.anno.fonts.Font, text: CharSequence): TextGroup = TextGroup(font, text, 0.0)

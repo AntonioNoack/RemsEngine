@@ -5,13 +5,11 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.saveable.Saveable
-import me.anno.ui.editor.files.FileNames.toAllowedFilename
-import me.anno.utils.OS
+import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.maps.Maps.removeIf
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.AnyToLong
 import me.anno.utils.types.Booleans.toLong
-import kotlin.math.min
 
 /**
  * can be used for config easily :D
@@ -179,35 +177,14 @@ open class StringMap(
 
     open fun onSyncAccess() {}
 
-    private fun parseFile(str0: String): FileReference {
-        var str = str0
-            .replace('\\', '/')
-        if (str.startsWith("~") && OS.isWindows) {
-            str = "%HOMEPATH%/${str.substring(1)}"
-        }
-
-        // make this file valid; no matter what
-        val str2 = str.split(":/")
-        str = str2.subList(0, min(2, str2.size))
-            .joinToString(":/") {
-                it.split('/')
-                    .joinToString("/") { name ->
-                        name.toAllowedFilename() ?: "x"
-                    }
-            }
-
-        return getReference(str)
-    }
-
     operator fun get(key: String, default: FileReference): FileReference {
         return when (val value = this[key]) {
             is FileReference -> value
-            is String -> getReference(parseFile(value))
             null -> {
                 set(key, default)
                 default
             }
-            else -> getReference(parseFile(value.toString()))
+            else -> getReference(value.toString().toGlobalFile())
         }
     }
 

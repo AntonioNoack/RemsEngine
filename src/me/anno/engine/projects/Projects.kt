@@ -72,7 +72,7 @@ object Projects {
         for (header in recentHeaders) {
             if (header.file !in usedFiles) {
                 DefaultConfig["recent.projects[$i].name"] = header.name
-                DefaultConfig["recent.projects[$i].file"] = header.file.absolutePath
+                DefaultConfig["recent.projects[$i].file"] = header.file
                 usedFiles += header.file
                 if (++i > recentProjectCount) break
             }

@@ -194,8 +194,8 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
         val fallback = getFallbackFonts(fontSize)
         val fonts = ArrayList<FontImpl>(fallback.size + 1)
 
-        fonts += getSelfFont()
-        fonts += fallback
+        fonts.add(getSelfFont())
+        fonts.addAll(fallback)
 
         val lineCountLimit = if (textBreakHeight < 0f) Int.MAX_VALUE
         else (textBreakHeight / (fontSize + FontManager.spaceBetweenLines(fontSize))).roundToIntOr()
