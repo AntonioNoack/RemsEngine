@@ -205,7 +205,7 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                     currentX = ceil(currentX + padding)
 
                     val emojiSize = emojiImage.width
-                    var nextX = currentX + emojiSize + padding
+                    var nextX = currentX + (emojiSize + padding)
 
                     if (hasAutomaticLineBreak && nextX > lineBreakWidth) {
                         nextLineImpl()

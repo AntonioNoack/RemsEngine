@@ -112,14 +112,31 @@ object Streams {
     }
 
     @JvmStatic
-    fun InputStream.skipN(v: Long): InputStream {
+    fun InputStream.skipN(toSkip: Long): Long {
         var totalReadN = 0L
-        while (totalReadN < v) {
-            val ithReadN = skip(v)
-            if (ithReadN <= 0) return this
-            totalReadN += ithReadN
+        while (true) {
+            var remaining = toSkip - totalReadN
+            if (remaining <= 0) return totalReadN // done
+
+            val ithReadN = try {
+                skip(remaining)
+            } catch (e: IOException) {
+                // illegal seek can happen on Linux :(
+                -1L
+            }
+
+            if (ithReadN <= 0L) {
+                // :/, skipping may not be supported
+                val tmp = tmpBuffer.get()
+                while (remaining > 0) {
+                    val maxReadLen = min(tmp.size.toLong(), remaining).toInt()
+                    val numSkipped = read(tmp, 0, maxReadLen)
+                    if (numSkipped < 0) return totalReadN
+                    remaining -= numSkipped
+                    totalReadN += numSkipped
+                }
+            } else totalReadN += ithReadN
         }
-        return this
     }
 
     @JvmStatic
