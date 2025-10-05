@@ -44,9 +44,11 @@ class SnowSettings : Component(), GlobalSetting, OnUpdate {
     /**
      * How much the sky is affected by the current snow fall.
      * At the moment, just a constant, but could be changed to a gradient in the future.
+     *
+     * Snow is very bright, so maybe not set this to 1.0 straight away.
      * */
     @Range(0.0, 1.0)
-    var skySnowiness = 0f
+    var skySnowiness = 0.1f
 
     var worldRotation = Quaternionf()
 
@@ -63,6 +65,7 @@ class SnowSettings : Component(), GlobalSetting, OnUpdate {
         elongation = 30f
         // tilt rain a bit
         worldRotation.rotateX((15f).toRadians())
+        skySnowiness = 0f
     }
 
     @DebugAction
@@ -73,6 +76,7 @@ class SnowSettings : Component(), GlobalSetting, OnUpdate {
         flakeSize = 0.02f
         elongation = 1f
         worldRotation.identity()
+        skySnowiness = 0.1f
     }
 
     override fun onUpdate() {
