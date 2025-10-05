@@ -60,7 +60,7 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
      * get the value, without generating it if it doesn't exist;
      * delta is added to its timeout, when necessary, so it stays loaded
      * */
-    fun getEntryWithoutGenerator(key: Key, delta: Long = 1L): AsyncCacheData<Value>? {
+    fun getEntryWithoutGenerator(key: Key, delta: Long = 0L): AsyncCacheData<Value>? {
         val entry = synchronized(cache) { cache[key] } ?: return null
         if (delta > 0L) entry.update(delta)
         return entry
@@ -69,7 +69,7 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
     /**
      * returns whether a value is present
      * */
-    fun hasEntry(key: Key, delta: Long = 1L): Boolean {
+    fun hasEntry(key: Key, delta: Long = 0L): Boolean {
         val entry = synchronized(cache) { cache[key] } ?: return false
         if (delta > 0L) entry.update(delta)
         return entry.hasValue

@@ -347,5 +347,6 @@ If you want an up-to-date build, just write me, e.g., via Discord, and I'll crea
 * [QOI-Java](https://github.com/saharNooby/qoi-java) (QOI image format)
 * [Recast4j](./Recast/src/me/anno/recast/RecastPlugin.kt) (NavMesh generation; converted to Kotlin and adjusted for JOML;
   partially integrated)
+* [Twemoji](https://github.com/twitter/twemoji) (Emojis for all platforms)
 
 If I forgot something, just write me a message 😄.

@@ -5,7 +5,6 @@ import me.anno.cache.CacheSection
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
-import me.anno.utils.Logging.hash32
 import me.anno.video.formats.gpu.GPUFrame
 import kotlin.math.max
 import kotlin.math.min
@@ -29,14 +28,15 @@ object VideoCache {
     var getProxyFileDontUpdate: ((file: FileReference, sliceIndex: Int) -> FileReference?)? = null
     var generateVideoFrames: ((key: VideoFramesKey, result: AsyncCacheData<VideoSlice>) -> Unit)? = null
 
-    fun getVideoFramesWithoutGenerator(key: VideoFramesKey): AsyncCacheData<VideoSlice>? =
-        slices.getEntryWithoutGenerator(key)
+    fun getVideoFramesWithoutGenerator(key: VideoFramesKey, delta: Long = 0L): AsyncCacheData<VideoSlice>? =
+        slices.getEntryWithoutGenerator(key, delta)
 
     fun getVideoFramesWithoutGenerator(
         file: FileReference, scale: Int,
-        bufferIndex: Int, bufferLength: Int, fps: Double
+        bufferIndex: Int, bufferLength: Int, fps: Double,
+        delta: Long = 0L
     ): AsyncCacheData<VideoSlice>? =
-        getVideoFramesWithoutGenerator(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps))
+        getVideoFramesWithoutGenerator(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps), delta)
 
     fun getVideoFrames(
         file: FileReference, scale: Int,
