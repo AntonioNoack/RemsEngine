@@ -1,0 +1,5 @@
+plugin-name: JVM Emojis
+author: Antonio Noack
+description: Loads Emojis from a .zip file of SVGs
+main-class: me.anno.jvm.emojis.JVMEmojiExtension
+priority: 900

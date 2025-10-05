@@ -41,5 +41,6 @@
     <orderEntry type="module" module-name="Network" />
     <orderEntry type="library" name="KotlinReflect" level="project" />
     <orderEntry type="library" name="JTransforms" level="project" />
+    <orderEntry type="module" module-name="JVMEmojis" />
   </component>
 </module>

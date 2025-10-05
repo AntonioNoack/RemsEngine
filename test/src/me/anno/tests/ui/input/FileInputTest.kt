@@ -1,14 +1,20 @@
 package me.anno.tests.ui.input
 
 import me.anno.engine.OfficialExtensions
-import me.anno.language.translation.NameDesc
-import me.anno.tests.ui.UITests.Companion.style
-import me.anno.ui.debug.TestEngine.Companion.testUI3
-import me.anno.ui.input.FileInput
-import me.anno.utils.OS.home
+import me.anno.fonts.Font
+import me.anno.fonts.FontManager
+import me.anno.jvm.HiddenOpenGLContext
+import me.anno.utils.OS.desktop
+
+// todo Java-AWT doesn't support colored emojis, only outlines
+//  we'd love to have colorful emojis...
+//  so let's download a partial pack, but it somewhere into our files,
+//  and when we encounter an emoji, use that packed emoji/download it?
 
 fun main() {
     OfficialExtensions.initForTests()
-    val fileInput = FileInput(NameDesc("Source"), style, home, emptyList())
-    testUI3("FileInput", fileInput)
+    HiddenOpenGLContext.createOpenGL()
+
+    FontManager.getTexture(Font("", 15f), "Folder: \uD83D\uDCC1", -1, -1, 10_000)
+        .waitFor()!!.write(desktop.getChild("FolderIcon.png"))
 }

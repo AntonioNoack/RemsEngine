@@ -11,6 +11,7 @@ object OfficialExtensions {
     fun register() {
         val paths = listOf(
             "jvm-ext.info",
+            "jvm-emoji-ext.info",
             "pdf-ext.info",
             "box2d-ext.info",
             "bullet-ext.info",

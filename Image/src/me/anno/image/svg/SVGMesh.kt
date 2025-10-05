@@ -942,7 +942,6 @@ class SVGMesh {
         )
 
         fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
-            // Engine.requestShutdown()
             file.inputStream { str, exc ->
                 if (str != null) {
                     val svg = SVGMesh()
