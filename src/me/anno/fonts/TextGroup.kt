@@ -1,30 +1,53 @@
 package me.anno.fonts
 
 import me.anno.fonts.Codepoints.codepoints
+import me.anno.fonts.Codepoints.markEmojisInCodepoints
 import me.anno.fonts.mesh.CharacterOffsetCache
 import me.anno.fonts.mesh.CharacterOffsetCache.Companion.getOffsetCache
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.DoubleArrays.accumulate
 
 open class TextGroup(val font: Font, val text: CharSequence, charSpacing: Double) : TextDrawable() {
 
+    companion object {
+        val someSingleEmoji = "\uD83D\uDCC1".codepoints().apply {
+            assertEquals(1, size)
+        }.first()
+    }
+
     private val offsetCache: CharacterOffsetCache = getOffsetCache(font)
 
-    val codepoints = text.codepoints()
+    val codepoints = text
+        .codepoints()
+        .markEmojisInCodepoints()
+
     val offsets = DoubleArray(codepoints.size + 1)
     val baseScale = 1.0 / font.size
 
     init {
 
         if (codepoints.isNotEmpty()) {
-            var firstCodePoint = codepoints[0]
-            if (firstCodePoint == '\t'.code || firstCodePoint == '\n'.code) firstCodePoint = ' '.code
-            for (index in 1 until codepoints.size) {
-                var secondCodePoint = codepoints[index]
-                if (secondCodePoint == '\t'.code || secondCodePoint == '\n'.code) secondCodePoint = ' '.code
-                offsets[index] = charSpacing + offsetCache.getOffset(firstCodePoint, secondCodePoint)
-                firstCodePoint = secondCodePoint
+
+            var prevC = -1
+
+            fun push(currC: Int, currI: Int) {
+                if (prevC >= 0) {
+                    offsets[currI] = charSpacing + offsetCache.getOffset(prevC, currC)
+                }
+                prevC = currC
             }
-            offsets[codepoints.size] = offsetCache.getOffset(codepoints.last(), 32)
+
+            for (currI in codepoints.indices) {
+                var currC = codepoints[currI]
+                if (currC >= 0) {
+                    if (currI > 0 && codepoints[currI - 1] < 0) {
+                        currC = someSingleEmoji
+                    }
+                    push(currC, currI)
+                }
+            }
+            push(' '.code, codepoints.size)
+
             offsets.accumulate()
         }
 

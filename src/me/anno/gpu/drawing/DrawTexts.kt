@@ -371,7 +371,7 @@ object DrawTexts {
             val y2 = y + dyi
             for (char in text.codepoints()) {
                 if (char > 0xffff || !char.toChar().isWhitespace()) {
-                    val txt = char.joinChars().toString()
+                    val txt = char.joinChars()
                     val o0 = offsets[index++].toInt()
                     val o1 = offsets[index].toInt()
                     val fx = x + dxi + o0

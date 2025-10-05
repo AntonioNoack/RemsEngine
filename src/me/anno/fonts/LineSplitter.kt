@@ -214,7 +214,7 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                     val font = fonts[0]
                     parts += StringPart(
                         currentX,
-                        totalHeight + 0.2f * fontSize,
+                        totalHeight + 0.33f * fontSize,
                         font, chars.joinChars(index0, index1), 0f, emojiImage
                     )
 

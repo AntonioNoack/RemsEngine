@@ -1,6 +1,7 @@
 package me.anno.fonts
 
 import me.anno.cache.AsyncCacheData
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.fonts.signeddistfields.Contours
 import me.anno.image.Image
 
@@ -11,6 +12,7 @@ interface IEmojiCache {
 
     fun getEmojiImage(codepoints: List<Int>, fontSize: Int): AsyncCacheData<Image>
     fun getEmojiContour(codepoints: List<Int>, fontSize: Int): AsyncCacheData<Contours>
+    fun getEmojiMesh(codepoints: List<Int>): AsyncCacheData<Mesh>
 
     companion object {
 
@@ -23,6 +25,9 @@ interface IEmojiCache {
                 AsyncCacheData.empty()
 
             override fun getEmojiContour(codepoints: List<Int>, fontSize: Int): AsyncCacheData<Contours> =
+                AsyncCacheData.empty()
+
+            override fun getEmojiMesh(codepoints: List<Int>): AsyncCacheData<Mesh> =
                 AsyncCacheData.empty()
         }
 

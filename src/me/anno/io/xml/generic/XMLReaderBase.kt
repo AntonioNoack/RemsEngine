@@ -176,11 +176,11 @@ abstract class XMLReaderBase(val input: Reader) {
             equals(builder, "gt") -> ">"
             builder.startsWith("#x") -> {
                 builder.substring(2).toInt(16)
-                    .joinChars().toString()
+                    .joinChars()
             }
             builder.startsWith("#") -> {
                 builder.substring(1).toInt()
-                    .joinChars().toString()
+                    .joinChars()
             }
             else -> {
                 LOGGER.warn("Unknown escape sequence $builder")

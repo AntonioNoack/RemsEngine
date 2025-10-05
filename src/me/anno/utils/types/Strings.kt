@@ -28,7 +28,7 @@ object Strings {
     }
 
     @JvmStatic
-    fun Int.joinChars(): CharSequence {
+    fun Int.joinChars(): String {
         return joinChars0().concatToString()
     }
 
