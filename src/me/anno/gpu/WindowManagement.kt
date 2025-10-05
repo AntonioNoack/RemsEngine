@@ -18,7 +18,6 @@ import me.anno.gpu.GLNames.getErrorTypeName
 import me.anno.gpu.RenderDoc.loadRenderDoc
 import me.anno.gpu.RenderStep.renderStep
 import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
-import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderPrinting
 import me.anno.image.Image
 import me.anno.image.ImageCache
@@ -29,7 +28,6 @@ import me.anno.input.Input.mouseLockWindow
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_MILLIS
-import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.menu.Menu.ask
@@ -64,7 +62,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.math.abs
 import kotlin.math.max
 
 /**
@@ -282,8 +279,12 @@ object WindowManagement {
         instance.mouseY = y[0].toFloat()
     }
 
+    /**
+     * Windows is the only platform, where you can skip rendering windows.
+     * */
     @JvmStatic
-    private var neverStarveWindows = DefaultConfig["ux.neverStarveWindows", false]
+    private val alwaysRenderWindows: Boolean
+        get() = DefaultConfig["ux.alwaysRenderWindows", !OS.isWindows]
 
     @JvmStatic
     fun prepareForRendering(tick: Clock?) {
@@ -421,11 +422,10 @@ object WindowManagement {
 
     @JvmStatic
     fun renderFrame() {
-        val time = Time.nanoTime
         synchronized(openglLock) {
             RenderStep.beforeRenderSteps()
         }
-        if (!renderWindows(time)) {
+        if (!renderWindows()) {
             keepProcessingHiddenWindows()
         }
         closeWindowsIfTheyShouldBeClosed()
@@ -446,29 +446,18 @@ object WindowManagement {
         }
     }
 
-    private fun shouldRenderWindow(window: OSWindow, time: Long): Boolean {
-        return window.isInFocus ||
-                window.hasActiveMouseTargets() ||
-                neverStarveWindows ||
-                abs(window.lastUpdate - time) * WindowRenderFlags.idleFPS > SECONDS_TO_NANOS
-    }
-
-    private fun renderWindows(time: Long): Boolean {
-        var workedTasks = false
+    private fun renderWindows(): Boolean {
+        var renderedSomething = false
         val windows = windows
         for (index in windows.indices) {
             val window = windows.getOrNull(index) ?: break
-            if (shouldRenderWindow(window, time)) {
-                window.lastUpdate = time
-                // this is hopefully ok (calling it async to other glfw stuff)
-                if (window.makeCurrent()) {
-                    renderWindow(window)
-                    workedTasks = true
-                }
+            if (window.makeCurrent()) {
+                renderWindow(window)
+                renderedSomething = true
             }
         }
         ShaderPrinting.printFromBuffer()
-        return workedTasks
+        return renderedSomething
     }
 
     private fun renderWindow(window: OSWindow) {

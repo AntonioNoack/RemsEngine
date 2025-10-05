@@ -40,8 +40,6 @@ open class OSWindow(var title: String) {
     var width = defaultWidth
     var height = defaultHeight
 
-    var lastUpdate = 0L
-
     private var oldTitle = title
 
     val windowStack = WindowStack(this)

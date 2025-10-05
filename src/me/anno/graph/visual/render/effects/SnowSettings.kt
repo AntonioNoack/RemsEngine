@@ -1,13 +1,11 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.systems.GlobalSetting
 import me.anno.ecs.systems.OnUpdate
-import me.anno.input.Input
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -86,9 +84,6 @@ class SnowSettings : Component(), GlobalSetting, OnUpdate {
             position.add(center)
             position.mul(deltaDensity)
             position.sub(center)
-        }
-        if (!Input.isShiftDown) {
-            velocity.mulAdd(-Time.deltaTime, position, position)
         }
     }
 }
