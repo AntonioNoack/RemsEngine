@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.ecs.systems.GlobalSettings
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
@@ -18,37 +19,34 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
-import me.anno.maths.Maths.clamp
 
+/**
+ * Adds motion blur effect (many players dislike this, so make it configurable!).
+ *
+ * Add a MotionBlurSettings instance to your scene to configure this.
+ * */
 class MotionBlurNode : TimedRenderingNode(
     "Motion Blur",
     listOf(
-        "Int", "Samples",
-        "Float", "Shutter",
         "Texture", "Illuminated",
         "Texture", "Motion",
         "Texture", "Depth",
     ), listOf("Texture", "Illuminated")
 ) {
 
-    init {
-        setInput(1, 16)
-        setInput(2, 0.5f)
-    }
-
     override fun executeAction() {
 
-        val samples = clamp(getIntInput(1), 1, GFX.maxSamples)
-        val shutter = getFloatInput(2)
-        val color = getTextureInput(3, missingTexture)
-        val motion = getTextureInput(4, blackTexture)
-        val depth = getTextureInput(5, depthTexture)
-        val depthMask = getTextureInputMask(5)
+        val settings = GlobalSettings[MotionBlurSettings::class]
+
+        val color = getTextureInput(1, missingTexture)
+        val motion = getTextureInput(2, blackTexture)
+        val depth = getTextureInput(3, depthTexture)
+        val depthMask = getTextureInputMask(3)
 
         timeRendering(name, timer) {
             val framebuffer = FBStack[
                 name, color.width, color.height, if (color.isHDR) TargetType.Float16x3 else TargetType.UInt8x3,
-                samples, DepthBufferType.NONE
+                1, DepthBufferType.NONE
             ]
             framebuffer.isSRGBMask = 1
             useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
@@ -56,8 +54,8 @@ class MotionBlurNode : TimedRenderingNode(
                 shader.use()
 
                 DepthTransforms.bindDepthUniforms(shader)
-                shader.v1i("maxSamples", samples)
-                shader.v1f("shutter", 0.5f * shutter)
+                shader.v1i("maxSamples", settings.maxSamples)
+                shader.v1f("shutter", 0.5f * settings.shutter)
                 shader.v4f("depthMask", depthMask)
 
                 color.bindTrulyNearest(shader, "colorTex")

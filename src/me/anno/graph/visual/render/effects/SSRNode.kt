@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.ecs.systems.GlobalSettings
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.Blitting
 import me.anno.gpu.GFXState
@@ -23,10 +24,6 @@ class SSRNode : TimedRenderingNode(
     listOf(
         "Int", "Width",
         "Int", "Height",
-        "Float", "Strength",
-        "Float", "Mask Sharpness",
-        "Float", "Wall Thickness",
-        "Int", "Fine Steps",
         "Texture", "Illuminated",
         "Texture", "Diffuse",
         "Texture", "Normal", // optional in the future
@@ -35,39 +32,27 @@ class SSRNode : TimedRenderingNode(
     ), listOf("Texture", "Illuminated")
 ) {
 
-    init {
-        setInput(1, 256) // width
-        setInput(2, 256) // height
-        setInput(3, 1f) // strength
-        setInput(4, 1f) // mask sharpness
-        setInput(5, 0.2f) // wall thickness
-        setInput(6, 10) // fine steps
-    }
-
     override fun executeAction() {
 
         val width = getIntInput(1)
         val height = getIntInput(2)
         if (width < 1 || height < 1) return
 
-        val strength = getFloatInput(3)
-        val maskSharpness = getFloatInput(4)
-        val wallThickness = getFloatInput(5)
-        val fineSteps = getIntInput(6) // 10
-
-        val illumT = getInput(7) as? Texture ?: return
+        val illumT = getInput(3) as? Texture ?: return
         val illumMT = illumT.texMSOrNull
         val illumTT = illumT.texOrNull ?: return
 
-        val colorTT = getTextureInput(8, whiteTexture)
+        val colorTT = getTextureInput(4, whiteTexture)
 
-        val normal = getInput(9) as? Texture
+        val normal = getInput(5) as? Texture
         val normalZW = normal.isZWMapping
         val normalT = normal.texOrNull ?: whiteTexture
 
-        val reflectivity = getInput(10) as? Texture
-        val depthT = getInput(11) as? Texture ?: return
+        val reflectivity = getInput(6) as? Texture
+        val depthT = getInput(7) as? Texture ?: return
         val depthTT = depthT.texOrNull ?: return
+
+        val settings = GlobalSettings[SSRSettings::class]
 
         timeRendering(name, timer) {
             val transform = RenderState.cameraMatrix
@@ -81,7 +66,8 @@ class SSRNode : TimedRenderingNode(
             ScreenSpaceReflections.compute(
                 depthTT, depthT.mask1Index, normalT, normalZW, colorTT,
                 reflectivityT, reflectivityM, illumTT,
-                transform, strength, maskSharpness, wallThickness, fineSteps,
+                transform, settings.strength, settings.maskSharpness,
+                settings.wallThickness, settings.fineSteps,
                 inPlace, result0
             )
             val result = if (inPlace) result0 else mixResult(width, height, illumMT, result0)

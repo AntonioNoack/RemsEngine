@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.ecs.systems.GlobalSettings
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -13,44 +14,34 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
-import org.joml.Vector2f
 
+/**
+ * Adds chromatic aberration (color fringes) as a post-process effect.
+ *
+ * Add a ChromaticAberrationSettings instance to your scene to configure this.
+ * */
 class ChromaticAberrationNode : TimedRenderingNode(
     "Chromatic Aberration",
-    listOf(
-        "Float", "Strength",
-        "Float", "Power",
-        "Vector2f", "ROffset",
-        "Vector2f", "BOffset",
-        "Texture", "Illuminated",
-    ), listOf("Texture", "Illuminated")
+    listOf("Texture", "Illuminated"),
+    listOf("Texture", "Illuminated")
 ) {
 
-    init {
-        setInput(1, 1.0f) // strength
-        setInput(2, 1.5f) // power
-        setInput(3, Vector2f())
-        setInput(4, Vector2f())
-    }
-
     override fun executeAction() {
-        val strength = getFloatInput(1) * 0.001f
-        val color = getTextureInput(5)
-        if (color == null) {
-            setOutput(1, Texture(missingTexture))
+        val settings = GlobalSettings[ChromaticAberrationSettings::class]
+        val strength = settings.strength * 0.001f
+        val color = getTextureInput(1)
+        if (color == null || strength <= 0f) {
+            setOutput(1, Texture(color ?: missingTexture))
         } else {
             timeRendering(name, timer) {
-                val power = getFloatInput(2)
-                val rOffset = getInput(3) as Vector2f
-                val bOffset = getInput(4) as Vector2f
                 val fp = color.isHDR
                 val result = FBStack[name, color.width, color.height, 3, fp, 1, DepthBufferType.NONE]
                 useFrame(result, copyRenderer) {
                     val shader = shader
                     shader.use()
-                    shader.v2f("rOffset", rOffset)
-                    shader.v2f("bOffset", bOffset)
-                    shader.v4f("params", color.width.toFloat() / color.height, 1f, strength, power)
+                    shader.v2f("rOffset", settings.rOffset)
+                    shader.v2f("bOffset", settings.bOffset)
+                    shader.v4f("params", color.width.toFloat() / color.height, 1f, strength, settings.power)
                     color.bindTrulyLinear(shader, "colorTex")
                     flat01.draw(shader)
                 }

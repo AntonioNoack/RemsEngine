@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.ecs.systems.GlobalSettings
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
@@ -28,18 +29,18 @@ import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
-import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.pow
-import org.joml.Vector3f
+import me.anno.maths.MinMax.max
+import me.anno.utils.GFXFeatures
 
+/**
+ * Adds height fog and exponential distance fog to your scene.
+ *
+ * Add a HeightExpFogSettings instance to your scene to configure this.
+ * */
 class HeightExpFogNode : RenderViewNode(
     "Height+Exp Fog",
     listOf(
-        "Float", "Exp Fog Distance", // exp fog distance
-        "Float", "Height Fog Strength", // maximum density of height fog
-        "Float", "Height Fog Sharpness", // how quickly the fog begins (low = slow)
-        "Float", "Height Fog Level", // where the height fog starts
-        "Vector3f", "Height Fog Color",
         "Boolean", "Cheap Mixing",
         "Texture", "Illuminated",
         "Texture", "Depth",
@@ -47,42 +48,38 @@ class HeightExpFogNode : RenderViewNode(
 ) {
 
     init {
-        // exponential fog
-        setInput(1, 1000f) // relative distance
-        // height fog
-        setInput(2, 0.3f) // strength
-        setInput(3, 1f) // sharpness
-        setInput(4, 0f) // offset
-        setInput(5, Vector3f(0.375f, 0.491f, 0.697f))
+        setInput(1, GFXFeatures.hasWeakGPU) // cheap mixing
     }
 
     override fun executeAction() {
-        val color0 = getInput(7) as? Texture
+        val color0 = getInput(2) as? Texture
         val color = color0.texOrNull
-        val depth = getTextureInput(8)
-        val relativeDistance = max(getFloatInput(1), 0f)
-        val fogStrength = max(getFloatInput(2), 0f)
-        if (color == null || depth == null || (relativeDistance.isFinite() && fogStrength == 0f)) {
+        val depth = getTextureInput(3)
+
+        val settings = GlobalSettings[HeightExpFogSettings::class]
+
+        val relativeDistance = max(settings.expFogDistance, 0f)
+        val fogStrength = settings.heightFogStrength
+        if (color == null || depth == null || (relativeDistance.isFinite() && fogStrength <= 0f)) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {
             timeRendering(name, timer) {
-                renderFog(color, depth, fogStrength, relativeDistance)
+                renderFog(color, depth, settings)
             }
         }
     }
 
-    private fun renderFog(color: ITexture2D, depth: ITexture2D, fogStrength: Float, relativeDistance: Float) {
-        val fogSharpness = max(getFloatInput(3), 0f)
-        val fogOffset = getFloatInput(4)
-        val fogColor = getInput(5) as Vector3f
-        val cheapMixing = getBoolInput(6)
+    private fun renderFog(color: ITexture2D, depth: ITexture2D, settings: HeightExpFogSettings) {
+
+        val cheapMixing = getBoolInput(1)
         val result = FBStack[name, color.width, color.height, 3, true, 1, DepthBufferType.NONE]
         useFrame(result, copyRenderer) {
             val shader = shader
             shader.use()
-            shader.v1f("fogStrength", fogStrength)
-            shader.v1f("fogSharpness", fogSharpness)
-            shader.v1f("fogOffset", fogOffset)
+            shader.v1f("fogStrength", settings.heightFogStrength)
+            shader.v1f("fogSharpness", settings.heightFogSharpness)
+            shader.v1f("fogOffset", settings.heightFogLevel)
+            val fogColor = settings.heightFogColor
             val fx = max(fogColor.x, 0f)
             val fy = max(fogColor.y, 0f)
             val fz = max(fogColor.z, 0f)
@@ -93,7 +90,7 @@ class HeightExpFogNode : RenderViewNode(
                 if (cheapMixing) fy else pow(fy, gamma),
                 if (cheapMixing) fz else pow(fz, gamma),
             )
-            shader.v1f("invExpDistance", 1f / relativeDistance)
+            shader.v1f("invExpDistance", 1f / settings.expFogDistance)
             shader.v3f("cameraPosition", RenderState.cameraPosition)
             shader.v1b("cheapMixing", cheapMixing)
             color.bindTrulyNearest(shader, "colorTex")
