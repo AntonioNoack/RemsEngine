@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Range
@@ -78,6 +79,15 @@ class SnowSettings : Component(), GlobalSetting, OnUpdate {
     }
 
     override fun onUpdate() {
+        handleDensityChange()
+        integrateVelocity()
+    }
+
+    private fun integrateVelocity() {
+        position.fma(Time.deltaTime, velocity)
+    }
+
+    private fun handleDensityChange() {
         val deltaDensity = (lastDensity / density).toDouble()
         lastDensity = density
         if (deltaDensity != 1.0 && deltaDensity in 0.5..2.0) {

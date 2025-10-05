@@ -9,6 +9,7 @@ import me.anno.gpu.GFX.windows
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
 import me.anno.gpu.shader.GPUShader
+import me.anno.gpu.shader.builder.ShaderPrinting
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
@@ -23,6 +24,7 @@ object RenderStep {
     @JvmStatic
     private fun clearState() {
         GPUShader.invalidateBinding()
+        Texture2D.invalidateBinding()
         Texture2D.destroyTextures()
         OpenGLBuffer.invalidateBinding()
         GFXContext.invalidateState()
@@ -37,7 +39,6 @@ object RenderStep {
     @JvmStatic
     fun beforeRenderSteps() {
         // clear states & reset
-        clearState()
         Texture2D.resetBudget()
         Input.resetFrameSpecificKeyStates()
 
@@ -51,6 +52,7 @@ object RenderStep {
         clearState()
         setFrameNullSize(window)
         renderStepImpl(window, doRender)
+        ShaderPrinting.printFromBuffer()
         GFX.check()
     }
 

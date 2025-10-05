@@ -1046,7 +1046,7 @@ open class Texture2D(
 
         @JvmStatic
         fun activeSlot(index: Int) {
-            if (index < 0 || index >= maxBoundTextures)
+            if (index !in 0 until maxBoundTextures)
                 throw IllegalArgumentException("Texture index $index out of allowed bounds")
             if (alwaysBindTexture || index != activeTextureSlot) {
                 glActiveTexture(GL_TEXTURE0 + index)
