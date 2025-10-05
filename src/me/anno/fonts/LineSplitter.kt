@@ -114,6 +114,18 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
 
         lateinit var nextLine: () -> Unit
 
+        fun nextLineImpl() {
+            val lineWidth = max(0f, currentX - charSpacing)
+            totalWidth = max(totalWidth, lineWidth)
+            for (i in startResultIndex until parts.size) {
+                parts[i].lineWidth = lineWidth
+            }
+            @Suppress("AssignedValueIsNeverRead") // Intellij is broken
+            startResultIndex = parts.size
+            totalHeight += fontHeight
+            currentX = 0f
+        }
+
         fun display() {
             while (true) {
                 if (index1 > index0) {
@@ -123,13 +135,21 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                     }
                     val advance = if (filtered.isNotEmpty()) getAdvance(filtered, font) else 0f
                     // if multiple chars and advance > lineWidth, then break line
-                    val nextX = currentX + advance + (index1 - index0) * charSpacing
-                    if (hasAutomaticLineBreak && index0 + 1 < index1 && currentX == 0f && nextX > lineBreakWidth) {
+                    val numChars = index1-index0
+                    val nextX = currentX + advance + numChars * charSpacing
+                    if (hasAutomaticLineBreak && numChars == 1 && currentX > 0f && nextX > lineBreakWidth) {
+
+                        nextLineImpl()
+                        // just go to the next line
+
+                    } else if (hasAutomaticLineBreak && numChars > 1 && currentX > 0f && nextX > lineBreakWidth) {
                         val tmp1 = index1
                         val splitIndex = findSplitIndex(chars, index0, index1, charSpacing, lineBreakWidth, currentX)
                         index1 = splitIndex
                         if (index1 > index0 && chars[index1 - 1] == ' '.code && chars[index1 - 2] != ' '.code) index1-- // cut off last space
+
                         nextLine()
+
                         index0 = splitIndex
                         if (index1 == splitIndex && chars[index0] == ' '.code) index0++ // cut off first space
                         index1 = tmp1
@@ -145,18 +165,8 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
         }
 
         nextLine = {
-
             display()
-
-            val lineWidth = max(0f, currentX - charSpacing)
-            totalWidth = max(totalWidth, lineWidth)
-            for (i in startResultIndex until parts.size) {
-                parts[i].lineWidth = lineWidth
-            }
-            @Suppress("AssignedValueIsNeverRead") // Intellij is broken
-            startResultIndex = parts.size
-            totalHeight += fontHeight
-            currentX = 0f
+            nextLineImpl()
         }
 
         val emojiCache = emojiCache
@@ -190,13 +200,18 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                     currentX = ceil(currentX)
 
                     val emojiSize = fontSize * 1f
-                    val nextX = ceil(currentX + emojiSize)
+                    var nextX = ceil(currentX + emojiSize)
+
+                    if (hasAutomaticLineBreak && nextX > lineBreakWidth) {
+                        nextLineImpl()
+                        nextX = emojiSize
+                    }
 
                     val emojiImage = emojiCache.getEmojiImage(emojiList, fontSize.toIntOr()).waitFor()
 
                     val font = fonts[0]
                     parts += StringPart(
-                        currentX + 0.12f * emojiSize,
+                        currentX,
                         totalHeight + 0.2f * emojiSize,
                         font, chars.joinChars(index0, index1), 0f, emojiImage
                     )
@@ -206,8 +221,8 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                     index0 = index1// skip to current place
                     index1++
 
-                    // todo break line if necessary
                     lastSupportLevel = 0
+
                 } else {
 
                     val supportLevel = getSupportLevel(fonts, char, lastSupportLevel)
