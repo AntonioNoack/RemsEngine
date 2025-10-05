@@ -94,6 +94,7 @@
       <element id="module-output" name="Export" />
       <element id="module-output" name="OpenXR" />
       <element id="module-output" name="Network" />
+      <element id="module-output" name="JVMEmojis" />
     </root>
   </artifact>
 </component>

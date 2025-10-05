@@ -1,6 +1,7 @@
 package me.anno.fonts
 
 import me.anno.fonts.Codepoints.codepoints
+import me.anno.image.raw.IntImage
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.types.Floats.roundToIntOr
@@ -11,6 +12,7 @@ import me.anno.utils.types.Strings.joinChars
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.round
 
 /**
  * Splits long text into multiple lines if required, and uses fallback fonts where necessary.
@@ -135,13 +137,12 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                     }
                     val advance = if (filtered.isNotEmpty()) getAdvance(filtered, font) else 0f
                     // if multiple chars and advance > lineWidth, then break line
-                    val numChars = index1-index0
+                    val numChars = index1 - index0
                     val nextX = currentX + advance + numChars * charSpacing
                     if (hasAutomaticLineBreak && numChars == 1 && currentX > 0f && nextX > lineBreakWidth) {
 
                         nextLineImpl()
                         // just go to the next line
-
                     } else if (hasAutomaticLineBreak && numChars > 1 && currentX > 0f && nextX > lineBreakWidth) {
                         val tmp1 = index1
                         val splitIndex = findSplitIndex(chars, index0, index1, charSpacing, lineBreakWidth, currentX)
@@ -197,22 +198,24 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                     }
                     emojiList.removeLast()
 
-                    currentX = ceil(currentX)
+                    val emojiImage = emojiCache.getEmojiImage(emojiList, fontSize.toIntOr())
+                        .waitFor() ?: IntImage(1, 1, false)
 
-                    val emojiSize = fontSize * 1f
-                    var nextX = ceil(currentX + emojiSize)
+                    val padding = round(0.1f * emojiImage.height).toIntOr()
+                    currentX = ceil(currentX + padding)
+
+                    val emojiSize = emojiImage.width
+                    var nextX = currentX + emojiSize + padding
 
                     if (hasAutomaticLineBreak && nextX > lineBreakWidth) {
                         nextLineImpl()
-                        nextX = emojiSize
+                        nextX = (emojiSize + padding).toFloat()
                     }
-
-                    val emojiImage = emojiCache.getEmojiImage(emojiList, fontSize.toIntOr()).waitFor()
 
                     val font = fonts[0]
                     parts += StringPart(
                         currentX,
-                        totalHeight + 0.2f * emojiSize,
+                        totalHeight + 0.2f * fontSize,
                         font, chars.joinChars(index0, index1), 0f, emojiImage
                     )
 
@@ -222,7 +225,6 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                     index1++
 
                     lastSupportLevel = 0
-
                 } else {
 
                     val supportLevel = getSupportLevel(fonts, char, lastSupportLevel)
