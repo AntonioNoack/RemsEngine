@@ -7,7 +7,7 @@ import kotlin.reflect.full.createInstance
 /**
  * Registry for global settings.
  * */
-object GlobalSettings : UpdateByClassSystem() {
+object GlobalSettings : UpdateByClassSystem(), Updatable {
 
     override fun isInstance(component: Component): Boolean = component is GlobalSetting
     override fun update(sample: Component, instances: List<Component>) {}
@@ -28,6 +28,8 @@ object GlobalSettings : UpdateByClassSystem() {
     operator fun <V> get(clazz: KClass<V>): V where V : Component, V : GlobalSetting {
         return getOrNull(clazz) ?: getDefault(clazz)
     }
+
+    override fun update(instances: List<Updatable>) = execute()
 
     val defaultInstances = HashMap<KClass<*>, Component>()
 }

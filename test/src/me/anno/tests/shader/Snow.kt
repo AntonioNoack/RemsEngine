@@ -4,7 +4,6 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.graph.visual.render.effects.SnowSettings
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -14,6 +13,7 @@ import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.graph.visual.render.effects.SnowSettings
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.custom.CustomList
@@ -74,6 +74,7 @@ fun main() {
         scene.add(MeshComponent(flatCube.front))
         scene.add(SnowSettings())
         registerCustomClass(SnowSettings())
+
         list.add(SceneView.createSceneUI(scene) {
             it.renderMode = RenderMode.SNOW
         }, 2f)

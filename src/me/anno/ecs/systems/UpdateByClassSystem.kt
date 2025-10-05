@@ -54,12 +54,14 @@ abstract class UpdateByClassSystem : System() {
     private fun updateInstances(): Boolean {
         synchronized(lock) {
             val hasEntries = changeSet.isNotEmpty()
-            for (component in changeSet) {
-                components
-                    .getOrPut(component::class, ::FastIteratorSet)
-                    .toggleContains(component)
+            if (hasEntries) {
+                for (component in changeSet) {
+                    components
+                        .getOrPut(component::class, ::FastIteratorSet)
+                        .toggleContains(component)
+                }
+                changeSet.clear()
             }
-            changeSet.clear()
             return hasEntries
         }
     }

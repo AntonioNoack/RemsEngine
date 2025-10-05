@@ -41,6 +41,13 @@ class SnowSettings : Component(), GlobalSetting, OnUpdate {
     @Range(1e-38, 1e38)
     var fogDistance = 1000f
 
+    /**
+     * How much the sky is affected by the current snow fall.
+     * At the moment, just a constant, but could be changed to a gradient in the future.
+     * */
+    @Range(0.0, 1.0)
+    var skySnowiness = 0f
+
     var worldRotation = Quaternionf()
 
     override var priority = 0.0

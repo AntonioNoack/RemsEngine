@@ -49,6 +49,7 @@ class SnowNode : ActionNode(
             shader.v1f("density", snowSettings.density)
             shader.v1f("elongation", 1f / snowSettings.elongation)
             shader.v1f("invFogDistance", 1f / snowSettings.fogDistance)
+            shader.v1f("skySnowiness", snowSettings.skySnowiness)
             shader.v4f("worldRotation", snowSettings.worldRotation)
             DepthTransforms.bindDepthUniforms(shader)
             flat01.draw(shader)
@@ -66,6 +67,7 @@ class SnowNode : ActionNode(
                 Variable(GLSLType.V1F, "density"),
                 Variable(GLSLType.V1F, "flakeSize"),
                 Variable(GLSLType.V1F, "invFogDistance"),
+                Variable(GLSLType.V1F, "skySnowiness"),
                 Variable(GLSLType.V3F, "snowPosition"),
                 Variable(GLSLType.V3F, "snowColor"),
                 Variable(GLSLType.V4F, "worldRotation"),
@@ -103,7 +105,9 @@ class SnowNode : ActionNode(
                     "   float snowiness = 0.0;\n" +
                     "   if (depth < 1e16) {\n" + // fog
                     "       snowiness = 1.0 - exp(-depth * invFogDistance);\n" +
-                    "   }\n" + // else sky should be visible instead
+                    "   } else {\n" +
+                    "       snowiness = skySnowiness;\n" +
+                    "   }\n" +
                     // fade them out in the distance (make them blurry)
                     "   for (int i=0; i<maxSteps && snowiness < 0.99; i++) {\n" +
                     "       float nextDist = min(dist3.x, dist3.y);\n" +

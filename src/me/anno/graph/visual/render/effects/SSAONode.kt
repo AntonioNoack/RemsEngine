@@ -24,8 +24,8 @@ class SSAONode : TimedRenderingNode(
 
     init {
         description = "Screen Space Ambient Occlusion"
-        setInput(4, true) // blur
-        setInput(5, false) // inverse
+        setInput(1, true) // blur
+        setInput(2, false) // inverse
     }
 
     override fun executeAction() {

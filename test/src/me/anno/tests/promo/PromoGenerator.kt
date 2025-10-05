@@ -26,8 +26,6 @@ import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.io.files.Reference.getReference
 import me.anno.sdf.shapes.SDFHyperBBox
 import me.anno.tests.LOGGER
-import me.anno.tests.shader.Snow.snowRenderMode
-import me.anno.tests.shader.SnowLikeRain.rainRenderMode
 import me.anno.ui.UIColors
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
@@ -63,9 +61,6 @@ val dst = desktop.getChild("Promo")
 
 fun main() {
     OfficialExtensions.initForTests()
-    // ensure they're registered
-    snowRenderMode.renderer
-    rainRenderMode.renderer
     val scene = Entity().setPosition(-0.6, -0.15, 0.0)
     scene.add(MeshComponent(downloads.getChild("3d/DamagedHelmet.glb")))
     scene.add(
