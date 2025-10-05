@@ -1,11 +1,14 @@
 package me.anno.fonts
 
 import me.anno.fonts.Codepoints.codepoints
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.types.Floats.roundToIntOr
-import me.anno.utils.types.Strings
+import me.anno.utils.types.Floats.toIntOr
+import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
@@ -15,6 +18,9 @@ import kotlin.math.min
 abstract class LineSplitter<FontImpl : TextGenerator> {
 
     companion object {
+
+        var emojiCache: IEmojiCache = IEmojiCache.noEmojiSupport
+
         private val splittingOrder: List<Collection<Int>> = listOf(
             listOf(' '.code),
             listOf('-'.code),
@@ -115,19 +121,12 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                     val filtered = chars.joinChars(index0, index1) {
                         it !in 0xfe00..0xfe0f // Emoji variations; having no width, even if Java thinks so
                     }
-                    val advance = if (filtered.isNotEmpty()) {
-                        getAdvance(filtered, font)
-                    } else 0f
+                    val advance = if (filtered.isNotEmpty()) getAdvance(filtered, font) else 0f
                     // if multiple chars and advance > lineWidth, then break line
                     val nextX = currentX + advance + (index1 - index0) * charSpacing
                     if (hasAutomaticLineBreak && index0 + 1 < index1 && currentX == 0f && nextX > lineBreakWidth) {
                         val tmp1 = index1
                         val splitIndex = findSplitIndex(chars, index0, index1, charSpacing, lineBreakWidth, currentX)
-                        /*LOGGER.info("split [$line $fontSize $lineBreakWidth] $substring into " +
-                                chars.subList(index0,splitIndex).joinChars() +
-                                " + " +
-                                chars.subList(splitIndex,index1).joinChars()
-                        )*/
                         index1 = splitIndex
                         if (index1 > index0 && chars[index1 - 1] == ' '.code && chars[index1 - 2] != ' '.code) index1-- // cut off last space
                         nextLine()
@@ -135,7 +134,7 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                         if (index1 == splitIndex && chars[index0] == ' '.code) index0++ // cut off first space
                         index1 = tmp1
                     } else {
-                        parts += StringPart(currentX, totalHeight, font, chars.joinChars(index0, index1), 0f)
+                        parts += StringPart(currentX, totalHeight, font, chars.joinChars(index0, index1), 0f, null)
                         currentX = nextX
                         totalWidth = max(totalWidth, currentX)
                         index0 = index1
@@ -146,7 +145,9 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
         }
 
         nextLine = {
+
             display()
+
             val lineWidth = max(0f, currentX - charSpacing)
             totalWidth = max(totalWidth, lineWidth)
             for (i in startResultIndex until parts.size) {
@@ -158,22 +159,66 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
             currentX = 0f
         }
 
+        val emojiCache = emojiCache
         while (index1 < chars.size) {
-            when (val char = chars[index1]) {
-                '\t'.code -> {
+            val char = chars[index1]
+            if (char == '\t'.code) {
+
+                display()
+
+                index0++ // skip \t too
+                currentX = incrementTab(currentX, tabSize, relativeTabSize)
+                index1++
+            } else {
+                val isEmoji = emojiCache.contains(char)
+                if (isEmoji) {
+
                     display()
-                    index0++ // skip \t too
-                    currentX = Strings.incrementTab(currentX, tabSize, relativeTabSize)
-                }
-                else -> {
+
+                    val emojiList = ArrayList<Int>(8)
+                    emojiList.add(char)
+
+                    assertTrue(emojiCache.contains(emojiList)) {
+                        "EmojiCache contains $char, but does not contain $emojiList"
+                    }
+
+                    while (emojiCache.contains(emojiList)) {
+                        emojiList.add(if (index1 + 1 < chars.size) chars[++index1] else -1)
+                    }
+                    emojiList.removeLast()
+
+                    currentX = ceil(currentX)
+
+                    val emojiSize = fontSize * 1f
+                    val nextX = ceil(currentX + emojiSize)
+
+                    val emojiImage = emojiCache.getEmojiImage(emojiList, fontSize.toIntOr()).waitFor()
+
+                    val font = fonts[0]
+                    parts += StringPart(
+                        currentX + 0.12f * emojiSize,
+                        totalHeight + 0.2f * emojiSize,
+                        font, chars.joinChars(index0, index1), 0f, emojiImage
+                    )
+
+                    currentX = nextX
+                    totalWidth = max(totalWidth, currentX)
+                    index0 = index1// skip to current place
+                    index1++
+
+                    // todo break line if necessary
+                    lastSupportLevel = 0
+                } else {
+
                     val supportLevel = getSupportLevel(fonts, char, lastSupportLevel)
                     if (supportLevel != lastSupportLevel) {
                         display()
                         lastSupportLevel = supportLevel
                     }
+
+                    index1++
                 }
             }
-            index1++
         }
         nextLine()
 

@@ -21,6 +21,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib
 import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
+import me.anno.jvm.images.BIImage.createBufferedImage
 import me.anno.jvm.images.BIImage.createFromBufferedImage
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.maths.Maths.clamp
@@ -54,11 +55,11 @@ class AWTFont(
         unused.fontMetrics
     }
 
-    private fun CharSequence.containsSpecialChar(): Boolean {
+    private fun containsSpecialChar(self: CharSequence): Boolean {
         val limit = 127.toChar()
-        for (ci in indices) {
-            val cp = get(ci)
-            if (cp == '\n' || cp == '\t' || cp > limit) return true
+        for (charIndex in self.indices) {
+            val codepoint = self[charIndex]
+            if (codepoint == '\n' || codepoint == '\t' || codepoint > limit) return true
         }
         return false
     }
@@ -67,7 +68,7 @@ class AWTFont(
         FontRenderContext(null, true, true)
     }
 
-    // used in Rem's Studio
+    // used in Rem's Studio -> cannot be private
     val exampleLayout by lazy {
         TextLayout("o", awtFont, renderContext)
     }
@@ -94,7 +95,7 @@ class AWTFont(
         // some distances still are awkward, because it is using the closest position, not float
         // (useful for "I"s)
         // maybe we could implement detecting, which sections need int positions, and which don't...
-        if (text.containsSpecialChar()) {
+        if (containsSpecialChar(text)) {
             for ((index, char) in text.codepoints().withIndex()) {
                 gfx.drawString(
                     char.joinChars().toString(),
@@ -114,7 +115,7 @@ class AWTFont(
 
     override fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
         if (text.isEmpty()) return GFXx2D.getSize(0, fontMetrics.height)
-        return if (text.containsSpecialChar() || (widthLimit in 0 until GFX.maxTextureSize)) {
+        return if (containsSpecialChar(text) || (widthLimit in 0 until GFX.maxTextureSize)) {
             val parts = splitParts(
                 text, engineFont.size, 4f, 0f,
                 widthLimit.toFloat(), heightLimit.toFloat()
@@ -144,7 +145,7 @@ class AWTFont(
             return callback.ok(TextureLib.blackTexture)
         }
 
-        if (text.containsSpecialChar() || widthLimit < text.length * engineFont.size * 2f) {
+        if (containsSpecialChar(text) || widthLimit < text.length * engineFont.size * 2f) {
             return generateTextureV3(
                 text, engineFont.size, widthLimit, heightLimit, portableImages,
                 textColor, backgroundColor, callback
@@ -324,9 +325,15 @@ class AWTFont(
         val y = exampleLayout.ascent
 
         for (part in result) {
-            gfx.font = (part.font as AWTFont).awtFont
-            // s.font != this when the character is unsupported, e.g., for emojis
-            (part.font as AWTFont).drawString(gfx, part.text, null, part.xPos, part.yPos + y)
+            val bitmap = part.bitmap
+            if (bitmap != null) {
+                val tmpImage = bitmap.createBufferedImage(withAlpha = true)
+                gfx.drawImage(tmpImage, part.xPos.toIntOr(), part.yPos.toIntOr(), null)
+            } else {
+                // s.font != this when the character is unsupported, e.g., for emojis
+                gfx.font = (part.font as AWTFont).awtFont
+                (part.font as AWTFont).drawString(gfx, part.text, null, part.xPos, part.yPos + y)
+            }
         }
 
         gfx.dispose()

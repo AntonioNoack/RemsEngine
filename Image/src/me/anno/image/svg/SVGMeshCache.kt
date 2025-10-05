@@ -26,15 +26,25 @@ object SVGMeshCache : CacheSection<FileKey, SVGBuffer>("Meshes") {
     }
 
     fun loadSVGMeshSync(input: InputStream?): SVGBuffer? {
-        input ?: return null
+        if (input == null) {
+            LOGGER.warn("Input for SVG was null")
+            return null
+        }
+
         val xml = XMLReader(input.reader()).readXMLNode()
         if (xml == null) {
             LOGGER.warn("Failed loading SVG as XML")
             return null
         }
+
         val svg = SVGMesh()
         svg.parse(xml)
-        val buffer = svg.buffer ?: return null // may be null if the parsing failed / the svg is blank
+        val buffer = svg.buffer
+        if (buffer == null) {
+            LOGGER.warn("Failed interpreting SVG from XML")
+            return null
+        }
+
         return SVGBuffer(svg.bounds, buffer)
     }
 }
