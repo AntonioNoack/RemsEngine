@@ -80,6 +80,7 @@ object Systems : PrefabSaveable() {
         registerSystem(BeforeDrawSystem)
         registerSystem(UIEventSystem)
         registerSystem(MotionVectorSystem)
+        registerSystem(GlobalSettings)
     }
 
     init {

@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.ecs.systems.GlobalSettings
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.GFXState
@@ -17,6 +18,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
@@ -25,15 +27,12 @@ import kotlin.math.tan
 /**
  * Depth of Field effect from https://blog.voxagon.se/2018/05/04/bokeh-depth-of-field-in-single-pass.html,
  * can become very GPU hungry, but also looks very nice for cutscenes.
+ *
+ * Add a DepthOfFieldSettings-node to your scene to configure its parameters.
  * */
 class DepthOfFieldNode : TimedRenderingNode(
     "Depth of Field",
     listOf(
-        "Float", "Focus Point",
-        "Float", "Focus Scale",
-        "Float", "Rad Scale", // Smaller = nicer blur, larger = faster
-        "Float", "Max Blur Size", // in pixels
-        "Float", "Spherical",
         "Bool", "Apply Tone Mapping",
         "Texture", "Illuminated",
         "Texture", "Depth"
@@ -41,34 +40,26 @@ class DepthOfFieldNode : TimedRenderingNode(
 ) {
 
     init {
-        setInput(1, 1f)
-        setInput(2, 0.25f)
-        setInput(3, 0.5f)
-        setInput(4, 20f)
-        setInput(5, 0f)
-        setInput(6, false)
+        setInput(1, false)
     }
 
     override fun executeAction() {
 
-        val focusPoint = getFloatInput(1)
-        val focusScale = getFloatInput(2)
-        val radScale = getFloatInput(3)
-        val maxBlurSize = getFloatInput(4)
-        val spherical = getFloatInput(5)
+        val applyToneMapping = getBoolInput(1)
+        val color = getTextureInput(2)
+        val depth = getTextureInput(3)
 
-        val applyToneMapping = getBoolInput(6)
-        val color = getTextureInput(7) ?: return
-        val depth = getTextureInput(8) ?: return
-
-        timeRendering(name, timer) {
-            val result = render(
-                color, depth, spherical, focusPoint, focusScale,
-                clamp(maxBlurSize, 1f, 20f),
-                clamp(radScale, 0.25f, 2f), applyToneMapping
-            ).getTexture0()
-            setOutput(1, Texture(result))
-        }
+        if (color != null && depth != null) {
+            val settings = GlobalSettings[DepthOfFieldSettings::class]
+            timeRendering(name, timer) {
+                val result = render(
+                    color, depth, settings.spherical, settings.focusPoint, settings.focusScale,
+                    clamp(settings.maxBlurSize, 1f, 20f),
+                    clamp(settings.radScale, 0.25f, 2f), applyToneMapping
+                ).getTexture0()
+                setOutput(1, Texture(result))
+            }
+        } else setOutput(1, Texture(blackTexture))
     }
 
     companion object {

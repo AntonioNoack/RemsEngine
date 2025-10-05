@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.ecs.systems.GlobalSettings
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -24,29 +25,27 @@ import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
 
 /**
- * draws anime outlines where a large depth difference is
+ * Draws anime outlines where a large depth difference is.
+ *
+ * To configure this, add a AnimeOutlineNode to your scene.
  * */
 class AnimeOutlineNode : RenderViewNode(
     "Anime Outline",
     listOf(
-        "Float", "Strength",
-        "Float", "Sensitivity",
         "Texture", "Illuminated",
         "Texture", "Depth",
     ), listOf("Texture", "Illuminated")
 ) {
 
-    init {
-        setInput(1, 0.5f)
-        setInput(2, 500f)
-    }
-
     override fun executeAction() {
-        val strength = getFloatInput(1)
-        val sensitivity = getFloatInput(2)
-        val color0 = getInput(3) as? Texture
+
+        val settings = GlobalSettings[AnimeOutlineSettings::class]
+        val sensitivity = settings.sensitivity
+        val strength = settings.strength
+
+        val color0 = getInput(1) as? Texture
         val color = color0.texOrNull
-        val depth = getTextureInput(4)
+        val depth = getTextureInput(2)
         if (color == null || depth == null || sensitivity <= 0f || strength <= 0f) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {

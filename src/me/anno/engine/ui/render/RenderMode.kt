@@ -1,6 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.annotations.ExtendableEnum
+import me.anno.graph.visual.render.effects.SnowNode
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.boneIndicesRenderer
 import me.anno.engine.ui.render.Renderers.boneWeightsRenderer
@@ -659,6 +660,7 @@ class RenderMode private constructor(
 
         val VIGNETTE = RenderMode("Vignette", createHDRPostProcessGraph(VignetteNode()))
         val PIXELATION = RenderMode("Pixelation", createHDRPostProcessGraph(PixelationNode()))
+        val SNOW = RenderMode("Snow", createHDRPostProcessGraph(SnowNode()))
 
         val COLD_LUT = RenderMode("Cold LUT", createLUTGraph(res.getChild("textures/lut/coldLUT.png")))
         val SEPIA_LUT = RenderMode("Sepia LUT", createLUTGraph(res.getChild("textures/lut/sepiaLUT.png")))

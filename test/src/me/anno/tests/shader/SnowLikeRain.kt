@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.graph.visual.render.effects.SnowSettings
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.buffer.SimpleBuffer
@@ -15,32 +16,12 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.io.saveable.Saveable
 import me.anno.mesh.Shapes
-import me.anno.tests.shader.SnowLikeRain.rainControl
-import me.anno.tests.shader.SnowLikeRain.rainRenderMode
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI
-import me.anno.utils.types.Floats.toRadians
 
 // get rain effect working like snow in https://www.glslsandbox.com/e#36547.0
 // get effect working in 3d like snow
-
-object SnowLikeRain {
-    val rainControl = SnowControl().apply {
-        color.set(3f)
-        density = 1.3f
-        velocity.set(0f, -8f, 0f)
-        flakeSize = 0.005f
-        elongation = 30f
-        // tilt rain a bit
-        worldRotation.rotateX((15f).toRadians())
-    }
-    val rainNode = SnowNode().apply {
-        snowControl = rainControl
-    }
-    val rainRenderGraph = createSnowGraph(rainNode)
-    val rainRenderMode = RenderMode("Rain", rainRenderGraph)
-}
 
 fun main() {
     testUI("Snow-Like Rain") {
@@ -84,10 +65,10 @@ fun main() {
         // 3d
         val scene = Entity("Scene")
         scene.add(MeshComponent(Shapes.flatCube.front))
-        scene.add(rainControl)
-        Saveable.registerCustomClass(SnowControl())
+        scene.add(SnowSettings().apply { configureRain() })
+        Saveable.registerCustomClass(SnowSettings())
         list.add(SceneView.createSceneUI(scene) {
-            it.renderMode = rainRenderMode
+            it.renderMode = RenderMode.SNOW
         }, 2f)
         list
     }

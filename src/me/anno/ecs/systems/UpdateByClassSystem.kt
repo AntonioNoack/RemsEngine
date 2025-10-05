@@ -23,6 +23,10 @@ abstract class UpdateByClassSystem : System() {
     private val changeSet = HashSet<Component>() // what changes from frame to frame
     private val sortedComponents = ArrayList<Map.Entry<KClass<*>, FastIteratorSet<Component>>>() // sorted entries
 
+    fun getComponents(clazz: KClass<*>): Collection<Component> {
+        return components[clazz] ?: emptyList()
+    }
+
     override fun setContains(component: Component, contains: Boolean) {
         if (isInstance(component)) {
             synchronized(lock) {
