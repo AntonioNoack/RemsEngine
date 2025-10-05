@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.ecs.systems.GlobalSettings
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -25,31 +26,26 @@ import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
 
 /**
- * cheap and easy night effect;
- * please use proper color grading, and don't forget to make the sky dark, too;
+ * Cheap and easy night effect.
+ *
+ * Strength and sky brightness factor can be configured by adding a NightSettings instance to your scene.
  * */
 class NightNode : RenderViewNode(
     "Night",
     listOf(
-        "Float", "Strength",
-        "Float", "Sky Darkening",
         "Texture", "Illuminated",
         "Texture", "Depth",
     ), listOf("Texture", "Illuminated")
 ) {
 
-    init {
-        setInput(1, 1f)
-        setInput(2, 0.01f)
-    }
-
     override fun executeAction() {
-        val strength = getFloatInput(1)
-        val skyDarkening = getFloatInput(2)
-        val color0 = getInput(3) as? Texture
+
+        val settings = GlobalSettings[NightSettings::class]
+
+        val color0 = getInput(1) as? Texture
         val color1 = color0.texOrNull
-        val depth = getTextureInput(4, depthTexture)
-        if (color1 == null || strength <= 0f) {
+        val depth = getTextureInput(2, depthTexture)
+        if (color1 == null || settings.strength <= 0f) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {
             timeRendering(name, timer) {
@@ -57,8 +53,8 @@ class NightNode : RenderViewNode(
                 useFrame(result, copyRenderer) {
                     val shader = simpleNightShader
                     shader.use()
-                    shader.v1f("exposure", 0.02f / strength)
-                    shader.v1f("skyDarkening", skyDarkening)
+                    shader.v1f("exposure", 0.02f / settings.strength)
+                    shader.v1f("skyDarkening", settings.skyBrightnessFactor)
                     color1.bindTrulyNearest(shader, "colorTex")
                     depth.bindTrulyNearest(shader, "depthTex")
                     (renderView.pipeline.bakedSkybox?.getTexture0() ?: whiteCube)
@@ -86,7 +82,7 @@ class NightNode : RenderViewNode(
                     "   float distance = rawToDepth(texture(depthTex,uv).x);\n" +
                     "   bool isFinite = distance < 1e38;\n" +
                     "   vec3 color = texture(colorTex,uv).xyz;\n" +
-                    "   if(isFinite){\n" + // don't apply distance-based fog onto sky
+                    "   if (isFinite) {\n" + // don't apply distance-based fog onto sky
                     "       vec3 nightColored = vec3(color.g) * vec3(0.21,0.26,0.5);\n" +
                     "       float brightness = color.r + color.g + color.b;\n" +
                     "       color = mix(color, nightColored, 1.0/(exposure*brightness*brightness+1.0));\n" +

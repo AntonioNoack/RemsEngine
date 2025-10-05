@@ -13,6 +13,11 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 
+/**
+ * Settings for SnowNode.
+ *
+ * The instance in your scene with the highest priority will be chosen.
+ * */
 class SnowSettings : Component(), GlobalSetting, OnUpdate {
 
     @Range(0.0, 100.0)
