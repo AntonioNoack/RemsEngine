@@ -7,11 +7,12 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotDiffXXY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
-import me.anno.maths.PolynomialSolver.solveCubic
 import me.anno.maths.Maths.sq
+import me.anno.maths.PolynomialSolver.solveCubic
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.avg
 import org.joml.AABBf
+import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import kotlin.math.abs
 import kotlin.math.ln
@@ -22,6 +23,14 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
     val p1 = if (p0 == p10 || p10 == p2) avg(p0, p2) else p10
 
     override fun toString() = "[$p0,$p1,$p2]"
+
+    override fun transformed(transform: Matrix3x2f): EdgeSegment {
+        return QuadraticSegment(
+            transform.transformPosition(p0, Vector2f()),
+            transform.transformPosition(p1, Vector2f()),
+            transform.transformPosition(p2, Vector2f()),
+        )
+    }
 
     override fun getPointAt(t: Float, dst: Vector2f): Vector2f {
         val f0 = sq(1f - t)

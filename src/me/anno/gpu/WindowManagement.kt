@@ -240,10 +240,15 @@ object WindowManagement {
 
     private fun createBlankWindow(instance: OSWindow): Long {
         val sharedWindow = findSharedWindow()
-        val window = GLFW.glfwCreateWindow(instance.width, instance.height, instance.title, 0L, sharedWindow)
-        assertNotEquals(0L, window, "Failed to create GLFW window")
-        instance.pointer = window
-        return window
+        val existingPointer = instance.pointer
+        if (isPointerValid(existingPointer)) {
+            return existingPointer
+        }
+
+        val newPointer = GLFW.glfwCreateWindow(instance.width, instance.height, instance.title, 0L, sharedWindow)
+        assertNotEquals(0L, newPointer, "Failed to create GLFW window")
+        instance.pointer = newPointer
+        return newPointer
     }
 
     /**

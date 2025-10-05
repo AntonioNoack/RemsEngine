@@ -35,7 +35,7 @@ fun main() {
     val roundEdges = false
 
     val text = slowestChar.toString()
-    val contours0 = calculateContours(font, text)
+    val contours0 = calculateContours(font, text).contours
     drawContour("contour0.png", contours0)
 
     val maxError = 0.1f

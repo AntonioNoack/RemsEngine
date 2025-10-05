@@ -21,11 +21,15 @@ object SVGMeshCache : CacheSection<FileKey, SVGBuffer>("Meshes") {
     private fun loadSVGMeshAsync(key: FileKey, result: AsyncCacheData<SVGBuffer>) {
         key.file.inputStream { input, err ->
             err?.printStackTrace()
-            result.value = loadSVGMeshSync(input)
+            val mesh = loadSVGMeshSync(input)
+            val buffer = mesh?.buffer?.value
+            result.value = if (mesh != null && buffer != null) {
+                SVGBuffer(mesh.bounds, buffer)
+            } else null
         }
     }
 
-    fun loadSVGMeshSync(input: InputStream?): SVGBuffer? {
+    fun loadSVGMeshSync(input: InputStream?): SVGMesh? {
         if (input == null) {
             LOGGER.warn("Input for SVG was null")
             return null
@@ -37,14 +41,12 @@ object SVGMeshCache : CacheSection<FileKey, SVGBuffer>("Meshes") {
             return null
         }
 
-        val svg = SVGMesh()
-        svg.parse(xml)
-        val buffer = svg.buffer
-        if (buffer == null) {
+        val svg = SVGMesh(xml)
+        if (!svg.isValid) {
             LOGGER.warn("Failed interpreting SVG from XML")
             return null
         }
 
-        return SVGBuffer(svg.bounds, buffer)
+        return svg
     }
 }

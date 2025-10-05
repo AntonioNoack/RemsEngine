@@ -24,7 +24,7 @@ fun main() {
 }
 
 fun testSVG(text: String) {
-    SVGMesh().parse(XMLReader(text.reader()).readXMLNode()!!)
+    SVGMesh(XMLReader(text.reader()).readXMLNode()!!)
 }
 
 fun testXML(text: String) {

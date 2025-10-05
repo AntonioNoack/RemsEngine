@@ -1,11 +1,15 @@
 package me.anno.jvm.fonts
 
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.FontManager
+import me.anno.fonts.IEmojiCache
 import me.anno.fonts.signeddistfields.Contour
+import me.anno.fonts.signeddistfields.Contours
 import me.anno.fonts.signeddistfields.edges.CubicSegment
 import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.fonts.signeddistfields.edges.QuadraticSegment
+import me.anno.utils.Color
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import java.awt.Font
@@ -18,12 +22,24 @@ object ContourImpl {
 
     private val LOGGER = LogManager.getLogger(ContourImpl::class)
 
-    fun calculateContours(font: me.anno.fonts.Font, text: CharSequence): List<Contour> {
-        val awtFont = (FontManager.getFont(font) as? AWTFont)?.awtFont ?: FontManagerImpl.getAWTFont(font)
-        return calculateContours(awtFont, text)
+    private fun getAWTFont(font: me.anno.fonts.Font): Font {
+        return (FontManager.getFont(font) as? AWTFont)?.awtFont ?: FontManagerImpl.getAWTFont(font)
     }
 
-    private fun calculateContours(font: Font, text: CharSequence): List<Contour> {
+    fun calculateContours(font: me.anno.fonts.Font, text: CharSequence): Contours {
+        val emojiContours = getEmojiContours(font, text)
+        if (emojiContours != null) return emojiContours
+        return calculateContours(getAWTFont(font), text)
+    }
+
+    private fun getEmojiContours(font: me.anno.fonts.Font, text: CharSequence): Contours? {
+        val emojiCache = IEmojiCache.emojiCache
+        val codepoints = text.codepoints()
+        val cacheKey = codepoints.asList()
+        return emojiCache.getEmojiContour(cacheKey, font.sizeInt).waitFor()
+    }
+
+    private fun calculateContours(font: Font, text: CharSequence): Contours {
 
         val contours = ArrayList<Contour>()
         val segments = ArrayList<EdgeSegment>()
@@ -77,7 +93,8 @@ object ContourImpl {
                 }
                 PathIterator.SEG_CLOSE -> {
                     if (segments.isNotEmpty()) {
-                        contours.add(Contour(ArrayList(segments)))
+                        val color = Color.white
+                        contours.add(Contour(ArrayList(segments), 0f, color))
                     }
                     segments.clear()
                 }
@@ -85,6 +102,6 @@ object ContourImpl {
 
             path.next()
         }
-        return contours
+        return Contours(contours, true)
     }
 }

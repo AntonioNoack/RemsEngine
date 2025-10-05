@@ -4,17 +4,16 @@ import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
+import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import kotlin.math.abs
 
 abstract class EdgeSegment {
 
     abstract fun getPointAt(t: Float, dst: Vector2f): Vector2f
-
     abstract fun getDirectionAt(t: Float, dst: Vector2f): Vector2f
 
     abstract fun length(): Float
-
     abstract fun union(bounds: AABBf, tmp: FloatArray)
 
     abstract fun getSignedDistance(
@@ -23,6 +22,8 @@ abstract class EdgeSegment {
         tmp3: FloatArray,
         dst: SignedDistance
     ): SignedDistance
+
+    abstract fun transformed(transform: Matrix3x2f): EdgeSegment
 
     fun getTrueSignedDistance(
         origin: Vector2f, outT: FloatPtr,
@@ -60,5 +61,4 @@ abstract class EdgeSegment {
         }
         JomlPools.vec2f.sub(3)
     }
-
 }

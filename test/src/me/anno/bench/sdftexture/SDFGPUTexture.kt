@@ -61,7 +61,7 @@ fun main() {
 
     for (ch in 32 until 128) {
         val contours0 = calculateContours(font, ch.toChar().toString())
-        val contours1 = optimizeContours(contours0, maxError)
+        val contours1 = optimizeContours(contours0.contours, maxError)
         val field = SignedDistanceField.computeDistances(contours1, roundEdges) ?: continue
         val image = FloatImage(field.w, field.h, 1, field.getDistances()!!)
         image.flipY()
@@ -71,7 +71,7 @@ fun main() {
 
     for (ch in 32 until 128) {
         val contours0 = calculateContours(font, ch.toChar().toString())
-        val contours1 = optimizeContours(contours0, maxError)
+        val contours1 = optimizeContours(contours0.contours, maxError)
         val field = calculateField(contours1, roundEdges) ?: continue
         val image = FloatImage(field.w, field.h, 1, field.getDistances()!!)
         image.flipY()

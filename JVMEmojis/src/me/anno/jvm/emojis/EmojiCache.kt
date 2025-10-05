@@ -3,6 +3,7 @@ package me.anno.jvm.emojis
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.fonts.IEmojiCache
+import me.anno.fonts.signeddistfields.Contours
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
@@ -16,6 +17,7 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.image.Image
 import me.anno.image.svg.DrawSVGs
 import me.anno.image.svg.SVGBuffer
+import me.anno.image.svg.SVGMesh
 import me.anno.image.svg.SVGMeshCache
 import me.anno.maths.Packing
 import me.anno.maths.Packing.unpackHighFrom64
@@ -40,8 +42,9 @@ object EmojiCache : IEmojiCache {
     private val rasterTimeoutMillis = 10_000L
     private val meshTimeoutMillis = 10_000L
 
-    private val rasterCache = CacheSection<EmojiKey, Image>("EmojiCache")
-    private val meshCache = CacheSection<List<Int>, SVGBuffer>("EmojiMeshCache")
+    private val meshCache = CacheSection<List<Int>, SVGMesh>("EmojiMeshCache")
+    private val rasterCache = CacheSection<EmojiKey, Image>("EmojiRasterCache")
+    private val contourCache = CacheSection<EmojiKey, Contours>("EmojiContourCache")
 
     private val knownEmojis = ObjectToLongHashMap<List<Int>>(0)
     private val knownEmojiChars = IntHashSet()
@@ -92,9 +95,11 @@ object EmojiCache : IEmojiCache {
     override fun getEmojiImage(codepoints: List<Int>, fontSize: Int): AsyncCacheData<Image> {
         return rasterCache.getEntry(EmojiKey(codepoints, fontSize), rasterTimeoutMillis) { key, result ->
             getEmojiMesh(key.path).waitFor { svgMesh ->
-                if (svgMesh != null) {
+                val buffer0 = svgMesh?.buffer?.value
+                if (svgMesh != null && buffer0 != null) {
+                    val buffer = SVGBuffer(svgMesh.bounds, buffer0)
                     addGPUTask("Render SVG", key.size, key.size) {
-                        result.value = renderSVGMesh(svgMesh, key.size)
+                        result.value = renderSVGMesh(buffer, key.size)
                     }
                 } else result.value = null
             }
@@ -132,13 +137,29 @@ object EmojiCache : IEmojiCache {
         return fb.createImage(flipY = false, withAlpha = true)!!
     }
 
-    fun getEmojiMesh(codepoints: List<Int>): AsyncCacheData<SVGBuffer> {
+    fun getEmojiMesh(codepoints: List<Int>): AsyncCacheData<SVGMesh> {
         return meshCache.getEntry(codepoints, meshTimeoutMillis) { key, result ->
             val dataBounds = knownEmojis[key]
             val i0 = unpackHighFrom64(dataBounds)
             val i1 = unpackLowFrom64(dataBounds)
             val stream = ByteArrayInputStream(svgEmojiBytes, i0, i1 - i0)
             result.value = SVGMeshCache.loadSVGMeshSync(stream)
+        }
+    }
+
+    override fun getEmojiContour(codepoints: List<Int>, fontSize: Int): AsyncCacheData<Contours> {
+        if (!contains(codepoints)) return AsyncCacheData.empty() // fast-path
+        return contourCache.getEntry(EmojiKey(codepoints, fontSize), rasterTimeoutMillis) { key, result ->
+            getEmojiMesh(key.path).waitFor { svgMesh ->
+                val fontSizeF = fontSize.toFloat()
+                result.value = if (svgMesh != null) {
+                    val contours = svgMesh.getTransformedContours(
+                        fontSizeF * 0.05f, -0.82f * fontSizeF,
+                        fontSizeF
+                    )
+                    Contours(contours, false)
+                } else null
+            }
         }
     }
 }

@@ -6,8 +6,6 @@ import me.anno.fonts.FontManager
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.OS.desktop
 
-// todo support our SVG meshes when generating test meshes...
-
 fun main() {
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()

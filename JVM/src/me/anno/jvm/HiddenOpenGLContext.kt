@@ -21,7 +21,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
  * */
 object HiddenOpenGLContext {
 
-    val window = OSWindow(HiddenOpenGLContext::class.simpleName.toString())
+    val window = GFX.someWindow
     private val width get() = window.width
     private val height get() = window.height
 

@@ -18,7 +18,7 @@ object SignedDistanceField {
 
     fun computeDistances(font: Font, text: CharSequence, roundEdges: Boolean): SignedDistanceField2? {
         // val t0 = Time.nanoTime
-        val contours = calculateContours(font, text)
+        val contours = calculateContours(font, text).contours
             .filter { it.segments.isNotEmpty() }
         // warmup ~11.3ms (20%), then 0.1ms (<1%)
         // println("Took ${(Time.nanoTime - t0) / 1e6f} ms for contours")

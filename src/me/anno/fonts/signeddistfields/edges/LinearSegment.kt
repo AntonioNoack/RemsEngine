@@ -8,6 +8,7 @@ import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
+import org.joml.Matrix3x2f
 import org.joml.Vector2f
 
 class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
@@ -21,6 +22,13 @@ class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
     override fun union(bounds: AABBf, tmp: FloatArray) {
         bounds.union(p0.x, p0.y, 0f)
         bounds.union(p1.x, p1.y, 0f)
+    }
+
+    override fun transformed(transform: Matrix3x2f): EdgeSegment {
+        return LinearSegment(
+            transform.transformPosition(p0, Vector2f()),
+            transform.transformPosition(p1, Vector2f()),
+        )
     }
 
     override fun getSignedDistance(

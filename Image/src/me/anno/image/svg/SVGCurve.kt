@@ -5,21 +5,22 @@ import me.anno.mesh.Triangulation
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector2f
 
-class SVGCurve(points: List<Vector2f>, closed: Boolean, val depth: Float, val gradient: Gradient1D, width: Float) {
-
-    private fun createRing(points: List<Vector2f>, offset: Float, closed: Boolean): MutableList<Vector2f> {
-        val ring = if (closed) createRing(points, offset, points.last(), points.first())
-        else createRing(points, offset, points.first(), points.last())
-        if (closed) ring.add(ring.first())
-        return ring
-    }
+class SVGCurve(
+    points: List<Vector2f>,
+    closed: Boolean,
+    val depth: Float,
+    val gradient: Gradient1D,
+    width: Float
+) {
 
     private fun createRing(
         points: List<Vector2f>,
-        offset: Float,
-        start: Vector2f,
-        end: Vector2f
+        offset: Float, closed: Boolean,
     ): MutableList<Vector2f> {
+
+        val start = if (closed) points.last() else points.first()
+        val end = if (closed) points.first() else points.last()
+
         val result = ArrayList<Vector2f>(points.size * 2)
         val size = points.size
         for (i in 0 until size) {
@@ -47,6 +48,8 @@ class SVGCurve(points: List<Vector2f>, closed: Boolean, val depth: Float, val gr
                 }
             }
         }
+
+        if (closed) result.add(points.first())
         return result
     }
 

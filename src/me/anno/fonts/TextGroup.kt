@@ -38,10 +38,16 @@ open class TextGroup(val font: Font, val text: CharSequence, charSpacing: Double
         // nothing to do
     }
 
+    /**
+     * return true when done
+     * */
     fun draw(drawBuffer: DrawBufferCallback) {
         draw(0, codepoints.size, drawBuffer)
     }
 
+    /**
+     * return true when done
+     * */
     override fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback) {
         // not implemented
     }

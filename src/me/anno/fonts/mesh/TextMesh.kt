@@ -1,6 +1,7 @@
 package me.anno.fonts.mesh
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.fonts.Font
 import me.anno.fonts.TextDrawable
 import me.anno.fonts.signeddistfields.Contour.Companion.calculateContours
@@ -9,6 +10,8 @@ import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.fonts.signeddistfields.edges.QuadraticSegment
 import me.anno.gpu.buffer.Attribute
 import me.anno.mesh.Triangulation
+import me.anno.utils.Color
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Vectors.avg
@@ -27,31 +30,32 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
         val quadAccuracy = 5f
         val cubicAccuracy = 5f
 
-        val contours = calculateContours(font, text)
-        val fragments = ArrayList(contours.map {
+        val contours0 = calculateContours(font, text)
+        val contours = contours0.contours
+        val fragments = ArrayList(contours.map { contour ->
             val points = ArrayList<Vector2f>()
-            for (s in it.segments) {
-                val steps = when (s) {
+            for (seg in contour.segments) {
+                val steps = when (seg) {
                     is QuadraticSegment -> {
-                        val length = s.p0.distance(s.p1) + s.p1.distance(s.p2)
+                        val length = seg.p0.distance(seg.p1) + seg.p1.distance(seg.p2)
                         max(2, (quadAccuracy * length).roundToIntOr())
                     }
                     is CubicSegment -> {
-                        val length = s.p0.distance(s.p1) + s.p1.distance(s.p2) + s.p2.distance(s.p3)
+                        val length = seg.p0.distance(seg.p1) + seg.p1.distance(seg.p2) + seg.p2.distance(seg.p3)
                         max(3, (cubicAccuracy * length).roundToIntOr())
                     }
                     is LinearSegment -> 1
                     else -> throw NotImplementedError()
                 }
                 for (i in 0 until steps) {
-                    points.add(s.getPointAt(i.toFloat() / steps, Vector2f()))
+                    points.add(seg.getPointAt(i.toFloat() / steps, Vector2f()))
                 }
             }
             // y is mirrored, because y is up, not down in our 3D coordinate system
             for (point in points) {
                 point.y = -point.y
             }
-            Fragment(points)
+            Fragment(points, contour.z, contour.color)
         })
 
         // ignore the winding? just use our intuition?
@@ -59,6 +63,44 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
         //  - large areas are outside
         //  - if there is overlap, the smaller one is inside, the larger outside
 
+        val outerFragments = if (contours0.needsInsideCheck) {
+            removeInnerFragments(fragments)
+        } else fragments
+
+        val hasColors = outerFragments.any2 { it.color != Color.white }
+        val numVertices = outerFragments.sumOf { it.triangles.size }
+        val positions = FloatArray(numVertices * 3)
+        val colors: IntArray? = if (hasColors) IntArray(numVertices) else null
+        mesh.positions = positions
+        mesh.color0 = colors
+
+        for (it in outerFragments) {
+            bounds.union(it.bounds)
+        }
+
+        // center the text, ignore the characters themselves
+        val baseScale = DEFAULT_LINE_HEIGHT / font.size
+        var i = 0
+        var j = 0
+        for (fragment in outerFragments) {
+            for (point in fragment.triangles) {
+                positions[i++] = point.x * baseScale
+                positions[i++] = point.y * baseScale
+                positions[i++] = fragment.z
+                if (colors != null) {
+                    colors[j++] = fragment.color
+                }
+            }
+        }
+
+        bounds.minX *= baseScale * 0.5f
+        bounds.maxX *= baseScale * 0.5f
+
+        bounds.minX += 0.5f
+        bounds.maxX += 0.5f
+    }
+
+    private fun removeInnerFragments(fragments: MutableList<Fragment>): List<Fragment> {
         fragments.sortByDescending { it.size }
 
         for (index1 in fragments.indices) {
@@ -91,51 +133,19 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
         }
 
         val outerFragments = fragments.filter { !it.isInside }
-        // "found ${outerFragments.size} outer rings"
-
         for (outer in outerFragments) {
             outer.apply {
                 if (needingRemoval.isNotEmpty()) {
                     mergeRings2(ring, needingRemoval.map { it.ring })
-                    /*needingRemoval.sortedByDescending { it.size }.forEach { inner ->
-                        mergeRings(ring, inner.ring)
-                    }*/
                     needingRemoval.clear()
                     triangles = Triangulation.ringToTrianglesVec2f(ring)
                 }
             }
         }
-
-        val triangles = ArrayList<Vector2f>(outerFragments.sumOf { it.triangles.size })
-        for (outer in outerFragments) {
-            triangles += outer.triangles
-        }
-
-        val numVertices = triangles.size
-        val positions = FloatArray(numVertices * 3)
-        mesh.positions = positions
-
-        for (it in outerFragments) {
-            bounds.union(it.bounds)
-        }
-
-        // center the text, ignore the characters themselves
-        val baseScale = DEFAULT_LINE_HEIGHT / font.size
-        var i = 0
-        for (point in triangles) {
-            positions[i++] = point.x * baseScale
-            positions[i++] = point.y * baseScale
-            positions[i++] = 0f
-        }
-
-        bounds.minX *= baseScale * 0.5f
-        bounds.maxX *= baseScale * 0.5f
-
-        bounds.minX += 0.5f
-        bounds.maxX += 0.5f
+        return outerFragments
     }
 
-    class Fragment(val ring: MutableList<Vector2f>) {
+    class Fragment(val ring: MutableList<Vector2f>, val z: Float, val color: Int) {
         var triangles = Triangulation.ringToTrianglesVec2f(ring)
         val bounds = AABBf()
 

@@ -76,8 +76,9 @@ class AWTFont(
     override fun getSelfFont(): AWTFont = this
     override fun getFallbackFonts(size: Float) = getFallback(size)
     override fun getExampleAdvance(): Float = exampleLayout.advance
-    override fun getAdvance(text: CharSequence, font: AWTFont): Float =
-        TextLayout(text.toString(), font.awtFont, renderContext).advance
+    override fun getAdvance(text: CharSequence, font: AWTFont): Float {
+        return TextLayout(text.toString(), font.awtFont, renderContext).advance
+    }
 
     /**
      * like gfx.drawText, however this method is respecting the ideal character distances,

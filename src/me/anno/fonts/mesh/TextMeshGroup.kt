@@ -1,9 +1,10 @@
 package me.anno.fonts.mesh
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.utils.MeshJoiner
-import me.anno.fonts.TextGroup
 import me.anno.fonts.Font
+import me.anno.fonts.TextGroup
 import me.anno.utils.types.Strings.joinChars
 import org.joml.Matrix4x3f
 import kotlin.math.min
@@ -35,7 +36,8 @@ class TextMeshGroup(
      * */
     fun createJoinedMesh(dst: Mesh) {
         val meshCache = meshCache
-        this.joinedMesh = object : MeshJoiner<Int>(false, false, false) {
+        val hasColors = codepoints.any { codepoint -> meshCache[codepoint]!!.color0 != null }
+        this.joinedMesh = object : MeshJoiner<Int>(hasColors, false, false) {
             override fun getMesh(element: Int): Mesh {
                 val codepoint = codepoints[element]
                 return meshCache[codepoint]!!

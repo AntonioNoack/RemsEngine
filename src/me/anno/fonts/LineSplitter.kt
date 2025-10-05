@@ -1,6 +1,7 @@
 package me.anno.fonts
 
 import me.anno.fonts.Codepoints.codepoints
+import me.anno.fonts.IEmojiCache.Companion.emojiPadding
 import me.anno.image.raw.IntImage
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.LazyList
@@ -20,8 +21,6 @@ import kotlin.math.round
 abstract class LineSplitter<FontImpl : TextGenerator> {
 
     companion object {
-
-        var emojiCache: IEmojiCache = IEmojiCache.noEmojiSupport
 
         private val splittingOrder: List<Collection<Int>> = listOf(
             listOf(' '.code),
@@ -170,7 +169,7 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
             nextLineImpl()
         }
 
-        val emojiCache = emojiCache
+        val emojiCache = IEmojiCache.emojiCache
         while (index1 < chars.size) {
             val char = chars[index1]
             if (char == '\t'.code) {
@@ -201,7 +200,7 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
                     val emojiImage = emojiCache.getEmojiImage(emojiList, fontSize.toIntOr())
                         .waitFor() ?: IntImage(1, 1, false)
 
-                    val padding = round(0.1f * emojiImage.height).toIntOr()
+                    val padding = round(emojiPadding * emojiImage.height).toIntOr()
                     currentX = ceil(currentX + padding)
 
                     val emojiSize = emojiImage.width

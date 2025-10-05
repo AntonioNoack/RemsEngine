@@ -6,10 +6,11 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossDiffXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
-import me.anno.maths.PolynomialSolver.solveQuadratic
 import me.anno.maths.Maths.mix
+import me.anno.maths.PolynomialSolver.solveQuadratic
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
+import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import kotlin.math.abs
 
@@ -32,6 +33,15 @@ class CubicSegment(
     val p2 = if ((p10 == p0 || p10 == p3) && (p20 == p0 || p20 == p3)) mix(p0, p3, 2f / 3f) else p20
 
     override fun toString() = "[$p0,$p1,$p2,$p3]"
+
+    override fun transformed(transform: Matrix3x2f): EdgeSegment {
+        return CubicSegment(
+            transform.transformPosition(p0, Vector2f()),
+            transform.transformPosition(p1, Vector2f()),
+            transform.transformPosition(p2, Vector2f()),
+            transform.transformPosition(p3, Vector2f()),
+        )
+    }
 
     override fun getPointAt(t: Float, dst: Vector2f): Vector2f {
         val b = 1f - t

@@ -1,10 +1,11 @@
 package me.anno.jvm.fonts
 
-import me.anno.utils.Threads.runOnNonGFXThread
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
 import me.anno.fonts.FontManager.getFontSizeIndex
 import me.anno.fonts.FontStats
+import me.anno.fonts.IEmojiCache
 import me.anno.fonts.TextGenerator
 import me.anno.fonts.keys.FontKey
 import me.anno.io.files.FileReference
@@ -12,6 +13,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.utils.Clock
 import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
@@ -70,6 +72,11 @@ object FontManagerImpl {
     private fun getTextLength(font: me.anno.fonts.Font, text: String): Double {
         val awtFont = (FontManager.getFont(font) as AWTFont).awtFont
         val ctx = FontRenderContext(null, true, true)
+
+        val codepoints = text.codepoints().asList()
+        val image = IEmojiCache.emojiCache.getEmojiImage(codepoints, font.sizeInt).waitFor()
+        if (image != null) return image.width.toDouble() // do we need padding??
+
         return TextLayout(text, awtFont, ctx).bounds.maxX
     }
 
