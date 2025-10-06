@@ -1,7 +1,9 @@
 package me.anno.utils.types
 
 import me.anno.config.DefaultConfig
+import me.anno.fonts.Codepoints
 import me.anno.fonts.Font
+import me.anno.fonts.IEmojiCache
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonWriterBase
@@ -24,12 +26,18 @@ object Strings {
 
     @JvmStatic
     fun Int.joinChars0(): CharArray {
-        return Character.toChars(this)
+        return if (Codepoints.isEmoji(this)) {
+            val emojiId = Codepoints.getEmojiId(this)
+            IEmojiCache.emojiCache.emojiToString(emojiId).toCharArray()
+        } else Character.toChars(this)
     }
 
     @JvmStatic
     fun Int.joinChars(): String {
-        return joinChars0().concatToString()
+        return if (Codepoints.isEmoji(this)) {
+            val emojiId = Codepoints.getEmojiId(this)
+            IEmojiCache.emojiCache.emojiToString(emojiId)
+        } else joinChars0().concatToString()
     }
 
     @JvmStatic
@@ -370,14 +378,20 @@ object Strings {
 
     @JvmStatic
     fun Char.isBlank(): Boolean {
+        return code.isBlank()
+    }
+
+    @JvmStatic
+    fun Int.isBlank(): Boolean {
         return when (this) {
-            '\u0009', in '\u000a'..'\u000d',
-            '\u0020', '\u0085', '\u00a0',
-            '\u1680', '\u180e',
-            in '\u2000'..'\u200D',
-            '\u2028', '\u2029', '\u202f',
-            '\u205f', '\u2060', '\u3000',
-            '\ufeff' -> true
+            0x0009, in 0x000a..0x000d,
+            0x0020, 0x0085, 0x00a0,
+            0x1680, 0x180e,
+            in 0x2000..0x200D,
+            0x2028, 0x2029, 0x202f,
+            0x205f, 0x2060, 0x3000,
+            in 0xfe00..0xfe0f,
+            0xfeff -> true
             else -> false
         }
     }

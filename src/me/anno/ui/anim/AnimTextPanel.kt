@@ -5,7 +5,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
-import me.anno.fonts.TextGroup
+import me.anno.fonts.GlyphLayout
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -23,7 +23,6 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.Color.a
 import me.anno.utils.Color.toRGB
-import me.anno.utils.async.Callback.Companion.waitFor
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
@@ -86,16 +85,16 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
     fun String.cpList() = Pair(
         this,
         codepoints().map { char ->
-            TextCacheKey(char.joinChars().toString(), font)
+            TextCacheKey(char.joinChars(), font)
         })
 
-    var textGroup: TextGroup? = null
-    fun getTextGroup(text: String): TextGroup {
-        val group1 = textGroup
+    var glyphLayout: GlyphLayout? = null
+    fun getTextGroup(text: String): GlyphLayout {
+        val group1 = glyphLayout
         if (group1 != null && group1.text == text && group1.font == font)
             return group1
-        val group2 = TextGroup(font, text, 0.0)
-        textGroup = group2
+        val group2 = GlyphLayout(font, text, 0f, Int.MAX_VALUE)
+        glyphLayout = group2
         return group2
     }
 
@@ -177,7 +176,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
             val group = getTextGroup(text.first)
 
-            val textWidth = group.offsets.last()
+            val textWidth = group.width
 
             val dxi = DrawTexts.getOffset(textWidth.roundToIntOr(), alignX)
             val dyi = DrawTexts.getOffset(font.sampleHeight, alignY)
@@ -188,10 +187,10 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             for (index in text1.indices) {
                 val txt = text1[index]
                 val size = FontManager.getSize(txt).waitFor() ?: 0
-                val o0 = group.offsets[index].toFloat()
-                val o1 = group.offsets[index + 1].toFloat()
-                val fx = x + dxi + o0
-                val w = o1 - o0
+                val dx0 = group.getX0(index)
+                val dx1 = group.getX1(index)
+                val fx = x + dxi + dx0
+                val w = dx1 - dx0
                 h = GFXx2D.getSizeY(size)
                 if (!txt.text.isBlank2()) {
                     val texture = FontManager.getTexture(txt).waitFor()

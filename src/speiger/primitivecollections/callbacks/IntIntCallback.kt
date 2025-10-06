@@ -1,5 +1,5 @@
 package speiger.primitivecollections.callbacks
 
 fun interface IntIntCallback {
-    fun callback(key: Int, value: Int)
+    fun call(key: Int, value: Int)
 }

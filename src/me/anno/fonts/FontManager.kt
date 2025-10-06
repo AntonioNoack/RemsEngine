@@ -33,7 +33,7 @@ object FontManager {
     private const val textureTimeoutMillis = 10_000L
     private const val textSizeTimeoutMillis = 100_000L
 
-    private val fonts = HashMap<FontKey, TextGenerator>()
+    private val fonts = HashMap<FontKey, FontImpl<*>>()
 
     val fontSet by lazy {
         queryInstalledFonts().toSortedSet()
@@ -147,18 +147,18 @@ object FontManager {
         font2.generateTexture(key.text, wl, hl, key.isGrayscale(), result)
     }
 
-    fun getFont(key: TextCacheKey): TextGenerator =
+    fun getFont(key: TextCacheKey): FontImpl<*> =
         getFont(key.fontName, getAvgFontSize(key.fontSizeIndex()), key.isBold(), key.isItalic())
 
-    fun getFont(font: Font): TextGenerator =
+    fun getFont(font: Font): FontImpl<*> =
         getFont(font.name, font.size, font.isBold, font.isItalic)
 
-    fun getFont(name: String, fontSize: Float, bold: Boolean, italic: Boolean): TextGenerator {
+    fun getFont(name: String, fontSize: Float, bold: Boolean, italic: Boolean): FontImpl<*> {
         val fontSizeIndex = getFontSizeIndex(fontSize)
         return getFont(name, fontSizeIndex, bold, italic)
     }
 
-    private fun getFont(name: String, fontSizeIndex: Int, bold: Boolean, italic: Boolean): TextGenerator {
+    private fun getFont(name: String, fontSizeIndex: Int, bold: Boolean, italic: Boolean): FontImpl<*> {
         val key = FontKey(name, fontSizeIndex, bold, italic)
         return fonts.getOrPut(key) { getTextGenerator(key) }
     }

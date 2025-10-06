@@ -5,7 +5,7 @@ import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.MovingGrid
-import me.anno.fonts.mesh.TextMeshGroup
+import me.anno.fonts.mesh.MeshGlyphLayout
 import me.anno.gpu.FinalRendering.isFinalRendering
 import me.anno.gpu.FinalRendering.onMissingResource
 import me.anno.gpu.pipeline.Pipeline
@@ -38,6 +38,10 @@ object TextShapes : CacheSection<String, Mesh>("TextShapes") {
 
     private val font = lazy { DefaultConfig.defaultFont }
     private val meshGenerator = { text: String, result: AsyncCacheData<Mesh> ->
-        result.value = TextMeshGroup(font.value, text, 0f, false).getOrCreateMesh()
+        result.value = MeshGlyphLayout(
+            font.value, text,
+            0f, Int.MAX_VALUE,
+            false
+        ).getOrCreateMesh()
     }
 }

@@ -16,14 +16,14 @@ object FontStats {
     }
 
     @InternalAPI
-    var getTextGeneratorImpl: ((FontKey) -> TextGenerator)? = null
-    fun getTextGenerator(key: FontKey): TextGenerator {
+    var getTextGeneratorImpl: ((FontKey) -> FontImpl<*>)? = null
+    fun getTextGenerator(key: FontKey): FontImpl<*> {
         val tmp = getTextGeneratorImpl
             ?: return getFallbackFontGenerator(key)
         return tmp(key)
     }
 
-    private fun getFallbackFontGenerator(key: FontKey): TextGenerator {
+    private fun getFallbackFontGenerator(key: FontKey): FontImpl<*> {
         return if ("png" in ImageCache.streamReaders) AtlasFontGenerator(key)
         else LinesFontGenerator(key)
     }

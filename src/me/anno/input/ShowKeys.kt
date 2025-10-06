@@ -45,7 +45,7 @@ object ShowKeys {
             // this can be incorrect as long as we don't know the correct mapping
             val char = KeyNames.inputMap[state]
             val text2 = if (char != -1 && char != 32 && char != 9 && char != 10) // space, \n, \r
-                char.joinChars().toString() else null
+                char.joinChars() else null
             val text0 = KeyCombination.keyMapping.reverse[key]
             return text2 ?: text0 ?: key.toString()
         }

@@ -45,6 +45,7 @@ open class Skybox : SkyboxBase(), OnUpdate {
     @Group("Cirrus")
     @SerializedProperty
     var cirrus: Float = 0.4f
+    // todo make this a linear, gradual scale
 
     @Group("Cirrus")
     @SerializedProperty
@@ -64,6 +65,7 @@ open class Skybox : SkyboxBase(), OnUpdate {
     @Group("Cumulus")
     @SerializedProperty
     var cumulus: Float = 0.8f
+    // todo make this a linear, gradual scale
 
     @Group("Cumulus")
     @SerializedProperty

@@ -19,7 +19,7 @@ import kotlin.math.min
 /**
  * generates a fallback font when other text sources are unavailable using 7-segment-style lines
  * */
-class LinesFontGenerator(override val fontKey: FontKey) : TextGenerator {
+class LinesFontGenerator(override val fontKey: FontKey) : FontImpl<LinesFontGenerator>() {
 
     companion object {
         // - 4 -
@@ -155,4 +155,20 @@ class LinesFontGenerator(override val fontKey: FontKey) : TextGenerator {
         Texture2DArray("awtAtlas", charWidth, charHeight, simpleChars.size)
             .create(simpleChars.map { generateTexture(it[0]) }, false, callback)
     }
+
+    override fun getAdvance(text: CharSequence, font: LinesFontGenerator): Float {
+        return calculateSize(text, -1, -1).toFloat()
+    }
+
+    override fun getExampleAdvance(): Float {
+        return getAdvance("o", this)
+    }
+
+    override fun getSelfFont(): LinesFontGenerator = this
+    override fun getFallbackFonts(size: Float): List<LinesFontGenerator> = emptyList()
+
+    override fun getSupportLevel(
+        fonts: List<LinesFontGenerator>, char: Int,
+        lastSupportLevel: Int
+    ): Int = 0
 }

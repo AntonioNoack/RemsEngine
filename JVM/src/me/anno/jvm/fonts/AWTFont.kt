@@ -1,14 +1,14 @@
 package me.anno.jvm.fonts
 
 import me.anno.config.DefaultConfig
-import me.anno.fonts.Codepoints.codepoints
+import me.anno.fonts.Codepoints
+import me.anno.fonts.FontImpl
 import me.anno.fonts.FontManager
-import me.anno.fonts.LineSplitter
+import me.anno.fonts.GlyphLayout
+import me.anno.fonts.IEmojiCache
 import me.anno.fonts.StringPart
-import me.anno.fonts.TextGenerator
 import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_H
 import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_W
-import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.mesh.CharacterOffsetCache
 import me.anno.gpu.GFX
@@ -24,10 +24,9 @@ import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.jvm.images.BIImage.createBufferedImage
 import me.anno.jvm.images.BIImage.createFromBufferedImage
 import me.anno.jvm.images.BIImage.toImage
-import me.anno.maths.Maths.clamp
 import me.anno.utils.async.Callback
-import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
+import me.anno.utils.types.Strings.isBlank
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import me.anno.utils.types.Strings.shorten
@@ -45,7 +44,7 @@ import kotlin.math.min
 class AWTFont(
     override val fontKey: FontKey,
     val awtFont: Font
-) : LineSplitter<AWTFont>(), TextGenerator {
+) : FontImpl<AWTFont>() {
 
     val engineFont = fontKey.toFont()
 
@@ -84,49 +83,69 @@ class AWTFont(
      * like gfx.drawText, however this method is respecting the ideal character distances,
      * so there are no awkward spaces between T and e
      * */
-    private fun drawString(gfx: Graphics2D, text: CharSequence, group: TextGroup?, y: Int) =
-        drawString(gfx, text, group, 0f, y.toFloat())
+    private fun drawString(gfx: Graphics2D, text: CharSequence, dx: Float, dy: Float) {
+        val group = createGroup(engineFont, text)
+        drawString(gfx, group, dx, dy)
+    }
 
     /**
      * like gfx.drawText, however this method is respecting the ideal character distances,
      * so there are no awkward spaces between T and e
      * */
-    private fun drawString(gfx: Graphics2D, text: CharSequence, group: TextGroup?, x: Float, y: Float) {
-        val group2 = group ?: createGroup(engineFont, text)
-        // some distances still are awkward, because it is using the closest position, not float
-        // (useful for "I"s)
-        // maybe we could implement detecting, which sections need int positions, and which don't...
-        if (containsSpecialChar(text)) {
-            for ((index, char) in text.codepoints().withIndex()) {
-                gfx.drawString(
-                    char.joinChars().toString(),
-                    x + group2.offsets[index].toFloat(), y
-                )
-            }
-        } else {
-            for (index in text.indices) {
-                val char = text[index]
-                gfx.drawString(
-                    asciiStrings[char.code],
-                    x + group2.offsets[index].toFloat(), y
-                )
-            }
+    private fun drawString(gfx: Graphics2D, group: GlyphLayout, dx: Float, dy: Float) {
+        for (glyphIndex in group.indices) {
+            val codepoint = group.getCodepoint(glyphIndex)
+            drawString(gfx, codepoint, dx + group.getX0(glyphIndex), dy + group.getY(glyphIndex))
         }
+    }
+
+    /**
+     * like gfx.drawText, however this method is respecting the ideal character distances,
+     * so there are no awkward spaces between T and e
+     * */
+    private fun drawString(gfx: Graphics2D, codepoint: Int, dx: Float, dy: Float) {
+        if (codepoint.isBlank()) return
+        if (Codepoints.isEmoji(codepoint)) {
+            drawEmoji(gfx, codepoint, dx, dy)
+        } else if (codepoint < 127) {
+            gfx.drawString(asciiStrings[codepoint], dx, dy)
+        } else {
+            gfx.drawString(codepoint.joinChars(), dx, dy)
+        }
+    }
+
+    /**
+     * like gfx.drawText, however this method is respecting the ideal character distances,
+     * so there are no awkward spaces between T and e
+     * */
+    private fun drawEmoji(gfx: Graphics2D, codepoint: Int, dx: Float, dy: Float) {
+        val fontSize = engineFont.sizeInt
+        val emojiId = Codepoints.getEmojiId(codepoint)
+        val emojiImage = IEmojiCache.emojiCache.getEmojiImage(emojiId, fontSize)
+            .waitFor() ?: return
+        println("Drawing emoji ${IEmojiCache.emojiCache.emojiToString(emojiId)} onto $gfx, $dx,$dy-$fontSize*0.8")
+        gfx.drawImage(
+            emojiImage.createBufferedImage(true),
+            (dx).toIntOr(),
+            (dy - fontSize * 0.8f).toIntOr(), null
+        )
     }
 
     override fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
         if (text.isEmpty()) return GFXx2D.getSize(0, fontMetrics.height)
         return if (containsSpecialChar(text) || (widthLimit in 0 until GFX.maxTextureSize)) {
+            val fontSize = engineFont.size
             val parts = splitParts(
-                text, engineFont.size, 4f, 0f,
-                widthLimit.toFloat(), heightLimit.toFloat()
+                text, fontSize, 4f, 0f,
+                widthLimitToRelative(widthLimit, fontSize),
+                heightLimitToMaxNumLines(heightLimit, fontSize)
             )
             val width = min(ceil(parts.width).toInt(), widthLimit)
             val height = min(ceil(parts.height).toInt(), heightLimit)
             return GFXx2D.getSize(width, height)
         } else {
-            val baseWidth = getStringWidth(createGroup(engineFont, text))
-            val width = clamp(baseWidth.roundToIntOr() + 1, 0, GFX.maxTextureSize)
+            val width0 = measureWidth(engineFont, text)
+            val width = min(ceil(width0).toIntOr(), GFX.maxTextureSize)
             val height = min(fontMetrics.height, GFX.maxTextureSize)
             GFXx2D.getSize(width, height)
         }
@@ -153,8 +172,8 @@ class AWTFont(
             )
         }
 
-        val group = createGroup(engineFont, text)
-        val width = min(widthLimit, ceil(getStringWidth(group)).toIntOr() + TEXTURE_PADDING_W)
+        val width0 = measureWidth(engineFont, text)
+        val width = min(widthLimit, ceil(width0).toIntOr() + TEXTURE_PADDING_W)
 
         val lineCount = 1
         val fontHeight = fontMetrics.height
@@ -185,9 +204,8 @@ class AWTFont(
         val texture = Texture2D("awt-" + text.shorten(24), width, height, 1)
         val hasPriority = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
         val image = createImage(
-            width,
-            height, portableImages, textColor,
-            backgroundColor, text, group
+            width, height, portableImages, textColor,
+            backgroundColor, text
         )
         if (hasPriority) {
             createTexture(texture, image, callback)
@@ -239,10 +257,9 @@ class AWTFont(
 
     private fun createImage(
         width: Int, height: Int, portableImages: Boolean,
-        textColor: Int, backgroundColor: Int,
-        text: CharSequence, group: TextGroup?,
+        textColor: Int, backgroundColor: Int, text: CharSequence,
     ): BufferedImage {
-        val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+        val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
         val gfx = image.graphics as Graphics2D
         gfx.prepareGraphics(awtFont, portableImages)
 
@@ -254,9 +271,8 @@ class AWTFont(
 
         gfx.color = Color(textColor)
 
-        val y = fontMetrics.ascent
-        // println("generating texture for '$text', size $fontSize with ascent $ascent")
-        drawString(gfx, text, group, y)
+        val dy = fontMetrics.ascent.toFloat()
+        drawString(gfx, text, 0f, dy)
         gfx.dispose()
         return image
     }
@@ -283,7 +299,11 @@ class AWTFont(
         callback: Callback<ITexture2D>
     ) {
 
-        val parts = splitParts(text, fontSize, 4f, 0f, widthLimit.toFloat(), heightLimit.toFloat())
+        val parts = splitParts(
+            text, fontSize, 4f, 0f,
+            widthLimitToRelative(widthLimit, fontSize),
+            heightLimitToMaxNumLines(heightLimit, fontSize)
+        )
         val result = parts.parts
 
         val width = min(ceil(parts.width).toIntOr() + TEXTURE_PADDING_W, widthLimit)
@@ -310,11 +330,11 @@ class AWTFont(
         texture: Texture2D, portableImages: Boolean, textColor: Int, backgroundColor: Int,
         result: List<StringPart>
     ) {
-        val image = BufferedImage(texture.width, texture.height, BufferedImage.TYPE_INT_RGB)
-        // for (i in width-10 until width) image.setRGB(i, 0, 0xff0000)
 
+        val image = BufferedImage(texture.width, texture.height, BufferedImage.TYPE_INT_ARGB)
         val gfx = image.graphics as Graphics2D
         gfx.prepareGraphics(awtFont, portableImages)
+
         gfx.background = Color(backgroundColor)
         if (backgroundColor.and(0xffffff) != 0) {
             // fill background with that color
@@ -326,14 +346,12 @@ class AWTFont(
         val y = exampleLayout.ascent
 
         for (part in result) {
-            val bitmap = part.bitmap
-            if (bitmap != null) {
-                val tmpImage = bitmap.createBufferedImage(withAlpha = true)
-                gfx.drawImage(tmpImage, part.xPos.toIntOr(), part.yPos.toIntOr(), null)
+            if (part.isEmoji) {
+                drawEmoji(gfx, part.firstCodepoint, part.xPos, part.yPos + y)
             } else {
                 // s.font != this when the character is unsupported, e.g., for emojis
                 gfx.font = (part.font as AWTFont).awtFont
-                (part.font as AWTFont).drawString(gfx, part.text, null, part.xPos, part.yPos + y)
+                (part.font as AWTFont).drawString(gfx, part.text, part.xPos, part.yPos + y)
             }
         }
 
@@ -374,8 +392,15 @@ class AWTFont(
 
         private val LOGGER = LogManager.getLogger(AWTFont::class)
 
-        private fun getStringWidth(group: TextGroup) = group.offsets.last() - group.offsets.first()
-        private fun createGroup(font: me.anno.fonts.Font, text: CharSequence): TextGroup = TextGroup(font, text, 0.0)
+        private fun createGroup(font: me.anno.fonts.Font, text: CharSequence): GlyphLayout =
+            GlyphLayout(font, text, 0f, Int.MAX_VALUE)
+
+        private fun measureWidth(font: me.anno.fonts.Font, text: CharSequence): Float =
+            FontManager.getFont(font).splitParts(
+                text, font.size,
+                font.relativeTabSize, font.relativeCharSpacing,
+                0f, Int.MAX_VALUE
+            ).width
 
         private val asciiStrings = List(128) { it.toChar().toString() }
 

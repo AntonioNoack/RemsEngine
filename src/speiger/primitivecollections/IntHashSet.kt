@@ -44,7 +44,7 @@ class IntHashSet(
 
     fun forEach(callback: IntCallback) {
         content.forEach { value ->
-            callback.callback(value.toInt())
+            callback.call(value.toInt())
         }
     }
 

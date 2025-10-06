@@ -65,7 +65,7 @@ class ObjectToIntHashMap<K>(
 
     fun forEach(callback: ObjectIntCallback<K>) {
         content.forEach { k, v ->
-            callback.callback(k, v.toInt())
+            callback.call(k, v.toInt())
         }
     }
 

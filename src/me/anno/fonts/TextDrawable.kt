@@ -1,20 +1,11 @@
 package me.anno.fonts
 
 import me.anno.cache.ICacheData
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.fonts.signeddistfields.TextSDF
 import org.joml.AABBf
 
-abstract class TextDrawable : ICacheData {
+interface TextDrawable : ICacheData {
 
-    val bounds = AABBf()
+    val bounds: AABBf
 
-    fun interface DrawBufferCallback {
-        /**
-         * return true when done
-         * */
-        fun draw(mesh: Mesh?, textSDF: TextSDF?, xOffset: Float): Boolean
-    }
-
-    abstract fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback)
+    fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback)
 }

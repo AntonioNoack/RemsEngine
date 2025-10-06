@@ -33,11 +33,11 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
     companion object {
 
         fun getSx(sizeX: Int, baselineY: Float): Float {
-            return 0.5f * sizeX.toFloat() / baselineY
+            return 0.5f * sizeX / baselineY
         }
 
         fun getSy(sizeY: Int, baselineY: Float): Float {
-            return sizeY.toFloat() / baselineY
+            return sizeY / baselineY
         }
 
         fun getDx(sx: Float, alignmentX: AxisAlignment): Float {
@@ -51,8 +51,8 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
         fun getY0(sy: Float, alignmentY: TextAlignmentY): Float {
             return when (alignmentY) {
                 TextAlignmentY.MAX -> 0f
-                TextAlignmentY.CENTER -> -0.5f
-                TextAlignmentY.MIN -> -1f
+                TextAlignmentY.CENTER -> -0.5f * sy
+                TextAlignmentY.MIN -> -sy
                 TextAlignmentY.BASELINE -> 1f - sy
             }
         }
@@ -63,11 +63,11 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
     }
 
     private val material = Material()
-    private var key = TextCacheKey.getTextCacheKey(font, text, widthLimit.toIntOr(-1), -1, true)
+    private var key = TextCacheKey.getTextCacheKey(font, text, relativeWidthLimit.toIntOr(-1), -1, true)
 
     override fun onTextOrFontChange() {
         super.onTextOrFontChange()
-        key = TextCacheKey.getTextCacheKey(font, text, widthLimit.toIntOr(-1), -1, true)
+        key = TextCacheKey.getTextCacheKey(font, text, relativeWidthLimit.toIntOr(-1), -1, true)
         material.diffuseMap = InvalidRef // invalidate texture
     }
 
@@ -81,8 +81,12 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
         mesh.indices = Shapes.flat11.indices
         val pos = mesh.positions.resize(Shapes.flat11.positions.size)
         val baselineY = FontManager.getBaselineY(font)
-        val sx = getSx(getSizeX(size), baselineY)
-        val sy = getSy(getSizeY(size), baselineY)
+
+        // todo scale is correct, but the following y-offset calculation is not
+        val scale = baselineY / font.size
+
+        val sx = getSx(getSizeX(size), baselineY) * scale
+        val sy = getSy(getSizeY(size), baselineY) * scale
         val dx = getDx(sx, alignmentX)
         val y0 = getY0(sy, alignmentY)
         val y1 = getY1(y0, sy)

@@ -15,6 +15,13 @@ object Arrays {
     fun FloatArray?.resize(size: Int) =
         if (this == null || this.size != size) FloatArray(size) else this
 
+    fun IntArray.indexOf(element: Int, startIndex: Int): Int {
+        for (i in startIndex until size) {
+            if (this[i] == element) return i
+        }
+        return -1
+    }
+
     @JvmStatic
     fun LongArray.rotateRight(shift: Int) {
         val wrapAround = LongArray(shift)

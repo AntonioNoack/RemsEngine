@@ -63,13 +63,13 @@ class IntToIntHashMap(
 
     fun forEach(callback: IntIntCallback) {
         content.forEach { k, v ->
-            callback.callback(k.toInt(), v.toInt())
+            callback.call(k.toInt(), v.toInt())
         }
     }
 
     fun keysToHashSet() = content.keysToHashSet()
     fun forEachKey(callback: IntCallback) {
-        content.forEachKey { key -> callback.callback(key.toInt()) }
+        content.forEachKey { key -> callback.call(key.toInt()) }
     }
 
     fun removeIf(predicate: IntIntPredicate): Int =

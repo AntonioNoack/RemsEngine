@@ -15,7 +15,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
-import me.anno.fonts.signeddistfields.TextSDFGroup
+import me.anno.fonts.signeddistfields.SDFGlyphLayout
 import me.anno.gpu.FinalRendering.isFinalRendering
 import me.anno.gpu.FinalRendering.onMissingResource
 import me.anno.gpu.drawing.GFXx2D.getSizeX
@@ -60,10 +60,10 @@ class SDFTextComponent(
             onTextOrFontChange()
         }
 
-    // todo support this (?)
-    override var widthLimit: Float = -1f
+    override var relativeWidthLimit: Float = 0f
+    override var maxNumLines: Int = Int.MAX_VALUE
 
-    private var meshGroup: TextSDFGroup? = null
+    private var meshGroup: SDFGlyphLayout? = null
 
     override fun onTextOrFontChange() {
         meshGroup = null
@@ -93,8 +93,11 @@ class SDFTextComponent(
         dstUnion.union(global)
     }
 
-    private fun getOrCreateMeshGroup(): TextSDFGroup {
-        val meshGroup = meshGroup ?: TextSDFGroup(font, text, 0.0)
+    private fun getOrCreateMeshGroup(): SDFGlyphLayout {
+        val meshGroup = meshGroup ?: SDFGlyphLayout(
+            font, text,
+            relativeWidthLimit, maxNumLines
+        )
         this.meshGroup = meshGroup
         return meshGroup
     }
@@ -121,10 +124,10 @@ class SDFTextComponent(
             AxisAlignment.MIN -> -1f
             AxisAlignment.CENTER -> -0.5f
             else -> 0f
-        } * group.offsets.last().toFloat() / lineHeight
+        } * group.width / lineHeight
         val dy0 = baselineY / lineHeight - 1f
 
-        group.draw { _, sdfTexture, offset ->
+        group.draw { _, sdfTexture, offsetX0, offsetX1, offsetY, lineWidth ->
             val texture = sdfTexture?.texture
             if (texture is Texture2D && texture.wasCreated) {
 
@@ -142,8 +145,8 @@ class SDFTextComponent(
                 // todo this correction is needed, because dy0=baseline-correction isn't correct
                 val dy1 = if (alignmentY == TextAlignmentY.BASELINE) 0f else -0.08f
 
-                val dx = dx0 + dx1 + offset + sdfTexture.offset.x * sx
-                val dy = sdfTexture.offset.y * sy + when (alignmentY) {
+                val dx = dx0 + dx1 + offsetX0 + sdfTexture.offset.x * sx
+                val dy = sdfTexture.offset.y * sy + offsetY + when (alignmentY) {
                     TextAlignmentY.MIN -> dy0 - 0.5f
                     TextAlignmentY.CENTER -> dy0
                     TextAlignmentY.MAX -> dy0 + 0.5f
@@ -156,7 +159,7 @@ class SDFTextComponent(
 
                 callback(mesh, material, transform)
             } else if (texture is Texture2D && isFinalRendering) {
-                onMissingResource(className, offset)
+                onMissingResource(className, offsetX0)
                 true // quit loop
             } else false
         }
@@ -169,6 +172,7 @@ class SDFTextComponent(
         dst.font = font
         dst.alignmentX = alignmentX
         dst.alignmentY = alignmentY
-        dst.widthLimit = widthLimit
+        dst.relativeWidthLimit = relativeWidthLimit
+        dst.maxNumLines = maxNumLines
     }
 }

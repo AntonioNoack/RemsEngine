@@ -7,7 +7,7 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderState
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
-import me.anno.fonts.signeddistfields.TextSDFGroup
+import me.anno.fonts.signeddistfields.SDFGlyphLayout
 import me.anno.gpu.FinalRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.Perspective
@@ -58,7 +58,7 @@ class SignedDistanceFontsTests {
         val roundCorners = false
         val codepoint = 83
         Sleep.waitUntilDefined(true) {
-            val textSDF = TextSDFGroup.getTextSDF(font, codepoint, roundCorners)
+            val textSDF = SDFGlyphLayout.getTextSDF(font, codepoint, roundCorners)
             textSDF?.texture?.createdOrNull()
         }
     }

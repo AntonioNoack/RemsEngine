@@ -1,5 +1,6 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
+    <option name="AUTODETECT_INDENTS" value="false" />
     <JetCodeStyleSettings>
       <option name="PACKAGES_TO_USE_STAR_IMPORTS">
         <value>
@@ -14,7 +15,7 @@
     </JetCodeStyleSettings>
     <codeStyleSettings language="kotlin">
       <option name="CODE_STYLE_DEFAULTS" value="KOTLIN_OFFICIAL" />
-      <option name="KEEP_BLANK_LINES_BEFORE_RBRACE" value="0" />
+      <option name="KEEP_BLANK_LINES_BEFORE_RBRACE" value="1" />
     </codeStyleSettings>
   </code_scheme>
 </component>

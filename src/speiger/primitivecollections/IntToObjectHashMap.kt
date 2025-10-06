@@ -62,7 +62,7 @@ class IntToObjectHashMap<V>(
 
     fun forEach(callback: IntObjectCallback<V>) {
         content.forEach { k, v ->
-            callback.callback(k.toInt(), v)
+            callback.call(k.toInt(), v)
         }
     }
 
@@ -70,7 +70,7 @@ class IntToObjectHashMap<V>(
         content.removeIf { key, value -> predicate.test(key.toInt(), value) }
 
     fun forEachKey(callback: IntCallback) {
-        content.forEachKey { key -> callback.callback(key.toInt()) }
+        content.forEachKey { key -> callback.call(key.toInt()) }
     }
 
     fun keysToHashSet() = IntHashSet(content.keysToHashSet())

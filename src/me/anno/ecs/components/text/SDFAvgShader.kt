@@ -12,8 +12,10 @@ import me.anno.gpu.shader.builder.Variable
  * kills small details and corners, but the edges look better :)
  * */
 object SDFAvgShader : ECSMeshShader("SDF-AVG") {
+
     // todo the text is too small with small text sizes:
     //  before reading a value, we first need to blur the texture...
+
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return listOf(
             ShaderStage(
@@ -27,12 +29,22 @@ object SDFAvgShader : ECSMeshShader("SDF-AVG") {
                         discardByCullingPlane +
                         // step by step define all material properties
                         "vec2 duv = 0.5/textureSize(diffuseMap,0), duv1 = vec2(duv.x,-duv.y);\n" +
-                        "float sdf = texture(diffuseMap,uv+duv).x + texture(diffuseMap,uv+duv1).x +\n" +
-                        "            texture(diffuseMap,uv-duv).x + texture(diffuseMap,uv-duv1).x;\n" +
+                        "vec4 c0 = texture(diffuseMap,uv+duv);\n" +
+                        "vec4 c1 = texture(diffuseMap,uv+duv1);\n" +
+                        "vec4 c2 = texture(diffuseMap,uv-duv);\n" +
+                        "vec4 c3 = texture(diffuseMap,uv-duv1);\n" +
+                        "float sdf = c0.a + c1.a +\n" +
+                        "            c2.a + c3.a;\n" +
                         "finalAlpha = step(sdf,2.0);\n" +
                         "if(invertSDF) finalAlpha = 1.0 - finalAlpha;\n" +
                         "if(finalAlpha < 0.5) discard;\n" +
-                        "finalColor = vertexColor0.rgb * diffuseBase.rgb;\n" +
+
+                        "vec4 baseColor = c0;\n" +
+                        "if (c1.a > baseColor.a) baseColor = c1;\n" +
+                        "if (c2.a > baseColor.a) baseColor = c2;\n" +
+                        "if (c3.a > baseColor.a) baseColor = c3;\n" +
+
+                        "finalColor = baseColor.rgb/baseColor.a * diffuseBase.rgb;\n" +
                         normalTanBitanCalculation +
                         normalMapCalculation +
                         emissiveCalculation +

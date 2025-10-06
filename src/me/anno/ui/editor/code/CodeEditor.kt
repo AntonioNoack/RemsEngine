@@ -273,7 +273,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         bold: Boolean = false, italic: Boolean = false
     ) {
         val font = fonts[bold.toInt(1) + italic.toInt(2)]
-        val text = char.joinChars().toString()
+        val text = char.joinChars()
         drawText(
             getCharX(xi) + charWidth.shr(1), getCharY(yi),
             font, TextCacheKey(text, font),

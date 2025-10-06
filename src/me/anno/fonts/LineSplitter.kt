@@ -2,18 +2,16 @@ package me.anno.fonts
 
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.IEmojiCache.Companion.emojiPadding
-import me.anno.image.raw.IntImage
-import me.anno.utils.assertions.assertTrue
+import me.anno.gpu.GFX
 import me.anno.utils.structures.lists.LazyList
+import me.anno.utils.types.Arrays.indexOf
 import me.anno.utils.types.Floats.roundToIntOr
-import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.incrementTab
-import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.isBlank
 import me.anno.utils.types.Strings.joinChars
-import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.round
 
 /**
  * Splits long text into multiple lines if required, and uses fallback fonts where necessary.
@@ -21,13 +19,23 @@ import kotlin.math.round
 abstract class LineSplitter<FontImpl : TextGenerator> {
 
     companion object {
-
         private val splittingOrder: List<Collection<Int>> = listOf(
             listOf(' '.code),
             listOf('-'.code),
             "/\\:-*?=&|!#".map { it.code },
             listOf(','.code, '.'.code)
         )
+
+        fun widthLimitToRelative(widthLimit: Int, fontSize: Float): Float {
+            return if (widthLimit in 1 until GFX.maxTextureSize) {
+                widthLimit / fontSize
+            } else 0f
+        }
+
+        fun heightLimitToMaxNumLines(heightLimit: Int, fontSize: Float): Int {
+            if (heightLimit <= 0) return Int.MAX_VALUE
+            return (heightLimit / (fontSize + FontManager.spaceBetweenLines(fontSize))).roundToIntOr()
+        }
     }
 
     abstract fun getAdvance(text: CharSequence, font: FontImpl): Float
@@ -91,76 +99,88 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
 
     private fun splitLine(
         fonts: List<FontImpl>,
-        line: String,
+        codepoints: IntArray,
+        startIndex: Int,
+        endIndex: Int,
         fontSize: Float,
         relativeTabSize: Float,
         relativeCharSpacing: Float,
-        lineBreakWidth: Float
-    ): PartResult {
+        relativeWidthLimit: Float,
+        result: PartResult,
+    ) {
 
-        val hasAutomaticLineBreak = lineBreakWidth > 0f
-        val parts = ArrayList<StringPart>()
+        val widthLimit = relativeWidthLimit * fontSize
+        val hasAutomaticLineBreak = widthLimit > 0f
+        val parts = result.parts
         val tabSize = getExampleAdvance() * relativeTabSize
         val charSpacing = fontSize * relativeCharSpacing
         var totalWidth = 0f
         var currentX = 0f
-        var totalHeight = 0f
+        var totalHeight = result.height
         val fontHeight = getActualFontHeight()
-        var startResultIndex = 0
+        var startOfLine = parts.size
 
-        val chars = line.codepoints()
-        var index0 = 0
-        var index1 = 0
+        var index0 = startIndex
+        var index1 = index0
+
         var lastSupportLevel = 0
+        var numLines = result.numLines
 
         lateinit var nextLine: () -> Unit
 
         fun nextLineImpl() {
             val lineWidth = max(0f, currentX - charSpacing)
             totalWidth = max(totalWidth, lineWidth)
-            for (i in startResultIndex until parts.size) {
+            for (i in startOfLine until parts.size) {
                 parts[i].lineWidth = lineWidth
             }
             @Suppress("AssignedValueIsNeverRead") // Intellij is broken
-            startResultIndex = parts.size
+            startOfLine = parts.size
             totalHeight += fontHeight
+            numLines++
             currentX = 0f
         }
 
         fun display() {
-            while (true) {
-                if (index1 > index0) {
+            while (index0 < index1) {
+                val advance = if (Codepoints.isEmoji(codepoints[index0])) {
+                    floor(fontSize * (1f + emojiPadding))
+                } else {
                     val font = fonts[lastSupportLevel]
-                    val filtered = chars.joinChars(index0, index1) {
-                        it !in 0xfe00..0xfe0f // Emoji variations; having no width, even if Java thinks so
-                    }
-                    val advance = if (filtered.isNotEmpty()) getAdvance(filtered, font) else 0f
-                    // if multiple chars and advance > lineWidth, then break line
-                    val numChars = index1 - index0
-                    val nextX = currentX + advance + numChars * charSpacing
-                    if (hasAutomaticLineBreak && numChars == 1 && currentX > 0f && nextX > lineBreakWidth) {
+                    val filtered = codepoints.joinChars(index0, index1)
+                    getAdvance(filtered, font)
+                }
 
-                        nextLineImpl()
-                        // just go to the next line
-                    } else if (hasAutomaticLineBreak && numChars > 1 && currentX > 0f && nextX > lineBreakWidth) {
-                        val tmp1 = index1
-                        val splitIndex = findSplitIndex(chars, index0, index1, charSpacing, lineBreakWidth, currentX)
-                        index1 = splitIndex
-                        if (index1 > index0 && chars[index1 - 1] == ' '.code && chars[index1 - 2] != ' '.code) index1-- // cut off last space
+                // if multiple chars and advance > lineWidth, then break line
+                val numChars = index1 - index0
+                val nextX = currentX + advance + numChars * charSpacing
+                if (hasAutomaticLineBreak && numChars == 1 && currentX > 0f && nextX > widthLimit) {
+                    nextLineImpl()
+                    // just go to the next line, no splitting necessary
+                } else if (hasAutomaticLineBreak && numChars > 1 && currentX > 0f && nextX > widthLimit) {
+                    val index1Backup = index1
+                    val splitIndex = findSplitIndex(codepoints, index0, index1, charSpacing, widthLimit, currentX)
+                    index1 = splitIndex
+                    if (index1 > index0 && codepoints[index1 - 1] == ' '.code && codepoints[index1 - 2] != ' '.code) index1-- // cut off last space
 
-                        nextLine()
+                    nextLine()
 
-                        index0 = splitIndex
-                        if (index1 == splitIndex && chars[index0] == ' '.code) index0++ // cut off first space
-                        index1 = tmp1
-                    } else {
-                        parts += StringPart(currentX, totalHeight, font, chars.joinChars(index0, index1), 0f, null)
-                        currentX = nextX
-                        totalWidth = max(totalWidth, currentX)
-                        index0 = index1
-                        break
-                    }
-                } else break
+                    index0 = splitIndex
+                    if (index1 == splitIndex && codepoints[index0] == ' '.code) index0++ // cut off first space
+                    index1 = index1Backup
+                } else {
+                    if (nextX > currentX) {
+                        val font = fonts[lastSupportLevel]
+                        parts += StringPart.fromChars(
+                            currentX, totalHeight, font, 0f,
+                            codepoints, index0, index1, numLines
+                        )
+                    } // else just spaces, e.g. spaces with heart
+                    currentX = nextX
+                    totalWidth = max(totalWidth, currentX)
+                    index0 = index1
+                    break
+                }
             }
         }
 
@@ -169,124 +189,93 @@ abstract class LineSplitter<FontImpl : TextGenerator> {
             nextLineImpl()
         }
 
-        val emojiCache = IEmojiCache.emojiCache
-        while (index1 < chars.size) {
-            val char = chars[index1]
-            if (char == '\t'.code) {
+        while (index1 < endIndex) {
+            val codepoint = codepoints[index1]
+            if (codepoint == '\t'.code) {
 
                 display()
 
                 index0++ // skip \t too
                 currentX = incrementTab(currentX, tabSize, relativeTabSize)
                 index1++
+
+            } else if (Codepoints.isEmoji(codepoint)) {
+
+                display() // show everything before the emoji
+                index1++ // advance cursor to emoji
+
+                display() // display emoji
+
             } else {
-                val isEmoji = emojiCache.contains(char)
-                if (isEmoji) {
-
+                val supportLevel = getSupportLevel(fonts, codepoint, lastSupportLevel)
+                if (supportLevel != lastSupportLevel) {
                     display()
-
-                    val emojiList = ArrayList<Int>(8)
-                    emojiList.add(char)
-
-                    assertTrue(emojiCache.contains(emojiList)) {
-                        "EmojiCache contains $char, but does not contain $emojiList"
-                    }
-
-                    while (emojiCache.contains(emojiList)) {
-                        emojiList.add(if (index1 + 1 < chars.size) chars[++index1] else -1)
-                    }
-                    emojiList.removeLast()
-
-                    val emojiImage = emojiCache.getEmojiImage(emojiList, fontSize.toIntOr())
-                        .waitFor() ?: IntImage(1, 1, false)
-
-                    val padding = round(emojiPadding * emojiImage.height).toIntOr()
-                    currentX = ceil(currentX + padding)
-
-                    val emojiSize = emojiImage.width
-                    var nextX = currentX + (emojiSize + padding)
-
-                    if (hasAutomaticLineBreak && nextX > lineBreakWidth) {
-                        nextLineImpl()
-                        nextX = (emojiSize + padding).toFloat()
-                    }
-
-                    val font = fonts[0]
-                    parts += StringPart(
-                        currentX,
-                        totalHeight + 0.33f * fontSize,
-                        font, chars.joinChars(index0, index1), 0f, emojiImage
-                    )
-
-                    currentX = nextX
-                    totalWidth = max(totalWidth, currentX)
-                    index0 = index1// skip to current place
-                    index1++
-
-                    lastSupportLevel = 0
-                } else {
-
-                    val supportLevel = getSupportLevel(fonts, char, lastSupportLevel)
-                    if (supportLevel != lastSupportLevel) {
-                        display()
-                        lastSupportLevel = supportLevel
-                    }
-
-                    index1++
+                    lastSupportLevel = supportLevel
                 }
+
+                index1++
             }
         }
         nextLine()
 
-        val lineCount = max((totalHeight / fontHeight).roundToIntOr(), 1)
-        return PartResult(parts, totalWidth, totalHeight, lineCount)
+        result.width = totalWidth
+        result.height = totalHeight
+        result.numLines = numLines
     }
 
-    // used in Rem's Studio
     fun splitParts(
         text: CharSequence,
         fontSize: Float,
         relativeTabSize: Float,
         relativeCharSpacing: Float,
-        lineBreakWidth: Float,
-        textBreakHeight: Float
+        relativeWidthLimit: Float,
+        maxNumLines: Int
     ): PartResult {
 
-        val fallback = getFallbackFonts(fontSize)
-        val fonts = ArrayList<FontImpl>(fallback.size + 1)
-
-        fonts.add(getSelfFont())
-        fonts.addAll(fallback)
-
-        val lineCountLimit = if (textBreakHeight < 0f) Int.MAX_VALUE
-        else (textBreakHeight / (fontSize + FontManager.spaceBetweenLines(fontSize))).roundToIntOr()
-
-        var lines = text.split('\n')
-        if (lines.size > lineCountLimit) lines = lines.subList(0, lineCountLimit)
-
-        val splitLines = lines.map {
-            if (it.isBlank2()) null
-            else splitLine(fonts, it, fontSize, relativeTabSize, relativeCharSpacing, lineBreakWidth)
-        }
-
-        val width = splitLines.maxByOrNull { it?.width ?: 0f }?.width ?: 0f
+        val fonts = joinFonts(fontSize)
+        val codepoints = text.codepoints()
         val actualFontSize = getActualFontHeight()
 
-        var lineCount = 0
-        val parts = ArrayList<StringPart>(splitLines.sumOf { it?.parts?.size ?: 0 })
-        for (i in splitLines.indices) {
-            val partResult = splitLines[i]
-            lineCount += if (partResult != null) {
-                if (lineCount == 0) {
-                    parts.addAll(partResult.parts)
-                } else {
-                    val offsetY = actualFontSize * lineCount
-                    parts.addAll(partResult.parts.map { it.plus(offsetY) })
+        val result = PartResult(ArrayList(), actualFontSize, 0f, 0f, 0)
+
+        var i0 = 0
+        while (i0 < codepoints.size) {
+            var i1 = codepoints.indexOf('\n'.code, i0)
+            if (i1 == -1) i1 = codepoints.size
+
+            if ((i0 until i1).all { codepoints[it].isBlank() }) {
+
+                result.numLines++
+                result.height += actualFontSize
+                if (result.numLines >= maxNumLines) break
+
+            } else {
+
+                val endIndex = if (i1 > 0 && codepoints[i1 - 1] == '\r'.code) i1 - 1 else i1
+                splitLine(
+                    fonts, codepoints, i0, endIndex, fontSize,
+                    relativeTabSize, relativeCharSpacing, relativeWidthLimit, result
+                )
+
+                if (result.numLines >= maxNumLines) {
+                    result.parts.removeIf { it.lineIndex >= maxNumLines }
+                    break
                 }
-                partResult.lineCount
-            } else 1
+            }
+
+            i0 = i1 + 1 // skip \n
         }
-        val height = lineCount * actualFontSize
-        return PartResult(parts, width, height, lineCount)
+
+        return result
+    }
+
+    fun joinFonts(fontSize: Float): List<FontImpl> {
+        val fallback = getFallbackFonts(fontSize)
+        if (fallback.isEmpty()) return listOf(getSelfFont())
+
+        val fonts = ArrayList<FontImpl>(fallback.size + 1)
+        fonts.add(getSelfFont())
+        fonts.addAll(fallback)
+        return fonts
     }
 }

@@ -1,6 +1,7 @@
 package me.anno.fonts.mesh
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.fonts.Codepoints.isEmoji
 import me.anno.fonts.Font
 import me.anno.fonts.FontStats.getTextLength
 import me.anno.fonts.IEmojiCache
@@ -28,7 +29,7 @@ class CharacterOffsetCache(val font: Font) {
     /**
      * get |AB| - |B| aka, the length of A when standing before B
      * */
-    fun getOffset(charA: Int, charB: Int): Double {
+    fun getOffset(charA: Int, charB: Int): Float {
 
         fun getLength(str: String): Double {
             if (str.isEmpty()) return 0.0
@@ -60,15 +61,11 @@ class CharacterOffsetCache(val font: Font) {
                         abLength - bLength
                     }
                 }
-            }
+            }.toFloat()
         }
     }
 
     companion object {
-
-        private fun isEmoji(codepoint: Int): Boolean {
-            return IEmojiCache.emojiCache.contains(codepoint)
-        }
 
         private val caches = HashMap<Font, CharacterOffsetCache>()
         fun getOffsetCache(font: Font): CharacterOffsetCache {

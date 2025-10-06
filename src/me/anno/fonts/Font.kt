@@ -6,13 +6,21 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.saveable.Saveable
+import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.Floats.roundToIntOr
 
-class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Saveable() {
+class Font(
+    name: String, size: Float,
+    isBold: Boolean, isItalic: Boolean,
+    relativeTabSize: Float, relativeCharSpacing: Float
+) : Saveable() {
 
     constructor() : this("Verdana", 24, false, false)
     constructor(name: String, size: Int) : this(name, size, isBold = false, isItalic = false)
     constructor(name: String, size: Float) : this(name, size, isBold = false, isItalic = false)
+    constructor(name: String, size: Float, isBold: Boolean, isItalic: Boolean) :
+            this(name, size, isBold, isItalic, 4f, 0f)
+
     constructor(source: FileReference, size: Int) : this(source.absolutePath, size)
     constructor(source: FileReference, size: Float) : this(source.absolutePath, size)
 
@@ -57,6 +65,25 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
             }
         }
 
+    // no influence on sample
+    /**
+     * How many spaces each tab shall be, typically 2, 4 or 8.
+     * The default shall be 4f
+     * */
+    var relativeTabSize: Float = relativeTabSize
+
+    /**
+     * Extra space between the characters, relative to font.size;
+     * 0f is the default, > 0 means the characters are farther from each other and < 0 means they are closer together
+     * */
+    var relativeCharSpacing: Float = relativeCharSpacing
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidate()
+            }
+        }
+
     val sizeInt get() = size.roundToIntOr()
     val sizeIndex get() = FontManager.getFontSizeIndex(size)
 
@@ -92,7 +119,8 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
     }
 
     override fun toString() =
-        "$name $size${if (isBold) if (isItalic) " bold italic" else " bold" else if (isItalic) " italic" else ""}"
+        "$name $size${if (isBold) if (isItalic) " bold italic" else " bold" else if (isItalic) " italic" else ""}" +
+                (", $relativeTabSize tabs, $relativeCharSpacing sp")
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -100,14 +128,18 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
         writer.writeFloat("size", size)
         writer.writeBoolean("isBold", isBold)
         writer.writeBoolean("isItalic", isItalic)
+        writer.writeFloat("charSpacing", relativeCharSpacing)
+        writer.writeFloat("tabSize", relativeTabSize)
     }
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "name" -> this.name = value as? String ?: return
-            "size" -> size = value as? Float ?: return
+            "name" -> this.name = value.toString()
+            "size" -> size = getFloat(value)
             "isBold" -> isBold = value == true
             "isItalic" -> isItalic = value == true
+            "charSpacing" -> relativeCharSpacing = getFloat(value)
+            "tabSize" -> relativeTabSize = getFloat(value)
             else -> super.setProperty(name, value)
         }
     }

@@ -16,7 +16,17 @@ interface TextComponent {
     var alignmentX: AxisAlignment
     var alignmentY: TextAlignmentY
 
-    var widthLimit: Float
+    /**
+     * How wide the text may be, relative to font.size;
+     * 0f is the default and <= 0 means unlimited.
+     * */
+    var relativeWidthLimit: Float
+
+    /**
+     * Maximum number of lines, typically 1 or Int.MAX_INT;
+     * The default shall be Int.MAX_INT
+     * */
+    var maxNumLines: Int
 
     fun onTextOrFontChange()
 

@@ -2,10 +2,13 @@ package me.anno.gpu.drawing
 
 import me.anno.cache.AsyncCacheData
 import me.anno.config.DefaultConfig
+import me.anno.fonts.Codepoints
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
-import me.anno.fonts.TextGroup
+import me.anno.fonts.GlyphLayout
+import me.anno.fonts.LineSplitter.Companion.heightLimitToMaxNumLines
+import me.anno.fonts.LineSplitter.Companion.widthLimitToRelative
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -258,8 +261,12 @@ object DrawTexts {
             val textWidth = charWidth * text.length
             getSize(textWidth, font.sizeInt)
         } else {
-            val group = TextGroup(font, text, 0.0)
-            val textWidth = group.offsets.last().roundToIntOr()
+            val parts = FontManager.getFont(font).splitParts(
+                text, font.size,
+                font.relativeTabSize, font.relativeCharSpacing,
+                0f, Int.MAX_VALUE
+            )
+            val textWidth = parts.width.roundToIntOr()
             getSize(textWidth, font.sizeInt)
         }
     }
@@ -313,7 +320,7 @@ object DrawTexts {
 
             fun getTexture(char: Int): ITexture2D? {
                 return if (char > 0xffff || !char.toChar().isWhitespace()) {
-                    val txt = char.joinChars().toString()
+                    val txt = char.joinChars()
                     FontManager.getTexture(font, txt, -1, -1).waitFor()
                 } else null
             }
@@ -357,23 +364,28 @@ object DrawTexts {
             return getSize(fx - (x + dx), font.sizeInt)
         } else {
 
-            val group = TextGroup(font, text, 0.0)
+            val layout = GlyphLayout(
+                font, text,
+                widthLimitToRelative(widthLimit, font.size),
+                heightLimitToMaxNumLines(heightLimit, font.size)
+            )
 
-            val textWidth = group.offsets.last().roundToIntOr()
+            val textWidth = layout.width.roundToIntOr()
 
             val dxi = getOffset(textWidth, alignX)
             val dyi = getOffset(font.sampleHeight, alignY)
 
             GFX.loadTexturesSync.push(true)
 
-            var index = 0
-            val offsets = group.offsets
             val y2 = y + dyi
-            for (char in text.codepoints()) {
-                if (char > 0xffff || !char.toChar().isWhitespace()) {
-                    val txt = char.joinChars()
-                    val o0 = offsets[index++].toInt()
-                    val o1 = offsets[index].toInt()
+            for (index in layout.indices) {
+                val codepoint = layout.getCodepoint(index)
+                if (Codepoints.isEmoji(codepoint)) {
+                    // todo draw emoji by ID
+                } else if (codepoint > 0xffff || !codepoint.toChar().isWhitespace()) {
+                    val txt = codepoint.joinChars()
+                    val o0 = layout.getX0(index).toInt()
+                    val o1 = layout.getX1(index).toInt()
                     val fx = x + dxi + o0
                     val w = o1 - o0
                     val texture = FontManager.getTexture(font, txt, -1, -1)
@@ -383,7 +395,7 @@ object DrawTexts {
                         val x2 = fx + (w - texture.width).shr(1)
                         draw(shader, texture, x2, y2, txt, false)
                     }
-                } else index++
+                }
             }
             if (shader is ComputeShader) {
                 glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
@@ -474,18 +486,16 @@ object DrawTexts {
         } else {
 
             val text = key.text
-            val offsets = TextGroup(font, text, 0.0).offsets
+            val layout = GlyphLayout(font, text, 0f, Int.MAX_VALUE)
 
-            val textWidth = offsets.last()
-
-            val wx = textWidth.roundToIntOr()
+            val wx = layout.width.roundToIntOr()
             val dxi = getOffset(wx, alignX)
             val dyi = getOffset(font.sampleHeight, alignY)
 
             val y2 = y + dyi
 
-            val o0 = offsets[0].toInt()
-            val o1 = offsets[1].toInt()
+            val o0 = layout.getX0(0).toInt()
+            val o1 = layout.getX1(0).toInt()
             val fx = x + dxi + o0
             val w = o1 - o0
 

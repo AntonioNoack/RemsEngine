@@ -108,10 +108,10 @@ class LongToLongHashMap : LongToHashMap<LongArray> {
     }
 
     fun forEach(callback: LongLongCallback) {
-        if (containsNull) callback.callback(0L, values[nullIndex])
+        if (containsNull) callback.call(0L, values[nullIndex])
         for (i in nullIndex - 1 downTo 0) {
             val key = keys[i]
-            if (key != 0L) callback.callback(key, values[i])
+            if (key != 0L) callback.call(key, values[i])
         }
     }
 

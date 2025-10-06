@@ -21,7 +21,7 @@ import kotlin.math.min
  * generates a fallback font when other text sources are unavailable using a pre-generated texture;
  * a little blurry, but much better readable than the generator, which only uses lines
  * */
-class AtlasFontGenerator(override val fontKey: FontKey) : TextGenerator {
+class AtlasFontGenerator(override val fontKey: FontKey) : FontImpl<AtlasFontGenerator>() {
 
     companion object {
         private const val NUM_TILES_X = 16
@@ -122,4 +122,19 @@ class AtlasFontGenerator(override val fontKey: FontKey) : TextGenerator {
             } else callback.err(err)
         }
     }
+
+    override fun getAdvance(text: CharSequence, font: AtlasFontGenerator): Float {
+        return calculateSize(text, -1, -1).toFloat()
+    }
+
+    override fun getExampleAdvance(): Float {
+        return getAdvance("o", this)
+    }
+
+    override fun getSelfFont(): AtlasFontGenerator = this
+    override fun getFallbackFonts(size: Float): List<AtlasFontGenerator> = emptyList()
+    override fun getSupportLevel(
+        fonts: List<AtlasFontGenerator>, char: Int,
+        lastSupportLevel: Int
+    ): Int = 0
 }

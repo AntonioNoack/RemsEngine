@@ -106,11 +106,11 @@ class ObjectToLongHashMap<K> : ObjectToHashMap<K, LongArray> {
 
     fun forEach(callback: ObjectLongCallback<K>) {
         @Suppress("UNCHECKED_CAST")
-        if (containsNull) callback.callback(null as K, values[nullIndex])
+        if (containsNull) callback.call(null as K, values[nullIndex])
         for (i in nullIndex - 1 downTo 0) {
             val key = keys[i]
             @Suppress("UNCHECKED_CAST")
-            if (key != null) callback.callback(key as K, values[i])
+            if (key != null) callback.call(key as K, values[i])
         }
     }
 

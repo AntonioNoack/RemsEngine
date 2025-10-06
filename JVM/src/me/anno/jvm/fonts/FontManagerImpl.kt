@@ -1,12 +1,12 @@
 package me.anno.jvm.fonts
 
 import me.anno.fonts.Codepoints.codepoints
+import me.anno.fonts.FontImpl
 import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
 import me.anno.fonts.FontManager.getFontSizeIndex
 import me.anno.fonts.FontStats
 import me.anno.fonts.IEmojiCache
-import me.anno.fonts.TextGenerator
 import me.anno.fonts.keys.FontKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
@@ -40,7 +40,7 @@ object FontManagerImpl {
         return Maths.clamp(Toolkit.getDefaultToolkit().screenSize.height / 72, 15, 60)
     }
 
-    private fun getTextGenerator(key: FontKey): TextGenerator {
+    private fun getTextGenerator(key: FontKey): FontImpl<*> {
         return AWTFont(key, getAWTFont(key))
     }
 
@@ -74,8 +74,10 @@ object FontManagerImpl {
         val ctx = FontRenderContext(null, true, true)
 
         val codepoints = text.codepoints().asList()
-        val image = IEmojiCache.emojiCache.getEmojiImage(codepoints, font.sizeInt).waitFor()
-        if (image != null) return image.width.toDouble() // do we need padding??
+        val emojiCache = IEmojiCache.emojiCache
+        if (emojiCache.getEmojiId(codepoints) >= 0) {
+            return font.sizeInt.toDouble() // do we need padding???
+        }
 
         return TextLayout(text, awtFont, ctx).bounds.maxX
     }

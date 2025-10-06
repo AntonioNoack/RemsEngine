@@ -161,10 +161,10 @@ abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
     }
 
     fun forEachKey(callback: LongCallback) {
-        if (containsNull) callback.callback(0L)
+        if (containsNull) callback.call(0L)
         for (i in nullIndex - 1 downTo 0) {
             val key = keys[i]
-            if (key != 0L) callback.callback(key)
+            if (key != 0L) callback.call(key)
         }
     }
 

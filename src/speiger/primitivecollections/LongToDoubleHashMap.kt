@@ -62,7 +62,7 @@ class LongToDoubleHashMap(
 
     fun forEach(callback: LongDoubleCallback) {
         content.forEach { k, v ->
-            callback.callback(k, Double.fromBits(v))
+            callback.call(k, Double.fromBits(v))
         }
     }
 

@@ -249,7 +249,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
                     res.append(cp.toChar())
                 } else {
                     try {
-                        val b = cp.joinChars().toString().encodeToByteArray()
+                        val b = cp.joinChars().encodeToByteArray()
                         for (j in b.indices) {
                             res.append('%')
                             res.append(hex4(b[j].toInt().shr(4)))

@@ -41,7 +41,7 @@ abstract class TextComponentImpl(
         }
 
     @SerializedProperty
-    override var alignmentX = alignmentX
+    override var alignmentX: AxisAlignment = alignmentX
         set(value) {
             if (field != value) {
                 field = value
@@ -50,7 +50,7 @@ abstract class TextComponentImpl(
         }
 
     @SerializedProperty
-    override var alignmentY = alignmentY
+    override var alignmentY: TextAlignmentY = alignmentY
         set(value) {
             if (field != value) {
                 field = value
@@ -59,7 +59,16 @@ abstract class TextComponentImpl(
         }
 
     @SerializedProperty
-    override var widthLimit = widthLimit
+    override var relativeWidthLimit = widthLimit
+        set(value) {
+            if (field != value) {
+                field = value
+                onTextOrFontChange()
+            }
+        }
+
+    @SerializedProperty
+    override var maxNumLines: Int = Int.MAX_VALUE
         set(value) {
             if (field != value) {
                 field = value
@@ -78,6 +87,7 @@ abstract class TextComponentImpl(
         dst.font = font
         dst.alignmentX = alignmentX
         dst.alignmentY = alignmentY
-        dst.widthLimit = widthLimit
+        dst.relativeWidthLimit = relativeWidthLimit
+        dst.maxNumLines = maxNumLines
     }
 }

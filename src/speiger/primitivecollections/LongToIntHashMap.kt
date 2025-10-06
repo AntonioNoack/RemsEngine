@@ -62,7 +62,7 @@ class LongToIntHashMap(
 
     fun forEach(callback: LongIntCallback) {
         content.forEach { k, v ->
-            callback.callback(k, v.toInt())
+            callback.call(k, v.toInt())
         }
     }
 

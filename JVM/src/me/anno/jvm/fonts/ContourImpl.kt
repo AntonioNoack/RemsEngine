@@ -1,5 +1,6 @@
 package me.anno.jvm.fonts
 
+import me.anno.fonts.Codepoints
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.FontManager
 import me.anno.fonts.IEmojiCache
@@ -33,10 +34,11 @@ object ContourImpl {
     }
 
     private fun getEmojiContours(font: me.anno.fonts.Font, text: CharSequence): Contours? {
-        val emojiCache = IEmojiCache.emojiCache
         val codepoints = text.codepoints()
-        val cacheKey = codepoints.asList()
-        return emojiCache.getEmojiContour(cacheKey, font.sizeInt).waitFor()
+        return if (codepoints.size == 1 && Codepoints.isEmoji(codepoints[0])) {
+            val emojiId = Codepoints.getEmojiId(codepoints[0])
+            IEmojiCache.emojiCache.getEmojiContour(emojiId, font.sizeInt).waitFor()
+        } else null
     }
 
     private fun calculateContours(font: Font, text: CharSequence): Contours {

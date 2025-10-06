@@ -8,26 +8,40 @@ import me.anno.image.Image
 interface IEmojiCache {
 
     fun contains(codepoint: Int): Boolean
-    fun contains(codepoints: List<Int>): Boolean
+    fun contains(codepoints: List<Int>): Boolean = getEmojiId(codepoints) >= 0
+    fun getEmojiId(codepoints: List<Int>): Int
 
-    fun getEmojiImage(codepoints: List<Int>, fontSize: Int): AsyncCacheData<Image>
-    fun getEmojiContour(codepoints: List<Int>, fontSize: Int): AsyncCacheData<Contours>
-    fun getEmojiMesh(codepoints: List<Int>): AsyncCacheData<Mesh>
+    fun getEmojiImage(emojiId: Int, fontSize: Int): AsyncCacheData<Image>
+    fun getEmojiContour(emojiId: Int, fontSize: Int): AsyncCacheData<Contours>
+    fun getEmojiMesh(emojiId: Int): AsyncCacheData<Mesh>
+
+    fun isKeycapEmoji(cp0: Int, cp1: Int): Boolean {
+        return (cp0 in '0'.code..'9'.code || cp0.toChar() in "*#") &&
+                cp1 == KEYCAP_EMOJI &&
+                contains(listOf(cp0, KEYCAP_EMOJI))
+    }
+
+    fun emojiToString(emojiId: Int): String
 
     companion object {
+
+        private const val KEYCAP_EMOJI = 0x20E3
 
         val emojiPadding = 0.1f
 
         object NoEmojiSupport : IEmojiCache {
             override fun contains(codepoint: Int): Boolean = false
             override fun contains(codepoints: List<Int>): Boolean = false
-            override fun getEmojiImage(codepoints: List<Int>, fontSize: Int): AsyncCacheData<Image> =
+            override fun getEmojiId(codepoints: List<Int>): Int = -1
+            override fun emojiToString(emojiId: Int): String = "?"
+
+            override fun getEmojiImage(emojiId: Int, fontSize: Int): AsyncCacheData<Image> =
                 AsyncCacheData.empty()
 
-            override fun getEmojiContour(codepoints: List<Int>, fontSize: Int): AsyncCacheData<Contours> =
+            override fun getEmojiContour(emojiId: Int, fontSize: Int): AsyncCacheData<Contours> =
                 AsyncCacheData.empty()
 
-            override fun getEmojiMesh(codepoints: List<Int>): AsyncCacheData<Mesh> =
+            override fun getEmojiMesh(emojiId: Int): AsyncCacheData<Mesh> =
                 AsyncCacheData.empty()
         }
 

@@ -100,12 +100,12 @@ class LongToObjectHashMap<V> : LongToHashMap<Array<V?>> {
 
     fun forEach(callback: LongObjectCallback<V>) {
         @Suppress("UNCHECKED_CAST")
-        if (containsNull) callback.callback(0L, values[nullIndex] as V)
+        if (containsNull) callback.call(0L, values[nullIndex] as V)
 
         for (i in nullIndex - 1 downTo 0) {
             val key = keys[i]
             @Suppress("UNCHECKED_CAST")
-            if (key != 0L) callback.callback(key, values[i] as V)
+            if (key != 0L) callback.call(key, values[i] as V)
         }
     }
 

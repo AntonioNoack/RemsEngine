@@ -2,10 +2,13 @@ package me.anno.fonts.mesh
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
+import me.anno.fonts.DrawBufferCallback
 import me.anno.fonts.Font
 import me.anno.fonts.TextDrawable
+import me.anno.fonts.signeddistfields.Contour
 import me.anno.fonts.signeddistfields.Contour.Companion.calculateContours
 import me.anno.fonts.signeddistfields.edges.CubicSegment
+import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.fonts.signeddistfields.edges.QuadraticSegment
 import me.anno.gpu.buffer.Attribute
@@ -20,41 +23,16 @@ import org.joml.Vector2f
 import kotlin.math.abs
 import kotlin.math.max
 
-class TextMesh(val font: Font, val text: String) : TextDrawable() {
+class TextMesh(val font: Font, val text: String) : TextDrawable {
 
     val mesh = Mesh()
+    override val bounds = AABBf()
 
     init {
 
-        // was 30 before it had O(x²) complexity ;)
-        val quadAccuracy = 5f
-        val cubicAccuracy = 5f
-
         val contours0 = calculateContours(font, text)
-        val contours = contours0.contours
-        val fragments = ArrayList(contours.map { contour ->
-            val points = ArrayList<Vector2f>()
-            for (seg in contour.segments) {
-                val steps = when (seg) {
-                    is QuadraticSegment -> {
-                        val length = seg.p0.distance(seg.p1) + seg.p1.distance(seg.p2)
-                        max(2, (quadAccuracy * length).roundToIntOr())
-                    }
-                    is CubicSegment -> {
-                        val length = seg.p0.distance(seg.p1) + seg.p1.distance(seg.p2) + seg.p2.distance(seg.p3)
-                        max(3, (cubicAccuracy * length).roundToIntOr())
-                    }
-                    is LinearSegment -> 1
-                    else -> throw NotImplementedError()
-                }
-                for (i in 0 until steps) {
-                    points.add(seg.getPointAt(i.toFloat() / steps, Vector2f()))
-                }
-            }
-            // y is mirrored, because y is up, not down in our 3D coordinate system
-            for (point in points) {
-                point.y = -point.y
-            }
+        val fragments = ArrayList(contours0.contours.map { contour ->
+            val points = contourToPoints(contour)
             Fragment(points, contour.z, contour.color)
         })
 
@@ -98,6 +76,36 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
 
         bounds.minX += 0.5f
         bounds.maxX += 0.5f
+    }
+
+    private fun calculateNumSteps(seg: EdgeSegment): Int {
+        return when (seg) {
+            is QuadraticSegment -> {
+                val length = seg.p0.distance(seg.p1) + seg.p1.distance(seg.p2)
+                max(2, (quadAccuracy * length).roundToIntOr())
+            }
+            is CubicSegment -> {
+                val length = seg.p0.distance(seg.p1) + seg.p1.distance(seg.p2) + seg.p2.distance(seg.p3)
+                max(3, (cubicAccuracy * length).roundToIntOr())
+            }
+            is LinearSegment -> 1
+            else -> throw NotImplementedError()
+        }
+    }
+
+    private fun contourToPoints(contour: Contour): ArrayList<Vector2f> {
+        val points = ArrayList<Vector2f>()
+        for (seg in contour.segments) {
+            val steps = calculateNumSteps(seg)
+            for (i in 0 until steps) {
+                points.add(seg.getPointAt(i.toFloat() / steps, Vector2f()))
+            }
+        }
+        // y is mirrored, because y is up, not down in our 3D coordinate system
+        for (point in points) {
+            point.y = -point.y
+        }
+        return points
     }
 
     private fun removeInnerFragments(fragments: MutableList<Fragment>): List<Fragment> {
@@ -164,8 +172,23 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
 
         fun boundsContain(v: Vector2f) = bounds.testPoint(v.x, v.y, 0f)
     }
+    /**
+     * start- and endIndex are not supported,
+     * as this class is only used for generating the meshes
+     * */
+    override fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback) {
+        drawBuffer.draw(mesh, null, 0f, 0f, 0f, bounds.deltaX)
+    }
+
+    override fun destroy() {
+        mesh.destroy()
+    }
 
     companion object {
+
+        // was 30 before it had O(x²) complexity ;)
+        val quadAccuracy = 5f
+        val cubicAccuracy = 5f
 
         val attributes = listOf(
             Attribute("positions", 2)
@@ -224,17 +247,5 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
             }
             return abs(areaSum * 0.5f)
         }
-    }
-
-    /**
-     * start- and endIndex are not supported,
-     * as this class is only used for generating the meshes
-     * */
-    override fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback) {
-        drawBuffer.draw(mesh, null, 0f)
-    }
-
-    override fun destroy() {
-        mesh.destroy()
     }
 }

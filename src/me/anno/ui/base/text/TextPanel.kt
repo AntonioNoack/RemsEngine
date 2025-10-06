@@ -16,7 +16,6 @@ import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.DrawTexts.getTextSizeCharByChar
 import me.anno.gpu.drawing.DrawTexts.getTextSizeOr
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
-import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.io.base.BaseWriter
@@ -170,10 +169,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         if (widthLimit != textCacheKey.widthLimit ||
             heightLimit != textCacheKey.heightLimit ||
             text != textCacheKey.text ||
-            font.name != textCacheKey.fontName ||
-            font.isBold != textCacheKey.isBold() ||
-            font.isItalic != textCacheKey.isItalic() ||
-            font.sizeIndex != textCacheKey.fontSizeIndex()
+            !textCacheKey.equalsFont(font)
         ) {
             textCacheKey = TextCacheKey(text, font, widthLimit, heightLimit, false)
         }
