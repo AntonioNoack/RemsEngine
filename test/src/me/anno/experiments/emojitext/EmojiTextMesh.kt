@@ -41,10 +41,9 @@ fun main() {
             .setPosition(0.0, -2.0, 0.0)
             .add(TextureTextComponent(text, font, AxisAlignment.MAX))
 
-        // todo allow colors?
         Entity("SDF", scene)
             .setPosition(0.0, -4.0, 0.0)
-            .add(SDFTextComponent(text, font.withSize(32f), AxisAlignment.MAX))
+            .add(SDFTextComponent(text, font.withSize(96f), AxisAlignment.MAX))
 
         Entity("Mesh", scene) // alignment & size are good
             .setPosition(0.0, -6.0, 0.0)

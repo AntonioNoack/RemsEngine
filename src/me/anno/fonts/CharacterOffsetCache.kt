@@ -1,12 +1,8 @@
-package me.anno.fonts.mesh
+package me.anno.fonts
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.fonts.Codepoints.isEmoji
-import me.anno.fonts.Font
-import me.anno.fonts.FontStats.getTextLength
-import me.anno.fonts.IEmojiCache
 import me.anno.maths.Maths
-import me.anno.maths.Packing.pack64
+import me.anno.maths.Packing
 import me.anno.utils.types.Strings.joinChars
 import me.anno.utils.types.Strings.joinChars0
 import speiger.primitivecollections.IntToObjectHashMap
@@ -19,7 +15,7 @@ class CharacterOffsetCache(val font: Font) {
     val charMesh = IntToObjectHashMap<Mesh>() // triangles of a
 
     val spaceLength by lazy {
-        val xLength = getTextLength(font, "x")
+        val xLength = FontStats.getTextLength(font, "x")
         Maths.clamp(xLength, 1.0, font.size.toDouble()) * 0.667
     }
 
@@ -38,7 +34,7 @@ class CharacterOffsetCache(val font: Font) {
                 val spacesLength = str.count { it == ' ' } * spaceLength
                 return lengthWithoutSpaces + spacesLength
             }
-            return getTextLength(font, str)
+            return FontStats.getTextLength(font, str)
         }
 
         fun getCharLength(char: Int): Double {
@@ -48,9 +44,9 @@ class CharacterOffsetCache(val font: Font) {
         }
 
         return synchronized(this) {
-            charDistance.getOrPut(pack64(charA, charB)) {
-                val ai = isEmoji(charA)
-                val bi = isEmoji(charB)
+            charDistance.getOrPut(Packing.pack64(charA, charB)) {
+                val ai = Codepoints.isEmoji(charA)
+                val bi = Codepoints.isEmoji(charB)
                 when {
                     ai && bi -> emojiSize + emojiPadding
                     ai -> emojiSize + emojiPadding

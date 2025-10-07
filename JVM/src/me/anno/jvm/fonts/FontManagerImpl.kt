@@ -53,7 +53,11 @@ object FontManagerImpl {
     }
 
     fun getAWTFont(font: me.anno.fonts.Font): Font {
-        val key = FontKey(font.name, getFontSizeIndex(font.size), font.isBold, font.isItalic)
+        val key = FontKey(
+            font.name, getFontSizeIndex(font.size),
+            font.isBold, font.isItalic,
+            font.relativeTabSize, font.relativeCharSpacing
+        )
         return getAWTFont(key)
     }
 
@@ -83,7 +87,7 @@ object FontManagerImpl {
     }
 
     private fun getDefaultFont(name: String): Font? {
-        val key = FontKey(name, Int.MIN_VALUE, bold = false, italic = false)
+        val key = FontKey(name, Int.MIN_VALUE, bold = false, italic = false, 4f, 0f)
         val cached = awtFonts[key]
         if (cached != null) return cached
         val font = if ('/' in name) {

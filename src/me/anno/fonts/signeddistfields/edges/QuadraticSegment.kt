@@ -24,12 +24,17 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
 
     override fun toString() = "[$p0,$p1,$p2]"
 
-    override fun transformed(transform: Matrix3x2f): EdgeSegment {
-        return QuadraticSegment(
-            transform.transformPosition(p0, Vector2f()),
-            transform.transformPosition(p1, Vector2f()),
-            transform.transformPosition(p2, Vector2f()),
-        )
+    override fun transformed(transform: Matrix3x2f, flipped: Boolean): EdgeSegment {
+        val t0 = transform.transformPosition(p0, Vector2f())
+        val t1 = transform.transformPosition(p1, Vector2f())
+        val t2 = transform.transformPosition(p2, Vector2f())
+        return if (flipped) QuadraticSegment(t2, t1, t0)
+        else QuadraticSegment(t0, t1, t2)
+    }
+
+    override fun getCrossSum(): Double {
+        val p1 = getPointAt(0.5f, JomlPools.vec2f.borrow())
+        return p0.cross(p1).toDouble() + p1.cross(p2).toDouble()
     }
 
     override fun getPointAt(t: Float, dst: Vector2f): Vector2f {

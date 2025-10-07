@@ -33,9 +33,13 @@ object TransformMesh {
     }
 
     fun Mesh.translate(delta: Vector3d): Mesh {
-        if (delta.x == 0.0 && delta.y == 0.0 && delta.z == 0.0) return this
+        return translate(delta.x, delta.y, delta.z)
+    }
+
+    fun Mesh.translate(dx: Double, dy: Double, dz: Double): Mesh {
+        if (dx == 0.0 && dy == 0.0 && dz == 0.0) return this
         unlinkPositionsAndNormals()
-        positions = translatePositionsOrNull(delta, positions, 3)
+        positions = translatePositionsOrNull(dx, dy, dz, positions, 3)
         invalidateGeometry()
         return this
     }
@@ -155,15 +159,15 @@ object TransformMesh {
     }
 
     @Suppress("SameParameterValue")
-    fun translatePositionsOrNull(offset: Vector3d, src: FloatArray?, stride: Int): FloatArray? {
-        return translatePositions(offset, src ?: return null, stride)
+    fun translatePositionsOrNull(dx: Double, dy: Double, dz: Double, src: FloatArray?, stride: Int): FloatArray? {
+        return translatePositions(dx, dy, dz, src ?: return null, stride)
     }
 
     @Suppress("SameParameterValue")
-    fun translatePositions(offset: Vector3d, src: FloatArray, stride: Int): FloatArray {
+    fun translatePositions(dx: Double, dy: Double, dz: Double, src: FloatArray, stride: Int): FloatArray {
         val tmp = JomlPools.vec3d.borrow()
         forLoopSafely(src.size, stride) { i ->
-            tmp.set(src, i).add(offset).get(src, i)
+            tmp.set(src, i).add(dx, dy, dz).get(src, i)
         }
         return src
     }

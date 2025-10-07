@@ -2,11 +2,13 @@ package me.anno.bench
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.maths.Maths.sq
 import me.anno.utils.Clock
 import me.anno.utils.OS
+import me.anno.utils.assertions.assertEquals
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
@@ -29,10 +31,11 @@ fun main() {
 
     val roundEdges = false
     val font = Font("Verdana", 8f, isBold = false, isItalic = false)
-    val text = "Lorem Ipsum is simply text."
+    val text = "\uD83C\uDDF5\uD83C\uDDF2".codepoints()
+    assertEquals(1, text.size)
 
     val clock = Clock("SDFBenchmark")
-    val data = SignedDistanceField.createBuffer(font, text, roundEdges)!!
+    val data = SignedDistanceField.createBuffer(font, text[0], roundEdges)!!
     clock.stop("SDF.createBuffer")
 
     val calculated = toBytes(data)

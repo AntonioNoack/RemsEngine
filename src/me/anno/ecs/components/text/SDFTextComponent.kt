@@ -1,38 +1,71 @@
 package me.anno.ecs.components.text
 
 import me.anno.ecs.Transform
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.text.TextComponent.Companion.defaultFont
-import me.anno.ecs.components.text.TextureTextComponent.Companion.getDx
-import me.anno.ecs.components.text.TextureTextComponent.Companion.getSx
-import me.anno.ecs.components.text.TextureTextComponent.Companion.getSy
-import me.anno.ecs.components.text.TextureTextComponent.Companion.getY0
-import me.anno.ecs.components.text.TextureTextComponent.Companion.getY1
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.fonts.Codepoints
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
+import me.anno.fonts.GlyphLayout
 import me.anno.fonts.signeddistfields.SDFGlyphLayout
+import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.FinalRendering.isFinalRendering
 import me.anno.gpu.FinalRendering.onMissingResource
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.Shapes
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.utils.Color.toVecRGBA
 import org.joml.AABBd
 import org.joml.Matrix4x3
+import org.joml.Vector3f
 
 class SDFTextComponent(
     text: String, font: Font,
     override var alignmentX: AxisAlignment,
     override var alignmentY: TextAlignmentY
 ) : MeshSpawner(), TextComponent {
+
+    companion object {
+
+        fun getSX(group: GlyphLayout, textSDF: TextSDF): Float {
+            val bounds = textSDF.bounds
+            return 0.5f * bounds.deltaX * group.baseScale
+        }
+
+        fun getSY(group: GlyphLayout, textSDF: TextSDF): Float {
+            val bounds = textSDF.bounds
+            return 0.5f * bounds.deltaY * group.baseScale
+        }
+
+        fun getX0(group: GlyphLayout, textSDF: TextSDF, alignmentX: AxisAlignment): Float {
+            return when (alignmentX) {
+                AxisAlignment.MIN -> -1f
+                AxisAlignment.CENTER -> -0.5f
+                else -> 0f
+            } * group.width * group.baseScale + textSDF.bounds.centerX * group.baseScale
+        }
+
+        fun getY0(group: GlyphLayout, textSDF: TextSDF, alignmentY: TextAlignmentY): Float {
+            val sy = group.height * group.baseScale
+            return when (alignmentY) {
+                TextAlignmentY.BASELINE -> 0f
+                TextAlignmentY.MIN -> -1f
+                TextAlignmentY.CENTER -> (sy - 2f) * 0.5f
+                TextAlignmentY.MAX -> sy - 1f
+            } - textSDF.bounds.centerY * group.baseScale
+        }
+    }
 
     @Suppress("unused")
     constructor() : this("Text", defaultFont, AxisAlignment.CENTER)
@@ -43,6 +76,13 @@ class SDFTextComponent(
     @Suppress("unused", "unused_parameter")
     constructor(text: String, font: Font, alignmentX: AxisAlignment, alignmentY: TextAlignmentY, widthLimit: Float) :
             this(text, font, alignmentX, alignmentY)
+
+    // support writing emissive color, too?
+    @Type("Color3")
+    var color = Vector3f(1f)
+        set(value) {
+            field.set(value)
+        }
 
     @SerializedProperty
     override var text = text
@@ -76,11 +116,15 @@ class SDFTextComponent(
         // effectively just the same code as TextureTextComponent
         val size = FontManager.getSize(font, text, -1, -1).waitFor() ?: 0
         val baselineY = FontManager.getBaselineY(font)
-        val sx = getSx(getSizeX(size), baselineY)
-        val sy = getSy(getSizeY(size), baselineY)
-        val dx = getDx(sx, alignmentX)
-        val y0 = getY0(sy, alignmentY)
-        val y1 = getY1(y0, sy)
+
+        val scale = baselineY / font.size
+        val yCorrection = scale - 1f
+
+        val sx = TextureTextComponent.getSx(getSizeX(size), baselineY) * scale
+        val sy = TextureTextComponent.getSy(getSizeY(size), baselineY) * scale
+        val dx = TextureTextComponent.getX0(sx, alignmentX)
+        val y0 = TextureTextComponent.getY0(sy, alignmentY) + yCorrection
+        val y1 = TextureTextComponent.getY1(y0, sy)
 
         val local = localAABB
             .setMin((dx - sx).toDouble(), y0.toDouble(), 0.0)
@@ -106,7 +150,7 @@ class SDFTextComponent(
         while (i >= materials.size) {
             materials.add(Material().apply {
                 shader = SDFShader
-                shaderOverrides["invertSDF"] = TypeValue(GLSLType.V1B, false)
+                clamping = Clamping.CLAMP
             })
         }
         return materials[i]
@@ -114,47 +158,30 @@ class SDFTextComponent(
 
     override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
 
-        var i = 0
+        var partIndex = 0
         val group = getOrCreateMeshGroup()
-        val lineHeight = FontManager.getLineHeight(font)
-        val baselineY = FontManager.getBaselineY(font)
         val mesh = Shapes.flat11.front
 
-        val dx0 = when (alignmentX) {
-            AxisAlignment.MIN -> -1f
-            AxisAlignment.CENTER -> -0.5f
-            else -> 0f
-        } * group.width / lineHeight
-        val dy0 = baselineY / lineHeight - 1f
-
-        group.draw { _, sdfTexture, offsetX0, offsetX1, offsetY, lineWidth ->
-            val texture = sdfTexture?.texture
+        group.draw(0,group.size) { textSDF, offsetX0, _, offsetY, _ ->
+            val texture = textSDF.texture
             if (texture is Texture2D && texture.wasCreated) {
 
-                val material = getOrCreateMaterial(i)
-                material.diffuseMap = texture.ref
+                val material = getOrCreateMaterial(partIndex)
+                configureMaterial(material, texture, textSDF)
 
-                // println("char[$offset]: ${texture.width} x ${texture.height}")
+                val sx = getSX(group, textSDF)
+                val sy = getSY(group, textSDF)
 
-                val sx = getSx(texture.width, baselineY)
-                val sy = getSy(texture.height, baselineY) * 0.5f
+                val x0 = getX0(group, textSDF, alignmentX)
+                val y0 = getY0(group, textSDF, alignmentY)
 
-                // todo why is that extra offset needed???
-                val dx1 = if (alignmentX == AxisAlignment.MAX) 0f else -0.33f
+                val dx = x0 + offsetX0
+                val dy = y0 + offsetY
 
-                // todo this correction is needed, because dy0=baseline-correction isn't correct
-                val dy1 = if (alignmentY == TextAlignmentY.BASELINE) 0f else -0.08f
+                val dz = textSDF.z.toDouble()
 
-                val dx = dx0 + dx1 + offsetX0 + sdfTexture.offset.x * sx
-                val dy = sdfTexture.offset.y * sy + offsetY + when (alignmentY) {
-                    TextAlignmentY.MIN -> dy0 - 0.5f
-                    TextAlignmentY.CENTER -> dy0
-                    TextAlignmentY.MAX -> dy0 + 0.5f
-                    TextAlignmentY.BASELINE -> 0f
-                } + dy1
-
-                val transform = getTransform(i++)
-                    .setLocalPosition(dx.toDouble(), dy.toDouble(), 0.0)
+                val transform = getTransform(partIndex++)
+                    .setLocalPosition(dx.toDouble(), dy.toDouble(), dz)
                     .setLocalScale(sx.toDouble(), sy.toDouble(), 1.0)
 
                 callback(mesh, material, transform)
@@ -162,6 +189,16 @@ class SDFTextComponent(
                 onMissingResource(className, offsetX0)
                 true // quit loop
             } else false
+        }
+    }
+
+    fun configureMaterial(material: Material, texture: Texture2D, textSDF: TextSDF) {
+        material.diffuseMap = texture.ref
+        if (Codepoints.isEmoji(textSDF.codepoint)) {
+            // emojis are colored themselves, coloring them twice doesn't make sense
+            textSDF.color.toVecRGBA(material.diffuseBase)
+        } else {
+            material.diffuseBase.set(color, 1f)
         }
     }
 
@@ -174,5 +211,7 @@ class SDFTextComponent(
         dst.alignmentY = alignmentY
         dst.relativeWidthLimit = relativeWidthLimit
         dst.maxNumLines = maxNumLines
+        if (dst !is SDFTextComponent) return
+        dst.color.set(color)
     }
 }

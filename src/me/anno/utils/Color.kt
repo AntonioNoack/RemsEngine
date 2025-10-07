@@ -3,6 +3,7 @@ package me.anno.utils
 import me.anno.ecs.annotations.Docs
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.roundDiv
 import me.anno.maths.MinMax.max
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
@@ -451,5 +452,16 @@ object Color {
                 mixChannelRandomly(a, b, 16, f) or
                 mixChannelRandomly(a, b, 8, f) or
                 mixChannelRandomly(a, b, 0, f)
+    }
+
+    fun Int.undoPremultiply(): Int {
+        val a = a()
+        return if (a in 1 until 255) {
+            rgba(
+                roundDiv(r() * 255, a),
+                roundDiv(g() * 255, a),
+                roundDiv(b() * 255, a), a
+            )
+        } else this
     }
 }

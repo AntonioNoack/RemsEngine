@@ -23,7 +23,8 @@ abstract class EdgeSegment {
         dst: SignedDistance
     ): SignedDistance
 
-    abstract fun transformed(transform: Matrix3x2f): EdgeSegment
+    abstract fun transformed(transform: Matrix3x2f, flipped: Boolean): EdgeSegment
+    abstract fun getCrossSum(): Double
 
     fun getTrueSignedDistance(
         origin: Vector2f, outT: FloatPtr,

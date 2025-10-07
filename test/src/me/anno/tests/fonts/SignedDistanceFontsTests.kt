@@ -28,6 +28,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.hpc.ProcessingQueue
+import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.toRadians
@@ -56,10 +57,11 @@ class SignedDistanceFontsTests {
         HiddenOpenGLContext.createOpenGL()
         val font = Font("Verdana", 40f)
         val roundCorners = false
-        val codepoint = 83
-        Sleep.waitUntilDefined(true) {
+        val codepoint = '5'.code
+        Sleep.waitUntil(true) {
             val textSDF = SDFGlyphLayout.getTextSDF(font, codepoint, roundCorners)
-            textSDF?.texture?.createdOrNull()
+                .waitFor()?.content
+            textSDF != null && textSDF.all2 { it.texture!!.wasCreated }
         }
     }
 

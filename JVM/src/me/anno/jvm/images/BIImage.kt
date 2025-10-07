@@ -7,6 +7,7 @@ import me.anno.image.raw.ByteImage
 import me.anno.image.raw.ByteImageFormat
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
+import me.anno.utils.Color.undoPremultiply
 import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
@@ -55,6 +56,15 @@ object BIImage {
         return BufferedImage(colorModel, raster, false, null)
     }
 
+    fun BufferedImage.undoPremultiply(): BufferedImage {
+        val buffer = raster.dataBuffer as DataBufferInt
+        val data = buffer.data
+        for (i in data.indices) {
+            data[i] = data[i].undoPremultiply()
+        }
+        return this
+    }
+
     fun Texture2D.createFromBufferedImage(image: BufferedImage, callback: Callback<ITexture2D>) {
         width = image.width
         height = image.height
@@ -62,7 +72,7 @@ object BIImage {
         image.toImage().createTexture(this, checkRedundancy = false, callback)
     }
 
-    fun BufferedImage.toImage(withAlphaOverride: Boolean? = null): Image {
+    fun BufferedImage.toImage(hasAlphaOverride: Boolean? = null): Image {
         // if image is grayscale, produce grayscale image
         // we could optimize a lot more formats, but that's probably not needed
         if (type == BufferedImage.TYPE_BYTE_GRAY) {
@@ -81,7 +91,7 @@ object BIImage {
                 BufferedImage.TYPE_INT_ARGB, BufferedImage.TYPE_INT_RGB -> (data.dataBuffer as DataBufferInt).data
                 else -> getRGB(0, 0, width, height, null, 0, width)
             }
-            val hasAlpha = withAlphaOverride
+            val hasAlpha = hasAlphaOverride
                 ?: (colorModel.hasAlpha() && pixels.any { it.ushr(24) != 255 })
             return IntImage(width, height, pixels, hasAlpha)
         }

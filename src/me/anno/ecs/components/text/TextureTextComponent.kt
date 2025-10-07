@@ -40,7 +40,7 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
             return sizeY / baselineY
         }
 
-        fun getDx(sx: Float, alignmentX: AxisAlignment): Float {
+        fun getX0(sx: Float, alignmentX: AxisAlignment): Float {
             return when (alignmentX) {
                 AxisAlignment.MIN -> -sx
                 AxisAlignment.MAX -> +sx
@@ -73,7 +73,7 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
 
     init {
         material.shader = SDFAvgShader
-        material.shaderOverrides["invertSDF"] = TypeValue(GLSLType.V1B, true)
+        material.clamping = Clamping.CLAMP
     }
 
     override fun generateMesh(mesh: Mesh) {
@@ -82,13 +82,13 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
         val pos = mesh.positions.resize(Shapes.flat11.positions.size)
         val baselineY = FontManager.getBaselineY(font)
 
-        // todo scale is correct, but the following y-offset calculation is not
         val scale = baselineY / font.size
+        val yCorrection = scale - 1f
 
         val sx = getSx(getSizeX(size), baselineY) * scale
         val sy = getSy(getSizeY(size), baselineY) * scale
-        val dx = getDx(sx, alignmentX)
-        val y0 = getY0(sy, alignmentY)
+        val dx = getX0(sx, alignmentX)
+        val y0 = getY0(sy, alignmentY) + yCorrection
         val y1 = getY1(y0, sy)
         val flat11 = Shapes.flat11.positions
         val uvs = mesh.uvs.resize(pos.size / 3 * 2)

@@ -827,6 +827,7 @@ class SVGMesh(xml: XMLNode) {
     fun getTransformedContours(
         cx: Float, cy: Float,
         height: Float,
+        generateCCW: Boolean,
     ): List<Contour> {
         val scale = height / this.h
         val transform = Matrix3x2f(
@@ -836,7 +837,9 @@ class SVGMesh(xml: XMLNode) {
             cy - y0 * scale
         )
         return contours.map { contour ->
-            val segments = contour.segments.map { segment -> segment.transformed(transform) }
+            val flipped = generateCCW == contour.isCCW()
+            val transformed = contour.segments.map { segment -> segment.transformed(transform, flipped) }
+            val segments = if (flipped) transformed else transformed.asReversed()
             Contour(segments, contour.z, contour.color)
         }
     }

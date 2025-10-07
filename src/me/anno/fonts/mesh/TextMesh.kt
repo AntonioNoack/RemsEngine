@@ -1,10 +1,9 @@
 package me.anno.fonts.mesh
 
+import me.anno.cache.ICacheData
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
-import me.anno.fonts.DrawBufferCallback
 import me.anno.fonts.Font
-import me.anno.fonts.TextDrawable
 import me.anno.fonts.signeddistfields.Contour
 import me.anno.fonts.signeddistfields.Contour.Companion.calculateContours
 import me.anno.fonts.signeddistfields.edges.CubicSegment
@@ -23,14 +22,14 @@ import org.joml.Vector2f
 import kotlin.math.abs
 import kotlin.math.max
 
-class TextMesh(val font: Font, val text: String) : TextDrawable {
+class TextMesh(val font: Font, val codepoint: Int) : ICacheData {
 
     val mesh = Mesh()
-    override val bounds = AABBf()
+    val bounds = AABBf()
 
     init {
 
-        val contours0 = calculateContours(font, text)
+        val contours0 = calculateContours(font, codepoint)
         val fragments = ArrayList(contours0.contours.map { contour ->
             val points = contourToPoints(contour)
             Fragment(points, contour.z, contour.color)
@@ -171,13 +170,6 @@ class TextMesh(val font: Font, val text: String) : TextDrawable {
         }
 
         fun boundsContain(v: Vector2f) = bounds.testPoint(v.x, v.y, 0f)
-    }
-    /**
-     * start- and endIndex are not supported,
-     * as this class is only used for generating the meshes
-     * */
-    override fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback) {
-        drawBuffer.draw(mesh, null, 0f, 0f, 0f, bounds.deltaX)
     }
 
     override fun destroy() {

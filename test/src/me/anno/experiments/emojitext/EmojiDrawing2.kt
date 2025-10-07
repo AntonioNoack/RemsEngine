@@ -11,7 +11,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
 
     val text = "\uD83D\uDCC1"
-    val image = FontManager.getTexture(Font("Verdana", 50f), text, 220, -1)
-        .waitFor()!!
-    image.write(desktop.getChild("Emoji Text2.png"))
+    val font = Font("Verdana", 50f)
+    val image = FontManager.getTexture(font, text, 220, -1).waitFor()
+    image!!.write(desktop.getChild("Emoji Text2.png"))
 }

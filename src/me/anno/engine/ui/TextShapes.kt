@@ -41,7 +41,7 @@ object TextShapes : CacheSection<String, Mesh>("TextShapes") {
         result.value = MeshGlyphLayout(
             font.value, text,
             0f, Int.MAX_VALUE,
-            false
+            null
         ).getOrCreateMesh()
     }
 }

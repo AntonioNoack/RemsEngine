@@ -147,19 +147,34 @@ object FontManager {
         font2.generateTexture(key.text, wl, hl, key.isGrayscale(), result)
     }
 
-    fun getFont(key: TextCacheKey): FontImpl<*> =
-        getFont(key.fontName, getAvgFontSize(key.fontSizeIndex()), key.isBold(), key.isItalic())
+    fun getFont(key: TextCacheKey): FontImpl<*> = getFont(
+        key.fontName, getAvgFontSize(key.fontSizeIndex()),
+        key.isBold(), key.isItalic(),
+        key.relativeTabSize, key.relativeCharSpacing
+    )
 
-    fun getFont(font: Font): FontImpl<*> =
-        getFont(font.name, font.size, font.isBold, font.isItalic)
+    fun getFont(font: Font): FontImpl<*> = getFont(
+        font.name, font.size,
+        font.isBold, font.isItalic,
+        font.relativeTabSize, font.relativeCharSpacing
+    )
 
-    fun getFont(name: String, fontSize: Float, bold: Boolean, italic: Boolean): FontImpl<*> {
+    fun getFont(
+        name: String, fontSize: Float, bold: Boolean, italic: Boolean,
+        relativeTabSize: Float, relativeCharSpacing: Float
+    ): FontImpl<*> {
         val fontSizeIndex = getFontSizeIndex(fontSize)
-        return getFont(name, fontSizeIndex, bold, italic)
+        return getFont(
+            name, fontSizeIndex, bold, italic,
+            relativeTabSize, relativeCharSpacing
+        )
     }
 
-    private fun getFont(name: String, fontSizeIndex: Int, bold: Boolean, italic: Boolean): FontImpl<*> {
-        val key = FontKey(name, fontSizeIndex, bold, italic)
+    private fun getFont(
+        name: String, fontSizeIndex: Int, bold: Boolean, italic: Boolean,
+        relativeTabSize: Float, relativeCharSpacing: Float
+    ): FontImpl<*> {
+        val key = FontKey(name, fontSizeIndex, bold, italic, relativeTabSize, relativeCharSpacing)
         return fonts.getOrPut(key) { getTextGenerator(key) }
     }
 

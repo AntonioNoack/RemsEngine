@@ -5,8 +5,8 @@ import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.maths.Maths.clamp
-import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
+import me.anno.maths.MinMax.min
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.types.Floats.toIntOr
 import org.joml.AABBf
@@ -37,16 +37,17 @@ class SignedDistanceField2(
         }
     }
 
-    val bounds = calculateBounds()
     val segments = contours.flatMap { it.segments }
 
-    val minX = floor(bounds.minX - padding)
-    val maxX = ceil(bounds.maxX + padding)
-    val minY = floor(bounds.minY - padding)
-    val maxY = ceil(bounds.maxY + padding)
+    val bounds = calculateBounds().apply {
+        minX = floor(minX - padding)
+        minY = floor(minY - padding)
+        maxX = ceil(maxX + padding)
+        maxY = ceil(maxY + padding)
+    }
 
-    private val deltaX = maxX - minX
-    private val deltaY = maxY - minY
+    private val deltaX = bounds.deltaX
+    private val deltaY = bounds.deltaY
 
     val spreadingBits =
         if (useSpaceSizeBits) calculateSpreadingBits(deltaX, deltaY, sdfResolution)
@@ -97,11 +98,11 @@ class SignedDistanceField2(
     }
 
     private fun lx(x: Int): Float {
-        return mix(minX, maxX, x * invW)
+        return mix(bounds.minX, bounds.maxX, x * invW)
     }
 
     private fun ly(y: Int): Float {
-        return mix(maxY, minY, y * invH) // mirrored y for OpenGL
+        return mix(bounds.maxY, bounds.minY, y * invH) // mirrored y for OpenGL
     }
 
     private fun calculateDistances(): FloatArray {

@@ -21,10 +21,7 @@ object SDFAvgShader : ECSMeshShader("SDF-AVG") {
             ShaderStage(
                 "material",
                 createFragmentVariables(key) +
-                        listOf(
-                            Variable(GLSLType.V4F, "cameraRotation"),
-                            Variable(GLSLType.V1B, "invertSDF")
-                        ),
+                       Variable(GLSLType.V4F, "cameraRotation"),
                 concatDefines(key).toString() +
                         discardByCullingPlane +
                         // step by step define all material properties
@@ -33,18 +30,28 @@ object SDFAvgShader : ECSMeshShader("SDF-AVG") {
                         "vec4 c1 = texture(diffuseMap,uv+duv1);\n" +
                         "vec4 c2 = texture(diffuseMap,uv-duv);\n" +
                         "vec4 c3 = texture(diffuseMap,uv-duv1);\n" +
-                        "float sdf = c0.a + c1.a +\n" +
-                        "            c2.a + c3.a;\n" +
-                        "finalAlpha = step(sdf,2.0);\n" +
-                        "if(invertSDF) finalAlpha = 1.0 - finalAlpha;\n" +
-                        "if(finalAlpha < 0.5) discard;\n" +
+                        "float sdf = c0.a + c1.a + c2.a + c3.a;\n" +
+                        // if any color is emoji, all colors should be evaluated like that
+                        "if (sdf > 0.0) {\n" + // emoji
+                        "   finalAlpha = step(2.0, sdf);\n" +
+                        "   if(finalAlpha < 0.5) discard;\n" +
 
-                        "vec4 baseColor = c0;\n" +
-                        "if (c1.a > baseColor.a) baseColor = c1;\n" +
-                        "if (c2.a > baseColor.a) baseColor = c2;\n" +
-                        "if (c3.a > baseColor.a) baseColor = c3;\n" +
+                        "   c0 = getEmojiColor(c0);\n" +
+                        "   c1 = getEmojiColor(c1);\n" +
+                        "   c2 = getEmojiColor(c2);\n" +
+                        "   c3 = getEmojiColor(c3);\n" +
 
-                        "finalColor = baseColor.rgb/baseColor.a * diffuseBase.rgb;\n" +
+                        "   vec4 baseColor = c0;\n" +
+                        "   if (c1.a > baseColor.a) baseColor = c1;\n" +
+                        "   if (c2.a > baseColor.a) baseColor = c2;\n" +
+                        "   if (c3.a > baseColor.a) baseColor = c3;\n" +
+                        "   finalColor = min(baseColor.rgb / baseColor.a, vec3(1.0));\n" +
+                        "} else {\n" + // text
+                        "   sdf = getTextColor(c0) + getTextColor(c1) + getTextColor(c2) + getTextColor(c3);\n" +
+                        "   finalAlpha = step(2.0, sdf);\n" +
+                        "   if(finalAlpha < 0.5) discard;\n" +
+                        "   finalColor = diffuseBase.rgb;\n" +
+                        "}" +
                         normalTanBitanCalculation +
                         normalMapCalculation +
                         emissiveCalculation +
@@ -56,7 +63,17 @@ object SDFAvgShader : ECSMeshShader("SDF-AVG") {
                         reflectionCalculation +
                         finalMotionCalculation
             ).add(ShaderLib.quatRot).add(ShaderLib.brightness).add(ShaderLib.parallaxMapping)
-                .add(RendererLib.getReflectivity)
+                .add(RendererLib.getReflectivity).add("" +
+                        "float getTextColor(vec4 read) {\n" +
+                        "   if (read.a > 0.0) {\n" + // emoji
+                        "       return 0.0;\n" +
+                        "   } else {\n" + // text
+                        "       return read.g;\n" +
+                        "   }\n" +
+                        "}\n"+
+                        "vec4 getEmojiColor(vec4 read) {\n" +
+                        "    return read;\n" +
+                        "}\n")
         )
     }
 }

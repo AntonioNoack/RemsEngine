@@ -14,7 +14,7 @@ import org.joml.Vector2f
 class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
 
     override fun getPointAt(t: Float, dst: Vector2f): Vector2f = p0.mix(p1, t, dst)
-    override fun getDirectionAt(t: Float, dst: Vector2f): Vector2f = p1.sub(p0,dst)
+    override fun getDirectionAt(t: Float, dst: Vector2f): Vector2f = p1.sub(p0, dst)
     override fun length(): Float = p1.distance(p0)
 
     override fun toString() = "[$p0,$p1]"
@@ -24,11 +24,15 @@ class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
         bounds.union(p1.x, p1.y, 0f)
     }
 
-    override fun transformed(transform: Matrix3x2f): EdgeSegment {
-        return LinearSegment(
-            transform.transformPosition(p0, Vector2f()),
-            transform.transformPosition(p1, Vector2f()),
-        )
+    override fun getCrossSum(): Double {
+        return p0.cross(p1).toDouble()
+    }
+
+    override fun transformed(transform: Matrix3x2f, flipped: Boolean): EdgeSegment {
+        val t0 = transform.transformPosition(p0, Vector2f())
+        val t1 = transform.transformPosition(p1, Vector2f())
+        return if (flipped) LinearSegment(t1, t0)
+        else LinearSegment(t0, t1)
     }
 
     override fun getSignedDistance(

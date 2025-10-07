@@ -1,6 +1,7 @@
 package me.anno.fonts
 
-import me.anno.fonts.mesh.CharacterOffsetCache.Companion.getOffsetCache
+import me.anno.cache.ICacheData
+import me.anno.fonts.CharacterOffsetCache.Companion.getOffsetCache
 import org.joml.AABBf
 
 // todo use these parts instead of our custom logic
@@ -9,11 +10,11 @@ import org.joml.AABBf
 open class GlyphLayout(
     val font: Font, val text: CharSequence,
     relativeWidthLimit: Float, maxNumLines: Int
-) : GlyphList(text.length), TextDrawable {
+) : GlyphList(text.length), ICacheData {
 
     private val offsetCache = getOffsetCache(font)
 
-    override val bounds = AABBf()
+    val bounds = AABBf()
 
     val width: Float
     val height: Float
@@ -55,26 +56,11 @@ open class GlyphLayout(
                 val nextC = if (i + 1 < part.i1) codepoints[i] else ' '.code
                 offset1 += charSpacing + offsetCache.getOffset(currC, nextC)
 
-                add(currC, offset0, offset1, part.yPos, part.lineWidth)
+                this.add( // add glyph to list
+                    currC, offset0, offset1, part.lineWidth,
+                    part.yPos, part.lineIndex
+                )
             }
         }
-    }
-
-    override fun destroy() {
-        // nothing to do
-    }
-
-    /**
-     * return true when done
-     * */
-    fun draw(drawBuffer: DrawBufferCallback) {
-        draw(0, size, drawBuffer)
-    }
-
-    /**
-     * return true when done
-     * */
-    override fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback) {
-        // not implemented
     }
 }

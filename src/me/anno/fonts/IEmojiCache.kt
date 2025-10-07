@@ -12,7 +12,7 @@ interface IEmojiCache {
     fun getEmojiId(codepoints: List<Int>): Int
 
     fun getEmojiImage(emojiId: Int, fontSize: Int): AsyncCacheData<Image>
-    fun getEmojiContour(emojiId: Int, fontSize: Int): AsyncCacheData<Contours>
+    fun getEmojiContours(emojiId: Int, fontSize: Int): AsyncCacheData<Contours>
     fun getEmojiMesh(emojiId: Int): AsyncCacheData<Mesh>
 
     fun isKeycapEmoji(cp0: Int, cp1: Int): Boolean {
@@ -38,7 +38,7 @@ interface IEmojiCache {
             override fun getEmojiImage(emojiId: Int, fontSize: Int): AsyncCacheData<Image> =
                 AsyncCacheData.empty()
 
-            override fun getEmojiContour(emojiId: Int, fontSize: Int): AsyncCacheData<Contours> =
+            override fun getEmojiContours(emojiId: Int, fontSize: Int): AsyncCacheData<Contours> =
                 AsyncCacheData.empty()
 
             override fun getEmojiMesh(emojiId: Int): AsyncCacheData<Mesh> =

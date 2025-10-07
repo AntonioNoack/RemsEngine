@@ -1,7 +1,6 @@
 package me.anno.jvm.fonts
 
 import me.anno.fonts.Codepoints
-import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.FontManager
 import me.anno.fonts.IEmojiCache
 import me.anno.fonts.signeddistfields.Contour
@@ -11,6 +10,7 @@ import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.fonts.signeddistfields.edges.QuadraticSegment
 import me.anno.utils.Color
+import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import java.awt.Font
@@ -27,21 +27,20 @@ object ContourImpl {
         return (FontManager.getFont(font) as? AWTFont)?.awtFont ?: FontManagerImpl.getAWTFont(font)
     }
 
-    fun calculateContours(font: me.anno.fonts.Font, text: CharSequence): Contours {
-        val emojiContours = getEmojiContours(font, text)
+    fun calculateContours(font: me.anno.fonts.Font, codepoint: Int): Contours {
+        val emojiContours = getEmojiContours(font, codepoint)
         if (emojiContours != null) return emojiContours
-        return calculateContours(getAWTFont(font), text)
+        return calculateContours(getAWTFont(font), codepoint.joinChars())
     }
 
-    private fun getEmojiContours(font: me.anno.fonts.Font, text: CharSequence): Contours? {
-        val codepoints = text.codepoints()
-        return if (codepoints.size == 1 && Codepoints.isEmoji(codepoints[0])) {
-            val emojiId = Codepoints.getEmojiId(codepoints[0])
-            IEmojiCache.emojiCache.getEmojiContour(emojiId, font.sizeInt).waitFor()
+    private fun getEmojiContours(font: me.anno.fonts.Font, codepoint: Int): Contours? {
+        return if (Codepoints.isEmoji(codepoint)) {
+            val emojiId = Codepoints.getEmojiId(codepoint)
+            IEmojiCache.emojiCache.getEmojiContours(emojiId, font.sizeInt).waitFor()
         } else null
     }
 
-    private fun calculateContours(font: Font, text: CharSequence): Contours {
+    private fun calculateContours(font: Font, text: String): Contours {
 
         val contours = ArrayList<Contour>()
         val segments = ArrayList<EdgeSegment>()
@@ -49,7 +48,7 @@ object ContourImpl {
         val ctx = FontRenderContext(null, true, true)
 
         val shape = GeneralPath()
-        val layout = TextLayout(text.toString(), font, ctx)
+        val layout = TextLayout(text, font, ctx)
 
         val outline = layout.getOutline(null)
         shape.append(outline, true)

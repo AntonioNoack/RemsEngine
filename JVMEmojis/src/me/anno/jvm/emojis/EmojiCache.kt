@@ -173,7 +173,7 @@ object EmojiCache : IEmojiCache {
         }
     }
 
-    override fun getEmojiContour(emojiId: Int, fontSize: Int): AsyncCacheData<Contours> {
+    override fun getEmojiContours(emojiId: Int, fontSize: Int): AsyncCacheData<Contours> {
         if (emojiId < 0) return AsyncCacheData.empty() // fast-path
         return contourCache.getEntry(EmojiKey(emojiId, fontSize), mappedTimeoutMillis) { key, result ->
             getSVGMesh(key.emojiId).waitFor { svgMesh ->
@@ -181,7 +181,7 @@ object EmojiCache : IEmojiCache {
                 result.value = if (svgMesh != null) {
                     val contours = svgMesh.getTransformedContours(
                         fontSizeF * 0.05f, -0.82f * fontSizeF,
-                        fontSizeF
+                        fontSizeF, generateCCW = false
                     )
                     Contours(contours, false)
                 } else null

@@ -3,6 +3,7 @@ package me.anno.bench.sdftexture
 import me.anno.Engine
 import me.anno.bench.sdftexture.ContourOptimizer.optimizeContours
 import me.anno.engine.OfficialExtensions
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
 import me.anno.fonts.signeddistfields.Contour
 import me.anno.fonts.signeddistfields.Contour.Companion.calculateContours
@@ -31,11 +32,10 @@ fun main() {
     val clock = Clock("SDFTextureBench")
     val font = Font("Verdana", 100f)
 
-    val slowestChar = '@'
+    val slowestChar = "\uD83C\uDDF5\uD83C\uDDF2".codepoints()[0]
     val roundEdges = false
 
-    val text = slowestChar.toString()
-    val contours0 = calculateContours(font, text).contours
+    val contours0 = calculateContours(font, slowestChar).contours
     drawContour("contour0.png", contours0)
 
     val maxError = 0.1f

@@ -4,11 +4,9 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.fonts.Codepoints
-import me.anno.fonts.DrawBufferCallback
 import me.anno.fonts.Font
 import me.anno.fonts.GlyphLayout
 import me.anno.fonts.IEmojiCache
-import me.anno.utils.types.Strings.joinChars
 import org.joml.Matrix4x3f
 import kotlin.math.min
 
@@ -18,7 +16,7 @@ import kotlin.math.min
 class MeshGlyphLayout(
     font: Font, text: CharSequence,
     relativeWidthLimit: Float, maxNumLines: Int,
-    forceDrawCharByChar: Boolean
+    drawCharByChar: Boolean?
 ) : GlyphLayout(font, text, relativeWidthLimit, maxNumLines) {
 
     init {
@@ -32,7 +30,7 @@ class MeshGlyphLayout(
                         val emojiId = Codepoints.getEmojiId(codepoint)
                         IEmojiCache.emojiCache.getEmojiMesh(emojiId).waitFor()!!
                     } else { // normal character
-                        TextMesh(font, codepoint.joinChars()).mesh
+                        TextMesh(font, codepoint).mesh
                     }
                 }
             }
@@ -76,23 +74,21 @@ class MeshGlyphLayout(
         return joinedMesh!!
     }
 
-    // are draw-calls always expensive??
-    // or buffer creation?
-    // very long strings just are displayed char by char (you must be kidding me ;))
-    private val drawCharByChar = forceDrawCharByChar || size < 5 || size > 512
+    // very long strings just are displayed char by char
+    private val drawCharByChar = drawCharByChar ?: (size !in 5..512)
 
     // the performance could be improved
     // still its initialization time should be much faster than FontMesh
-    override fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback) {
+    fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawMeshCallback) {
         if (isEmpty()) return
-        if (drawCharByChar || startIndex > 0 || endIndex < size) {
+        if (this@MeshGlyphLayout.drawCharByChar || startIndex > 0 || endIndex < size) {
             drawSlowly(startIndex, endIndex, drawBuffer)
         } else {
-            drawBuffer.draw(getOrCreateMesh(), null, 0f, 0f, 0f, width)
+            drawBuffer.draw(getOrCreateMesh(), 0f, 0f, 0f, width)
         }
     }
 
-    private fun drawSlowly(startIndex: Int, endIndex: Int, callback: DrawBufferCallback) {
+    private fun drawSlowly(startIndex: Int, endIndex: Int, callback: DrawMeshCallback) {
         val meshes = meshCache
         for (index in startIndex until min(endIndex, size)) {
             val codepoint = getCodepoint(index)
@@ -100,7 +96,7 @@ class MeshGlyphLayout(
             val x1 = getX1(index) * baseScale
             val y = getY(index) * baseScale
             val lineWidth = getLineWidth(index) * baseScale
-            callback.draw(meshes[codepoint]!!, null, x0, x1, y, lineWidth)
+            if (callback.draw(meshes[codepoint]!!, x0, x1, y, lineWidth)) break
         }
     }
 

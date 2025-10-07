@@ -43,6 +43,14 @@ open class IntImage(
         return IntImage(w0, h0, data, hasAlphaChannel, getIndex(x0, y0), stride)
     }
 
+    fun fillAlpha(alpha: Int) {
+        val data = data
+        val alphaI = alpha shl 24
+        for (i in data.indices) {
+            data[i] = data[i].and(0xffffff) or alphaI
+        }
+    }
+
     fun copyInto(dst: IntImage, x0: Int, y0: Int) {
         val srcData = data
         val dstData = dst.data

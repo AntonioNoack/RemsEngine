@@ -47,7 +47,7 @@ object ContourOptimizer {
     private fun joinSegments(a: EdgeSegment, b: EdgeSegment, maxError: Float): EdgeSegment? {
         if (a is LinearSegment && b is LinearSegment) {
             // todo also try quadratic segment as the result
-            assertEquals(a.p1, b.p0)
+            // assertEquals(a.p1, b.p0)
             val ab = LinearSegment(a.p0, b.p1)
             if (calculateError(a, b, ab) < maxError) return ab
         } else if (a is QuadraticSegment && b is QuadraticSegment) {

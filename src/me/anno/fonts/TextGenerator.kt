@@ -15,15 +15,15 @@ interface TextGenerator {
         widthLimit: Int, heightLimit: Int,
         portableImages: Boolean,
         callback: Callback<ITexture2D>,
-        textColor: Int = -1,
-        backgroundColor: Int = 255 shl 24
+        textColor: Int = -1, // white with full alpha
+        backgroundColor: Int = 255 shl 24 // white with no alpha
     )
 
     fun generateASCIITexture(
         portableImages: Boolean,
         callback: Callback<Texture2DArray>,
-        textColor: Int = -1,
-        backgroundColor: Int = 255 shl 24
+        textColor: Int = -1, // white with full alpha
+        backgroundColor: Int = 255 shl 24 // white with no alpha
     )
 
     /**

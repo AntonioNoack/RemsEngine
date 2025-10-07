@@ -17,12 +17,18 @@ class Contour(val segments: List<EdgeSegment>, val z: Float, val color: Int) {
         return bounds
     }
 
+    /**
+     * This is just a rough approximation
+     * */
+    fun getSignedArea(): Double = 0.5 * segments.sumOf { it.getCrossSum() }
+    fun isCCW(): Boolean = getSignedArea() > 0.0
+
     companion object {
 
         @InternalAPI
-        var calculateContoursImpl: ((Font, CharSequence) -> Contours)? = null
-        fun calculateContours(font: Font, text: CharSequence): Contours {
-            return calculateContoursImpl?.invoke(font, text) ?: emptyContours
+        var calculateContoursImpl: ((Font, codepoint: Int) -> Contours)? = null
+        fun calculateContours(font: Font, codepoint: Int): Contours {
+            return calculateContoursImpl?.invoke(font, codepoint) ?: emptyContours
         }
     }
 }

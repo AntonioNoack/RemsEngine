@@ -1,6 +1,7 @@
 package me.anno.jvm.fonts
 
 import me.anno.config.DefaultConfig
+import me.anno.fonts.CharacterOffsetCache
 import me.anno.fonts.Codepoints
 import me.anno.fonts.FontImpl
 import me.anno.fonts.FontManager
@@ -10,7 +11,6 @@ import me.anno.fonts.StringPart
 import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_H
 import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_W
 import me.anno.fonts.keys.FontKey
-import me.anno.fonts.mesh.CharacterOffsetCache
 import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DrawTexts.simpleChars
@@ -20,10 +20,13 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib
+import me.anno.image.Image
+import me.anno.image.raw.IntImage
 import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
-import me.anno.jvm.images.BIImage.createBufferedImage
-import me.anno.jvm.images.BIImage.createFromBufferedImage
 import me.anno.jvm.images.BIImage.toImage
+import me.anno.utils.Color.a
+import me.anno.utils.Color.undoPremultiply
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.async.Callback
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.isBlank
@@ -49,7 +52,7 @@ class AWTFont(
     val engineFont = fontKey.toFont()
 
     private val fontMetrics = run {
-        val unused = BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).graphics as Graphics2D
+        val unused = BufferedImage(1, 1, BI_FORMAT).graphics as Graphics2D
         unused.prepareGraphics(awtFont, false)
         unused.fontMetrics
     }
@@ -106,7 +109,8 @@ class AWTFont(
     private fun drawString(gfx: Graphics2D, codepoint: Int, dx: Float, dy: Float) {
         if (codepoint.isBlank()) return
         if (Codepoints.isEmoji(codepoint)) {
-            drawEmoji(gfx, codepoint, dx, dy)
+            // will be fixed later,
+            // because we need the alpha-channel and subpixels are only supported on images without alpha
         } else if (codepoint < 127) {
             gfx.drawString(asciiStrings[codepoint], dx, dy)
         } else {
@@ -118,17 +122,48 @@ class AWTFont(
      * like gfx.drawText, however this method is respecting the ideal character distances,
      * so there are no awkward spaces between T and e
      * */
-    private fun drawEmoji(gfx: Graphics2D, codepoint: Int, dx: Float, dy: Float) {
+    private fun drawString(gfx: IntImage, text: CharSequence, dx: Float, dy: Float) {
+        val group = createGroup(engineFont, text)
+        drawString(gfx, group, dx, dy)
+    }
+
+    /**
+     * like gfx.drawText, however this method is respecting the ideal character distances,
+     * so there are no awkward spaces between T and e
+     * */
+    private fun drawString(gfx: IntImage, group: GlyphLayout, dx: Float, dy: Float) {
+        for (glyphIndex in group.indices) {
+            val codepoint = group.getCodepoint(glyphIndex)
+            drawString(gfx, codepoint, dx + group.getX0(glyphIndex), dy + group.getY(glyphIndex))
+        }
+    }
+
+    /**
+     * like gfx.drawText, however this method is respecting the ideal character distances,
+     * so there are no awkward spaces between T and e
+     * */
+    private fun drawString(gfx: IntImage, codepoint: Int, dx: Float, dy: Float) {
+        if (codepoint.isBlank()) return
+        if (Codepoints.isEmoji(codepoint)) {
+            drawEmoji(gfx, codepoint, dx, dy)
+        }
+    }
+
+    /**
+     * like gfx.drawText, however this method is respecting the ideal character distances,
+     * so there are no awkward spaces between T and e
+     * */
+    private fun drawEmoji(gfx: IntImage, codepoint: Int, dx: Float, dy: Float) {
         val fontSize = engineFont.sizeInt
         val emojiId = Codepoints.getEmojiId(codepoint)
         val emojiImage = IEmojiCache.emojiCache.getEmojiImage(emojiId, fontSize)
             .waitFor() ?: return
-        println("Drawing emoji ${IEmojiCache.emojiCache.emojiToString(emojiId)} onto $gfx, $dx,$dy-$fontSize*0.8")
-        gfx.drawImage(
-            emojiImage.createBufferedImage(true),
-            (dx).toIntOr(),
-            (dy - fontSize * 0.8f).toIntOr(), null
-        )
+        val xi = (dx + fontSize * 0.1f).toIntOr()
+        val yi = (dy - fontSize * 0.8f).toIntOr()
+        emojiImage.forEachPixel { pxi, pyi ->
+            val color = emojiImage.getRGB(pxi, pyi).undoPremultiply()
+            gfx.setRGB(xi + pxi, yi + pyi, color)
+        }
     }
 
     override fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
@@ -216,8 +251,15 @@ class AWTFont(
         }
     }
 
-    private fun createTexture(texture: Texture2D, image: BufferedImage, callback: Callback<ITexture2D>) {
-        texture.createFromBufferedImage(image, callback)
+    private fun createTexture(texture: Texture2D, image: Image, callback: Callback<ITexture2D>) {
+        texture.createFromImage(image, callback)
+    }
+
+    private fun Texture2D.createFromImage(image: Image, callback: Callback<ITexture2D>) {
+        width = image.width
+        height = image.height
+        wasCreated = false
+        image.createTexture(this, checkRedundancy = false, callback)
     }
 
     override fun generateASCIITexture(
@@ -258,8 +300,8 @@ class AWTFont(
     private fun createImage(
         width: Int, height: Int, portableImages: Boolean,
         textColor: Int, backgroundColor: Int, text: CharSequence,
-    ): BufferedImage {
-        val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+    ): Image {
+        val image = BufferedImage(width, height, BI_FORMAT)
         val gfx = image.graphics as Graphics2D
         gfx.prepareGraphics(awtFont, portableImages)
 
@@ -274,7 +316,11 @@ class AWTFont(
         val dy = fontMetrics.ascent.toFloat()
         drawString(gfx, text, 0f, dy)
         gfx.dispose()
-        return image
+
+        val imageI = image.toImage(true) as IntImage
+        imageI.fillAlpha(0)
+        drawString(imageI, text, 0f, dy)
+        return imageI
     }
 
     override fun getSupportLevel(fonts: List<AWTFont>, char: Int, lastSupportLevel: Int): Int {
@@ -331,7 +377,7 @@ class AWTFont(
         result: List<StringPart>
     ) {
 
-        val image = BufferedImage(texture.width, texture.height, BufferedImage.TYPE_INT_ARGB)
+        val image = BufferedImage(texture.width, texture.height, BI_FORMAT)
         val gfx = image.graphics as Graphics2D
         gfx.prepareGraphics(awtFont, portableImages)
 
@@ -344,19 +390,23 @@ class AWTFont(
         gfx.color = Color(textColor)
 
         val y = exampleLayout.ascent
-
         for (part in result) {
-            if (part.isEmoji) {
-                drawEmoji(gfx, part.firstCodepoint, part.xPos, part.yPos + y)
-            } else {
+            if (!part.isEmoji) {
                 // s.font != this when the character is unsupported, e.g., for emojis
                 gfx.font = (part.font as AWTFont).awtFont
                 (part.font as AWTFont).drawString(gfx, part.text, part.xPos, part.yPos + y)
+            } // else will be drawn later
+        }
+        gfx.dispose()
+
+        val imageI = image.toImage(true) as IntImage
+        imageI.fillAlpha(0)
+        for (part in result) {
+            if (part.isEmoji) {
+                drawEmoji(imageI, part.firstCodepoint, part.xPos, part.yPos + y)
             }
         }
-
-        gfx.dispose()
-        texture.createFromBufferedImage(image, Callback.printError())
+        texture.createFromImage(imageI, Callback.printError())
     }
 
     private fun createASCIITexture(
@@ -365,7 +415,7 @@ class AWTFont(
         textColor: Int,
         backgroundColor: Int
     ) {
-        val image = BufferedImage(texture.width, texture.height * texture.layers, BufferedImage.TYPE_INT_RGB)
+        val image = BufferedImage(texture.width, texture.height * texture.layers, BI_FORMAT)
         val gfx = image.graphics as Graphics2D
         gfx.prepareGraphics(awtFont, portableImages)
         if (backgroundColor != 0) {
@@ -383,7 +433,10 @@ class AWTFont(
             y += dy
         }
         gfx.dispose()
-        texture.create(image.toImage(), sync = true)
+
+        val imageI = image.toImage(true)
+        (imageI as IntImage).fillAlpha(0)
+        texture.create(imageI, sync = true)
     }
 
     override fun toString(): String = engineFont.toString()
@@ -391,6 +444,14 @@ class AWTFont(
     companion object {
 
         private val LOGGER = LogManager.getLogger(AWTFont::class)
+
+        /**
+         * Must not have alpha channel for subpixel-data!
+         * We render our text-textures the following way:
+         *  - text has alpha = 0 (alpha is unsupported anyway)
+         *  - emojis have alpha >= 0
+         * */
+        private const val BI_FORMAT = BufferedImage.TYPE_INT_RGB
 
         private fun createGroup(font: me.anno.fonts.Font, text: CharSequence): GlyphLayout =
             GlyphLayout(font, text, 0f, Int.MAX_VALUE)
@@ -414,7 +475,10 @@ class AWTFont(
             val cached = fallbackFonts[size]
             if (cached != null) return cached
             val fonts = fallbackFontList.mapNotNull {
-                FontManager.getFont(it, size, bold = false, italic = false) as? AWTFont
+                FontManager.getFont(
+                    it, size, bold = false, italic = false,
+                    4f, 0f
+                ) as? AWTFont
             }
             fallbackFonts[size] = fonts
             return fonts

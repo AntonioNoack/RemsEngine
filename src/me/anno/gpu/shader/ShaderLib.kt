@@ -317,8 +317,11 @@ object ShaderLib {
         ), "" +
                 brightness +
                 "void main(){\n" +
-                "   float mixing = brightness(texture(tex, uv).rgb) * textColor.a;\n" +
-                "   vec4 color = mix(backgroundColor, textColor, mixing);\n" +
+                "   vec4 color0 = texture(tex, uv);\n" +
+                "   bool isEmoji = color0.a > 0.0;\n" +
+                "   float mixing = (isEmoji ? color0.a * textColor.a : color0.g * textColor.a);\n" +
+                "   vec4 drawn = isEmoji ? color0 : textColor;\n" +
+                "   vec4 color = mix(backgroundColor, isEmoji ? color0 : textColor, mixing);\n" +
                 "   if(color.a < 0.001) discard;\n" +
                 "   finalColor = color.rgb;\n" +
                 "   finalAlpha = color.a;\n" +
@@ -377,18 +380,21 @@ object ShaderLib {
                 Variable(GLSLType.V4F, "backgroundColor"),
             )), "" +
                     brightness +
-                    "void main(){\n" +
+                    "void main() {\n" +
                     "#define IS_TINTED\n" +
                     // the conditions are a black border implementation for WebGL; they could be skipped on desktop
+                    "   vec4 color0 = texture(tex, uv);\n" +
+                    "   bool isEmoji = color0.a > 0.0;\n" +
                     "   vec3 mixing = any(lessThan(uv.xy,vec2(0.0))) || any(greaterThan(uv.xy,vec2(1.0))) ? vec3(0.0) :\n" +
-                    "                 texture(tex, uv).rgb * textColor.a;\n" +
-                    "   if(disableSubpixelRendering) { mixing = mixing.ggg; }\n" +
+                    "                 (isEmoji ? vec3(color0.a * textColor.a) : color0.rgb * textColor.a);\n" +
+                    "   if (disableSubpixelRendering) { mixing = mixing.ggg; }\n" +
                     "   float mixingAlpha = disableSubpixelRendering ? mixing.g : brightness(mixing);\n" +
                     // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
                     "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0) {\n" +
                     "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
                     "   }\n" +
-                    "   finalColor = mix(backgroundColor.rgb, textColor.rgb, mixing);\n" +
+                    "   vec3 drawn = isEmoji ? color0.rgb : textColor.rgb;\n" +
+                    "   finalColor = mix(backgroundColor.rgb, drawn, mixing);\n" +
                     "   finalAlpha = enableTrueBlending ? mixingAlpha : step(0.001, mixingAlpha);\n" +
                     "}"
         )
@@ -428,7 +434,7 @@ object ShaderLib {
                     "       read(vec2(uv.x+1,uv.y+1)*invSizeM1));\n" +
                     "   return min(sum, 1.0);\n" +
                     "}\n" +
-                    "void main(){\n" +
+                    "void main() {\n" +
                     "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy);\n" +
                     "   if(uv.x >= invokeSize.x || uv.y >= invokeSize.y) return;\n" +
                     "   ivec2 size = textureSize(tex, 0).xy;\n" +
@@ -436,10 +442,11 @@ object ShaderLib {
                     "   ivec2 uv0 = ivec2(uv.x, size.y-1-uv.y) + srcOffset;\n" +
                     "    vec2 uv1 = vec2(uv0) * invSizeM1;\n" +
                     (if (instanced)
-                        "   vec3 mixingSrc = textureLod(tex, vec3(uv1,uvZ), 0.0).rgb;\n" else
-                        "   vec3 mixingSrc = textureLod(tex, uv1, 0.0).rgb;\n") +
-                    "   vec3 mixing = mixingSrc * textColor.a;\n" +
-                    "   if(disableSubpixelRendering) { mixing = mixing.ggg; }\n" +
+                        "   vec4 mixingSrc = textureLod(tex, vec3(uv1,uvZ), 0.0);\n" else
+                        "   vec4 mixingSrc = textureLod(tex, uv1, 0.0);\n") +
+                    "   bool isEmoji = mixingSrc.a > 0.0;\n" +
+                    "   vec3 mixing = isEmoji ? vec3(mixingSrc.a * textColor.a) : mixingSrc.rgb * textColor.a;\n" +
+                    "   if (disableSubpixelRendering) { mixing = mixing.ggg; }\n" +
                     "   float mixingAlpha = disableSubpixelRendering ? mixing.g : brightness(mixing);\n" +
                     "   size = imageSize(dst);\n" +
                     // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
@@ -451,7 +458,9 @@ object ShaderLib {
                     // todo there is awkward gray pieces around the text...
                     // "   if(mixingSrc.y < 1.0 && brightness(abs(textColor - backgroundColorI)) < 0.7)\n" +
                     "       backgroundColorI.rgb = mix(backgroundColorI.rgb, backgroundColor.rgb, findBorder(uv0, invSizeM1));\n" +
-                    "   vec4 color = mix(backgroundColorI, textColor, vec4(mixing, mixingAlpha));\n" +
+                    "   vec4 drawnColor = textColor;\n" +
+                    "   if (isEmoji) { drawnColor.rgb = mixingSrc.rgb; drawnColor.a *= mixingSrc.a; }\n" +
+                    "   vec4 color = mix(backgroundColorI, drawnColor, vec4(mixing, mixingAlpha));\n" +
                     "   imageStore(dst, uv, color);\n" +
                     "}"
         )

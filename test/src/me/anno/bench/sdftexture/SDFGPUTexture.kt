@@ -38,7 +38,7 @@ import kotlin.math.min
 /**
  * calculate SDF texture on GPU
  *
- * todo GPU has precision issues, e.g., '5'
+ * todo GPU has sign issues, e.g., '5'
  * render whole alphabet as benchmark
  * to do GPU is 3x faster, so use it :)
  * */
@@ -59,23 +59,23 @@ fun main() {
     dstGPU.tryMkdirs()
     clock.stop("Init")
 
-    for (ch in 32 until 128) {
-        val contours0 = calculateContours(font, ch.toChar().toString())
+    for (codepoint in 32 until 128) {
+        val contours0 = calculateContours(font, codepoint)
         val contours1 = optimizeContours(contours0.contours, maxError)
         val field = SignedDistanceField.computeDistances(contours1, roundEdges) ?: continue
         val image = FloatImage(field.w, field.h, 1, field.getDistances()!!)
         image.flipY()
-        image.mul(0.2f).write(dstCPU.getChild("$ch.png"))
+        image.mul(0.2f).write(dstCPU.getChild("$codepoint.png"))
     }
     clock.stop("CPU-Generation")
 
-    for (ch in 32 until 128) {
-        val contours0 = calculateContours(font, ch.toChar().toString())
+    for (codepoint in 32 until 128) {
+        val contours0 = calculateContours(font, codepoint)
         val contours1 = optimizeContours(contours0.contours, maxError)
         val field = calculateField(contours1, roundEdges) ?: continue
         val image = FloatImage(field.w, field.h, 1, field.getDistances()!!)
         image.flipY()
-        image.mul(0.2f).write(dstGPU.getChild("$ch.png"))
+        image.mul(0.2f).write(dstGPU.getChild("$codepoint.png"))
     }
     clock.stop("GPU-Generation")
 
@@ -181,7 +181,8 @@ fun drawShader(
 ) {
     shader.use()
     // y is flipped for OpenGL
-    shader.v4f("bounds", field.minX, field.maxY, field.maxX, field.minY)
+    val bounds = field.bounds
+    shader.v4f("bounds", bounds.minX, bounds.maxY, bounds.maxX, bounds.minY)
     shader.v1i("numSegments", segments.size)
 
     for (i in segments.indices) {

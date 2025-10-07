@@ -10,8 +10,10 @@ fun main() {
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
 
-    val text = "Folder \uD83D\uDCC1 123 \uD83D\uDE0A/\uD83D\uDE0A/\uD83D\uDE0A/\uD83D\uDE0A/\uD83D\uDE0A/\uD83D\uDE0A/\uD83D\uDE0A"
-    val image = FontManager.getTexture(Font("Verdana", 50f), text, 220, -1)
-        .waitFor()!!
-    image.write(desktop.getChild("Emoji Text.png"))
+    val text = "Folder \uD83D\uDCC1 123 \uD83D\uDE0A/\uD83D\uDE0A/" +
+            "\uD83D\uDE0A/\uD83D\uDE0A/\uD83D\uDE0A/" +
+            "\uD83D\uDE0A/\uD83D\uDE0A"
+    val font = Font("Verdana", 50f)
+    val image = FontManager.getTexture(font, text, 220, -1).waitFor()
+    image!!.write(desktop.getChild("Emoji Text.png"))
 }

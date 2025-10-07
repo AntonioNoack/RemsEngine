@@ -4,7 +4,6 @@ import me.anno.Time
 import me.anno.engine.OfficialExtensions
 import me.anno.fonts.Font
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField.computeDistances
-import me.anno.utils.types.Strings.joinChars
 
 /**
  * Find the slowest letter in Verdana, 20
@@ -17,10 +16,9 @@ fun main() {
     val cp0 = 33
     val cp1 = 128
 
-    fun generate(cp: Int) {
-        val text = listOf(cp).joinChars()
+    fun generate(codepoint: Int) {
         val roundEdges = false
-        computeDistances(font, text, roundEdges)
+        computeDistances(font, codepoint, roundEdges)
     }
 
     generate(32)

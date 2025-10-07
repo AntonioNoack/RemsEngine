@@ -34,13 +34,23 @@ class CubicSegment(
 
     override fun toString() = "[$p0,$p1,$p2,$p3]"
 
-    override fun transformed(transform: Matrix3x2f): EdgeSegment {
-        return CubicSegment(
-            transform.transformPosition(p0, Vector2f()),
-            transform.transformPosition(p1, Vector2f()),
-            transform.transformPosition(p2, Vector2f()),
-            transform.transformPosition(p3, Vector2f()),
-        )
+    override fun transformed(transform: Matrix3x2f, flipped: Boolean): EdgeSegment {
+        val t0 = transform.transformPosition(p0, Vector2f())
+        val t1 = transform.transformPosition(p1, Vector2f())
+        val t2 = transform.transformPosition(p2, Vector2f())
+        val t3 = transform.transformPosition(p3, Vector2f())
+        return if (flipped) CubicSegment(t3, t2, t1, t0)
+        else CubicSegment(t0, t1, t2, t3)
+    }
+
+    override fun getCrossSum(): Double {
+        val p1 = getPointAt(0.333f, JomlPools.vec2f.create())
+        val p2 = getPointAt(0.667f, JomlPools.vec2f.create())
+        val result = p0.cross(p1).toDouble() +
+                p1.cross(p2).toDouble() +
+                p2.cross(p3).toDouble()
+        JomlPools.vec2f.sub(2)
+        return result
     }
 
     override fun getPointAt(t: Float, dst: Vector2f): Vector2f {

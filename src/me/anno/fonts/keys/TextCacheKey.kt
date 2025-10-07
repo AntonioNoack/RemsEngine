@@ -135,7 +135,7 @@ data class TextCacheKey(
             val hl = limitHeight(font, text, wl, heightLimit)
 
             val fontSizeIndex = getFontSizeIndex(fontSize)
-            val properties = fontSizeIndex * 8 + font.isItalic.toInt(4) + font.isBold.toInt(2)
+            val properties = getProperties(fontSizeIndex, font.isBold, font.isItalic, grayscale = false)
             return TextCacheKey(text, font.name, font.relativeTabSize, font.relativeCharSpacing, properties, wl, hl)
         }
     }
