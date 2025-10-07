@@ -34,6 +34,7 @@ import me.anno.image.raw.ByteImage
 import me.anno.image.raw.ByteImageFormat
 import me.anno.image.raw.FloatImage
 import me.anno.image.raw.GPUImage
+import me.anno.image.raw.OpaqueImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -885,6 +886,9 @@ open class Texture2D(
         }
         check()
         if (!flipY) image.flipY()
+        if (image.hasAlphaChannel && !withAlpha) {
+            return OpaqueImage(image)
+        }
         return image
     }
 

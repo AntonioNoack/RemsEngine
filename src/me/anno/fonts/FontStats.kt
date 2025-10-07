@@ -1,6 +1,5 @@
 package me.anno.fonts
 
-import me.anno.fonts.Codepoints.countCodepoints
 import me.anno.fonts.keys.FontKey
 import me.anno.image.ImageCache
 import me.anno.utils.InternalAPI
@@ -37,11 +36,19 @@ object FontStats {
     }
 
     @InternalAPI
-    var getTextLengthImpl: ((Font, String) -> Double)? = null
-    fun getTextLength(font: Font, text: String): Double {
-        val tmp = getTextLengthImpl
-            ?: return text.countCodepoints() * font.size * 0.6
-        return tmp(font, text)
+    var getTextLengthImpl1: ((Font, Int) -> Double)? = null
+    fun getTextLength(font: Font, codepoint: Int): Double {
+        val tmp = getTextLengthImpl1
+            ?: return font.size * 0.6
+        return tmp(font, codepoint)
+    }
+
+    @InternalAPI
+    var getTextLengthImpl2: ((Font, Int, Int) -> Double)? = null
+    fun getTextLength(font: Font, codepointA: Int, codepointB: Int): Double {
+        val tmp = getTextLengthImpl2
+            ?: return font.size * 0.6
+        return tmp(font, codepointA, codepointB)
     }
 
     val subpixelOffsetR = Vector2f()

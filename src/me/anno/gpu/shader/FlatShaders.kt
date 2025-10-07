@@ -135,7 +135,7 @@ object FlatShaders {
             Variable(GLSLType.S2D, "tex"),
         ), "" +
                 tonemapGLSL +
-                "void main(){\n" +
+                "void main() {\n" +
                 "   vec4 col = color;\n" +
                 "   vec4 data = texture(tex, uv);\n" +
                 alphaModeProcessing +

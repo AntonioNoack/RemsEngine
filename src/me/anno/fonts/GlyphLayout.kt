@@ -2,10 +2,6 @@ package me.anno.fonts
 
 import me.anno.cache.ICacheData
 import me.anno.fonts.CharacterOffsetCache.Companion.getOffsetCache
-import org.joml.AABBf
-
-// todo use these parts instead of our custom logic
-// todo the same for any SDFs
 
 open class GlyphLayout(
     val font: Font, val text: CharSequence,
@@ -14,53 +10,19 @@ open class GlyphLayout(
 
     private val offsetCache = getOffsetCache(font)
 
-    val bounds = AABBf()
-
-    val width: Float
-    val height: Float
     val actualFontSize: Float
-    val baseScale: Float
-    val numLines: Int
+    val baseScale: Float = 1f / font.size
+
+    var width: Float = 0f
+    var height: Float = 0f
+    var numLines: Int = 0
 
     init {
-        val parts = FontManager.getFont(font).splitParts(
-            text, font.size,
-            font.relativeTabSize, font.relativeCharSpacing,
-            relativeWidthLimit, maxNumLines
-        )
-
-        width = parts.width
-        height = parts.height
-        numLines = parts.numLines
-        actualFontSize = parts.actualFontSize
-        baseScale = 1f / font.size
-        findGlyphs(parts.parts)
-
-        // are these correct??
-        bounds.union(0f, 0f, 0f)
-        bounds.union(width * baseScale, height * baseScale, 0f)
+        val fontImpl = FontManager.getFont(font)
+        actualFontSize = fontImpl.getActualFontHeight()
+        fontImpl.fillGlyphLayout(this, relativeWidthLimit, maxNumLines, offsetCache)
     }
 
     val meshCache get() = offsetCache.charMesh
 
-    private fun findGlyphs(parts: List<StringPart>) {
-        val charSpacing = baseScale * font.relativeCharSpacing
-        for (partIndex in parts.indices) {
-            val part = parts[partIndex]
-            var offset1 = part.xPos
-            val codepoints = part.codepoints
-            for (i in part.i0 until part.i1) {
-
-                val currC = codepoints[i]
-                val offset0 = offset1
-                val nextC = if (i + 1 < part.i1) codepoints[i] else ' '.code
-                offset1 += charSpacing + offsetCache.getOffset(currC, nextC)
-
-                this.add( // add glyph to list
-                    currC, offset0, offset1, part.lineWidth,
-                    part.yPos, part.lineIndex
-                )
-            }
-        }
-    }
 }

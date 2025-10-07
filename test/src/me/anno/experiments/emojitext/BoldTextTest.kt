@@ -10,8 +10,10 @@ fun main() {
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
 
+    // fixed bug: text input isn't using our layout system for the cursor position yet
+
     // why is the text grayscale -> because Java doesn't support ARGB for subpixel-text
-    // todo bug: why do the exported textures have an alpha channel???
+    // bug: why do the exported textures have an alpha channel??? -> Texture2D.createImage ignored withAlpha
 
     val boldText = "Some Bold Text"
     val boldFont = Font("Verdana", 50f, isBold = true, isItalic = false)

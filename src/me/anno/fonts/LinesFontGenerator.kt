@@ -168,7 +168,7 @@ class LinesFontGenerator(override val fontKey: FontKey) : FontImpl<LinesFontGene
     override fun getFallbackFonts(size: Float): List<LinesFontGenerator> = emptyList()
 
     override fun getSupportLevel(
-        fonts: List<LinesFontGenerator>, char: Int,
+        fonts: List<LinesFontGenerator>, codepoint: Int,
         lastSupportLevel: Int
     ): Int = 0
 }

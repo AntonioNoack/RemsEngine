@@ -1,6 +1,8 @@
 package me.anno.fonts
 
 import me.anno.cache.AsyncCacheData
+import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_H
+import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_W
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.io.base.BaseWriter
@@ -87,7 +89,7 @@ class Font(
     val sizeInt get() = size.roundToIntOr()
     val sizeIndex get() = FontManager.getFontSizeIndex(size)
 
-    val emptySize = AsyncCacheData(GFXx2D.getSize(0, sizeInt))
+    val emptySize = AsyncCacheData(GFXx2D.getSize(TEXTURE_PADDING_W, TEXTURE_PADDING_H + sizeInt))
 
     var sample = lazy { SampleSize(this) }
     val sampleWidth get() = sample.value.width

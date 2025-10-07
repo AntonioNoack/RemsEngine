@@ -175,7 +175,14 @@ open class PureTextInput(style: Style) :
     private var loadTextSync = false
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(loadTextSync)
+
         super.draw(x0, y0, x1, y1)
+
+        showCursorAndSelection()
+        loadTexturesSync.pop()
+    }
+
+    fun showCursorAndSelection() {
         val font = content.font
         val textSize = font.sizeInt
         val textColor = content.textColor or black
@@ -222,8 +229,6 @@ open class PureTextInput(style: Style) :
             )
             // cursor 2
         }
-
-        loadTexturesSync.pop()
     }
 
     fun <V : Comparable<V>> min(a: V, b: V): V = if (a < b) a else b

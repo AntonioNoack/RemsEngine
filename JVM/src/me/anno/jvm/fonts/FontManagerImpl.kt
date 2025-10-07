@@ -1,12 +1,10 @@
 package me.anno.jvm.fonts
 
-import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.FontImpl
 import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
 import me.anno.fonts.FontManager.getFontSizeIndex
 import me.anno.fonts.FontStats
-import me.anno.fonts.IEmojiCache
 import me.anno.fonts.keys.FontKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
@@ -15,6 +13,7 @@ import me.anno.utils.Clock
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.GraphicsEnvironment
@@ -31,7 +30,8 @@ object FontManagerImpl {
     fun register() {
         FontStats.getTextGeneratorImpl = FontManagerImpl::getTextGenerator
         FontStats.queryInstalledFontsImpl = FontManagerImpl::getInstalledFonts
-        FontStats.getTextLengthImpl = FontManagerImpl::getTextLength
+        FontStats.getTextLengthImpl1 = FontManagerImpl::getTextLength1
+        FontStats.getTextLengthImpl2 = FontManagerImpl::getTextLength2
         FontStats.getDefaultFontSizeImpl = FontManagerImpl::getDefaultFontSize
         runOnNonGFXThread("SubpixelLayout") { SubpixelOffsets.calculateSubpixelOffsets() }
     }
@@ -73,16 +73,16 @@ object FontManagerImpl {
         return fontNames
     }
 
-    private fun getTextLength(font: me.anno.fonts.Font, text: String): Double {
+    fun getTextLength1(font: me.anno.fonts.Font, codepoint: Int): Double {
         val awtFont = (FontManager.getFont(font) as AWTFont).awtFont
         val ctx = FontRenderContext(null, true, true)
+        return TextLayout(codepoint.joinChars(), awtFont, ctx).bounds.maxX
+    }
 
-        val codepoints = text.codepoints().asList()
-        val emojiCache = IEmojiCache.emojiCache
-        if (emojiCache.getEmojiId(codepoints) >= 0) {
-            return font.sizeInt.toDouble() // do we need padding???
-        }
-
+    fun getTextLength2(font: me.anno.fonts.Font, charA: Int, charB: Int): Double {
+        val awtFont = (FontManager.getFont(font) as AWTFont).awtFont
+        val ctx = FontRenderContext(null, true, true)
+        val text = listOf(charA, charB).joinChars().toString()
         return TextLayout(text, awtFont, ctx).bounds.maxX
     }
 

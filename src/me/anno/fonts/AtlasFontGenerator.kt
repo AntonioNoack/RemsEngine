@@ -134,7 +134,7 @@ class AtlasFontGenerator(override val fontKey: FontKey) : FontImpl<AtlasFontGene
     override fun getSelfFont(): AtlasFontGenerator = this
     override fun getFallbackFonts(size: Float): List<AtlasFontGenerator> = emptyList()
     override fun getSupportLevel(
-        fonts: List<AtlasFontGenerator>, char: Int,
+        fonts: List<AtlasFontGenerator>, codepoint: Int,
         lastSupportLevel: Int
     ): Int = 0
 }

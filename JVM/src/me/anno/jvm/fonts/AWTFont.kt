@@ -3,11 +3,11 @@ package me.anno.jvm.fonts
 import me.anno.config.DefaultConfig
 import me.anno.fonts.CharacterOffsetCache
 import me.anno.fonts.Codepoints
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.FontImpl
 import me.anno.fonts.FontManager
 import me.anno.fonts.GlyphLayout
 import me.anno.fonts.IEmojiCache
-import me.anno.fonts.StringPart
 import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_H
 import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_W
 import me.anno.fonts.keys.FontKey
@@ -24,15 +24,12 @@ import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.jvm.images.BIImage.toImage
-import me.anno.utils.Color.a
 import me.anno.utils.Color.undoPremultiply
-import me.anno.utils.Color.withAlpha
 import me.anno.utils.async.Callback
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.isBlank
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
-import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
 import java.awt.Color
 import java.awt.Font
@@ -41,7 +38,6 @@ import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
 import kotlin.math.ceil
-import kotlin.math.max
 import kotlin.math.min
 
 class AWTFont(
@@ -57,15 +53,6 @@ class AWTFont(
         unused.fontMetrics
     }
 
-    private fun containsSpecialChar(self: CharSequence): Boolean {
-        val limit = 127.toChar()
-        for (charIndex in self.indices) {
-            val codepoint = self[charIndex]
-            if (codepoint == '\n' || codepoint == '\t' || codepoint > limit) return true
-        }
-        return false
-    }
-
     private val renderContext by lazy {
         FontRenderContext(null, true, true)
     }
@@ -79,27 +66,16 @@ class AWTFont(
     override fun getFallbackFonts(size: Float) = getFallback(size)
     override fun getExampleAdvance(): Float = exampleLayout.advance
     override fun getAdvance(text: CharSequence, font: AWTFont): Float {
-        return TextLayout(text.toString(), font.awtFont, renderContext).advance
-    }
-
-    /**
-     * like gfx.drawText, however this method is respecting the ideal character distances,
-     * so there are no awkward spaces between T and e
-     * */
-    private fun drawString(gfx: Graphics2D, text: CharSequence, dx: Float, dy: Float) {
-        val group = createGroup(engineFont, text)
-        drawString(gfx, group, dx, dy)
-    }
-
-    /**
-     * like gfx.drawText, however this method is respecting the ideal character distances,
-     * so there are no awkward spaces between T and e
-     * */
-    private fun drawString(gfx: Graphics2D, group: GlyphLayout, dx: Float, dy: Float) {
-        for (glyphIndex in group.indices) {
-            val codepoint = group.getCodepoint(glyphIndex)
-            drawString(gfx, codepoint, dx + group.getX0(glyphIndex), dy + group.getY(glyphIndex))
+        var sum = 0f
+        val cache = CharacterOffsetCache(engineFont)
+        val codepoints = text.codepoints()
+        for (i in codepoints.indices) {
+            val curr = codepoints[i]
+            val next = if (i + 1 >= codepoints.size) ' '.code else codepoints[i + 1]
+            sum += cache.getOffset(curr, next)
+            println("sum $sum += '${curr.joinChars()}'")
         }
+        return sum
     }
 
     /**
@@ -122,37 +98,6 @@ class AWTFont(
      * like gfx.drawText, however this method is respecting the ideal character distances,
      * so there are no awkward spaces between T and e
      * */
-    private fun drawString(gfx: IntImage, text: CharSequence, dx: Float, dy: Float) {
-        val group = createGroup(engineFont, text)
-        drawString(gfx, group, dx, dy)
-    }
-
-    /**
-     * like gfx.drawText, however this method is respecting the ideal character distances,
-     * so there are no awkward spaces between T and e
-     * */
-    private fun drawString(gfx: IntImage, group: GlyphLayout, dx: Float, dy: Float) {
-        for (glyphIndex in group.indices) {
-            val codepoint = group.getCodepoint(glyphIndex)
-            drawString(gfx, codepoint, dx + group.getX0(glyphIndex), dy + group.getY(glyphIndex))
-        }
-    }
-
-    /**
-     * like gfx.drawText, however this method is respecting the ideal character distances,
-     * so there are no awkward spaces between T and e
-     * */
-    private fun drawString(gfx: IntImage, codepoint: Int, dx: Float, dy: Float) {
-        if (codepoint.isBlank()) return
-        if (Codepoints.isEmoji(codepoint)) {
-            drawEmoji(gfx, codepoint, dx, dy)
-        }
-    }
-
-    /**
-     * like gfx.drawText, however this method is respecting the ideal character distances,
-     * so there are no awkward spaces between T and e
-     * */
     private fun drawEmoji(gfx: IntImage, codepoint: Int, dx: Float, dy: Float) {
         val fontSize = engineFont.sizeInt
         val emojiId = Codepoints.getEmojiId(codepoint)
@@ -167,92 +112,16 @@ class AWTFont(
     }
 
     override fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
-        if (text.isEmpty()) return GFXx2D.getSize(0, fontMetrics.height)
-        return if (containsSpecialChar(text) || (widthLimit in 0 until GFX.maxTextureSize)) {
-            val fontSize = engineFont.size
-            val parts = splitParts(
-                text, fontSize, 4f, 0f,
-                widthLimitToRelative(widthLimit, fontSize),
-                heightLimitToMaxNumLines(heightLimit, fontSize)
-            )
-            val width = min(ceil(parts.width).toInt(), widthLimit)
-            val height = min(ceil(parts.height).toInt(), heightLimit)
-            return GFXx2D.getSize(width, height)
-        } else {
-            val width0 = measureWidth(engineFont, text)
-            val width = min(ceil(width0).toIntOr(), GFX.maxTextureSize)
-            val height = min(fontMetrics.height, GFX.maxTextureSize)
-            GFXx2D.getSize(width, height)
-        }
-    }
-
-    override fun generateTexture(
-        text: CharSequence,
-        widthLimit: Int,
-        heightLimit: Int,
-        portableImages: Boolean,
-        callback: Callback<ITexture2D>,
-        textColor: Int,
-        backgroundColor: Int
-    ) {
-
-        if (text.isEmpty()) {
-            return callback.ok(TextureLib.blackTexture)
-        }
-
-        if (containsSpecialChar(text) || widthLimit < text.length * engineFont.size * 2f) {
-            return generateTextureV3(
-                text, engineFont.size, widthLimit, heightLimit, portableImages,
-                textColor, backgroundColor, callback
-            )
-        }
-
-        val width0 = measureWidth(engineFont, text)
-        val width = min(widthLimit, ceil(width0).toIntOr() + TEXTURE_PADDING_W)
-
-        val lineCount = 1
-        val fontHeight = fontMetrics.height
-        val height = min(heightLimit, fontHeight * lineCount + TEXTURE_PADDING_H)
-
-        if (width < 1 || height < 1) {
-            return callback.ok(TextureLib.blackTexture)
-        }
-        if (max(width, height) > GFX.maxTextureSize) {
-            return callback.err(
-                IllegalArgumentException(
-                    "Texture for text is too large! $width x $height > ${GFX.maxTextureSize}, " +
-                            "${text.length} chars, $lineCount lines, ${awtFont.name} ${engineFont.size} px, ${
-                                text.toString().shorten(200)
-                            }"
-                )
-            )
-        }
-
-        if (text.isBlank2()) {
-            // we need some kind of wrapper around texture2D
-            // and return an empty/blank texture
-            // that the correct size is returned is required by text input fields
-            // (with whitespace at the start or end)
-            return callback.ok(FakeWhiteTexture(width, height, 1))
-        }
-
-        val texture = Texture2D("awt-" + text.shorten(24), width, height, 1)
-        val hasPriority = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
-        val image = createImage(
-            width, height, portableImages, textColor,
-            backgroundColor, text
+        if (text.isEmpty()) return engineFont.emptySize.value!!
+        val fontSize = engineFont.size
+        val parts = GlyphLayout(
+            engineFont, text,
+            widthLimitToRelative(widthLimit, fontSize),
+            heightLimitToMaxNumLines(heightLimit, fontSize)
         )
-        if (hasPriority) {
-            createTexture(texture, image, callback)
-        } else {
-            addGPUTask("awt-font-v5", width, height, false) {
-                createTexture(texture, image, callback)
-            }
-        }
-    }
-
-    private fun createTexture(texture: Texture2D, image: Image, callback: Callback<ITexture2D>) {
-        texture.createFromImage(image, callback)
+        val width = min(ceil(parts.width).toIntOr() + TEXTURE_PADDING_W, widthLimit)
+        val height = min(ceil(parts.height).toIntOr() + TEXTURE_PADDING_H, heightLimit)
+        return GFXx2D.getSize(width, height)
     }
 
     private fun Texture2D.createFromImage(image: Image, callback: Callback<ITexture2D>) {
@@ -297,76 +166,56 @@ class AWTFont(
         return exampleLayout.ascent + exampleLayout.descent
     }
 
-    private fun createImage(
-        width: Int, height: Int, portableImages: Boolean,
-        textColor: Int, backgroundColor: Int, text: CharSequence,
-    ): Image {
-        val image = BufferedImage(width, height, BI_FORMAT)
-        val gfx = image.graphics as Graphics2D
-        gfx.prepareGraphics(awtFont, portableImages)
-
-        if (backgroundColor != 0) {
-            // fill background with that color
-            gfx.color = Color(backgroundColor)
-            gfx.fillRect(0, 0, width, height)
+    override fun getSupportLevel(fonts: List<AWTFont>, codepoint: Int, lastSupportLevel: Int): Int {
+        if (Codepoints.isEmoji(codepoint) || (codepoint < 0xffff && codepoint.toChar() in " \t\r\n")) {
+            return -1
         }
 
-        gfx.color = Color(textColor)
-
-        val dy = fontMetrics.ascent.toFloat()
-        drawString(gfx, text, 0f, dy)
-        gfx.dispose()
-
-        val imageI = image.toImage(true) as IntImage
-        imageI.fillAlpha(0)
-        drawString(imageI, text, 0f, dy)
-        return imageI
-    }
-
-    override fun getSupportLevel(fonts: List<AWTFont>, char: Int, lastSupportLevel: Int): Int {
         for (index in fonts.indices) {
             val font = fonts[index]
-            if (font.awtFont.canDisplay(char)) {
+            if (font.awtFont.canDisplay(codepoint)) {
                 return index
             }
         }
-        LOGGER.warn("Glyph '$char' cannot be displayed")
+
+        LOGGER.warn("Glyph '$codepoint' cannot be displayed")
         return lastSupportLevel
     }
 
-    private fun generateTextureV3(
+    override fun generateTexture(
         text: CharSequence,
-        fontSize: Float,
         widthLimit: Int,
         heightLimit: Int,
         portableImages: Boolean,
+        callback: Callback<ITexture2D>,
         textColor: Int,
-        backgroundColor: Int,
-        callback: Callback<ITexture2D>
+        backgroundColor: Int
     ) {
+        if (text.isEmpty())
+            return callback.ok(TextureLib.blackTexture)
 
-        val parts = splitParts(
-            text, fontSize, 4f, 0f,
+        val fontSize = engineFont.size
+        val layout = GlyphLayout(
+            engineFont, text,
             widthLimitToRelative(widthLimit, fontSize),
             heightLimitToMaxNumLines(heightLimit, fontSize)
         )
-        val result = parts.parts
 
-        val width = min(ceil(parts.width).toIntOr() + TEXTURE_PADDING_W, widthLimit)
-        val height = min(ceil(parts.height).toIntOr() + TEXTURE_PADDING_H, heightLimit)
+        val width = min(ceil(layout.width).toIntOr() + TEXTURE_PADDING_W, widthLimit)
+        val height = min(ceil(layout.height).toIntOr() + TEXTURE_PADDING_H, heightLimit)
 
-        if (result.isEmpty() || width < 1 || height < 1) {
+        if (layout.isEmpty() || width < 1 || height < 1) {
             return callback.ok(FakeWhiteTexture(width, height, 1))
         }
 
         val texture = Texture2D("awt-font-v3", width, height, 1)
         val hasPriority = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
         if (hasPriority) {
-            createImage(texture, portableImages, textColor, backgroundColor, result)
+            createImage(texture, portableImages, textColor, backgroundColor, layout)
             callback.ok(texture)
         } else {
             addGPUTask("awt-font-v6", width, height, false) {
-                createImage(texture, portableImages, textColor, backgroundColor, result)
+                createImage(texture, portableImages, textColor, backgroundColor, layout)
                 callback.ok(texture)
             }
         }
@@ -374,7 +223,7 @@ class AWTFont(
 
     private fun createImage(
         texture: Texture2D, portableImages: Boolean, textColor: Int, backgroundColor: Int,
-        result: List<StringPart>
+        layout: GlyphLayout
     ) {
 
         val image = BufferedImage(texture.width, texture.height, BI_FORMAT)
@@ -389,21 +238,33 @@ class AWTFont(
         }
         gfx.color = Color(textColor)
 
+        val fonts = getFontAndFallbacks(engineFont.size)
         val y = exampleLayout.ascent
-        for (part in result) {
-            if (!part.isEmoji) {
-                // s.font != this when the character is unsupported, e.g., for emojis
-                gfx.font = (part.font as AWTFont).awtFont
-                (part.font as AWTFont).drawString(gfx, part.text, part.xPos, part.yPos + y)
+        var lastFontIndex = -1
+        for (glyphIndex in layout.indices) {
+            val codepoint = layout.getCodepoint(glyphIndex)
+            if (!Codepoints.isEmoji(codepoint)) {
+                val fontIndex = layout.getFontIndex(glyphIndex)
+                if (fontIndex != lastFontIndex) {
+                    // s.font != this when the character is unsupported, e.g., for emojis
+                    gfx.font = fonts[fontIndex].awtFont
+                    lastFontIndex = fontIndex
+                }
+                val dx = layout.getX0(glyphIndex)
+                val dy = layout.getY(glyphIndex) + y
+                drawString(gfx, codepoint, dx, dy)
             } // else will be drawn later
         }
         gfx.dispose()
 
         val imageI = image.toImage(true) as IntImage
         imageI.fillAlpha(0)
-        for (part in result) {
-            if (part.isEmoji) {
-                drawEmoji(imageI, part.firstCodepoint, part.xPos, part.yPos + y)
+        for (glyphIndex in layout.indices) {
+            val codepoint = layout.getCodepoint(glyphIndex)
+            if (Codepoints.isEmoji(codepoint)) {
+                val dx = layout.getX0(glyphIndex)
+                val dy = layout.getY(glyphIndex) + y
+                drawEmoji(imageI, codepoint, dx, dy)
             }
         }
         texture.createFromImage(imageI, Callback.printError())
@@ -436,6 +297,9 @@ class AWTFont(
 
         val imageI = image.toImage(true)
         (imageI as IntImage).fillAlpha(0)
+
+        // there are no emojis in this range -> they can be skipped
+
         texture.create(imageI, sync = true)
     }
 
@@ -452,16 +316,6 @@ class AWTFont(
          *  - emojis have alpha >= 0
          * */
         private const val BI_FORMAT = BufferedImage.TYPE_INT_RGB
-
-        private fun createGroup(font: me.anno.fonts.Font, text: CharSequence): GlyphLayout =
-            GlyphLayout(font, text, 0f, Int.MAX_VALUE)
-
-        private fun measureWidth(font: me.anno.fonts.Font, text: CharSequence): Float =
-            FontManager.getFont(font).splitParts(
-                text, font.size,
-                font.relativeTabSize, font.relativeCharSpacing,
-                0f, Int.MAX_VALUE
-            ).width
 
         private val asciiStrings = List(128) { it.toChar().toString() }
 

@@ -261,11 +261,7 @@ object DrawTexts {
             val textWidth = charWidth * text.length
             getSize(textWidth, font.sizeInt)
         } else {
-            val parts = FontManager.getFont(font).splitParts(
-                text, font.size,
-                font.relativeTabSize, font.relativeCharSpacing,
-                0f, Int.MAX_VALUE
-            )
+            val parts = GlyphLayout(font, text, 0f, Int.MAX_VALUE)
             val textWidth = parts.width.roundToIntOr()
             getSize(textWidth, font.sizeInt)
         }
