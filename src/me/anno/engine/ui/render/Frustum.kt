@@ -27,7 +27,7 @@ class Frustum {
 
     // -x,+x,-y,+y,-z,+z
     val planes = Array(13) { Plane() }
-    var length = 6
+    var numPlanes = 6
 
     private val normals = Array(13) { Vector3f() }
     private val positions = Array(13) { Vector3d() }
@@ -49,7 +49,7 @@ class Frustum {
     // for debugging, when the pipeline seems to be empty for unknown reasons
     fun setToEverything(cameraPosition: Vector3d, cameraRotation: Quaternionf) {
 
-        length = 0
+        numPlanes = 0
         isPerspective = false
         sizeThreshold = 0.0
 
@@ -90,7 +90,7 @@ class Frustum {
         positions[5].set(0f, 0f, -far)
         normals[5].set(0f, 0f, -1f)
 
-        length = 6
+        numPlanes = 6
         transform2(cameraPosition, cameraRotation)
 
         isPerspective = false
@@ -100,7 +100,7 @@ class Frustum {
         val positions = positions
         val normals = normals
         val planes = planes
-        for (i in 0 until length) {
+        for (i in 0 until numPlanes) {
             val position = positions[i].add(cameraPosition)
             val normal = cameraRotation.transform(normals[i])
             planes[i].set(position, normal)
@@ -113,7 +113,7 @@ class Frustum {
         val positions = positions
         val normals = normals
         val planes = planes
-        for (i in 0 until length) {
+        for (i in 0 until numPlanes) {
             val position = cameraRotation.transform(positions[i]).add(cameraPosition)
             val normal = cameraRotation.transform(normals[i])
             planes[i].set(position, normal)
@@ -245,7 +245,7 @@ class Frustum {
         normals[0].set(+cosX, 0.0, +sinX)
         normals[1].set(-cosX, 0.0, +sinX)
 
-        length = 6
+        numPlanes = 6
         transform(cameraPosition, cameraRotation)
 
         isPerspective = true
@@ -266,13 +266,13 @@ class Frustum {
             planes[i].set(tmp.x, tmp.y, tmp.z, tmp.w.toDouble())
         }
 
-        length = 6
+        numPlanes = 6
         transform(cameraPosition, cameraRotation)
         isPerspective = cameraMatrix.m30 != 1f // mmh
     }
 
     fun showPlanes() {
-        for (i in 0 until length) {
+        for (i in 0 until numPlanes) {
             val length = 10.0
             val s = 1.0
             val p = positions[i]
@@ -423,7 +423,7 @@ class Frustum {
     operator fun contains(aabb: AABBd): Boolean {
         if (aabb.isEmpty()) return false
         // https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
-        for (i in 0 until length) {
+        for (i in 0 until numPlanes) {
             val plane = planes[i]
             val x = if (plane.dirX > 0.0) aabb.minX else aabb.maxX
             val y = if (plane.dirY > 0.0) aabb.minY else aabb.maxY
@@ -441,7 +441,7 @@ class Frustum {
     fun containsSphere(px: Double, py: Double, pz: Double, radius: Double): Boolean {
         if (radius < 0.0) return false
         // https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
-        for (i in 0 until length) {
+        for (i in 0 until numPlanes) {
             val plane = planes[i]
             val x = if (plane.dirX > 0.0) px - radius else px + radius
             val y = if (plane.dirY > 0.0) py - radius else py + radius
