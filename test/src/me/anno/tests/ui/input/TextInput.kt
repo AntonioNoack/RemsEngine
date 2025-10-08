@@ -1,6 +1,8 @@
 package me.anno.tests.ui.input
 
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.EngineActions
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
@@ -18,18 +20,21 @@ import me.anno.ui.input.TextInputML
 fun main() {
     // arrow keys were broken because of class names / action manager
     disableRenderDoc()
-    val textInput = TextInput(style).setValue("103212", false) // works
-    val floatInput = FloatInput(NameDesc("Float"), "", 103212f, NumberType.DOUBLE, style) // broken
-    val intInput = IntInput(NameDesc("Int"), "", 103212, style) // broken
-    val floatVectorInput = FloatVectorInput(NameDesc("Float Vector"), "", SCALE, style)
-    val intVectorInput = IntVectorInput(NameDesc("Int Vector"), "", VEC3D, style)
-
-    // todo bug: text selection looks weird over multiple lines
-    // todo bug: up/down arrow keys don't work
-    val textInputML = TextInputML(style).setValue("a\nb", false)
-
     testUI2("Text Input") {
         WindowRenderFlags.enableVSync = true
+
+        val textInput = TextInput(style).setValue("103212", false) // works
+        val floatInput = FloatInput(NameDesc("Float"), "", 103212f, NumberType.DOUBLE, style) // broken
+        val intInput = IntInput(NameDesc("Int"), "", 103212, style) // broken
+        val floatVectorInput = FloatVectorInput(NameDesc("Float Vector"), "", SCALE, style)
+        val intVectorInput = IntVectorInput(NameDesc("Int Vector"), "", VEC3D, style)
+
+        // fixed bugs:
+        // text selection looks weird over multiple lines
+        // up/down arrow keys don't work
+        // going left on a line should go to the line above on the right, but it moves to the left instead
+        val textInputML = TextInputML(style).setValue("a\nb", false)
+
         listOf(textInput, floatInput, intInput, floatVectorInput, intVectorInput, textInputML)
     }
 }

@@ -6,66 +6,73 @@ import me.anno.ui.Panel
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.mixARGB
 
-class PureTextInputLine(val self: Panel) : CorrectingTextPanel(self.style) {
+class PureTextInputLine(val owner: Panel) : CorrectingTextPanel(owner.style) {
 
     override val effectiveTextColor: Int
-        get() = if ((self as InputPanel<*>).isInputAllowed && isEnabled) super.effectiveTextColor else
+        get() = if ((owner as InputPanel<*>).isInputAllowed && isEnabled) super.effectiveTextColor else
             mixARGB(textColor, backgroundColor, 0.5f)
 
     @Suppress("UNCHECKED_CAST")
     override val isShowingPlaceholder: Boolean
-        get() = (self as InputPanel<String>).value.isEmpty()
+        get() = (owner as InputPanel<String>).value.isEmpty()
 
-    override fun onCharTyped2(x: Float, y: Float, key: Int) = self.onCharTyped(x, y, key)
-    override fun onEnterKey2(x: Float, y: Float) = self.onEnterKey(x, y)
-    override fun onKeyDown(x: Float, y: Float, key: Key) = self.onKeyDown(x, y, key)
-    override fun onKeyUp(x: Float, y: Float, key: Key) = self.onKeyUp(x, y, key)
+    override fun onCharTyped2(x: Float, y: Float, key: Int) = owner.onCharTyped(x, y, key)
+    override fun onEnterKey2(x: Float, y: Float) = owner.onEnterKey(x, y)
+    override fun onKeyDown(x: Float, y: Float, key: Key) = owner.onKeyDown(x, y, key)
+    override fun onKeyUp(x: Float, y: Float, key: Key) = owner.onKeyUp(x, y, key)
 
     override fun setCursor(position: Int) {
         // set cursor after replacement
-        when (self) {
+        when (owner) {
             is PureTextInput -> {
-                if (self.cursor1 != self.cursor2 || self.cursor1.x != position) {
-                    self.cursor1.set(position)
-                    self.cursor2.set(self.cursor1)
+                if (owner.cursor1 != owner.cursor2 || owner.cursor1.x != position) {
+                    owner.cursor1.set(position)
+                    owner.cursor2.set(owner.cursor1)
                 }
             }
             is PureTextInputML -> {
-                if (self.cursor1 != self.cursor2 || self.cursor1.x != position || self.cursor1.y != indexInParent) {
-                    self.cursor1.set(position, indexInParent)
-                    self.cursor2.set(self.cursor1)
+                if (owner.cursor1 != owner.cursor2 || owner.cursor1.x != position || owner.cursor1.y != indexInParent) {
+                    owner.cursor1.set(position, indexInParent)
+                    owner.cursor2.set(owner.cursor1)
                 }
             }
         }
     }
 
     override fun updateChars(notify: Boolean) {
-        when (self) {
+        when (owner) {
             is PureTextInput -> {
                 // replace chars in main string...
                 // convert text back to lines
-                self.line = text.codepoints().toMutableList()
-                self.update(true)
+                owner.line = text.codepoints().toMutableList()
+                owner.update(true)
             }
             is PureTextInputML -> {
                 // replace chars in main string...
                 // convert text back to lines
-                self.lines[indexInParent] = text.codepoints().toMutableList()
-                self.update(true)
+                owner.lines[indexInParent] = text.codepoints().toMutableList()
+                owner.update(true)
             }
         }
     }
 
     override fun onCopyRequested(x: Float, y: Float): Any? {
-        return self.onCopyRequested(x, y)
+        return owner.onCopyRequested(x, y)
     }
 
     override fun isKeyInput(): Boolean {
-        return self.isKeyInput()
+        return owner.isKeyInput()
     }
 
     override fun acceptsChar(char: Int): Boolean {
-        return self.acceptsChar(char)
+        return owner.acceptsChar(char)
+    }
+
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        return when (action) {
+            "MoveUp", "MoveDown" -> owner
+            else -> uiParent ?: return false
+        }.onGotAction(x, y, dx, dy, action, isContinuous)
     }
 
     override val className: String get() = "PureTextInputLine"

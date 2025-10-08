@@ -230,6 +230,11 @@ object EngineActions {
             register["$name.downArrow.typed.s", "MoveDown"]
         }
 
+        register["PureTextInputLine.upArrow.typed", "MoveUp"]
+        register["PureTextInputLine.downArrow.typed", "MoveDown"]
+        register["PureTextInputLine.upArrow.typed.s", "MoveUp"]
+        register["PureTextInputLine.downArrow.typed.s", "MoveDown"]
+
         register["ConsoleInput.upArrow.typed", "MoveUp"]
         register["ConsoleInput.downArrow.typed", "MoveDown"]
         register["NumberInputComponent.leftArrow.typed", "MoveLeft"]

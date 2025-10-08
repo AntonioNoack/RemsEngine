@@ -217,7 +217,7 @@ open class PureTextInputML(style: Style) :
             val panel1 = children[cursor1.y] as TextPanel
             val line1 = lines[cursor1.y]
             val cursor1Text = line1.joinChars(0, cursor1.x)
-            val cursorX1 = if (cursor1.x == 0) 0 else getTextSizeX(font, cursor1Text)- 1
+            val cursorX1 = if (cursor1.x == 0) 0 else getTextSizeX(font, cursor1Text) - 1
             if (cursor1 != cursor2) {
                 val panel2 = children[cursor2.y] as TextPanel
                 val line2 = lines[cursor2.y]
@@ -552,9 +552,13 @@ open class PureTextInputML(style: Style) :
                 // we can move left
                 CursorPosition(oldCursor.x - 1, oldCursor.y)
             }
+            oldCursor.y > 0 -> {
+                // we need to move down
+                val newX = lines[oldCursor.y - 1].size
+                CursorPosition(newX, oldCursor.y - 1)
+            }
             else -> {
-                // we need to move down, if possible
-                CursorPosition(0, max(oldCursor.y - 1, 0))
+                CursorPosition(0, 0)
             }
         }
         if (isSelecting) {
