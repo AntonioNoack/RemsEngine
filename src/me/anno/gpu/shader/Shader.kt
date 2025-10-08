@@ -9,6 +9,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.indexOfFirst2
+import me.anno.utils.types.Strings.splitLines
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C
 
@@ -128,7 +129,7 @@ open class Shader(
         builder.clear()
         builder.append(versionString)
 
-        for (line in vertexShader.split('\n')
+        for (line in vertexShader.splitLines()
             .filter { it.trim().startsWith("#extension ") }) {
             builder.append(line).append('\n')
         }
@@ -166,7 +167,7 @@ open class Shader(
         builder.clear()
 
         builder.append(versionString)
-        for (extension in fragmentShader.split('\n')
+        for (extension in fragmentShader.splitLines()
             .filter { it.trim().startsWith("#extension ") }) {
             builder.append(extension).append('\n')
         }

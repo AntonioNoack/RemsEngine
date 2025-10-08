@@ -10,6 +10,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.types.Strings.splitLines
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import kotlin.math.abs
@@ -42,7 +43,7 @@ fun readCached(path: String, id: String): String {
 fun main() {
 
     readCached("https://api.phychi.com/elemental/?l3", "list")
-        .split('\n')
+        .splitLines()
         .forEach {
             val c = it.split(':')
             if (c.size >= 3) { // c.size will be 4

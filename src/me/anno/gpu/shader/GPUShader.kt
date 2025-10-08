@@ -20,6 +20,7 @@ import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Strings.countLines
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.isNotBlank2
+import me.anno.utils.types.Strings.splitLines
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix2f
 import org.joml.Matrix3f
@@ -194,7 +195,7 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
         }
 
         private fun hasErrorMessages(log: String): Boolean {
-            return log.split('\n').any2 { line ->
+            return log.splitLines().any2 { line ->
                 line.isNotBlank2() && ": warning " !in line
             }
         }

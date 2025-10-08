@@ -27,6 +27,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
+import me.anno.utils.types.Strings.splitLines
 import kotlin.math.round
 
 @Docs("Text panel with char-wise animation")
@@ -62,7 +63,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         get() = super.text
         set(value) {
             if (super.text != value) {
-                lines = value.split('\n')
+                lines = value.splitLines()
                     .map { line -> line.cpList() }
             }
             super.text = value
@@ -73,13 +74,13 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         set(value) {
             if (value != super.font) {
                 super.font = value
-                lines = text.split('\n')
+                lines = text.splitLines()
                     .map { line -> line.cpList() }
             }
         }
 
     // cached text and lines for fewer allocations
-    private var lines = text.split('\n')
+    private var lines = text.splitLines()
         .map { line -> line.cpList() }
 
     fun String.cpList() = Pair(

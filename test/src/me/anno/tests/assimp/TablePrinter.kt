@@ -4,6 +4,7 @@ import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.splitLines
 import kotlin.math.max
 import kotlin.math.min
 
@@ -35,19 +36,19 @@ class TablePrinter {
     }
 
     fun addColumnTitle(title: CharSequence, titleCentered: Boolean = false) {
-        colTitles.add(title.split('\n'))
+        colTitles.add(title.splitLines())
         colTitleCentered[colTitles.size - 1] = titleCentered
     }
 
     fun addRowTitle(title: CharSequence, titleCentered: Boolean = false) {
-        rowTitles.add(title.split('\n'))
+        rowTitles.add(title.splitLines())
         rowTitleCentered[rowTitles.size - 1] = titleCentered
     }
 
     fun finishCell(x: Int, y: Int, centered: Boolean = false) {
         val lines = builder.toString()
             .trimEnd()
-            .split('\n')
+            .splitLines()
         builder.clear()
         while (columns.size <= x) columns.add(ArrayList())
         val cx = columns[x]

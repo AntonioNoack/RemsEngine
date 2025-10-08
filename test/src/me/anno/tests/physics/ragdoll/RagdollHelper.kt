@@ -4,6 +4,7 @@ import me.anno.maths.Maths.factorial
 import me.anno.maths.Permutations.generatePermutations
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Matrices.sampleDistanceSquared
+import me.anno.utils.types.Strings.splitLines
 import org.joml.Matrix3d
 
 // trying to find the solution brute-force...
@@ -15,7 +16,7 @@ fun main() {
   bindPose: [[-4.1530438E-7 9.639043E-7 -1.0000001 -2.193451E-5] [-0.63431334 -0.7730762 -4.761216E-7 43.460014] [-0.7730761 0.63431334 9.536743E-7 -48.56196]]
   relPose: [[0.9903069 0.13889652 0.0 12.411919] [-0.13889652 0.9903069 0.0 0.0] [0.0 0.0 1.0 0.0]]
   target: [[0.99989635 -0.011388577 0.008822608 1.0638313] [0.0144061595 0.7904448 -0.6123645 -18.295223] [2.2272434E-7 0.61242795 0.7905269 -37.964104]]
-   """.trimIndent().split('\n').asSequence()
+   """.trimIndent().splitLines().asSequence()
         .filter { it.isNotEmpty() }
         .map { line -> line.substring(line.indexOf(": ") + 2) }
         .map { line -> line.replace('[', ' ').replace(']', ' ') }

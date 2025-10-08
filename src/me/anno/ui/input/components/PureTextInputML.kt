@@ -28,6 +28,7 @@ import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
 import me.anno.utils.types.Strings.joinChars
+import me.anno.utils.types.Strings.splitLines
 
 open class PureTextInputML(style: Style) :
     ScrollPanelXY(Padding(0), style),
@@ -305,7 +306,7 @@ open class PureTextInputML(style: Style) :
     fun setText(text: String, notify: Boolean) {
         if (text == this.text) return
         this.text = text
-        val textLines = text.split('\n')
+        val textLines = text.splitLines()
         for (i in lines.lastIndex downTo textLines.size - 1) {
             lines.removeAt(i)
         }

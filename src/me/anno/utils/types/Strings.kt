@@ -760,4 +760,32 @@ object Strings {
             else -> b
         }
     }
+
+    /**
+     * Split lines on [\n, \r\n, \r]
+     * */
+    fun CharSequence.splitLines(): List<String> {
+        var i0 = 0
+        val result = ArrayList<String>()
+        var i1 = 0
+        while (i1 < length) {
+            when (this[i1]) {
+                '\r' -> {
+                    result.add(substring(i0, i1))
+                    i1 += if (i1 + 1 < length && this[i1 + 1] == '\n') 2 else 1
+                    i0 = i1 // after \r or \r\n
+                }
+                '\n' -> {
+                    result.add(substring(i0, i1))
+                    i1++
+                    i0 = i1 // after \n
+                }
+                else -> i1++
+            }
+        }
+        if (i1 > i0) {
+            result.add(substring(i0, i1))
+        }
+        return result
+    }
 }

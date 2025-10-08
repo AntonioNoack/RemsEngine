@@ -3,6 +3,7 @@ package me.anno.tests.io.files
 import me.anno.Engine
 import me.anno.io.files.FileFileRef
 import me.anno.utils.structures.Iterators.toList
+import me.anno.utils.types.Strings.splitLines
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -17,7 +18,7 @@ class ReadFilesSyncBroken {
         val lines = "hey\ndu\nwas machst\ndu so?\n\n"
         file.writeText(lines)
         val readLines = file.readLinesSync(1024).toList()
-        assertEquals(lines.split('\n'), readLines)
+        assertEquals(lines.splitLines(), readLines)
         file.delete()
     }
 }

@@ -14,6 +14,7 @@ import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.ui.WindowStack.Companion.printLayout
 import me.anno.ui.editor.code.CodeEditor
+import me.anno.utils.types.Strings.splitLines
 import org.apache.logging.log4j.LogManager
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -94,7 +95,7 @@ object EngineActions {
                 val hp = EngineBase.instance?.hoveredPanel
                 if (hp != null) hp.onPasteFiles(
                     window.mouseX, window.mouseY,
-                    data.split("\n").map { getReference(it) }
+                    data.splitLines().map { getReference(it) }
                 )
                 else warnNoPanelHovered()
             }

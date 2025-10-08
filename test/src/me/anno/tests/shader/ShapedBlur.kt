@@ -18,6 +18,7 @@ import me.anno.network.ResetByteArrayOutputStream
 import me.anno.sdf.shapes.SDFHeart
 import me.anno.utils.OS
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Strings.splitLines
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Vector2d
@@ -96,7 +97,7 @@ fun compress(
         if (idx < 0) continue
         val idx1 = all.indexOf("break;", idx)
         val case = all.substring(all.indexOf(':', idx) + 1, idx1)
-        val lines = case.split('\n')
+        val lines = case.splitLines()
         val filter = ArrayList<Vector3f>()
         filters.add(filter)
         for (line in lines) {
@@ -152,7 +153,7 @@ fun compressGaussian(
         if (idx < 0) continue
         val idx1 = all.indexOf("break;", idx)
         val case = all.substring(all.indexOf(':', idx) + 1, idx1)
-        val lines = case.split('\n')
+        val lines = case.splitLines()
         val filter = Vector3f()
         filters.add(filter)
         for (line in lines) {

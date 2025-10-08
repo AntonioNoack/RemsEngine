@@ -1,4 +1,4 @@
-package me.anno.experiments.emojitext
+package me.anno.tests.fonts.emojis
 
 import me.anno.engine.OfficialExtensions
 import me.anno.fonts.Font
@@ -10,8 +10,10 @@ fun main() {
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
 
-    val text = "\uD83D\uDCC1"
+    val text = "Folder \uD83D\uDCC1 123 \uD83D\uDE0A/\uD83D\uDE0A/" +
+            "\uD83D\uDE0A/\uD83D\uDE0A/\uD83D\uDE0A/" +
+            "\uD83D\uDE0A/\uD83D\uDE0A"
     val font = Font("Verdana", 50f)
     val image = FontManager.getTexture(font, text, 220, -1).waitFor()
-    image!!.write(desktop.getChild("Emoji Text2.png"))
+    image!!.write(desktop.getChild("Emoji Text.png"))
 }

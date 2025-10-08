@@ -210,7 +210,7 @@ class NumberType(
 
         val STRING = NumberType(
             "", 1, 1f, false, hasExponential = false,
-            { Casting.castToString(it).replace("\r", "") }, Casting::castToString
+            { Casting.castToString(it) }, Casting::castToString
         )
 
         val ALIGNMENT = NumberType(

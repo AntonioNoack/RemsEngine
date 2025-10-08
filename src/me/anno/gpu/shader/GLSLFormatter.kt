@@ -1,5 +1,7 @@
 package me.anno.gpu.shader
 
+import me.anno.utils.types.Strings.splitLines
+
 // todo could be moved to utils...
 /**
  * formats GLSL (our shading language used in the engine) to improve its readability
@@ -14,7 +16,7 @@ object GLSLFormatter {
      * a little auto-formatting
      */
     fun indent(text: String): String {
-        val lines = text.split("\n")
+        val lines = text.splitLines()
         val result = StringBuilder(lines.size * 3)
         var depth = 0
         for (i in lines.indices) {

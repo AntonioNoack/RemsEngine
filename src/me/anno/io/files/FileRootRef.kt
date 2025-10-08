@@ -7,6 +7,7 @@ import me.anno.utils.OS
 import me.anno.utils.Threads
 import me.anno.utils.async.Callback
 import me.anno.utils.types.Strings.isNotBlank2
+import me.anno.utils.types.Strings.splitLines
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.IOException
@@ -86,7 +87,7 @@ object FileRootRef : FileReference("/") {
             bytes.readLE16(it * 2).toChar()
         }
 
-        val wslInstanceNames = String(chars).split('\n')
+        val wslInstanceNames = String(chars).splitLines()
             .filter { it.isNotBlank2() }.map { it.trim() }
 
         val prefix = "//wsl.localhost/"

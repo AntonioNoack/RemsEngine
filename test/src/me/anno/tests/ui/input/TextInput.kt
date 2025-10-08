@@ -13,17 +13,23 @@ import me.anno.ui.input.NumberType
 import me.anno.ui.input.NumberType.Companion.SCALE
 import me.anno.ui.input.NumberType.Companion.VEC3D
 import me.anno.ui.input.TextInput
+import me.anno.ui.input.TextInputML
 
 fun main() {
     // arrow keys were broken because of class names / action manager
     disableRenderDoc()
-    val ti = TextInput(style).setValue("103212", false) // works
-    val fi = FloatInput(NameDesc("Float"), "", 103212f, NumberType.DOUBLE, style) // broken
-    val ii = IntInput(NameDesc("Int"), "", 103212, style) // broken
-    val fvi = FloatVectorInput(NameDesc("Float Vector"), "", SCALE, style)
-    val ivi = IntVectorInput(NameDesc("Int Vector"), "", VEC3D, style)
+    val textInput = TextInput(style).setValue("103212", false) // works
+    val floatInput = FloatInput(NameDesc("Float"), "", 103212f, NumberType.DOUBLE, style) // broken
+    val intInput = IntInput(NameDesc("Int"), "", 103212, style) // broken
+    val floatVectorInput = FloatVectorInput(NameDesc("Float Vector"), "", SCALE, style)
+    val intVectorInput = IntVectorInput(NameDesc("Int Vector"), "", VEC3D, style)
+
+    // todo bug: text selection looks weird over multiple lines
+    // todo bug: up/down arrow keys don't work
+    val textInputML = TextInputML(style).setValue("a\nb", false)
+
     testUI2("Text Input") {
         WindowRenderFlags.enableVSync = true
-        listOf(ti, fi, ii, fvi, ivi)
+        listOf(textInput, floatInput, intInput, floatVectorInput, intVectorInput, textInputML)
     }
 }

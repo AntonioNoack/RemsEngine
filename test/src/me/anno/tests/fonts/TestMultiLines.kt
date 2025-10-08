@@ -1,19 +1,13 @@
-package me.anno.experiments.emojitext
+package me.anno.tests.fonts
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshAttributes.color0
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.text.MeshTextComponent
 import me.anno.ecs.components.text.SDFTextComponent
 import me.anno.ecs.components.text.TextureTextComponent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
-import me.anno.fonts.mesh.MeshGlyphLayout
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.utils.Color.toHexColor
 
 fun main() {
     OfficialExtensions.initForTests()

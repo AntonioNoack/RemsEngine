@@ -12,6 +12,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.utils.OS.res
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.splitLines
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.util.Locale
@@ -29,7 +30,7 @@ object Dict {
 
     fun load(text: String, clear: Boolean) {
         if (clear) values.clear()
-        val lines = text.split('\n')
+        val lines = text.splitLines()
         SimpleYAMLReader.read(lines.iterator(), false, values)
     }
 

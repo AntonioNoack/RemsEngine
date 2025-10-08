@@ -1,4 +1,4 @@
-package me.anno.experiments.emojitext
+package me.anno.tests.fonts
 
 import me.anno.engine.OfficialExtensions
 import me.anno.fonts.Font

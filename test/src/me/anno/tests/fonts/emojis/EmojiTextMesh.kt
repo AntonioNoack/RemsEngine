@@ -1,4 +1,4 @@
-package me.anno.experiments.emojitext
+package me.anno.tests.fonts.emojis
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh

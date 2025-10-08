@@ -2,6 +2,7 @@ package me.anno.tests.mesh.gltf.draco
 
 import me.anno.utils.OS
 import me.anno.utils.types.Strings.indexOf2
+import me.anno.utils.types.Strings.splitLines
 
 /**
 let codes = [...document.getElementsByTagName('code')]
@@ -11,9 +12,8 @@ codes.slice(65).map(x => x.innerText).join('\n\n\n')
 fun main() {
     val functions = OS.desktop.getChild("draco-spec.txt")
         .readTextSync()
-        .replace("\r", "")
         .split("\n\n\n\n")
-        .map { it.trim().split('\n') }
+        .map { it.trim().splitLines() }
         .filter { it.isNotEmpty() }
     val prefix = "        eb                                                                            "
     for (func in functions) {

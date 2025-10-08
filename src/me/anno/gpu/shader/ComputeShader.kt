@@ -12,6 +12,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.types.Strings.splitLines
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3i
 import org.lwjgl.opengl.GL46C
@@ -47,7 +48,7 @@ class ComputeShader(
 
         builder.clear()
         builder.append("#version ").append(version).append('\n')
-        for (line in source.split('\n')
+        for (line in source.splitLines()
             .filter { it.trim().startsWith("#extension ") }) {
             builder.append(line).append('\n')
         }

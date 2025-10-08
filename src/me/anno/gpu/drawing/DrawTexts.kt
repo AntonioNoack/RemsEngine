@@ -42,6 +42,7 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
+import me.anno.utils.types.Strings.splitLines
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
@@ -247,7 +248,7 @@ object DrawTexts {
 
         if ('\n' in text) {
             var sizeX = 0
-            val split = text.split('\n')
+            val split = text.splitLines()
             val lineOffset = font.lineHeightI
             for (index in split.indices) {
                 val size = getTextSizeCharByChar(font, split[index], equalSpaced)
@@ -285,7 +286,7 @@ object DrawTexts {
 
         if ('\n' in text) {
             var sizeX = 0
-            val split = text.split('\n')
+            val split = text.splitLines()
             val lineOffset = font.lineHeightI
             for (index in split.indices) {
                 val size = drawTextCharByChar(
