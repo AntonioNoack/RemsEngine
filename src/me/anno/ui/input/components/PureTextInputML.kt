@@ -78,17 +78,11 @@ open class PureTextInputML(style: Style) :
             }
         }
 
-    private var enterListener: ((text: String) -> Unit)? = null
     private var resetListener: (() -> String?)? = null
 
     override fun requestFocus(exclusive: Boolean) {
         super.requestFocus(exclusive)
         notifyCursorTyped()
-    }
-
-    fun setEnterListener(listener: (text: String) -> Unit): PureTextInputML {
-        enterListener = listener
-        return this
     }
 
     fun setResetListener(listener: () -> String?): PureTextInputML {
@@ -345,15 +339,12 @@ open class PureTextInputML(style: Style) :
             // delete back, in between, and end
             val line0 = lines[min.y]
             val line1 = lines[max.y]
-            lines[min.y] = line0.subList(0, min.x)
-            lines[min.y].addAll(line1.subList(max.x, line1.size))
-            for (i in max.y downTo min.y + 1) {
-                lines.removeAt(i)
-            }
+            line0.subList(min.x, line0.size).clear()
+            line0.addAll(line1.subList(max.x, line1.size))
+            lines.subList(min.y + 1, max.y + 1).clear()
         } else {
             // delete in between
-            val line = lines[min.y]
-            lines[min.y] = (line.subList(0, min.x) + line.subList(max.x, line.size)).toMutableList()
+            lines[min.y].subList(min.x, max.x).clear()
         }
         cursor1.set(min)
         cursor2.set(min)
@@ -745,11 +736,7 @@ open class PureTextInputML(style: Style) :
     override fun onEnterKey(x: Float, y: Float) {
         if (isInputAllowed && lines.size + 1 < lineLimit) {
             insert('\n'.code, true)
-        } else {
-            val listener = enterListener
-            if (listener != null) listener.invoke(text)
-            else super.onEnterKey(x, y)
-        }
+        } else super.onEnterKey(x, y)
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
