@@ -3,9 +3,7 @@ package me.anno.fonts
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.LRUCache
-import me.anno.fonts.FontStats.getTextGenerator
 import me.anno.fonts.FontStats.queryInstalledFonts
-import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.fonts.keys.TextCacheKey.Companion.getTextCacheKey
 import me.anno.gpu.GFX
@@ -33,8 +31,6 @@ object FontManager {
     private const val textureTimeoutMillis = 10_000L
     private const val textSizeTimeoutMillis = 100_000L
 
-    private val fonts = HashMap<FontKey, FontImpl<*>>()
-
     val fontSet by lazy {
         queryInstalledFonts().toSortedSet()
     }
@@ -52,9 +48,7 @@ object FontManager {
     }
 
     private fun roundHeightLimitToNumberOfLines(font: Font, heightLimit: Int): Int {
-        val fontHeight = font.size // roughly, not exact!
-        val spaceBetweenLines = spaceBetweenLines(fontHeight)
-        val effLineHeight = font.sizeInt + spaceBetweenLines
+        val effLineHeight = font.lineHeightI
         return max(ceilDiv(heightLimit, effLineHeight), 0) * effLineHeight
     }
 
@@ -74,23 +68,22 @@ object FontManager {
     }
 
     private val textSizeGenerator = { key: TextCacheKey, result: AsyncCacheData<Int> ->
-        val font = getFont(key)
+        val font = getFontImpl()
         val wl = if (key.widthLimit < 0) GFX.maxTextureSize else min(key.widthLimit, GFX.maxTextureSize)
         val hl = if (key.heightLimit < 0) GFX.maxTextureSize else min(key.heightLimit, GFX.maxTextureSize)
-        result.value = font.calculateSize(key.text, wl, hl)
+        result.value = font.calculateSize(key.createFont(), key.text, wl, hl)
     }
 
     fun getSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): AsyncCacheData<Int> {
-        if (text.isEmpty()) return font.emptySize
         return getSize(getTextCacheKey(font, text, widthLimit, heightLimit, false))
     }
 
     fun getBaselineY(font: Font): Float {
-        return getFont(font).getBaselineY()
+        return getFontImpl().getBaselineY(font)
     }
 
     fun getLineHeight(font: Font): Float {
-        return getFont(font).getLineHeight()
+        return getFontImpl().getLineHeight(font)
     }
 
     fun getTexture(font: Font, text: String, widthLimit: Int, heightLimit: Int): AsyncCacheData<ITexture2D> {
@@ -125,7 +118,7 @@ object FontManager {
     }
 
     private val generateAtlas = { key: Font, result: AsyncCacheData<Texture2DArray> ->
-        getFont(key).generateASCIITexture(false, result)
+        getFontImpl().generateASCIITexture(key, false, result)
     }
 
     fun getTexture(cacheKey: TextCacheKey): AsyncCacheData<ITexture2D> {
@@ -135,48 +128,19 @@ object FontManager {
     fun getTexture(cacheKey: TextCacheKey, timeoutMillis: Long): AsyncCacheData<ITexture2D> {
         // must be sync:
         // - textures need to be available
-        // - Java/Windows is not thread-safe
+        // - Java/Windows/Linux is not thread-safe -> probably Java's fault
+        // todo so are we calling AWTFont from always the same thread? if so, why do we still get errors???
         if (cacheKey.text.isBlank2()) return AsyncCacheData.empty()
         return textTextureCache.getEntry(cacheKey, timeoutMillis, fontQueue, generateTexture)
     }
 
     private val generateTexture = { key: TextCacheKey, result: AsyncCacheData<ITexture2D> ->
-        val font2 = getFont(key)
         val wl = if (key.widthLimit < 0) GFX.maxTextureSize else min(key.widthLimit, GFX.maxTextureSize)
         val hl = if (key.heightLimit < 0) GFX.maxTextureSize else min(key.heightLimit, GFX.maxTextureSize)
-        font2.generateTexture(key.text, wl, hl, key.isGrayscale(), result)
+        getFontImpl().generateTexture(key.createFont(), key.text, wl, hl, key.isGrayscale(), result)
     }
 
-    fun getFont(key: TextCacheKey): FontImpl<*> = getFont(
-        key.fontName, getAvgFontSize(key.fontSizeIndex()),
-        key.isBold(), key.isItalic(),
-        key.relativeTabSize, key.relativeCharSpacing
-    )
-
-    fun getFont(font: Font): FontImpl<*> = getFont(
-        font.name, font.size,
-        font.isBold, font.isItalic,
-        font.relativeTabSize, font.relativeCharSpacing
-    )
-
-    fun getFont(
-        name: String, fontSize: Float, bold: Boolean, italic: Boolean,
-        relativeTabSize: Float, relativeCharSpacing: Float
-    ): FontImpl<*> {
-        val fontSizeIndex = getFontSizeIndex(fontSize)
-        return getFont(
-            name, fontSizeIndex, bold, italic,
-            relativeTabSize, relativeCharSpacing
-        )
-    }
-
-    private fun getFont(
-        name: String, fontSizeIndex: Int, bold: Boolean, italic: Boolean,
-        relativeTabSize: Float, relativeCharSpacing: Float
-    ): FontImpl<*> {
-        val key = FontKey(name, fontSizeIndex, bold, italic, relativeTabSize, relativeCharSpacing)
-        return fonts.getOrPut(key) { getTextGenerator(key) }
-    }
+    fun getFontImpl(): FontImpl<*> = FontStats.getFontImpl()
 
     fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToIntOr()
 }

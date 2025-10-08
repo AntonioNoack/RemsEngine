@@ -1,6 +1,5 @@
 package me.anno.fonts
 
-import me.anno.fonts.keys.FontKey
 import me.anno.image.ImageCache
 import me.anno.utils.InternalAPI
 import org.joml.Vector2f
@@ -15,16 +14,16 @@ object FontStats {
     }
 
     @InternalAPI
-    var getTextGeneratorImpl: ((FontKey) -> FontImpl<*>)? = null
-    fun getTextGenerator(key: FontKey): FontImpl<*> {
+    var getTextGeneratorImpl: (() -> FontImpl<*>)? = null
+    fun getFontImpl(): FontImpl<*> {
         val tmp = getTextGeneratorImpl
-            ?: return getFallbackFontGenerator(key)
-        return tmp(key)
+            ?: return getFallbackFontGenerator()
+        return tmp()
     }
 
-    private fun getFallbackFontGenerator(key: FontKey): FontImpl<*> {
-        return if ("png" in ImageCache.streamReaders) AtlasFontGenerator(key)
-        else LinesFontGenerator(key)
+    private fun getFallbackFontGenerator(): FontImpl<*> {
+        return if ("png" in ImageCache.streamReaders) AtlasFontGenerator
+        else LinesFontGenerator
     }
 
     @InternalAPI
@@ -33,22 +32,6 @@ object FontStats {
         val tmp = queryInstalledFontsImpl
             ?: return emptyList()
         return tmp()
-    }
-
-    @InternalAPI
-    var getTextLengthImpl1: ((Font, Int) -> Double)? = null
-    fun getTextLength(font: Font, codepoint: Int): Double {
-        val tmp = getTextLengthImpl1
-            ?: return font.size * 0.6
-        return tmp(font, codepoint)
-    }
-
-    @InternalAPI
-    var getTextLengthImpl2: ((Font, Int, Int) -> Double)? = null
-    fun getTextLength(font: Font, codepointA: Int, codepointB: Int): Double {
-        val tmp = getTextLengthImpl2
-            ?: return font.size * 0.6
-        return tmp(font, codepointA, codepointB)
     }
 
     val subpixelOffsetR = Vector2f()

@@ -48,7 +48,6 @@ import me.anno.input.Key
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.IsDirectoryCache
 import me.anno.io.files.inner.InnerLinkFile
@@ -153,7 +152,7 @@ open class FileExplorerEntry(
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
+        val titleSize = if (showTitle) titlePanel.font.lineHeightI * 2 else 0
         if (listMode) {
             minW = 65536 // must be large to fill all space
             minH = titleSize

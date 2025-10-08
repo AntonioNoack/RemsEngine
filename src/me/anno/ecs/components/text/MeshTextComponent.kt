@@ -12,17 +12,15 @@ class MeshTextComponent : TextComponentImpl {
     @Suppress("unused")
     constructor() : super()
 
-    @Suppress("unused")
-    constructor(text: String, font: Font, alignmentX: AxisAlignment) : super(text, font, alignmentX)
-    constructor(text: String, font: Font, alignmentX: AxisAlignment, alignmentY: TextAlignmentY) :
-            super(text, font, alignmentX, alignmentY, 0f)
+    constructor(text: String, font: Font, blockAlignmentX: AxisAlignment) : super(text, font, blockAlignmentX)
+    constructor(text: String, font: Font, blockAlignmentX: AxisAlignment, blockAlignmentY: TextAlignmentY) :
+            super(text, font, blockAlignmentX, blockAlignmentY)
 
     fun createBaseMesh(mesh: Mesh): MeshGlyphLayout {
         val meshGroup = MeshGlyphLayout(
-            font, text, relativeWidthLimit, maxNumLines,
-            null
+            font, text, relativeWidthLimit, maxNumLines
         )
-        meshGroup.createJoinedMesh(mesh)
+        meshGroup.createJoinedMesh(mesh, lineAlignmentX)
         return meshGroup
     }
 
@@ -32,8 +30,8 @@ class MeshTextComponent : TextComponentImpl {
         val sx = meshGroup.width * meshGroup.baseScale
         val sy = meshGroup.height * meshGroup.baseScale
 
-        val dx = getX0(sx, alignmentX).toDouble()
-        val dy = getY0(sy, alignmentY).toDouble()
+        val dx = getX0(sx, blockAlignmentX).toDouble()
+        val dy = getY0(sy, blockAlignmentY).toDouble()
 
         mesh.translate(dx, dy, 0.0)
     }

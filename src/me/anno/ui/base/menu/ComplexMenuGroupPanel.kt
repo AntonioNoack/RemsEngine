@@ -28,7 +28,7 @@ class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val magicIndex: Int, val
     fun openMenu() {
         // choose centered y
         val shownEntries = data.children.size + Menu.needsSearch(data.children.size).toInt()
-        val estimatedChildSize = shownEntries * font.sizeInt
+        val estimatedChildSize = shownEntries * font.lineHeightI
         val self = uiParent ?: this
         val ownSize = self.height
         val centeredY = clamp(

@@ -119,7 +119,7 @@ open class ProgressBar(
         // show num/total unit
         val text = formatProgress()
         val xt = x + w.shr(1)
-        val yt = y + (h - monospaceFont.sizeInt).shr(1)
+        val yt = y + (h - monospaceFont.lineHeightI).shr(1)
         if (x1 > x) Clipping.clip(x, y, x1 - x, h) {
             drawSimpleTextCharByChar(
                 xt, yt, padding, text, rightColor, leftColor,

@@ -40,8 +40,7 @@ object TextShapes : CacheSection<String, Mesh>("TextShapes") {
     private val meshGenerator = { text: String, result: AsyncCacheData<Mesh> ->
         result.value = MeshGlyphLayout(
             font.value, text,
-            0f, Int.MAX_VALUE,
-            null
-        ).getOrCreateMesh()
+            0f, Int.MAX_VALUE
+        ).createJoinedMesh(Mesh(), 0f)
     }
 }

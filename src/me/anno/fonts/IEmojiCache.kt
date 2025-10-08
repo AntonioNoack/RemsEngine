@@ -21,7 +21,10 @@ interface IEmojiCache {
                 contains(listOf(cp0, KEYCAP_EMOJI))
     }
 
-    fun emojiToString(emojiId: Int): String
+    /**
+     * Return the easiest (shortest) string representation of an emoji by its ID
+     * */
+    fun getEmojiString(emojiId: Int): String
 
     companion object {
 
@@ -33,7 +36,7 @@ interface IEmojiCache {
             override fun contains(codepoint: Int): Boolean = false
             override fun contains(codepoints: List<Int>): Boolean = false
             override fun getEmojiId(codepoints: List<Int>): Int = -1
-            override fun emojiToString(emojiId: Int): String = "?"
+            override fun getEmojiString(emojiId: Int): String = "?"
 
             override fun getEmojiImage(emojiId: Int, fontSize: Int): AsyncCacheData<Image> =
                 AsyncCacheData.empty()

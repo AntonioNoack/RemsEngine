@@ -15,6 +15,7 @@ import me.anno.mesh.Triangulation
 import me.anno.utils.Color
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Strings.joinChars
 import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Vectors.avg
 import org.joml.AABBf
@@ -48,6 +49,7 @@ class TextMesh(val font: Font, val codepoint: Int) : ICacheData {
         val numVertices = outerFragments.sumOf { it.triangles.size }
         val positions = FloatArray(numVertices * 3)
         val colors: IntArray? = if (hasColors) IntArray(numVertices) else null
+        mesh.name = codepoint.joinChars()
         mesh.positions = positions
         mesh.color0 = colors
 

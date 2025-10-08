@@ -33,6 +33,8 @@ import kotlin.random.Random
  * */
 fun main() {
 
+    // todo bug: this is broken :/
+
     class Agent {
         val position = Vector2f()
         val lastPos = Vector2f()
@@ -272,12 +274,13 @@ fun main() {
         DrawRectangles.finishBatch(batch)
 
         // draw statistics
+        val lineHeight = monospaceFont.lineHeightI
         drawSimpleTextCharByChar(it.x, it.y, 2, if (useQuadtree) "QuadTree" else "Naive")
-        drawSimpleTextCharByChar(it.x, it.y + monospaceFont.sizeInt, 2, "$ctr Interactions")
+        drawSimpleTextCharByChar(it.x, it.y + lineHeight, 2, "$ctr Interactions")
 
         // draw help
         for (i in controlsText.indices) {
-            val y = it.y + it.height + (i - controlsText.size) * monospaceFont.sizeInt
+            val y = it.y + it.height + (i - controlsText.size) * lineHeight
             drawSimpleTextCharByChar(it.x, y, 2, controlsText[i])
         }
     }

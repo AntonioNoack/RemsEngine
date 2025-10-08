@@ -320,7 +320,6 @@ interface WelcomeUI {
                     if (file.name.isEmpty()) return true // root drive
                     if (file.name.length == 2 && file.name[0].isLetter() && file.name[1] == ':') return true // windows drive letter
                 }
-                println("Comparing $file -> ${file.name} -> ${file.name.toAllowedFilename()}")
                 if (file.name.toAllowedFilename() != file.name) {
                     invalidName = file.name
                     return false

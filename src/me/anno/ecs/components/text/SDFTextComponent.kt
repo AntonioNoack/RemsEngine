@@ -5,7 +5,6 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.text.TextComponent.Companion.defaultFont
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
@@ -20,7 +19,6 @@ import me.anno.gpu.FinalRendering.onMissingResource
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.Shapes
@@ -32,8 +30,10 @@ import org.joml.Vector3f
 
 class SDFTextComponent(
     text: String, font: Font,
-    override var alignmentX: AxisAlignment,
-    override var alignmentY: TextAlignmentY
+    override var blockAlignmentX: AxisAlignment,
+    override var blockAlignmentY: TextAlignmentY,
+    override var lineAlignmentX: Float,
+    override var relativeWidthLimit: Float
 ) : MeshSpawner(), TextComponent {
 
     companion object {
@@ -70,12 +70,11 @@ class SDFTextComponent(
     @Suppress("unused")
     constructor() : this("Text", defaultFont, AxisAlignment.CENTER)
 
-    constructor(text: String, font: Font, alignmentX: AxisAlignment) :
-            this(text, font, alignmentX, TextAlignmentY.CENTER)
+    constructor(text: String, font: Font, blockAlignmentX: AxisAlignment) :
+            this(text, font, blockAlignmentX, TextAlignmentY.CENTER)
 
-    @Suppress("unused", "unused_parameter")
-    constructor(text: String, font: Font, alignmentX: AxisAlignment, alignmentY: TextAlignmentY, widthLimit: Float) :
-            this(text, font, alignmentX, alignmentY)
+    constructor(text: String, font: Font, blockAlignmentX: AxisAlignment, blockAlignmentY: TextAlignmentY) :
+            this(text, font, blockAlignmentX, blockAlignmentY, 0f, 0f)
 
     // support writing emissive color, too?
     @Type("Color3")
@@ -100,7 +99,6 @@ class SDFTextComponent(
             onTextOrFontChange()
         }
 
-    override var relativeWidthLimit: Float = 0f
     override var maxNumLines: Int = Int.MAX_VALUE
 
     private var meshGroup: SDFGlyphLayout? = null
@@ -122,8 +120,8 @@ class SDFTextComponent(
 
         val sx = TextureTextComponent.getSx(getSizeX(size), baselineY) * scale
         val sy = TextureTextComponent.getSy(getSizeY(size), baselineY) * scale
-        val dx = TextureTextComponent.getX0(sx, alignmentX)
-        val y0 = TextureTextComponent.getY0(sy, alignmentY) + yCorrection
+        val dx = TextureTextComponent.getX0(sx, blockAlignmentX)
+        val y0 = TextureTextComponent.getY0(sy, blockAlignmentY) + yCorrection
         val y1 = TextureTextComponent.getY1(y0, sy)
 
         val local = localAABB
@@ -138,10 +136,8 @@ class SDFTextComponent(
     }
 
     private fun getOrCreateMeshGroup(): SDFGlyphLayout {
-        val meshGroup = meshGroup ?: SDFGlyphLayout(
-            font, text,
-            relativeWidthLimit, maxNumLines
-        )
+        val meshGroup = meshGroup
+            ?: SDFGlyphLayout(font, text, relativeWidthLimit, maxNumLines)
         this.meshGroup = meshGroup
         return meshGroup
     }
@@ -162,7 +158,8 @@ class SDFTextComponent(
         val group = getOrCreateMeshGroup()
         val mesh = Shapes.flat11.front
 
-        group.draw(0,group.size) { textSDF, offsetX0, _, offsetY, _ ->
+        val totalWidth = group.width * group.baseScale
+        group.draw(0, group.size) { textSDF, offsetX0, _, offsetY, lineWidth ->
             val texture = textSDF.texture
             if (texture is Texture2D && texture.wasCreated) {
 
@@ -172,11 +169,11 @@ class SDFTextComponent(
                 val sx = getSX(group, textSDF)
                 val sy = getSY(group, textSDF)
 
-                val x0 = getX0(group, textSDF, alignmentX)
-                val y0 = getY0(group, textSDF, alignmentY)
+                val x0 = getX0(group, textSDF, blockAlignmentX)
+                val y0 = getY0(group, textSDF, blockAlignmentY)
 
-                val dx = x0 + offsetX0
-                val dy = y0 + offsetY
+                val dx = x0 + offsetX0 + lineAlignmentX * (totalWidth - lineWidth)
+                val dy = y0 - offsetY
 
                 val dz = textSDF.z.toDouble()
 
@@ -207,8 +204,8 @@ class SDFTextComponent(
         if (dst !is TextComponent) return
         dst.text = text
         dst.font = font
-        dst.alignmentX = alignmentX
-        dst.alignmentY = alignmentY
+        dst.blockAlignmentX = blockAlignmentX
+        dst.blockAlignmentY = blockAlignmentY
         dst.relativeWidthLimit = relativeWidthLimit
         dst.maxNumLines = maxNumLines
         if (dst !is SDFTextComponent) return

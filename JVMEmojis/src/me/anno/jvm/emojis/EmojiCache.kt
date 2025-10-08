@@ -104,7 +104,7 @@ object EmojiCache : IEmojiCache {
         return knownEmojis[codepoints]
     }
 
-    override fun emojiToString(emojiId: Int): String {
+    override fun getEmojiString(emojiId: Int): String {
         return emojiStrings[emojiId]
     }
 
@@ -168,7 +168,9 @@ object EmojiCache : IEmojiCache {
         if (emojiId < 0) return AsyncCacheData.empty() // fast-path
         return meshCache.getEntry(emojiId, mappedTimeoutMillis) { key, result ->
             getSVGMesh(key).waitFor { svgMesh ->
-                result.value = svgMesh?.mesh?.value
+                val mesh = svgMesh?.mesh?.value
+                if (mesh != null) mesh.name = getEmojiString(emojiId)
+                result.value = mesh
             }
         }
     }

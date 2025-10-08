@@ -1,15 +1,15 @@
 package me.anno.fonts
 
-import me.anno.cache.AsyncCacheData
-import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_H
-import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_W
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.saveable.Saveable
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Floats.toIntOr
+import kotlin.math.ceil
 
 class Font(
     name: String, size: Float,
@@ -89,11 +89,24 @@ class Font(
     val sizeInt get() = size.roundToIntOr()
     val sizeIndex get() = FontManager.getFontSizeIndex(size)
 
-    val emptySize = AsyncCacheData(GFXx2D.getSize(TEXTURE_PADDING_W, TEXTURE_PADDING_H + sizeInt))
-
     var sample = lazy { SampleSize(this) }
     val sampleWidth get() = sample.value.width
     val sampleHeight get() = sample.value.height
+
+    /**
+     * Width of an empty string
+     * */
+    val emptyWidth: Int get() = 2
+
+    /**
+     * The size that will be used for texture generation.
+     * +1 for padding, that will be applied;
+     *
+     * This is lazy, because we need for our Mods to be loaded for FontManager to be available.
+     * */
+    val lineHeightI by lazy { ceil(FontManager.getLineHeight(this)).toIntOr() + 1 }
+
+    val emptySize: Int get() = getSize(emptyWidth, lineHeightI)
 
     @Suppress("unused")
     val sampleSize get() = sample.value.size

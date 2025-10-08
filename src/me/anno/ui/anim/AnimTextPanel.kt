@@ -125,7 +125,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             (if (disableSubpixels) ShaderLib.textShader else ShaderLib.subpixelCorrectTextGraphicsShader[0]).value
         shader.use()
 
-        var h = font.sizeInt
+        var h = font.lineHeightI
         val totalWidth: Int
 
         GFX.loadTexturesSync.push(true)

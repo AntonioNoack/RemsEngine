@@ -7,8 +7,8 @@ import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.GlyphLayout
-import me.anno.fonts.LineSplitter.Companion.heightLimitToMaxNumLines
-import me.anno.fonts.LineSplitter.Companion.widthLimitToRelative
+import me.anno.fonts.FontImpl.Companion.heightLimitToMaxNumLines
+import me.anno.fonts.FontImpl.Companion.widthLimitToRelative
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -38,13 +38,14 @@ import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.algorithms.ForLoop.forLoop
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
@@ -52,7 +53,9 @@ object DrawTexts {
 
     private val LOGGER = LogManager.getLogger(DrawTexts::class)
 
-    val simpleChars = createArrayList(126 + 1 - 33) { (it + 33).toChar().toString() }
+    val simpleChars0 = 33
+    val simpleCharsLen = 126 + 1 - 33
+    val simpleChars = IntArray(simpleCharsLen) { it + simpleChars0 }
 
     private fun findMonospaceFont(): String {
         val fonts = FontManager.fontSet
@@ -245,25 +248,25 @@ object DrawTexts {
         if ('\n' in text) {
             var sizeX = 0
             val split = text.split('\n')
-            val lineOffset = font.sizeInt * 3 / 2
+            val lineOffset = font.lineHeightI
             for (index in split.indices) {
                 val size = getTextSizeCharByChar(font, split[index], equalSpaced)
                 sizeX = max(getSizeX(size), sizeX)
             }
-            return getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
+            return getSize(sizeX, (split.size - 1) * lineOffset + font.lineHeightI)
         }
 
         if (text.isEmpty())
-            return getSize(0, font.sizeInt)
+            return font.emptySize
 
         return if (equalSpaced) {
             val charWidth = font.sampleWidth
             val textWidth = charWidth * text.length
-            getSize(textWidth, font.sizeInt)
+            getSize(textWidth, font.lineHeightI)
         } else {
             val parts = GlyphLayout(font, text, 0f, Int.MAX_VALUE)
-            val textWidth = parts.width.roundToIntOr()
-            getSize(textWidth, font.sizeInt)
+            val textWidth = ceil(parts.width).toIntOr()
+            getSize(textWidth, font.lineHeightI)
         }
     }
 
@@ -283,7 +286,7 @@ object DrawTexts {
         if ('\n' in text) {
             var sizeX = 0
             val split = text.split('\n')
-            val lineOffset = font.sizeInt * 3 / 2
+            val lineOffset = font.lineHeightI
             for (index in split.indices) {
                 val size = drawTextCharByChar(
                     x, y + index * lineOffset, font, split[index],
@@ -292,11 +295,11 @@ object DrawTexts {
                 )
                 sizeX = max(getSizeX(size), sizeX)
             }
-            return getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
+            return getSize(sizeX, (split.size - 1) * lineOffset + font.lineHeightI)
         }
 
         if (text.isEmpty())
-            return getSize(0, font.sizeInt)
+            return font.emptySize
 
         val shader = chooseShader(textColor, backgroundColor)
         GFX.check()
@@ -357,7 +360,7 @@ object DrawTexts {
 
             GFX.loadTexturesSync.pop()
 
-            return getSize(fx - (x + dx), font.sizeInt)
+            return getSize(fx - (x + dx), font.lineHeightI)
         } else {
 
             val layout = GlyphLayout(
@@ -366,7 +369,7 @@ object DrawTexts {
                 heightLimitToMaxNumLines(heightLimit, font.size)
             )
 
-            val textWidth = layout.width.roundToIntOr()
+            val textWidth = ceil(layout.width).toIntOr()
 
             val dxi = getOffset(textWidth, alignX)
             val dyi = getOffset(font.sampleHeight, alignY)
@@ -399,7 +402,7 @@ object DrawTexts {
 
             GFX.loadTexturesSync.pop()
 
-            return getSize(textWidth, font.sizeInt)
+            return getSize(textWidth, font.lineHeightI)
         }
     }
 
@@ -448,12 +451,12 @@ object DrawTexts {
     ): Int {
 
         if (key.text.isEmpty()) {
-            return getSize(0, font.sizeInt)
+            return font.emptySize
         }
 
         if (key.text.isBlank2()) {
             return FontManager.getSize(key).waitFor()
-                ?: getSize(0, font.sizeInt)
+                ?: font.emptySize
         }
 
         GFX.check()
@@ -545,9 +548,7 @@ object DrawTexts {
         alignY: AxisAlignment = AxisAlignment.MIN
     ): Int {
 
-        if (text.isEmpty()) {
-            return getSize(0, font.sizeInt)
-        }
+        if (text.isEmpty()) return font.emptySize
 
         GFX.check()
 

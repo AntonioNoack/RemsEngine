@@ -1,36 +1,34 @@
 package me.anno.fonts
 
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths
 import me.anno.maths.Packing
-import speiger.primitivecollections.IntToObjectHashMap
 import speiger.primitivecollections.LongToDoubleHashMap
 
 class CharacterOffsetCache(val font: Font) {
 
+    private val fontImpl = FontManager.getFontImpl()
     private val charDistance = LongToDoubleHashMap(0.0)// |a| = |ab| - |b|
     private val charWidth = LongToDoubleHashMap(0.0)// |a|
-    val charMesh = IntToObjectHashMap<Mesh>() // triangles of a
 
     val spaceWidth by lazy {
-        val xLength = FontStats.getTextLength(font, 'x'.code)
-        Maths.clamp(xLength, 1.0, font.size.toDouble()) * 0.667
+        val xLength = fontImpl.getTextLength(font, 'o'.code)
+        Maths.clamp(xLength, 1f, font.size) * 0.667f
     }
 
-    val emojiSize = font.sizeInt.toDouble()
+    val emojiSize = font.sizeInt.toFloat()
     val emojiPadding = emojiSize * IEmojiCache.emojiPadding
 
-    fun getCharLength(codepoint: Int): Double {
+    fun getCharLength(codepoint: Int): Float {
         if (codepoint == ' '.code) return spaceWidth
         return charWidth.getOrPut(codepoint.toLong()) {
-            return FontStats.getTextLength(font, codepoint)
-        }
+            fontImpl.getTextLength(font, codepoint).toDouble()
+        }.toFloat()
     }
 
-    fun getLength(charA: Int, charB: Int): Double {
+    fun getLength(charA: Int, charB: Int): Float {
         return if (charA == ' '.code || charB == ' '.code) {
             getCharLength(charA) + getCharLength(charB)
-        } else FontStats.getTextLength(font, charA, charB)
+        } else fontImpl.getTextLength(font, charA, charB)
     }
 
     /**
@@ -51,7 +49,7 @@ class CharacterOffsetCache(val font: Font) {
                         val abLength = getLength(charA, charB)
                         abLength - bLength
                     }
-                }
+                }.toDouble()
             }.toFloat()
         }
     }

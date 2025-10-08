@@ -113,8 +113,8 @@ class TextComponentImplTests {
             for ((y, alignmentY) in TextAlignmentY.entries.withIndex()) {
                 val clone = (component as Component).clone() as Component
                 clone as TextComponent
-                clone.alignmentX = alignmentX
-                clone.alignmentY = alignmentY
+                clone.blockAlignmentX = alignmentX
+                clone.blockAlignmentY = alignmentY
                 clone.text = alignmentX.name
                 Entity(scene)
                     .setPosition((x - 1.0) * 2.2, (y - 1.5) * 0.8, 0.0)

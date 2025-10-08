@@ -290,12 +290,13 @@ fun main() {
 
                 if (mx in 0 until w && my in 0 until h) {
                     val mi = mx + my * w
-                    var yj = this.y + this.height - monospaceFont.sizeInt * (world.fluidTypes.fluids.size + 1)
+                    val lineHeight = monospaceFont.lineHeightI
+                    var yj = this.y + this.height - lineHeight * (world.fluidTypes.fluids.size + 1)
                     drawSimpleTextCharByChar(
                         this.x, yj, 1,
                         "$mx, $my"
                     )
-                    yj += monospaceFont.sizeInt
+                    yj += lineHeight
                     for (fluid in world.fluidTypes.fluids) {
                         drawSimpleTextCharByChar(
                             this.x, yj, 1,
@@ -303,7 +304,7 @@ fun main() {
                                     "vx: ${fluid.data.impulseX.read[mi].toInt()}, " +
                                     "vy: ${fluid.data.impulseY.read[mi].toInt()}"
                         )
-                        yj += monospaceFont.sizeInt
+                        yj += lineHeight
                     }
                 }
             }
@@ -315,7 +316,7 @@ fun main() {
                         this.x + this.width, yj, 1,
                         "${fluid.id}: ${sumByType[fluid.id]}", AxisAlignment.MAX, AxisAlignment.MIN
                     )
-                    yj += monospaceFont.sizeInt
+                    yj += monospaceFont.lineHeightI
                 }
             }
         }

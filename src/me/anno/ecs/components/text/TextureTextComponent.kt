@@ -2,14 +2,12 @@ package me.anno.ecs.components.text
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.systems.OnUpdate
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -23,12 +21,14 @@ import kotlin.math.sign
 
 class TextureTextComponent : TextComponentImpl, OnUpdate {
 
+    // todo can/do we want to support lineAlignmentY somehow?
+
     @Suppress("unused")
     constructor() : super()
 
-    constructor(text: String, font: Font, alignmentX: AxisAlignment) : super(text, font, alignmentX)
-    constructor(text: String, font: Font, alignmentX: AxisAlignment, alignmentY: TextAlignmentY, widthLimit: Float) :
-            super(text, font, alignmentX, alignmentY, widthLimit)
+    constructor(text: String, font: Font, blockAlignmentX: AxisAlignment) : super(text, font, blockAlignmentX)
+    constructor(text: String, font: Font, blockAlignmentX: AxisAlignment, blockAlignmentY: TextAlignmentY) :
+            super(text, font, blockAlignmentX, blockAlignmentY)
 
     companion object {
 
@@ -60,14 +60,24 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
         fun getY1(y0: Float, sy: Float): Float {
             return y0 + sy
         }
+
+        fun widthLimitToAbsolute(relativeWidthLimit: Float, font: Font): Int {
+            return if (relativeWidthLimit > 0f) (relativeWidthLimit * font.size).toIntOr(-1) else -1
+        }
     }
 
     private val material = Material()
-    private var key = TextCacheKey.getTextCacheKey(font, text, relativeWidthLimit.toIntOr(-1), -1, true)
+    private var key = TextCacheKey.getTextCacheKey(
+        font, text, widthLimitToAbsolute(relativeWidthLimit, font),
+        -1, true
+    )
 
     override fun onTextOrFontChange() {
         super.onTextOrFontChange()
-        key = TextCacheKey.getTextCacheKey(font, text, relativeWidthLimit.toIntOr(-1), -1, true)
+        key = TextCacheKey.getTextCacheKey(
+            font, text, widthLimitToAbsolute(relativeWidthLimit, font),
+            -1, true
+        )
         material.diffuseMap = InvalidRef // invalidate texture
     }
 
@@ -87,12 +97,15 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
 
         val sx = getSx(getSizeX(size), baselineY) * scale
         val sy = getSy(getSizeY(size), baselineY) * scale
-        val dx = getX0(sx, alignmentX)
-        val y0 = getY0(sy, alignmentY) + yCorrection
+        val dx = getX0(sx, blockAlignmentX)
+        val y0 = getY0(sy, blockAlignmentY) + yCorrection
         val y1 = getY1(y0, sy)
         val flat11 = Shapes.flat11.positions
         val uvs = mesh.uvs.resize(pos.size / 3 * 2)
         var j = 0
+
+        println("text: $sx x $sy, $dx,$y0-$y1")
+
         for (i in pos.indices step 3) {
             pos[i] = sign(flat11[i]) * sx + dx
             pos[i + 1] = if (flat11[i + 1] > 0f) y1 else y0

@@ -1,65 +1,50 @@
 package me.anno.fonts
 
-import me.anno.fonts.FontManager.getAvgFontSize
-import me.anno.fonts.keys.FontKey
-import me.anno.gpu.drawing.DrawTexts.simpleChars
-import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.texture.FakeWhiteTexture
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2DArray
-import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.base64.Base64
-import me.anno.utils.async.Callback
-import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 import me.anno.utils.types.Booleans.hasFlag
-import kotlin.math.min
+import me.anno.utils.types.Floats.toIntOr
 
 /**
  * generates a fallback font when other text sources are unavailable using 7-segment-style lines
  * */
-class LinesFontGenerator(override val fontKey: FontKey) : FontImpl<LinesFontGenerator>() {
+object LinesFontGenerator : FontImpl<Unit>() {
 
-    companion object {
-        // - 4 -
-        // 0   1
-        // - 5 -
-        // 2   3
-        // - 6 -
-        val digits = Base64.decodeBase64("Xwp2eit5fRp/ew")
-        val chars = Base64.decodeBase64("P21kbnU1XS8FSj1FPCxsNzskeWVMTFxwa3Y")
-        private fun getCharValue(v: Char): Byte {
-            return when (v) {
-                in '0'..'9' -> digits[v - '0']
-                in 'A'..'Z' -> chars[v - 'A']
-                in 'a'..'z' -> chars[v - 'a']
-                in ",.:;" -> 4
-                in "'\"" -> 2
-                in "!/\\" -> 5
-                ' ' -> 0
-                else -> digits[0]
-            }
-        }
-
-        private fun getSz(size: Int): Int {
-            return (size - 5).ushr(1)
-        }
-
-        private fun getWidth(sz: Int): Int {
-            return sz + 4
-        }
-
-        private fun getHeight(sz: Int): Int {
-            return sz * 2 + 5
+    // - 4 -
+    // 0   1
+    // - 5 -
+    // 2   3
+    // - 6 -
+    val digits = Base64.decodeBase64("Xwp2eit5fRp/ew")
+    val chars = Base64.decodeBase64("P21kbnU1XS8FSj1FPCxsNzskeWVMTFxwa3Y")
+    private fun getCharValue(v: Char): Byte {
+        return when (v) {
+            in '0'..'9' -> digits[v - '0']
+            in 'A'..'Z' -> chars[v - 'A']
+            in 'a'..'z' -> chars[v - 'a']
+            in ",.:;" -> 4
+            in "'\"" -> 2
+            in "!/\\" -> 5
+            ' ' -> 0
+            else -> digits[0]
         }
     }
 
-    private val sz = getSz(getAvgFontSize(fontKey.sizeIndex).toInt())
-    private val charWidth = getWidth(sz)
-    private val charHeight = getHeight(sz)
+    private fun getSz(size: Int): Int {
+        return (size - 5).ushr(1)
+    }
 
-    private val textures = arrayListOfNulls<IntImage>(128)
+    private fun getWidth(sz: Int): Int {
+        return sz + 4
+    }
+
+    private fun getHeight(sz: Int): Int {
+        return sz * 2 + 5
+    }
+
+    private fun sz(font: Font) = getSz(font.sizeInt)
+    private fun charWidth(font: Font) = getWidth(sz(font))
+    private fun charHeight(font: Font) = getHeight(sz(font))
 
     private fun v(image: IntImage, x: Int, y0: Int, dy: Int) {
         for (y in y0 until y0 + dy) image.setRGB(x, y, -1)
@@ -69,106 +54,50 @@ class LinesFontGenerator(override val fontKey: FontKey) : FontImpl<LinesFontGene
         for (x in x0 until x0 + dx) image.setRGB(x, y, -1)
     }
 
-    override fun getBaselineY(): Float {
-        return charHeight - 1f
+    override fun getBaselineY(font: Font): Float {
+        return charHeight(font) - 1f
     }
 
-    override fun getLineHeight(): Float {
-        return charHeight.toFloat()
+    override fun getLineHeight(font: Font): Float {
+        return charHeight(font).toFloat()
     }
 
-    private fun generateTexture(v: Char): Image {
-        return generateTexture(getCharValue(v))
-    }
-
-    private fun generateTexture(b: Byte): IntImage {
+    private fun generateTexture(
+        image: IntImage, x0: Int, y0: Int,
+        font: Font, b: Byte
+    ) {
         val bi = b.toInt()
-        val oldTex = textures[bi]
-        if (oldTex != null) {
-            return oldTex
-        }
-        val width = charWidth
-        val height = charHeight
-        val image = IntImage(width, height, false)
+        val height = charHeight(font)
+        val sz = sz(font)
         // draw all lines
-        if (bi.hasFlag(1)) v(image, 1, 2, sz)
-        if (bi.hasFlag(2)) v(image, sz + 2, 2, sz)
-        if (bi.hasFlag(4)) v(image, 1, sz + 3, sz)
-        if (bi.hasFlag(8)) v(image, sz + 2, sz + 3, sz)
-        if (bi.hasFlag(16)) h(image, 1, 2, sz)
-        if (bi.hasFlag(32)) h(image, sz + 2, 2, sz)
-        if (bi.hasFlag(64)) h(image, height - 2, 2, sz)
-        textures[bi] = image
-        return image
+        if (bi.hasFlag(1)) v(image, x0 + 1, y0 + 2, sz)
+        if (bi.hasFlag(2)) v(image, x0 + sz + 2, y0 + 2, sz)
+        if (bi.hasFlag(4)) v(image, x0 + 1, y0 + sz + 3, sz)
+        if (bi.hasFlag(8)) v(image, x0 + sz + 2, y0 + sz + 3, sz)
+        if (bi.hasFlag(16)) h(image, y0 + 1, x0 + 2, sz)
+        if (bi.hasFlag(32)) h(image, y0 + sz + 2, x0 + 2, sz)
+        if (bi.hasFlag(64)) h(image, y0 + height - 2, x0 + 2, sz)
     }
 
-    private fun getWrittenLength(text: CharSequence, widthLimit: Int): Int {
-        return min(text.length, widthLimit / charWidth)
+    override fun getTextLength(font: Font, codepoint: Int): Float {
+        return charWidth(font).toFloat()
     }
 
-    override fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
-        val width = getWrittenLength(text, widthLimit) * charWidth
-        val height = charHeight
-        return GFXx2D.getSize(width, height)
+    override fun getTextLength(font: Font, codepointA: Int, codepointB: Int): Float {
+        return charWidth(font) * 2f + 1f
     }
 
-    override fun generateTexture(
-        text: CharSequence,
-        widthLimit: Int,
-        heightLimit: Int,
-        portableImages: Boolean,
-        callback: Callback<ITexture2D>,
-        textColor: Int,
-        backgroundColor: Int
+    override fun drawGlyph(
+        image: IntImage,
+        x0: Float, x1: Float, y0: Float, y1: Float, strictBounds: Boolean,
+        font: Font, fallbackFonts: Unit, fontIndex: Int,
+        codepoint: Int, textColor: Int, backgroundColor: Int, portableImages: Boolean
     ) {
-        val len = getWrittenLength(text, widthLimit)
-        val width = len * charWidth
-        val height = charHeight
-        if (text.all { getCharValue(it).toInt() == 0 }) {
-            return callback.ok(FakeWhiteTexture(width, height, 1))
-        } else {
-            val image = if (text.length == 1) {
-                generateTexture(text[0])
-            } else {
-                val image = IntImage(width, height, false)
-                for (i in 0 until len) {
-                    val cv = getCharValue(text[i])
-                    if (cv.toInt() != 0) {
-                        generateTexture(cv).copyInto(image, i * charWidth, 0)
-                    }
-                }
-                image
-            }
-            image.createTexture(
-                Texture2D(text.toString(), image.width, image.height, 1),
-                checkRedundancy = false, callback
-            )
-        }
+        if (codepoint > 0xffff) return
+        val charValue = getCharValue(codepoint.toChar())
+        generateTexture(image, x0.toIntOr(), y0.toIntOr(), font, charValue)
     }
 
-    override fun generateASCIITexture(
-        portableImages: Boolean,
-        callback: Callback<Texture2DArray>,
-        textColor: Int,
-        backgroundColor: Int
-    ) {
-        Texture2DArray("awtAtlas", charWidth, charHeight, simpleChars.size)
-            .create(simpleChars.map { generateTexture(it[0]) }, false, callback)
-    }
-
-    override fun getAdvance(text: CharSequence, font: LinesFontGenerator): Float {
-        return calculateSize(text, -1, -1).toFloat()
-    }
-
-    override fun getExampleAdvance(): Float {
-        return getAdvance("o", this)
-    }
-
-    override fun getSelfFont(): LinesFontGenerator = this
-    override fun getFallbackFonts(size: Float): List<LinesFontGenerator> = emptyList()
-
-    override fun getSupportLevel(
-        fonts: List<LinesFontGenerator>, codepoint: Int,
-        lastSupportLevel: Int
-    ): Int = 0
+    override fun getFallbackFonts(font: Font): Unit = Unit
+    override fun getSupportLevel(fonts: Unit, codepoint: Int, lastSupportLevel: Int): Int = 0
 }

@@ -1,7 +1,6 @@
 package me.anno.jvm.fonts
 
 import me.anno.fonts.Codepoints
-import me.anno.fonts.FontManager
 import me.anno.fonts.IEmojiCache
 import me.anno.fonts.signeddistfields.Contour
 import me.anno.fonts.signeddistfields.Contours
@@ -24,7 +23,7 @@ object ContourImpl {
     private val LOGGER = LogManager.getLogger(ContourImpl::class)
 
     private fun getAWTFont(font: me.anno.fonts.Font): Font {
-        return (FontManager.getFont(font) as? AWTFont)?.awtFont ?: FontManagerImpl.getAWTFont(font)
+        return FontManagerImpl.getAWTFont(font).awtFont
     }
 
     fun calculateContours(font: me.anno.fonts.Font, codepoint: Int): Contours {

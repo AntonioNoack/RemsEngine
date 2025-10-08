@@ -1,9 +1,9 @@
 package me.anno.tests.ui
 
 import me.anno.engine.OfficialExtensions
-import me.anno.fonts.FontManager
-import me.anno.jvm.fonts.AWTFont
+import me.anno.fonts.Font
 import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
+import me.anno.jvm.fonts.FontManagerImpl
 import me.anno.utils.OS
 import java.awt.Color
 import java.awt.Graphics2D
@@ -23,7 +23,14 @@ fun main() {
     val w = 512
 
     val fs = w / 5f
-    val font = (FontManager.getFont("Verdana", fs, bold = false, italic = false, 4f, 0f) as AWTFont).awtFont
+    val font = FontManagerImpl.getAWTFont(
+        Font(
+            "Verdana", fs,
+            false, false,
+            4f, 0f
+        )
+    ).awtFont
+
     val img = BufferedImage(w, w, BufferedImage.TYPE_INT_RGB)
     val gfx = img.graphics as Graphics2D
     gfx.prepareGraphics(font, false) // yes, values are changing: single letters are assigned fraction widths now too

@@ -1,7 +1,5 @@
 package me.anno.jvm.fonts
 
-import me.anno.fonts.FontImpl
-import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
 import me.anno.fonts.FontManager.getFontSizeIndex
 import me.anno.fonts.FontStats
@@ -25,13 +23,11 @@ import java.util.Locale
 object FontManagerImpl {
 
     private val LOGGER = LogManager.getLogger(FontManagerImpl::class)
-    private val awtFonts = HashMap<FontKey, Font>()
+    private val awtFonts = HashMap<FontKey, FontData>()
 
     fun register() {
-        FontStats.getTextGeneratorImpl = FontManagerImpl::getTextGenerator
+        FontStats.getTextGeneratorImpl = { AWTFont }
         FontStats.queryInstalledFontsImpl = FontManagerImpl::getInstalledFonts
-        FontStats.getTextLengthImpl1 = FontManagerImpl::getTextLength1
-        FontStats.getTextLengthImpl2 = FontManagerImpl::getTextLength2
         FontStats.getDefaultFontSizeImpl = FontManagerImpl::getDefaultFontSize
         runOnNonGFXThread("SubpixelLayout") { SubpixelOffsets.calculateSubpixelOffsets() }
     }
@@ -40,19 +36,16 @@ object FontManagerImpl {
         return Maths.clamp(Toolkit.getDefaultToolkit().screenSize.height / 72, 15, 60)
     }
 
-    private fun getTextGenerator(key: FontKey): FontImpl<*> {
-        return AWTFont(key, getAWTFont(key))
-    }
-
-    fun getAWTFont(key: FontKey): Font {
+    fun getAWTFont(key: FontKey): FontData {
         val name = key.name
         val boldItalicStyle = key.italic.toInt(Font.ITALIC) or key.bold.toInt(Font.BOLD)
         val size = getAvgFontSize(key.sizeIndex)
-        return awtFonts[key] ?: getDefaultFont(name)?.deriveFont(boldItalicStyle, size)
-        ?: throw RuntimeException("Font $name was not found")
+        return awtFonts[key]
+            ?: getDefaultFont(name)?.deriveFont(boldItalicStyle, size)
+            ?: throw RuntimeException("Font $name was not found")
     }
 
-    fun getAWTFont(font: me.anno.fonts.Font): Font {
+    fun getAWTFont(font: me.anno.fonts.Font): FontData {
         val key = FontKey(
             font.name, getFontSizeIndex(font.size),
             font.isBold, font.isItalic,
@@ -74,19 +67,19 @@ object FontManagerImpl {
     }
 
     fun getTextLength1(font: me.anno.fonts.Font, codepoint: Int): Double {
-        val awtFont = (FontManager.getFont(font) as AWTFont).awtFont
+        val awtFont = getAWTFont(font).awtFont
         val ctx = FontRenderContext(null, true, true)
         return TextLayout(codepoint.joinChars(), awtFont, ctx).bounds.maxX
     }
 
     fun getTextLength2(font: me.anno.fonts.Font, charA: Int, charB: Int): Double {
-        val awtFont = (FontManager.getFont(font) as AWTFont).awtFont
+        val awtFont = getAWTFont(font).awtFont
         val ctx = FontRenderContext(null, true, true)
         val text = listOf(charA, charB).joinChars().toString()
         return TextLayout(text, awtFont, ctx).bounds.maxX
     }
 
-    private fun getDefaultFont(name: String): Font? {
+    private fun getDefaultFont(name: String): FontData? {
         val key = FontKey(name, Int.MIN_VALUE, bold = false, italic = false, 4f, 0f)
         val cached = awtFonts[key]
         if (cached != null) return cached
@@ -100,8 +93,9 @@ object FontManagerImpl {
             waitUntil(true) { hasFont }
             font
         } else Font.decode(name)
-        awtFonts[key] = font ?: return null
-        return font
+        val fontI = FontData(font ?: return null)
+        awtFonts[key] = fontI
+        return fontI
     }
 
     private fun loadFont(ref: FileReference, callback: (Font?) -> Unit) {

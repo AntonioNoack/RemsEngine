@@ -28,7 +28,7 @@ object Strings {
     fun Int.joinChars0(): CharArray {
         return if (Codepoints.isEmoji(this)) {
             val emojiId = Codepoints.getEmojiId(this)
-            IEmojiCache.emojiCache.emojiToString(emojiId).toCharArray()
+            IEmojiCache.emojiCache.getEmojiString(emojiId).toCharArray()
         } else Character.toChars(this)
     }
 
@@ -36,7 +36,7 @@ object Strings {
     fun Int.joinChars(): String {
         return if (Codepoints.isEmoji(this)) {
             val emojiId = Codepoints.getEmojiId(this)
-            IEmojiCache.emojiCache.emojiToString(emojiId)
+            IEmojiCache.emojiCache.getEmojiString(emojiId)
         } else joinChars0().concatToString()
     }
 

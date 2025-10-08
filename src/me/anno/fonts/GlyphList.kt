@@ -54,4 +54,14 @@ open class GlyphList(capacity: Int) {
     fun getLineIndex(glyphIndex: Int) = ints[glyphIndex * 3 + 1]
     fun getFontIndex(glyphIndex: Int) = ints[glyphIndex * 3 + 2]
 
+    fun move(dx: Float, dy: Float, deltaLineWidth: Float) {
+        for (i in 0 until size) {
+            val di = i * 4
+            floats[di] += dx
+            floats[di + 1] += dx
+            floats[di + 2] += dy
+            floats[di + 3] += deltaLineWidth
+        }
+    }
+
 }

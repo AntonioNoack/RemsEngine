@@ -2,7 +2,6 @@ package me.anno.fonts.signeddistfields
 
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
-import me.anno.fonts.signeddistfields.DrawSDFCallback
 import me.anno.fonts.Font
 import me.anno.fonts.GlyphLayout
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
@@ -10,18 +9,14 @@ import me.anno.gpu.FinalRendering.isFinalRendering
 import me.anno.gpu.FinalRendering.onMissingResource
 import me.anno.utils.hpc.ProcessingQueue
 
+/**
+ * Converts a font and text into an SDF-list for each glyph
+ * */
 class SDFGlyphLayout(
     font: Font, text: CharSequence,
-    relativeWidthLimit: Float, maxNumLines: Int
+    relativeWidthLimit: Float, maxNumLines: Int,
+    var roundCorners: Boolean = false
 ) : GlyphLayout(font, text, relativeWidthLimit, maxNumLines) {
-
-    // are draw-calls always expensive??
-    // or buffer creation?
-
-    var roundCorners = false
-
-    // the performance could be improved
-    // still its initialization time should be much faster than FontMesh
 
     private fun isTextureValid(textSDF: TextSDF?): Boolean {
         val texture = textSDF?.texture

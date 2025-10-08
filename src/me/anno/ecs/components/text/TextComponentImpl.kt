@@ -14,15 +14,18 @@ import me.anno.ui.base.components.AxisAlignment
  * */
 abstract class TextComponentImpl(
     text: String, font: Font,
-    alignmentX: AxisAlignment,
-    alignmentY: TextAlignmentY,
-    widthLimit: Float = -1f
+    blockAlignmentX: AxisAlignment,
+    blockAlignmentY: TextAlignmentY,
+    lineAlignmentX: Float,
+    relativeWidthLimit: Float
 ) : ProceduralMesh(), TextComponent {
 
     constructor() : this("Text", defaultFont, AxisAlignment.CENTER)
-    constructor(text: String, font: Font, alignment: AxisAlignment) : this(
-        text, font, alignment, TextAlignmentY.CENTER, -1f
-    )
+    constructor(text: String, font: Font, blockAlignment: AxisAlignment) :
+            this(text, font, blockAlignment, TextAlignmentY.CENTER)
+
+    constructor(text: String, font: Font, blockAlignment: AxisAlignment, blockAlignmentY: TextAlignmentY) :
+            this(text, font, blockAlignment, blockAlignmentY, 0f, 0f)
 
     @SerializedProperty
     override var text = text
@@ -41,7 +44,7 @@ abstract class TextComponentImpl(
         }
 
     @SerializedProperty
-    override var alignmentX: AxisAlignment = alignmentX
+    override var lineAlignmentX: Float = lineAlignmentX
         set(value) {
             if (field != value) {
                 field = value
@@ -50,7 +53,7 @@ abstract class TextComponentImpl(
         }
 
     @SerializedProperty
-    override var alignmentY: TextAlignmentY = alignmentY
+    override var blockAlignmentX: AxisAlignment = blockAlignmentX
         set(value) {
             if (field != value) {
                 field = value
@@ -59,7 +62,16 @@ abstract class TextComponentImpl(
         }
 
     @SerializedProperty
-    override var relativeWidthLimit = widthLimit
+    override var blockAlignmentY: TextAlignmentY = blockAlignmentY
+        set(value) {
+            if (field != value) {
+                field = value
+                onTextOrFontChange()
+            }
+        }
+
+    @SerializedProperty
+    override var relativeWidthLimit = relativeWidthLimit
         set(value) {
             if (field != value) {
                 field = value
@@ -85,9 +97,9 @@ abstract class TextComponentImpl(
         if (dst !is TextComponent) return
         dst.text = text
         dst.font = font
-        dst.alignmentX = alignmentX
-        dst.alignmentY = alignmentY
-        dst.relativeWidthLimit = relativeWidthLimit
+        dst.blockAlignmentX = this@TextComponentImpl.blockAlignmentX
+        dst.blockAlignmentY = this@TextComponentImpl.blockAlignmentY
+        dst.relativeWidthLimit = this@TextComponentImpl.relativeWidthLimit
         dst.maxNumLines = maxNumLines
     }
 }

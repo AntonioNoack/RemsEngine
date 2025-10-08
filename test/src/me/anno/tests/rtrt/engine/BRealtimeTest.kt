@@ -306,7 +306,7 @@ fun createCPUPanel(
         nextFrame()
 
         DrawTextures.drawTexture(it.x, it.y, it.width, it.height, cpuTexture, true, -1, null)
-        val fontSize = monospaceFont.sizeInt + 4
+        val fontSize = monospaceFont.lineHeightI
         DrawTexts.drawSimpleTextCharByChar(
             it.x + 4,
             it.y + it.height - fontSize * 2, 1,

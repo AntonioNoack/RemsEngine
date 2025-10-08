@@ -49,7 +49,7 @@ fun main() {
 
             add(MeshTextComponent(text, font, alignX, alignY), alignY, px, py, 0.2)
             add(SDFTextComponent(text, font, alignX, alignY), alignY, px, py, 0.1)
-            add(TextureTextComponent(text, font, alignX, alignY, -1f), alignY, px, py, 0.0)
+            add(TextureTextComponent(text, font, alignX, alignY), alignY, px, py, 0.0)
         }
     }
 

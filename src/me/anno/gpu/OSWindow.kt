@@ -325,7 +325,7 @@ open class OSWindow(var title: String) {
     }
 
     val progressbarHeight
-        get() = monospaceFont.sizeInt + style.getSize("progressbarHeight", 8)
+        get() = monospaceFont.lineHeightI + style.getSize("progressbarHeight", 4)
 
     val progressbarHeightSum
         get() =

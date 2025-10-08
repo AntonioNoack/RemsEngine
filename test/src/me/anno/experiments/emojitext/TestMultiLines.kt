@@ -18,36 +18,20 @@ import me.anno.utils.Color.toHexColor
 fun main() {
     OfficialExtensions.initForTests()
 
-    println("9⃣".codepoints().toList())
-    println("9\uFE0F".codepoints().toList())
-    println("9\uFE0F⃣".codepoints().toList())
-    println(" 5\uFE0F⃣ ".codepoints().toList())
-
-    // todo bug: our text sometimes has weird cyan pixels... why??
-
-    /*addEvent(100) {
-        FontStats.getTextGeneratorImpl = { LinesFontGenerator }
-    }*/
-
     val scene = Entity()
     testSceneWithUI("Emoji Mesh", scene) {
 
-        val text = "Text 5\uFE0F⃣ \uD83C\uDDF5\uD83C\uDDF2|\uD83D\uDC4B\uD83C\uDFFD|❤\uFE0F"
+        val text = "First Line\n" +
+                "2nd\n" +
+                "3rd Line"
         val font = Font("Verdana", 240f)
 
-        val meshGroup = MeshGlyphLayout(font, text, 0f, Int.MAX_VALUE)
-        val mesh = meshGroup.createJoinedMesh(Mesh(),0f)
-        scene.add(MeshComponent(mesh))
-
-        println("pos: ${mesh.getBounds()}")
-        println("col: ${mesh.color0?.toList()?.distinct()?.map { it.toHexColor() }}")
-
         Entity("Texture", scene)
-            .setPosition(0.0, -2.0, 0.0)
+            .setPosition(0.0, 6.0, 0.0)
             .add(TextureTextComponent(text, font, AxisAlignment.MAX))
 
         Entity("SDF", scene)
-            .setPosition(0.0, -4.0, 0.0)
+            .setPosition(0.0, 0.0, 0.0)
             .add(SDFTextComponent(text, font.withSize(96f), AxisAlignment.MAX))
 
         Entity("Mesh", scene) // alignment & size are good
