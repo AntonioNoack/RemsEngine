@@ -344,10 +344,10 @@ open class PureTextInputML(style: Style) :
         if (min.y < max.y) {
             // delete back, in between, and end
             val line0 = lines[min.y]
-            lines[min.y] = line0.subList(0, min.x)
             val line1 = lines[max.y]
-            lines[max.y] = line1.subList(max.x, line1.size)
-            for (i in max.y - 1 downTo min.y + 1) {
+            lines[min.y] = line0.subList(0, min.x)
+            lines[min.y].addAll(line1.subList(max.x, line1.size))
+            for (i in max.y downTo min.y + 1) {
                 lines.removeAt(i)
             }
         } else {
@@ -368,9 +368,9 @@ open class PureTextInputML(style: Style) :
     fun insert(insertion: CharSequence) {
         if (insertion.isNotEmpty()) {
             notifyCursorTyped()
-            for (cp in insertion.codepoints()) {
+            for (codepoint in insertion.codepoints()) {
                 // break if length limit reached
-                if (insert(cp, false)) break
+                if (insert(codepoint, false)) break
             }
             update(true)
         }
@@ -615,8 +615,10 @@ open class PureTextInputML(style: Style) :
         val line1 = lines[max.y]
         answer.append(line0.joinChars(min.x, line0.size))
         for (lineY in min.y + 1 until max.y) {
+            answer.append('\n')
             answer.append(lines[lineY].joinChars())
         }
+        answer.append('\n')
         answer.append(line1.joinChars(0, max.x))
         return answer.toString()
     }
