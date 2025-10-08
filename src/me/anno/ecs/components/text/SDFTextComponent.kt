@@ -159,7 +159,7 @@ class SDFTextComponent(
         val mesh = Shapes.flat11.front
 
         val totalWidth = group.width * group.baseScale
-        group.draw(0, group.size) { textSDF, offsetX0, _, offsetY, lineWidth ->
+        group.draw(0, group.size) { textSDF, offsetX0, _, offsetY, lineWidth, _ ->
             val texture = textSDF.texture
             if (texture is Texture2D && texture.wasCreated) {
 

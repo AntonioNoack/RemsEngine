@@ -115,10 +115,47 @@ class Font(
         sample = lazy { SampleSize(this) }
     }
 
-    fun withBold(bold: Boolean) = if (bold == isBold) this else Font(name, size, bold, isItalic)
-    fun withItalic(italic: Boolean) = if (italic == isItalic) this else Font(name, size, isBold, italic)
-    fun withName(name: String) = if (name == this.name) this else Font(name, size, isBold, isItalic)
-    fun withSize(size: Float) = if (size == this.size) this else Font(name, size, isBold, isItalic)
+    fun withBold(bold: Boolean) =
+        if (bold == isBold) this
+        else Font(
+            name, size, bold, isItalic,
+            relativeTabSize, relativeCharSpacing
+        )
+
+    fun withItalic(italic: Boolean) =
+        if (italic == isItalic) this
+        else Font(
+            name, size, isBold, italic,
+            relativeTabSize, relativeCharSpacing
+        )
+
+    fun withName(name: String) =
+        if (name == this.name) this
+        else Font(
+            name, size, isBold, isItalic,
+            relativeTabSize, relativeCharSpacing
+        )
+
+    fun withSize(size: Float) =
+        if (size == this.size) this
+        else Font(
+            name, size, isBold, isItalic,
+            relativeTabSize, relativeCharSpacing
+        )
+
+    fun withRelativeTabSize(relativeTabSize: Float) =
+        if (relativeTabSize == this.relativeTabSize) this
+        else Font(
+            name, size, isBold, isItalic,
+            relativeTabSize, relativeCharSpacing
+        )
+
+    fun withRelativeCharSpacing(relativeCharSpacing: Float) =
+        if (relativeCharSpacing == this.relativeCharSpacing) this
+        else Font(
+            name, size, isBold, isItalic,
+            relativeTabSize, relativeCharSpacing
+        )
 
     override fun equals(other: Any?): Boolean {
         if (other !is Font) return false
@@ -130,6 +167,8 @@ class Font(
         result = 31 * result + size.hashCode()
         result = 31 * result + isBold.hashCode()
         result = 31 * result + isItalic.hashCode()
+        result = 31 * result + relativeTabSize.hashCode()
+        result = 31 * result + relativeCharSpacing.hashCode()
         return result
     }
 

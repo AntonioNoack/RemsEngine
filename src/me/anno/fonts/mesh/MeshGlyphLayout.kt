@@ -55,14 +55,14 @@ class MeshGlyphLayout(
     }
 
     fun draw(startIndex: Int, endIndex: Int, callback: DrawMeshCallback) {
-        for (index in max(startIndex, 0) until min(endIndex, size)) {
-            val codepoint = getCodepoint(index)
-            val x0 = getX0(index) * baseScale
-            val x1 = getX1(index) * baseScale
-            val y = getY(index) * baseScale
-            val lineWidth = getLineWidth(index) * baseScale
+        for (glyphIndex in max(startIndex, 0) until min(endIndex, size)) {
+            val codepoint = getCodepoint(glyphIndex)
+            val x0 = getX0(glyphIndex) * baseScale
+            val x1 = getX1(glyphIndex) * baseScale
+            val y = getY(glyphIndex) * baseScale
+            val lineWidth = getLineWidth(glyphIndex) * baseScale
             val mesh = GlyphMeshCache.getMesh(meshCache, font, codepoint)
-            if (callback.draw(mesh, x0, x1, y, lineWidth)) break
+            if (callback.draw(mesh, x0, x1, y, lineWidth, glyphIndex)) break
         }
     }
 }

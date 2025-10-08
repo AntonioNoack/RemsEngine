@@ -58,7 +58,7 @@ class TextMesh(val font: Font, val codepoint: Int) : ICacheData {
         }
 
         // center the text, ignore the characters themselves
-        val baseScale = DEFAULT_LINE_HEIGHT / font.size
+        val baseScale = 1f / font.size
         var i = 0
         var j = 0
         for (fragment in outerFragments) {
@@ -187,11 +187,6 @@ class TextMesh(val font: Font, val codepoint: Int) : ICacheData {
         val attributes = listOf(
             Attribute("positions", 2)
         )
-
-        // todo also move defaultLineHeight into TextMeshGroup:
-        //  why would the default text size be 0.2???
-        //  todo add this 0.2-scale back into Rem's Studio
-        const val DEFAULT_LINE_HEIGHT = 1f
 
         private fun mergeRings2(outer: MutableList<Vector2f>, innerList: List<List<Vector2f>>) {
             for (inner in innerList.sortedBy { it.minOfOrNull { p -> p.x }!! }) {

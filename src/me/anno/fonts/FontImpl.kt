@@ -20,7 +20,6 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank
-import me.anno.utils.types.Strings.joinChars
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -249,7 +248,10 @@ abstract class FontImpl<FallbackFonts> {
 
         val widthLimit = relativeWidthLimit * font.size
         val hasAutomaticLineBreak = widthLimit > 0f
-        val tabSize = offsetCache.spaceWidth * font.relativeTabSize
+
+        val spaceWidth = offsetCache.spaceWidth
+        val extraSpacing = font.relativeCharSpacing * spaceWidth
+        val tabSize = (spaceWidth + extraSpacing) * font.relativeTabSize
         val charSpacing = font.size * font.relativeCharSpacing
 
         var currentX = 0f
@@ -259,7 +261,7 @@ abstract class FontImpl<FallbackFonts> {
 
         var wordEndI = 0
 
-        fun nextLine() {
+        fun finishLine() {
             val lineWidth = max(0f, currentX - charSpacing)
             result.width = max(result.width, lineWidth)
             for (i in startOfLine until result.size) {
@@ -267,6 +269,10 @@ abstract class FontImpl<FallbackFonts> {
             }
             @Suppress("AssignedValueIsNeverRead") // Intellij is broken
             startOfLine = result.size
+        }
+
+        fun nextLine() {
+            finishLine()
             result.height += fontHeight
             result.numLines++
             currentX = 0f
@@ -276,20 +282,19 @@ abstract class FontImpl<FallbackFonts> {
             for (index in wordStartI until wordEndI) {
                 val currCodepoint = codepoints[index]
                 val nextCodepoint = if (index + 1 < wordEndI) codepoints[index + 1] else ' '.code
-                val nextX = currentX + offsetCache.getOffset(currCodepoint, nextCodepoint)
+                val deltaX = offsetCache.getOffset(currCodepoint, nextCodepoint)
+                val nextX = currentX + deltaX
                 if (!currCodepoint.isBlank()) {
                     result.add(
                         currCodepoint, currentX, nextX, 0f, result.height, result.numLines,
                         fontIndex
                     )
                 }
-                currentX = nextX
+                currentX = nextX + charSpacing
             }
-            result.width = max(result.width, currentX)
         }
 
         fun skipSpace() {
-            result.width = max(result.width, currentX)
             wordEndI++
         }
 
@@ -300,12 +305,11 @@ abstract class FontImpl<FallbackFonts> {
         }
 
         val emojiWidth = floor(font.size * (1f + emojiPadding))
-        val spaceWidth = offsetCache.spaceWidth
 
         while (wordEndI < codepoints.size && result.numLines < maxNumLines) {
             when (val codepoint = codepoints[wordEndI]) {
                 ' '.code -> {
-                    currentX += (1f + font.relativeCharSpacing) * spaceWidth
+                    currentX += spaceWidth + extraSpacing
                     skipSpace()
                     nextLineIfAfterSpace()
                 }
@@ -351,8 +355,7 @@ abstract class FontImpl<FallbackFonts> {
 
                         wordEndI++
 
-                        val advance = offsetCache.getOffset(currCodepoint, nextCodepoint)
-                        wordX += advance
+                        wordX += extraSpacing + offsetCache.getOffset(currCodepoint, nextCodepoint)
                         if (hasAutomaticLineBreak && wordX > widthLimit) {
                             fitsOnThisLine = false
                         } else {
@@ -397,8 +400,10 @@ abstract class FontImpl<FallbackFonts> {
             }
         }
 
-        if (currentX > 0f && result.numLines < maxNumLines) {
+        if ((currentX > 0f || result.numLines == 0) && result.numLines < maxNumLines) {
             nextLine()
+        } else {
+            finishLine()
         }
 
         // adding padding

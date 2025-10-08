@@ -8,6 +8,8 @@ import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.FinalRendering.isFinalRendering
 import me.anno.gpu.FinalRendering.onMissingResource
 import me.anno.utils.hpc.ProcessingQueue
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Converts a font and text into an SDF-list for each glyph
@@ -25,18 +27,18 @@ class SDFGlyphLayout(
 
     fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawSDFCallback) {
         val roundCorners = roundCorners
-        for (index in startIndex until endIndex) {
-            val codepoint = getCodepoint(index)
-            val x0 = getX0(index) * baseScale
-            val x1 = getX1(index) * baseScale
-            val y = getY(index) * baseScale
-            val lineWidth = getLineWidth(index) * baseScale
+        for (glyphIndex in max(startIndex, 0) until min(endIndex, size)) {
+            val codepoint = getCodepoint(glyphIndex)
+            val x0 = getX0(glyphIndex) * baseScale
+            val x1 = getX1(glyphIndex) * baseScale
+            val y = getY(glyphIndex) * baseScale
+            val lineWidth = getLineWidth(glyphIndex) * baseScale
             val textSDF = getTextSDF(font, codepoint, roundCorners)
                 .waitFor()?.content ?: continue
             for (i in textSDF.indices) {
                 val textSDF = textSDF[i]
                 if (isTextureValid(textSDF)) {
-                    if (drawBuffer.draw(textSDF, x0, x1, y, lineWidth)) break
+                    if (drawBuffer.draw(textSDF, x0, x1, y, lineWidth, glyphIndex)) break
                 } else if (isFinalRendering) {
                     onMissingResource("TextSDFGroup", codepoint)
                     return
