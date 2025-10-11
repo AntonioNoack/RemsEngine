@@ -60,7 +60,7 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
         return entry.hasValue
     }
 
-    fun overrideDual(key0: K1, key1: K2, newValue: V, timeoutMillis: Long) {
+    fun setValue(key0: K1, key1: K2, newValue: V, timeoutMillis: Long) {
         checkKey(key0)
         checkKey(key1)
         val oldValue = synchronized(dualCache) {

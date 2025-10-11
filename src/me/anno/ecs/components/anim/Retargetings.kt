@@ -12,6 +12,7 @@ import me.anno.gpu.GFX
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.menu.Menu
@@ -28,7 +29,7 @@ object Retargetings {
 
     private val LOGGER = LogManager.getLogger(Retargetings::class)
 
-    val noBoneMapped = "?"
+    const val NO_BONE_MAPPED = "?"
 
     var sampleModel: AnimMeshComponent? = null
 
@@ -105,6 +106,7 @@ object Retargetings {
     }
 
     private fun getOrCreatePrefab(srcSkeletonFile: FileReference, dstSkeletonFile: FileReference): Prefab? {
+        LOGGER.info("Loading retargeting from $srcSkeletonFile to $dstSkeletonFile")
         val configReference = getConfigFile(srcSkeletonFile, dstSkeletonFile)
         var prefab = PrefabCache[configReference].waitFor()?.prefab
         if (prefab == null) {
@@ -113,11 +115,16 @@ object Retargetings {
             prefab.sourceFile = configReference
             prefab["srcSkeleton"] = srcSkeletonFile
             prefab["dstSkeleton"] = dstSkeletonFile
+            LOGGER.info("Creating retargeting from $srcSkeletonFile to $dstSkeletonFile")
             val srcSkeleton = SkeletonCache.getEntry(srcSkeletonFile).waitFor() ?: return null
             val dstSkeleton = SkeletonCache.getEntry(dstSkeletonFile).waitFor() ?: return null
             defineDefaultMapping(srcSkeleton, dstSkeleton, prefab)
-            configReference.getParent().tryMkdirs()
-            configReference.writeText(JsonStringWriter.toText(prefab, workspace))
+            if (srcSkeletonFile !is InnerTmpFile && dstSkeletonFile !is InnerTmpFile) {
+                configReference.getParent().tryMkdirs()
+                configReference.writeText(JsonStringWriter.toText(prefab, workspace))
+            } else {
+                LOGGER.warn("Skipped saving retargeting on temporary skeletons ($srcSkeletonFile -> $dstSkeletonFile)")
+            }
         } else if (prefab.clazzName != "Retargeting") {
             LOGGER.warn("Class mismatch for $configReference!")
             return null
@@ -132,14 +139,14 @@ object Retargetings {
         dstBoneMapping: List<String>,
     ): List<Bone> {
         var ancestor = bone
-        var ancestorMap = noBoneMapped
-        while (ancestorMap == noBoneMapped) {
+        var ancestorMap = NO_BONE_MAPPED
+        while (ancestorMap == NO_BONE_MAPPED) {
             val parentId = ancestor.parentIndex
             ancestorMap = dstBoneMapping.getOrNull(parentId) ?: break
             ancestor = dstSkeleton.bones[parentId]
         }
         // now filter
-        return if (ancestorMap == noBoneMapped) srcSkeleton.bones
+        return if (ancestorMap == NO_BONE_MAPPED) srcSkeleton.bones
         else srcSkeleton.bones.filter { it.hasBoneInHierarchy(ancestorMap, srcSkeleton.bones) }
     }
 
@@ -150,15 +157,15 @@ object Retargetings {
         val map = createArrayList(dstSkeleton.bones.size) { dstBoneId ->
             val dstName = dstSkeleton.bones[dstBoneId].name
             srcSkeleton.bones.firstOrNull { it.name == dstName }?.name // perfect match
-                ?: noBoneMapped
+                ?: NO_BONE_MAPPED
         }
-        if (srcSkeleton.bones.isNotEmpty() && dstSkeleton.bones.isNotEmpty() && map[0] == noBoneMapped) {
+        if (srcSkeleton.bones.isNotEmpty() && dstSkeleton.bones.isNotEmpty() && map[0] == NO_BONE_MAPPED) {
             // map root bone
             map[0] = srcSkeleton.bones.first().name
         }
         val usedBones = map.toHashSet()
         for (i in map.lastIndex downTo 1) {
-            if (map[i] == noBoneMapped) {
+            if (map[i] == NO_BONE_MAPPED) {
                 // todo find viable bone from allowed bones
                 //  - close in name
                 //  - close in location???
@@ -208,5 +215,12 @@ object Retargetings {
             val prefab = getOrCreatePrefab(key1.file, key2.file)
             result.value = prefab?.getSampleInstance() as? Retargeting
         }
+    }
+
+    fun setRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference, retargeting: Retargeting) {
+        return cache.setValue(
+            srcSkeleton.getFileKey(), dstSkeleton.getFileKey(),
+            retargeting, Int.MAX_VALUE.toLong(),
+        )
     }
 }

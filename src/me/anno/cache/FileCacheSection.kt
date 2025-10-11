@@ -72,6 +72,6 @@ object FileCacheSection {
         hasEntry(key.getFileKey(), delta)
 
     fun <V : Any> CacheSection<FileKey, V>.overrideFileEntry(key: FileReference, newValue: V, timeoutMillis: Long) {
-        override(key.getFileKey(), newValue, timeoutMillis)
+        setValue(key.getFileKey(), newValue, timeoutMillis)
     }
 }

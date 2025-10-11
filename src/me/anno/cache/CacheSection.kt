@@ -75,7 +75,7 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
         return entry.hasValue
     }
 
-    fun override(key: Key, newValue: Value, timeoutMillis: Long) {
+    fun setValue(key: Key, newValue: Value, timeoutMillis: Long) {
         checkKey(key)
         val oldValue = synchronized(cache) {
             val entry = AsyncCacheData<Value>()

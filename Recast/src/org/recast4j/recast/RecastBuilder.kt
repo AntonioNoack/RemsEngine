@@ -178,7 +178,7 @@ class RecastBuilder(val progressListener: RecastBuilderProgressListener? = null)
         // (Optional) Mark areas.
         if (volumeProvider != null) {
             for (vol in volumeProvider.convexVolumes) {
-                RecastArea.markConvexPolyArea(ctx, vol.vertices, vol.minH, vol.maxH, vol.areaMod, chf)
+                RecastArea.markConvexPolyArea(ctx, vol.verticesXZ, vol.minH, vol.maxH, vol.areaMod, chf)
             }
         }
         return chf

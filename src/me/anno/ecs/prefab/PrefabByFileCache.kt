@@ -69,7 +69,9 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
     open fun castInstance(instance: Saveable?, ref: FileReference): V? {
         val value = clazz.safeCast(instance)
         if (instance != null && value == null) {
-            LOGGER.warn("Requested $ref as $clazz, but only found ${instance.className}")
+            val message = "Requested $ref as $clazz, but only found ${instance.className}"
+            LOGGER.warn(message)
+            RuntimeException(message).printStackTrace()
         }
         return value
     }

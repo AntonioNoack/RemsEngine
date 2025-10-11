@@ -377,7 +377,7 @@ class BoneByBoneAnimation() : Animation() {
             val data = if (parentSkinning != null) {
                 skinning.mul(bindPose, tmp) // position in model
                 // (parent * bindPose)^-1 * dst
-                predict(parentSkinning, bindPose, JomlPools.mat4x3f.borrow())
+                parentSkinning.mul( bindPose, JomlPools.mat4x3f.borrow())
                     .invert().mul(tmp, tmp)
             } else {
                 // ignore bindPose and parentSkinning
@@ -445,10 +445,6 @@ class BoneByBoneAnimation() : Animation() {
             val v = JomlPools.vec3f.borrow()
             transformDirection(v.set(q.x, q.y, q.z))
             q.set(v.x, v.y, v.z, q.w)
-        }
-
-        fun predict(parentSkinning: Matrix4x3f, bindPose: Matrix4x3f, dst: Matrix4x3f): Matrix4x3f {
-            return parentSkinning.mul(bindPose, dst)
         }
     }
 }

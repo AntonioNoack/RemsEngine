@@ -4,12 +4,12 @@ import me.anno.image.ImageWriter
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
-import me.anno.maths.geometry.Polygons.getPolygonArea2d
-import me.anno.maths.geometry.Polygons.getPolygonArea2f
-import me.anno.maths.geometry.Polygons.getPolygonArea3d
+import me.anno.maths.geometry.polygon.PolygonArea.getPolygonArea2f
+import me.anno.maths.geometry.polygon.PolygonArea.getPolygonArea2d
+import me.anno.maths.geometry.polygon.PolygonArea.getPolygonArea3d
 import me.anno.mesh.TriangulationBuilder
-import me.anno.tests.maths.geometry.PolygonsTests.Companion.createNgon
-import me.anno.tests.maths.geometry.PolygonsTests.Companion.getNgonArea
+import me.anno.tests.maths.geometry.polygon.PolygonsAreaTests.Companion.createNgon
+import me.anno.tests.maths.geometry.polygon.PolygonsAreaTests.Companion.getNgonArea
 import me.anno.utils.assertions.assertContains
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotContains
@@ -39,9 +39,9 @@ class TriangulationBuilderTests {
             builder.addVertices(points)
             val triangulation = builder.triangulate()
             assertEquals((n - 2) * 3, triangulation.size)
-            val expectedArea = getPolygonArea2f(points)
+            val expectedArea = points.getPolygonArea2f()
             val totalArea = triangulation.indices.step(3).sumOf {
-                getPolygonArea2f(triangulation.subList(it, it + 3)).toDouble()
+                triangulation.subList(it, it + 3).getPolygonArea2f().toDouble()
             }.toFloat()
             assertEquals(expectedArea, totalArea, 1e-6f)
             builder.clear()
@@ -120,7 +120,7 @@ class TriangulationBuilderTests {
             assertNotContains(b to a, actualSignedEdges)
         }
 
-        val expectedArea = getPolygonArea2d(points)
+        val expectedArea = points.getPolygonArea2d()
         val actualArea = (triangles.indices step 3).sumOf { i ->
             val a = points[triangles[i]]
             val b = points[triangles[i + 1]]

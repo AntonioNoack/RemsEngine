@@ -181,7 +181,7 @@ class Skeleton : PrefabSaveable(), Renderable {
                     } // skip the root bone, because it's awkward
                     val thickness = min(length, maxBoneThickness)
                     // find orthogonal directions
-                    dirY.findSystem(dirX, dirZ, true)
+                    dirY.findSystem(dirZ, dirX, true)
                     mat.set(dirX, dirY, dirZ).scale(thickness)
                     // add a bone from src to dst
                     forLoopSafely(boneMeshVertices.size, 3) { i ->

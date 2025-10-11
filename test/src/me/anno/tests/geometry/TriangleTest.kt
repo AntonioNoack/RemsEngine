@@ -1,6 +1,7 @@
 package me.anno.tests.geometry
 
-import me.anno.maths.geometry.Polygons
+import me.anno.maths.geometry.polygon.PolygonArea
+import me.anno.maths.geometry.polygon.PolygonArea.getPolygonArea2f
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Triangles
@@ -18,6 +19,7 @@ import me.anno.utils.types.Triangles.subCrossDot
 import org.joml.Vector
 import org.joml.Vector2d
 import org.joml.Vector2f
+import org.joml.Vector2i
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
@@ -31,6 +33,16 @@ class TriangleTest {
     private val numTries = 100
 
     companion object {
+
+        fun Vector2i.isInsideTriangleBaseline(a: Vector2i, b: Vector2i, c: Vector2i): Boolean {
+            var sum = 0
+            if (getSideSign(a, b) > 0) sum++
+            if (getSideSign(b, c) > 0) sum++
+            if (getSideSign(c, a) > 0) sum++
+            // left or right of all lines
+            return sum == 0 || sum == 3
+        }
+
         fun Vector2f.isInsideTriangleBaseline(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
             var sum = 0
             if (getSideSign(a, b) > 0f) sum++
@@ -48,6 +60,41 @@ class TriangleTest {
             // left or right of all lines
             return sum == 0 || sum == 3
         }
+
+        fun getRandomUVW(random: Random, scale: Float, uvw: Vector3f = Vector3f()): Vector3f {
+            return uvw.set(getRandomUVW(random, scale.toDouble()))
+        }
+
+        fun getRandomUVW(random: Random, scale: Double, uvw: Vector3d = Vector3d()): Vector3d {
+            do {
+                uvw.set(random.nextDouble(), random.nextDouble(), random.nextDouble())
+            } while (uvw.x + uvw.y + uvw.z > 1.0)
+            uvw.sub(0.5).mul(scale).add(0.5)
+            uvw.z = 1.0 - (uvw.x + uvw.y)
+            return uvw
+        }
+
+        fun <V : Vector> interpolateBarycentric(a: V, b: V, c: V, uvw: Vector, dst: V): V {
+            assertEquals(3, uvw.numComponents)
+            assertEquals(a.numComponents, b.numComponents)
+            assertEquals(a.numComponents, c.numComponents)
+            assertEquals(a.numComponents, dst.numComponents)
+            for (i in 0 until a.numComponents) {
+                val au = a.getComp(i) * uvw.getComp(0)
+                val bv = b.getComp(i) * uvw.getComp(1)
+                val cw = c.getComp(i) * uvw.getComp(2)
+                dst.setComp(i, au + bv + cw)
+            }
+            return dst
+        }
+
+        fun isValidUVW(uvw: Vector): Boolean {
+            assertEquals(3, uvw.numComponents)
+            return uvw.getComp(0) in 0.0..1.0 &&
+                    uvw.getComp(1) in 0.0..1.0 &&
+                    uvw.getComp(2) in 0.0..1.0
+        }
+
     }
 
     @Test
@@ -140,7 +187,7 @@ class TriangleTest {
             val a = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val b = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val c = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
-            val expected = Polygons.getPolygonArea3d(listOf(a, b, c).map { Vector3d(it) }).toFloat()
+            val expected = PolygonArea.getPolygonArea3d(listOf(a, b, c).map { Vector3d(it) }).toFloat()
             val actual = getTriangleArea(a, b, c)
             assertEquals(expected, actual, 1e-7f)
             assertEquals(expected, Triangles.getParallelogramArea(a, b, c) * 0.5f, 1e-7f)
@@ -154,7 +201,7 @@ class TriangleTest {
             val a = Vector2f(random.nextFloat(), random.nextFloat())
             val b = Vector2f(random.nextFloat(), random.nextFloat())
             val c = Vector2f(random.nextFloat(), random.nextFloat())
-            val expected = Polygons.getPolygonArea2f(listOf(a, b, c))
+            val expected = listOf(a, b, c).getPolygonArea2f()
             val actual = getTriangleArea(a, b, c)
             assertEquals(expected, actual, 1e-7f)
             assertEquals(expected, Triangles.getParallelogramArea(a, b, c) * 0.5f, 1e-7f)
@@ -411,37 +458,4 @@ class TriangleTest {
         assertTrue(hits in 1 until numTries - 1)
     }
 
-    fun <V : Vector> interpolateBarycentric(a: V, b: V, c: V, uvw: Vector, dst: V): V {
-        assertEquals(3, uvw.numComponents)
-        assertEquals(a.numComponents, b.numComponents)
-        assertEquals(a.numComponents, c.numComponents)
-        assertEquals(a.numComponents, dst.numComponents)
-        for (i in 0 until a.numComponents) {
-            val au = a.getComp(i) * uvw.getComp(0)
-            val bv = b.getComp(i) * uvw.getComp(1)
-            val cw = c.getComp(i) * uvw.getComp(2)
-            dst.setComp(i, au + bv + cw)
-        }
-        return dst
-    }
-
-    fun isValidUVW(uvw: Vector): Boolean {
-        assertEquals(3, uvw.numComponents)
-        return uvw.getComp(0) in 0.0..1.0 &&
-                uvw.getComp(1) in 0.0..1.0 &&
-                uvw.getComp(2) in 0.0..1.0
-    }
-
-    fun getRandomUVW(random: Random, scale: Float, uvw: Vector3f = Vector3f()): Vector3f {
-        return uvw.set(getRandomUVW(random, scale.toDouble()))
-    }
-
-    fun getRandomUVW(random: Random, scale: Double, uvw: Vector3d = Vector3d()): Vector3d {
-        do {
-            uvw.set(random.nextDouble(), random.nextDouble(), random.nextDouble())
-        } while (uvw.x + uvw.y + uvw.z > 1.0)
-        uvw.sub(0.5).mul(scale).add(0.5)
-        uvw.z = 1.0 - (uvw.x + uvw.y)
-        return uvw
-    }
 }

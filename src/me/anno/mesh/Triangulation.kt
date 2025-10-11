@@ -1,6 +1,7 @@
 package me.anno.mesh
 
-import me.anno.maths.geometry.Polygons.getPolygonAreaVector3d
+import me.anno.maths.geometry.polygon.PolygonArea.getPolygonAreaVector3d
+import me.anno.maths.geometry.polygon.PolygonArea.getPolygonAreaVector3f
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector2d
@@ -14,9 +15,22 @@ import org.the3deers.util.EarCut
  * */
 object Triangulation {
 
+    /**
+     * Given a decently planar polygon, find the up-vector;
+     * Result is normalized.
+     * */
+    @JvmStatic
+    fun findNormalVector(points: List<Vector3f>, dst: Vector3f): Vector3f {
+        return points.getPolygonAreaVector3f(dst).safeNormalize(-1f)
+    }
+
+    /**
+     * Given a decently planar polygon, find the up-vector;
+     * Result is normalized.
+     * */
     @JvmStatic
     fun findNormalVector(points: List<Vector3d>, dst: Vector3d): Vector3d {
-        return getPolygonAreaVector3d(points, dst).safeNormalize(-1.0)
+        return points.getPolygonAreaVector3d(dst).safeNormalize(-1.0)
     }
 
     @JvmStatic

@@ -8,10 +8,10 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.anim.AnimMeshComponent.Companion.tmpMapping0
 import me.anno.ecs.components.anim.AnimMeshComponent.Companion.tmpMapping1
 import me.anno.ecs.components.anim.AnimationCache.getMappedAnimation
+import me.anno.ecs.components.anim.Retargetings.NO_BONE_MAPPED
 import me.anno.ecs.components.anim.Retargetings.dstColor
 import me.anno.ecs.components.anim.Retargetings.dstColor1
 import me.anno.ecs.components.anim.Retargetings.dstMat
-import me.anno.ecs.components.anim.Retargetings.noBoneMapped
 import me.anno.ecs.components.anim.Retargetings.sampleAnimation
 import me.anno.ecs.components.anim.Retargetings.sampleModel
 import me.anno.ecs.components.anim.Retargetings.srcColor
@@ -39,7 +39,6 @@ import me.anno.ui.input.FloatVectorInput
 import me.anno.ui.input.NumberType
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.structures.lists.UpdatingList
-import me.anno.utils.types.Vectors
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix3f
 import org.joml.Matrix4x3
@@ -47,6 +46,7 @@ import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -56,6 +56,49 @@ class Retargeting : PrefabSaveable(), Renderable {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Retargeting::class)
+
+        fun maxBoneLength(bones: List<Bone>): Float {
+            var maxBoneLength = 0f
+            for (b in bones) {
+                if (b.parentIndex >= 0) {
+                    val parent = bones[b.parentIndex]
+                    val boneLength = b.bindPosition.distance(parent.bindPosition)
+                    maxBoneLength = max(boneLength, maxBoneLength)
+                }
+            }
+            return maxBoneLength
+        }
+
+        fun averageBoneLength(bones: List<Bone>): Float {
+            var sum = 0f
+            var count = 0
+            val minBoneLength = maxBoneLength(bones) * 0.001f
+            for(boneIndex in bones.indices) {
+                val bone = bones[boneIndex]
+                if (bone.parentIndex >= 0) {
+                    val parentBone = bones[bone.parentIndex]
+                    val boneLength = bone.bindPosition.distance(parentBone.bindPosition)
+                    if (boneLength > minBoneLength) {
+                        sum += boneLength
+                        count++
+                    }
+                }
+            }
+            return if (count > 0) sum / count else 1f
+        }
+
+        private fun drawBoneNames(skeleton: Skeleton, matrices: List<Matrix4x3f>?, transform: Matrix4x3, color: Int) {
+            matrices ?: return
+            // draw bone names where they are
+            for (i in 0 until min(skeleton.bones.size, matrices.size)) {
+                val bone = skeleton.bones[i]
+                val pos = Vector3f(bone.bindPosition)
+                matrices[i].transformPosition(pos)
+                val pos1 = Vector3d(pos)
+                transform.transformPosition(pos1)
+                showDebugText(DebugText(pos1, bone.name, color, 0f))
+            }
+        }
     }
 
     var srcSkeleton: FileReference = InvalidRef
@@ -63,7 +106,7 @@ class Retargeting : PrefabSaveable(), Renderable {
 
     // for each dstBone, which bone is responsible for the transform
     @HideInInspector
-    val dstBoneIndexToSrcName: ArrayList<String> = ArrayList()
+    var dstBoneIndexToSrcName: List<String> = emptyList()
 
     // todo (how) can we use these to convert A poses to T poses and vice-versa?
     @HideInInspector
@@ -138,19 +181,6 @@ class Retargeting : PrefabSaveable(), Renderable {
         previewData.renderer.fill(pipeline, transform)
     }
 
-    private fun drawBoneNames(skeleton: Skeleton, matrices: List<Matrix4x3f>?, transform: Matrix4x3, color: Int) {
-        matrices ?: return
-        // draw bone names where they are
-        for (i in 0 until min(skeleton.bones.size, matrices.size)) {
-            val bone = skeleton.bones[i]
-            val pos = Vector3f(bone.bindPosition)
-            matrices[i].transformPosition(pos)
-            val pos1 = Vector3d(pos)
-            transform.transformPosition(pos1)
-            showDebugText(DebugText(pos1, bone.name, color, 0f))
-        }
-    }
-
     fun map(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
         if (isIdentityMapping || src === dst) {
             // println("identity mapping, so returning self")
@@ -162,14 +192,14 @@ class Retargeting : PrefabSaveable(), Renderable {
     }
 
     fun recalculate(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
-        val srcSkel = SkeletonCache.getEntry(srcSkeleton).waitFor()?.bones
-        val dstSkel = SkeletonCache.getEntry(dstSkeleton).waitFor()?.bones
+        val srcSkeletonI = SkeletonCache.getEntry(srcSkeleton).waitFor()?.bones
+        val dstSkeletonI = SkeletonCache.getEntry(dstSkeleton).waitFor()?.bones
 
-        if (srcSkel == null || dstSkel == null) {
+        if (srcSkeletonI == null || dstSkeletonI == null) {
             LOGGER.warn(
                 "Mapping is null, because ${
-                    if (srcSkel == null && dstSkel == null) "both skels are null, '$srcSkeleton'/'$dstSkeleton'"
-                    else if (srcSkel == null) "src skel is null, '$srcSkeleton'/'$dstSkeleton'"
+                    if (srcSkeletonI == null && dstSkeletonI == null) "both skels are null, '$srcSkeleton'/'$dstSkeleton'"
+                    else if (srcSkeletonI == null) "src skel is null, '$srcSkeleton'/'$dstSkeleton'"
                     else "dst skel is null, '$srcSkeleton'/'$dstSkeleton'"
                 }"
             )
@@ -178,12 +208,12 @@ class Retargeting : PrefabSaveable(), Renderable {
 
         dst.skeleton = dstSkeleton
         dst.frameCount = src.frameCount
-        dst.boneCount = dstSkel.size
+        dst.boneCount = dstSkeletonI.size
         dst.duration = src.duration
         dst.prepareBuffers()
         // when we set nothing, everything should be identity, right? yes, correct
 
-        val srcBones = srcSkel.associateBy { it.name }
+        val srcBones = srcSkeletonI.associateBy { it.name }
         val dstToSrc = dstBoneIndexToSrcName
         val tmpM = Matrix4x3f()
         val pos = Vector3f()
@@ -191,22 +221,24 @@ class Retargeting : PrefabSaveable(), Renderable {
         val sca = Vector3f()
         // find base skeleton scale each, and then scale all bones
         // todo small skeletons don't work yet
-        // val srcScaleSq = srcSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / srcSkel.size
-        // val dstScaleSq = dstSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / dstSkel.size
-        // val translationScale = sqrt(dstScaleSq / srcScaleSq).toFloat()
-        for (dstBoneIndex in 0 until min(dstSkel.size, dstToSrc.size)) {
+        val srcScale = averageBoneLength(srcSkeletonI)
+        val dstScale = averageBoneLength(dstSkeletonI)
+        val translationScale = dstScale / srcScale
+        LOGGER.info("TranslationScale: $translationScale")
+
+        for (dstBoneIndex in 0 until min(dstSkeletonI.size, dstToSrc.size)) {
             val srcBone = srcBones[dstToSrc[dstBoneIndex]]
             if (srcBone == null) {
                 // println("Skipping ${dstSkel[dstBone].name}, because it's unmapped")
                 continue
             }
             var srcBone0: Bone? = null
-            var lastValidDst = dstSkel[dstBoneIndex].parentIndex
+            var lastValidDst = dstSkeletonI[dstBoneIndex].parentIndex
             while (lastValidDst >= 0) {
                 // check if this bone is mapped
                 srcBone0 = srcBones[dstToSrc[lastValidDst]]
                 if (srcBone0 != null) break // found valid bone :)
-                lastValidDst = dstSkel[lastValidDst].parentIndex // next ancestor
+                lastValidDst = dstSkeletonI[lastValidDst].parentIndex // next ancestor
             }
             // println("Mapping ${dstSkel[dstBone].name} to ${srcBone.name}, relative-root: ${srcBone0?.name}")
             for (frameIndex in 0 until dst.frameCount) {
@@ -217,7 +249,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                 fun applyBone(bone: Bone) {
                     // handle parent
                     if (bone.parentIndex >= 0) {
-                        val parentBone = srcSkel[bone.parentIndex]
+                        val parentBone = srcSkeletonI[bone.parentIndex]
                         if (parentBone != srcBone0) applyBone(parentBone)
                     }
                     val srcBone1 = bone.index
@@ -249,6 +281,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                 if (frameIndex == 0 && dstBoneIndex == 0) {
                     // println("retargeting setting transform: $pos,$rot,$sca")
                 }
+                // todo our rotations are muted, why???
                 dst.setTranslation(frameIndex, dstBoneIndex, pos)
                 dst.setRotation(frameIndex, dstBoneIndex, rot)
                 dst.setScale(frameIndex, dstBoneIndex, sca)
@@ -278,9 +311,10 @@ class Retargeting : PrefabSaveable(), Renderable {
         val srcSkeleton = SkeletonCache.getEntry(srcSkeleton).waitFor()
         val dstSkeleton = SkeletonCache.getEntry(dstSkeleton).waitFor()
         if (srcSkeleton != null && dstSkeleton != null) {
-            val dstBoneMapping = dstBoneIndexToSrcName
+            val dstBoneMapping = ArrayList<String>()
+            dstBoneIndexToSrcName = dstBoneMapping
             while (dstBoneMapping.size < dstSkeleton.bones.size) {
-                dstBoneMapping.add(noBoneMapped)
+                dstBoneMapping.add(NO_BONE_MAPPED)
             }
             val dstBoneRotations = dstBoneRotations
             while (dstBoneRotations.size < dstSkeleton.bones.size) {
@@ -293,7 +327,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                 val options = UpdatingList(100) {
                     // filter elements such that only bones below our ancestors are allowed
                     val availableBones = Retargetings.getAllowedBones(bone, srcSkeleton, dstSkeleton, dstBoneMapping)
-                    availableBones.map { it.nameDesc } + listOf(NameDesc(noBoneMapped))
+                    availableBones.map { it.nameDesc } + listOf(NameDesc(NO_BONE_MAPPED))
                 }
                 // todo create tree-hierarchy for these
                 //  -> padding left by bone depth
@@ -361,7 +395,7 @@ class Retargeting : PrefabSaveable(), Renderable {
         val mat = Matrix3f()
         val tmp = Vector3f()
         // find orthogonal directions
-        dirY.findSystem(dirX, dirZ, true)
+        dirY.findSystem(dirZ, dirX, true)
         mat.set(dirX, dirY, dirZ).scale(length)
         // add a bone from src to dst
         val vertices = Skeleton.boneMeshVertices
@@ -404,8 +438,7 @@ class Retargeting : PrefabSaveable(), Renderable {
             "dstSkeleton" -> dstSkeleton = value as? FileReference ?: InvalidRef
             "dstBoneIndexToSrcName" -> {
                 if (value !is List<*>) return
-                dstBoneIndexToSrcName.clear()
-                dstBoneIndexToSrcName.addAll(value.filterIsInstance<String>())
+                dstBoneIndexToSrcName = value.filterIsInstance<String>()
             }
             "dstBoneRotations" -> {
                 if (value !is List<*>) return

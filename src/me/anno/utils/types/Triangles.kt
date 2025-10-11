@@ -1,5 +1,6 @@
 package me.anno.utils.types
 
+import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
@@ -7,11 +8,13 @@ import me.anno.utils.types.Vectors.cross
 import me.anno.utils.types.Vectors.crossLength
 import org.joml.Vector2d
 import org.joml.Vector2f
+import org.joml.Vector2i
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sign
 
 object Triangles {
 
@@ -394,6 +397,15 @@ object Triangles {
         val cy = az * bx - ax * bz
         val cz = ax * by - ay * bx
         return cx * dx + cy * dy + cz * dz
+    }
+
+    @JvmStatic
+    fun Vector2i.getSideSign(b: Vector2i, c: Vector2i): Int {
+        val bx = (b.x - x).toLong()
+        val by = (b.y - y).toLong()
+        val cx = (c.x - x).toLong()
+        val cy = (c.y - y).toLong()
+        return Maths.sign(cx * by - cy * bx).toInt()
     }
 
     @JvmStatic

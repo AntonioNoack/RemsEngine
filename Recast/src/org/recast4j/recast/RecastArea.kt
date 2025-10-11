@@ -18,9 +18,11 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import me.anno.maths.geometry.polygon.IsInsidePolygon.isInsidePolygon
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
+import org.joml.AABBf
 import org.joml.Vector3f
-import org.recast4j.Vectors
-import java.util.*
+import java.util.Arrays
 import kotlin.math.max
 import kotlin.math.min
 
@@ -253,81 +255,57 @@ class RecastArea {
         }
 
         private fun erodeCellStepMin(dist: IntArray, i: Int, ai: Int, dd: Int) {
-            var nd = min(dist[ai] + dd, 255)
+            val nd = min(dist[ai] + dd, 255)
             if (nd < dist[i]) dist[i] = nd
-        }
-
-        fun pointInPoly(vertices: FloatArray, p: Vector3f): Boolean {
-            var isInside = false
-            var i = 0
-            var j = vertices.size - 3
-            while (i < vertices.size) {
-                if ((vertices[i + 2] > p.z) != (vertices[j + 2] > p.z) &&
-                    p.x < (vertices[j] - vertices[i]) * (p.z - vertices[i + 2]) / (vertices[j + 2] - vertices[i + 2]) + vertices[i]
-                ) isInside = !isInside
-                j = i
-                i += 3
-            }
-            return isInside
         }
 
         /**
          * The value of spacial parameters are in world units.
          *
-         * The y-values of the polygon vertices are ignored. So the polygon is effectively
-         * projected onto the xz-plane at @p hmin, then extruded to @p hmax.
-         *
          * @see rcCompactHeightfield, rcMedianFilterWalkableArea
          */
         fun markConvexPolyArea(
             ctx: Telemetry?,
-            vertices: FloatArray,
-            hmin: Float,
-            hmax: Float,
+            verticesXZ: FloatArray,
+            yMin: Float,
+            yMax: Float,
             areaMod: AreaModification,
             chf: CompactHeightfield
         ) {
             ctx?.startTimer(TelemetryType.MARK_CONVEX_POLY_AREA)
-            val bmin = Vector3f().set(vertices, 0)
-            val bmax = Vector3f().set(bmin)
-            var i = 3
-            while (i < vertices.size) {
-                Vectors.min(bmin, vertices, i)
-                Vectors.max(bmax, vertices, i)
-                i += 3
+
+            val bounds = AABBf()
+            forLoopSafely(verticesXZ.size, 2) { i ->
+                bounds.union(verticesXZ[i], 0f, verticesXZ[i + 1])
             }
-            bmin.y = hmin
-            bmax.y = hmax
-            var minx = ((bmin.x - chf.bounds.minX) / chf.cellSize).toInt()
-            val miny = ((bmin.y - chf.bounds.minY) / chf.cellHeight).toInt()
-            var minz = ((bmin.z - chf.bounds.minZ) / chf.cellSize).toInt()
-            var maxx = ((bmax.x - chf.bounds.minX) / chf.cellSize).toInt()
-            val maxy = ((bmax.y - chf.bounds.minY) / chf.cellHeight).toInt()
-            var maxz = ((bmax.z - chf.bounds.minZ) / chf.cellSize).toInt()
-            minx = max(minx, 0)
-            maxx = min(maxx, chf.width - 1)
-            minz = max(minz, 0)
-            maxz = min(maxz, chf.height - 1)
-            for (z in minz..maxz) {
-                for (x in minx..maxx) {
+
+            val minXi = max(((bounds.minX - chf.bounds.minX) / chf.cellSize).toInt(), 0)
+            val minZi = max(((bounds.minZ - chf.bounds.minZ) / chf.cellSize).toInt(), 0)
+            val maxXi = min(((bounds.maxX - chf.bounds.minX) / chf.cellSize).toInt(), chf.width - 1)
+            val maxZi = min(((bounds.maxZ - chf.bounds.minZ) / chf.cellSize).toInt(), chf.height - 1)
+
+            val minYi = ((yMin - chf.bounds.minY) / chf.cellHeight).toInt()
+            val maxYi = ((yMax - chf.bounds.minY) / chf.cellHeight).toInt()
+
+            for (z in minZi..maxZi) {
+                for (x in minXi..maxXi) {
                     val c = x + z * chf.width
                     for (j in chf.index[c] until chf.endIndex[c]) {
                         val s = chf.spans[j]
                         if (chf.areas[j] == RecastConstants.RC_NULL_AREA) {
                             continue
                         }
-                        if (s.y in miny..maxy) {
-                            val p = Vector3f()
-                            p.x = chf.bounds.minX + (x + 0.5f) * chf.cellSize
-                            p.y = 0f
-                            p.z = chf.bounds.minZ + (z + 0.5f) * chf.cellSize
-                            if (pointInPoly(vertices, p)) {
+                        if (s.y in minYi..maxYi) {
+                            val px = chf.bounds.minX + (x + 0.5f) * chf.cellSize
+                            val pz = chf.bounds.minZ + (z + 0.5f) * chf.cellSize
+                            if (isInsidePolygon(px, pz, verticesXZ)) {
                                 chf.areas[j] = areaMod.apply(chf.areas[j])
                             }
                         }
                     }
                 }
             }
+
             ctx?.stopTimer(TelemetryType.MARK_CONVEX_POLY_AREA)
         }
     }

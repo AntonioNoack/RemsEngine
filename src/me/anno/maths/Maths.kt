@@ -530,4 +530,22 @@ object Maths {
 
     @JvmStatic
     fun dErf(x: Float) = 2f * exp(-x * x) * INV_SQRT_PIf
+
+    @JvmStatic
+    fun sign(i: Int): Int {
+        return when {
+            i < 0 -> -1
+            i > 0 -> +1
+            else -> 0
+        }
+    }
+
+    @JvmStatic
+    fun sign(i: Long): Long {
+        return when {
+            i < 0 -> -1
+            i > 0 -> +1
+            else -> 0
+        }
+    }
 }

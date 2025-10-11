@@ -18,4 +18,4 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
-class ConvexVolume(val vertices: FloatArray, val minH :Float, val maxH: Float, val areaMod: AreaModification)
+class ConvexVolume(val verticesXZ: FloatArray, val minH: Float, val maxH: Float, val areaMod: AreaModification)

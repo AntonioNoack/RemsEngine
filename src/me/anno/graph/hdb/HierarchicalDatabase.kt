@@ -314,7 +314,7 @@ class HierarchicalDatabase(
         val file1 = getFile(sf.index)
         sf.size = data.size
 
-        cache.override(sf.index, data, cacheTimeoutMillis)
+        cache.setValue(sf.index, data, cacheTimeoutMillis)
 
         if (type == ReplaceType.InsertInto && file1.exists) {
             val writer = RandomAccessFile(file1.absolutePath, "rw")
