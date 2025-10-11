@@ -303,7 +303,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     val lights = ArrayList<LightRequest?>(RenderView.MAX_FORWARD_LIGHTS)
 
     init {
-        for (i in 0 until RenderView.MAX_FORWARD_LIGHTS) {
+        repeat(RenderView.MAX_FORWARD_LIGHTS) {
             lights.add(null)
         }
     }

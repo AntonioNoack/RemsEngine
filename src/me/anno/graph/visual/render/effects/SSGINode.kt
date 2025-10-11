@@ -3,6 +3,7 @@ package me.anno.graph.visual.render.effects
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.shader.effects.ScreenSpaceAmbientOcclusion
+import me.anno.gpu.shader.effects.ScreenSpaceGlobalIlluminationData
 import me.anno.gpu.texture.TextureLib.normalTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
@@ -61,12 +62,12 @@ class SSGINode : TimedRenderingNode(
         val illumT = (getInput(9) as? Texture) ?: return fail()
         val illumTT = illumT.texOrNull ?: return fail()
 
-        val data = ScreenSpaceAmbientOcclusion.SSGIData(illumTT, colorTT, reflectTT, reflectTM)
+        val ssgi = ScreenSpaceGlobalIlluminationData(illumTT, colorTT, reflectTT, reflectTM)
 
         timeRendering(name, timer) {
             val transform = RenderState.cameraMatrix
             val result = ScreenSpaceAmbientOcclusion.compute(
-                data, depthTT, depthT.mask1Index, normalT, normalZW,
+                ssgi, null, depthTT, depthT.mask1Index, normalT, normalZW,
                 transform, strength, radiusScale, ssaoSamples, blur, false
             )
             setOutput(1, Texture.texture(result, 0, "rgb", null))

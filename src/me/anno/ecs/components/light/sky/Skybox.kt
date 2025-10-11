@@ -135,9 +135,13 @@ open class Skybox : SkyboxBase(), OnUpdate {
         sunRotation.mul(JomlPools.quat4f.borrow().identity().slerp(sunSpeed, dt))
     }
 
+    fun getSunDirection(dst: Vector3f): Vector3f {
+        return sunBaseDir.rotate(sunRotation, dst)
+    }
+
     fun applyOntoSun(sun: Entity, sun1: DirectionalLight, brightness: Float) {
         // only works if sunBaseDir is 1.0
-        val sunDir = Vector3f(sunBaseDir).rotate(sunRotation)
+        val sunDir = getSunDirection(Vector3f())
         val sr = sunRotation
         val wr = worldRotation
         sun.rotation = sun.rotation

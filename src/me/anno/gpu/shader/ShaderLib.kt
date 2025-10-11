@@ -3,6 +3,7 @@ package me.anno.gpu.shader
 import me.anno.gpu.shader.YUVHelper.YUV_Y
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import org.joml.Vector3f
 import org.joml.Vector3i
 import kotlin.math.sqrt
 
@@ -107,6 +108,7 @@ object ShaderLib {
             "   return vec4(mix(back.rgb,front.rgb,front.a),1.0-(1.0-front.a)*(1.0-back.a));\n" +
             "}\n"
 
+    fun brightness(color: Vector3f) = brightness(color.x, color.y, color.z)
     fun brightness(r: Float, g: Float, b: Float) = sqrt(YUV_Y.dot(r * r, g * g, b * b, 1f))
 
     // https://community.khronos.org/t/quaternion-functions-for-glsl/50140/3

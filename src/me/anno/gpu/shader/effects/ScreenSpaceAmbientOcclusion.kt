@@ -18,6 +18,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.IndestructibleTexture2D
 import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.structures.lists.Lists.iff
@@ -32,14 +33,12 @@ import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
 
+// todo use screen-space shadows in RenderLights-pass: if shadow map is unavailable, use SSR instead
+
+
 // todo this is too dark on some regions on curved region on flat angles
 //  - maybe the normals are close to being backwards?
 object ScreenSpaceAmbientOcclusion {
-
-    class SSGIData(
-        val illuminated: ITexture2D, val color: ITexture2D,
-        val roughness: ITexture2D, val roughnessMask: Int,
-    )
 
     // to do this can become extremely slow with complex geometry
     // (40 fps on a RTX 3070 🤯, where a pure-color scene has 600 fps)
@@ -84,15 +83,16 @@ object ScreenSpaceAmbientOcclusion {
     @Suppress("SameParameterValue")
     private fun generateRandomTexture(random: Random): IndestructibleTexture2D {
         var j = 0
-        val data = ByteArray(64)
-        for (i in 0 until 16) {
+        val numPixels = 16
+        val data = ByteArray(numPixels * 4)
+        repeat(numPixels) {
             val nx = random.nextFloat() * 2 - 1
             val ny = random.nextFloat() * 2 - 1
             val nz = random.nextFloat() * 2 - 1
             val nf = 127.5f / sqrt(nx * nx + ny * ny + nz * nz)
-            val x = Maths.clamp(nx * nf + 127.5f, 0f, 255f)
-            val y = Maths.clamp(ny * nf + 127.5f, 0f, 255f)
-            val z = Maths.clamp(nz * nf + 127.5f, 0f, 255f)
+            val x = clamp(nx * nf + 127.5f, 0f, 255f)
+            val y = clamp(ny * nf + 127.5f, 0f, 255f)
+            val z = clamp(nz * nf + 127.5f, 0f, 255f)
             data[j++] = (x.toInt().toByte())
             data[j++] = (y.toInt().toByte())
             data[j++] = (z.toInt().toByte())
@@ -127,13 +127,17 @@ object ScreenSpaceAmbientOcclusion {
             ) + listOf(
                 Variable(GLSLType.S2D, "illuminatedTex"),
                 Variable(GLSLType.S2D, "reflectivityTex"),
-            ).iff(ssgi) + DepthTransforms.depthVars, "" +
+            ).iff(ssgi) + DepthTransforms.depthVars + listOf(
+                // sun uniforms
+                Variable(GLSLType.V3F, "sunDirection"),
+                Variable(GLSLType.V1F, "sunStrength")
+            ), "" +
                     "float dot2(vec3 p){ return dot(p,p); }\n" +
                     ShaderLib.quatRot +
                     DepthTransforms.rawToDepth +
                     DepthTransforms.depthToPosition +
                     ShaderLib.octNormalPacking +
-                    "void main(){\n" +
+                    "void main() {\n" +
                     (if (multisampling) "" +
                             "   ivec2 texSizeI = textureSize(finalDepth);\n" +
                             "   #define getPixel(tex,uv) texelFetch(tex,clamp(ivec2(uv*vec2(texSizeI)),ivec2(0),texSizeI-1),0)\n"
@@ -141,12 +145,12 @@ object ScreenSpaceAmbientOcclusion {
                     "   float depth0 = getPixel(finalDepth, uv).$depthMask;\n" +
                     "   vec3 origin = rawDepthToPosition(uv, depth0);\n" +
                     "   float radius = length(origin);\n" +
-                    "   if(radius < 1e18){\n" + // sky and such can be skipped automatically
+                    "   if (radius < 1e18) {\n" + // sky and such can be skipped automatically
                     "       radius *= radiusScale;\n" +
                     "       vec3 normal = UnpackNormal(getPixel(finalNormal, uv).$normalZW);\n" +
                     // reverse back sides, e.g., for plants
                     // could be done by the material as well...
-                    "       if(dot(origin,normal) > 0.0) normal = -normal;\n" +
+                    "       if (dot(origin,normal) > 0.0) normal = -normal;\n" +
                     "       vec3 randomVector = texelFetch(random4x4, ivec2(gl_FragCoord.xy) & mask, 0).xyz * 2.0 - 1.0;\n" +
                     "       vec3 tangent = normalize(randomVector - normal * dot(normal, randomVector));\n" +
                     "       vec3 bitangent = cross(normal, tangent);\n" +
@@ -156,27 +160,28 @@ object ScreenSpaceAmbientOcclusion {
                                 "tangent *= roughness;\n" +
                                 "bitangent *= roughness;\n"
                     } else "") +
-                    "       mat3 tbn = mat3(tangent, bitangent, normal);\n" +
+                    "mat3 tbn = mat3(tangent, bitangent, normal);\n" +
                     (if (ssgi) {
-                        "      vec3 lightSum = vec3(0.0);\n"
+                        "vec3 lightSum = vec3(0.0);\n"
                     } else {
-                        "       float occlusion = 0.0;\n"
+                        "" +
+                                "float ambientOcclusion = 0.0, sunOcclusion = 0.0;\n" +
+                                "bool collectSunOcclusion = sunStrength > 0.0 && dot(normal, sunDirection) > 0.0;\n"
                     }) +
                     "       // [loop]\n" + // hlsl instruction
-                    "       for(int i=0;i<numSamples;i++){\n" +
+                    "       for (int i=0;i<numSamples;i++) {\n" +
                     "           vec3 dir0 = texelFetch(sampleKernel, ivec2(i,0), 0).xyz;\n" +
                     "           vec3 dir1 = matMul(tbn, dir0);\n" +
                     "           vec3 position = dir1 * radius + origin;\n" +
                     // project sample position
                     "           vec4 offset = matMul(cameraMatrix, vec4(position, 0.0));\n" +
-                    "           offset.xy /= offset.w;\n" +
-                    "           offset.xy = offset.xy * 0.5 + 0.5;\n" +
+                    "           offset.xy = offset.xy * 0.5 / offset.w + 0.5;\n" +
                     "           bool isInside = offset.x >= 0.0 && offset.x <= 1.0 && offset.y >= 0.0 && offset.y <= 1.0;\n" +
                     // theoretically, the tutorial also contained this condition, but somehow it
                     // introduces a radius (when radius = 1), where occlusion appears exclusively
                     // && abs(originDepth - sampleDepth) < radius
                     // without it, the result looks approx. the same :)
-                    "           if(isInside){\n" +
+                    "           if (isInside){\n" +
                     "               float depth1 = getPixel(finalDepth, offset.xy).$depthMask;\n" +
                     "               float sampleDepthSq = dot2(rawDepthToPosition(offset.xy, depth1));\n" +
                     (if (ssgi) {
@@ -189,13 +194,35 @@ object ScreenSpaceAmbientOcclusion {
                                 "   lightSum += alignmentStrength * color1;\n"
                     } else {
                         "" +
-                                "   float sampleTheoDepth = dot2(position);\n" +
-                                "   occlusion += step(sampleDepthSq, sampleTheoDepth);\n"
+                                "   float sampleTheoDepthSq = dot2(position);\n" +
+                                "   ambientOcclusion += step(sampleDepthSq, sampleTheoDepthSq);\n" +
+
+                                // directional sun occlusion approximation:
+                                // project a small step from the sample toward the sun and check scene depth there
+                                "   if (collectSunOcclusion) {\n" +
+                                // move from the sample a bit towards the sun; scale chosen empirically
+                                "       vec3 sunProbePos = position + sunDirection * (radius * pow(float(i + 1) / float(numSamples), 2.0));\n" +
+                                "       vec4 sunOffset = matMul(cameraMatrix, vec4(sunProbePos, 1.0));\n" +
+                                "       sunOffset.xy = sunOffset.xy * 0.5 / sunOffset.w + 0.5;\n" +
+                                "       if (sunOffset.x >= 0.0 && sunOffset.x <= 1.0 && sunOffset.y >= 0.0 && sunOffset.y <= 1.0) {\n" +
+                                "           float depthSun = getPixel(finalDepth, sunOffset.xy).$depthMask;\n" +
+                                "           float sunDepthSq = dot2(rawDepthToPosition(sunOffset.xy, depthSun));\n" +
+                                // if the scene depth at the probe is closer than the probe point, there is geometry between
+                                // the sample and the sun direction -> sample contributes to sun-occlusion
+                                "           sunOcclusion += step(sunDepthSq, dot2(sunProbePos));\n" +
+                                "       }\n" +
+                                "   }\n"
                     }) +
                     "           }\n" +
                     "       }\n" +
-                    (if (ssgi) "result = vec4(lightSum * strength, 1.0);\n"
-                    else "result = vec4(clamp(strength * occlusion, 0.0, 1.0));\n") +
+                    if (ssgi) {
+                        "result = vec4(lightSum * strength, 1.0);\n"
+                    } else {
+                        "" +
+                                "ambientOcclusion *= strength;\n" +
+                                "sunOcclusion = sunStrength * (collectSunOcclusion ? sunOcclusion / float(numSamples) : 1.0);\n" +
+                                "result = vec4(ambientOcclusion, sunOcclusion, 0.0, 1.0);\n"
+                    } +
                     "   } else {\n" +
                     "       result = vec4(0.0);\n" +
                     "   }\n" +
@@ -205,12 +232,28 @@ object ScreenSpaceAmbientOcclusion {
         }
     }
 
-    private val blurShaders = LazyList(3 * 4 * 2) {
-        val base = (it shr 3)
-        val normalZW = if (it.hasFlag(1)) "zw" else "xy"
-        val depthMask = "xyzw"[it.shr(1).and(3)]
-        val blur = base.hasFlag(1)
-        val ssgi = base.hasFlag(2)
+    private const val BLUR_FLAG_DEPTH_MASK = 3
+    private const val BLUR_FLAG_HAS_BLUR = 4
+    private const val BLUR_FLAG_IS_SSGI = 8
+    private const val BLUR_FLAG_ZW_NORMALS = 16
+    private const val BLUR_FLAG_WITH_SSR = 32
+
+    private val blurShaders = LazyList(64) { flags ->
+        val depthMask = "xyzw"[flags.and(BLUR_FLAG_DEPTH_MASK)]
+        val normalZW = if (flags.hasFlag(BLUR_FLAG_ZW_NORMALS)) "zw" else "xy"
+        val blur = flags.hasFlag(BLUR_FLAG_HAS_BLUR)
+        val ssgi = flags.hasFlag(BLUR_FLAG_IS_SSGI)
+        val ssr = flags.hasFlag(BLUR_FLAG_WITH_SSR)
+        val sumType = when {
+            ssgi -> "vec3"
+            ssr -> "vec2"
+            else -> "float"
+        }
+        val sumMask = when {
+            ssgi -> "xyz"
+            ssr -> "xy"
+            else -> "x"
+        }
         Shader(
             if (ssgi) if (blur) "ssgi-blur" else "ssgi-apply"
             else "ssao-blur", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
@@ -238,8 +281,7 @@ object ScreenSpaceAmbientOcclusion {
                             "}\n").iff(blur) +
                     "void main(){\n" +
                     // bilateral blur (use normal and depth as weights)
-                    (if (ssgi) "vec3 valueSum = vec3(0.0);\n"
-                    else "float valueSum = 0.0;\n") +
+                    "$sumType valueSum = $sumType(0.0);\n" +
                     if (blur) {
                         "" +
                                 "float weightSum = 0.0;\n" +
@@ -254,28 +296,45 @@ object ScreenSpaceAmbientOcclusion {
                                 "           float di = getDepth(uvi);\n" +
                                 "           vec3  ni = getNormal(uvi);\n" +
                                 "           float weight = max(1.0-abs(di-d0),0.0) * max(dot(n0,ni),0.0) / (1.0 + dot(ij,ij));\n" +
-                                "            valueSum += weight * texture(ssaoTex,uvi)" + (if (ssgi) ".xyz" else ".x") + ";\n" +
+                                "            valueSum += weight * texture(ssaoTex,uvi).$sumMask;\n" +
                                 "           weightSum += weight;\n" +
                                 "       }\n" +
                                 "   }\n" +
                                 "}\n"
                     } else {
-                        "valueSum = texture(ssaoTex,uv).xyz;\n"
+                        "valueSum = texture(ssaoTex,uv).$sumMask;\n"
                     } +
-                    (if (ssgi) {
-                        "" + (if (blur) "valueSum *= 1.0 / weightSum;\n" else "") +
-                                "vec4 base = texture(illumTex,uv);\n" +
-                                "base.rgb += valueSum * texture(colorTex,uv).xyz;\n" +
-                                "glFragColor = base;\n"
-                    } else
-                        "glFragColor = isNotSky ? vec4(valueSum / weightSum) : vec4(0.0);\n" +
-                                "if(inverseResult) { glFragColor.r = 1.0 - glFragColor.r; }\n") +
-                    "}"
+                    "valueSum *= 1.0 / weightSum;\n".iff(blur) +
+                    when {
+                        ssgi -> {
+                            "" +
+                                    "vec4 base = texture(illumTex,uv);\n" +
+                                    "base.rgb += valueSum * texture(colorTex,uv).xyz;\n" +
+                                    "glFragColor = base;\n"
+                        }
+                        ssr -> {
+                            "glFragColor = isNotSky ? vec4(valueSum, 0.0, 1.0) : vec4(0.0);\n" +
+                                    "if (inverseResult) { glFragColor.r = 1.0 - glFragColor.r; }\n"
+                        }
+                        else -> {
+                            "glFragColor = isNotSky ? vec4(valueSum) : vec4(0.0);\n" +
+                                    "if (inverseResult) { glFragColor.r = 1.0 - glFragColor.r; }\n"
+                        }
+                    } + "}"
         )
     }
 
+    private fun getNumChannels(ssgi: ScreenSpaceGlobalIlluminationData?, ssr: ScreenSpaceShadowData?): Int {
+        return when {
+            ssgi != null -> 3
+            ssr != null -> 2
+            else -> 1
+        }
+    }
+
     private fun calculate(
-        ssgi: SSGIData?,
+        ssgi: ScreenSpaceGlobalIlluminationData?,
+        ssr: ScreenSpaceShadowData?,
         depthSS: ITexture2D,
         depthMask: Int,
         normalSS: ITexture2D,
@@ -284,7 +343,7 @@ object ScreenSpaceAmbientOcclusion {
         strength: Float,
         radiusScale: Float,
         samples: Int,
-        enableBlur: Boolean
+        enableBlur: Boolean,
     ): IFramebuffer {
 
         // resolution can be halved to improve performance
@@ -293,7 +352,7 @@ object ScreenSpaceAmbientOcclusion {
         val fh = (depthSS.height * scale).roundToIntOr()
 
         val isSSGI = ssgi != null
-        val channels = if (isSSGI) 3 else 1
+        val channels = getNumChannels(ssgi, ssr)
         val dst = FBStack["ssao-1st", fw, fh, channels, isSSGI, 1, DepthBufferType.NONE]
         useFrame(dst, Renderer.copyRenderer) {
             dst.clearColor(0)
@@ -322,6 +381,13 @@ object ScreenSpaceAmbientOcclusion {
             shader.v1f("strength", strength / samples)
             shader.v1i("mask", if (enableBlur) 3 else 0)
             shader.v1f("radiusScale", radiusScale)
+            // sun uniforms
+            if (ssr != null) {
+                shader.v3f("sunDirection", ssr.direction)
+                shader.v1f("sunStrength", ssr.strength)
+            } else {
+                shader.v1f("sunStrength", 0f)
+            }
             // draw
             flat01.draw(shader)
             GFX.check()
@@ -330,22 +396,30 @@ object ScreenSpaceAmbientOcclusion {
         return dst
     }
 
-    private fun average(
+    private fun applyBlur(
         ssaoTex: IFramebuffer,
         normals: ITexture2D, normalZW: Boolean,
         depth: ITexture2D, depthMaskI: Int,
-        enableBlur: Boolean, ssgi: SSGIData?,
+        enableBlur: Boolean,
+        ssgi: ScreenSpaceGlobalIlluminationData?,
+        ssr: ScreenSpaceShadowData?,
         inverse: Boolean
     ): IFramebuffer {
         val w = ssaoTex.width
         val h = ssaoTex.height
         val isSSGI = ssgi != null
-        val dst = FBStack["ssao-2nd", w, h, if (isSSGI) 3 else 1, isSSGI, 1, DepthBufferType.NONE]
+        val numChannels = getNumChannels(ssgi, ssr)
+        val dst = FBStack["ssao-2nd", w, h, numChannels, isSSGI, 1, DepthBufferType.NONE]
         useFrame(dst, Renderer.copyRenderer) {
             dst.clearColor(0)
             GFX.check()
-            val base = enableBlur.toInt() + isSSGI.toInt(2)
-            val shader = blurShaders[base.shl(3) + normalZW.toInt() + depthMaskI.shl(1)]
+            val withSSR = !isSSGI && ssr != null
+            val shaderId = depthMaskI +
+                    enableBlur.toInt(BLUR_FLAG_HAS_BLUR) +
+                    isSSGI.toInt(BLUR_FLAG_IS_SSGI) +
+                    normalZW.toInt(BLUR_FLAG_ZW_NORMALS) +
+                    withSSR.toInt(BLUR_FLAG_WITH_SSR)
+            val shader = blurShaders[shaderId]
             shader.use()
             ssaoTex.getTexture0().bindTrulyNearest(shader, "ssaoTex")
             if (ssgi != null) {
@@ -363,7 +437,8 @@ object ScreenSpaceAmbientOcclusion {
     }
 
     fun compute(
-        ssgi: SSGIData?,
+        ssgi: ScreenSpaceGlobalIlluminationData?,
+        ssr: ScreenSpaceShadowData?,
         depth: ITexture2D,
         depthMaskI: Int,
         normal: ITexture2D,
@@ -373,19 +448,19 @@ object ScreenSpaceAmbientOcclusion {
         radiusScale: Float,
         samples: Int,
         enableBlur: Boolean,
-        inverse: Boolean
+        inverse: Boolean,
     ): IFramebuffer {
         return GFXState.renderPurely {
             val ssao = calculate(
-                ssgi, depth, depthMaskI, normal, normalZW,
+                ssgi, ssr, depth, depthMaskI, normal, normalZW,
                 cameraMatrix, strength, radiusScale,
                 min(samples, MAX_SAMPLES), enableBlur,
             )
             if (enableBlur || ssgi != null) {
-                average(
+                applyBlur(
                     ssao, normal, normalZW,
                     depth, depthMaskI,
-                    enableBlur, ssgi, inverse
+                    enableBlur, ssgi, ssr, inverse
                 )
             } else ssao
         }

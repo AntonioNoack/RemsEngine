@@ -2,6 +2,7 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
+import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightType
@@ -33,6 +34,7 @@ import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib
 import me.anno.maths.MinMax.min
 import me.anno.utils.assertions.assertNotNull
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.SmallestKList
 import org.joml.Vector4f
 
@@ -53,7 +55,25 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
     val instanced = LightData()
     val nonInstanced = LightData()
 
-    fun bindDraw(pipeline: Pipeline, source: IFramebuffer, depthTexture: Texture2D, depthMask: Vector4f, ) {
+    fun findBiggestDirectionalLight(): DirectionalLight? {
+        // find the biggest light
+        var bestScale = 0f
+        var bestLight: DirectionalLight? = null
+        val tmp = JomlPools.vec3f.borrow()
+        for (i in 0 until instanced.size) {
+            val light = instanced[i].light
+            if (light is DirectionalLight) {
+                val scale = light.transform!!.getGlobalScale(tmp).lengthSquared()
+                if (scale > bestScale) {
+                    bestScale = scale
+                    bestLight = light
+                }
+            }
+        }
+        return bestLight
+    }
+
+    fun bindDraw(pipeline: Pipeline, source: IFramebuffer, depthTexture: Texture2D, depthMask: Vector4f) {
         bind {
             source.bindTrulyNearestMS(0)
             draw(pipeline, ::getShader, depthTexture, depthMask)

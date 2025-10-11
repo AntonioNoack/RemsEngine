@@ -138,11 +138,11 @@ fun main() {
         }.ref))
 
         val flagMesh = res.getChild("meshes/Flag.fbx")
-        for (i in 0 until 500) {
-            val flag = Entity("Flag", world)
+        repeat(500) { i ->
+            val flag = Entity("Flag[$i]", world)
             flag.setScale(flagScale)
             flag.add(MeshComponent(flagMesh).apply { isInstanced = true })
-            val agent = Entity("Agent", world)
+            val agent = Entity("Agent[$i]", world)
                 .add(AgentController1a(navMeshData, meshEntity, flag))
             Entity(agent)
                 .setScale(agentScale)

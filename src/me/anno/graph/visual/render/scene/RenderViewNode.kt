@@ -4,26 +4,23 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.gpu.query.GPUClockNanos
-import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.node.NodeOutput
+import me.anno.graph.visual.render.effects.TimedRenderingNode
 import me.anno.utils.structures.lists.Lists.any2
 
 abstract class RenderViewNode(name: String, inputs: List<String>, outputs: List<String>) :
-    ActionNode(name, inputs, outputs) {
+    TimedRenderingNode(name, inputs, outputs) {
 
     lateinit var renderView: RenderView
     val pipeline: Pipeline get() = renderView.pipeline
 
     var framebuffer: IFramebuffer? = null
-    val timer = GPUClockNanos()
 
     open fun invalidate() {
     }
 
     override fun destroy() {
         super.destroy()
-        timer.destroy()
         invalidate()
     }
 
