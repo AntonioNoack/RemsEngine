@@ -30,7 +30,7 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
         }
     }
 
-    fun removeDual(filter: (K1, K2, AsyncCacheData<V>) -> Boolean): Int {
+    fun removeIf(filter: (K1, K2, AsyncCacheData<V>) -> Boolean): Int {
         return synchronized(dualCache) {
             dualCache.removeIf { k1, k2, v ->
                 if (filter(k1, k2, v)) {
