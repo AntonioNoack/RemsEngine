@@ -29,6 +29,8 @@ import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
 import me.anno.utils.types.Strings.joinChars
 import me.anno.utils.types.Strings.splitLines
+import kotlin.math.max
+import kotlin.math.min
 
 open class PureTextInputML(style: Style) :
     ScrollPanelXY(Padding(0), style),
@@ -217,13 +219,13 @@ open class PureTextInputML(style: Style) :
                 val line2 = lines[cursor2.y]
                 val cursor2Text = line2.joinChars(0, cursor2.x)
                 val cursorX2 = if (cursor2.x == 0) 0 else getTextSizeX(font, cursor2Text) - 1
-                val minCursor = min(cursor1, cursor2)
-                val maxCursor = max(cursor1, cursor2)
-                val minPanel = children[minCursor.y] as TextPanel
-                val maxPanel = children[maxCursor.y] as TextPanel
-                val minCursorX = kotlin.math.min(cursorX1, cursorX2)
-                val maxCursorX = kotlin.math.max(cursorX1, cursorX2)
+                val minCursor = minI(cursor1, cursor2)
+                val maxCursor = maxI(cursor1, cursor2)
                 if (minCursor.y == maxCursor.y) {
+
+                    val minCursorX = min(cursorX1, cursorX2)
+                    val maxCursorX = max(cursorX1, cursorX2)
+
                     // draw box in same line
                     drawRect(
                         panel2.x + minCursorX + panel2.padding.left,
@@ -234,11 +236,16 @@ open class PureTextInputML(style: Style) :
                     ) // marker
                 } else {
 
+                    val firstCursorX = if (minCursor == cursor1) cursorX1 else cursorX2
+                    val lastCursorX = if (minCursor == cursor1) cursorX2 else cursorX1
+                    val minPanel = children[minCursor.y] as TextPanel
+                    val maxPanel = children[maxCursor.y] as TextPanel
+
                     // draw end of first line
                     drawRect(
-                        x + panel2.padding.left + minCursorX,
+                        x + panel2.padding.left + firstCursorX,
                         minPanel.y + padding,
-                        width - panel2.padding.width - minCursorX,
+                        width - panel2.padding.width - firstCursorX,
                         minPanel.height - padding,
                         textColor and 0x3fffffff
                     )
@@ -255,7 +262,7 @@ open class PureTextInputML(style: Style) :
                     }
 
                     // draw start of last line
-                    val endX = maxPanel.x + maxCursorX
+                    val endX = maxPanel.x + lastCursorX
                     drawRect(
                         x + panel2.padding.left,
                         maxPanel.y,
@@ -286,8 +293,8 @@ open class PureTextInputML(style: Style) :
         loadTexturesSync.pop()
     }
 
-    fun <V : Comparable<V>> min(a: V, b: V): V = if (a < b) a else b
-    fun <V : Comparable<V>> max(a: V, b: V): V = if (a > b) a else b
+    fun minI(a: CursorPosition, b: CursorPosition): CursorPosition = if (a < b) a else b
+    fun maxI(a: CursorPosition, b: CursorPosition): CursorPosition = if (a > b) a else b
 
     fun setCursorToEnd() {
         cursor1.set(endCursor)
@@ -332,8 +339,8 @@ open class PureTextInputML(style: Style) :
 
     fun deleteSelection(): Boolean {
         ensureCursorBounds()
-        val min = min(cursor1, cursor2)
-        val max = max(cursor1, cursor2)
+        val min = minI(cursor1, cursor2)
+        val max = maxI(cursor1, cursor2)
         if (min == max) return false
         if (min.y < max.y) {
             // delete back, in between, and end
@@ -501,7 +508,7 @@ open class PureTextInputML(style: Style) :
 
     private fun moveRight() {
         val isSelectingText = Input.isShiftDown
-        val oldCursor = if (isSelectingText) cursor2 else max(cursor1, cursor2)
+        val oldCursor = if (isSelectingText) cursor2 else maxI(cursor1, cursor2)
         val currentLine = lines[oldCursor.y]
         val newCursor = when {
             !isSelectingText && cursor1 != cursor2 -> {
@@ -533,7 +540,7 @@ open class PureTextInputML(style: Style) :
 
     private fun moveLeft() {
         val isSelecting = Input.isShiftDown
-        val oldCursor = if (isSelecting) cursor2 else min(cursor1, cursor2)
+        val oldCursor = if (isSelecting) cursor2 else minI(cursor1, cursor2)
         val newCursor = when {
             !isSelecting && cursor1 != cursor2 -> {
                 // remove current selection first
@@ -596,8 +603,8 @@ open class PureTextInputML(style: Style) :
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         if (cursor1 == cursor2) return text
-        val min = min(cursor1, cursor2)
-        val max = max(cursor1, cursor2)
+        val min = minI(cursor1, cursor2)
+        val max = maxI(cursor1, cursor2)
         if (min.y == max.y) {
             return lines[min.y].joinChars(min.x, max.x).toString()
         }
