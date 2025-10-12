@@ -72,10 +72,10 @@ object FontManagerImpl {
         return TextLayout(codepoint.joinChars(), awtFont, ctx).bounds.maxX
     }
 
-    fun getTextLength2(font: me.anno.fonts.Font, charA: Int, charB: Int): Double {
+    fun getTextLength2(font: me.anno.fonts.Font, codepointA: Int, codepointB: Int): Double {
         val awtFont = getAWTFont(font).awtFont
         val ctx = FontRenderContext(null, true, true)
-        val text = listOf(charA, charB).joinChars().toString()
+        val text = listOf(codepointA, codepointB).joinChars().toString()
         return TextLayout(text, awtFont, ctx).bounds.maxX
     }
 

@@ -63,7 +63,7 @@ object LongHashMapBench {
         LOGGER.debug("CheckSum: $checksum")
     }
 
-    val ns = listOf(10, 30, 100, 300, 1000, 3000, 10_000, 30_000, 100_000, 300_000)
+    val ns = listOf(10, 20, 30, 100, 300, 1000, 3000, 10_000, 30_000, 100_000, 300_000)
 
     fun <V1, V2> runBenchmark(
         logger: Logger, name: String,

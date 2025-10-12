@@ -25,28 +25,28 @@ class CharacterOffsetCache(val font: Font) {
         }.toFloat()
     }
 
-    fun getLength(charA: Int, charB: Int): Float {
-        return if (charA == ' '.code || charB == ' '.code) {
-            getCharLength(charA) + getCharLength(charB)
-        } else fontImpl.getTextLength(font, charA, charB)
+    fun getLength(codepointA: Int, codepointB: Int): Float {
+        return if (codepointA == ' '.code || codepointB == ' '.code) {
+            getCharLength(codepointA) + getCharLength(codepointB)
+        } else fontImpl.getTextLength(font, codepointA, codepointB)
     }
 
     /**
      * get |AB| - |B| aka, the length of A when standing before B
      * */
-    fun getOffset(charA: Int, charB: Int): Float {
+    fun getOffset(codepointA: Int, codepointB: Int): Float {
         return synchronized(this) {
-            charDistance.getOrPut(Packing.pack64(charA, charB)) {
-                val ai = Codepoints.isEmoji(charA)
-                val bi = Codepoints.isEmoji(charB)
+            charDistance.getOrPut(Packing.pack64(codepointA, codepointB)) {
+                val ai = Codepoints.isEmoji(codepointA)
+                val bi = Codepoints.isEmoji(codepointB)
                 when {
                     ai -> emojiSize + emojiPadding
-                    bi -> getCharLength(charA) + emojiPadding
-                    charA == ' '.code -> spaceWidth
-                    charB == ' '.code -> getCharLength(charA)
+                    bi -> getCharLength(codepointA) + emojiPadding
+                    codepointA == ' '.code -> spaceWidth
+                    codepointB == ' '.code -> getCharLength(codepointA)
                     else -> {
-                        val bLength = getCharLength(charB)
-                        val abLength = getLength(charA, charB)
+                        val bLength = getCharLength(codepointB)
+                        val abLength = getLength(codepointA, codepointB)
                         abLength - bLength
                     }
                 }.toDouble()
