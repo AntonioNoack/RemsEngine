@@ -13,6 +13,8 @@ import kotlin.math.min
 /**
  * Base of Long2LongOpenHashMap from https://github.com/Speiger/Primitive-Collections/,
  * Converted to Kotlin and trimmed down to my needs.
+ *
+ * todo test LongToLongHashMap small size optimization aka when using <= 16 or 32 elements, no hashes are used, just straightforward lookups
  * */
 abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
 
@@ -53,7 +55,7 @@ abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
     }
 
     @InternalAPI
-    fun findIndex(key: Long): Int {
+    fun findSlot(key: Long): Int {
         if (key == 0L) {
             return if (containsNull) nullIndex else -(nullIndex + 1)
         } else {
@@ -132,10 +134,10 @@ abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
 
                 val slot = HashUtil.mix(current.hashCode()) and mask
                 if (last <= startPos) {
-                    if (last >= slot || slot > startPos) {
+                    if (slot !in (last + 1)..startPos) {
                         break
                     }
-                } else if (last >= slot && slot > startPos) {
+                } else if (slot in (startPos + 1)..last) {
                     break
                 }
 
@@ -157,7 +159,7 @@ abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
     }
 
     fun containsKey(key: Long): Boolean {
-        return findIndex(key) >= 0
+        return findSlot(key) >= 0
     }
 
     fun forEachKey(callback: LongCallback) {

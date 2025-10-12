@@ -51,7 +51,7 @@ abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
     }
 
     @InternalAPI
-    fun findIndex(key: K): Int {
+    fun findSlot(key: K): Int {
         if (key == null) {
             return if (containsNull) nullIndex else -(nullIndex + 1)
         } else {
@@ -128,10 +128,10 @@ abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
 
                 val slot = HashUtil.mix(current.hashCode()) and mask
                 if (last <= startPos) {
-                    if (last >= slot || slot > startPos) {
+                    if (slot !in (last + 1)..startPos) {
                         break
                     }
-                } else if (last >= slot && slot > startPos) {
+                } else if (slot in (startPos + 1)..last) {
                     break
                 }
 
@@ -153,7 +153,7 @@ abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
     }
 
     fun containsKey(key: K): Boolean {
-        return findIndex(key) >= 0
+        return findSlot(key) >= 0
     }
 
     fun forEachKey(callback: (K) -> Unit) {

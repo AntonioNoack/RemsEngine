@@ -23,7 +23,7 @@ class ObjectHashSet<K> : ObjectToHashMap<K, Unit> {
     override fun setNull(dstValues: Unit, dstIndex: Int) {}
 
     fun add(key: K): Boolean {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot < 0) {
             insert(-slot - 1, key)
             return true
@@ -31,7 +31,7 @@ class ObjectHashSet<K> : ObjectToHashMap<K, Unit> {
     }
 
     fun remove(key: K): Boolean {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot >= 0) removeIndex(slot)
         return slot >= 0
     }

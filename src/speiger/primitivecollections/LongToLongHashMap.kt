@@ -54,7 +54,7 @@ class LongToLongHashMap : LongToHashMap<LongArray> {
     }
 
     inline fun getOrPut(key: Long, generateIfNull: () -> Long): Long {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot >= 0) return values[slot]
 
         val newValue = generateIfNull()
@@ -63,7 +63,7 @@ class LongToLongHashMap : LongToHashMap<LongArray> {
     }
 
     fun getOrPut(key: Long, valueIfNull: Long): Long {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot >= 0) return values[slot]
 
         insert(-slot - 1, key, valueIfNull)
@@ -71,7 +71,7 @@ class LongToLongHashMap : LongToHashMap<LongArray> {
     }
 
     fun put(key: Long, value: Long): Long {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot < 0) {
             insert(-slot - 1, key, value)
             return missingValue
@@ -83,7 +83,7 @@ class LongToLongHashMap : LongToHashMap<LongArray> {
     }
 
     fun remove(key: Long): Long {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         return if (slot < 0) missingValue else {
             val value = values[slot]
             if (removeIndex(slot)) value else missingValue
@@ -91,7 +91,7 @@ class LongToLongHashMap : LongToHashMap<LongArray> {
     }
 
     operator fun get(key: Long): Long {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         return if (slot < 0) missingValue else values[slot]
     }
 

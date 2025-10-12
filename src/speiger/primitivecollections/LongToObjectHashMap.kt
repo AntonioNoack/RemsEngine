@@ -51,7 +51,7 @@ class LongToObjectHashMap<V> : LongToHashMap<Array<V?>> {
     }
 
     inline fun getOrPut(key: Long, generateIfNull: () -> V): V {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         @Suppress("UNCHECKED_CAST")
         if (slot >= 0) return values[slot] as V
 
@@ -62,7 +62,7 @@ class LongToObjectHashMap<V> : LongToHashMap<Array<V?>> {
     }
 
     fun put(key: Long, value: V): V? {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot < 0) {
             insert(-slot - 1, key, value)
             return null
@@ -74,7 +74,7 @@ class LongToObjectHashMap<V> : LongToHashMap<Array<V?>> {
     }
 
     fun remove(key: Long): V? {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         return if (slot < 0) null else {
             val value = values[slot]
             if (removeIndex(slot)) value else null
@@ -82,7 +82,7 @@ class LongToObjectHashMap<V> : LongToHashMap<Array<V?>> {
     }
 
     operator fun get(key: Long): V? {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         return if (slot < 0) null else values[slot]
     }
 

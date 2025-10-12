@@ -49,7 +49,7 @@ class ObjectToObjectHashMap<K, V> : ObjectToHashMap<K, Array<Any?>> {
     }
 
     inline fun getOrPut(key: K, generateIfNull: () -> V): V {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         @Suppress("UNCHECKED_CAST")
         if (slot >= 0) return values[slot] as V
 
@@ -59,7 +59,7 @@ class ObjectToObjectHashMap<K, V> : ObjectToHashMap<K, Array<Any?>> {
     }
 
     fun getOrPut(key: K, valueIfNull: V): V {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         @Suppress("UNCHECKED_CAST")
         if (slot >= 0) return values[slot] as V
 
@@ -68,7 +68,7 @@ class ObjectToObjectHashMap<K, V> : ObjectToHashMap<K, Array<Any?>> {
     }
 
     fun put(key: K, value: V): V {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot < 0) {
             insert(-slot - 1, key, value)
             return missingValue
@@ -81,7 +81,7 @@ class ObjectToObjectHashMap<K, V> : ObjectToHashMap<K, Array<Any?>> {
     }
 
     fun remove(key: K): V {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         return if (slot < 0) missingValue else {
             @Suppress("UNCHECKED_CAST")
             val value = values[slot] as V
@@ -90,7 +90,7 @@ class ObjectToObjectHashMap<K, V> : ObjectToHashMap<K, Array<Any?>> {
     }
 
     operator fun get(key: K): V {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         return if (slot < 0) missingValue
         else {
             @Suppress("UNCHECKED_CAST")

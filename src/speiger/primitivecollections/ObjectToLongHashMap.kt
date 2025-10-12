@@ -51,7 +51,7 @@ class ObjectToLongHashMap<K> : ObjectToHashMap<K, LongArray> {
     }
 
     inline fun getOrPut(key: K, generateIfNull: () -> Long): Long {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot >= 0) return values[slot]
 
         val newValue = generateIfNull()
@@ -60,7 +60,7 @@ class ObjectToLongHashMap<K> : ObjectToHashMap<K, LongArray> {
     }
 
     fun getOrPut(key: K, valueIfNull: Long): Long {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot >= 0) return values[slot]
 
         insert(-slot - 1, key, valueIfNull)
@@ -68,7 +68,7 @@ class ObjectToLongHashMap<K> : ObjectToHashMap<K, LongArray> {
     }
 
     fun put(key: K, value: Long): Long {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot < 0) {
             insert(-slot - 1, key, value)
             return missingValue
@@ -80,7 +80,7 @@ class ObjectToLongHashMap<K> : ObjectToHashMap<K, LongArray> {
     }
 
     fun remove(key: K): Long {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         return if (slot < 0) missingValue else {
             val value = values[slot]
             if (removeIndex(slot)) value else missingValue
@@ -88,7 +88,7 @@ class ObjectToLongHashMap<K> : ObjectToHashMap<K, LongArray> {
     }
 
     operator fun get(key: K): Long {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         return if (slot < 0) missingValue else values[slot]
     }
 

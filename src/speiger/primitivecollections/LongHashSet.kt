@@ -24,7 +24,7 @@ class LongHashSet : LongToHashMap<Unit> {
     override fun setNull(dstValues: Unit, dstIndex: Int) {}
 
     fun add(key: Long): Boolean {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot < 0) {
             insert(-slot - 1, key)
             return true
@@ -32,7 +32,7 @@ class LongHashSet : LongToHashMap<Unit> {
     }
 
     fun remove(key: Long): Boolean {
-        val slot = findIndex(key)
+        val slot = findSlot(key)
         if (slot >= 0) removeIndex(slot)
         return slot >= 0
     }
