@@ -6,7 +6,6 @@ import me.anno.utils.types.Strings.formatTime2
 import me.anno.utils.types.Strings.withLength
 import org.apache.logging.log4j.Logger
 import java.io.InputStream
-import java.util.ArrayList
 import kotlin.math.max
 import kotlin.math.round
 
@@ -34,9 +33,10 @@ object FFMPEGUtils {
             if (!hasFailed) {
                 if (line.contains("unable", true) ||
                     line.contains("null", true) ||
-                    line.contains("error", true) ||
+                    (line.contains("error", true) && !line.contains("ld.so")) ||
                     line.contains("failed", true)
                 ) {
+                    logger.warn("Considering FFMPEG failed because of '$line'")
                     onFailure()
                     hasFailed = true
                 }
@@ -52,7 +52,7 @@ object FFMPEGUtils {
                 // var quality = 0f
                 // var size = 0
                 val thisTime = Time.nanoTime
-                val deltaTime = thisTime - lastTime
+                val deltaTimeNanos = thisTime - lastTime
                 lastTime = thisTime
                 val elapsedTime = (thisTime - startTime) * 1e-9
                 // var bitrate = 0
@@ -66,16 +66,17 @@ object FFMPEGUtils {
                     remaining = remaining.substring(firstIndex + 1).trim()
                     var secondIndex = remaining.indexOf(' ')
                     if (secondIndex < 0) secondIndex = remaining.length
+                    if (remaining.startsWith("N/A")) continue
                     val value = remaining.substring(0, secondIndex)
                     try {
                         when (key.lowercase()) {
                             "speed" -> {
                                 // if frame is not delivered (rendering audio only), update frame
                                 speedStr = value
-                                val speed = value.substring(0, value.length - 1).toDouble()
-                                if (!hasFrameInformation) {
+                                val speed = value.substring(0, value.length - 1).toDoubleOrNull()
+                                if (!hasFrameInformation && speed != null) {
                                     // time since last: guess fps
-                                    progressGuess += speed * deltaTime * targetFPS / 1e9
+                                    progressGuess += speed * deltaTimeNanos * targetFPS / 1e9
                                     frameIndex = progressGuess.toInt()
                                     fps = (speed * targetFPS).toFloat()
                                 }
@@ -95,7 +96,7 @@ object FFMPEGUtils {
                             "fps" -> fps = value.toFloat()
                         }
                     } catch (e: Exception) {
-                        logger.warn("${e::class}: ${e.message}")
+                        logger.warn("${e::class} parsing '$value': ${e.message}")
                     }
                     // LOGGER.info("$key: $value")
                     if (secondIndex == remaining.length) break
@@ -129,8 +130,7 @@ object FFMPEGUtils {
             // or [libx264 @ 000001c678804000] frame I:1     Avg QP:19.00  size:  2335
         }
         if (hasFailed) {
-            for (line in lines)
-                logger.error(line)
+            logger.error(lines.joinToString("\n"))
         }
     }
 

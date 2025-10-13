@@ -91,11 +91,10 @@ object BMPDecoder {
      * @param lis        the source input
      * @param infoHeader an <tt>InfoHeader</tt> that was read by a call to
      * [readInfoHeader()][.readInfoHeader].
-     * @return the decoded image read from the source input
-     * @throws java.io.IOException if an error occurs
+     * @return the decoded image read from the source input or IOException
      */
     @JvmStatic
-    fun read(infoHeader: InfoHeader, lis: InputStream): IntImage {
+    fun read(infoHeader: InfoHeader, lis: InputStream): Any {
         // Color table (palette)
         var colorTable: IntArray? = null
         // color table is only present for 1, 4 or 8 bit (indexed) images
@@ -113,11 +112,10 @@ object BMPDecoder {
      * @param infoHeader an <tt>InfoHeader</tt> that was read by a call to
      * [readInfoHeader()][.readInfoHeader].
      * @param lis        the source input
-     * @return the decoded image read from the source input
-     * @throws java.io.IOException if any error occurs
+     * @return the decoded image read from the source input or IOException
      */
     @JvmStatic
-    fun read(infoHeader: InfoHeader, lis: InputStream, colorTable: IntArray?): IntImage {
+    fun read(infoHeader: InfoHeader, lis: InputStream, colorTable: IntArray?): Any {
         val image = if (infoHeader.compression == BI_RGB) {
             when (infoHeader.bitCount) {
                 1 -> read1(infoHeader, lis, colorTable!!) // 1-bit (monochrome) uncompressed
@@ -128,8 +126,7 @@ object BMPDecoder {
                 else -> null
             }
         } else null
-        return image
-            ?: throw IOException("Unrecognized bitmap format: bit count=${infoHeader.bitCount}, compression=${infoHeader.compression}")
+        return image ?: IOException("Unrecognized bitmap format: bit count=${infoHeader.bitCount}, compression=${infoHeader.compression}")
     }
 
     @JvmStatic
@@ -329,11 +326,10 @@ object BMPDecoder {
      * Reads and decodes BMP data from the source input.
      *
      * @param `in` the source input
-     * @return the decoded image read from the source file
-     * @throws IOException if an error occurs
+     * @return the decoded image read from the source file or IOException
      */
     @JvmStatic
-    fun read(input: InputStream): Image {
+    fun read(input: InputStream): Any {
 
         /* header [14] */
 

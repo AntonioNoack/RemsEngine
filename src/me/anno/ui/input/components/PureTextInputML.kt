@@ -414,8 +414,8 @@ open class PureTextInputML(style: Style) :
                     lines[cursor1.y] = line0.subList(0, cursor1.x)
                     lines.add(
                         cursor1.y + 1,
-                        (findStartingWhitespace(line0) // help with spaces at the start
-                                + line1).toMutableList()
+                        // help with spaces at the start
+                        (findStartingWhitespace(line0) + line1).toMutableList()
                     )
                     cursor1.set(0, cursor1.y + 1)
                     cursor2.set(cursor1)

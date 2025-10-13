@@ -1,7 +1,8 @@
 package me.anno.ui.editor.code.codemirror
 
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.saveable.Saveable
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 
 open class LanguageStyle(
@@ -30,7 +31,7 @@ open class LanguageStyle(
     }
 
     override fun setProperty(name: String, value: Any?) {
-        when(name){
+        when (name) {
             "color" -> color = value as? Int ?: return
             "squiggles" -> squiggles = value == true
             "underlined" -> underlined = value == true
@@ -41,31 +42,36 @@ open class LanguageStyle(
     }
 
     fun encode(): Int {
-        return color.and(0xffffff) + (squiggles.toInt(8) + underlined.toInt(4) + bold.toInt(2)
-                + italic.toInt(1)).shl(24)
+        val flags = squiggles.toInt(FLAG_SQUIGGLES) +
+                underlined.toInt(FLAG_UNDERLINED) +
+                bold.toInt(FLAG_BOLD) +
+                italic.toInt(FLAG_ITALIC)
+        return color.and(0xffffff) + flags.shl(24)
     }
 
     fun decode(v: Int) {
         color = v or (255 shl 24)
-        squiggles = v.and(1 shl 27) > 0
-        underlined = v.and(1 shl 26) > 0
-        bold = v.and(1 shl 25) > 0
-        italic = v.and(1 shl 24) > 0
+        val flags = v ushr 24
+        squiggles = flags.hasFlag(FLAG_SQUIGGLES)
+        underlined = flags.hasFlag(FLAG_UNDERLINED)
+        bold = flags.hasFlag(FLAG_BOLD)
+        italic = flags.hasFlag(FLAG_ITALIC)
     }
 
     fun isSimple() = !bold && !italic && !squiggles && !underlined
 
     override fun equals(other: Any?): Boolean {
-        return other is LanguageStyle &&
-                other.color == color &&
-                other.underlined == underlined &&
-                other.squiggles == squiggles &&
-                other.bold == bold &&
-                other.italic == italic
+        return other is LanguageStyle && other.encode() == encode()
     }
 
     override fun hashCode(): Int {
-        return color.hashCode() * 31 + (underlined.toInt(8) + squiggles.toInt(4)
-                + bold.toInt(2) + italic.toInt(1)).hashCode()
+        return encode().hashCode()
+    }
+
+    companion object {
+        private const val FLAG_SQUIGGLES = 8
+        private const val FLAG_UNDERLINED = 4
+        private const val FLAG_BOLD = 2
+        private const val FLAG_ITALIC = 1
     }
 }

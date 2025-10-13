@@ -220,14 +220,14 @@ open class VideoCreator(
 
     private val byteArrayBuffer = ByteArray(min(pixelByteCount, 2048))
     fun write(output: OutputStream, data: ByteBuffer) {
-        var i = 0
+        var writtenBytes = 0
         val tmp = byteArrayBuffer
-        val n = pixelByteCount
-        while (i < n) {
-            val di = min(n - i, tmp.size)
-            data.get(tmp, 0, di)
-            output.write(tmp, 0, di)
-            i += di
+        val toWriteBytes = pixelByteCount
+        while (writtenBytes < toWriteBytes) {
+            val copiedLength = min(toWriteBytes - writtenBytes, tmp.size)
+            data.get(tmp, 0, copiedLength)
+            output.write(tmp, 0, copiedLength)
+            writtenBytes += copiedLength
         }
     }
 
@@ -241,7 +241,7 @@ open class VideoCreator(
                 videoOut.close()
             }
         } catch (_: IOException) {
-
+            // just closing the stream, nothing is lost if this fails
         }
         val exitCode = process.waitFor()
         if (output.exists) LOGGER.info("Saved video without audio to $output, returned $exitCode")

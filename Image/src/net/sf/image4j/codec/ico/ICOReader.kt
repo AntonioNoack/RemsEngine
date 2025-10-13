@@ -1,6 +1,7 @@
 package net.sf.image4j.codec.ico
 
 import me.anno.image.Image
+import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readNBytes2
@@ -12,7 +13,6 @@ import net.sf.image4j.codec.bmp.BMPDecoder
 import net.sf.image4j.codec.bmp.InfoHeader
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream
-import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 import javax.imageio.ImageIO
@@ -73,6 +73,7 @@ object ICOReader {
                 // for now, just read all the raster data (xor + and)
                 // and store as separate images
                 val img = BMPDecoder.read(xorHeader, input1)
+                if (img !is IntImage) return img // exception
                 // If we want to be sure we've decoded the XOR mask
                 // correctly, we can write it out as a PNG to a temp file here.
                 // try {
@@ -112,6 +113,7 @@ object ICOReader {
 
                     // replace the alpha with the next image
                     val alphaData = BMPDecoder.read(andHeader, input1, andColorTable)
+                    if (alphaData !is IntImage) return img // exception
                     val alphaData2 = alphaData.data
                     val data0 = img.data
                     img.data.copyInto(data0)
