@@ -1,8 +1,8 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
-import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.TextShapes
 import me.anno.engine.ui.render.ECSShaderLib.simpleShader
 import me.anno.engine.ui.render.GridColors.colorX
@@ -17,11 +17,12 @@ import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.MinMax.max
+import me.anno.utils.Color
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4d
 import org.joml.Matrix4f
-import org.joml.Matrix4x3
 import org.joml.Quaterniond
 import speiger.primitivecollections.LongToObjectHashMap
 import kotlin.math.PI
@@ -83,10 +84,9 @@ object MovingGrid {
                     }
                     transform.rotate(baseRot)
 
-                    alpha = alpha0
-                    drawMesh(pipeline, gridMesh, shader)
+                    drawMesh(pipeline, gridMesh, shader, Color.white.withAlpha(alpha0))
 
-                    alpha *= 2f
+                    val textColor = Color.white.withAlpha(alpha0 * 2f)
                     val textSize = radius2 * 0.01
                     val textRots = when (axis) {
                         0 -> textRotX
@@ -94,38 +94,39 @@ object MovingGrid {
                         2 -> textRotZ
                         else -> throw NotImplementedError()
                     }
+
                     for (textRot in textRots) {
-                        drawTextMesh(pipeline, textSize, 1, textRot)
-                        drawTextMesh(pipeline, textSize, 5, textRot)
+                        drawTextMesh(pipeline, textSize, 1, textRot, textColor)
+                        drawTextMesh(pipeline, textSize, 5, textRot, textColor)
                     }
                 }
             }
         }
 
-        // to do replace with one mesh
-        drawAxes(distance0)
+        init().scale(distance0)
+        drawMesh(pipeline, axesMesh, shader, -1)
     }
 
-    fun drawMesh(pipeline: Pipeline, mesh: Mesh) {
+    fun drawMesh(pipeline: Pipeline, mesh: Mesh, color: Int) {
         val shader = simpleShader.value
-        drawMesh(pipeline, mesh, shader)
+        drawMesh(pipeline, mesh, shader, color)
     }
 
-    fun drawMesh(pipeline: Pipeline, mesh: Mesh, shader: Shader) {
+    fun drawMesh(pipeline: Pipeline, mesh: Mesh, shader: Shader, color: Int) {
         shader.use()
         val material = defaultMaterial
         material.bind(shader)
-        shader.m4x4("transform", transform2.set(transform))
-        shader.v4f("diffuseBase", 1f, 1f, 1f, alpha)
+        shader.m4x4("transform", transform4f.set(transform4d))
+        shader.v4f("diffuseBase", color)
+        shader.v1i("hasVertexColors", mesh.hasVertexColors)
         mesh.draw(pipeline, shader, 0)
         GFX.check()
     }
 
     val gridMesh = Mesh()
 
-    var alpha = 0f
-    val transform = Matrix4d()
-    val transform2 = Matrix4f()
+    val transform4d = Matrix4d()
+    val transform4f = Matrix4f()
 
     init {
 
@@ -160,7 +161,7 @@ object MovingGrid {
     fun drawTextMesh(
         pipeline: Pipeline,
         baseSize: Double, factor: Int,
-        rotation: Quaterniond,
+        rotation: Quaterniond, color: Int
     ) {
         val size = baseSize * factor
         val mesh = cachedMeshes.getOrPut(size.toRawBits()) {
@@ -168,13 +169,13 @@ object MovingGrid {
         }
         val tmpPos = JomlPools.vec3d.create()
             .set(size, size * 0.02, 0.0).rotate(rotation)
-        TextShapes.drawTextMesh(pipeline, mesh, tmpPos, rotation, size * 0.2, null)
+        TextShapes.drawTextMesh(pipeline, mesh, tmpPos, rotation, size * 0.2, null, color)
         JomlPools.vec3d.sub(1)
     }
 
     fun init(): Matrix4d {
         val pos = RenderState.cameraPosition
-        return transform
+        return transform4d
             .set(RenderState.cameraMatrix)
             .translate(-pos.x, -pos.y, -pos.z)
     }
@@ -227,12 +228,80 @@ object MovingGrid {
         Quaterniond(baseRotZ).rotateY(PI * 1.5).rotateX(-PI * 0.5),
     )
 
-    private fun drawAxes(scale: Double) {
-        val length = 1e3 * scale
-        val alpha = 127 shl 24
-        val transform: Matrix4x3? = null
-        LineShapes.drawLine(transform, -length, 0.0, 0.0, +length, 0.0, 0.0, colorX or alpha)
-        LineShapes.drawLine(transform, 0.0, -length, 0.0, 0.0, +length, 0.0, colorY or alpha)
-        LineShapes.drawLine(transform, 0.0, 0.0, -length, 0.0, 0.0, +length, colorZ or alpha)
+    val axesMesh = createAxesMesh()
+
+    private fun createAxesMesh(): Mesh {
+        val alpha = 180
+        val numLines = 4 * 3 + 4 + 2 + 2 + 3
+        val numVertices = numLines * 2
+        val positions = FloatArray(numVertices * 3)
+        val colors = IntArray(numVertices)
+        var i = 0
+        var j = 0
+        var color = colorX.withAlpha(alpha)
+
+        fun line(x0: Float, y0: Float, z0: Float, x1: Float, y1: Float, z1: Float) {
+            positions[i++] = x0
+            positions[i++] = y0
+            positions[i++] = z0
+            colors[j++] = color
+            positions[i++] = x1
+            positions[i++] = y1
+            positions[i++] = z1
+            colors[j++] = color
+        }
+
+        val l = 1000f
+        line(-l, 0f, 0f, +l, 0f, 0f)
+
+        val len1 = 0.3f
+        val len2 = len1 * 0.9f
+        val len3 = len1 * 0.05f
+        line(len2, -len3, 0f, len1, 0f, 0f)
+        line(len2, +len3, 0f, len1, 0f, 0f)
+        line(len2, 0f, -len3, len1, 0f, 0f)
+        line(len2, 0f, +len3, len1, 0f, 0f)
+
+        // X letter
+        val x1 = len3 * 2f
+        val x2 = len3 * 3.5f
+        val y1 = +len3 * 1.2f
+        val y2 = -len3 * 1.2f
+        line(len1, y2, x1, len1, y1, x2)
+        line(len1, y1, x1, len1, y2, x2)
+
+
+        color = colorY.withAlpha(alpha)
+        line(0f, -l, 0f, 0f, +l, 0f)
+        line(-len3, len2, 0f, 0f, len1, 0f)
+        line(+len3, len2, 0f, 0f, len1, 0f)
+        line(0f, len2, -len3, 0f, len1, 0f)
+        line(0f, len2, +len3, 0f, len1, 0f)
+
+        // Y letter ([x1,x2], [l+y1,l+y2])
+        val z1 = len3 * 1.25f / 1.41f
+        val z2 = len3 * 2.75f / 1.41f
+        val zm = (z1 + z2) * 0.5f
+        line(z1, y2 + len1, z2, z2, y1 + len1, z1)
+        line(z1, y1 + len1, z2, zm, 0f + len1, zm)
+
+
+        color = colorZ.withAlpha(alpha)
+        line(0f, 0f, -l, 0f, 0f, +l)
+        line(-len3, 0f, len2, 0f, 0f, len1)
+        line(+len3, 0f, len2, 0f, 0f, len1)
+        line(0f, -len3, len2, 0f, 0f, len1)
+        line(0f, +len3, len2, 0f, 0f, len1)
+
+        // Z letter
+        line(x1, y1, len1, x2, y1, len1)
+        line(x1, y2, len1, x2, y2, len1)
+        line(x1, y2, len1, x2, y1, len1)
+
+        val mesh = Mesh()
+        mesh.positions = positions
+        mesh.color0 = colors
+        mesh.drawMode = DrawMode.LINES
+        return mesh
     }
 }

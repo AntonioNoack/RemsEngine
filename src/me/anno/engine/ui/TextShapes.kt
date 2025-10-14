@@ -21,7 +21,8 @@ object TextShapes : CacheSection<String, Mesh>("TextShapes") {
         position: Vector3d,
         rotation: Quaterniond?,
         scale: Double,
-        transform: Matrix4x3?
+        transform: Matrix4x3?,
+        color: Int
     ) {
         val mesh = getEntry(text, 10000, meshGenerator).value
         if (mesh != null) {
@@ -30,7 +31,7 @@ object TextShapes : CacheSection<String, Mesh>("TextShapes") {
             matrix.translate(position)
             if (rotation != null) matrix.rotate(rotation)
             matrix.scale(scale)
-            MovingGrid.drawMesh(pipeline, mesh)
+            MovingGrid.drawMesh(pipeline, mesh, color)
         } else if (isFinalRendering) {
             onMissingResource("TextMesh", text)
         }

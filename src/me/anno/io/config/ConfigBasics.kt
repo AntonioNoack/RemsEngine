@@ -7,6 +7,7 @@ import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.utils.StringMap
+import me.anno.ui.editor.files.Favourite
 import me.anno.utils.OS.home
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -65,7 +66,10 @@ object ConfigBasics {
         defaultValue: StringMap,
         saveIfMissing: Boolean
     ): StringMap {
+
         Saveable.registerCustomClass(StringMap())
+        Saveable.registerCustomClass(Favourite())
+
         val read = load(file, saveIfMissing) {
             LOGGER.info("Didn't find $file, using default values")
             JsonStringWriter.toText(defaultValue, workspace)

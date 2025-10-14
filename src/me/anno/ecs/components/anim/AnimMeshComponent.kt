@@ -30,6 +30,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.image.thumbs.AssetThumbnails
 import me.anno.io.files.InvalidRef
 import me.anno.ui.editor.sceneView.Gizmos
+import me.anno.utils.Color
 import me.anno.utils.Color.black
 import me.anno.utils.GFXFeatures
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -331,7 +332,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
                 // draw bone names where they are
                 val pos1 = Vector3d()
                 val pos2 = Vector3d()
-                MovingGrid.alpha = 1f
+                val color = Color.white
                 val bones = skeleton.bones
                 val scale = bones.sumOf { it.length(bones).toDouble() } / bones.size
                 for (i in 0 until min(bones.size, matrices.size)) {
@@ -344,7 +345,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
                     drawLine(transform, pos1, pos2, -1)
                     pos2.x += 0.025 * scale
                     pos2.y -= 0.030 * scale
-                    drawTextMesh(pipeline, bone.name, pos2, null, 0.1 * scale, transform)
+                    drawTextMesh(pipeline, bone.name, pos2, null, 0.1 * scale, transform, color)
                 }
             }
 

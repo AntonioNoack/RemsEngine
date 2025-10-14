@@ -70,10 +70,9 @@ object Projects {
         val usedFiles = HashSet<FileReference>()
         var i = 0
         for (header in recentHeaders) {
-            if (header.file !in usedFiles) {
+            if (usedFiles.add(header.file)) {
                 DefaultConfig["recent.projects[$i].name"] = header.name
                 DefaultConfig["recent.projects[$i].file"] = header.file
-                usedFiles += header.file
                 if (++i > recentProjectCount) break
             }
         }

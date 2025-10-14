@@ -65,11 +65,7 @@ object ThumbsRendering {
         GFX.check()
 
         val depthType = if (withDepth) DepthBufferType.INTERNAL else DepthBufferType.NONE
-        val renderTarget = if (GFX.maxSamples > 1 && ThumbnailCache.useCacheFolder) {
-            FBStack[srcFile.name, w, h, 4, false, 4, depthType] as Framebuffer
-        } else {
-            Framebuffer(srcFile.name, w, h, 1, TargetType.UInt8x4, depthType)
-        }
+        val renderTarget = Framebuffer(srcFile.name, w, h, 1, TargetType.UInt8x4, depthType)
 
         GFX.check()
 
@@ -97,19 +93,11 @@ object ThumbsRendering {
             val dst = renderTarget.createImage(flipY, true)
             if (dst != null) ThumbnailCache.saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
             else callback.err(IllegalStateException("renderTarget.createImage failed"))
-        } else {// more efficient path, without useless GPU->CPU->GPU data transfer
-            val newBuffer = if (renderTarget.samples > 1) {
-                val newBuffer = Framebuffer(
-                    srcFile.name, w, h, 1,
-                    TargetType.UInt8x4, DepthBufferType.NONE
-                )
-                GFXState.useFrame(newBuffer) {
-                    Blitting.copyColor(renderTarget, true)
-                }
-                newBuffer
-            } else renderTarget
-            val texture = newBuffer.getTexture0() as Texture2D
-            newBuffer.destroyExceptTextures(true)
+            renderTarget.destroy()
+        } else {
+            // more efficient path, without useless GPU->CPU->GPU data transfer
+            val texture = renderTarget.getTexture0() as Texture2D
+            renderTarget.destroyExceptTextures(deleteDepth = true)
             texture.rotation = if (flipY) flipYRot else null
             callback.ok(texture)
         }

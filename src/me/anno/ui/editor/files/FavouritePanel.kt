@@ -9,6 +9,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.image.TextSizedIconPanel
+import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
@@ -19,6 +20,7 @@ import me.anno.utils.types.Strings.getImportTypeByExtension
 
 class FavouritePanel(
     val explorer: FileExplorer,
+    displayName: String,
     val file: FileReference,
     val isRootFile: Boolean,
     style: Style
@@ -28,8 +30,12 @@ class FavouritePanel(
         private val extraXPadding = 4
     }
 
+    init {
+        name = displayName
+    }
+
     val iconPanel: TextSizedIconPanel
-    val titlePanel = TextPanel(file.name, style)
+    val titlePanel = TextPanel(displayName, style)
     val spacer = SpacerPanel(extraXPadding, 0, style)
 
     val importType = getImportTypeByExtension(file.lcExtension)
@@ -42,6 +48,7 @@ class FavouritePanel(
         add(iconPanel)
         add(titlePanel)
 
+        titlePanel.tooltip = file.absolutePath
         titlePanel.padding.left += extraXPadding
         titlePanel.padding.right += extraXPadding
     }
@@ -49,10 +56,22 @@ class FavouritePanel(
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
             "OpenOptions" -> {
+                // todo allow reordering these entries!!
                 if (!isRootFile) openMenu(
                     windowStack, listOf(
+                        MenuOption(NameDesc(Dict["Rename Favourite", "ui.fileExplorer.renameFavourites"])) {
+                            Menu.askName(
+                                windowStack, NameDesc("Name"), name,
+                                NameDesc("Rename"), { -1 }
+                            ) { newName ->
+                                // todo rename without reordering!!
+                                name = newName
+                                titlePanel.text = newName
+                                Favourites.addFavouriteFiles(listOf(Favourite(name, file)))
+                            }
+                        },
                         MenuOption(NameDesc(Dict["Remove from favourites", "ui.fileExplorer.removeFromFavourites"])) {
-                            Favourites.removeFavouriteFiles(listOf(file))
+                            Favourites.removeFavouriteFiles(listOf(Favourite(name, file)))
                         }
                     ))
             }

@@ -11,10 +11,10 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.PositionType
 import me.anno.ecs.annotations.RotationType
 import me.anno.ecs.annotations.ScaleType
+import me.anno.ecs.components.FillSpace
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.ecs.components.FillSpace
 import me.anno.ecs.systems.OnChangeStructure
 import me.anno.ecs.systems.OnEnable
 import me.anno.ecs.systems.Systems
@@ -279,6 +279,15 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     fun invalidateMasks() {
         parentEntity?.invalidateMasks()
         hasValidMasks = false
+    }
+
+    @DebugAction
+    fun resetTransform() {
+        val transform = transform
+        transform.localPosition = transform.localPosition.set(0.0)
+        transform.localRotation = transform.localRotation.identity()
+        transform.localScale = transform.localScale.set(1.0)
+        onChangeTransform()
     }
 
     fun validateMasks() {

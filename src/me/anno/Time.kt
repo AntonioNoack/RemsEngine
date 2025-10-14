@@ -46,7 +46,7 @@ object Time {
         private set
 
     private var lastFPSTime = 0L
-    private var fpsCounter = 0
+    private var numFPSFrames = 0
     private var maxCurrDt = 0L
 
     /**
@@ -147,19 +147,18 @@ object Time {
     }
 
     @JvmStatic
-    private fun updateFPS(thisTime: Long) {
-        val dt = abs(thisTime - frameTimeNanos)
-        if (abs(thisTime - lastFPSTime) >= SECONDS_TO_NANOS) {
-            val numFrames = fpsCounter + 1.0
-            currentFPS = numFrames * SECONDS_TO_NANOS / abs(thisTime - lastFPSTime)
+    private fun updateFPS(thisTimeNanos: Long) {
+        val dt = abs(thisTimeNanos - frameTimeNanos)
+        numFPSFrames++
+        maxCurrDt = max(dt, maxCurrDt)
+        frameTimeNanos = thisTimeNanos
+
+        if (abs(thisTimeNanos - lastFPSTime) >= SECONDS_TO_NANOS) {
+            currentFPS = (numFPSFrames * SECONDS_TO_NANOS).toDouble() / abs(thisTimeNanos - lastFPSTime)
             currentMinFPS = 1e9 / maxCurrDt
-            lastFPSTime = thisTime
-            fpsCounter = 0
-            maxCurrDt = dt
-        } else {
-            fpsCounter++
-            maxCurrDt = max(dt, maxCurrDt)
-            frameTimeNanos = thisTime
+            lastFPSTime = thisTimeNanos
+            numFPSFrames = 0
+            maxCurrDt = 0L
         }
     }
 }

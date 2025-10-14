@@ -109,7 +109,9 @@ object FileExplorerOptions {
             "ui.file.pinToFavourites"
         )
     ) { _, files ->
-        Favourites.addFavouriteFiles(files)
+        Favourites.addFavouriteFiles(files.map {
+            Favourite(it.name, it)
+        })
     }
     val invalidateThumbnails = FileExplorerOption(
         NameDesc(

@@ -3,7 +3,9 @@ package me.anno.io.utils
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.maps.Maps.removeIf
@@ -235,12 +237,16 @@ open class StringMap(
     }
 
     fun save(name: String) {
-        val str = synchronized(this) {
+        val data = synchronized(this) {
             wasChanged = false
-            this.toString()
+            JsonStringWriter.toText(this, InvalidRef)
         }
-        ConfigBasics.save(name, str)
+        ConfigBasics.save(name, data)
     }
 
     override fun isDefaultValue() = false
+
+    override fun toString(): String {
+        return JsonStringWriter.toText(this, InvalidRef)
+    }
 }

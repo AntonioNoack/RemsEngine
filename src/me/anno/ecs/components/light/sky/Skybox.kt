@@ -117,8 +117,9 @@ open class Skybox : SkyboxBase(), OnUpdate {
         material.shader = defaultShader
         material.shaderOverrides["cirrus"] = TypeValue(GLSLType.V1F) { cirrus }
         material.shaderOverrides["cumulus"] = TypeValue(GLSLType.V1F) { cumulus }
-        material.shaderOverrides["avgCirrus"] = TypeValue(GLSLType.V1F) { fbmSmoothstepAverage(cirrus) }
-        material.shaderOverrides["avgCumulus"] = TypeValue(GLSLType.V1F) { fbmSmoothstepAverage(cumulus) }
+        val cloudMultiplier = 0.6f // otherwise it's too cloudy
+        material.shaderOverrides["avgCirrus"] = TypeValue(GLSLType.V1F) { cloudMultiplier * fbmSmoothstepAverage(cirrus) }
+        material.shaderOverrides["avgCumulus"] = TypeValue(GLSLType.V1F) { cloudMultiplier * fbmSmoothstepAverage(cumulus) }
         material.shaderOverrides["nadir"] = TypeValue(GLSLType.V4F, nadir)
         material.shaderOverrides["cirrusOffset"] = TypeValue(GLSLType.V3F, cirrusOffset)
         material.shaderOverrides["cumulusOffset"] = TypeValue(GLSLType.V3F, cumulusOffset)

@@ -197,7 +197,12 @@ object AssetImport {
             val tmp = ByteArrayOutputStream()
             srcFile.readCPUImage().write(tmp, ext)
             tmp.toByteArray()
-        } else srcFile.readBytesSync()
+        } else if (srcFile.exists) {
+            srcFile.readBytesSync()
+        } else {
+            LOGGER.warn("Missing $srcFile")
+            ByteArray(0)
+        }
     }
 
     private fun copyPureFile(srcFile: FileReference, dstFolder: FileReference): FileReference {

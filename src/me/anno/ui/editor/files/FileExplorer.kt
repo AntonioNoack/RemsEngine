@@ -251,23 +251,23 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         validateFavourites(Favourites.getFavouriteFiles())
     }
 
-    fun validateFavourites(favourites1: List<FileReference>) {
+    fun validateFavourites(nw: List<Favourite>) {
         favourites.clear()
         val style = favourites.style
 
         val favGroup = SettingCategory(NameDesc("Favourites"), false, style)
         favourites.add(favGroup.showByDefault())
-        for (fav in favourites1) {
-            favGroup.content.add(FavouritePanel(this, fav, false, style))
+        for (fav in nw) {
+            favGroup.content.add(FavouritePanel(this, fav.name, fav.file, false, style))
         }
 
         val rootGroup = SettingCategory(NameDesc("Roots"), false, style)
         favourites.add(rootGroup.showByDefault())
         if (OS.isAndroid || OS.isLinux) {
-            rootGroup.content.add(FavouritePanel(this, FileRootRef, true, style))
+            rootGroup.content.add(FavouritePanel(this, FileRootRef.name, FileRootRef, true, style))
         } else {
             for (root in FileRootRef.listChildren()) {
-                rootGroup.content.add(FavouritePanel(this, root, true, style))
+                rootGroup.content.add(FavouritePanel(this, root.name, root, true, style))
             }
         }
     }
@@ -441,8 +441,10 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
         if (folder != lastFolder) {
             saveClosestFile()
-            searchBar.tooltip = searchTermNaming
-                .with("%1", folder.absolutePath).name
+            val naming = searchTermNaming
+                .with("%1", folder.absolutePath)
+            searchBar.setPlaceholder(naming.name)
+            searchBar.tooltip = naming.name
 
             lastFolder = folder
             val fileName = DefaultConfig[getClosestFileKey(folder), ""]

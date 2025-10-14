@@ -7,6 +7,7 @@ import me.anno.fonts.FontStats
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
+import me.anno.ui.editor.files.Favourite
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
 
@@ -40,6 +41,7 @@ object DefaultConfig : StringMap() {
 
         // in case it wasn't registered yet
         registerCustomClass(StringMap())
+        registerCustomClass(Favourite())
 
         tick.stop("registering classes for config")
 

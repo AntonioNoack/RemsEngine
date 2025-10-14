@@ -84,11 +84,10 @@ object ECSSceneTabs : ScrollPanelX(style) {
     }
 
     fun focus(tab: ECSSceneTab) {
-
         synchronized(this) {
             currentTab = tab
             PrefabInspector.currentInspector = tab.inspector
-            EditorState.select(null)
+            EditorState.select(tab.prefab?.getSampleInstance())
             if (tab !in ecsTabs) content += tab
             val ws = window?.windowStack
             if (ws != null) for (window in ws) {

@@ -10,16 +10,23 @@ object ECSShaderLib {
     val simpleShader = BaseShader(
         "SimpleECS", listOf(
             Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
-            Variable(GLSLType.M4x4, "transform")
-        ), "gl_Position = matMul(transform, vec4(positions, 1.0));", emptyList(), listOf(
+            Variable(GLSLType.V4F, "colors0", VariableMode.ATTR),
+            Variable(GLSLType.M4x4, "transform"),
+            Variable(GLSLType.V1I, "hasVertexColors")
+        ), "" +
+                "gl_Position = matMul(transform, vec4(positions, 1.0));\n" +
+                "vertexColor0 = (hasVertexColors & 1) != 0 ? colors0 : vec4(1.0);\n", listOf(
+            Variable(GLSLType.V4F, "vertexColor0"),
+        ), listOf(
             Variable(GLSLType.V4F, "diffuseBase"),
             Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
         ), "" +
-                "finalEmissive = diffuseBase.rgb * 10.0;\n" +
-                "finalColor = diffuseBase.rgb;\n" +
-                "finalAlpha = diffuseBase.a;\n"
+                "vec4 color = diffuseBase * vertexColor0;\n" +
+                "finalEmissive = color.rgb * 10.0;\n" +
+                "finalColor = color.rgb;\n" +
+                "finalAlpha = color.a;\n"
     )
 
     val pbrModelShader = ECSMeshShader("ECSMeshShader")

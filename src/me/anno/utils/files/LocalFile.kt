@@ -3,6 +3,7 @@ package me.anno.utils.files
 import me.anno.engine.EngineBase
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS
 
@@ -33,9 +34,11 @@ object LocalFile {
         val fileStr = file.absolutePath
         if (fileStr.contains("://")) return fileStr // URL-syntax
 
-        val workspace = getWorkspace(workspace)
-        val workspaceFile = file.replacePath(workspace.absolutePath, "./")
-        if (workspaceFile != null) return workspaceFile
+        if (workspace != InvalidRef) {
+            // must not use getWorkspace! We sometimes don't want to store our files with a workspace!
+            val workspaceFile = file.replacePath(workspace.absolutePath, "./")
+            if (workspaceFile != null) return workspaceFile
+        }
 
         val homeFile = file.replacePath(OS.home.absolutePath, "~/")
         if (homeFile != null) return homeFile
