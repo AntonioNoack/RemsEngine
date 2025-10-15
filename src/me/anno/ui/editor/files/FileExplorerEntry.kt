@@ -910,23 +910,25 @@ open class FileExplorerEntry(
         private fun renameToImpl(oldName: FileReference, newName: FileReference, explorer: FileExplorer?) {
             if (oldName.renameTo(newName)) {
                 val dependencies = currentProject?.findDependencies(oldName) ?: emptySet()
-                for (file in dependencies) {
-                    if (!file.isSameOrSubFolderOf(oldName) && !file.isSameOrSubFolderOf(newName)) {
-                        LOGGER.info("Replacing references of $oldName in $file")
-                        replaceDependencies(file, oldName, newName)
-                    } else {
-                        // can't really do it
-                        LOGGER.info("Skipped renaming references of $oldName in $file")
-                    }
+                LOGGER.info("Dependencies for $oldName: ${dependencies.size}")
+                for (dependency in dependencies) {
+                    val dependency = dependency.replacePath(oldName, newName) ?: dependency
+                    val numChanged = replaceDependencies(dependency, oldName, newName)
+                    LOGGER.info("Replacing references $dependency, changes: $numChanged")
                 }
                 explorer?.invalidate()
             } else LOGGER.warn("Renaming {} to {} failed", oldName, newName)
         }
 
-        private fun replaceDependencies(prefabFile: FileReference, oldName: FileReference, newName: FileReference) {
-            val prefab = PrefabCache[prefabFile].waitFor()?.prefab ?: return
-            prefab.replaceReferences(oldName, newName)
+        private fun replaceDependencies(
+            prefabFile: FileReference,
+            oldName: FileReference,
+            newName: FileReference
+        ): Int {
+            val prefab = PrefabCache[prefabFile].waitFor()?.prefab ?: return -1
+            val numChanged = prefab.replaceReferences(oldName, newName)
             GameEngineProject.save(prefabFile, prefab)
+            return numChanged
         }
 
         fun askToDeleteFiles(windowStack: WindowStack, explorer: FileExplorer?, files: List<FileReference>) {

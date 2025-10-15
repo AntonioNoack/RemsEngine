@@ -427,22 +427,36 @@ class Prefab : Saveable {
         }
     }
 
-    fun replaceReferences(oldName: FileReference, newName: FileReference) {
+    fun replaceReferences(oldName: FileReference, newName: FileReference): Int {
+        var numChanged = 0
         if (parentPrefabFile == oldName) parentPrefabFile = newName
         for ((_, adds) in adds) {
             for (i in adds.indices) {
                 val add = adds[i]
-                add.prefab = add.prefab.replacePath(oldName, newName) ?: add.prefab
+                add.prefab = add.prefab.replacePath(oldName, newName) ?: continue
+                numChanged++
             }
         }
         sets.replaceValues { _, _, value ->
-            if (value is FileReference) value.replacePath(oldName, newName) ?: value
-            else value
+            if (value is FileReference) {
+                val newPath = value.replacePath(oldName, newName)
+                if (newPath != null) numChanged++
+                newPath
+            } else if (value is List<*> && value.any2 { it is FileReference }) {
+                value.map { valueI ->
+                    if (valueI is FileReference) {
+                        val newPath = valueI.replacePath(oldName, newName)
+                        if (newPath != null) numChanged++
+                        newPath ?: valueI
+                    } else valueI
+                }
+            } else value
         }
-        GameEngineProject.currentProject
-            ?.addDependency(sourceFile, newName)
-        // execute this?
-        invalidateInstance()
+        if (numChanged > 0) {
+            GameEngineProject.currentProject?.addDependency(sourceFile, newName)
+            invalidateInstance()
+        }
+        return numChanged
     }
 
     private fun createNewInstance(depth: Int): PrefabSaveable {

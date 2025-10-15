@@ -149,7 +149,9 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
 
     fun findDependencies(file: FileReference): Set<FileReference> {
         return dependencyToPrefab.filterValues { dependencies ->
-            dependencies.any { dependency -> dependency.isSameOrSubFolderOf(file) }
+            dependencies.any { dependency ->
+                dependency.isSameOrSubFolderOf(file)
+            }
         }.keys
     }
 
