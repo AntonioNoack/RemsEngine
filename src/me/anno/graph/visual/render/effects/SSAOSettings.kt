@@ -11,7 +11,7 @@ import me.anno.utils.GFXFeatures
  * */
 class SSAOSettings : Component(), GlobalSetting {
 
-    var numSamples = if (GFXFeatures.hasWeakGPU) 8 else 64
+    var numSamples = if (GFXFeatures.hasWeakGPU) 6 else 24
     var strength = 1f
     var radiusScale = 0.2f
 

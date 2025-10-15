@@ -251,13 +251,13 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         validateFavourites(Favourites.getFavouriteFiles())
     }
 
-    fun validateFavourites(nw: List<Favourite>) {
+    fun validateFavourites(favourites1: List<Favourite>) {
         favourites.clear()
         val style = favourites.style
 
         val favGroup = SettingCategory(NameDesc("Favourites"), false, style)
         favourites.add(favGroup.showByDefault())
-        for (fav in nw) {
+        for (fav in favourites1) {
             favGroup.content.add(FavouritePanel(this, fav.name, fav.file, false, style))
         }
 

@@ -41,41 +41,38 @@ object ScreenSpaceAmbientOcclusion {
         val roughness: ITexture2D, val roughnessMask: Int,
     )
 
-    // to do this can become extremely slow with complex geometry
-    // (40 fps on a RTX 3070 🤯, where a pure-color scene has 600 fps)
-    // why is this soo expensive on my RTX3070?
-    // memory limited...
-
     // could be set lower for older hardware, would need restart
-    private val MAX_SAMPLES = max(4, DefaultConfig["gpu.ssao.maxSamples", 512])
+    private const val NUM_SAMPLES_Y = 4
+    private val MAX_SAMPLES = max(4, DefaultConfig["gpu.ssao.maxSamples", 64])
     private val sampleKernel = LazyMap(::generateSampleKernel)
 
     @JvmStatic
     private fun generateSampleKernel(numSamples: Int): IndestructibleTexture2D {
         assertTrue(numSamples > 0)
-        val seed = 1234L
-        val random = Random(seed)
         var j = 0
-        val data = FloatArray(numSamples * 4)
-        for (i in 0 until numSamples) {
-            val f01 = (i + 1f) / numSamples
-            var x: Float
-            var y: Float
-            var z: Float
-            do {
-                x = random.nextFloat() * 2f - 1f
-                y = random.nextFloat() * 2f - 1f
-                z = random.nextFloat() // half sphere
-                val dot2 = x * x + y * y + z * z
-            } while (dot2 < 0.01f || dot2 > 1f)
-            val scale = f01 * f01
-            val f = scale / Maths.length(x, y, z)
-            data[j++] = x * f
-            data[j++] = y * f
-            data[j++] = z * f
-            j++
+        val random = Random(1234)
+        val data = FloatArray(numSamples * NUM_SAMPLES_Y * 4)
+        repeat(NUM_SAMPLES_Y) {
+            for (i in 0 until numSamples) {
+                val f01 = (i + 1f) / numSamples
+                var x: Float
+                var y: Float
+                var z: Float
+                do {
+                    x = random.nextFloat() * 2f - 1f
+                    y = random.nextFloat() * 2f - 1f
+                    z = random.nextFloat() // half sphere
+                    val dot2 = x * x + y * y + z * z
+                } while (dot2 !in 0.01f..1f)
+                val scale = f01 * f01
+                val f = scale / Maths.length(x, y, z)
+                data[j++] = x * f
+                data[j++] = y * f
+                data[j++] = z * f
+                j++
+            }
         }
-        return IndestructibleTexture2D("sampleKernel", numSamples, 1, data)
+        return IndestructibleTexture2D("sampleKernel", numSamples, NUM_SAMPLES_Y, data)
     }
 
     // tiled across the screen; e.g., 4x4 texture size
@@ -162,9 +159,10 @@ object ScreenSpaceAmbientOcclusion {
                     } else {
                         "       float occlusion = 0.0;\n"
                     }) +
+                    "       int k = (int(gl_FragCoord.x) ^ int(gl_FragCoord.y)) & ${NUM_SAMPLES_Y - 1};\n" +
                     "       // [loop]\n" + // hlsl instruction
                     "       for(int i=0;i<numSamples;i++){\n" +
-                    "           vec3 dir0 = texelFetch(sampleKernel, ivec2(i,0), 0).xyz;\n" +
+                    "           vec3 dir0 = texelFetch(sampleKernel, ivec2(i,k), 0).xyz;\n" +
                     "           vec3 dir1 = matMul(tbn, dir0);\n" +
                     "           vec3 position = dir1 * radius + origin;\n" +
                     // project sample position
@@ -250,7 +248,7 @@ object ScreenSpaceAmbientOcclusion {
                                 "   for(int j=-2;j<=2;j++){\n" +
                                 "       for(int i=-2;i<=2;i++){\n" +
                                 "           vec2 ij = vec2(i,j);\n" +
-                                "           vec2 uvi = uv+ij*duv;\n" +
+                                "           vec2 uvi = uv + ij * duv;\n" +
                                 "           float di = getDepth(uvi);\n" +
                                 "           vec3  ni = getNormal(uvi);\n" +
                                 "           float weight = max(1.0-abs(di-d0),0.0) * max(dot(n0,ni),0.0) / (1.0 + dot(ij,ij));\n" +
@@ -288,7 +286,7 @@ object ScreenSpaceAmbientOcclusion {
     ): IFramebuffer {
 
         // resolution can be halved to improve performance
-        val scale = DefaultConfig["gpu.ssao.scale", 1f]
+        val scale = DefaultConfig["gpu.ssao.scale", 0.5f]
         val fw = (depthSS.width * scale).roundToIntOr()
         val fh = (depthSS.height * scale).roundToIntOr()
 
@@ -303,8 +301,6 @@ object ScreenSpaceAmbientOcclusion {
             val base = ((msaa.toInt() + isSSGI.toInt(2)).shl(2) + roughnessMask).shl(3)
             val shader = occlusionShaders[base + normalZW.toInt() + depthMask.shl(1)]
             shader.use()
-
-            // todo bug: "sampleKernel"-slot is filled by random4x4-texture
 
             DepthTransforms.bindDepthUniforms(shader)
             // bind all textures
@@ -337,8 +333,8 @@ object ScreenSpaceAmbientOcclusion {
         enableBlur: Boolean, ssgi: SSGIData?,
         inverse: Boolean
     ): IFramebuffer {
-        val w = ssaoTex.width
-        val h = ssaoTex.height
+        val w = depth.width
+        val h = depth.height
         val isSSGI = ssgi != null
         val dst = FBStack["ssao-2nd", w, h, if (isSSGI) 3 else 1, isSSGI, 1, DepthBufferType.NONE]
         useFrame(dst, Renderer.copyRenderer) {
@@ -355,7 +351,7 @@ object ScreenSpaceAmbientOcclusion {
             normals.bindTrulyNearest(shader, "normalTex")
             depth.bindTrulyNearest(shader, "depthTex")
             shader.v1b("inverseResult", inverse)
-            shader.v2f("duv", 1f / w, 1f / h)
+            shader.v2f("duv", 1f / ssaoTex.width, 1f / ssaoTex.height)
             flat01.draw(shader)
             GFX.check()
         }

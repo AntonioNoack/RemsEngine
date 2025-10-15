@@ -376,12 +376,13 @@ object GFXState {
         }
     }
 
-    inline fun timeRendering(name: String, timer: GPUClockNanos?, runRendering: () -> Unit) {
+    inline fun <R> timeRendering(name: String, timer: GPUClockNanos?, runRendering: () -> R): R {
         pushDrawCallName(name)
         timer?.start()
-        runRendering()
+        val result = runRendering()
         stopTimer(name, timer)
         popDrawCallName()
+        return result
     }
 
     @InternalAPI
