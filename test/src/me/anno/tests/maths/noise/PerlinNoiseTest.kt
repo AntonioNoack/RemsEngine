@@ -1,14 +1,18 @@
 package me.anno.tests.maths.noise
 
 import me.anno.maths.noise.PerlinNoise
-import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertTrue
+import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.min
 
 class PerlinNoiseTest {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(PerlinNoiseTest::class)
+    }
 
     fun inc(history: IntArray, v: Float) {
         history[min((v * history.size).toInt(), history.lastIndex)]++
@@ -47,7 +51,7 @@ class PerlinNoiseTest {
                 }
             }
         }
-        checkExpected(history,3.9)
+        checkExpected(history, 3.9)
     }
 
     @Test

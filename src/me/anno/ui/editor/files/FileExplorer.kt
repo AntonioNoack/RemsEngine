@@ -172,7 +172,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         style.getChild("deep")
     )
 
-    var searchDepth = 3
     var isValid = 0f
 
     init {
@@ -244,6 +243,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     var lastFiles = emptyList<String>()
     var lastSearch: Search? = null
+    var lastSearchDepth = 0
 
     val favourites = PanelListY(style)
 

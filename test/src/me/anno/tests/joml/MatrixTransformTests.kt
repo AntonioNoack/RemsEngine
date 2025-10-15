@@ -1,10 +1,9 @@
 package me.anno.tests.joml
 
-import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertEquals
+import org.apache.logging.log4j.LogManager
 import org.joml.AxisAngle4d
 import org.joml.AxisAngle4f
-import org.joml.Matrix
 import org.joml.Matrix2d
 import org.joml.Matrix2f
 import org.joml.Matrix3d
@@ -30,6 +29,10 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 
 class MatrixTransformTests {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(MatrixTransformTests::class)
+    }
 
     @Test
     fun testIdentity() {

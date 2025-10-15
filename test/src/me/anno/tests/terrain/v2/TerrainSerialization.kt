@@ -7,15 +7,17 @@ import me.anno.io.binary.ByteArrayIO.readBE32
 import me.anno.io.binary.ByteArrayIO.readBE32F
 import me.anno.io.binary.ByteArrayIO.writeBE32
 import me.anno.io.files.FileReference
-import me.anno.tests.LOGGER
 import me.anno.tests.terrain.v2.TerrainLoaderV2.Companion.createChunk
 import me.anno.tests.terrain.v2.TerrainLoaderV2.VirtualChunk
 import me.anno.tests.terrain.v2.TerrainLoaderV2.VirtualChunkId
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.arrays.ByteArrayList
+import org.apache.logging.log4j.LogManager
 
 object TerrainSerialization {
+
+    private val LOGGER = LogManager.getLogger(TerrainSerialization::class)
 
     private val MAGIC = beMagic("TRIT")
     private const val VERSION_1_0 = 0x1000

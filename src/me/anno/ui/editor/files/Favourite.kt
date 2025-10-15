@@ -7,17 +7,25 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable
 import me.anno.utils.OS
 
-class Favourite(var name: String, var file: FileReference) : Saveable() {
+class Favourite(var name: String, file: FileReference) : Saveable() {
+
     @Suppress("unused")
     constructor() : this("", InvalidRef)
+
+    var file: FileReference = file
+        get() {
+            if (isWorkspace) field = EngineBase.workspace
+            return field
+        }
+
+    var isWorkspace = file == EngineBase.workspace
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeString("name", name)
+        writer.writeFile("file", file)
         if (file == EngineBase.workspace && file != OS.documents) {
             writer.writeBoolean("isWorkspace", true)
-        } else {
-            writer.writeFile("file", file)
         }
     }
 
@@ -25,8 +33,9 @@ class Favourite(var name: String, var file: FileReference) : Saveable() {
         when (name) {
             "name" -> this.name = value.toString()
             "file" -> this.file = value as? FileReference ?: return
-            "isWorkspace" -> if (value == true) {
+            "isWorkspace" -> {
                 this.file = EngineBase.workspace
+                isWorkspace = true
             }
             else -> super.setProperty(name, value)
         }

@@ -113,8 +113,8 @@ open class FileExplorerEntry(
 
     // todo small file type (signature) icons
 
-    val path = file.absolutePath
-    val fileName = file.name
+    val path get() = file.absolutePath
+    val fileName get() = file.name
 
     private var startTime = 0L
 

@@ -1,6 +1,5 @@
 package me.anno.tests.shader
 
-import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
@@ -23,8 +22,8 @@ import me.anno.ecs.components.mesh.material.FurMeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.PlanarMaterial
 import me.anno.ecs.components.mesh.material.TriplanarMaterial
-import me.anno.ecs.components.text.SDFTextComponent
 import me.anno.ecs.components.text.MeshTextComponent
+import me.anno.ecs.components.text.SDFTextComponent
 import me.anno.ecs.components.text.TextureTextComponent
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.DefaultAssets.flatCube
@@ -41,12 +40,12 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.mesh.Shapes
-import me.anno.tests.LOGGER
 import me.anno.tests.ui.UITests
 import me.anno.tests.utils.TestWorld
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS.desktop
+import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -56,6 +55,10 @@ import org.junit.jupiter.api.parallel.ExecutionMode
  * This can be quite slow the first time you run it, because it will have to compile all shaders (took 41s on my machine).
  * */
 class CompileTest {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(CompileTest::class)
+    }
 
     fun createTestScene(): Entity {
         val scene = Entity()
@@ -115,7 +118,7 @@ class CompileTest {
         // todo we could also combine animation weights and IDs into a single value, probably...
         //  16-bits ID + 16-bit float
         // todo or automatically disable instancing???
-        if(false) offset.add(AnimMeshComponent().apply {
+        if (false) offset.add(AnimMeshComponent().apply {
             this.meshFile = animatedMesh.ref
             this.animations = listOf(animState)
             this.isInstanced = true

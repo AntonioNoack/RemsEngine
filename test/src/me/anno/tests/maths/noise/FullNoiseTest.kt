@@ -2,17 +2,21 @@ package me.anno.tests.maths.noise
 
 import me.anno.maths.Maths.mix
 import me.anno.maths.Smoothstep.smoothstepFactorUnsafe
-import me.anno.maths.Smoothstep.smoothstepMixUnsafe
 import me.anno.maths.noise.FullNoise
-import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createArrayList
+import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
 import kotlin.math.min
 
 // todo test gradients
 class FullNoiseTest {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(FullNoiseTest::class)
+    }
+
     @Test
     fun testEqualDistribution1d() {
         val noise = FullNoise(1234)

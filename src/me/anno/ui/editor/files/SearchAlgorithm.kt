@@ -1,12 +1,12 @@
 package me.anno.ui.editor.files
 
 import me.anno.cache.AsyncCacheData
-import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.engine.Events.addEvent
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.base.Search
 import me.anno.utils.Sleep
+import me.anno.utils.Threads.runOnNonGFXThread
 import java.util.concurrent.atomic.AtomicInteger
 
 object SearchAlgorithm {
@@ -14,6 +14,7 @@ object SearchAlgorithm {
     private class ResultSet(
         val self: FileExplorer, val id: Int,
         val newFiles: List<String>, val newSearch: Search,
+        val searchDepth: Int,
         val whenDone: () -> Unit
     ) {
 
@@ -72,6 +73,7 @@ object SearchAlgorithm {
                     if (wasLastFile) {
                         self.lastFiles = newFiles
                         self.lastSearch = newSearch
+                        self.lastSearchDepth = searchDepth
                     }
                 }
                 if (wasLastFile) {
@@ -130,7 +132,7 @@ object SearchAlgorithm {
     private fun createResultsImpl(self: FileExplorer, id: Int, whenDone: () -> Unit) {
         val childrenResult = AsyncCacheData<List<FileReference>>()
         self.folder.listChildren(childrenResult)
-        Sleep.waitUntil("SearchAlgorithm",true, {
+        Sleep.waitUntil("SearchAlgorithm", true, {
             childrenResult.hasValue || id != self.searchTask.id.get()
         }) {
             if (id != self.searchTask.id.get()) {
@@ -147,12 +149,26 @@ object SearchAlgorithm {
 
     private fun createResultImpl2(self: FileExplorer, childFiles: List<FileReference>, id: Int, whenDone: () -> Unit) {
 
-        val newSearch = Search(self.searchBar.value)
+        var value = self.searchBar.value
+
+        var searchDepth = 3
+        if (value.startsWith("d=") && value.length > 2 &&
+            value[2] in '0'..'9'
+        ) {
+            searchDepth = value[2] - '0'
+            value = value.substring(3)
+        }
+
+        val newSearch = Search(value)
         val newFiles = childFiles.map { it.absolutePath }
         val lastSearch = self.lastSearch
 
-        if (self.lastFiles != newFiles || lastSearch == null || !lastSearch.containsAllResultsOf(newSearch)) {
-            val resultSet = ResultSet(self, id, newFiles, newSearch, whenDone)
+        if (self.lastFiles != newFiles ||
+            lastSearch == null ||
+            self.lastSearchDepth != searchDepth ||
+            !lastSearch.containsAllResultsOf(newSearch)
+        ) {
+            val resultSet = ResultSet(self, id, newFiles, newSearch, searchDepth, whenDone)
             if (newSearch.matchesEverything()) {
                 addEverything(resultSet, childFiles)
             } else {
@@ -180,7 +196,7 @@ object SearchAlgorithm {
                 resultSet.add(file)
             }
         }
-        indexRecursively(childFiles, resultSet.self.searchDepth, newSearch, resultSet)
+        indexRecursively(childFiles, resultSet.searchDepth, newSearch, resultSet)
         resultSet.finish()
     }
 

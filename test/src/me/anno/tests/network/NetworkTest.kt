@@ -7,13 +7,13 @@ import me.anno.network.TCPClient
 import me.anno.network.UDPClient
 import me.anno.network.packets.PingPacket
 import me.anno.tests.FlakyTest
-import me.anno.tests.LOGGER
 import me.anno.tests.network.NetworkTests.nextPort
 import me.anno.utils.Sleep
 import me.anno.utils.Threads
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertLessThan
 import me.anno.utils.assertions.assertTrue
+import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
 import java.net.InetAddress
 import java.net.SocketTimeoutException
@@ -22,6 +22,10 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 
 class NetworkTest {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(NetworkTest::class)
+    }
 
     @Test
     @FlakyTest

@@ -28,7 +28,6 @@ import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.maths.optimization.GradientDescent.simplexAlgorithm
 import me.anno.tests.FlakyTest
-import me.anno.tests.LOGGER
 import me.anno.tests.physics.constraints.createBridgeMeshes
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotEquals
@@ -36,6 +35,7 @@ import me.anno.utils.assertions.assertNotSame
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.f3s
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -46,6 +46,10 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 class BulletTest {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(BulletTest::class)
+    }
 
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
