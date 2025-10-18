@@ -1,6 +1,6 @@
 package me.anno.engine.ui
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.Mesh
@@ -38,7 +38,7 @@ object TextShapes : CacheSection<String, Mesh>("TextShapes") {
     }
 
     private val font = lazy { DefaultConfig.defaultFont }
-    private val meshGenerator = { text: String, result: AsyncCacheData<Mesh> ->
+    private val meshGenerator = { text: String, result: Promise<Mesh> ->
         result.value = MeshGlyphLayout(
             font.value, text,
             0f, Int.MAX_VALUE

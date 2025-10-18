@@ -1,6 +1,6 @@
 package me.anno.export
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.engine.projects.GameEngineProject
 import me.anno.export.Exclusion.excludeJNAFiles
 import me.anno.export.Exclusion.excludeLWJGLFiles
@@ -35,7 +35,7 @@ object ExportProcess {
         })
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun execute(
         project: GameEngineProject, settings: ExportSettings, progress: ProgressBar, callback: UnitCallback,
         projects: List<IdeaProject>

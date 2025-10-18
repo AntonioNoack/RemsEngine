@@ -12,7 +12,7 @@ import org.apache.logging.log4j.LogManager
  * */
 open class SimpleCache<K, V : Any>(val name: String, var timeoutMillis: Long) : Comparable<SimpleCache<*, *>> {
 
-    val values = HashMap<K, AsyncCacheData<V>>(512)
+    val values = HashMap<K, Promise<V>>(512)
 
     override fun compareTo(other: SimpleCache<*, *>): Int {
         return name.compareTo(other.name)
@@ -24,7 +24,7 @@ open class SimpleCache<K, V : Any>(val name: String, var timeoutMillis: Long) : 
         values.clear()
     }
 
-    fun remove(filter: (K, AsyncCacheData<V>) -> Boolean): Int {
+    fun remove(filter: (K, Promise<V>) -> Boolean): Int {
         return values.removeIf { (k, v) ->
             if (filter(k, v)) {
                 v.destroy()
@@ -41,14 +41,14 @@ open class SimpleCache<K, V : Any>(val name: String, var timeoutMillis: Long) : 
         }// else we assume that it's fine
     }
 
-    fun getEntry(key: K, generator: (K, AsyncCacheData<V>) -> Unit): AsyncCacheData<V> {
+    fun getEntry(key: K, generator: (K, Promise<V>) -> Unit): Promise<V> {
 
         checkKey(key)
 
         var entry = values[key]
         val isGenerating = entry == null || entry.hasBeenDestroyed
         if (isGenerating) {
-            entry = AsyncCacheData()
+            entry = Promise()
             values[key] = entry
         }
 

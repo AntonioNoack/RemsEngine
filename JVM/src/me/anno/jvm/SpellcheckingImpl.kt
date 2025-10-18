@@ -1,7 +1,7 @@
 package me.anno.jvm
 
 import me.anno.Engine
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig
@@ -28,7 +28,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.util.Queue
-import kotlin.concurrent.thread
 
 object SpellcheckingImpl {
 
@@ -42,17 +41,17 @@ object SpellcheckingImpl {
 
     private const val timeout = 600_000L // 10 min
 
-    fun check(sentence: CharSequence, allowFirstLowercase: Boolean): AsyncCacheData<List<Suggestion>> {
+    fun check(sentence: CharSequence, allowFirstLowercase: Boolean): Promise<List<Suggestion>> {
 
         val language = language
         if (language == null || sentence.isBlank2()) {
-            return AsyncCacheData.empty()
+            return Promise.empty()
         }
 
         var sentence2 = sentence.trim()
         if (allowFirstLowercase) sentence2 = sentence2.toString().titlecase()
         if (sentence2 == "#quit") {
-            return AsyncCacheData.empty()
+            return Promise.empty()
         }
 
         val value = Spellchecking.getDualEntry(sentence2, language, timeout) { seq, lang, result ->
@@ -83,10 +82,10 @@ object SpellcheckingImpl {
 
     class TaskQueue {
 
-        val queue = PairArrayList<CharSequence, AsyncCacheData<List<Suggestion>>>()
+        val queue = PairArrayList<CharSequence, Promise<List<Suggestion>>>()
         var restart: (() -> Unit)? = null
 
-        fun add(sentence: CharSequence, callback: AsyncCacheData<List<Suggestion>>) {
+        fun add(sentence: CharSequence, callback: Promise<List<Suggestion>>) {
             synchronized(this) {
                 queue.add(sentence, callback)
                 restart?.invoke()
@@ -94,7 +93,7 @@ object SpellcheckingImpl {
         }
     }
 
-    private fun getValue(sentence: CharSequence, language: Language, callback: AsyncCacheData<List<Suggestion>>) {
+    private fun getValue(sentence: CharSequence, language: Language, callback: Promise<List<Suggestion>>) {
         synchronized(this) {
             queues.getOrPut(language) { start(language) }.add(sentence, callback)
         }
@@ -229,7 +228,7 @@ object SpellcheckingImpl {
     private fun processRequest(queue: TaskQueue, reader: BufferedReader, writer: BufferedWriter) {
 
         val sentence: CharSequence
-        val callback: AsyncCacheData<List<Suggestion>>
+        val callback: Promise<List<Suggestion>>
         synchronized(queue) {
             val queue = queue.queue
             sentence = queue.lastFirst()
@@ -241,7 +240,7 @@ object SpellcheckingImpl {
     }
 
     private fun processRequest(
-        sentence: CharSequence, callback: AsyncCacheData<List<Suggestion>>,
+        sentence: CharSequence, callback: Promise<List<Suggestion>>,
         reader: BufferedReader, writer: BufferedWriter
     ) {
 

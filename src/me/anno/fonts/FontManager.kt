@@ -1,6 +1,6 @@
 package me.anno.fonts
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.LRUCache
 import me.anno.fonts.FontStats.queryInstalledFonts
@@ -63,18 +63,18 @@ object FontManager {
         }
     }
 
-    fun getSize(key: TextCacheKey): AsyncCacheData<Int> {
+    fun getSize(key: TextCacheKey): Promise<Int> {
         return textSizeCache.getEntry(key, textSizeTimeoutMillis, fontQueue, textSizeGenerator)
     }
 
-    private val textSizeGenerator = { key: TextCacheKey, result: AsyncCacheData<Int> ->
+    private val textSizeGenerator = { key: TextCacheKey, result: Promise<Int> ->
         val font = getFontImpl()
         val wl = if (key.widthLimit < 0) GFX.maxTextureSize else min(key.widthLimit, GFX.maxTextureSize)
         val hl = if (key.heightLimit < 0) GFX.maxTextureSize else min(key.heightLimit, GFX.maxTextureSize)
         result.value = font.calculateSize(key.createFont(), key.text, wl, hl)
     }
 
-    fun getSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): AsyncCacheData<Int> {
+    fun getSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Promise<Int> {
         return getSize(getTextCacheKey(font, text, widthLimit, heightLimit, false))
     }
 
@@ -86,7 +86,7 @@ object FontManager {
         return getFontImpl().getLineHeight(font)
     }
 
-    fun getTexture(font: Font, text: String, widthLimit: Int, heightLimit: Int): AsyncCacheData<ITexture2D> {
+    fun getTexture(font: Font, text: String, widthLimit: Int, heightLimit: Int): Promise<ITexture2D> {
         return getTexture(font, text, widthLimit, heightLimit, textureTimeoutMillis)
     }
 
@@ -94,10 +94,10 @@ object FontManager {
         font: Font, text: String,
         widthLimit: Int, heightLimit: Int,
         timeoutMillis: Long
-    ): AsyncCacheData<ITexture2D> {
+    ): Promise<ITexture2D> {
         val wl = if (widthLimit < 0) GFX.maxTextureSize else min(widthLimit, GFX.maxTextureSize)
         val hl = if (heightLimit < 0) GFX.maxTextureSize else min(heightLimit, GFX.maxTextureSize)
-        val key = getTextCacheKey(font, text, wl, hl) ?: return AsyncCacheData.empty()
+        val key = getTextCacheKey(font, text, wl, hl) ?: return Promise.empty()
         return getTexture(key, timeoutMillis)
     }
 
@@ -117,24 +117,24 @@ object FontManager {
         return curr
     }
 
-    private val generateAtlas = { key: Font, result: AsyncCacheData<Texture2DArray> ->
+    private val generateAtlas = { key: Font, result: Promise<Texture2DArray> ->
         getFontImpl().generateASCIITexture(key, false, result)
     }
 
-    fun getTexture(cacheKey: TextCacheKey): AsyncCacheData<ITexture2D> {
+    fun getTexture(cacheKey: TextCacheKey): Promise<ITexture2D> {
         return getTexture(cacheKey, textureTimeoutMillis)
     }
 
-    fun getTexture(cacheKey: TextCacheKey, timeoutMillis: Long): AsyncCacheData<ITexture2D> {
+    fun getTexture(cacheKey: TextCacheKey, timeoutMillis: Long): Promise<ITexture2D> {
         // must be sync:
         // - textures need to be available
         // - Java/Windows/Linux is not thread-safe -> probably Java's fault
         // todo so are we calling AWTFont from always the same thread? if so, why do we still get errors???
-        if (cacheKey.text.isBlank2()) return AsyncCacheData.empty()
+        if (cacheKey.text.isBlank2()) return Promise.empty()
         return textTextureCache.getEntry(cacheKey, timeoutMillis, fontQueue, generateTexture)
     }
 
-    private val generateTexture = { key: TextCacheKey, result: AsyncCacheData<ITexture2D> ->
+    private val generateTexture = { key: TextCacheKey, result: Promise<ITexture2D> ->
         val wl = if (key.widthLimit < 0) GFX.maxTextureSize else min(key.widthLimit, GFX.maxTextureSize)
         val hl = if (key.heightLimit < 0) GFX.maxTextureSize else min(key.heightLimit, GFX.maxTextureSize)
         getFontImpl().generateTexture(key.createFont(), key.text, wl, hl, key.isGrayscale(), result)

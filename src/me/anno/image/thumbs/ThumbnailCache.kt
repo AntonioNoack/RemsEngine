@@ -1,6 +1,6 @@
 package me.anno.image.thumbs
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.IgnoredException
 import me.anno.ecs.prefab.PrefabReadable
@@ -93,12 +93,12 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
     }
 
     @JvmStatic
-    fun getEntry(file: FileReference, neededSize: Int): AsyncCacheData<ITexture2D> {
+    fun getEntry(file: FileReference, neededSize: Int): Promise<ITexture2D> {
         return when {
-            neededSize < 1 -> AsyncCacheData.empty()
-            file == InvalidRef -> AsyncCacheData.empty()
+            neededSize < 1 -> Promise.empty()
+            file == InvalidRef -> Promise.empty()
             file is ImageReadable -> TextureCache[file, timeout]
-            file.isDirectory || !file.exists -> AsyncCacheData.empty()
+            file.isDirectory || !file.exists -> Promise.empty()
             else -> {
                 val size = getSize(neededSize)
                 val lastModified = file.lastModified
@@ -131,7 +131,7 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
     }
 
     @JvmStatic
-    private val generator = { key: ThumbnailKey, callback: AsyncCacheData<ITexture2D> ->
+    private val generator = { key: ThumbnailKey, callback: Promise<ITexture2D> ->
         val srcFile = key.file
         val size = key.size
         // if larger texture exists in cache, use it and scale it down
@@ -309,7 +309,7 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
         )
     }
 
-    private fun readImage(bytes: ByteSlice): AsyncCacheData<Image> {
+    private fun readImage(bytes: ByteSlice): Promise<Image> {
         val file = InnerByteSliceFile("", "", InvalidRef, bytes)
         return ImageAsFolder.readImage(file, true)
     }

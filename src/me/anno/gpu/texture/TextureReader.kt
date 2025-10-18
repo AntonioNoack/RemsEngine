@@ -1,6 +1,6 @@
 package me.anno.gpu.texture
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.image.Image
@@ -21,7 +21,7 @@ import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 
 @InternalAPI
-class TextureReader(val file: FileReference, val result: AsyncCacheData<ITexture2D>) {
+class TextureReader(val file: FileReference, val result: Promise<ITexture2D>) {
 
     companion object {
 

@@ -1,6 +1,6 @@
 package me.anno.fonts
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.fonts.signeddistfields.Contours
 import me.anno.image.Image
@@ -11,9 +11,9 @@ interface IEmojiCache {
     fun contains(codepoints: List<Int>): Boolean = getEmojiId(codepoints) >= 0
     fun getEmojiId(codepoints: List<Int>): Int
 
-    fun getEmojiImage(emojiId: Int, fontSize: Int): AsyncCacheData<Image>
-    fun getEmojiContours(emojiId: Int, fontSize: Int): AsyncCacheData<Contours>
-    fun getEmojiMesh(emojiId: Int): AsyncCacheData<Mesh>
+    fun getEmojiImage(emojiId: Int, fontSize: Int): Promise<Image>
+    fun getEmojiContours(emojiId: Int, fontSize: Int): Promise<Contours>
+    fun getEmojiMesh(emojiId: Int): Promise<Mesh>
 
     fun isKeycapEmoji(cp0: Int, cp1: Int): Boolean {
         return (cp0 in '0'.code..'9'.code || cp0.toChar() in "*#") &&
@@ -38,14 +38,14 @@ interface IEmojiCache {
             override fun getEmojiId(codepoints: List<Int>): Int = -1
             override fun getEmojiString(emojiId: Int): String = "?"
 
-            override fun getEmojiImage(emojiId: Int, fontSize: Int): AsyncCacheData<Image> =
-                AsyncCacheData.empty()
+            override fun getEmojiImage(emojiId: Int, fontSize: Int): Promise<Image> =
+                Promise.empty()
 
-            override fun getEmojiContours(emojiId: Int, fontSize: Int): AsyncCacheData<Contours> =
-                AsyncCacheData.empty()
+            override fun getEmojiContours(emojiId: Int, fontSize: Int): Promise<Contours> =
+                Promise.empty()
 
-            override fun getEmojiMesh(emojiId: Int): AsyncCacheData<Mesh> =
-                AsyncCacheData.empty()
+            override fun getEmojiMesh(emojiId: Int): Promise<Mesh> =
+                Promise.empty()
         }
 
         var emojiCache: IEmojiCache = NoEmojiSupport

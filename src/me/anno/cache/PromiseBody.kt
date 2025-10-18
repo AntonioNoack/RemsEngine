@@ -1,11 +1,12 @@
 package me.anno.cache
 
+import me.anno.cache.CacheSection.Companion.callSafely
 import me.anno.cache.CacheTime.MAX_CACHE_DT_MILLIS
 import me.anno.cache.CacheTime.cacheTimeMillis
 import me.anno.utils.Threads.runOnNonGFXThread
 import kotlin.math.max
 
-class AsyncCacheContent<V : Any>() : IAsyncCacheContent<V> {
+class PromiseBody<V : Any>() : IPromiseBody<V> {
 
     override val hasExpired: Boolean get() = hasBeenDestroyed || cacheTimeMillis > timeoutCacheTime
     override var timeoutCacheTime: Long = cacheTimeMillis + MAX_CACHE_DT_MILLIS * 3
@@ -32,10 +33,12 @@ class AsyncCacheContent<V : Any>() : IAsyncCacheContent<V> {
     private fun processCallbacks() {
         val value = value
         while (true) {
-            val last = synchronized(waitForCallbacks) {
+            val callback = synchronized(waitForCallbacks) {
                 waitForCallbacks.removeLastOrNull()
             } ?: break
-            runOnNonGFXThread("Callback") { last(value) }
+            runOnNonGFXThread("Callback") {
+                callSafely(value, callback)
+            }
         }
     }
 

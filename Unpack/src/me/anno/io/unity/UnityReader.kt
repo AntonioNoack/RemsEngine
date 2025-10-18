@@ -1,6 +1,6 @@
 package me.anno.io.unity
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
@@ -58,7 +58,7 @@ object UnityReader {
     const val zeroAssetName = "0$assetExtension"
 
     private val FileReference.isSomeKindOfDirectory get() = isDirectory || isPacked
-    private val FileReference.isPacked get() = !isDirectory && AsyncCacheData.loadSync { isSerializedFolder(it) } == true
+    private val FileReference.isPacked get() = !isDirectory && Promise.loadSync { isSerializedFolder(it) } == true
 
     fun getUnityProjectByRoot(root: FileReference, async: Boolean = false): UnityProject? {
         if (root.isSomeKindOfDirectory) {

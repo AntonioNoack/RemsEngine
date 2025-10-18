@@ -1,6 +1,6 @@
 package me.anno.ui.editor.code
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.DualCacheSection
 import me.anno.fonts.Font
 import me.anno.gpu.drawing.DrawRectangles
@@ -459,7 +459,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
                     data.value = stream?.readNBytes2(BUFFER_SIZE, ByteArray(BUFFER_SIZE), false)
                     err?.printStackTrace()
                 }
-            } as? AsyncCacheData<*>
+            } as? Promise<*>
             if (!async) data?.waitFor()
             return data?.value as? ByteArray
         }

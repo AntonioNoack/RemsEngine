@@ -25,6 +25,7 @@ class ArrayPool<T>(private val componentType: Class<*>) {
     private val key = IntValue()
 
     private fun create(length: Int): T {
+        @Suppress("UNCHECKED_CAST")
         return Array.newInstance(componentType, length) as T
     }
 
@@ -53,7 +54,7 @@ class ArrayPool<T>(private val componentType: Class<*>) {
 
         // remove references from object arrays:
         if (comparator === objectComparator) {
-            Arrays.fill(array as kotlin.Array<*>?, null)
+            Arrays.fill(array as kotlin.Array<*>, null)
         }
     }
 

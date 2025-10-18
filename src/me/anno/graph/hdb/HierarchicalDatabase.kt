@@ -1,7 +1,7 @@
 package me.anno.graph.hdb
 
 import me.anno.Time
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.engine.Events.addEvent
 import me.anno.graph.hdb.allocator.FileAllocation
@@ -249,7 +249,7 @@ class HierarchicalDatabase(
 
     private fun getDataFromCacheOnly(sf: StorageFile): ByteArray? {
         val data = cache.getEntryWithoutGenerator(sf.index, cacheTimeoutMillis)
-        return (data as? AsyncCacheData<*>)?.value as? ByteArray?
+        return (data as? Promise<*>)?.value as? ByteArray?
     }
 
     fun put(key: HDBKey, value: ByteArray, callback: UnitCallback? = null) {

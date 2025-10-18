@@ -17,17 +17,17 @@ object FileCacheSection {
 
     fun <V : Any> CacheSection<FileKey, V>.getFileEntry(
         file: FileReference, allowDirectories: Boolean, timeoutMillis: Long,
-        generator: (FileKey, AsyncCacheData<V>) -> Unit
-    ): AsyncCacheData<V> {
+        generator: (FileKey, Promise<V>) -> Unit
+    ): Promise<V> {
         val validFile = getValidFile(file, allowDirectories)
-        if (validFile == null) return AsyncCacheData.empty()
+        if (validFile == null) return Promise.empty()
         return getEntry(validFile.getFileKey(), timeoutMillis, generator)
     }
 
     @Deprecated("Please get rid of all -Async functions, we don't need them")
     fun <V : Any> CacheSection<FileKey, V>.getFileEntryAsync(
         file: FileReference, allowDirectories: Boolean,
-        timeoutMillis: Long, generator: (FileKey, AsyncCacheData<V>) -> Unit, callback: Callback<V>
+        timeoutMillis: Long, generator: (FileKey, Promise<V>) -> Unit, callback: Callback<V>
     ) {
         getFileEntry(file, allowDirectories, timeoutMillis, generator)
             .waitFor(callback)
@@ -61,7 +61,7 @@ object FileCacheSection {
      * */
     fun <V : Any> CacheSection<FileKey, V>.getFileEntryWithoutGenerator(
         key1: FileReference, delta: Long = 1L
-    ): AsyncCacheData<V>? {
+    ): Promise<V>? {
         return getEntryWithoutGenerator(key1.getFileKey(), delta)
     }
 

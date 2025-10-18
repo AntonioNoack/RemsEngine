@@ -1,7 +1,7 @@
 package me.anno.cache.debug
 
 import me.anno.Time
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.DualCacheSection
 import me.anno.gpu.GFX
@@ -48,7 +48,7 @@ object DebugCaches {
         Menu.openMenu(GFX.someWindow.windowStack, entries.sorted().map { MenuOption(NameDesc(it)) {} })
     }
 
-    private fun collectValueInfo(value: AsyncCacheData<*>): String {
+    private fun collectValueInfo(value: Promise<*>): String {
         return formatTime(value.timeoutCacheTime - Time.nanoTime)
     }
 
@@ -62,11 +62,11 @@ object DebugCaches {
         }
     }
 
-    private fun createName1(key: Any?, value: AsyncCacheData<*>): String {
+    private fun createName1(key: Any?, value: Promise<*>): String {
         return "$key, ${collectValueInfo(value)}"
     }
 
-    private fun createName2(k1: Any?, k2: Any?, value: AsyncCacheData<*>): String {
+    private fun createName2(k1: Any?, k2: Any?, value: Promise<*>): String {
         return "($k1, $k2), ${collectValueInfo(value)}"
     }
 }

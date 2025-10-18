@@ -7,6 +7,9 @@ import me.anno.fonts.mesh.MeshGlyphLayout
 import me.anno.ui.base.components.AxisAlignment
 
 // todo TextMeshSpawner component for long texts?
+/**
+ * This is effectively TextMeshPro from Unity.
+ * */
 class MeshTextComponent : TextComponentImpl {
 
     @Suppress("unused")
@@ -30,7 +33,7 @@ class MeshTextComponent : TextComponentImpl {
         val sx = meshGroup.width * meshGroup.baseScale
         val sy = meshGroup.height * meshGroup.baseScale
 
-        val dx = getX0(sx, blockAlignmentX).toDouble()
+        val dx = getX0(sx, blockAlignmentX) * 0.5
         val dy = getY0(sy, blockAlignmentY).toDouble()
 
         mesh.translate(dx, dy, 0.0)

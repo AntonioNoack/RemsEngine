@@ -1,7 +1,7 @@
 package me.anno.io
 
 import me.anno.audio.AudioReadable
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.cache.ICacheData
@@ -155,7 +155,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         private val metadataCache = CacheSection<FileKey, MediaMetadata>("Metadata")
 
         @JvmStatic
-        private val createMetadata: (FileKey, AsyncCacheData<MediaMetadata>) -> Unit = { key, result ->
+        private val createMetadata: (FileKey, Promise<MediaMetadata>) -> Unit = { key, result ->
             val meta = MediaMetadata(key.file, null, 0)
             Sleep.waitUntil("MediaMetadata:create", true, { meta.isReady }) {
                 result.value = meta
@@ -168,7 +168,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         }
 
         @JvmStatic
-        fun getMeta(file: FileReference): AsyncCacheData<MediaMetadata> {
+        fun getMeta(file: FileReference): Promise<MediaMetadata> {
             return metadataCache.getFileEntry(
                 file, false, timeoutMillis,
                 createMetadata
@@ -176,7 +176,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         }
 
         @JvmStatic
-        fun getMeta(file: FileReference, signature: String?): AsyncCacheData<MediaMetadata> {
+        fun getMeta(file: FileReference, signature: String?): Promise<MediaMetadata> {
             return metadataCache.getFileEntry(file, false, timeoutMillis) { key, result ->
                 val meta = createMetadata(key.file, signature)
                 Sleep.waitUntil("MediaMetadata:getMeta",true, { meta.isReady }) {

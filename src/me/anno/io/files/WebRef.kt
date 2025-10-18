@@ -1,6 +1,6 @@
 package me.anno.io.files
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.utils.Threads
 import me.anno.fonts.Codepoints.codepoints
@@ -170,7 +170,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
             }
         }
 
-        private fun getHeaders(url: URL, timeout: Long, async: Boolean): AsyncCacheData<WebCacheValue> {
+        private fun getHeaders(url: URL, timeout: Long, async: Boolean): Promise<WebCacheValue> {
             return webCache.getEntry(url, timeout) { url, result ->
                 var conn: URLConnection? = null
                 result.value = try {

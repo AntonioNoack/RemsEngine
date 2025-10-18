@@ -1,7 +1,7 @@
 package me.anno.tests.audio
 
 import me.anno.audio.openal.SoundBuffer
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.HeavyProcessing
@@ -22,7 +22,7 @@ fun main() {
     val sampleRate = 16000
 
     fun getData(start: Double, duration: Double): ShortBuffer {
-        val result = AsyncCacheData<SoundBuffer>()
+        val result = Promise<SoundBuffer>()
         FFMPEGStream.getAudioSequence(sourceFile, start, duration, sampleRate, result)
         return result.waitFor()!!.data!!
     }

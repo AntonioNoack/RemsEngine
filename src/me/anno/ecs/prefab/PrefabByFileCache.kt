@@ -1,6 +1,6 @@
 package me.anno.ecs.prefab
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.cache.ICacheData
@@ -48,18 +48,18 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
         return getFileEntry(ref, allowDirectories, timeoutMillis, generator).value
     }
 
-    fun getEntry(ref: FileReference?): AsyncCacheData<V> {
-        if (ref == null || ref == InvalidRef) return AsyncCacheData.empty()
+    fun getEntry(ref: FileReference?): Promise<V> {
+        if (ref == null || ref == InvalidRef) return Promise.empty()
         if (ref is InnerTmpPrefabFile) {
             // avoid the CacheSection, so our values don't get destroyed
             val safeCast = clazz.safeCast(ref.prefab.getSampleInstance())
-            if (safeCast != null) return AsyncCacheData(safeCast)
+            if (safeCast != null) return Promise(safeCast)
         }
         return getFileEntry(ref, allowDirectories, timeoutMillis, generator)
     }
 
     // cached to avoid dynamic allocations
-    private val generator = { key: FileKey, result: AsyncCacheData<V> ->
+    private val generator = { key: FileKey, result: Promise<V> ->
         ensureClasses()
         PrefabCache[key.file, maxPrefabDepth].waitFor { pair ->
             result.value = castInstance(pair?.sample, key.file)

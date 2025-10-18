@@ -1,6 +1,6 @@
 package me.anno.jvm.emojis
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.fonts.IEmojiCache
@@ -108,8 +108,8 @@ object EmojiCache : IEmojiCache {
         return emojiStrings[emojiId]
     }
 
-    override fun getEmojiImage(emojiId: Int, fontSize: Int): AsyncCacheData<Image> {
-        if (emojiId < 0) return AsyncCacheData.empty() // fast-path
+    override fun getEmojiImage(emojiId: Int, fontSize: Int): Promise<Image> {
+        if (emojiId < 0) return Promise.empty() // fast-path
         return rasterCache.getEntry(EmojiKey(emojiId, fontSize), mappedTimeoutMillis) { key, result ->
             getSVGMesh(key.emojiId).waitFor { svgMesh ->
                 val buffer0 = svgMesh?.buffer?.value
@@ -154,7 +154,7 @@ object EmojiCache : IEmojiCache {
         return fb.createImage(flipY = false, withAlpha = true)!!
     }
 
-    fun getSVGMesh(emojiId: Int): AsyncCacheData<SVGMesh> {
+    fun getSVGMesh(emojiId: Int): Promise<SVGMesh> {
         return svgMeshCache.getEntry(emojiId, svgTimeoutMillis) { key, result ->
             val dataBounds = svgEmojiOffsets[key]
             val i0 = unpackHighFrom64(dataBounds)
@@ -164,8 +164,8 @@ object EmojiCache : IEmojiCache {
         }
     }
 
-    override fun getEmojiMesh(emojiId: Int): AsyncCacheData<Mesh> {
-        if (emojiId < 0) return AsyncCacheData.empty() // fast-path
+    override fun getEmojiMesh(emojiId: Int): Promise<Mesh> {
+        if (emojiId < 0) return Promise.empty() // fast-path
         return meshCache.getEntry(emojiId, mappedTimeoutMillis) { key, result ->
             getSVGMesh(key).waitFor { svgMesh ->
                 val mesh = svgMesh?.mesh?.value
@@ -175,8 +175,8 @@ object EmojiCache : IEmojiCache {
         }
     }
 
-    override fun getEmojiContours(emojiId: Int, fontSize: Int): AsyncCacheData<Contours> {
-        if (emojiId < 0) return AsyncCacheData.empty() // fast-path
+    override fun getEmojiContours(emojiId: Int, fontSize: Int): Promise<Contours> {
+        if (emojiId < 0) return Promise.empty() // fast-path
         return contourCache.getEntry(EmojiKey(emojiId, fontSize), mappedTimeoutMillis) { key, result ->
             getSVGMesh(key.emojiId).waitFor { svgMesh ->
                 val fontSizeF = fontSize.toFloat()

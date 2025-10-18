@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.io.MediaMetadata
 import me.anno.io.files.SignatureCache
 import me.anno.utils.types.Strings.shorten
@@ -12,7 +12,7 @@ object VideoCacheImpl {
 
     private val LOGGER = LogManager.getLogger(VideoCacheImpl::class)
 
-    fun generateVideoFrames(key: VideoFramesKey, result: AsyncCacheData<VideoSlice>) {
+    fun generateVideoFrames(key: VideoFramesKey, result: Promise<VideoSlice>) {
 
         val file = key.file
         val scale = key.scale

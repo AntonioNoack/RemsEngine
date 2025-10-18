@@ -1,6 +1,6 @@
 package me.anno.tests.mesh.blender
 
-import me.anno.cache.AsyncCacheData.Companion.loadSync
+import me.anno.cache.Promise.Companion.loadSync
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.io.files.inner.InnerFolderCache

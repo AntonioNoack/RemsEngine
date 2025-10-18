@@ -1,6 +1,6 @@
 package me.anno.ecs.components.anim
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.DualCacheSection
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
@@ -206,8 +206,8 @@ object Retargetings {
         return workspace.getChild(config)
     }
 
-    fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): AsyncCacheData<Retargeting> {
-        if (srcSkeleton == dstSkeleton) return AsyncCacheData.empty()
+    fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): Promise<Retargeting> {
+        if (srcSkeleton == dstSkeleton) return Promise.empty()
         return cache.getDualEntry(
             srcSkeleton.getFileKey(), dstSkeleton.getFileKey(),
             timeoutMillis

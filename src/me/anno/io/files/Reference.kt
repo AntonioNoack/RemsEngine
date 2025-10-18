@@ -1,6 +1,6 @@
 package me.anno.io.files
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.utils.InternalAPI
@@ -84,7 +84,7 @@ object Reference {
         return if (fromCache != null && fromCache.absolutePath == path) fromCache else null
     }
 
-    private val generator = { path: String, result: AsyncCacheData<FileReference> ->
+    private val generator = { path: String, result: Promise<FileReference> ->
         result.value = createReference(path)
     }
     private val linkRefCache = ConcurrentHashMap<String, LinkFileReference>()

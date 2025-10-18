@@ -3,7 +3,7 @@ package me.anno.video.ffmpeg
 import me.anno.Engine
 import me.anno.Time
 import me.anno.audio.openal.SoundBuffer
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.IgnoredException
 import me.anno.image.Image
 import me.anno.io.MediaMetadata
@@ -128,7 +128,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         @JvmStatic
         fun getAudioSequence(
             input: FileReference, startTime: Double, duration: Double, sampleRate: Int,
-            result: AsyncCacheData<SoundBuffer>
+            result: Promise<SoundBuffer>
         ) {
             FFMPEGAudio(
                 input, MediaMetadata.getMeta(input).waitFor()!!.audioChannels,

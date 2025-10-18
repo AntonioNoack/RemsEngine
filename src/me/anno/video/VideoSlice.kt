@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.GetterCacheContent
 import me.anno.cache.ICacheData
 import me.anno.maths.Maths.clamp
@@ -14,8 +14,8 @@ class VideoSlice(
     val originalWidth: Int, // meta?.videoWidth
     val originalFPS: Double, // meta?.videoFPS ?: 0.0001
     val numTotalFramesInSrc: Int,
-    self: AsyncCacheData<VideoSlice>
-) : SimpleList<AsyncCacheData<GPUFrame>>(), ICacheData {
+    self: Promise<VideoSlice>
+) : SimpleList<Promise<GPUFrame>>(), ICacheData {
 
     val frames = run {
         val numFrames = clamp(
@@ -40,12 +40,12 @@ class VideoSlice(
                 }
             }
         }
-        AsyncCacheData(data)
+        Promise(data)
     }
 
     override val size: Int get() = frames.size
-    override fun get(index: Int): AsyncCacheData<GPUFrame> =
-        asyncFrames.getOrNull(index) ?: AsyncCacheData.empty()
+    override fun get(index: Int): Promise<GPUFrame> =
+        asyncFrames.getOrNull(index) ?: Promise.empty()
 
     var hasFinished = false
 

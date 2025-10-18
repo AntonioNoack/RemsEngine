@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.FileCache
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
@@ -29,7 +29,7 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
         return getEntryWithoutGenerator(getKey(src, sliceIndex))?.value
     }
 
-    fun getProxyFile(src: FileReference, sliceIndex: Int): AsyncCacheData<FileReference> {
+    fun getProxyFile(src: FileReference, sliceIndex: Int): Promise<FileReference> {
         init()
         return getEntry(getKey(src, sliceIndex), 10_000, ::generateFile)
     }

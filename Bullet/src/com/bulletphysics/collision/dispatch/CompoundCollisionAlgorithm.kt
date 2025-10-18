@@ -72,7 +72,7 @@ class CompoundCollisionAlgorithm : CollisionAlgorithm() {
         val newChildWorldTrans = Stack.newTrans()
 
         val numChildren = childCollisionAlgorithms.size
-        for (i in 0 until numChildren) {
+        repeat(numChildren) { i ->
             val child = compoundShape.children[i]
             // temporarily exchange parent btCollisionShape with childShape, and recurse
 
@@ -125,7 +125,7 @@ class CompoundCollisionAlgorithm : CollisionAlgorithm() {
 
         // backup
         colObj.getWorldTransform(originalTransform)
-        for (i in 0 until numChildren) {
+        repeat(numChildren) { i ->
             // temporarily exchange parent btCollisionShape with childShape, and recurse
             val child = compoundShape.children[i]
             childTransform.setMul(originalTransform, child.transform)

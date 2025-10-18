@@ -1,6 +1,6 @@
 package me.anno.cache
 
-interface IAsyncCacheContent<V : Any> : ICacheData {
+interface IPromiseBody<V : Any> : ICacheData {
 
     val hasExpired: Boolean
     val timeoutCacheTime: Long

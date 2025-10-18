@@ -1,11 +1,8 @@
 package me.anno.audio.streams
 
-import me.anno.animation.LoopingState
 import me.anno.audio.AudioData
-import me.anno.audio.PipelineKey
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
-import me.anno.cache.AsyncCacheData
-import me.anno.io.files.InvalidRef
+import me.anno.cache.Promise
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertNotNull
@@ -86,7 +83,7 @@ abstract class AudioStream(
 
     var isPlaying = false
 
-    abstract fun getBuffer(bufferIndex: Long): AsyncCacheData<AudioData>
+    abstract fun getBuffer(bufferIndex: Long): Promise<AudioData>
 
     fun requestNextBuffer(bufferIndex: Long, session: Int) {
         isWaitingForBuffer = true

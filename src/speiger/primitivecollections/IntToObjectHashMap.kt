@@ -12,7 +12,7 @@ import speiger.primitivecollections.callbacks.IntObjectPredicate
  * The overhead isn't that big, and it saves us from having lots of duplicated code.
  * */
 class IntToObjectHashMap<V>(
-    @InternalAPI
+    @property:InternalAPI
     val content: LongToObjectHashMap<V>
 ) : PrimitiveCollection {
 

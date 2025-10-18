@@ -58,7 +58,7 @@ class SmallLongSet(
         var writeIndex = 0
         val keys = keys
         val oldSize = size
-        for (readIndex in 0 until oldSize) {
+        repeat(oldSize) { readIndex ->
             val key = keys[readIndex]
             if (!predicate.test(key)) {
                 keys[writeIndex] = key
@@ -71,7 +71,7 @@ class SmallLongSet(
 
     fun forEach(callback: LongCallback) {
         val keys = keys
-        for (readIndex in 0 until size) {
+        repeat(size) { readIndex ->
             val key = keys[readIndex]
             callback.call(key)
         }

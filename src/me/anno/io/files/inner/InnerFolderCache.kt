@@ -1,6 +1,6 @@
 package me.anno.io.files.inner
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.cache.FileCacheSection.getFileEntryAsync
@@ -22,7 +22,7 @@ object InnerFolderCache : CacheSection<FileKey, InnerFolder>("InnerFolderCache")
 
     val imageFormats = "png,jpg,bmp,pds,hdr,webp,tga,ico,dds,gif,exr,qoi"
     val imageFormats1 = imageFormats.split(',')
-    private val generator = { key: FileKey, result: AsyncCacheData<InnerFolder> -> generate(key.file, result) }
+    private val generator = { key: FileKey, result: Promise<InnerFolder> -> generate(key.file, result) }
 
     init {
         // meshes
@@ -50,13 +50,13 @@ object InnerFolderCache : CacheSection<FileKey, InnerFolder>("InnerFolderCache")
             .waitFor(async)
     }
 
-    private fun generate(file1: FileReference, result: AsyncCacheData<InnerFolder>) {
+    private fun generate(file1: FileReference, result: Promise<InnerFolder>) {
         SignatureCache[file1].waitFor { signature ->
             generate1(file1, signature, result)
         }
     }
 
-    private fun generate1(file1: FileReference, signature: Signature?, result: AsyncCacheData<InnerFolder>) {
+    private fun generate1(file1: FileReference, signature: Signature?, result: Promise<InnerFolder>) {
         val ext = file1.lcExtension
         if (signature?.name == "json" && ext == "json") {
             result.value = null
@@ -67,7 +67,7 @@ object InnerFolderCache : CacheSection<FileKey, InnerFolder>("InnerFolderCache")
     }
 
     private fun generate(
-        file1: FileReference, data: AsyncCacheData<InnerFolder>,
+        file1: FileReference, data: Promise<InnerFolder>,
         generators: List<InnerFolderReader>, gi: Int
     ) {
         if (gi < generators.size) {

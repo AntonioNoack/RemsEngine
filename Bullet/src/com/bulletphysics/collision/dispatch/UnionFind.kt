@@ -44,16 +44,15 @@ class UnionFind {
     fun sortIslands() {
         // first store the original body index, and islandId
         val numElements = elements.size()
-        for (i in 0 until numElements) {
+        repeat(numElements) { i ->
             elements.setPair(i, findGroupId(i), i)
         }
         MiscUtil.quickSort(elements, sortByParent)
     }
 
-    fun reset(N: Int) {
-        ensureSize(N)
-
-        for (i in 0 until N) {
+    fun reset(newSize: Int) {
+        ensureSize(newSize)
+        repeat(newSize) { i ->
             set(i, i, 1)
         }
     }
@@ -61,9 +60,9 @@ class UnionFind {
     val numElements: Int
         get() = elements.size()
 
-    private fun ensureSize(N: Int) {
-        elements.resize(N)
-        elements.size = N
+    private fun ensureSize(newSize: Int) {
+        elements.resize(newSize)
+        elements.size = newSize
     }
 
     /**
@@ -99,16 +98,14 @@ class UnionFind {
         var nodeId = nodeId
         while (true) {
             val parentId = getParent(nodeId)
-            if (nodeId != parentId) {
-                // links to other node -> not self ->
-                // - check parent
-                // - mark grandparent as new parent for quicker future access
-                val grandParentId = getParent(parentId)
-                setParent(nodeId, grandParentId)
-                nodeId = grandParentId
-            } else {
-                return nodeId
-            }
+            if (nodeId == parentId) return nodeId
+
+            // links to other node -> not self ->
+            // - check parent
+            // - mark grandparent as new parent for quicker future access
+            val grandParentId = getParent(parentId)
+            setParent(nodeId, grandParentId)
+            nodeId = grandParentId
         }
     }
 

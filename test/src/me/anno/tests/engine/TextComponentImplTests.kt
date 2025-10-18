@@ -38,8 +38,6 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.math.sqrt
 
-// todo this is still kind of wonky, especially with Arial
-//   we'd also with for a difference < 20, not 60-120
 class TextComponentImplTests {
 
     val text = "Sample" // not actually used
@@ -74,9 +72,9 @@ class TextComponentImplTests {
     }
 
     // these values are very font dependent
-    val expectedBlackLevels = 135f..170f
+    val expectedBlackLevels = 130f..190f
     val expectedWhiteLevels = 190f..230f
-    val expectedDifference = 0f..142f // ideally, this would be zero
+    val expectedDifference = 0f..30f // ideally, this would be zero; we get 15/15/20 on Linux :3
 
     fun getImageDifference(a: Image, b: Image): Float {
         var error = 0f
@@ -97,8 +95,6 @@ class TextComponentImplTests {
     }
 
     fun generateTextureTextComponent(): Image {
-        // width depends on size... why??
-        // because we're using an SDF-like-shader to improve visual quality
         return testTextComponent(TextureTextComponent(text, font, AxisAlignment.CENTER))
     }
 
@@ -169,8 +165,9 @@ class TextComponentImplTests {
             } == null
         }
 
-        val image = fb.createImage(flipY = true, withAlpha = false)!!
+        val image = fb.createImage(flipY = false, withAlpha = false)!!
         fb.destroy()
+
         if (false) {
             val folder = OS.desktop.getChild("TextComponent")
             folder.tryMkdirs()

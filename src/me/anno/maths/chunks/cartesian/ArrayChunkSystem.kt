@@ -1,6 +1,6 @@
 package me.anno.maths.chunks.cartesian
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.utils.structures.lists.Lists.createArrayList
 
 /**
@@ -16,7 +16,7 @@ abstract class ArrayChunkSystem<Element>(
 
     override fun createChunk(
         chunkX: Int, chunkY: Int, chunkZ: Int, size: Int,
-        result: AsyncCacheData<ArrayList<Element>>
+        result: Promise<ArrayList<Element>>
     ) {
         val data = createArrayList(size, defaultElement)
         data.fill(defaultElement) // fill should be way faster than using a lambda

@@ -1,6 +1,6 @@
 package me.anno.gpu.texture
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.image.Image
@@ -57,24 +57,24 @@ object TextureCache {
         }
     }
 
-    operator fun get(file: FileReference): AsyncCacheData<ITexture2D> {
+    operator fun get(file: FileReference): Promise<ITexture2D> {
         return get(file, timeoutMillis)
     }
 
-    operator fun get(file: FileReference, timeout: Long): AsyncCacheData<ITexture2D> {
-        if (file == InvalidRef) return AsyncCacheData.empty()
+    operator fun get(file: FileReference, timeout: Long): Promise<ITexture2D> {
+        if (file == InvalidRef) return Promise.empty()
         if (file !is InnerFile) {
-            if (file.isDirectory || !file.exists) return AsyncCacheData.empty()
+            if (file.isDirectory || !file.exists) return Promise.empty()
         } else if (file.isDirectory || !file.exists) {
             LOGGER.warn("Image missing: $file")
-            return AsyncCacheData.empty()
+            return Promise.empty()
         } else if (file is InnerTmpImageFile && file.image is GPUImage) {
-            return AsyncCacheData(file.image.texture) // shortcut
+            return Promise(file.image.texture) // shortcut
         }
         return textures.getFileEntry(file, false, timeout, ::generateTexture)
     }
 
-    private fun generateTexture(file: FileKey, result: AsyncCacheData<ITexture2D>) =
+    private fun generateTexture(file: FileKey, result: Promise<ITexture2D>) =
         TextureReader(file.file, result)
 
     private data class FileTriple<V>(val file: FileReference, val lastModified: Long, val type: V) {
@@ -86,7 +86,7 @@ object TextureCache {
         return texture.value?.createdOrNull() as? Texture3D
     }
 
-    private fun generateLUT(key: FileKey, result: AsyncCacheData<Texture3D>) {
+    private fun generateLUT(key: FileKey, result: Promise<Texture3D>) {
         ImageCache[key.file, timeoutMillis].mapResult(result) { img ->
             createLUT(key.file, img)
         }
@@ -108,7 +108,7 @@ object TextureCache {
     fun getTextureArrayEntry(
         file: FileReference, numTiles: Vector2i,
         timeoutMillis: Long = TextureCache.timeoutMillis
-    ): AsyncCacheData<Texture2DArray> {
+    ): Promise<Texture2DArray> {
         val key = FileTriple(file, numTiles)
         return textureArrays2.getEntry(key, timeoutMillis, TextureCache::generateTextureArray)
     }
@@ -128,14 +128,14 @@ object TextureCache {
         return texture.value?.createdOrNull() as? Texture2DArray
     }
 
-    private fun generateTextureArray(key: FileTriple<Vector2i>, result: AsyncCacheData<Texture2DArray>) {
+    private fun generateTextureArray(key: FileTriple<Vector2i>, result: Promise<Texture2DArray>) {
         val file = key.file
         ImageCache[file, timeoutMillis].mapResult(result) { img ->
             createTextureArray(file, img, key.type)
         }
     }
 
-    private fun generateTextureArray(key: ArrayKey, result: AsyncCacheData<Texture2DArray>) {
+    private fun generateTextureArray(key: ArrayKey, result: Promise<Texture2DArray>) {
         key.files.mapCallback({ _, file, cb ->
             ImageCache[file, timeoutMillis].waitFor(cb)
         }, result.map { images ->

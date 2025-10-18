@@ -36,7 +36,7 @@ class SimulationIslandManager {
         initUnionFind(objects.size)
 
         // put the index into m_controllers into m_tag
-        for (i in 0 until objects.size) {
+        for (i in objects.indices) {
             val objI = objects[i]
             objI.islandTag = i
             objI.companionId = -1

@@ -1,10 +1,11 @@
 package me.anno.cache
 
+import me.anno.cache.CacheSection.Companion.callSafely
 import me.anno.engine.Events.getCalleeName
 import me.anno.utils.Logging.hash32
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
-import me.anno.video.VideoSlice
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Represents a value to be filled in whenever.
@@ -13,26 +14,27 @@ import me.anno.video.VideoSlice
  * To get asynchronous access to the value, just use this.value.
  * For synchronous access (listeners), use this.waitFor().
  * */
-open class AsyncCacheData<V : Any>(
-    content: IAsyncCacheContent<V>
+open class Promise<V : Any>(
+    content: IPromiseBody<V>
 ) : ICacheData, Callback<V> {
 
-    constructor() : this(AsyncCacheContent<V>())
+    constructor() : this(PromiseBody<V>())
     constructor(value: V?) : this() {
         call(value, null)
     }
 
     val hasValue: Boolean get() = content.hasValue
-    val hasExpired: Boolean get() = content.hasExpired
+    val hasExpired: Boolean get() = content.hasExpired && locks.get() <= 0
     val hasBeenDestroyed: Boolean get() = content.hasBeenDestroyed
     val timeoutCacheTime: Long get() = content.timeoutCacheTime
+
     var value: V?
         get() = content.value
         set(value) {
             content.value = value
         }
 
-    var content: IAsyncCacheContent<V> = content
+    var content: IPromiseBody<V> = content
         set(value) {
             val oldCallbacks = field.waitForCallbacks
 
@@ -51,13 +53,17 @@ open class AsyncCacheData<V : Any>(
 
     @Deprecated(message = ASYNC_WARNING)
     fun waitFor(): V? {
+        lock()
         Sleep.waitUntil("AsyncCacheData.waitFor", true) { hasValue }
+        unlock()
         return value
     }
 
     @Deprecated(message = ASYNC_WARNING)
     fun waitFor(debugName: String): V? {
+        lock()
         Sleep.waitUntil(debugName, true) { hasValue }
+        unlock()
         return value
     }
 
@@ -73,13 +79,29 @@ open class AsyncCacheData<V : Any>(
         return value
     }
 
+    /**
+     * Waits for Promise to have a value (could be null!),
+     * and then calls the callback.
+     *
+     * When the engine is shut down,
+     * you lose your guarantee for a callback.
+     *
+     * If you want to save on quit,
+     * prompt the user shortly before quitting instead!
+     * */
     fun waitFor(callback: (V?) -> Unit) {
-        content.addCallback(callback)
+        lock()
+        content.addCallback { valueI ->
+            callSafely(valueI, callback)
+            unlock()
+        }
     }
 
     fun waitFor(extraCondition: (V?) -> Boolean, callback: (V?) -> Unit) {
+        lock()
         Sleep.waitUntil(true, { hasValue && extraCondition(value) }) {
-            callback(value)
+            callSafely(value, callback)
+            unlock()
         }
     }
 
@@ -87,7 +109,7 @@ open class AsyncCacheData<V : Any>(
         waitFor { value ->
             if (value != null) callback.ok(value)
             else callback.err(null)
-            if (callback is AsyncCacheData<*> && hasBeenDestroyed) {
+            if (callback is Promise<*> && hasBeenDestroyed) {
                 callback.destroy()
             }
         }
@@ -118,31 +140,62 @@ open class AsyncCacheData<V : Any>(
                 (content.waitForCallbacks.size.toString())
     }
 
-    fun <W : Any> mapResult(result: AsyncCacheData<W>, mapping: (V) -> W?) {
+    fun <W : Any> mapResult(result: Promise<W>, mapping: (V) -> W?) {
         waitFor { ownValue -> result.value = if (ownValue != null) mapping(ownValue) else null }
     }
 
-    fun <W : Any> onSuccess(result: AsyncCacheData<*>, mapping: (V) -> W) {
+    fun <W : Any> onSuccess(result: Promise<*>, mapping: (V) -> W) {
         waitFor { ownValue ->
             if (ownValue != null) mapping(ownValue)
             else result.value = null
         }
     }
 
+    /**
+     * Locks, runs, unlocks.
+     * */
+    inline fun use(run: () -> Unit) {
+        lock()
+        run()
+        unlock()
+    }
+
+    /**
+     * Use this method before expensive calculations
+     * to make sure the value doesn't get destroyed in the meantime
+     * todo use this e.g. for asset thumbnail generation
+     * todo Unity assets often have sync-issues: generate all assets at once, or does this solve the issue?
+     *   -> we didn't do that, because it used lots of memory...
+     * */
+    fun lock() {
+        locks.incrementAndGet()
+    }
+
+    /**
+     * Use this method after expensive calculations & a corresponding
+     * lock-call() to make the value destructible, again
+     * */
+    fun unlock() {
+        update(1)
+        locks.decrementAndGet()
+    }
+
+    private val locks = AtomicInteger(0)
+
     companion object {
 
         const val ASYNC_WARNING = "Avoid blocking, it's also not supported in browsers"
 
-        private val nothingCacheData = AsyncCacheData<Any>(null)
+        private val nothingCacheData = Promise<Any>(null)
 
-        fun <V : Any> empty(): AsyncCacheData<V> {
+        fun <V : Any> empty(): Promise<V> {
             @Suppress("UNCHECKED_CAST")
-            return nothingCacheData as AsyncCacheData<V>
+            return nothingCacheData as Promise<V>
         }
 
         @Deprecated(message = ASYNC_WARNING)
         inline fun <V : Any> loadSync(loadAsync: (Callback<V>) -> Unit): V? {
-            val wrapper = AsyncCacheData<V>()
+            val wrapper = Promise<V>()
             loadAsync(wrapper)
             wrapper.waitFor()
             return wrapper.value

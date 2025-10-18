@@ -2,7 +2,7 @@ package me.anno.tests.export
 
 import me.anno.Engine
 import me.anno.Time
-import me.anno.cache.AsyncCacheData.Companion.loadSync
+import me.anno.cache.Promise.Companion.loadSync
 import me.anno.engine.projects.GameEngineProject
 import me.anno.export.ExportProcess
 import me.anno.export.ExportSettings

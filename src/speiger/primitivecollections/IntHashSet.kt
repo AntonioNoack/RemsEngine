@@ -10,7 +10,7 @@ import speiger.primitivecollections.callbacks.IntPredicate
  * Wrapper around LongHashSet
  * */
 class IntHashSet(
-    @InternalAPI
+    @property:InternalAPI
     val content: LongHashSet
 ) : PrimitiveCollection {
 

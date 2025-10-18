@@ -1,6 +1,6 @@
 package me.anno.image.svg
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.io.files.FileKey
@@ -13,12 +13,12 @@ object SVGMeshCache : CacheSection<FileKey, SVGBuffer>("Meshes") {
 
     private val LOGGER = LogManager.getLogger(SVGMeshCache::class)
 
-    operator fun get(file: FileReference, timeout: Long): AsyncCacheData<SVGBuffer> {
+    operator fun get(file: FileReference, timeout: Long): Promise<SVGBuffer> {
         val data = getFileEntry(file, false, timeout, ::loadSVGMeshAsync)
         return data
     }
 
-    private fun loadSVGMeshAsync(key: FileKey, result: AsyncCacheData<SVGBuffer>) {
+    private fun loadSVGMeshAsync(key: FileKey, result: Promise<SVGBuffer>) {
         key.file.inputStream { input, err ->
             err?.printStackTrace()
             val mesh = loadSVGMeshSync(input)

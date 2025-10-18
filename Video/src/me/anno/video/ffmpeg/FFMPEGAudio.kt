@@ -3,7 +3,7 @@ package me.anno.video.ffmpeg
 import me.anno.Engine
 import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.streams.AudioStream
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.IgnoredException
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.readNBytes2
@@ -19,11 +19,10 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
-import kotlin.concurrent.thread
 
 class FFMPEGAudio(
     file: FileReference?, val channels: Int, val sampleRate: Int, val duration: Double,
-    val result: AsyncCacheData<SoundBuffer>
+    val result: Promise<SoundBuffer>
 ) : FFMPEGStream(file, false) {
     // audio should be fast -> not limited
 

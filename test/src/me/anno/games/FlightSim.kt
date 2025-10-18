@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
 import me.anno.bullet.bodies.StaticBody
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -102,7 +102,7 @@ fun createTerrain(player: LocalPlayer): Entity {
         val noise = PerlinNoise(1234L, 7, 0.5f, -500f, 500f, Vector4f(0.025f))
         val empty = Chunk(Entity())
 
-        override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int, result: AsyncCacheData<Chunk>) {
+        override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int, result: Promise<Chunk>) {
             if (chunkY != 0) {
                 result.value = empty
                 return

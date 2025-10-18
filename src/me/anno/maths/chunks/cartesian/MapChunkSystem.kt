@@ -1,6 +1,6 @@
 package me.anno.maths.chunks.cartesian
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import speiger.primitivecollections.IntToObjectHashMap
 
 /**
@@ -15,7 +15,7 @@ abstract class MapChunkSystem<Element>(
 
     override fun createChunk(
         chunkX: Int, chunkY: Int, chunkZ: Int, size: Int,
-        result: AsyncCacheData<IntToObjectHashMap<Element>>
+        result: Promise<IntToObjectHashMap<Element>>
     ) {
         val data = IntToObjectHashMap<Element>()
         generateChunk(chunkX, chunkY, chunkZ, data)

@@ -1,6 +1,6 @@
 package me.anno.fonts
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
@@ -56,7 +56,7 @@ object AtlasFontGenerator : FontImpl<Unit>() {
         font: Font, fallbackFonts: Unit, fontIndex: Int,
         codepoint: Int, textColor: Int, backgroundColor: Int, portableImages: Boolean
     ) {
-        val tmp = AsyncCacheData<List<IntImage>>()
+        val tmp = Promise<List<IntImage>>()
         getImageStack(font, tmp)
         val images = tmp.waitFor()!!
         val charImage = images[clamp(getIndex(codepoint), 0, images.lastIndex)]

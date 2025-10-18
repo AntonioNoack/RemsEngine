@@ -1,6 +1,6 @@
 package me.anno.utils.async
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.ICacheData
 import me.anno.utils.structures.lists.Lists.createArrayList
 
@@ -63,7 +63,7 @@ fun interface Callback<in V> {
         /**
          * returns a callback, this calls the original callback after mapping the value synchronously
          * */
-        fun <V: Any> Callback<V>.waitFor(): Callback<AsyncCacheData<V>> {
+        fun <V: Any> Callback<V>.waitFor(): Callback<Promise<V>> {
             val self = this
             return Callback { value, err ->
                 if (value != null) value.waitFor(self)
@@ -71,7 +71,7 @@ fun interface Callback<in V> {
             }
         }
 
-        fun <V: Any> Callback<V>.wait(): Callback<AsyncCacheData<V>> {
+        fun <V: Any> Callback<V>.wait(): Callback<Promise<V>> {
             val self = this
             return Callback { value, err ->
                 if (value != null) {

@@ -11,7 +11,7 @@ import speiger.primitivecollections.callbacks.LongIntPredicate
  * Wrapper around LongToLongHashMap
  * */
 class LongToIntHashMap(
-    @InternalAPI
+    @property:InternalAPI
     val content: LongToLongHashMap
 ) : PrimitiveCollection {
 

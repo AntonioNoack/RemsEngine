@@ -1,6 +1,6 @@
 package me.anno.image
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.image.hdr.HDRReader
@@ -98,7 +98,7 @@ object ImageCache : CacheSection<FileKey, Image>("Image") {
     }
 
     @JvmStatic
-    operator fun get(source: FileReference): AsyncCacheData<Image> {
+    operator fun get(source: FileReference): Promise<Image> {
         return get(source, timeoutMillis)
     }
 
@@ -107,9 +107,9 @@ object ImageCache : CacheSection<FileKey, Image>("Image") {
         return getEntryWithoutGenerator(source.getFileKey(), 0)?.value
     }
 
-    operator fun get(source: FileReference, timeout: Long): AsyncCacheData<Image> {
+    operator fun get(source: FileReference, timeout: Long): Promise<Image> {
         return if (source is ImageReadable && source.hasInstantCPUImage()) {
-            AsyncCacheData(source.readCPUImage())
+            Promise(source.readCPUImage())
         } else {
             getFileEntry(source, false, timeout) { key, result ->
                 ImageAsFolder.readImage(key.file, false, result)

@@ -1,6 +1,6 @@
 package me.anno.ecs.components.light.sky
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.FileCacheList
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
@@ -60,7 +60,7 @@ open class SkyboxBase : CollidingComponent(), Renderable {
         material.shaderOverrides["reversedDepth"] =
             TypeValue(GLSLType.V1B, { GFXState.depthMode.currentValue.reversedDepth })
         material.shaderOverrides["isPerspective"] = TypeValue(GLSLType.V1B, { RenderState.isPerspective })
-        materials = FileCacheList(listOf(material.ref)) { AsyncCacheData(material) }
+        materials = FileCacheList(listOf(material.ref)) { Promise(material) }
     }
 
     override fun hasRaycastType(typeMask: Int) = typeMask.hasFlag(Raycast.SKY)

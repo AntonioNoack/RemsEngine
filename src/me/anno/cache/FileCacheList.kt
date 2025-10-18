@@ -10,18 +10,18 @@ import me.anno.utils.structures.lists.SimpleList
  * */
 class FileCacheList<V : Any>(
     files: List<FileReference>,
-    val cache: (FileReference) -> AsyncCacheData<V>
+    val cache: (FileReference) -> Promise<V>
 ) : SimpleList<FileReference>() {
 
     companion object {
-        private val emptyList = FileCacheList(emptyList()) { AsyncCacheData.empty() }
+        private val emptyList = FileCacheList(emptyList()) { Promise.empty() }
         fun <V : Any> empty(): FileCacheList<V> {
             @Suppress("UNCHECKED_CAST")
             return emptyList as FileCacheList<V>
         }
 
         fun <V: PrefabSaveable> of(value: V): FileCacheList<V> {
-            return FileCacheList(listOf(value.ref)) { AsyncCacheData(value) }
+            return FileCacheList(listOf(value.ref)) { Promise(value) }
         }
     }
 
@@ -29,7 +29,7 @@ class FileCacheList<V : Any>(
     override val size: Int get() = files.size
 
     private val files = files.toTypedArray()
-    private var cachedValue = arrayOfNulls<AsyncCacheData<V>>(files.size)
+    private var cachedValue = arrayOfNulls<Promise<V>>(files.size)
     private var lastModified = LongArray(files.size)
 
     override fun get(index: Int): FileReference {
@@ -40,7 +40,7 @@ class FileCacheList<V : Any>(
         return waitFor(index).value
     }
 
-    fun waitFor(index: Int): AsyncCacheData<V> {
+    fun waitFor(index: Int): Promise<V> {
 
         val file = files[index]
         val cachedValue = cachedValue[index]

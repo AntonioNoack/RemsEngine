@@ -5,7 +5,7 @@ import me.anno.animation.LoopingState
 import me.anno.audio.AudioCache.playbackSampleRate
 import me.anno.audio.AudioData
 import me.anno.audio.AudioFXCache
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.engine.OfficialExtensions
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
@@ -59,7 +59,7 @@ class AudioReaderTest {
         }
     }
 
-    fun loadWavFile(src: FileReference, duration: Double): AsyncCacheData<AudioData> {
+    fun loadWavFile(src: FileReference, duration: Double): Promise<AudioData> {
         return AudioFXCache.getBuffer(src, 0.0, duration, numSamples(duration), LoopingState.PLAY_ONCE)
     }
 

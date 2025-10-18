@@ -1,6 +1,6 @@
 package me.anno.ecs.prefab
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.cache.FileCacheSection.overrideFileEntry
@@ -52,14 +52,14 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
     val debugLoading get() = LOGGER.isDebugEnabled()
 
-    operator fun get(resource: FileReference?): AsyncCacheData<PrefabPair> =
+    operator fun get(resource: FileReference?): Promise<PrefabPair> =
         get(resource, maxPrefabDepth, timeoutMillis)
 
-    operator fun get(resource: FileReference?, maxDepth: Int): AsyncCacheData<PrefabPair> =
+    operator fun get(resource: FileReference?, maxDepth: Int): Promise<PrefabPair> =
         get(resource, maxDepth, timeoutMillis)
 
-    operator fun get(resource: FileReference?, maxDepth: Int, timeoutMillis: Long): AsyncCacheData<PrefabPair> {
-        var source = resource ?: return AsyncCacheData.empty()
+    operator fun get(resource: FileReference?, maxDepth: Int, timeoutMillis: Long): Promise<PrefabPair> {
+        var source = resource ?: return Promise.empty()
         while (source is InnerLinkFile) {
             notifyLink(source)
             source = source.link
@@ -67,8 +67,8 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
         return getFileEntry(source, false, timeoutMillis, loadPrefabPair)
     }
 
-    fun newInstance(resource: FileReference?, depth: Int = maxPrefabDepth): AsyncCacheData<Saveable> {
-        val result = AsyncCacheData<Saveable>()
+    fun newInstance(resource: FileReference?, depth: Int = maxPrefabDepth): Promise<Saveable> {
+        val result = Promise<Saveable>()
         this[resource, depth].waitFor { prefab ->
             result.value = prefab?.newInstance()
         }
@@ -115,13 +115,13 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
         }, ${nameList.map { "${get(it.key).waitFor()?.prefab?.instanceName}" }}, $nameMap"
     }
 
-    fun createSuperInstance(prefab: FileReference, depth: Int, clazzName: String): AsyncCacheData<PrefabSaveable> {
+    fun createSuperInstance(prefab: FileReference, depth: Int, clazzName: String): Promise<PrefabSaveable> {
         if (depth < 0) {
             LOGGER.warn("Circular dependency in $prefab, ${printDependencyGraph(prefab)}")
-            return AsyncCacheData.empty()
+            return Promise.empty()
         }
         val depth1 = depth - 1
-        val result = AsyncCacheData<PrefabSaveable>()
+        val result = Promise<PrefabSaveable>()
         PrefabCache[prefab, depth1].waitFor { pair ->
             val instance = pair
                 ?.prefab
@@ -136,10 +136,10 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
 
     private val jsonCache = CacheSection<FileReference, Saveable>("JsonCache")
 
-    fun loadJson(resource: FileReference?): AsyncCacheData<Saveable> {
+    fun loadJson(resource: FileReference?): Promise<Saveable> {
         return when (resource) {
-            InvalidRef, null -> AsyncCacheData.empty()
-            is PrefabReadable -> AsyncCacheData(resource.readPrefab())
+            InvalidRef, null -> Promise.empty()
+            is PrefabReadable -> Promise(resource.readPrefab())
             else -> jsonCache.getEntry(resource, 10_000) { resource, result ->
                 result.waitFor { saveable ->
                     if (saveable == null) LOGGER.warn("No Prefab found in $resource:${resource::class.simpleName}!")
@@ -286,7 +286,7 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
         }
     }
 
-    private val loadPrefabPair = { key: FileKey, result: AsyncCacheData<PrefabPair> ->
+    private val loadPrefabPair = { key: FileKey, result: Promise<PrefabPair> ->
         val file = key.file
         // LOGGER.info("Loading {}@{}", file, lastModified)
         ensureClasses()
@@ -301,7 +301,7 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
         }
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun <V : PrefabSaveable> loadOrInit(
         source: FileReference, clazz: KClass<V>, workspace: FileReference,
         fallbackGenerator: () -> V

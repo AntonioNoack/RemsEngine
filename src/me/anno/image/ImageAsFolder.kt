@@ -1,6 +1,6 @@
 package me.anno.image
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.missingColors
@@ -197,13 +197,13 @@ object ImageAsFolder {
         return signature in shouldIgnoreExt
     }
 
-    fun readImage(file: FileReference, forGPU: Boolean): AsyncCacheData<Image> {
-        val data = AsyncCacheData<Image>()
+    fun readImage(file: FileReference, forGPU: Boolean): Promise<Image> {
+        val data = Promise<Image>()
         readImage(file, forGPU, data)
         return data
     }
 
-    fun readImage(file: FileReference, forGPU: Boolean, result: AsyncCacheData<Image>) {
+    fun readImage(file: FileReference, forGPU: Boolean, result: Promise<Image>) {
         if (file is ImageReadable) {
             result.value = if (forGPU) file.readGPUImage() else file.readCPUImage()
         } else if (file is BundledRef || (file !is SignatureFile && file.length() < 10_000_000L)) { // < 10MB -> read directly
@@ -220,7 +220,7 @@ object ImageAsFolder {
         }
     }
 
-    private fun readImageFromBytes(file: FileReference, data: AsyncCacheData<Image>, bytes: ByteArray, forGPU: Boolean) {
+    private fun readImageFromBytes(file: FileReference, data: Promise<Image>, bytes: ByteArray, forGPU: Boolean) {
         val signature = Signature.findName(bytes)
         val tryFFMPEG = tryFFMPEG
         if (shouldIgnore(signature)) {
@@ -234,7 +234,7 @@ object ImageAsFolder {
         }
     }
 
-    private fun readImageWithSignature(file: FileReference, data: AsyncCacheData<Image>, signature: String?, forGPU: Boolean) {
+    private fun readImageWithSignature(file: FileReference, data: Promise<Image>, signature: String?, forGPU: Boolean) {
         val tryFFMPEG = tryFFMPEG
         if (shouldIgnore(signature)) {
             data.value = null

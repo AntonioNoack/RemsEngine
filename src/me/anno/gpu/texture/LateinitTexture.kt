@@ -1,5 +1,5 @@
 package me.anno.gpu.texture
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 
-typealias LateinitTexture = AsyncCacheData<ITexture2D>
+typealias LateinitTexture = Promise<ITexture2D>

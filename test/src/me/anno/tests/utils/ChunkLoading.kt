@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.ICacheData
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.chunks.PlayerLocation
@@ -25,7 +25,7 @@ fun main() {
     }
 
     val chunks = object : SingleChunkSystem<Chunk>() {
-        override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int, result: AsyncCacheData<Chunk>) {
+        override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int, result: Promise<Chunk>) {
             val chunk = Chunk(Vector3i(chunkX, chunkY, chunkZ))
             result.value = chunk
             synchronized(loadedChunks) {

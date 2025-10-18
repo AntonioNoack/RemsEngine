@@ -1,6 +1,6 @@
 package me.anno.io.files
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.io.Streams.readNBytes2
@@ -14,9 +14,8 @@ object SignatureCache : CacheSection<FileKey, Signature>("Signatures") {
 
     var timeoutMillis = 10_000L
 
-    private val generate: (key: FileKey, result: AsyncCacheData<Signature>) -> Unit = { key, result ->
-        val file = key.file
-        when (file) {
+    private val generate: (key: FileKey, result: Promise<Signature>) -> Unit = { key, result ->
+        when (val file = key.file) {
             is SignatureFile -> result.value = file.signature
             else -> {
                 // reads the bytes, or 255 if at end of file
@@ -38,7 +37,7 @@ object SignatureCache : CacheSection<FileKey, Signature>("Signatures") {
         }
     }
 
-    operator fun get(file: FileReference): AsyncCacheData<Signature> {
+    operator fun get(file: FileReference): Promise<Signature> {
         return getFileEntry(file, false, timeoutMillis, generate)
     }
 }

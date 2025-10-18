@@ -1,6 +1,6 @@
 package me.anno.gpu.drawing
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.config.DefaultConfig
 import me.anno.fonts.Codepoints
 import me.anno.fonts.Codepoints.codepoints
@@ -727,7 +727,7 @@ object DrawTexts {
         return getTextSizeX(font, text, -1, -1)
     }
 
-    fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): AsyncCacheData<Int> =
+    fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Promise<Int> =
         FontManager.getSize(font, text, widthLimit, heightLimit)
 
     fun getTextSizeOr(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
@@ -735,5 +735,5 @@ object DrawTexts {
             ?: return getSize(font.sampleWidth * text.length, font.sizeInt)
     }
 
-    fun getTextSize(key: TextCacheKey): AsyncCacheData<Int> = FontManager.getSize(key)
+    fun getTextSize(key: TextCacheKey): Promise<Int> = FontManager.getSize(key)
 }

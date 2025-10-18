@@ -2,7 +2,7 @@ package me.anno.utils
 
 import me.anno.Engine.shutdown
 import me.anno.Time
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.engine.Events
 import me.anno.engine.Events.getCalleeName
 import me.anno.gpu.GFX
@@ -58,7 +58,7 @@ object Sleep {
     }
 
     @JvmStatic
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean) {
         if (isFinished()) return // avoid getCalleeName()
         waitUntil(getCalleeName(), canBeKilled, isFinished)
@@ -69,7 +69,7 @@ object Sleep {
     }
 
     @JvmStatic
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun waitUntil(name: String, canBeKilled: Boolean, isFinished: () -> Boolean) {
         var lastTime = Time.nanoTime
         val mustWork = mustWorkTasks(ShallWork.WORK_IF_POSSIBLE)
@@ -98,7 +98,7 @@ object Sleep {
      * returns if you need to keep waiting
      * */
     @JvmStatic
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun waitUntilReturnWhetherIncomplete(canBeKilled: Boolean, timeoutNanos: Long, isFinished: () -> Boolean): Boolean {
         val timeLimit = Time.nanoTime + timeoutNanos
         val mustWork = mustWorkTasks(ShallWork.WORK_IF_POSSIBLE)
@@ -112,7 +112,7 @@ object Sleep {
     }
 
     @JvmStatic
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun acquire(canBeKilled: Boolean, semaphore: Semaphore, permits: Int = 1) {
         waitUntil(getCalleeName(), canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
     }
@@ -152,7 +152,7 @@ object Sleep {
      * returns V (or null on shutdown)
      * */
     @JvmStatic
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun <V> waitUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?): V? {
         var value: V? = null
         waitUntil(canBeKilled) {

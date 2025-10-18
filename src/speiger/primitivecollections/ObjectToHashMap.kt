@@ -1,6 +1,7 @@
 package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
+import me.anno.utils.assertions.assertEquals
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.HashUtil.getMaxFill
@@ -99,9 +100,7 @@ abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
                 numRemainingItems--
             }
         }
-        if (numRemainingItems != 0) {
-            throw ConcurrentModificationException("Map was modified during rehash")
-        }
+        assertEquals(0, numRemainingItems, "Map was modified during rehash")
 
         copyOver(newValues, newSize, values, nullIndex)
         nullIndex = newSize

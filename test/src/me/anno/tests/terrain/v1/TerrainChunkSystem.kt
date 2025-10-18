@@ -1,6 +1,6 @@
 package me.anno.tests.terrain.v1
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.systems.OnUpdate
@@ -17,7 +17,7 @@ class TerrainChunkSystem(val childrenContainer: Entity) :
         const val sx = 1 shl zBits
     }
 
-    override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int, result: AsyncCacheData<TerrainChunk>) {
+    override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int, result: Promise<TerrainChunk>) {
         result.value = TerrainChunk(chunkX, chunkZ)
     }
 

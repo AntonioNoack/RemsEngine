@@ -1,6 +1,6 @@
 package me.anno.ui.editor.files
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.engine.Events.addEvent
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -102,7 +102,7 @@ object SearchAlgorithm {
                 if (file.isDirectory || when (file.lcExtension) {
                         "zip", "rar", "7z", "s7z", "jar", "tar", "gz", "xz",
                         "bz2", "lz", "lz4", "lzma", "lzo", "z", "zst",
-                        "unitypackage" -> AsyncCacheData.loadSync { file.isSerializedFolder(it) } == true
+                        "unitypackage" -> Promise.loadSync { file.isSerializedFolder(it) } == true
                         else -> false
                     }
                 ) {
@@ -130,7 +130,7 @@ object SearchAlgorithm {
     }
 
     private fun createResultsImpl(self: FileExplorer, id: Int, whenDone: () -> Unit) {
-        val childrenResult = AsyncCacheData<List<FileReference>>()
+        val childrenResult = Promise<List<FileReference>>()
         self.folder.listChildren(childrenResult)
         Sleep.waitUntil("SearchAlgorithm", true, {
             childrenResult.hasValue || id != self.searchTask.id.get()

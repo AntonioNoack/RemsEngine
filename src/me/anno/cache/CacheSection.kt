@@ -14,9 +14,28 @@ import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
 
+/**
+ * This is effectively a thread-safe version of a HashMap<Key,Promise<Value>>(),
+ * and values are destroyed (dropped) automatically when they haven't been used in a while.
+ *
+ * The basic pattern to use this class is:
+ * /* inside Companion */ val cache = CacheSection("MyCache")
+ * /* normal code */ cache.getEntry(key,timeoutMillis) { key, result ->
+ *      // we're on a new thread, generate "result.value" and set it.
+ *      "result.value" must be set to null if the value could not be generated.
+ * }
+ * When a value is removed from the cache, ICacheData.destroy() will be called on it.
+ * If you don't want that, wrap Value.
+ *
+ * If you need to store different types of values, instantiate multiple cache sections.
+ *
+ * PS: I know about Kotlin Coroutines, but
+ * - I dislike manually coloring my methods, and
+ * - the library is quite large, and I want to keep the ability of running in the browser -> keep code size small
+ * */
 open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSection<*, *>> {
 
-    val cache = HashMap<Key, AsyncCacheData<Value>>(512)
+    val cache = HashMap<Key, Promise<Value>>(512)
 
     override fun compareTo(other: CacheSection<*, *>): Int {
         return name.compareTo(other.name)
@@ -31,13 +50,13 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
     }
 
     @Suppress("unused")
-    fun forEach(callback: (Key, AsyncCacheData<Value>) -> Unit) {
+    fun forEach(callback: (Key, Promise<Value>) -> Unit) {
         synchronized(cache) {
             cache.forEach(callback)
         }
     }
 
-    fun removeIf(filter: (Key, AsyncCacheData<Value>) -> Boolean): Int {
+    fun removeIf(filter: (Key, Promise<Value>) -> Boolean): Int {
         return synchronized(cache) {
             cache.removeIf { (k, v) ->
                 if (filter(k, v)) {
@@ -48,7 +67,7 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
         }
     }
 
-    fun removeEntry(key: Key, delete: Boolean = true): AsyncCacheData<Value>? {
+    fun removeEntry(key: Key, delete: Boolean = true): Promise<Value>? {
         return synchronized(cache) {
             val value = cache.remove(key)
             if (delete) value?.destroy()
@@ -60,7 +79,7 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
      * get the value, without generating it if it doesn't exist;
      * delta is added to its timeout, when necessary, so it stays loaded
      * */
-    fun getEntryWithoutGenerator(key: Key, delta: Long = 0L): AsyncCacheData<Value>? {
+    fun getEntryWithoutGenerator(key: Key, delta: Long = 0L): Promise<Value>? {
         val entry = synchronized(cache) { cache[key] } ?: return null
         if (delta > 0L) entry.update(delta)
         return entry
@@ -78,7 +97,7 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
     fun setValue(key: Key, newValue: Value, timeoutMillis: Long) {
         checkKey(key)
         val oldValue = synchronized(cache) {
-            val entry = AsyncCacheData<Value>()
+            val entry = Promise<Value>()
             entry.update(timeoutMillis)
             entry.value = newValue
             cache.put(key, entry)
@@ -88,13 +107,13 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
 
     fun <KeyI : Key> getEntry(
         key: KeyI, timeoutMillis: Long,
-        generator: (KeyI, AsyncCacheData<Value>) -> Unit
-    ): AsyncCacheData<Value> = getEntry(key, timeoutMillis, null, generator)
+        generator: (KeyI, Promise<Value>) -> Unit
+    ): Promise<Value> = getEntry(key, timeoutMillis, null, generator)
 
     fun <KeyI : Key> getEntry(
         key: KeyI, timeoutMillis: Long,
-        queue: ProcessingQueue?, generator: (KeyI, AsyncCacheData<Value>) -> Unit
-    ): AsyncCacheData<Value> {
+        queue: ProcessingQueue?, generator: (KeyI, Promise<Value>) -> Unit
+    ): Promise<Value> {
         checkKey(key)
 
         // new, async cache
@@ -105,7 +124,7 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
             var entry = cache[key]
             isGenerating = entry == null || entry.hasBeenDestroyed
             if (isGenerating) {
-                entry = AsyncCacheData()
+                entry = Promise()
                 cache[key] = entry
             }
             entry!!
@@ -201,7 +220,7 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
         }
 
         fun invalidateFiles(path: String) {
-            val filter = { key: Any?, data: Any? ->
+            val filter = { key: Any?, _: Any? ->
                 key is FileKey && key.file.absolutePath.startsWith(path, true)
             }
             val removed = ArrayList<IndexedValue<String>>()
@@ -232,8 +251,8 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
         }
 
         fun <K1, V : Any> generateSafely(
-            key: K1, entry: AsyncCacheData<V>,
-            generator: (K1, AsyncCacheData<V>) -> Unit
+            key: K1, entry: Promise<V>,
+            generator: (K1, Promise<V>) -> Unit
         ) {
             try {
                 generator(key, entry)
@@ -241,6 +260,21 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
             } catch (e: FileNotFoundException) {
                 warnFileMissing(e)
             } catch (e: Exception) {
+                LOGGER.warn(e)
+            }
+        }
+
+        fun <V : Any> callSafely(
+            value: V?, callback: (V?) -> Unit
+        ) {
+            try {
+                callback(value)
+            } catch (_: IgnoredException) {
+            } catch (e: FileNotFoundException) {
+                warnFileMissing(e)
+            } catch (e: Error) {
+                LOGGER.error(e)
+            } catch (e: Throwable) {
                 LOGGER.warn(e)
             }
         }

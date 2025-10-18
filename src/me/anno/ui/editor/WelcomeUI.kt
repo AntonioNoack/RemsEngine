@@ -1,6 +1,6 @@
 package me.anno.ui.editor
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
 import me.anno.engine.EngineBase
@@ -352,7 +352,7 @@ interface WelcomeUI {
                 else -> {}
             }
             if (alreadyExists) {
-                val project = AsyncCacheData.loadSync { loadProjectHeader(file, it) }
+                val project = Promise.loadSync { loadProjectHeader(file, it) }
                 if (project != null) {
                     nameInput.setValue(project.name, true)
                     msg = "Project already exists"

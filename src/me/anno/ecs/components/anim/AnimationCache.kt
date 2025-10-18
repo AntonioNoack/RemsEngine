@@ -1,6 +1,6 @@
 package me.anno.ecs.components.anim
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.DualCacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
@@ -39,7 +39,7 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class, "Animatio
         invalidate(animation, SkeletonCache.getEntry(skeleton).waitFor() ?: return)
     }
 
-    fun getMappedAnimation(animation: Animation, dstSkeleton: Skeleton): AsyncCacheData<BoneByBoneAnimation> {
+    fun getMappedAnimation(animation: Animation, dstSkeleton: Skeleton): Promise<BoneByBoneAnimation> {
         val s0 = animation.skeleton
         val s1 = dstSkeleton.ref
         return mappedAnimCache.getDualEntry(

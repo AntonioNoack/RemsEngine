@@ -11,7 +11,7 @@ import speiger.primitivecollections.callbacks.LongDoublePredicate
  * Wrapper around LongToLongHashMap
  * */
 class LongToDoubleHashMap(
-    @InternalAPI
+    @property:InternalAPI
     val content: LongToLongHashMap
 ) : PrimitiveCollection {
 

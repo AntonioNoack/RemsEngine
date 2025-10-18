@@ -1,6 +1,6 @@
 package me.anno.fonts.signeddistfields
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.fonts.Font
 import me.anno.fonts.GlyphLayout
@@ -54,7 +54,7 @@ class SDFGlyphLayout(
         private val queue = ProcessingQueue("SDFText")
         private val sdfCharTex = CacheSection<SDFCharKey, TextSDFList>("SDFCharTex")
 
-        fun getTextSDF(font: Font, codepoint: Int, roundCorners: Boolean): AsyncCacheData<TextSDFList> {
+        fun getTextSDF(font: Font, codepoint: Int, roundCorners: Boolean): Promise<TextSDFList> {
             val key = SDFCharKey(font, codepoint, roundCorners)
             return sdfCharTex.getEntry(key, SDF_TIMEOUT_MILLIS, queue) { key2, result ->
                 val textures = SignedDistanceField.createTextures(key2.font, key2.codepoint, key2.roundCorners)

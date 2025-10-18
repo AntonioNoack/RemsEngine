@@ -3,7 +3,7 @@ package me.anno.audio.streams
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioData
 import me.anno.audio.AudioFXCache
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.io.files.FileReference
 import me.anno.io.MediaMetadata
 
@@ -24,7 +24,7 @@ abstract class AudioFileStream(
     playbackSampleRate: Int = 48000,
     left: Boolean, center: Boolean, right: Boolean
 ) : AudioStream(speed, playbackSampleRate, left, center, right) {
-    override fun getBuffer(bufferIndex: Long): AsyncCacheData<AudioData> {
+    override fun getBuffer(bufferIndex: Long): Promise<AudioData> {
         return AudioFXCache.getBuffer(bufferIndex, this)
     }
 }

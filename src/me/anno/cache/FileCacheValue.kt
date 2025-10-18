@@ -8,10 +8,10 @@ import me.anno.io.files.LinkFileReference
  * */
 class FileCacheValue<V : Any>(
     file: FileReference,
-    val cache: (FileReference) -> AsyncCacheData<V>
+    val cache: (FileReference) -> Promise<V>
 ) {
 
-    private var cachedValue: AsyncCacheData<V>? = null
+    private var cachedValue: Promise<V>? = null
     private var lastModified: Long = 0L
 
     var file: FileReference = file
@@ -26,7 +26,7 @@ class FileCacheValue<V : Any>(
     val value: V?
         get() = waitFor().value
 
-    fun waitFor(): AsyncCacheData<V> {
+    fun waitFor(): Promise<V> {
 
         val file = file
         val cachedValue = cachedValue

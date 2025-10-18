@@ -1,7 +1,7 @@
 package me.anno.io.files
 
 import me.anno.Engine
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.ICacheData
 import me.anno.engine.EngineBase
 import me.anno.image.thumbs.ThumbnailCache
@@ -101,7 +101,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return getReference(appendPath(absolutePath, name))
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun getChildUnsafe(name: String): FileReference {
         if (this == InvalidRef) return InvalidRef
         val nameI = if ('\\' in name) { // please, don't use back-slashes
@@ -125,7 +125,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return result
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     private fun getChildImplI(result: FileReference, nameJ: String): FileReference {
         return when (nameJ) {
             "." -> result
@@ -134,10 +134,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     abstract fun getChildImpl(name: String): FileReference
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     abstract fun length(): Long
 
     abstract fun delete(): Boolean
@@ -193,19 +193,19 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         inputStream(callback.map { it.readBytes() })
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     open fun inputStreamSync(): InputStream = readSync { inputStream(Long.MAX_VALUE, false, it) }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     open fun readBytesSync(): ByteArray = readSync(::readBytes)
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     open fun readTextSync(): String = readSync(::readText)
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     open fun readByteBufferSync(native: Boolean): ByteBuffer = readSync { readByteBuffer(native, it) }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     private fun <V> readSync(reader: (Callback<V>) -> Unit): V {
         var e: Exception? = null
         var d: V? = null
@@ -231,7 +231,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         readLinesImpl(lineLengthLimit, true, callback)
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     open fun readLinesSync(lineLengthLimit: Int): ReadLineIterator {
         return readSync { readLinesImpl(lineLengthLimit, false, it) }
     }
@@ -340,9 +340,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     val zipFileForDirectory: FileReference?
-        get() = AsyncCacheData.loadSync(this::zipFileForDirectory)
+        get() = Promise.loadSync(this::zipFileForDirectory)
 
     fun zipFileForDirectory(callback: Callback<FileReference>) {
         InnerFolderCache.readAsFolder(this, true, callback.mapAsync { zipFile, cb ->
@@ -352,12 +352,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         })
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun getSibling(name: String): FileReference {
         return getParent().getChild(name)
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun getSiblingWithExtension(ext: String): FileReference {
         return getParent().getChild("$nameWithoutExtension.$ext")
     }
@@ -386,19 +386,19 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     abstract val isDirectory: Boolean
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     abstract val exists: Boolean
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     abstract val lastModified: Long
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     abstract val lastAccessed: Long
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     abstract val creationTime: Long
 
     override fun equals(other: Any?): Boolean {
@@ -424,9 +424,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun listChildren(): List<FileReference> {
-        return AsyncCacheData.loadSync(this::listChildren) ?: emptyList()
+        return Promise.loadSync(this::listChildren) ?: emptyList()
     }
 
     fun nullIfUndefined(): FileReference? {
@@ -439,7 +439,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         else this
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    @Deprecated(Promise.ASYNC_WARNING)
     fun printTree(depth: Int = 0) {
         LOGGER.info("${Strings.spaces(depth * 2)}$name")
         if (isDirectory) {

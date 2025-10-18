@@ -1,6 +1,6 @@
 package me.anno.mesh.obj
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
@@ -195,7 +195,7 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
             file: FileReference,
             dstFolder: InnerFolder = InnerFolder(file)
         ): InnerFolder? {
-            return AsyncCacheData.loadSync { readAsFolder(file, it, dstFolder) }
+            return Promise.loadSync { readAsFolder(file, it, dstFolder) }
         }
 
         private val LOGGER = LogManager.getLogger(MTLReader::class)

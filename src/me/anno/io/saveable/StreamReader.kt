@@ -1,6 +1,6 @@
 package me.anno.io.saveable
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.io.files.FileReference
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
@@ -32,7 +32,7 @@ interface StreamReader {
         return reader.allInstances
     }
 
-    fun read(file: FileReference, workspace: FileReference, safely: Boolean, result: AsyncCacheData<List<Saveable>>) {
+    fun read(file: FileReference, workspace: FileReference, safely: Boolean, result: Promise<List<Saveable>>) {
         file.inputStream(result.map { input ->
             read(input, workspace, file.absolutePath, safely)
         })
@@ -45,9 +45,9 @@ interface StreamReader {
     fun <Type : Saveable> readFirstOrNull(
         data: FileReference, workspace: FileReference,
         clazz: KClass<Type>, safely: Boolean,
-        result: AsyncCacheData<Type>
+        result: Promise<Type>
     ) {
-        val tmp = AsyncCacheData<List<Saveable>>()
+        val tmp = Promise<List<Saveable>>()
         read(data, workspace, safely, tmp)
         tmp.waitFor { result.value = it?.firstInstanceOrNull2(clazz) }
     }

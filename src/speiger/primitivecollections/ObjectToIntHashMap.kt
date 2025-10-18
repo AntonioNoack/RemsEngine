@@ -10,7 +10,7 @@ import speiger.primitivecollections.callbacks.ObjectIntPredicate
  * Wrapper around LongToLongHashMap
  * */
 class ObjectToIntHashMap<K>(
-    @InternalAPI
+    @property:InternalAPI
     val content: ObjectToLongHashMap<K>
 ) : PrimitiveCollection {
 

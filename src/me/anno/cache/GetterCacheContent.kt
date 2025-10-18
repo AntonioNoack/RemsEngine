@@ -1,9 +1,9 @@
 package me.anno.cache
 
 open class GetterCacheContent<V : Any, B : Any>(
-    val base: IAsyncCacheContent<B>,
+    val base: IPromiseBody<B>,
     val getter: (B) -> V?
-) : IAsyncCacheContent<V> {
+) : IPromiseBody<V> {
 
     override val hasExpired: Boolean get() = base.hasExpired
     override val timeoutCacheTime: Long get() = base.timeoutCacheTime

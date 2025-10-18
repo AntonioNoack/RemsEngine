@@ -41,7 +41,7 @@ abstract class FileCache<Key, Value : Any>(
 
     fun getFile(uniqueFileName: String) = cacheFolder.getChild(uniqueFileName)
 
-    fun generateFile(key: Key, result: AsyncCacheData<Value>) {
+    fun generateFile(key: Key, result: Promise<Value>) {
         init()
 
         val uuid = getUniqueFilename(key)

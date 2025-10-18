@@ -104,8 +104,6 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
         val uvs = mesh.uvs.resize(pos.size / 3 * 2)
         var j = 0
 
-        println("text: $sx x $sy, $dx,$y0-$y1")
-
         for (i in pos.indices step 3) {
             pos[i] = sign(flat11[i]) * sx + dx
             pos[i + 1] = if (flat11[i + 1] > 0f) y1 else y0

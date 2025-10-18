@@ -1,6 +1,6 @@
 package me.anno.maths.chunks.cartesian
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.maths.chunks.PlayerLocation
@@ -48,7 +48,7 @@ abstract class ChunkSystem<Chunk : Any, Element>(
 
     abstract fun createChunk(
         chunkX: Int, chunkY: Int, chunkZ: Int,
-        size: Int, result: AsyncCacheData<Chunk>
+        size: Int, result: Promise<Chunk>
     )
 
     abstract fun getElement(
@@ -64,7 +64,7 @@ abstract class ChunkSystem<Chunk : Any, Element>(
         index: Int, element: Element
     ): Boolean
 
-    open fun getChunk(chunkX: Int, chunkY: Int, chunkZ: Int, generateIfMissing: Boolean): AsyncCacheData<Chunk>? {
+    open fun getChunk(chunkX: Int, chunkY: Int, chunkZ: Int, generateIfMissing: Boolean): Promise<Chunk>? {
         val key = Vector3i(chunkX, chunkY, chunkZ)
         return if (generateIfMissing) {
             chunks.getEntry(key, timeoutMillis) { k, result ->
@@ -75,7 +75,7 @@ abstract class ChunkSystem<Chunk : Any, Element>(
         }
     }
 
-    fun removeChunk(chunkX: Int, chunkY: Int, chunkZ: Int): AsyncCacheData<Chunk>? {
+    fun removeChunk(chunkX: Int, chunkY: Int, chunkZ: Int): Promise<Chunk>? {
         return chunks.removeEntry(Vector3i(chunkX, chunkY, chunkZ))
     }
 
@@ -84,14 +84,14 @@ abstract class ChunkSystem<Chunk : Any, Element>(
         globalY: Double,
         globalZ: Double,
         generateIfMissing: Boolean
-    ): AsyncCacheData<Chunk>? {
+    ): Promise<Chunk>? {
         val cx = floor(globalX).toInt() shr bitsX
         val cy = floor(globalY).toInt() shr bitsY
         val cz = floor(globalZ).toInt() shr bitsZ
         return getChunk(cx, cy, cz, generateIfMissing)
     }
 
-    open fun getChunkAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): AsyncCacheData<Chunk>? {
+    open fun getChunkAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): Promise<Chunk>? {
         val cx = globalX shr bitsX
         val cy = globalY shr bitsY
         val cz = globalZ shr bitsZ

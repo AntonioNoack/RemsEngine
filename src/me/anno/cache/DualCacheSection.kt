@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentSkipListSet
  * */
 open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<DualCacheSection<*, *, *>> {
 
-    val dualCache = KeyPairMap<K1, K2, AsyncCacheData<V>>(512)
+    val dualCache = KeyPairMap<K1, K2, Promise<V>>(512)
 
     override fun compareTo(other: DualCacheSection<*, *, *>): Int {
         return name.compareTo(other.name)
@@ -30,7 +30,7 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
         }
     }
 
-    fun removeIf(filter: (K1, K2, AsyncCacheData<V>) -> Boolean): Int {
+    fun removeIf(filter: (K1, K2, Promise<V>) -> Boolean): Int {
         return synchronized(dualCache) {
             dualCache.removeIf { k1, k2, v ->
                 if (filter(k1, k2, v)) {
@@ -45,7 +45,7 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
      * get the value, without generating it if it doesn't exist;
      * delta is added to its timeout, when necessary, so it stays loaded
      * */
-    fun getDualEntryWithoutGenerator(key1: K1, key2: K2, delta: Long = 1L): AsyncCacheData<V>? {
+    fun getDualEntryWithoutGenerator(key1: K1, key2: K2, delta: Long = 1L): Promise<V>? {
         val entry = synchronized(dualCache) { dualCache[key1, key2] } ?: return null
         if (delta > 0L) entry.update(delta)
         return entry
@@ -64,7 +64,7 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
         checkKey(key0)
         checkKey(key1)
         val oldValue = synchronized(dualCache) {
-            val entry = AsyncCacheData<V>()
+            val entry = Promise<V>()
             entry.update(timeoutMillis)
             entry.value = newValue
             dualCache.put(key0, key1, entry)
@@ -74,8 +74,8 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
 
     fun <K1S : K1, K2S : K2> getDualEntry(
         key1: K1S, key2: K2S, timeoutMillis: Long,
-        generator: (key1: K1S, key2: K2S, dst: AsyncCacheData<V>) -> Unit
-    ): AsyncCacheData<V> {
+        generator: (key1: K1S, key2: K2S, dst: Promise<V>) -> Unit
+    ): Promise<V> {
 
         checkKey(key1)
         checkKey(key2)
@@ -88,7 +88,7 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
             var entry = dualCache[key1, key2]
             isGenerating = entry == null || entry.hasBeenDestroyed
             if (isGenerating) {
-                entry = AsyncCacheData()
+                entry = Promise()
                 dualCache[key1, key2] = entry
             }
             entry!!
@@ -131,8 +131,8 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
         val caches = ConcurrentSkipListSet<DualCacheSection<*, *, *>>()
 
         fun <K1, K2, V : Any> generateDualSafely(
-            key1: K1, key2: K2, entry: AsyncCacheData<V>,
-            generator: (K1, K2, AsyncCacheData<V>) -> Unit
+            key1: K1, key2: K2, entry: Promise<V>,
+            generator: (K1, K2, Promise<V>) -> Unit
         ) {
             try {
                 generator(key1, key2, entry)
