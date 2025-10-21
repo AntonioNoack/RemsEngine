@@ -37,8 +37,12 @@ fun main() {
     renderer.meshFile = folder.getChild("meshes/Object_0.json")
     val animations = folder.getChild("animations").listChildren()
         .map { it.getChild("Imported.json") }
-    renderer.animations = animations
-        .mapIndexed { idx, it -> AnimationState(it, if (idx == 0) 1f else 0f, 0f, 1f, LoopingState.PLAY_LOOP) }
+    renderer.animations = animations.mapIndexed { idx, it ->
+        AnimationState(
+            it, if (idx == 0) 1f else 0f, 0f, 1f,
+            LoopingState.PLAY_LOOP, false
+        )
+    }
 
     for ((idx, anim) in animations.withIndex()) {
         val node = AnimStateNode()

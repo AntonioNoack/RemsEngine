@@ -196,7 +196,7 @@ object AnimatedMeshesLoader {
                 arrayListOf(
                     AnimationState(
                         animMap.values.first().sourceFile, 1f,
-                        0f, 1f, LoopingState.PLAY_LOOP
+                        0f, 1f, LoopingState.PLAY_LOOP, false
                     )
                 )
             } else null // must be ArrayList

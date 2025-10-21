@@ -35,6 +35,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
+import me.anno.utils.OS
 import me.anno.utils.OS.documents
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Quaternionf
@@ -56,8 +57,13 @@ import org.joml.Vector3d
 
 val map = documents.getChild("CarChase.glb")
 
+val assets =
+    if (OS.isWindows) getReference("E:/Assets")
+    else getReference("/media/antonio/4TB WDRed/Assets")
+
 // todo: this probably should be created in the editor; there, we have much better control
-val heistPackage = getReference("E:/Assets/Unity/Polygon/Heist.unitypackage/Assets/PolygonHeist")
+val heistPackage = assets.getChild("Unity/Polygon/Heist.unitypackage/Assets/PolygonHeist")
+
 val carModel = heistPackage.getChild("Model/SM_Veh_Car_Police_Heist_01.fbx")
 val carModelMain = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_01-002.json")
 val carModelFL = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Wheel_fl-002.json")
@@ -207,7 +213,7 @@ fun createUI(): Panel {
 
     // todo before moving the camera with mouse movement, capture the mouse :)
 
-    Entity("Controls & Camera",carEntity)
+    Entity("Controls & Camera", carEntity)
         .add(orbitControls)
         .setPosition(0.4, 0.57, 0.15)
         .add(camEntity)
@@ -235,9 +241,11 @@ fun createUI(): Panel {
 
     scene.validateTransform()
 
-    return if (false) {
-        createSceneUI(scene)
-    } else list
+    if (true) {
+        return createSceneUI(scene)
+    }
+
+    return list
 }
 
 fun main() {

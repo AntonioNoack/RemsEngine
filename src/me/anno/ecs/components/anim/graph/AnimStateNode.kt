@@ -94,7 +94,8 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         if (selfAnimation == null) {
             selfAnimation = AnimationState(
                 source, 0f, progress,
-                speed, if (loop) LoopingState.PLAY_LOOP else LoopingState.PLAY_ONCE
+                speed, if (loop) LoopingState.PLAY_LOOP else LoopingState.PLAY_ONCE,
+                false
             )
             target.animations += selfAnimation
         }

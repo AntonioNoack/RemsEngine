@@ -20,7 +20,6 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.engine.ui.TextShapes.drawTextMesh
-import me.anno.engine.ui.render.MovingGrid
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers.simpleRenderer
 import me.anno.gpu.GFXState.useFrame
@@ -32,7 +31,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.Color
 import me.anno.utils.Color.black
-import me.anno.utils.GFXFeatures
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Matrix4x3
 import org.joml.Matrix4x3f
@@ -257,8 +255,11 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             val animState = animations[index]
             val weight = animState.weight
             if (abs(weight) > abs(dstWeights.min())) {
+
                 val animation = AnimationCache.getEntry(animState.source).waitFor() ?: continue
-                val frameIndex = animState.progress / animation.duration * animation.numFrames
+                val maxFrameIndex = if (animState.isContinuous) animation.numFrames else animation.numFrames - 1
+                val frameIndex = animState.progress / animation.duration * maxFrameIndex
+
                 val internalIndex = animTexture.getIndex(animation, frameIndex)
                 if (writeIndex < 4) {
                     dstIndices.setComponent(writeIndex, internalIndex)

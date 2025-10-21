@@ -45,7 +45,10 @@ fun main() {
     // create test scene
     val scene = Entity("Scene")
     val mesh = AnimMeshComponent()
-    val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
+    val animState = AnimationState(
+        animation.ref, 1f, 0f, 1f,
+        LoopingState.PLAY_LOOP, false
+    )
     mesh.animations = listOf(animState)
     mesh.meshFile = meshFile
     scene.add(mesh)

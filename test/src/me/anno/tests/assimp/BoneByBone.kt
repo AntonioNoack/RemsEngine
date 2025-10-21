@@ -6,10 +6,11 @@ import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.ui.render.SceneView
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
+import me.anno.engine.ui.render.SceneView
 import me.anno.utils.OS
+import me.anno.utils.structures.lists.Lists.wrap
 import org.apache.logging.log4j.LogManager
 
 fun main() {
@@ -33,7 +34,10 @@ fun main() {
         instance.name = anim1f.nameWithoutExtension
         instance.setPosition(i * 2.0, 0.0, 0.0)
         instance.forAllComponentsInChildren(AnimMeshComponent::class) {
-            it.animations = listOf(AnimationState(anim1f, 1f, 0f, 0.1f, LoopingState.PLAY_LOOP))
+            it.animations = AnimationState(
+                anim1f, 1f, 0f, 0.1f,
+                LoopingState.PLAY_LOOP, false
+            ).wrap()
         }
         scene.add(instance)
     }

@@ -106,7 +106,10 @@ class CompileTest {
         animation.rotations =
             FloatArray(4 * animation.boneCount * animation.frameCount) { if (it.and(3) == 3) 1f else 0f }
         animation.translations = FloatArray(4 * animation.boneCount * animation.frameCount) { it.toFloat() }
-        val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
+        val animState = AnimationState(
+            animation.ref, 1f, 0f, 1f,
+            LoopingState.PLAY_LOOP, false
+        )
         val offset = Entity(scene)
         offset.setPosition(3.0, 0.0, 0.0)
         offset.add(AnimMeshComponent().apply {

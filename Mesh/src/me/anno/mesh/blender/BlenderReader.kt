@@ -35,6 +35,7 @@ import me.anno.utils.Clock
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.structures.lists.Lists.castToList
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -435,8 +436,10 @@ object BlenderReader {
                             val animation =
                                 readAnimation(action, skeleton["bones"].castToList(Bone::class), skeletonRef, fps)
                             if (animation != null) {
-                                val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
-                                prefab[c, "animations"] = listOf(animState)
+                                prefab[c, "animations"] = AnimationState(
+                                    animation.ref, 1f, 0f, 1f,
+                                    LoopingState.PLAY_LOOP, false
+                                ).wrap()
                             }
                         }
                     } else {

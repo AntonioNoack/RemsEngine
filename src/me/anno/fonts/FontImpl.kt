@@ -172,7 +172,7 @@ abstract class FontImpl<FallbackFonts> {
         val widthLimit = GFX.maxTextureSize
         val heightLimit = GFX.maxTextureSize
 
-        val alignment = CharacterOffsetCache.getOffsetCache(font)
+        val alignment = getOffsetCache(font)
         val size = alignment.getOffset('w'.code, 'w'.code)
         val width = min(widthLimit, ceil(size).toIntOr() + 1)
         val height = min(heightLimit, ceil(getLineHeight(font)).toIntOr())

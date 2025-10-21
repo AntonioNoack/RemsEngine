@@ -114,16 +114,13 @@ class KinematicCharacterController(
      * is neither a direction nor a velocity, but the amount to increment the
      * position each simulation iteration, regardless of dt.
      *
-     *
-     *
-     *
      * This call will reset any velocity set by [.setVelocityForTimeInterval].
      */
     @Suppress("unused")
     fun setWalkDirection(walkDirection: Vector3d) {
         useWalkDirection = true
         this.walkDirection.set(walkDirection)
-        normalizedDirection.set(getNormalizedVector(walkDirection, Stack.newVec()))
+        normalizedDirection.set(walkDirection).safeNormalize()
     }
 
     /**
@@ -136,7 +133,7 @@ class KinematicCharacterController(
     fun setVelocityForTimeInterval(velocity: Vector3d, timeInterval: Double) {
         useWalkDirection = false
         walkDirection.set(velocity)
-        normalizedDirection.set(getNormalizedVector(walkDirection, Stack.newVec()))
+        normalizedDirection.set(walkDirection).safeNormalize()
         velocityTimeInterval = timeInterval
     }
 
@@ -611,15 +608,5 @@ class KinematicCharacterController(
             Vector3d(0.0, 1.0, 0.0),
             Vector3d(0.0, 0.0, 1.0),
         )
-
-        // static helper method
-        private fun getNormalizedVector(v: Vector3d, out: Vector3d): Vector3d {
-            out.set(v)
-            out.normalize()
-            if (out.length() < BulletGlobals.SIMD_EPSILON) {
-                out.set(0.0, 0.0, 0.0)
-            }
-            return out
-        }
     }
 }

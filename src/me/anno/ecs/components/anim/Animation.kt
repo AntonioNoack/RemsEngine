@@ -15,11 +15,13 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.fract
+import me.anno.maths.Maths.posMod
 import me.anno.utils.pooling.Pools
 import me.anno.utils.types.AnyToFloat
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * skeletal animation base class
@@ -30,16 +32,30 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
 
         data class FrameIndex(val fraction: Float, val index0: Int, val index1: Int)
 
-        fun calculateMonotonousTime(frameIndex: Float, frameCount: Int): FrameIndex {
+        fun calculateMonotonousTime(
+            frameIndex: Float, frameCount: Int,
+            isContinuous: Boolean = false
+        ): FrameIndex {
             val frameCount = max(frameCount, 1)
+            if (isContinuous) {
+                // interpolation between last and first frame is fine
+                val timeF = fract(frameIndex / frameCount) * frameCount
 
-            val timeF = fract(frameIndex / frameCount) * frameCount
+                val index0 = min(timeF.toInt(), frameCount - 1)
+                val index1 = posMod(index0 + 1, frameCount)
 
-            val index0 = timeF.toInt() % frameCount
-            val index1 = (index0 + 1) % frameCount
+                val fraction = timeF - index0
+                return FrameIndex(fraction, index0, index1)
+            } else {
+                // interpolation at the end if not ok
+                val timeF = fract(frameIndex / frameCount) * (frameCount - 1)
 
-            val fraction = fract(timeF)
-            return FrameIndex(fraction, index0, index1)
+                val index0 = min(timeF.toInt(), frameCount - 2)
+                val index1 = index0 + 1
+
+                val fraction = min(timeF - index0, 1f)
+                return FrameIndex(fraction, index0, index1)
+            }
         }
     }
 
@@ -140,7 +156,10 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         val bones = skeleton.bones
         val mesh = Mesh()
         val renderer = AnimMeshComponent()
-        val state = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
+        val state = AnimationState(
+            animation.ref, 1f, 0f, 1f,
+            LoopingState.PLAY_LOOP, false
+        )
 
         init {
             val size = (bones.size - 1) * Skeleton.boneMeshVertices.size

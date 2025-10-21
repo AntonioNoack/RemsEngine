@@ -12,6 +12,7 @@ import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView
 import me.anno.utils.OS
+import me.anno.utils.structures.lists.Lists.wrap
 
 fun main() {
     // todo for testing, find an easier case: one, where the mesh isn't rotated/scaled
@@ -24,7 +25,10 @@ fun main() {
     val animation = animFile.getChild("animations/mixamo.com/BoneByBone.json")
     lateinit var testedComponent: AnimMeshComponent
     scene.forAllComponentsInChildren(AnimMeshComponent::class) { mesh ->
-        mesh.animations = listOf(AnimationState(animation, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
+        mesh.animations = AnimationState(
+            animation, 1f, 0f, 1f,
+            LoopingState.PLAY_LOOP, false
+        ).wrap()
         testedComponent = mesh
     }
     val retargeting = Retargetings.getRetargeting(

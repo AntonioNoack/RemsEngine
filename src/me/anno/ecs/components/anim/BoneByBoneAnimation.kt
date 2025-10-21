@@ -206,7 +206,7 @@ class BoneByBoneAnimation() : Animation() {
         fun calculateRecursively(boneIndex: Int) {
             val bone = bones[boneIndex]
             val parentId = bone.parentIndex
-            if (parentId in dst.indices) calculateRecursively(boneIndex)
+            if (parentId in dst.indices) calculateRecursively(parentId)
             getTranslation(fraction, frameIndex0, frameIndex1, boneIndex, pos)
             getRotation(fraction, frameIndex0, frameIndex1, boneIndex, tmpRot1, tmpRot)
             getScale(fraction, frameIndex0, frameIndex1, boneIndex, tmpSca)
@@ -244,11 +244,11 @@ class BoneByBoneAnimation() : Animation() {
         fun calculateRecursively(boneIndex: Int) {
             val bone = bones[boneIndex]
             val parentId = bone.parentIndex
-            if (parentId in dst.indices) calculateRecursively(boneIndex)
+            if (parentId in dst.indices) calculateRecursively(parentId)
             getTranslation(frameIndex, boneIndex, tmpPos)
             getRotation(frameIndex, boneIndex, tmpRot)
             getScale(frameIndex, boneIndex, tmpSca)
-            println("$boneIndex.pos/rot/sca: $tmpPos, $tmpRot, $tmpSca")
+            // println("$boneIndex.pos/rot/sca: $tmpPos, $tmpRot, $tmpSca")
             toImported(bone, dst.getOrNull(parentId), tmpPos, tmpRot, tmpSca, dst[boneIndex])
         }
         calculateRecursively(boneIndex)
