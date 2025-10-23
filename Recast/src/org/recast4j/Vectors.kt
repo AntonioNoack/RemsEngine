@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j
 
+import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.utils.structures.tuples.FloatPair
 import org.joml.AABBi
@@ -68,50 +69,18 @@ object Vectors {
 
     var EPS = 1e-4f
 
-    /**
-     * dst = a + b * f
-     */
-    fun mad(a: Vector3f, b: Vector3f, f: Float, dst: Vector3f) {
-        b.mulAdd(f, a, dst)
-    }
-
-    fun lerp(a: Float, b: Float, t: Float): Float = a + (b - a) * t
-
     fun lerp(vertices: FloatArray, v1: Int, v2: Int, t: Float, dst: Vector3f) {
         dst.set(
-            lerp(vertices[v1], vertices[v2], t),
-            lerp(vertices[v1 + 1], vertices[v2 + 1], t),
-            lerp(vertices[v1 + 2], vertices[v2 + 2], t),
+            mix(vertices[v1], vertices[v2], t),
+            mix(vertices[v1 + 1], vertices[v2 + 1], t),
+            mix(vertices[v1 + 2], vertices[v2 + 2], t),
         )
     }
 
     fun lerp(vertices: FloatArray, v1: Int, v2: Int, t: Float, dst: FloatArray, dstI: Int) {
-        dst[dstI] = lerp(vertices[v1], vertices[v2], t)
-        dst[dstI + 1] = lerp(vertices[v1 + 1], vertices[v2 + 1], t)
-        dst[dstI + 2] = lerp(vertices[v1 + 2], vertices[v2 + 2], t)
-    }
-
-    fun copy(dst: Vector3f, src: IntArray, srcI: Int) {
-        dst.set(
-            src[srcI].toFloat(),
-            src[srcI + 1].toFloat(),
-            src[srcI + 2].toFloat()
-        )
-    }
-
-    /**
-     * Derives the distance between the specified points on the xz-plane.
-     */
-    fun dist2D(v1: Vector3f, v2: Vector3f): Float {
-        val dx = v2.x - v1.x
-        val dz = v2.z - v1.z
-        return sqrt((dx * dx + dz * dz))
-    }
-
-    fun dist2DSqr(v1: Vector3f, v2: Vector3f): Float {
-        val dx = v2.x - v1.x
-        val dz = v2.z - v1.z
-        return dx * dx + dz * dz
+        dst[dstI] = mix(vertices[v1], vertices[v2], t)
+        dst[dstI + 1] = mix(vertices[v1 + 1], vertices[v2 + 1], t)
+        dst[dstI + 2] = mix(vertices[v1 + 2], vertices[v2 + 2], t)
     }
 
     fun dist2DSqr(p: Vector3f, vertices: FloatArray, i: Int): Float {
@@ -543,7 +512,7 @@ object Vectors {
     }
 
     fun oppositeTile(side: Int): Int {
-        return side + 4 and 0x7
+        return (side + 4).and(7)
     }
 
     fun intersectSegSeg2D(a0: Vector3f, a1: Vector3f, b0: Vector3f, b1: Vector3f): FloatPair? {

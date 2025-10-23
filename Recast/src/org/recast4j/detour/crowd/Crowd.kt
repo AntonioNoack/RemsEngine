@@ -688,7 +688,7 @@ class Crowd @JvmOverloads constructor(
         // Update the collision boundary after certain distance has been passed or
         // if it has become invalid.
         val updateThr = ag.params.collisionQueryRange * 0.25f
-        if (Vectors.dist2DSqr(ag.currentPosition, ag.boundary.center) > updateThr * updateThr
+        if (ag.currentPosition.distanceXZSquared( ag.boundary.center) > updateThr * updateThr
             || !ag.boundary.isValid(navQuery, filters[ag.params.queryFilterType])
         ) {
             ag.boundary.update(
@@ -817,7 +817,7 @@ class Crowd @JvmOverloads constructor(
             anim.polyRef = refs[1]
             anim.active = true
             anim.t = 0f
-            anim.tMax = Vectors.dist2D(anim.startPos, anim.endPos) / ag.params.maxSpeed * 0.5f
+            anim.tMax = anim.startPos.distanceXZ(anim.endPos) / ag.params.maxSpeed * 0.5f
             ag.state = CrowdAgentState.OFF_MESH
             StraightPathItem.clear(ag.corners)
             synchronized(neighbourCache) {

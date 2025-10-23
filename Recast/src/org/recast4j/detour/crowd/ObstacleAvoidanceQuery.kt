@@ -143,8 +143,10 @@ class ObstacleAvoidanceQuery(maxNumCircles: Int, maxNumSegments: Int) {
         minPenalty: Float, debug: ObstacleAvoidanceDebugData?
     ): Float {
         // penalty for straying away from the desired and current velocities
-        val desiredVelocityPenalty = params.weightDesiredVelocity * (Vectors.dist2D(sampledVelocity, desiredVelocity) * invMaxVelocity)
-        val currentVelocityPenalty = params.weightActualVelocity * (Vectors.dist2D(sampledVelocity, actualVelocity) * invMaxVelocity)
+        val desiredVelocityPenalty =
+            params.weightDesiredVelocity * (sampledVelocity.distanceXZ(desiredVelocity) * invMaxVelocity)
+        val currentVelocityPenalty =
+            params.weightActualVelocity * (sampledVelocity.distanceXZ(actualVelocity) * invMaxVelocity)
 
         // find the threshold hit time to bail out based on the early out penalty
         // (see how the penalty is calculated below to understnad)

@@ -21,8 +21,6 @@ package org.recast4j.detour.crowd
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3f
 import org.recast4j.LongArrayList
-import org.recast4j.Vectors.dist2D
-import org.recast4j.Vectors.dist2DSqr
 import org.recast4j.detour.NavMeshQuery
 import org.recast4j.detour.NodePool
 import org.recast4j.detour.PortalResult
@@ -232,7 +230,7 @@ class PathCorridor {
         for (i in path.indices) {
             val spi = path[i]
             if (spi.flags.hasFlag(NavMeshQuery.DT_STRAIGHTPATH_OFFMESH_CONNECTION) ||
-                dist2DSqr(spi.pos, pos) > MIN_TARGET_DIST
+                spi.pos.distanceXZSquared(pos) > MIN_TARGET_DIST_SQ
             ) break
             start++
         }
@@ -287,7 +285,7 @@ class PathCorridor {
         filter: QueryFilter?
     ) {
         // Clamp the ray to max distance.
-        var dist = dist2D(pos, next)
+        var dist = pos.distanceXZ(next)
 
         // If too close to the goal, do not try to optimize.
         if (dist < 0.01f) {
@@ -539,6 +537,6 @@ class PathCorridor {
         get() = if (path.isEmpty()) 0 else path[path.size - 1]
 
     companion object {
-        private const val MIN_TARGET_DIST = 1e-4f
+        private const val MIN_TARGET_DIST_SQ = 1e-4f
     }
 }

@@ -37,7 +37,7 @@ internal object TrajectorySampler {
         tra: Trajectory
     ): Boolean {
         val cs = min(acfg.cellSize, acfg.cellHeight)
-        val d = Vectors.dist2D(pa, pb) + abs(pa.y - pb.y)
+        val d = pa.distanceXZ(pb) + abs(pa.y - pb.y)
         val l = max(2, ceil((d / cs)).toInt())
         for (i in 0 until l) {
             val u = i.toFloat() / (l - 1).toFloat()

@@ -20,7 +20,6 @@ package org.recast4j.detour.crowd
 
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3f
-import org.recast4j.Vectors
 import org.recast4j.detour.NavMeshQuery
 import org.recast4j.detour.StraightPathItem
 import org.recast4j.detour.crowd.Crowd.CrowdNeighbour
@@ -106,7 +105,7 @@ class CrowdAgent(val idx: Int) {
     fun overOffMeshConnection(radius: Float): Boolean {
         val lastCorner = corners.lastOrNull() ?: return false
         if (lastCorner.flags.hasFlag(NavMeshQuery.DT_STRAIGHTPATH_OFFMESH_CONNECTION)) {
-            val distSq = Vectors.dist2DSqr(currentPosition, lastCorner.pos)
+            val distSq = currentPosition.distanceXZSquared(lastCorner.pos)
             return distSq < radius * radius
         }
         return false
@@ -115,7 +114,7 @@ class CrowdAgent(val idx: Int) {
     fun getDistanceToGoal(maxDistance: Float = 1e38f): Float {
         val lastCorner = corners.lastOrNull() ?: return maxDistance
         val endOfPath = lastCorner.flags and NavMeshQuery.DT_STRAIGHTPATH_END != 0
-        return if (endOfPath) min(Vectors.dist2D(currentPosition, lastCorner.pos), maxDistance) else maxDistance
+        return if (endOfPath) min(currentPosition.distanceXZ(lastCorner.pos), maxDistance) else maxDistance
     }
 
     fun calcSmoothSteerDirection(dst: Vector3f): Vector3f {

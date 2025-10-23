@@ -1,6 +1,5 @@
 package org.recast4j.detour.extras.jumplink
 
-import org.recast4j.Vectors
 import org.recast4j.recast.RecastBuilderResult
 import kotlin.math.max
 import kotlin.math.min
@@ -50,8 +49,9 @@ class JumpLinkBuilder(private val results: List<RecastBuilderResult>) {
         val endSamples = end.samples!!
         val ep = endSamples[js.startSample].position
         val eq = endSamples[js.startSample + js.samples - 1].position
-        val distance = min(Vectors.dist2DSqr(sp, sq), Vectors.dist2DSqr(ep, eq))
+        val distance = min(sp.distanceXZSquared(sq), ep.distanceXZSquared(eq))
         if (distance.isNaN() || distance < minDistance) return null
+
         val link = JumpLink()
         link.startSamples = startSamples.copyOfRange(js.startSample, js.startSample + js.samples)
         link.endSamples = endSamples.copyOfRange(js.startSample, js.startSample + js.samples)
