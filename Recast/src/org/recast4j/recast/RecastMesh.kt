@@ -293,7 +293,7 @@ object RecastMesh {
 
     private fun triangulate(n: Int, vertices: IntArray, indices: IntArray, tris: IntArray): Int {
         var n = n
-        var ntris = 0
+        var numTriangles = 0
 
         // The last bit of the index is used to indicate if the vertex can be removed.
         for (i in 0 until n) {
@@ -314,7 +314,7 @@ object RecastMesh {
                     val dx = vertices[p2] - vertices[p0]
                     val dy = vertices[p2 + 2] - vertices[p0 + 2]
                     val len = dx * dx + dy * dy
-                    if (minLen < 0 || len < minLen) {
+                    if (minLen !in 0..len) {
                         minLen = len
                         mini = i
                     }
@@ -338,7 +338,7 @@ object RecastMesh {
                         val dx = vertices[p2] - vertices[p0]
                         val dy = vertices[p2 + 2] - vertices[p0 + 2]
                         val len = dx * dx + dy * dy
-                        if (minLen < 0 || len < minLen) {
+                        if (minLen !in 0..len) {
                             minLen = len
                             mini = i
                         }
@@ -347,16 +347,16 @@ object RecastMesh {
                 if (mini == -1) {
                     // The contour is messed up. This sometimes happens
                     // if the contour simplification is too aggressive.
-                    return -ntris
+                    return -numTriangles
                 }
             }
             var i = mini
             var i1 = next(i, n)
             val i2 = next(i1, n)
-            tris[ntris * 3] = indices[i] and 0x0fffffff
-            tris[ntris * 3 + 1] = indices[i1] and 0x0fffffff
-            tris[ntris * 3 + 2] = indices[i2] and 0x0fffffff
-            ntris++
+            tris[numTriangles * 3] = indices[i] and 0x0fffffff
+            tris[numTriangles * 3 + 1] = indices[i1] and 0x0fffffff
+            tris[numTriangles * 3 + 2] = indices[i2] and 0x0fffffff
+            numTriangles++
 
             // Removes P[i1] by copying P[i+1]...P[n-1] left one index.
             n--
@@ -371,11 +371,11 @@ object RecastMesh {
         }
 
         // Append the remaining triangle.
-        tris[ntris * 3] = indices[0] and 0x0fffffff
-        tris[ntris * 3 + 1] = indices[1] and 0x0fffffff
-        tris[ntris * 3 + 2] = indices[2] and 0x0fffffff
-        ntris++
-        return ntris
+        tris[numTriangles * 3] = indices[0] and 0x0fffffff
+        tris[numTriangles * 3 + 1] = indices[1] and 0x0fffffff
+        tris[numTriangles * 3 + 2] = indices[2] and 0x0fffffff
+        numTriangles++
+        return numTriangles
     }
 
     private fun countPolyVertices(p: IntArray, j: Int, nvp: Int): Int {
@@ -383,7 +383,7 @@ object RecastMesh {
         return nvp
     }
 
-    private fun uleft(vertices: IntArray, a: Int, b: Int, c: Int): Boolean {
+    private fun isLeft(vertices: IntArray, a: Int, b: Int, c: Int): Boolean {
         return (vertices[b] - vertices[a]) * (vertices[c + 2] - vertices[a + 2]) - (vertices[c] - vertices[a]) * (vertices[b + 2] - vertices[a + 2]) < 0
     }
 
@@ -428,11 +428,11 @@ object RecastMesh {
         var va = polys[pa + (ea + na - 1) % na]
         var vb = polys[pa + ea]
         var vc = polys[pb + (eb + 2) % nb]
-        if (!uleft(vertices, va * 3, vb * 3, vc * 3)) return intArrayOf(-1, ea, eb)
+        if (!isLeft(vertices, va * 3, vb * 3, vc * 3)) return intArrayOf(-1, ea, eb)
         va = polys[pb + (eb + nb - 1) % nb]
         vb = polys[pb + eb]
         vc = polys[pa + (ea + 2) % na]
-        if (!uleft(vertices, va * 3, vb * 3, vc * 3)) return intArrayOf(-1, ea, eb)
+        if (!isLeft(vertices, va * 3, vb * 3, vc * 3)) return intArrayOf(-1, ea, eb)
         va = polys[pa + ea]
         vb = polys[pa + (ea + 1) % na]
         val dx = vertices[va * 3] - vertices[vb * 3]
@@ -853,23 +853,23 @@ object RecastMesh {
     }
 
     /**
-     * @note If the mesh data is to be used to construct a Detour navigation mesh, then the upper
-     * limit must be retricted to <= #DT_VERTICES_PER_POLYGON.
+     * @note If the mesh data is to be used to construct a Detour navigation mesh,
+     * then the upper limit must be restricted to <= #DT_VERTICES_PER_POLYGON.
      *
-     * @see rcAllocPolyMesh, rcContourSet, rcPolyMesh, rcConfig
+     * @see AllocPolyMesh, rcContourSet, rcPolyMesh, rcConfig
      */
-    fun buildPolyMesh(ctx: Telemetry?, cset: ContourSet, nvp: Int): PolyMesh {
+    fun buildPolyMesh(ctx: Telemetry?, contourSet: ContourSet, nvp: Int): PolyMesh {
         ctx?.startTimer(TelemetryType.POLYMESH)
         val mesh = PolyMesh()
-        mesh.bounds.set(cset.bounds)
-        mesh.cellSize = cset.cellSize
-        mesh.cellHeight = cset.cellHeight
-        mesh.borderSize = cset.borderSize
-        mesh.maxEdgeError = cset.maxError
+        mesh.bounds.set(contourSet.bounds)
+        mesh.cellSize = contourSet.cellSize
+        mesh.cellHeight = contourSet.cellHeight
+        mesh.borderSize = contourSet.borderSize
+        mesh.maxEdgeError = contourSet.maxError
         var maxVertices = 0
         var maxTris = 0
         var maxVerticesPerCont = 0
-        val contours = cset.contours
+        val contours = contourSet.contours
         for (i in contours.indices) {
             // Skip null contours.
             val contour = contours[i]
@@ -900,18 +900,10 @@ object RecastMesh {
         val polys = IntArray((maxVerticesPerCont + 1) * nvp)
         val tmpPoly = maxVerticesPerCont * nvp
         triangulateContours(
-            ctx,
-            cset,
-            indices,
-            tris,
-            mesh,
-            firstVert,
-            nextVert,
-            toBeRemovedVertices,
-            nvp,
-            polys,
-            tmpPoly,
-            maxTris
+            ctx, contourSet, indices,
+            tris, mesh, firstVert, nextVert,
+            toBeRemovedVertices, nvp, polys,
+            tmpPoly, maxTris
         )
 
         // Remove edge vertices.
@@ -922,7 +914,7 @@ object RecastMesh {
 
         // Find portal edges
         if (mesh.borderSize > 0) {
-            findPortalEdges(cset, mesh, nvp)
+            findPortalEdges(contourSet, mesh, nvp)
         }
 
         // Just allocate the mesh flags array. The user is responsible to fill it.
@@ -1120,7 +1112,7 @@ object RecastMesh {
         }
     }
 
-    /** @see rcAllocPolyMesh, rcPolyMesh */
+    /** @see AllocPolyMesh, rcPolyMesh */
     fun mergePolyMeshes(ctx: Telemetry?, meshes: Array<PolyMesh>?, numMeshes: Int): PolyMesh? {
         if (numMeshes == 0 || meshes == null) return null
         ctx?.startTimer(TelemetryType.MERGE_POLYMESH)

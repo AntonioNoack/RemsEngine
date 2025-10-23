@@ -1060,7 +1060,7 @@ object RecastRegion {
      * After this step, the distance data is available via the rcCompactHeightfield::maxDistance
      * and rcCompactHeightfield::dist fields.
      *
-     * @see rcCompactHeightfield, rcBuildRegions, rcBuildRegionsMonotone
+     * @see CompactHeightfield, rcBuildRegions, rcBuildRegionsMonotone
      */
     fun buildDistanceField(ctx: Telemetry?, chf: CompactHeightfield) {
         ctx?.startTimer(TelemetryType.DISTANCE_FIELD)
@@ -1113,7 +1113,7 @@ object RecastRegion {
      *
      * @warning The distance field must be created using #rcBuildDistanceField before attempting to build regions.
      *
-     * @see rcCompactHeightfield, rcCompactSpan, rcBuildDistanceField, rcBuildRegionsMonotone, rcConfig
+     * @see CompactHeightfield, rcCompactSpan, rcBuildDistanceField, rcBuildRegionsMonotone, rcConfig
      */
     fun buildRegionsMonotone(
         ctx: Telemetry?, chf: CompactHeightfield, minRegionArea: Int,
@@ -1264,7 +1264,7 @@ object RecastRegion {
      *
      * @warning The distance field must be created using #rcBuildDistanceField before attempting to build regions.
      *
-     * @see rcCompactHeightfield, rcCompactSpan, rcBuildDistanceField, rcBuildRegionsMonotone, rcConfig
+     * @see CompactHeightfield, rcCompactSpan, rcBuildDistanceField, rcBuildRegionsMonotone, rcConfig
      */
     fun buildRegions(
         ctx: Telemetry?, chf: CompactHeightfield, minRegionArea: Int,

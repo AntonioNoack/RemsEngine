@@ -88,8 +88,7 @@ object RecastLayers {
                         val ai: Int = chf.index[ax + ay * w] + getCon(s, 3)
                         val nr = srcReg[ai]
                         if (nr != 0xff) {
-                            // Set neighbour when first valid neighbour is
-                            // encoutered.
+                            // Set neighbour when first valid neighbour is encountered.
                             val sweep = sweeps[sid]
                             if (sweep.numSamples == 0) sweep.neighborId = nr
                             if (sweep.neighborId == nr) {
@@ -97,8 +96,7 @@ object RecastLayers {
                                 sweep.numSamples++
                                 prevCount[nr]++
                             } else {
-                                // This is hit if there is nore than one
-                                // neighbour.
+                                // This is hit if there is more than one neighbour.
                                 // Invalidate the neighbour.
                                 sweep.neighborId = 0xff
                             }
@@ -110,10 +108,8 @@ object RecastLayers {
 
             // Create unique ID.
             for (i in 0 until sweepId) {
-                // If the neighbour is set and there is only one continuous
-                // connection to it,
-                // the sweep will be merged with the previous one, else new
-                // region is created.
+                // If the neighbour is set and there is only one continuous connection to it,
+                // the sweep will be merged with the previous one, else new region is created.
                 val sweep = sweeps[i]
                 if (sweep.neighborId != 0xff && prevCount[sweep.neighborId] == sweep.numSamples) {
                     sweep.regionId = sweep.neighborId
@@ -135,9 +131,8 @@ object RecastLayers {
                 }
             }
         }
-        val nregs = regId
         // Construct regions
-        val regions = Array(nregs) { LayerRegion(it) }
+        val regions = Array(regId) { LayerRegion(it) }
 
         // Find region neighbours and overlapping regions.
         val lregs = IntArrayList()
@@ -167,7 +162,7 @@ object RecastLayers {
                             val ai: Int = chf.index[ax + ay * w] + getCon(s, dir)
                             val rai = srcReg[ai]
                             if (rai != 0xff && rai != ri) {
-                                addUnique(regRi.neis, rai)
+                                addUnique(regRi.neighbors, rai)
                             }
                         }
                     }
@@ -190,7 +185,7 @@ object RecastLayers {
         // Create 2D layers from regions.
         var layerId = 0
         val stack = IntArrayList()
-        for (i in 0 until nregs) {
+        for (i in regions.indices) {
             val root = regions[i]
             // Skip already visited.
             if (root.layerId != 0xff) continue
@@ -202,8 +197,8 @@ object RecastLayers {
             while (!stack.isEmpty()) {
                 // Pop front
                 val reg = regions[stack.remove(0)]
-                for (neii in 0 until reg.neis.size) {
-                    val nei = reg.neis[neii]
+                for (neii in 0 until reg.neighbors.size) {
+                    val nei = reg.neighbors[neii]
                     val region = regions[nei]
                     // Skip already visited.
                     if (region.layerId != 0xff) continue
@@ -232,13 +227,13 @@ object RecastLayers {
 
         // Merge non-overlapping regions that are close in height.
         val mergeHeight = walkableHeight * 4
-        for (i in 0 until nregs) {
+        for (i in regions.indices) {
             val ri = regions[i]
             if (!ri.base) continue
             val newId = ri.layerId
             while (true) {
                 var oldId = 0xff
-                for (j in 0 until nregs) {
+                for (j in regions.indices) {
                     if (i == j) continue
                     val rj = regions[j]
                     if (!rj.base) continue
@@ -255,7 +250,7 @@ object RecastLayers {
                     var overlap = false
                     // Iterate over all regions which have the same layerId as
                     // 'rj'
-                    for (k in 0 until nregs) {
+                    for (k in regions.indices) {
                         if (regions[k].layerId != rj.layerId) continue
                         // Check if region 'k' is overlapping region 'ri'
                         // Index to 'regs' is the same as region id.
@@ -276,7 +271,7 @@ object RecastLayers {
                 if (oldId == 0xff) break
 
                 // Merge
-                for (j in 0 until nregs) {
+                for (j in regions.indices) {
                     val rj = regions[j]
                     if (rj.layerId == oldId) {
                         rj.base = false
@@ -299,12 +294,12 @@ object RecastLayers {
 
         // Find number of unique layers.
         layerId = 0
-        for (i in 0 until nregs) remap[regions[i].layerId] = 1
+        for (i in regions.indices) remap[regions[i].layerId] = 1
         for (i in 0..255) {
             if (remap[i] != 0) remap[i] = layerId++ else remap[i] = 0xff
         }
         // Remap ids.
-        for (i in 0 until nregs) regions[i].layerId = remap[regions[i].layerId]
+        for (i in regions.indices) regions[i].layerId = remap[regions[i].layerId]
 
         // No layers, return empty.
         if (layerId == 0) {
@@ -333,13 +328,13 @@ object RecastLayers {
             layer.cons = IntArray(gridSize)
 
             // Find layer height bounds.
-            var hmin = 0
-            var hmax = 0
-            for (j in 0 until nregs) {
+            var minH = 0
+            var maxH = 0
+            for (j in regions.indices) {
                 val regJ = regions[j]
                 if (regJ.base && regJ.layerId == curId) {
-                    hmin = regJ.yMin
-                    hmax = regJ.yMax
+                    minH = regJ.yMin
+                    maxH = regJ.yMax
                 }
             }
             layer.width = lw
@@ -347,12 +342,12 @@ object RecastLayers {
             layer.cellSize = chf.cellSize
             layer.cellHeight = chf.cellHeight
 
-            // Adjust the bbox to fit the heightfield.
+            // Adjust the bounding box to fit the heightfield.
             layer.bounds.set(bounds)
-            layer.bounds.minY = bounds.minY + hmin * chf.cellHeight
-            layer.bounds.maxY = bounds.minY + hmax * chf.cellHeight
-            layer.minH = hmin
-            layer.maxH = hmax
+            layer.bounds.minY = bounds.minY + minH * chf.cellHeight
+            layer.bounds.maxY = bounds.minY + maxH * chf.cellHeight
+            layer.minH = minH
+            layer.maxH = maxH
 
             // Update usable data region.
             layer.minX = layer.width
@@ -386,7 +381,7 @@ object RecastLayers {
 
                         // Store height and area type.
                         val idx = x + y * lw
-                        layer.heights[idx] = (s.y - hmin).toChar().code
+                        layer.heights[idx] = (s.y - minH).toChar().code
                         layer.areas[idx] = chf.areas[j]
 
                         // Check connection.
@@ -404,8 +399,8 @@ object RecastLayers {
                                     // Update height so that it matches on both
                                     // sides of the portal.
                                     val ass = chf.spans[ai]
-                                    if (ass.y > hmin) layer.heights[idx] =
-                                        max(layer.heights[idx], (ass.y - hmin).toChar().code)
+                                    if (ass.y > minH) layer.heights[idx] =
+                                        max(layer.heights[idx], (ass.y - minH).toChar().code)
                                 }
                                 // Valid connection mask
                                 if (chf.areas[ai] != RC_NULL_AREA && lid == alid) {
@@ -422,11 +417,11 @@ object RecastLayers {
             }
             if (layer.minX > layer.maxX) {
                 layer.maxX = 0
-                layer.minX = layer.maxX
+                layer.minX = 0
             }
             if (layer.minZ > layer.maxZ) {
                 layer.maxZ = 0
-                layer.minZ = layer.maxZ
+                layer.minZ = 0
             }
         }
 
@@ -434,12 +429,12 @@ object RecastLayers {
         return lset
     }
 
-    internal class LayerRegion(var id: Int) {
+    class LayerRegion(var id: Int) {
         var layerId = 0xff
         var base = false
         var yMin = 0xFFFF
         var yMax = 0
         val layers = IntArrayList()
-        val neis = IntArrayList()
+        val neighbors = IntArrayList()
     }
 }

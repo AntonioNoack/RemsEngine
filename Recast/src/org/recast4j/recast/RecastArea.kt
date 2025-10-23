@@ -32,7 +32,7 @@ class RecastArea {
      * This filter is usually applied after applying area id's using functions
      * such as #rcMarkBoxArea, #rcMarkConvexPolyArea, and #rcMarkCylinderArea.
      *
-     * @see rcCompactHeightfield
+     * @see CompactHeightfield
      */
     fun medianFilterWalkableArea(ctx: Telemetry?, chf: CompactHeightfield): Boolean {
         val w = chf.width
@@ -120,7 +120,7 @@ class RecastArea {
     /**
      * The value of spacial parameters are in world units.
      *
-     * @see rcCompactHeightfield, rcMedianFilterWalkableArea
+     * @see CompactHeightfield, rcMedianFilterWalkableArea
      */
     fun markCylinderArea(
         ctx: Telemetry?, pos: Vector3f, r: Float, h: Float, areaMod: AreaModification,
@@ -262,7 +262,7 @@ class RecastArea {
         /**
          * The value of spacial parameters are in world units.
          *
-         * @see rcCompactHeightfield, rcMedianFilterWalkableArea
+         * @see CompactHeightfield, rcMedianFilterWalkableArea
          */
         fun markConvexPolyArea(
             ctx: Telemetry?,

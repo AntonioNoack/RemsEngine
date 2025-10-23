@@ -20,24 +20,6 @@ package org.recast4j.dynamic.io
 import java.nio.ByteOrder
 
 internal object ByteUtils {
-    fun getIntBE(data: ByteArray, position: Int): Int {
-        return (data[position].toInt() and 0xff shl 24 or (data[position + 1].toInt() and 0xff shl 16) or (data[position + 2].toInt() and 0xff shl 8)
-                or (data[position + 3].toInt() and 0xff))
-    }
-
-    fun getIntLE(data: ByteArray, position: Int): Int {
-        return (data[position + 3].toInt() and 0xff shl 24 or (data[position + 2].toInt() and 0xff shl 16) or (data[position + 1].toInt() and 0xff shl 8)
-                or (data[position].toInt() and 0xff))
-    }
-
-    fun getShortBE(data: ByteArray, position: Int): Int {
-        return data[position].toInt() and 0xff shl 8 or (data[position + 1].toInt() and 0xff)
-    }
-
-    fun getShortLE(data: ByteArray, position: Int): Int {
-        return data[position + 1].toInt() and 0xff shl 8 or (data[position].toInt() and 0xff)
-    }
-
     fun putInt(value: Int, data: ByteArray, position: Int, order: ByteOrder): Int {
         if (order == ByteOrder.BIG_ENDIAN) {
             data[position] = (value ushr 24).toByte()

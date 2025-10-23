@@ -79,7 +79,7 @@ class VoxelTile {
         for (fieldIndex in 0 until width * depth) {
             var prev: Span? = null
             val spanCount = stream.readBE16()
-            for (s in 0 until spanCount) {
+            repeat(spanCount) {
                 val span = Span()
                 span.min = stream.readBE32()
                 span.max = stream.readBE32()
@@ -101,7 +101,7 @@ class VoxelTile {
         for (fieldIndex in 0 until width * depth) {
             var prev: Span? = null
             val spanCount = stream.readLE16()
-            for (s in 0 until spanCount) {
+            repeat(spanCount) {
                 val span = Span()
                 span.min = stream.readLE32()
                 span.max = stream.readLE32()
@@ -126,7 +126,7 @@ class VoxelTile {
     private fun serializeSpans0(heightfield: Heightfield, counts: IntArray): Int {
         var totalCount = 0
         var pz = 0
-        for (z in 0 until heightfield.height) {
+        repeat(heightfield.height) {
             for (x in 0 until heightfield.width) {
                 var span = heightfield.spans[pz + x]
                 while (span != null) {
@@ -147,7 +147,7 @@ class VoxelTile {
         var position = 0
         var pz = 0
         val data = ByteArray(totalCount * SERIALIZED_SPAN_BYTES + counts.size * SERIALIZED_SPAN_COUNT_BYTES)
-        for (z in 0 until heightfield.height) {
+        repeat(heightfield.height) {
             for (x in 0 until heightfield.width) {
                 position = putShort(counts[pz + x], data, position, order)
                 var span = heightfield.spans[pz + x]
@@ -170,11 +170,11 @@ class VoxelTile {
         } else {
             val l = Math.multiplyExact(width, height)
             var position = 0
-            for (i in 0 until l) {
+            repeat(l) {
                 val count = buf.getShort().toInt()
                 putShort(count, data, position, order)
                 position += 2
-                for (j in 0 until count) {
+                repeat(count) {
                     putInt(buf.getInt(), data, position, order)
                     putInt(buf.getInt(), data, position + 4, order)
                     putInt(buf.getInt(), data, position + 8, order)

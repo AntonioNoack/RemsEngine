@@ -80,7 +80,7 @@ object VoxelFileReader {
             file.bounds.maxZ += file.bounds.minZ
         }
         val tileCount = buf.getInt()
-        for (tile in 0 until tileCount) {
+        repeat(tileCount) {
             val tileX = buf.getInt()
             val tileZ = buf.getInt()
             val width = buf.getInt()

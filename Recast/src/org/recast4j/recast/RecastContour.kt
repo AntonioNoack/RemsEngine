@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
 import org.recast4j.IntArrayList
 import org.recast4j.detour.NavMeshDataCreateParams.Companion.i0
@@ -34,7 +35,7 @@ object RecastContour {
     ): Int {
         val s = chf.spans[i]
         var ch = s.y
-        val dirp = dir + 1 and 0x3
+        val dirp = (dir + 1).and(3)
         val regs = intArrayOf(0, 0, 0, 0)
 
         // Combine region and area codes in order to prevent
@@ -46,15 +47,15 @@ object RecastContour {
 
         // Check if the vertex is special edge vertex, these vertices will be removed later.
         for (a in 0..3) {
-            val b = a + 1 and 0x3
-            val c = a + 2 and 0x3
-            val d = a + 3 and 0x3
+            val b = (a + 1).and(3)
+            val c = (a + 2).and(3)
+            val d = (a + 3).and(3)
 
             // The vertex is a border vertex there are two same exterior cells in a row,
             // followed by two interior cells and none of the regions are out of bounds.
-            val twoSameExts = regs[a] and regs[b] and RecastConstants.RC_BORDER_REG != 0 && regs[a] == regs[b]
-            val twoInts = regs[c] or regs[d] and RecastConstants.RC_BORDER_REG == 0
-            val intsSameArea = regs[c] shr 16 == regs[d] shr 16
+            val twoSameExts = (regs[a] and regs[b]).hasFlag(RecastConstants.RC_BORDER_REG) && regs[a] == regs[b]
+            val twoInts = (regs[c] or regs[d]) and RecastConstants.RC_BORDER_REG == 0
+            val intsSameArea = regs[c].shr(16) == regs[d].shr(16)
             val noZeros = regs[a] != 0 && regs[b] != 0 && regs[c] != 0 && regs[d] != 0
             if (twoSameExts && twoInts && intsSameArea && noZeros) {
                 isBorderVertex[0] = true
@@ -533,28 +534,29 @@ object RecastContour {
 
     private fun mergeRegionHoles(ctx: Telemetry?, region: ContourRegion) {
         // Sort holes from left to right.
-        for (i in 0 until region.nholes) {
+        for (i in 0 until region.numHoles) {
             val hole = region.holes[i]
             val minleft = findLeftMostVertex(hole.contour!!)
-            hole.minx = minleft[0]
-            hole.minz = minleft[1]
+            hole.minX = minleft[0]
+            hole.minZ = minleft[1]
             hole.leftmost = minleft[2]
         }
 
         region.holes.sortWith { a, b ->
-            a.minx.compareTo(b.minx) * 2 +
-                    a.minz.compareTo(b.minz)
+            a.minX.compareTo(b.minX) * 2 +
+                    a.minZ.compareTo(b.minZ)
         }
 
         var maxVertices = region.outline!!.numVertices
-        for (i in 0 until region.nholes) {
+        for (i in 0 until region.numHoles) {
             maxVertices += region.holes[i].contour!!.numVertices
         }
+
         val diagonals = Array(maxVertices) { PotentialDiagonal() }
         val outline = region.outline ?: return
 
         // Merge holes into the outline one by one.
-        for (i in 0 until region.nholes) {
+        for (i in 0 until region.numHoles) {
             val hole = region.holes[i].contour!!
             var index = -1
             var bestVertex = region.holes[i].leftmost
@@ -567,7 +569,7 @@ object RecastContour {
                 // |
                 // j o-----o j+1
                 // :
-                var ndiags = 0
+                var numDiagonals = 0
                 val corner = bestVertex * 4
                 for (j in 0 until outline.numVertices) {
                     val vs = outline.vertices
@@ -575,24 +577,24 @@ object RecastContour {
                     if (inCone(j, outline.numVertices, vs, corner, hs)) {
                         val dx = vs[j * 4] - hs[corner]
                         val dz = vs[j * 4 + 2] - hs[corner + 2]
-                        diagonals[ndiags].vert = j
-                        diagonals[ndiags].dist = dx * dx + dz * dz
-                        ndiags++
+                        diagonals[numDiagonals].vertex = j
+                        diagonals[numDiagonals].distance = dx * dx + dz * dz
+                        numDiagonals++
                     }
                 }
 
                 // Sort potential diagonals by distance, we want to make the connection as short as possible.
-                Arrays.sort(diagonals, 0, ndiags, CompareDiagDist)
+                Arrays.sort(diagonals, 0, numDiagonals, CompareDiagonalDistance)
 
                 // Find a diagonal that is not intersecting the outline not the remaining holes.
-                for (j in 0 until ndiags) {
-                    val pt = diagonals[j].vert * 4
+                for (j in 0 until numDiagonals) {
+                    val pt = diagonals[j].vertex * 4
                     var intersect = intersectSegCountour(
-                        pt, corner, diagonals[j].vert, outline.numVertices, outline.vertices,
+                        pt, corner, diagonals[j].vertex, outline.numVertices, outline.vertices,
                         outline.vertices, hole.vertices
                     )
                     var k = i
-                    while (k < region.nholes && !intersect) {
+                    while (k < region.numHoles && !intersect) {
                         intersect = intersectSegCountour(
                             pt, corner, -1, region.holes[k].contour!!.numVertices,
                             region.holes[k].contour!!.vertices, outline.vertices, hole.vertices
@@ -600,7 +602,7 @@ object RecastContour {
                         k++
                     }
                     if (!intersect) {
-                        index = diagonals[j].vert
+                        index = diagonals[j].vertex
                         break
                     }
                 }
@@ -628,7 +630,7 @@ object RecastContour {
      *
      * See the #rcConfig documentation for more information on the configuration parameters.
      *
-     * @see rcAllocContourSet, rcCompactHeightfield, rcContourSet, rcConfig
+     * @see AllocContourSet, rcCompactHeightfield, rcContourSet, rcConfig
      */
     fun buildContours(
         ctx: Telemetry?,
@@ -798,20 +800,20 @@ object RecastContour {
                     }
                     region.outline = cont
                 } else {
-                    region.nholes++
+                    region.numHoles++
                 }
             }
             for (i in regions.indices) {
                 val region = regions[i]
-                if (region.nholes > 0) {
-                    region.holes = Array(region.nholes) { ContourHole() }
-                    region.nholes = 0
+                if (region.numHoles > 0) {
+                    region.holes = Array(region.numHoles) { ContourHole() }
+                    region.numHoles = 0
                 }
             }
             for (i in cset.contours.indices) {
                 val contour = cset.contours[i]
                 val region = regions[contour.reg]
-                if (winding[i] < 0) region.holes[region.nholes++].contour = contour
+                if (winding[i] < 0) region.holes[region.numHoles++].contour = contour
             }
 
             // Finally merge each regions holes into the outline.
@@ -822,7 +824,7 @@ object RecastContour {
     private fun mergeHolesIntoOutline(ctx: Telemetry?, regions: Array<ContourRegion>) {
         for (i in regions.indices) {
             val reg = regions[i]
-            if (reg.nholes == 0) continue
+            if (reg.numHoles == 0) continue
             if (reg.outline != null) {
                 mergeRegionHoles(ctx, reg)
             } else {
@@ -840,24 +842,24 @@ object RecastContour {
     private class ContourRegion {
         var outline: Contour? = null
         lateinit var holes: Array<ContourHole>
-        var nholes = 0
+        var numHoles = 0
     }
 
     private class ContourHole {
         var leftmost = 0
-        var minx = 0
-        var minz = 0
+        var minX = 0
+        var minZ = 0
         var contour: Contour? = null
     }
 
     private class PotentialDiagonal {
-        var dist = 0
-        var vert = 0
+        var distance = 0
+        var vertex = 0
     }
 
-    private object CompareDiagDist : Comparator<PotentialDiagonal> {
+    private object CompareDiagonalDistance : Comparator<PotentialDiagonal> {
         override fun compare(va: PotentialDiagonal, vb: PotentialDiagonal): Int {
-            return va.dist.toFloat().compareTo(vb.dist.toFloat())
+            return va.distance.compareTo(vb.distance)
         }
     }
 }
