@@ -37,6 +37,7 @@ object BulletRendering {
         drawAABBs()
         drawVehicles()
         drawIslands()
+        drawActions()
     }
 
     private fun BulletPhysics.drawIslands() {
@@ -229,9 +230,11 @@ object BulletRendering {
 
         Stack.subVec(1)
         Stack.subTrans(1)
+    }
 
-        val actions = world.actions
-        for (i in 0 until actions.size) {
+    private fun BulletPhysics.drawActions() {
+        val actions = bulletInstance.actions
+        for (i in actions.indices) {
             val action = actions[i] ?: break
             action.debugDraw(BulletDebugDraw)
         }

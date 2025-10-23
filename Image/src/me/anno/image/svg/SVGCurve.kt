@@ -3,6 +3,7 @@ package me.anno.image.svg
 import me.anno.image.svg.gradient.Gradient1D
 import me.anno.mesh.Triangulation
 import me.anno.utils.structures.arrays.IntArrayList
+import org.joml.AABBf
 import org.joml.Vector2f
 
 class SVGCurve(
@@ -53,18 +54,27 @@ class SVGCurve(
         return result
     }
 
-    val triangleVertices = if (width <= 0f) points else {
+    val triangleVertices: List<Vector2f> =
+        if (width <= 0f) ArrayList(points) else {
 
-        // todo round caps instead of the sharp ones?...
-        // todo create nice caps if not closed
+            // todo round caps instead of the sharp ones?...
+            // todo create nice caps if not closed
 
-        // create two joint loops around
-        val ring1 = createRing(points, +width, closed)
-        val ring2 = createRing(points, -width, closed)
-        ring2.reverse()
-        ring1.addAll(ring2)
-        ring1
-    }
+            // create two joint loops around
+            val ring1 = createRing(points, +width, closed)
+            val ring2 = createRing(points, -width, closed)
+            ring2.reverse()
+            ring1.addAll(ring2)
+            ring1
+        }
 
     val trianglesIndices = Triangulation.ringToTrianglesVec2fIndices(points) ?: IntArrayList(0)
+
+    val bounds = AABBf()
+
+    init {
+        for (v in triangleVertices) {
+            bounds.union(v)
+        }
+    }
 }

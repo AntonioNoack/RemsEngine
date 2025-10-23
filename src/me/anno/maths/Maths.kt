@@ -278,9 +278,11 @@ object Maths {
 
     @JvmStatic
     fun mix2(a: Int, b: Int, f: Float): Int {
-        val a2 = a * a
-        val b2 = b * b
-        return sqrt(mix(a2.toFloat(), b2.toFloat(), f)).roundToIntOr()
+        val linear = mix(
+            (a * a).toFloat(),
+            (b * b).toFloat(), f
+        )
+        return sqrt(linear).roundToIntOr()
     }
 
     @JvmStatic

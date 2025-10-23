@@ -614,10 +614,10 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         return 1.0
     }
 
-    override fun getAllContactManifolds(manifoldArray: ArrayList<PersistentManifold>) {
+    override fun getAllContactManifolds(dst: ArrayList<PersistentManifold>) {
         val lastManifold = lastManifold
         if (lastManifold != null) {
-            manifoldArray.add(lastManifold)
+            dst.add(lastManifold)
         }
     }
 

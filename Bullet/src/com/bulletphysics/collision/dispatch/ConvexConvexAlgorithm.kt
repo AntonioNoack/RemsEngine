@@ -178,11 +178,11 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
         return resultFraction
     }
 
-    override fun getAllContactManifolds(manifoldArray: ArrayList<PersistentManifold>) {
+    override fun getAllContactManifolds(dst: ArrayList<PersistentManifold>) {
         // should we use ownManifold to avoid adding duplicates?
         val manifold = manifold
         if (manifold != null && ownManifold) {
-            manifoldArray.add(manifold)
+            dst.add(manifold)
         }
     }
 

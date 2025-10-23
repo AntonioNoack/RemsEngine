@@ -39,7 +39,7 @@ object GLFWListeners {
         }
     }
 
-    fun handleCharMods(window: OSWindow, codepoint: Int, mods: Int) {
+    fun handleCharMods(window: OSWindow, codepoint: Int) {
         addEvent { onCharTyped(window, codepoint) }
     }
 
@@ -93,13 +93,13 @@ object GLFWListeners {
         GLFW.glfwSetDropCallback(window.pointer) { _: Long, count: Int, names: Long ->
             handleDropCallback(window, count, names)
         }
-        GLFW.glfwSetCharModsCallback(window.pointer) { _, codepoint, mods ->
-            handleCharMods(window, codepoint, mods)
+        GLFW.glfwSetCharModsCallback(window.pointer) { _, codepoint, _ ->
+            handleCharMods(window, codepoint)
         }
         GLFW.glfwSetCursorPosCallback(window.pointer) { _, xPosition, yPosition ->
             handleCursorPos(window, xPosition, yPosition)
         }
-        GLFW.glfwSetMouseButtonCallback(window.pointer) { _, button, action, mods ->
+        GLFW.glfwSetMouseButtonCallback(window.pointer) { _, button, action, _ ->
             handleMouseButton(window, button, action)
         }
         GLFW.glfwSetScrollCallback(window.pointer) { _, xOffset, yOffset ->

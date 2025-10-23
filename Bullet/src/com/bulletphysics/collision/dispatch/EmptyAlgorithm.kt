@@ -33,7 +33,7 @@ class EmptyAlgorithm : CollisionAlgorithm() {
         return 1.0
     }
 
-    override fun getAllContactManifolds(manifoldArray: ArrayList<PersistentManifold>) {
+    override fun getAllContactManifolds(dst: ArrayList<PersistentManifold>) {
     }
 
     /**///////////////////////////////////////////////////////////////////////// */

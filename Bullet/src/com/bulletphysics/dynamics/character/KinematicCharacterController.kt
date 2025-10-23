@@ -54,11 +54,16 @@ class KinematicCharacterController(
      * Slope angle that is set (used for returning the exact value)
      * */
     var maxSlopeRadians: Double = 0.0
+        set(value) {
+            field = value
+            maxSlopeCosine = cos(value)
+        }
 
     /**
-     * Cosine equivalent of m_maxSlopeRadians (calculated once when set, for optimization)
+     * Cosine equivalent of maxSlopeRadians (calculated once when set, for optimization)
      * */
     var maxSlopeCosine: Double = 0.0
+        private set
 
     /**
      * 1G acceleration
@@ -69,18 +74,18 @@ class KinematicCharacterController(
 
     // this is the desired walk direction, set by the user
     private val walkDirection = Vector3d()
-    var normalizedDirection: Vector3d = Vector3d()
+    val normalizedDirection = Vector3d()
 
     // some internal variables
-    var currentPosition: Vector3d = Vector3d()
+    val currentPosition = Vector3d()
     var currentStepOffset: Double = 0.0
-    var targetPosition: Vector3d = Vector3d()
+    val targetPosition = Vector3d()
 
     // keep track of the contact manifolds
-    var manifoldArray = ArrayList<PersistentManifold>()
+    val manifolds = ArrayList<PersistentManifold>()
 
     var touchingContact: Boolean = false
-    var touchingNormal: Vector3d = Vector3d()
+    val touchingNormal = Vector3d()
 
     var wasOnGround: Boolean = false
 
@@ -88,15 +93,8 @@ class KinematicCharacterController(
     private var useWalkDirection: Boolean = true
     private var velocityTimeInterval: Double = 1.0
 
-    var maxSlope: Double
-        get() = maxSlopeRadians
-        set(slopeRadians) {
-            maxSlopeRadians = slopeRadians
-            maxSlopeCosine = cos(slopeRadians)
-        }
-
     init {
-        this.maxSlope = (50.0 / 180.0) * Math.PI
+        this.maxSlopeRadians = (50.0 / 180.0) * Math.PI
     }
 
     // ActionInterface interface
@@ -289,11 +287,11 @@ class KinematicCharacterController(
         var maxPen = 0.0
         ghostObject.overlappingPairCache.processAllOverlappingPairs { collisionPair ->
 
-            manifoldArray.clear()
-            collisionPair.algorithm?.getAllContactManifolds(manifoldArray)
+            manifolds.clear()
+            collisionPair.algorithm?.getAllContactManifolds(manifolds)
 
-            for (j in manifoldArray.indices) {
-                val manifold = manifoldArray[j]
+            for (j in manifolds.indices) {
+                val manifold = manifolds[j]
                 val directionSign = if (manifold.body0 === ghostObject) -1.0 else 1.0
                 for (p in 0 until manifold.numContacts) {
                     val pt = manifold.getContactPoint(p)

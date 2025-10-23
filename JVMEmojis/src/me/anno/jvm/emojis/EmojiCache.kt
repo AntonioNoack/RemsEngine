@@ -1,42 +1,24 @@
 package me.anno.jvm.emojis
 
-import me.anno.cache.Promise
 import me.anno.cache.CacheSection
+import me.anno.cache.Promise
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.fonts.IEmojiCache
 import me.anno.fonts.signeddistfields.Contours
-import me.anno.gpu.GFX
-import me.anno.gpu.GFXState
-import me.anno.gpu.GPUTasks.addGPUTask
-import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.TextureLib
 import me.anno.image.Image
-import me.anno.image.svg.DrawSVGs
-import me.anno.image.svg.SVGBuffer
 import me.anno.image.svg.SVGMesh
 import me.anno.image.svg.SVGMeshCache
+import me.anno.image.svg.SVGRasterizer.rasterize
 import me.anno.maths.Packing
 import me.anno.maths.Packing.unpackHighFrom64
 import me.anno.maths.Packing.unpackLowFrom64
-import me.anno.utils.Color
 import me.anno.utils.OS.res
 import me.anno.utils.structures.arrays.LongArrayList
-import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.joinChars
-import org.joml.Matrix4fArrayList
 import speiger.primitivecollections.IntHashSet
 import speiger.primitivecollections.ObjectToIntHashMap
 import java.io.ByteArrayInputStream
 import java.util.zip.ZipInputStream
-import kotlin.math.ceil
-import kotlin.math.max
-
-// todo integrate this into text texture generation
 
 object EmojiCache : IEmojiCache {
 
@@ -112,46 +94,9 @@ object EmojiCache : IEmojiCache {
         if (emojiId < 0) return Promise.empty() // fast-path
         return rasterCache.getEntry(EmojiKey(emojiId, fontSize), mappedTimeoutMillis) { key, result ->
             getSVGMesh(key.emojiId).waitFor { svgMesh ->
-                val buffer0 = svgMesh?.buffer?.value
-                if (svgMesh != null && buffer0 != null) {
-                    val buffer = SVGBuffer(svgMesh.bounds, buffer0)
-                    addGPUTask("Render SVG", key.size, key.size) {
-                        result.value = renderSVGMesh(buffer, key.size)
-                    }
-                } else result.value = null
+                result.value = svgMesh?.rasterize(key.size, key.size)
             }
         }
-    }
-
-    private fun renderSVGMesh(mesh: SVGBuffer, size: Int): Image {
-        val bounds = mesh.bounds
-        val maxSize = max(bounds.maxX, bounds.maxY)
-        val w = ceil(size * bounds.maxX / maxSize).toIntOr()
-        val h = ceil(size * bounds.maxY / maxSize).toIntOr()
-
-        val fb = FBStack["Emojis", w, h, 4, false, 4, DepthBufferType.NONE] as Framebuffer
-
-        GFX.check()
-
-        GFXState.renderPurely {
-            GFXState.useFrame(w, h, false, fb, colorRenderer) {
-                fb.clearColor(0)
-                GFXState.blendMode.use(BlendMode.DEFAULT) {
-                    val transform = Matrix4fArrayList()
-                    transform.scale(bounds.maxY / bounds.maxX, -1f, 1f)
-                    DrawSVGs.draw3DSVG(
-                        transform, mesh,
-                        TextureLib.whiteTexture, Color.white4,
-                        Filtering.NEAREST, TextureLib.whiteTexture.clamping,
-                        null
-                    )
-                }
-            }
-        }
-
-        GFX.check()
-
-        return fb.createImage(flipY = false, withAlpha = true)!!
     }
 
     fun getSVGMesh(emojiId: Int): Promise<SVGMesh> {

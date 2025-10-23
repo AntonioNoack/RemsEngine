@@ -140,8 +140,8 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
         return result
     }
 
-    override fun getAllContactManifolds(manifoldArray: ArrayList<PersistentManifold>) {
-        manifoldArray.add(triangleCallback!!.manifoldPtr)
+    override fun getAllContactManifolds(dst: ArrayList<PersistentManifold>) {
+        dst.add(triangleCallback!!.manifoldPtr)
     }
 
     /** ///////////////////////////////////////////////////////////////////////// */

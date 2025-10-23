@@ -147,9 +147,9 @@ class CompoundCollisionAlgorithm : CollisionAlgorithm() {
         return hitFraction
     }
 
-    override fun getAllContactManifolds(manifoldArray: ArrayList<PersistentManifold>) {
+    override fun getAllContactManifolds(dst: ArrayList<PersistentManifold>) {
         for (i in childCollisionAlgorithms.indices) {
-            childCollisionAlgorithms[i].getAllContactManifolds(manifoldArray)
+            childCollisionAlgorithms[i].getAllContactManifolds(dst)
         }
     }
 

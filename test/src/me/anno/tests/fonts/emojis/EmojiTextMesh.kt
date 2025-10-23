@@ -32,7 +32,7 @@ fun main() {
     val scene = Entity()
     testSceneWithUI("Emoji Mesh", scene) {
 
-        val text = "Text 5\uFE0F⃣ \uD83C\uDDF5\uD83C\uDDF2|\uD83D\uDC4B\uD83C\uDFFD|❤\uFE0F"
+        val text = "Text 5\uFE0F⃣ \uD83C\uDDF5\uD83C\uDDF2|\uD83D\uDC4B\uD83C\uDFFD|❤\uFE0F|\uD83C\uDDE6\uD83C\uDDF8"
         val font = Font("Verdana", 240f)
 
         val meshGroup = MeshGlyphLayout(font, text, 0f, Int.MAX_VALUE)

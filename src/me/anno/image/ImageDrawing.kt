@@ -1,12 +1,14 @@
 package me.anno.image
 
 import me.anno.gpu.texture.Clamping
-import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.posMod
 import me.anno.maths.MinMax.max
 import me.anno.maths.MinMax.min
-import me.anno.maths.Maths.posMod
+import me.anno.utils.Color.a
 import me.anno.utils.Color.a01
-import me.anno.utils.Color.mixARGB2
+import me.anno.utils.Color.mixChannel2
 import kotlin.math.abs
 import kotlin.math.floor
 
@@ -56,15 +58,22 @@ object ImageDrawing {
     }
 
     fun Image.mixRGB(x: Int, y: Int, rgb: Int, alpha: Float) {
-        setRGB(x, y, mixARGB2(getRGB(x, y), rgb, alpha))
+        val alpha = alpha * rgb.a01()
+        val dstColor = getRGB(x, y)
+        val newColor =
+            clamp(mix(dstColor.a(), 255, alpha), 0, 255).shl(24) or
+                    mixChannel2(dstColor, rgb, 16, alpha) or
+                    mixChannel2(dstColor, rgb, 8, alpha) or
+                    mixChannel2(dstColor, rgb, 0, alpha)
+        setRGB(x, y, newColor)
     }
 
     fun Image.drawLine(x0: Float, y0: Float, x1: Float, y1: Float, color: Int, alpha: Float = color.a01()) {
         val len = max(1, max(abs(x1 - x0), abs(y1 - y0)).toInt())
         for (i in 0..len) {
             val f = i.toFloat() / len
-            val lx = Maths.mix(x0, x1, f)
-            val ly = Maths.mix(y0, y1, f)
+            val lx = mix(x0, x1, f)
+            val ly = mix(y0, y1, f)
             mixRGB(lx, ly, color, alpha)
         }
     }

@@ -36,7 +36,7 @@ abstract class CollisionAlgorithm {
         resultOut: ManifoldResult
     ): Double
 
-    abstract fun getAllContactManifolds(manifoldArray: ArrayList<PersistentManifold>)
+    abstract fun getAllContactManifolds(dst: ArrayList<PersistentManifold>)
 
     fun internalSetCreateFunc(func: CollisionAlgorithmCreateFunc?) {
         createFunc = func
