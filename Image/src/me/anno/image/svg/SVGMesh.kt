@@ -8,7 +8,9 @@ import me.anno.fonts.signeddistfields.edges.CubicSegment
 import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.fonts.signeddistfields.edges.QuadraticSegment
+import me.anno.image.ImageScale
 import me.anno.image.svg.SVGToBuffer.createBuffer
+import me.anno.image.svg.SVGToImage.createImage
 import me.anno.image.svg.SVGToMesh.createMesh
 import me.anno.image.svg.SVGTransform.applyTransform
 import me.anno.image.svg.gradient.LinearGradient
@@ -722,7 +724,19 @@ class SVGMesh(xml: XMLNode) {
                         prefab["colors0"] = mesh.color0
                         prefab._sampleInstance = mesh
                         folder.createPrefabChild("Scene.json", prefab)
-                        // todo create Images folder, where the svg is interpreted as an image :)
+                        // create Images folder, where the svg is rasterized into an image
+                        val srcW = svg.w0.toInt()
+                        val srcH = svg.h0.toInt()
+                        val imageFolder = InnerFolder(folder, "images")
+                        imageFolder.createLazyImageChild("Original.png", lazy {
+                            svg.createImage(srcW, srcH)
+                        })
+                        for (size in listOf(64, 256, 1024)) {
+                            imageFolder.createLazyImageChild("$size.png", lazy {
+                                val (w, h) = ImageScale.scaleMax(srcW, srcH, size, size)
+                                svg.createImage(w, h)
+                            })
+                        }
                         callback.ok(folder)
                     } else callback.err(IOException("No contents could be parsed"))
                 } else callback.err(exc)
