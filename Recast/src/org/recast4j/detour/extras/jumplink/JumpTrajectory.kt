@@ -1,15 +1,15 @@
 package org.recast4j.detour.extras.jumplink
 
+import me.anno.maths.Maths.mix
 import org.joml.Vector3f
-import org.recast4j.Vectors.lerp
 import kotlin.math.sqrt
 
 class JumpTrajectory(private val jumpHeight: Float) : Trajectory {
     override fun apply(start: Vector3f, end: Vector3f, u: Float): Vector3f {
         return Vector3f(
-            lerp(start.x, end.x, u),
+            mix(start.x, end.x, u),
             interpolateHeight(start.y, end.y, u),
-            lerp(start.z, end.z, u)
+            mix(start.z, end.z, u)
         )
     }
 
