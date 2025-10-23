@@ -1255,7 +1255,7 @@ object RecastRegion {
      * re-assigned to the zero (null) region.
      *
      * Watershed partitioning can result in smaller than necessary regions, especially in diagonal corridors.
-     * @p mergeRegionArea helps reduce unecessarily small regions.
+     * @p mergeRegionArea helps reduce unnecessarily small regions.
      *
      * See the #rcConfig documentation for more information on the configuration parameters.
      *
@@ -1476,14 +1476,14 @@ object RecastRegion {
         ctx?.stopTimer(TelemetryType.REGIONS)
     }
 
-    internal class SweepSpan {
+    class SweepSpan {
         var rowId = 0
         var regionId = 0
         var numSamples = 0
         var neighborId = 0
     }
 
-    internal class Region(var id: Int) {
+    private class Region(var id: Int) {
         // ID of the region
         var spanCount = 0 // Number of spans belonging to this region
         var areaType = 0

@@ -43,20 +43,20 @@ object SVGToImage {
                 val curr = vertices[i]
                 val currX = (curr.x - x0) * sx
                 val currY = (curr.y - y0) * sy
-                if (currY == prevY) continue
+                if (currY != prevY) {
+                    // for all y, register markers
+                    val invY = 1f / (currY - prevY)
+                    val gradient = sign(invY) *
+                            clamp(abs((currX - prevX) * invY), 1f, 12f)
 
-                // for all y, register markers
-                val invY = 1f / (currY - prevY)
-                val gradient = sign(invY) *
-                        clamp(abs((currX - prevX) * invY), 1f, 12f)
-
-                val minYi = max(min(currY, prevY).toInt() + 1, 0)
-                val maxYi = min(max(currY, prevY).toInt() + 1, dst.height)
-                for (y in minYi until maxYi) {
-                    val f = (y - prevY) * invY
-                    assertTrue(f in 0f..1f)
-                    val x = mix(prevX, currX, f)
-                    intersections[y].add(Intersection(x, gradient))
+                    val minYi = max(min(currY, prevY).toInt() + 1, 0)
+                    val maxYi = min(max(currY, prevY).toInt() + 1, dst.height)
+                    for (y in minYi until maxYi) {
+                        val f = (y - prevY) * invY
+                        assertTrue(f in 0f..1f)
+                        val x = mix(prevX, currX, f)
+                        intersections[y].add(Intersection(x, gradient))
+                    }
                 }
 
                 prevX = currX

@@ -14,8 +14,6 @@ import kotlin.math.min
 /**
  * Base of Long2LongOpenHashMap from https://github.com/Speiger/Primitive-Collections/,
  * Converted to Kotlin and trimmed down to my needs.
- *
- * todo test LongToLongHashMap small size optimization aka when using <= 16 or 32 elements, no hashes are used, just straightforward lookups
  * */
 abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
 
