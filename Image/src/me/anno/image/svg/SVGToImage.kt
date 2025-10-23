@@ -11,17 +11,17 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 
-object SVGRasterizer {
+object SVGToImage {
 
-    private class Marker(val x: Float, var gradient: Float) {
+    private class Intersection(val x: Float, var gradient: Float) {
         val isIn get() = gradient < 0f
     }
 
-    fun SVGMesh.rasterize(width: Int, height: Int): IntImage {
-        return rasterize(IntImage(width, height, true))
+    fun SVGMesh.createImage(width: Int, height: Int): IntImage {
+        return createImage(IntImage(width, height, true))
     }
 
-    fun SVGMesh.rasterize(dst: IntImage): IntImage {
+    fun SVGMesh.createImage(dst: IntImage): IntImage {
         dst.data.fill(0)
 
         val sx = dst.width / w0
@@ -30,7 +30,7 @@ object SVGRasterizer {
         val isy = 1f / sy
 
         // to do use PackedList to avoid allocations?
-        val markers = Array(dst.height) { ArrayList<Marker>() }
+        val intersections = Array(dst.height) { ArrayList<Intersection>() }
 
         for (curve in curves) {
             val vertices = curve.triangleVertices
@@ -56,7 +56,7 @@ object SVGRasterizer {
                     val f = (y - prevY) * invY
                     assertTrue(f in 0f..1f)
                     val x = mix(prevX, currX, f)
-                    markers[y].add(Marker(x, gradient))
+                    intersections[y].add(Intersection(x, gradient))
                 }
 
                 prevX = currX
@@ -68,7 +68,7 @@ object SVGRasterizer {
             val minY = max(((bounds.minY - y0) * sy).toInt(), 0)
             val maxY = min(((bounds.maxY - y0) * sy).toInt(), dst.height - 1)
             for (y in minY..maxY) {
-                val markers = markers[y]
+                val markers = intersections[y]
                 if (markers.isEmpty()) continue
                 markers.sortBy { it.x }
 

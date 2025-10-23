@@ -9,7 +9,7 @@ object SVGTokenizer {
         var i = 0
         loop@ while (i < str.length) {
             when (val char = str[i]) {
-                ' ', '\t', '\n', '\r', '+' -> i++ // idc
+                ' ', '\t', '\n', '\r', '+' -> i++ // don't care -> skip
                 '(', ')', ',' -> {
                     tokens += char
                     i++

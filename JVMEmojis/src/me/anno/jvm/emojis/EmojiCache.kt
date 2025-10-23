@@ -8,7 +8,7 @@ import me.anno.fonts.signeddistfields.Contours
 import me.anno.image.Image
 import me.anno.image.svg.SVGMesh
 import me.anno.image.svg.SVGMeshCache
-import me.anno.image.svg.SVGRasterizer.rasterize
+import me.anno.image.svg.SVGToImage.createImage
 import me.anno.maths.Packing
 import me.anno.maths.Packing.unpackHighFrom64
 import me.anno.maths.Packing.unpackLowFrom64
@@ -94,7 +94,7 @@ object EmojiCache : IEmojiCache {
         if (emojiId < 0) return Promise.empty() // fast-path
         return rasterCache.getEntry(EmojiKey(emojiId, fontSize), mappedTimeoutMillis) { key, result ->
             getSVGMesh(key.emojiId).waitFor { svgMesh ->
-                result.value = svgMesh?.rasterize(key.size, key.size)
+                result.value = svgMesh?.createImage(key.size, key.size)
             }
         }
     }
