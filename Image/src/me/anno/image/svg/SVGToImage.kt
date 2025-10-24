@@ -7,6 +7,7 @@ import me.anno.maths.Maths.mix
 import me.anno.utils.Color.a01
 import me.anno.utils.assertions.assertTrue
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
@@ -83,8 +84,8 @@ object SVGToImage {
                     val gs = abs(s.gradient)
                     val ge = abs(e.gradient)
 
-                    val xs = max((s.x - 0.5f * gs).toInt(), 0)
-                    val xe = min((e.x + 0.5f * ge).toInt(), dst.width)
+                    val xs = max(s.x.toInt(), 0)
+                    val xe = min(ceil(e.x).toInt(), dst.width)
 
                     val invGS = 1f / gs
                     val invGE = 1f / ge
