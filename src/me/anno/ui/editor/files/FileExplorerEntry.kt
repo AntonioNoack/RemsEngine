@@ -313,6 +313,8 @@ open class FileExplorerEntry(
             }
         }
         val image = getImage() ?: whiteTexture
+        if (image.isDestroyed) return
+
         val rot = (image as? Texture2D)?.rotation
         image.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
         if (rot == null || rot.isNull()) {

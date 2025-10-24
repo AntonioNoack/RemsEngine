@@ -13,7 +13,8 @@ class LongHashSetTest {
     @Test
     fun testRehashing() {
         val set = createInstance()
-        for (i in 0 until 100) set.add(i.toLong())
+        for (i in 0 until 100L) assertTrue(set.add(i))
+        for (i in 0 until 100L) assertFalse(set.add(i))
         assertEquals(100, set.size)
         for (i in 0 until 100) assertTrue(i.toLong() in set)
         assertFalse(-1L in set)

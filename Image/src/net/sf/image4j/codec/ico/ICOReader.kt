@@ -2,9 +2,11 @@ package net.sf.image4j.codec.ico
 
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
+import me.anno.io.Streams.readBE32
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readNBytes2
+import me.anno.io.binary.ByteArrayIO.writeBE32
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -30,8 +32,7 @@ object ICOReader {
     private val LOGGER = LogManager.getLogger(ICOReader::class)
     private const val PNG_MAGIC = -0x76afb1b9
     private const val PNG_MAGIC_LE = 0x474E5089
-    private const val PNG_MAGIC2 = 0x0D0A1A0A
-    private const val PNG_MAGIC2_LE = 0x0A1A0A0D
+    private const val PNG_MAGIC2_BE = 0x0D0A1A0A
 
     @JvmStatic
     private fun ensureOffset(input1: CountingInputStream, entry: IconEntry, i: Int) {
@@ -49,13 +50,13 @@ object ICOReader {
     }
 
     @JvmStatic
-    private fun readLayer(input1: CountingInputStream, entry: IconEntry, i: Int): Any {
+    private fun readLayer(input: CountingInputStream, entry: IconEntry, i: Int): Any {
 
-        ensureOffset(input1, entry, i)
+        ensureOffset(input, entry, i)
 
-        val info = input1.readLE32()
+        val info = input.readLE32()
         LOGGER.info(
-            "Image #$i @ ${input1.position} info = 0x${info.toString(16)}, " +
+            "Image #$i @ ${input.position} info = 0x${info.toString(16)}, " +
                     "${entry.width} x ${entry.height} x ${entry.bitCount} bpp"
         )
 
@@ -63,7 +64,7 @@ object ICOReader {
             40 -> {
                 // read XOR bitmap
                 // BMPDecoder bmp = new BMPDecoder(is);
-                val infoHeader = BMPDecoder.readInfoHeader(input1)
+                val infoHeader = BMPDecoder.readInfoHeader(input)
                 val andHeader = InfoHeader(infoHeader)
                 andHeader.height = infoHeader.height shr 1
                 val xorHeader = InfoHeader(infoHeader)
@@ -72,7 +73,7 @@ object ICOReader {
 
                 // for now, just read all the raster data (xor + and)
                 // and store as separate images
-                val img = BMPDecoder.read(xorHeader, input1)
+                val img = BMPDecoder.read(xorHeader, input)
                 if (img !is IntImage) return img // exception
                 // If we want to be sure we've decoded the XOR mask
                 // correctly, we can write it out as a PNG to a temp file here.
@@ -112,7 +113,7 @@ object ICOReader {
                 } else {
 
                     // replace the alpha with the next image
-                    val alphaData = BMPDecoder.read(andHeader, input1, andColorTable)
+                    val alphaData = BMPDecoder.read(andHeader, input, andColorTable)
                     if (alphaData !is IntImage) return img // exception
                     val alphaData2 = alphaData.data
                     val data0 = img.data
@@ -130,11 +131,10 @@ object ICOReader {
                 img
             }
             PNG_MAGIC_LE -> {
-                val info2 = input1.readLE32()
-                if (info2 != PNG_MAGIC2_LE) {
+                if (input.readBE32() != PNG_MAGIC2_BE) {
                     return IOException("Unrecognized icon format for image #$i")
                 }
-                val pngBytes = packPNGBytes(input1, entry.sizeInBytes)
+                val pngBytes = packPNGBytes(input, entry.sizeInBytes)
                 if (pngBytes !is ByteArray) return pngBytes // exception case
                 val stream = ByteArrayInputStream(pngBytes)
                 ImageIO.read(stream).toImage()
@@ -228,14 +228,6 @@ object ICOReader {
         return readLayer(input1, bestLayer, bestLayer.index)
     }
 
-    @JvmStatic
-    private fun ByteArray.set2(i: Int, v: Int) {
-        this[i] = (v shr 24).toByte()
-        this[i + 1] = (v shr 16).toByte()
-        this[i + 2] = (v shr 8).toByte()
-        this[i + 3] = v.toByte()
-    }
-
     /**
      * return ByteArray or exception
      * */
@@ -243,8 +235,8 @@ object ICOReader {
     private fun packPNGBytes(input1: CountingInputStream, sizeInBytes: Int): Any {
         // we could encapsulate this smarter, directly as an InputStream, without intermediate buffer...
         val bytes = ByteArray(sizeInBytes)
-        bytes.set2(0, PNG_MAGIC)
-        bytes.set2(4, PNG_MAGIC2)
+        bytes.writeBE32(0, PNG_MAGIC)
+        bytes.writeBE32(4, PNG_MAGIC2_BE)
         return input1.readNBytes2(bytes, 8, sizeInBytes - 8)
     }
 

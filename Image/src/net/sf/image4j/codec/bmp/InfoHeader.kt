@@ -26,7 +26,6 @@ class InfoHeader {
      *  * [BI_RGB][BMPDecoder.BI_RGB] - no compression
      *  * [BI_RLE8][BMPDecoder.BI_RLE8] - 8-bit RLE compression
      *  * [BI_RLE4][BMPDecoder.BI_RLE4] - 4-bit RLE compression
-     *
      */
     var compression = 0
 

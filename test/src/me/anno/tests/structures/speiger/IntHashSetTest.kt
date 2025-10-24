@@ -13,8 +13,8 @@ class IntHashSetTest {
     @Test
     fun testRehashing() {
         val set = createInstance()
-        for (i in 0 until 100) set.add(i)
-        assertEquals(100, set.size)
+        for (i in 0 until 100) assertTrue(set.add(i))
+        for (i in 0 until 100) assertFalse(set.add(i))
         for (i in 0 until 100) assertTrue(i in set)
         assertFalse(-1 in set)
         assertFalse(100 in set)

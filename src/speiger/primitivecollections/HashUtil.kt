@@ -40,16 +40,6 @@ object HashUtil {
     }
 
     @JvmStatic
-    fun getRequiredBits(value: Int): Int {
-        return (nextPowerOfTwo(value + 1) - 1).countOneBits()
-    }
-
-    @JvmStatic
-    fun getRequiredBits(value: Long): Int {
-        return (nextPowerOfTwo(value + 1L) - 1L).countOneBits()
-    }
-
-    @JvmStatic
     fun arraySize(size: Int, loadFactor: Float): Int {
         val v0 = initialSize(size, loadFactor)
         val v1 = max(2L, nextPowerOfTwo(v0.toLong()))

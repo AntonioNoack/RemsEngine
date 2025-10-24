@@ -1,8 +1,8 @@
 package net.sf.image4j.codec.bmp
 
-import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readLE32
+import me.anno.io.Streams.readNBytes2
 import me.anno.io.Streams.skipN
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.tuples.IntPair
@@ -72,13 +72,14 @@ object BMPDecoder {
     /**
      * Retrieves a nibble (4 bits) from the lowest order byte of the given integer.
      *
-     * @param nibbles the source integer, treated as an unsigned byte
+     * @param byte the source integer, treated as an unsigned byte
      * @param index   the index of the nibble to retrieve, which must be in the range <tt>0..1</tt>.
      * @return the nibble at the specified index, as an unsigned byte.
      */
     @JvmStatic
-    private fun getNibble(nibbles: Int, index: Int): Int {
-        return nibbles shr 4 * (1 - index) and 0xf
+    private fun getNibble(byte: Byte, index: Int): Int {
+        val value = byte.toInt()
+        return value.shr(4 * (1 - index)).and(15)
     }
 
     @JvmStatic
@@ -126,12 +127,23 @@ object BMPDecoder {
                 else -> null
             }
         } else null
-        return image ?: IOException("Unrecognized bitmap format: bit count=${infoHeader.bitCount}, compression=${infoHeader.compression}")
+        return image
+            ?: IOException("Unrecognized bitmap format: bit count=${infoHeader.bitCount}, compression=${infoHeader.compression}")
     }
 
     @JvmStatic
     private fun readColorTable(infoHeader: InfoHeader, lis: InputStream) =
         IntArray(infoHeader.numColors) { lis.readLE32() }
+
+    @JvmStatic
+    private fun getLineForBits(numBits: Int): ByteArray {
+        var bitsPerLine = numBits
+        if (bitsPerLine % 32 != 0) {
+            bitsPerLine = (bitsPerLine / 32 + 1) * 32
+        }
+        val bytesPerLine = bitsPerLine / 8
+        return ByteArray(bytesPerLine)
+    }
 
     /**
      * Reads 1-bit uncompressed bitmap raster data, which may be monochrome depending on the
@@ -139,30 +151,22 @@ object BMPDecoder {
      */
     @JvmStatic
     private fun read1(infoHeader: InfoHeader, lis: InputStream, colors: IntArray): IntImage {
-        //1 bit per pixel or 8 pixels per byte
-        //each pixel specifies the palette index
+        // 1 bit per pixel or 8 pixels per byte
+        // each pixel specifies the palette index
 
         // padding
-        var bitsPerLine = infoHeader.width
-        if (bitsPerLine % 32 != 0) {
-            bitsPerLine = (bitsPerLine / 32 + 1) * 32
-        }
-        val bytesPerLine = bitsPerLine / 8
-        val line = IntArray(bytesPerLine)
+        val line = getLineForBits(infoHeader.width)
         val data = IntArray(infoHeader.width * infoHeader.height)
         for (y in infoHeader.height - 1 downTo 0) {
-            for (i in 0 until bytesPerLine) {
-                line[i] = lis.read()
-            }
-            var ctr = y * infoHeader.width
-            for (x in 0 until infoHeader.width) {
-                val i = x shr 3
-                val v = line[i]
-                val b = x and 7
-                val index = getBit(v, b)
+            lis.readNBytes2(line, 0, line.size)
+            val offset = y * infoHeader.width
+            repeat(infoHeader.width) { x ->
+                val byteIndex = x shr 3
+                val bitIndex = x and 7
+                val index = getBit(line[byteIndex].toInt(), bitIndex)
                 // img.setRGB(x, y, rgb);
                 // set the sample (colour index) for the pixel
-                data[ctr++] = colors[index]
+                data[offset + x] = colors[index]
             }
         }
         return IntImage(infoHeader.width, infoHeader.height, data, false)
@@ -186,33 +190,29 @@ object BMPDecoder {
         // 2 pixels per byte or 4 bits per pixel.
         // Colour for each pixel specified by the color index in the palette.
 
-        //padding
-        var bitsPerLine = infoHeader.width * 4
-        if (bitsPerLine % 32 != 0) {
-            bitsPerLine = (bitsPerLine / 32 + 1) * 32
-        }
-        val bytesPerLine = bitsPerLine / 8
-        val line = IntArray(bytesPerLine)
+        val line = getLineForBits(infoHeader.width * 4)
         val data = IntArray(infoHeader.width * infoHeader.height)
         for (y in infoHeader.height - 1 downTo 0) {
-
-            // scan line
-            for (i in 0 until bytesPerLine) {
-                line[i] = lis.read()
-            }
-
-            // get pixels
-            var ctr = y * infoHeader.width
-            for (x in 0 until infoHeader.width) {
+            lis.readNBytes2(line, 0, line.size)
+            val offset = y * infoHeader.width
+            repeat(infoHeader.width) { x ->
                 //get byte index for line
-                val b = x shr 1 // 2 pixels per byte
-                val i = x and 1
-                val n = line[b]
-                val index = getNibble(n, i)
-                data[ctr++] = colors[index]
+                val byteIndex = x shr 1 // 2 pixels per byte
+                val nibbleIndex = x and 1
+                val index = getNibble(line[byteIndex], nibbleIndex)
+                data[offset + x] = colors[index]
             }
         }
         return IntImage(infoHeader.width, infoHeader.height, data, false)
+    }
+
+    @JvmStatic
+    private fun calculatePadding(bytesPerLine: Int): Int {
+        // 0 -> 0 -> 0
+        // 1 -> -1 -> 3
+        // 2 -> -2 -> 2
+        // 3 -> -3 -> 1
+        return (-bytesPerLine).and(3)
     }
 
     /**
@@ -235,21 +235,16 @@ object BMPDecoder {
         // lines padded to nearest 32bits
         // no alpha
 
-        //padding
-        val dataPerLine = infoHeader.width
-        var bytesPerLine = dataPerLine
-        if (bytesPerLine % 4 != 0) {
-            bytesPerLine = (bytesPerLine / 4 + 1) * 4
-        }
-        val padBytesPerLine = bytesPerLine - dataPerLine
+        val padding = calculatePadding(infoHeader.width)
         val width = infoHeader.width
         val data = IntArray(width * infoHeader.height)
         for (y in infoHeader.height - 1 downTo 0) {
-            var ctr = y * width
-            for (x in 0 until width) {
-                data[ctr++] = colors[lis.read()]
+            val offset = y * width
+            repeat(infoHeader.width) { x ->
+                val byte = lis.read().and(255)
+                data[offset + x] = colors[byte]
             }
-            lis.skipN(padBytesPerLine.toLong())
+            lis.skipN(padding.toLong())
         }
         return IntImage(infoHeader.width, infoHeader.height, data, false)
     }
@@ -266,31 +261,22 @@ object BMPDecoder {
     @JvmStatic
     private fun read24(infoHeader: InfoHeader, lis: InputStream): IntImage {
 
-        // 3 bytes per pixel
-        //  blue 1
-        //  green 1
-        //  red 1
+        // BGR bytes per pixel
         // lines padded to nearest 32 bits
         // no alpha
 
-        // padding to nearest 32 bits
-        val dataPerLine = infoHeader.width * 3
-        var bytesPerLine = dataPerLine
-        if (bytesPerLine % 4 != 0) {
-            bytesPerLine = (bytesPerLine / 4 + 1) * 4
-        }
-        val padBytesPerLine = bytesPerLine - dataPerLine
+        val padding = calculatePadding(infoHeader.width * 3)
         val width = infoHeader.width
         val data = IntArray(width * infoHeader.height)
         for (y in infoHeader.height - 1 downTo 0) {
-            var ctr = y * width
-            for (x in 0 until width) {
-                val b = lis.read()
-                val g = lis.read()
+            val offset = y * width
+            repeat(width) { x ->
+                val b = lis.read().shl(16)
+                val g = lis.read().shl(8)
                 val r = lis.read()
-                data[ctr++] = r shl 16 or (g shl 8) or b
+                data[offset + x] = r or g or b
             }
-            lis.skipN(padBytesPerLine.toLong())
+            lis.skipN(padding.toLong())
         }
         return IntImage(infoHeader.width, infoHeader.height, data, false)
     }
@@ -298,25 +284,19 @@ object BMPDecoder {
     /**
      * Reads 32-bit uncompressed bitmap raster data, with transparency.
      *
-     * @param lis        the source input
+     * @param input        the source input
      * @param infoHeader the <tt>InfoHeader</tt> structure, which was read using
      * [readInfoHeader()][.readInfoHeader]
      * @return the decoded image read from the source input
      * @throws IOException if an error occurs
      */
     @JvmStatic
-    private fun read32(infoHeader: InfoHeader, lis: InputStream): IntImage {
-        // 4 bytes per pixel
-        // blue 1
-        // green 1
-        // red 1
-        // alpha 1
-        // No padding since each pixel = 32 bits
+    private fun read32(infoHeader: InfoHeader, input: InputStream): IntImage {
         val data = IntArray(infoHeader.width * infoHeader.height)
         for (y in infoHeader.height - 1 downTo 0) {
-            var ctr = y * infoHeader.width
-            for (x in 0 until infoHeader.width) {
-                data[ctr++] = lis.readLE32() // bgra
+            val offset = y * infoHeader.width
+            repeat(infoHeader.width) { x ->
+                data[offset + x] = input.readLE32() // bgra -> argb
             }
         }
         return IntImage(infoHeader.width, infoHeader.height, data, true)
@@ -347,7 +327,7 @@ object BMPDecoder {
         // reserved = 0 [4]
         input.readLE32()
 
-        //DataOffset [4] file offset to raster data
+        // DataOffset [4] file offset to raster data
         input.readLE32()
 
         /* info header [40] */

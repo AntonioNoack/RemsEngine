@@ -5,7 +5,6 @@ import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import speiger.primitivecollections.LongToIntHashMap
-import kotlin.ranges.contains
 
 class LongToIntHashMapTest {
 
@@ -15,9 +14,8 @@ class LongToIntHashMapTest {
     fun testInsert() {
         val map = createInstance()
         assertEquals(-1, map[0])
-        for (i in 0 until 1000) {
-            map[i.toLong()] = i * i + 5
-        }
+        for (i in 0 until 1000) assertEquals(-1, map.put(i.toLong(), i * i + 3))
+        for (i in 0 until 1000) assertEquals(i * i + 3, map.put(i.toLong(), i * i + 5))
         assertEquals(1000, map.size)
         assertFalse(map.containsKey(-1))
         for (i in 0 until 1000) {

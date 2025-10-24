@@ -2,6 +2,7 @@ package me.anno.tests.structures.speiger
 
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertNull
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import speiger.primitivecollections.ObjectHashSet
@@ -13,7 +14,8 @@ class ObjectHashSetTest {
     @Test
     fun testRehashing() {
         val set = createInstance()
-        for (i in 0 until 100) set.add(i.toLong())
+        for (i in 0 until 100L) assertTrue(set.add(i))
+        for (i in 0 until 100L) assertFalse(set.add(i))
         assertEquals(100, set.size)
         for (i in 0 until 100) assertTrue(i.toLong() in set)
         assertFalse(-1L in set)

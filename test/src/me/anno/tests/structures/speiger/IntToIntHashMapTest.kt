@@ -14,9 +14,8 @@ class IntToIntHashMapTest {
     fun testInsert() {
         val map = createInstance()
         assertEquals(-1, map[0])
-        for (i in 0 until 1000) {
-            map[i] = i * i + 5
-        }
+        for (i in 0 until 1000) assertEquals(-1, map.put(i, i * i + 3))
+        for (i in 0 until 1000) assertEquals(i * i + 3, map.put(i, i * i + 5))
         assertEquals(1000, map.size)
         assertFalse(map.containsKey(-1))
         for (i in 0 until 1000) {

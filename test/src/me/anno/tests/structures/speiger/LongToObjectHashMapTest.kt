@@ -2,6 +2,7 @@ package me.anno.tests.structures.speiger
 
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertNull
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import speiger.primitivecollections.LongToObjectHashMap
@@ -14,9 +15,8 @@ class LongToObjectHashMapTest {
     fun testInsert() {
         val map = createInstance()
         assertEquals(null, map[0])
-        for (i in 0 until 1000L) {
-            map[i] = i * i + 5
-        }
+        for (i in 0 until 1000L) assertNull(map.put(i, i * i + 3))
+        for (i in 0 until 1000L) assertEquals(i * i + 3, map.put(i, i * i + 5))
         assertEquals(1000, map.size)
         assertFalse(map.containsKey(-1))
         for (i in 0 until 1000L) {
