@@ -5,7 +5,7 @@ import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.utils.async.Callback
-import me.anno.utils.structures.tuples.IntPair
+import org.joml.Vector2i
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
@@ -36,7 +36,7 @@ class InnerImageFile(
 
     override fun readCPUImage(): Image = content
     override fun readGPUImage(): Image = content
-    override fun readSize(): IntPair = IntPair(content.width, content.height)
+    override fun readSize(): Vector2i = Vector2i(content.width, content.height)
 
     override fun readBytesSync(): ByteArray = bytes
     override fun readTextSync(): String = bytes.decodeToString() // what are you doing? ;)

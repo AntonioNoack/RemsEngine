@@ -19,12 +19,12 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import me.anno.utils.async.Callback
-import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Buffers.skip
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector2i
 import java.io.IOException
 import java.io.InputStream
 import java.nio.BufferUnderflowException
@@ -64,7 +64,7 @@ class GimpImage {
             if (width <= 0 || height <= 0) {
                 return IOException("Image must not be empty $width x $height")
             }
-            return IntPair(width, height)
+            return Vector2i(width, height)
         }
 
         fun readImage(file: FileReference, callback: (GimpImage?, Exception?) -> Unit) {

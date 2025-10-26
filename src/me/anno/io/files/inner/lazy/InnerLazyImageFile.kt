@@ -7,7 +7,7 @@ import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.async.Callback
-import me.anno.utils.structures.tuples.IntPair
+import org.joml.Vector2i
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
@@ -35,9 +35,9 @@ open class InnerLazyImageFile(
     override fun readCPUImage(): Image = cpuImage.value
     override fun readGPUImage(): Image = gpuImage()
 
-    override fun readSize(): IntPair {
+    override fun readSize(): Vector2i {
         val image = cpuImage.value
-        return IntPair(image.width, image.height)
+        return Vector2i(image.width, image.height)
     }
 
     override fun readBytes(callback: Callback<ByteArray>) {

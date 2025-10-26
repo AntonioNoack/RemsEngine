@@ -4,7 +4,7 @@ import me.anno.image.Image
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.utils.async.Callback
-import me.anno.utils.structures.tuples.IntPair
+import org.joml.Vector2i
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
@@ -35,5 +35,5 @@ class InnerTmpImageFile(val image: Image, ext: String = "png") : InnerTmpFile(ex
 
     override fun readCPUImage(): Image = image
     override fun readGPUImage(): Image = image
-    override fun readSize(): IntPair = IntPair(image.width, image.height)
+    override fun readSize(): Vector2i = Vector2i(image.width, image.height)
 }

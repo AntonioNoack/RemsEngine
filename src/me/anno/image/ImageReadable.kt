@@ -1,7 +1,7 @@
 package me.anno.image
 
 import me.anno.image.raw.GPUImage
-import me.anno.utils.structures.tuples.IntPair
+import org.joml.Vector2i
 
 /**
  * class, where reading an image is cheap
@@ -37,6 +37,6 @@ interface ImageReadable {
     /**
      * gets image size
      * */
-    fun readSize(): IntPair
+    fun readSize(): Vector2i
 
 }

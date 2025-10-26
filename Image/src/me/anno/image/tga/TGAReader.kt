@@ -10,7 +10,7 @@ import me.anno.utils.Color.argb
 import me.anno.utils.Color.rgb
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.assertions.assertFail
-import me.anno.utils.structures.tuples.IntPair
+import org.joml.Vector2i
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -39,11 +39,11 @@ object TGAReader {
     private const val GRAYSCALE_RLE = 11
 
     @JvmStatic
-    fun findSize(input: InputStream): IntPair {
+    fun findSize(input: InputStream): Vector2i {
         input.skipN(12)
         val width = input.readLE16()
         val height = input.readLE16()
-        return IntPair(width, height)
+        return Vector2i(width, height)
     }
 
     /**

@@ -5,8 +5,8 @@ import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.Streams.skipN
 import me.anno.utils.assertions.assertEquals
-import me.anno.utils.structures.tuples.IntPair
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector2i
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -46,7 +46,7 @@ object BMPDecoder {
         // it starts with our width and height
         val width = input.readLE32()
         val height = input.readLE32()
-        return IntPair(width, abs(height))
+        return Vector2i(width, abs(height))
     }
 
 

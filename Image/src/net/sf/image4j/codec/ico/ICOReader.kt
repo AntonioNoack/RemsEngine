@@ -10,10 +10,10 @@ import me.anno.io.binary.ByteArrayIO.writeBE32
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.structures.tuples.IntPair
 import net.sf.image4j.codec.bmp.BMPDecoder
 import net.sf.image4j.codec.bmp.InfoHeader
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector2i
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -248,7 +248,7 @@ object ICOReader {
         val input1 = CountingInputStream(input0)
         val bestLayer = findBestLayer(input1, MAX_SIZE)
         if (bestLayer !is IconEntry) return bestLayer
-        return IntPair(bestLayer.width, bestLayer.height)
+        return Vector2i(bestLayer.width, bestLayer.height)
     }
 
     private const val MAX_SIZE = 1024 * 1024

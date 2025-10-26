@@ -1,7 +1,7 @@
 package me.anno.image
 
 import me.anno.maths.Maths.roundDiv
-import me.anno.utils.structures.tuples.IntPair
+import org.joml.Vector2i
 import kotlin.math.max
 import kotlin.math.min
 
@@ -16,7 +16,7 @@ object ImageScale {
      * cuts off excess of the image
      * */
     @JvmStatic
-    fun scaleMin(imageWidth: Int, imageHeight: Int, minSize: Int): IntPair {
+    fun scaleMin(imageWidth: Int, imageHeight: Int, minSize: Int): Vector2i {
         return scaleMin(imageWidth, imageHeight, minSize, minSize)
     }
 
@@ -24,13 +24,13 @@ object ImageScale {
      * cuts off excess of the image
      * */
     @JvmStatic
-    fun scaleMin(imageWidth: Int, imageHeight: Int, minWidth: Int, minHeight: Int): IntPair {
+    fun scaleMin(imageWidth: Int, imageHeight: Int, minWidth: Int, minHeight: Int): Vector2i {
         return if (imageWidth * minHeight < imageHeight * minWidth) {
             // width is the limit
-            IntPair(minWidth, max(1, (imageHeight * minWidth + imageWidth / 2) / imageWidth))
+            Vector2i(minWidth, max(1, (imageHeight * minWidth + imageWidth / 2) / imageWidth))
         } else {
             // height is the limit
-            IntPair(max(1, (imageWidth * minHeight + imageHeight / 2) / imageHeight), minHeight)
+            Vector2i(max(1, (imageWidth * minHeight + imageHeight / 2) / imageHeight), minHeight)
         }
     }
 
@@ -38,7 +38,7 @@ object ImageScale {
      * adds bars on left+right/top+bottom
      * */
     @JvmStatic
-    fun scaleMax(imageWidth: Int, imageHeight: Int, maxSize: Int): IntPair {
+    fun scaleMax(imageWidth: Int, imageHeight: Int, maxSize: Int): Vector2i {
         return scaleMax(imageWidth, imageHeight, maxSize, maxSize)
     }
 
@@ -46,18 +46,18 @@ object ImageScale {
      * adds bars on left+right/top+bottom
      * */
     @JvmStatic
-    fun scaleMax(imageWidth: Int, imageHeight: Int, maxWidth: Int, maxHeight: Int): IntPair {
+    fun scaleMax(imageWidth: Int, imageHeight: Int, maxWidth: Int, maxHeight: Int): Vector2i {
         return if (imageWidth * maxHeight > imageHeight * maxWidth) {
             // width is the limit
-            IntPair(maxWidth, max(1, roundDiv(imageHeight * maxWidth, imageWidth)))
+            Vector2i(maxWidth, max(1, roundDiv(imageHeight * maxWidth, imageWidth)))
         } else {
             // height is the limit
-            IntPair(max(1, roundDiv(imageWidth * maxHeight, imageHeight)), maxHeight)
+            Vector2i(max(1, roundDiv(imageWidth * maxHeight, imageHeight)), maxHeight)
         }
     }
 
     @JvmStatic
-    fun scaleMaxPreview(imageWidth: Int, imageHeight: Int, w: Int, h: Int, maxAspectRatio: Int): IntPair {
+    fun scaleMaxPreview(imageWidth: Int, imageHeight: Int, w: Int, h: Int, maxAspectRatio: Int): Vector2i {
         return when {
             // not too tall or too wide
             max(imageWidth, imageHeight) < maxAspectRatio * min(imageWidth, imageHeight) -> {

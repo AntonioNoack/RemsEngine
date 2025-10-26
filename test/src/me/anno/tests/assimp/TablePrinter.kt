@@ -2,9 +2,9 @@ package me.anno.tests.assimp
 
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.arrays.IntArrayList
-import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.splitLines
+import org.joml.Vector2i
 import kotlin.math.max
 import kotlin.math.min
 
@@ -20,7 +20,7 @@ class TablePrinter {
     val rowTitles = ArrayList<List<String>>()
     val rowTitleCentered = BooleanArrayList()
 
-    val contentCentered = HashSet<IntPair>()
+    val contentCentered = HashSet<Vector2i>()
 
     fun print(s: Any?) {
         builder.append(s.toString())
@@ -54,7 +54,7 @@ class TablePrinter {
         val cx = columns[x]
         while (cx.size <= y) cx.add(emptyList())
         cx[y] = lines
-        if (centered) contentCentered.add(IntPair(x, y))
+        if (centered) contentCentered.add(Vector2i(x, y))
     }
 
     fun finish(
@@ -119,7 +119,7 @@ class TablePrinter {
                         printValue(0, rowTitles.getOrNull(yi)?.getOrNull(y) ?: "", separator, rowTitleCentered[yi])
                     }
                     for (x in data.indices) {
-                        printValue(x + 1, data[x].getOrNull(y) ?: "", separator, IntPair(x, yi) in contentCentered)
+                        printValue(x + 1, data[x].getOrNull(y) ?: "", separator, Vector2i(x, yi) in contentCentered)
                     }
                     println(suffix)
                 }

@@ -21,9 +21,9 @@ package org.recast4j.detour
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.tuples.IntPair
 import org.joml.AABBf
 import org.joml.AABBi
+import org.joml.Vector2i
 import org.joml.Vector3f
 import org.recast4j.LongArrayList
 import org.recast4j.Vectors
@@ -110,10 +110,10 @@ class NavMesh(
      * @return 2-element int array with (tx,ty) tile location
      */
     @Suppress("unused")
-    fun calcTileLoc(pos: Vector3f): IntPair {
+    fun calcTileLoc(pos: Vector3f): Vector2i {
         val tx = floor(((pos.x - origin.x) / tileWidth)).toInt()
         val ty = floor(((pos.z - origin.z) / tileHeight)).toInt()
-        return IntPair(tx, ty)
+        return Vector2i(tx, ty)
     }
 
     fun calcTileLocX(pos: Vector3f): Int {

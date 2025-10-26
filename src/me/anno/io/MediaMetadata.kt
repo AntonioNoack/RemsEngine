@@ -1,19 +1,19 @@
 package me.anno.io
 
 import me.anno.audio.AudioReadable
-import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.cache.ICacheData
+import me.anno.cache.Promise
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.SignatureCache
 import me.anno.utils.Sleep
-import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector2i
 import java.io.InputStream
 
 /**
@@ -79,8 +79,8 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         )
     }
 
-    fun setImageSize(wh: IntPair) {
-        setImageSize(wh.first, wh.second)
+    fun setImageSize(wh: Vector2i) {
+        setImageSize(wh.x, wh.y)
     }
 
     fun setImageSize(w: Int, h: Int) {
@@ -96,7 +96,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         file.inputStream { it, exc ->
             if (it != null) {
                 val size = callback(it)
-                if (size is IntPair) {
+                if (size is Vector2i) {
                     setImageSize(size)
                 } else if (size is Exception) {
                     if (nextReaderIndex > 0) continueReading(nextReaderIndex)
@@ -179,7 +179,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         fun getMeta(file: FileReference, signature: String?): Promise<MediaMetadata> {
             return metadataCache.getFileEntry(file, false, timeoutMillis) { key, result ->
                 val meta = createMetadata(key.file, signature)
-                Sleep.waitUntil("MediaMetadata:getMeta",true, { meta.isReady }) {
+                Sleep.waitUntil("MediaMetadata:getMeta", true, { meta.isReady }) {
                     result.value = meta
                 }
             }

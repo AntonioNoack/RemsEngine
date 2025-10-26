@@ -16,8 +16,8 @@ import me.anno.image.raw.ByteImageFormat
 import me.anno.maths.Maths.sq
 import me.anno.utils.OS
 import me.anno.utils.structures.Collections.crossMap
-import me.anno.utils.structures.tuples.IntPair
 import org.joml.Matrix4x3f
+import org.joml.Vector2i
 
 fun main() {
     OfficialExtensions.initForTests()
@@ -45,10 +45,10 @@ fun metalRoughness(): MeshComponent {
     val s = 2.8f
     val di = 0.5f * s
     val list = (-i until i).toList()
-    val indices = list.crossMap(list, ArrayList(sq(list.size))) { x, y -> IntPair(x, y) }
-    val mesh = object : MeshJoiner<IntPair>(false, false, false) {
-        override fun getMesh(element: IntPair): Mesh = sphereMesh
-        override fun getTransform(element: IntPair, dst: Matrix4x3f) {
+    val indices = list.crossMap(list, ArrayList(sq(list.size))) { x, y -> Vector2i(x, y) }
+    val mesh = object : MeshJoiner<Vector2i>(false, false, false) {
+        override fun getMesh(element: Vector2i): Mesh = sphereMesh
+        override fun getTransform(element: Vector2i, dst: Matrix4x3f) {
             val (x, z) = element
             dst.setTranslation(x * s + di, 0f, z * s + di)
         }

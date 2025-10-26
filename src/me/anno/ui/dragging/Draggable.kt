@@ -4,7 +4,7 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel
-import me.anno.utils.structures.tuples.IntPair
+import org.joml.Vector2i
 
 /**
  * Standard implementation for IDraggable
@@ -33,8 +33,8 @@ open class Draggable(
         loadTexturesSync.pop()
     }
 
-    override fun getSize(w: Int, h: Int): IntPair {
-        return IntPair(ui.minW, ui.minH)
+    override fun getSize(w: Int, h: Int): Vector2i {
+        return Vector2i(ui.minW, ui.minH)
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

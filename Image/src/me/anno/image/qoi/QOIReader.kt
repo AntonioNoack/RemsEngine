@@ -3,7 +3,7 @@ package me.anno.image.qoi
 import me.anno.io.Streams.readBE32
 import me.anno.maths.Maths
 import me.anno.utils.Color
-import me.anno.utils.structures.tuples.IntPair
+import org.joml.Vector2i
 import java.io.IOException
 import java.io.InputStream
 
@@ -23,14 +23,14 @@ object QOIReader {
         val height = input.readBE32()
         if (width < 1) return IOException("Invalid image width")
         if (height < 1) return IOException("Invalid image height")
-        return IntPair(width, height)
+        return Vector2i(width, height)
     }
 
     @JvmStatic
     fun read(input: InputStream): Any {
 
         val size = findSize(input)
-        if (size !is IntPair) return size
+        if (size !is Vector2i) return size
         val (width, height) = size
 
         val numChannels = input.read()

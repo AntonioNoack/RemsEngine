@@ -15,10 +15,10 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
-import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Ints.toIntOrDefault
 import net.sf.image4j.codec.bmp.BMPDecoder
 import net.sf.image4j.codec.ico.ICOReader
+import org.joml.Vector2i
 
 class ImagePlugin : Plugin() {
 
@@ -54,7 +54,7 @@ class ImagePlugin : Plugin() {
                 file.inputStream { it, exc ->
                     if (it != null) {
                         val size = GimpImage.findSize(it)
-                        if (size is IntPair) dst.setImageSize(size)
+                        if (size is Vector2i) dst.setImageSize(size)
                         else (size as? Exception)?.printStackTrace()
                     } else exc?.printStackTrace()
                     dst.isReady = true

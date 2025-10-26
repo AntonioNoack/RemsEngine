@@ -11,10 +11,10 @@ import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.unmix
 import me.anno.ui.Style
-import me.anno.ui.base.image.ImagePanel
 import me.anno.ui.base.components.StretchModes
+import me.anno.ui.base.image.ImagePanel
 import me.anno.utils.Color.toHexColor
-import me.anno.utils.structures.tuples.IntPair
+import org.joml.Vector2i
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -35,7 +35,7 @@ class ColorPicker(
         flipY = !flipTexture
     }
 
-    fun getMouseCoordinates(): IntPair {
+    fun getMouseCoordinates(): Vector2i {
         val window = window!!
         var x01 = unmix(lix.toFloat(), (lix + liw).toFloat(), window.mouseX)
         var y01 = unmix(liy.toFloat(), (liy + lih).toFloat(), window.mouseY)
@@ -47,7 +47,7 @@ class ColorPicker(
         if (!y0h.isFinite()) y0h = 0f
         val mouseX = Maths.clamp(x0w.toInt(), 0, cpuData.width - 1)
         val mouseY = Maths.clamp(y0h.toInt(), 0, cpuData.height - 1)
-        return IntPair(mouseX, mouseY)
+        return Vector2i(mouseX, mouseY)
     }
 
     var pixelCount = 9 // should be odd

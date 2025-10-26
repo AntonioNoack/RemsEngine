@@ -4,10 +4,10 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Threads
-import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector2i
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.ceil
 import kotlin.math.max
@@ -41,13 +41,13 @@ abstract class WorkSplitter(val numThreads: Int) {
 
     abstract operator fun plusAssign(task: () -> Unit)
 
-    fun splitWork(w: Int, h: Int, threads: Int, maxRatio: Float = 2f): IntPair {
-        if (threads <= 1) return IntPair(1, 1)
+    fun splitWork(w: Int, h: Int, threads: Int, maxRatio: Float = 2f): Vector2i {
+        if (threads <= 1) return Vector2i(1, 1)
         val bestRatio = w.toFloat() / h.toFloat()
         val goldenX = sqrt(threads * bestRatio)
         var bestX = goldenX.roundToIntOr()
-        if (bestX < 1) return IntPair(1, threads)
-        if (bestX >= threads) return IntPair(threads, 1)
+        if (bestX < 1) return Vector2i(1, threads)
+        if (bestX >= threads) return Vector2i(threads, 1)
         var bestY = threads / bestX
         var bestScore = bestX * bestY
         val minX = ceil(goldenX / maxRatio).toIntOr(1)
@@ -61,7 +61,7 @@ abstract class WorkSplitter(val numThreads: Int) {
                 bestY = y
             }
         }
-        return IntPair(bestX, bestY)
+        return Vector2i(bestX, bestY)
     }
 
 

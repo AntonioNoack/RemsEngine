@@ -2,8 +2,8 @@ package me.anno.tests.image
 
 import me.anno.io.MediaMetadata
 import me.anno.io.Streams.readNBytes2
-import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.startsWith
+import org.joml.Vector2i
 import java.io.IOException
 import java.io.InputStream
 
@@ -55,7 +55,7 @@ object WebpSize {
                 val mask = 0x3fff
                 val width = readU16(buffer, 26) and mask
                 val height = readU16(buffer, 28) and mask
-                IntPair(width, height)
+                Vector2i(width, height)
             }
             buffer.startsWith("VP8L", 12) -> { // Lossless WebP
                 val b1 = readU8(buffer, 21)
@@ -64,7 +64,7 @@ object WebpSize {
                 val b4 = readU8(buffer, 24)
                 val width = 1 + ((b2 and 0x3F) shl 8 or b1)
                 val height = 1 + ((b4 and 0xF) shl 10 or (b3 shl 2) or (b2 shr 6))
-                IntPair(width, height)
+                Vector2i(width, height)
             }
             buffer.startsWith("VP8X", 12) -> { // Extended WebP
                 val width = 1 + readU24(buffer, 24)
@@ -75,7 +75,7 @@ object WebpSize {
                     // get an animated WebP file and check that this correctly uses ImageIO/FFMPEG
                     //  -> yes, that works :)
                     IOException("Animated WebP should be handled by FFMPEG")
-                } else IntPair(width, height)
+                } else Vector2i(width, height)
             }
             else -> IOException("Unsupported or invalid WebP")
         }
