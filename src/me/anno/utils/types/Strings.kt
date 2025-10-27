@@ -783,9 +783,7 @@ object Strings {
                 else -> i1++
             }
         }
-        if (i1 > i0) {
-            result.add(substring(i0, i1))
-        }
+        result.add(substring(i0, i1))
         return result
     }
 }

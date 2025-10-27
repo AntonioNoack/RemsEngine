@@ -3,11 +3,13 @@ package me.anno.tests.export
 import me.anno.Engine
 import me.anno.Time
 import me.anno.cache.Promise.Companion.loadSync
+import me.anno.engine.ExportedGame
 import me.anno.engine.projects.GameEngineProject
 import me.anno.export.ExportProcess
 import me.anno.export.ExportSettings
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.base.progress.ProgressBar

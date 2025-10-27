@@ -2,7 +2,6 @@ package me.anno.io.files
 
 import me.anno.maths.MinMax.max
 import me.anno.utils.structures.NextEntryIterator
-import me.anno.utils.types.Strings.removeRange2
 import java.io.BufferedReader
 import java.io.IOException
 
@@ -15,42 +14,68 @@ class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val
 
     private val builder = StringBuilder()
     private var hasReachedEnd = false
+    private var nextChar: Int = -1
 
     fun readLine(): String? {
         return readLineRaw()?.toString()
     }
 
     fun readLineRaw(): CharSequence? {
+
         builder.clear()
-        if (hasReachedEnd) {
-            return null
+        if (hasReachedEnd) return null
+        if (nextChar >= 0) {
+            val isLineFinished = appendChar(nextChar)
+            nextChar = -1
+            if (isLineFinished) return builder
         }
+
         while (true) {
             when (val c = reader.read()) {
                 -1 -> { // eof
                     hasReachedEnd = true
-                    reader.close()
+                    tryClose()
                     return builder
                 }
-                '\n'.code -> return builder
-                '\r'.code -> {}// ignored
-                else -> if (builder.length < lineLengthLimit) {
-                    builder.append(c.toChar())
-                } else break
+                '\n'.code -> {
+                    return builder
+                }
+                '\r'.code -> {
+                    // \r -> one line break, \r\n -> one line break
+                    nextChar = reader.read()
+                    if (nextChar == '\n'.code) {
+                        nextChar = -1
+                    }
+                    return builder
+                }
+                else -> {
+                    val isLineFinished = appendChar(c)
+                    if (isLineFinished) return builder
+                }
             }
         }
-        // when we reach this point, the line has been too long
-        builder.removeRange2(0, max(0, lineLengthLimit - suffix.length))
-        builder.append(suffix)
-        while (true) {
-            when (reader.read()) {
-                -1 -> { // eof
-                    hasReachedEnd = true
-                    reader.close()
-                    return builder
+    }
+
+    private fun appendChar(c: Int): Boolean {
+        if (builder.length < lineLengthLimit) {
+            builder.append(c.toChar())
+            return false
+        } else {
+
+            // when we reach this point, the line has been too long
+            builder.setLength(max(0, lineLengthLimit - suffix.length))
+            builder.append(suffix)
+
+            while (true) {
+                when (reader.read()) {
+                    -1 -> { // eof
+                        hasReachedEnd = true
+                        tryClose()
+                        return true
+                    }
+                    '\n'.code -> return true
+                    // everything else is ignored
                 }
-                '\n'.code -> return builder
-                // everything else is ignored
             }
         }
     }
@@ -58,13 +83,20 @@ class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val
     override fun nextEntry(): String? {
         return try {
             readLine()
-        } catch (e: IOException) {
-            reader.close()
+        } catch (_: IOException) {
+            tryClose()
             null
         }
     }
 
     fun close() {
-        reader.close()
+        tryClose()
+    }
+
+    private fun tryClose() {
+        try {
+            reader.close()
+        } catch (_: IOException) {
+        }
     }
 }

@@ -3,7 +3,7 @@ package me.anno.utils.structures
 /**
  * Iterator for generator functions that return null or something
  * */
-abstract class NextEntryIterator<V: Any> : Iterator<V> {
+abstract class NextEntryIterator<V : Any> : Iterator<V> {
 
     abstract fun nextEntry(): V?
 
@@ -14,9 +14,9 @@ abstract class NextEntryIterator<V: Any> : Iterator<V> {
     }
 
     override fun next(): V {
-        var v = next
-        if (v == null) v = nextEntry()
+        var value = next
+        if (value == null) value = nextEntry()
         next = null
-        return v!!
+        return value ?: throw IllegalStateException("No next element")
     }
 }
