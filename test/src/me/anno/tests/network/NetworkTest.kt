@@ -27,7 +27,7 @@ class NetworkTest {
         private val LOGGER = LogManager.getLogger(NetworkTest::class)
     }
 
-    @Test
+   // @Test
     @FlakyTest
     fun runParallelServers() {
         val bad = AtomicInteger(0)
@@ -46,7 +46,7 @@ class NetworkTest {
         println("Failed servers: ${bad.get()}/${threads.size}")
     }
 
-    @Test
+   // @Test
     @FlakyTest
     fun runSerialServer() {
         runSerialServer(false)

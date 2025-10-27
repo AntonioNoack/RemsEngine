@@ -180,6 +180,26 @@ object Floats {
     @JvmStatic
     fun Int.fromHalf() = float16ToFloat32(this)
 
+    /**
+     * Smallest, non-zero, positive value, 5.9604645E-8
+     * */
+    const val FP16_MIN_VALUE = 1
+
+    /**
+     * Largest, finite positive value, 65504
+     * */
+    const val FP16_MAX_VALUE = 0x7bff
+
+    /**
+     * +Inf for fp16
+     * */
+    const val FP16_POSITIVE_INFINITY = 0x7c00
+
+    /**
+     * -Inf for fp16
+     * */
+    const val FP16_NEGATIVE_INFINITY = 0xfc00
+
     // by x4u on https://stackoverflow.com/a/6162687/4979303
     @JvmStatic
     fun float16ToFloat32(bits: Int): Float {
@@ -224,9 +244,9 @@ object Floats {
             sign // becomes +/-0
         } else {
             v = fp32 and 0x7fffffff ushr 23 // tmp exp for subnormal calc
-            sign or ((fp32 and 0x7fffff or 0x800000) +// add subnormal bit
-                    (0x800000.ushr(v - 102)) // round depending on cut off
-                        .ushr(126 - v)) // div by 2^(1-(exp-127+15)) and >> 13 | exp=0
+            sign or (((fp32 and 0x7fffff or 0x800000) +// add subnormal bit
+                    (0x800000.ushr(v - 102))) // round depending on cut off
+                .ushr(126 - v)) // div by 2^(1-(exp-127+15)) and >> 13 | exp=0
         }
     }
 }

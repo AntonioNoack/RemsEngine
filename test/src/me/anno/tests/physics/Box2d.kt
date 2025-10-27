@@ -215,7 +215,7 @@ fun run2dPhysicsWithUI() {
                     val entity = hovered?.entity
                     val rb = entity?.getComponent(DynamicBody2d::class)
                     if (rb != null) {
-                        val body = rb.nativeInstance!!
+                        val body = rb.nativeInstance ?: return
                         val pos = entity.transform.globalPosition
                         val ang = entity.transform.globalRotation.getEulerAngleYXZvZ()
                         // calculate anchorWS from mouse position
