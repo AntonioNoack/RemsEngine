@@ -78,6 +78,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable, OnEnable {
         forAllComponents(OnEnable::class, true, OnEnable::onEnable)
     }
 
+    override fun onDisable() {
+        isCreated = false
+    }
+
     val transform: Transform = Transform(this)
 
     @NotSerializedProperty
