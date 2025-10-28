@@ -39,7 +39,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-class Entity() : PrefabSaveable(), Inspectable, Renderable {
+class Entity() : PrefabSaveable(), Inspectable, Renderable, OnEnable {
 
     constructor(parent: Entity?) : this() {
         parent?.add(this)
@@ -69,13 +69,12 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             flags = flags.withFlag(CREATED_FLAG, value)
         }
 
-    // todo there should be a system and an interface for this, shouldn't they?
-    fun create() {
+    override fun onEnable() {
         if (isCreated) return
         transform.teleportUpdate()
         invalidateAABBsCompletely()
         isCreated = true
-        forAllChildren(true, Entity::create)
+        forAllChildren(true, Entity::onEnable)
         forAllComponents(OnEnable::class, true, OnEnable::onEnable)
     }
 

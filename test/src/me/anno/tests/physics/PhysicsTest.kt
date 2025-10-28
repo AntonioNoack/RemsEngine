@@ -12,7 +12,7 @@ fun main() {
     val physics = BulletPhysics()
     Systems.registerSystem(physics)
 
-    world.create()
+    world.onEnable()
 
     val gravity = -9.81
     val duration = 1.0

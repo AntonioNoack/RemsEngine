@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
+import me.anno.ecs.systems.Systems
 import me.anno.engine.Events.addEvent
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
@@ -143,7 +144,7 @@ class SceneView(val renderView: RenderView, style: Style) : PanelStack(style) {
 
         fun testScene2(scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null): Panel {
             scene.prefabPath = Path.ROOT_PATH
-            EditorState.prefabSource = scene.ref
+            Systems.world = scene
             val sceneView = SceneView(PlayMode.EDITING, style)
             PrefabInspector.currentInspector = PrefabInspector(scene.ref)
             if (init != null) init(sceneView)

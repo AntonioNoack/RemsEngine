@@ -85,7 +85,7 @@ private fun engineTest3d() {
     world.validateTransform()
     groundRB.invalidatePhysics()
     boxRB.invalidatePhysics()
-    world.create()
+    world.onEnable()
     for (i in 0 until 10) {
         box.validateTransform()
         ground.validateTransform()

@@ -15,6 +15,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.components.FillSpace
+import me.anno.ecs.systems.Systems
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.WindowRenderFlags
 import me.anno.engine.raycast.RayHit
@@ -426,7 +427,7 @@ fun main() {
 
         world.add(camBase)
 
-        EditorState.prefabSource = world.ref
+        Systems.world = world
         sceneView.weight = 1f
 
         list.add(sceneView, 5f)

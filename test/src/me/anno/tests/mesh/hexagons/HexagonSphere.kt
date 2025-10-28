@@ -10,6 +10,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.utils.NormalCalculator.makeFlatShaded
+import me.anno.ecs.systems.Systems
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
@@ -339,7 +340,7 @@ fun main() {
         entity.add(scaled)
     }
     testUI2("Hexagon Sphere") {
-        EditorState.prefabSource = entity.ref
+        Systems.world = entity
         val main = SceneView(PlayMode.EDITING, style)
         main.weight = 1f
         val controls = PanelListY(style)

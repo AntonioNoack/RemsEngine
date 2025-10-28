@@ -21,7 +21,6 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.OfficialExtensions
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
@@ -174,7 +173,7 @@ fun createUI(): Panel {
         }
     }
 
-    EditorState.prefabSource = scene.ref
+    Systems.world = scene
     val sceneView = SceneView(PlayMode.PLAYING, style)
     val renderView = sceneView.renderView
     renderView.localPlayer = player

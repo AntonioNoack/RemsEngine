@@ -91,15 +91,19 @@ object Systems : PrefabSaveable() {
     var world: PrefabSaveable? = null
         set(value) {
             if (field !== value) {
-                for (i in systems.indices) {
-                    systems[i].clear()
-                }
-                if (value != null) {
-                    setContainsRecursively(value, true)
-                }
+                onChangeWorld(value)
                 field = value
             }
         }
+
+    private fun onChangeWorld(newWorld: PrefabSaveable?) {
+        for (i in systems.indices) {
+            systems[i].clear()
+        }
+        if (newWorld != null) {
+            setContainsRecursively(newWorld, true)
+        }
+    }
 
     override fun listChildTypes(): String = "s"
     override fun getChildListByType(type: Char): List<PrefabSaveable> = systems

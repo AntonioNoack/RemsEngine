@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.change.Path
+import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
 import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.EditorState
@@ -24,7 +25,7 @@ fun main() {
     testUI("PrefabTest") {
         WindowRenderFlags.enableVSync = true
         sample.prefabPath = Path.ROOT_PATH
-        EditorState.prefabSource = sample.ref
+        Systems.world = sample
         PrefabInspector.currentInspector = PrefabInspector(sample.ref)
         EditorState.select(sample)
         PropertyInspector({ EditorState.selection }, DefaultConfig.style)

@@ -1,9 +1,11 @@
 package me.anno.tests.mesh
 
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshCache
+import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
@@ -20,7 +22,7 @@ import me.anno.utils.OS.res
 
 fun createEasyMeshUI(meshRef: FileReference = res.getChild("meshes/arrowX.obj")): Panel {
     ECSRegistry.init()
-    EditorState.prefabSource = meshRef
+    Systems.world = MeshCache.getEntry(meshRef).waitFor() as Mesh
     val sceneView = SceneView(PlayMode.PLAYING, style)
     val renderView = sceneView.renderView
     renderView.radius = 1f

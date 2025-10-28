@@ -4,8 +4,8 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.Systems
 import me.anno.engine.OfficialExtensions
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView1
@@ -24,14 +24,14 @@ fun main() {
     // todo bug: color is grayish where blurred :/
     //  can be seen by setting Scale to 5-10
     OfficialExtensions.initForTests()
-    val scene = downloads.getChild("3d/ogldev-source/crytek_sponza/sponza.fbx")
-    val scene1 = PrefabCache[scene].waitFor()!!.sample as PrefabSaveable
+    val src = downloads.getChild("3d/ogldev-source/crytek_sponza/sponza.fbx")
+    val scene = PrefabCache[src].waitFor()!!.sample as PrefabSaveable
     testUI3("Depth Of Field") {
-        EditorState.prefabSource = scene
-        val sceneView = SceneView(RenderView1(PlayMode.EDITING, scene1, style), style)
+        Systems.world = scene
+        val sceneView = SceneView(RenderView1(PlayMode.EDITING, scene, style), style)
         sceneView.renderView.renderMode = RenderMode.DEPTH_OF_FIELD
         sceneView.weight = 1f
-        PrefabInspector.currentInspector = PrefabInspector(scene)
+        PrefabInspector.currentInspector = PrefabInspector(src)
         val list = PanelListY(style)
         val list2 = PanelListX(style)
         val effect = RenderMode.DEPTH_OF_FIELD.renderGraph!!.nodes.firstInstance2(DepthOfFieldNode::class)

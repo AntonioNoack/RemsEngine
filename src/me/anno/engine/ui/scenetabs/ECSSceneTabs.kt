@@ -3,6 +3,7 @@ package me.anno.engine.ui.scenetabs
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.ecs.systems.Systems
 import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
@@ -130,7 +131,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
     fun updatePrefab(prefab: Prefab, major: Boolean = true) {
         currentTab?.inspector?.onChange(major) // probably correct ^^
-        EditorState.prefabSource = prefab.sourceFile
+        Systems.world = prefab.getSampleInstance()
     }
 
     fun close(sceneTab: ECSSceneTab, setNextActive: Boolean) {

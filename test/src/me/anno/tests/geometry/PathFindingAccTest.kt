@@ -12,6 +12,7 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
@@ -209,7 +210,7 @@ fun main() {
 
         val scene = Entity()
         scene.add(mesh)
-        EditorState.prefabSource = scene.ref
+        Systems.world = scene
 
         val dx = (sx - 1) * .5
         val dy = (sy - 1) * .5

@@ -9,9 +9,9 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.ecs.prefab.PrefabInspector
-import me.anno.engine.WindowRenderFlags
+import me.anno.ecs.systems.Systems
 import me.anno.engine.OfficialExtensions
-import me.anno.engine.ui.EditorState
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderState
@@ -35,8 +35,8 @@ import me.anno.image.raw.FloatImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.clamp
-import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.sq
+import me.anno.maths.MinMax.max
 import me.anno.maths.noise.PerlinNoise
 import me.anno.sdf.SDFComposer.sdfConstants
 import me.anno.sdf.modifiers.SDFNoise.Companion.generalNoise
@@ -259,7 +259,7 @@ fun main() {
     testUI("Foliage") {
 
         val scene2 = scene.ref
-        EditorState.prefabSource = scene2
+        Systems.world = scene
         PrefabInspector.currentInspector = PrefabInspector(scene2)
 
         // we need a second camera for testing the first camera

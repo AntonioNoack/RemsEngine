@@ -1,6 +1,7 @@
 package me.anno.tests.gfx.graphs
 
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.systems.Systems
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
@@ -27,7 +28,7 @@ fun main() {
     val scene = metalRoughness()
     testUI("RenderGraph") {
 
-        EditorState.prefabSource = scene.ref
+        Systems.world = scene
 
         val sv = SceneView(PlayMode.EDITING, style)
         val rv = sv.renderView

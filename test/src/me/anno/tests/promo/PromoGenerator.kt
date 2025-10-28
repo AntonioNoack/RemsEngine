@@ -7,6 +7,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.systems.Systems
 import me.anno.engine.Events.addEvent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
@@ -94,7 +95,7 @@ fun main() {
             )
 
     )
-    EditorState.prefabSource = scene.ref
+    Systems.world = scene
     EditorState.select(scene)
     dst.tryMkdirs()
 

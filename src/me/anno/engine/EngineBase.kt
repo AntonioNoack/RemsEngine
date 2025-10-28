@@ -7,6 +7,7 @@ import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnEnable
 import me.anno.ecs.systems.Systems
 import me.anno.engine.ui.EditorState
 import me.anno.extensions.ExtensionLoader
@@ -79,9 +80,6 @@ abstract class EngineBase(
     abstract fun createUI()
 
     open fun onGameLoopStart() {
-        val sampleInstance = EditorState.prefab.value?.sample as? PrefabSaveable
-        Systems.world = sampleInstance
-        (sampleInstance as? Entity)?.create() // really do that here???
         Systems.onUpdate()
     }
 

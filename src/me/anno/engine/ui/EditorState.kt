@@ -6,6 +6,7 @@ import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.ecs.systems.Systems
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
@@ -21,7 +22,7 @@ import me.anno.utils.structures.lists.Lists.wrap
 object EditorState {
 
     var projectFile: FileReference = InvalidRef
-    var prefabSource: FileReference = InvalidRef
+    val prefabSource: FileReference get() = Systems.world?.ref ?: InvalidRef
     val prefab get() = PrefabCache[prefabSource]
 
     // todo box selecting with shift
