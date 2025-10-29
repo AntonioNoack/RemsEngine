@@ -55,6 +55,9 @@ import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.types.Strings.ifBlank2
 import org.joml.Matrix4f
 
+// todo replace drawText-variants with one uniform variant...
+//  include padding! move monospaced into a font-property
+
 // to do Unity($)/RemsEngine(research) shader debugger:
 //  - go up/down one instruction
 //  - see local variables for all execution units

@@ -1,8 +1,8 @@
 package me.anno.image.thumbs
 
-import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.IgnoredException
+import me.anno.cache.Promise
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.extensions.FileReaderRegistry
 import me.anno.extensions.FileReaderRegistryImpl
@@ -32,6 +32,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerByteSliceFile
+import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.utils.OS
 import me.anno.utils.async.Callback
@@ -98,6 +99,8 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
             neededSize < 1 -> Promise.empty()
             file == InvalidRef -> Promise.empty()
             file is ImageReadable -> TextureCache[file, timeout]
+            file is InnerFolder && file.getChildImpl("Scene.json").exists ->
+                getEntry(file.getChildImpl("Scene.json"), neededSize)
             file.isDirectory || !file.exists -> Promise.empty()
             else -> {
                 val size = getSize(neededSize)

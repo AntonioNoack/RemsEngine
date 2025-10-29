@@ -6,6 +6,9 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureReader
 import me.anno.graph.hdb.HDBKey
+import me.anno.image.aseprite.AseSprite
+import me.anno.image.aseprite.AsepriteReader
+import me.anno.image.aseprite.AsepriteToImage.frameToImage
 import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.svg.DrawSVGs
 import me.anno.image.svg.SVGMeshCache
@@ -78,6 +81,21 @@ object ImageThumbnailsImpl {
                 val image = it.use { ICOReader.read(it, size) }
                 if (image is Image) ThumbnailCache.transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
                 else callback.err(image as? Exception)
+            } else exc?.printStackTrace()
+        }
+    }
+
+    fun generateAsepriteFrame(
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        callback: Callback<ITexture2D>
+    ) {
+        srcFile.inputStream { it, exc ->
+            if (it != null) {
+                val sprite = it.use { stream -> AsepriteReader.read(stream) }
+                if (sprite is AseSprite) {
+                    val image = sprite.frameToImage(sprite.frames.first())
+                    ThumbnailCache.transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
+                } else callback.err(sprite as? Exception)
             } else exc?.printStackTrace()
         }
     }

@@ -2,6 +2,7 @@ package me.anno.image
 
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.texture.TextureReader
+import me.anno.image.aseprite.AsepriteReader
 import me.anno.image.exr.EXRReader
 import me.anno.image.gimp.GimpImage
 import me.anno.image.jpg.ExifOrientation
@@ -44,6 +45,7 @@ class ImagePlugin : Plugin() {
         // image loading with extra details
         InnerFolderCache.registerSignatures("gimp", GimpImage::readAsFolder)
         InnerFolderCache.registerSignatures("svg", SVGMesh::readAsFolder)
+        InnerFolderCache.registerSignatures("aseprite", AsepriteReader::readAsFolder)
     }
 
     private fun registerMediaMetadata() {
@@ -85,6 +87,9 @@ class ImagePlugin : Plugin() {
         MediaMetadata.registerSignatureHandler(100, "bmp") { _, signature, dst, ri ->
             if (signature == "bmp") dst.setImageByStream(BMPDecoder::findSize, ri) else false
         }
+        MediaMetadata.registerSignatureHandler(100, "aseprite") { _, signature, dst, ri ->
+            if (signature == "aseprite") dst.setImageByStream(AsepriteReader::findSize, ri) else false
+        }
         MediaMetadata.registerSignatureHandler(100, "svg") { file, signature, dst, _ ->
             if ((signature == "xml" && file.lcExtension == "svg") || signature == "svg") {
                 // find out size from first XML node
@@ -120,6 +125,7 @@ class ImagePlugin : Plugin() {
         ThumbnailCache.registerFileExtensions("tga", ImageThumbnailsImpl::generateTGAFrame)
         ThumbnailCache.registerFileExtensions("ico", ImageThumbnailsImpl::generateICOFrame)
         ThumbnailCache.registerFileExtensions("svg", ImageThumbnailsImpl::generateSVGFrame)
+        ThumbnailCache.registerSignatures("aseprite", ImageThumbnailsImpl::generateAsepriteFrame)
         ImageAsFolder.readIcoLayers = ICOReader::readAllLayers
         ImageAsFolder.readJPGThumbnail = JPGThumbnails::readThumbnail
     }
@@ -132,10 +138,10 @@ class ImagePlugin : Plugin() {
     override fun onDisable() {
         super.onDisable()
         ImageCache.unregister("tga,gimp,exr,qoi,ico")
-        InnerFolderCache.unregisterSignatures("gimp,svg")
-        ThumbnailCache.unregisterSignatures("qoi,jpg,ico")
+        InnerFolderCache.unregisterSignatures("gimp,svg,aseprite")
+        ThumbnailCache.unregisterSignatures("qoi,jpg,ico,aseprite")
         ThumbnailCache.unregisterFileExtensions("tga,ico,tga,ico")
-        MediaMetadata.unregister("gimp,qoi,ico,gimp")
+        MediaMetadata.unregister("gimp,qoi,ico,gimp,aseprite")
         TextureReader.findExifRotation = null
     }
 }

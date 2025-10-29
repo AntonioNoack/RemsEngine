@@ -26,6 +26,9 @@ object QOIReader {
         return Vector2i(width, height)
     }
 
+    /**
+     * Reads a QOI Image, or returns an IOException if something goes wrong.
+     * */
     @JvmStatic
     fun read(input: InputStream): Any {
 
