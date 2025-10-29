@@ -34,6 +34,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.max
 
 private val LOGGER = LogManager.getLogger("Collider")
 
@@ -202,8 +203,9 @@ fun BoxCollider.createBulletBoxShape(scale: Vector3d): BoxShape {
 }
 
 fun SphereCollider.createBulletSphereShape(scale: Vector3d): SphereShape {
-    return SphereShape(radius.toDouble()).apply {
-        setLocalScaling(Vector3d(scale.x, scale.y, scale.z))
+    val maxScale = max(scale.x, max(scale.y, scale.z))
+    return SphereShape(radius * maxScale).apply {
+        setLocalScaling(Vector3d(scale.x, scale.y, scale.z).div(maxScale))
     }
 }
 
