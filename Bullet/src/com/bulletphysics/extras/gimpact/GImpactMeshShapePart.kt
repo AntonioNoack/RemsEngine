@@ -153,7 +153,8 @@ class GImpactMeshShapePart : GImpactShapeInterface {
         var i = collided.size
         while ((i--) != 0) {
             getPrimitiveTriangle(collided[i], triangle)
-            callback.processTriangle(triangle.vertices, part, collided[i])
+            val (a, b, c) = triangle.vertices
+            callback.processTriangle(a, b, c, part, collided[i])
         }
         unlockChildShapes()
     }

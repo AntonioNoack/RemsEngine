@@ -91,13 +91,15 @@ class ScaledBvhTriangleMeshShape @Suppress("unused") constructor(
         private val originalCallback: TriangleCallback,
         private val localScaling: Vector3d
     ) : TriangleCallback {
-        private val newTriangle = Array(3) { Vector3d() }
+        private val newA = Vector3d()
+        private val newB = Vector3d()
+        private val newC = Vector3d()
 
-        override fun processTriangle(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
-            mul(newTriangle[0], triangle[0], localScaling)
-            mul(newTriangle[1], triangle[1], localScaling)
-            mul(newTriangle[2], triangle[2], localScaling)
-            originalCallback.processTriangle(newTriangle, partId, triangleIndex)
+        override fun processTriangle(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int) {
+            mul(newA, a, localScaling)
+            mul(newB, b, localScaling)
+            mul(newC, c, localScaling)
+            originalCallback.processTriangle(newA, newB, newC, partId, triangleIndex)
         }
     }
 }

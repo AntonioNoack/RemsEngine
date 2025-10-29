@@ -7,6 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.Compare.ifSame
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.sortedAdd
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
@@ -19,6 +20,17 @@ object Systems : PrefabSaveable() {
     private val systemByName = HashMap<String, System>()
     private val systems = ArrayList<System>() // sorted by priority
     val readonlySystems: List<System> = systems
+
+    /**
+     * Can be used for finding physics, or similar.
+     * */
+    fun <V : System> findSystem(clazz: Class<V>): V? {
+        synchronized(systemByName) {
+            val instance = systems.firstOrNull2 { it.javaClass == clazz }
+                ?: systems.firstOrNull2 { clazz.isInstance(it) }
+            return clazz.cast(instance)
+        }
+    }
 
     /**
      * registers a system by its class name;

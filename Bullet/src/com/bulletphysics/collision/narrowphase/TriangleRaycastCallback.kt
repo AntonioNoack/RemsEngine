@@ -15,13 +15,11 @@ abstract class TriangleRaycastCallback(from: Vector3d, to: Vector3d) : TriangleC
 
     var hitFraction = 1.0
 
-    override fun processTriangle(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
-        val (vert0, vert1, vert2) = triangle
-
+    override fun processTriangle(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int) {
         val triangleNormal = Stack.newVec()
-        subCross(vert0, vert1, vert2, triangleNormal)
+        subCross(a, b, c, triangleNormal)
 
-        val dist = vert0.dot(triangleNormal)
+        val dist = a.dot(triangleNormal)
         val distA = triangleNormal.dot(from) - dist
         val distB = triangleNormal.dot(to) - dist
 
@@ -40,12 +38,12 @@ abstract class TriangleRaycastCallback(from: Vector3d, to: Vector3d) : TriangleC
             val point = Vector3d()
             from.lerp(to, distance, point)
 
-            val v0p = vert0.sub(point, Stack.newVec())
-            val v1p = vert1.sub(point, Stack.newVec())
+            val v0p = a.sub(point, Stack.newVec())
+            val v1p = b.sub(point, Stack.newVec())
             val cp01 = v0p.cross(v1p, Stack.newVec())
 
             if (cp01.dot(triangleNormal) >= edgeTolerance) {
-                val v2p = vert2.sub(point, Stack.newVec())
+                val v2p = c.sub(point, Stack.newVec())
                 val cp12 = v1p.cross(v2p, Stack.newVec())
 
                 if (cp12.dot(triangleNormal) >= edgeTolerance) {

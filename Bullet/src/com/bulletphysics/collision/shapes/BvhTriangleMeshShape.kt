@@ -227,7 +227,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
         var meshInterface: StridingMeshInterface? = null
         var callback: TriangleCallback? = null
 
-        private val triangle = arrayOf(Vector3d(), Vector3d(), Vector3d())
+        private val triangle = Array(3) { Vector3d() }
 
         fun init(callback: TriangleCallback, meshInterface: StridingMeshInterface) {
             this.meshInterface = meshInterface
@@ -243,7 +243,8 @@ class BvhTriangleMeshShape : TriangleMeshShape {
             Stack.subVec(1)
 
             /* Perform ray vs. triangle collision here */
-            callback!!.processTriangle(triangle, subPart, triangleIndex)
+            val (a, b, c) = triangle
+            callback!!.processTriangle(a, b, c, subPart, triangleIndex)
 
             meshInterface.unLockReadOnlyVertexBase(subPart)
         }

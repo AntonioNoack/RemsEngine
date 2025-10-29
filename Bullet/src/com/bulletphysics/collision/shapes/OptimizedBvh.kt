@@ -11,6 +11,7 @@ import com.bulletphysics.linearmath.VectorUtil.setMax
 import com.bulletphysics.linearmath.VectorUtil.setMin
 import cz.advel.stack.Stack
 import me.anno.utils.structures.lists.Lists.swap
+import org.joml.AABBd
 import org.joml.Vector3d
 import java.io.Serializable
 import kotlin.math.max
@@ -148,24 +149,19 @@ class OptimizedBvh : Serializable {
 
     private class NodeTriangleCallback(val triangleNodes: ArrayList<OptimizedBvhNode>) :
         InternalTriangleIndexCallback {
-        private val aabbMin = Vector3d()
-        private val aabbMax = Vector3d()
 
-        override fun internalProcessTriangleIndex(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
+        private val bounds = AABBd()
+
+        override fun internalProcessTriangleIndex(
+            a: Vector3d, b: Vector3d, c: Vector3d,
+            partId: Int, triangleIndex: Int
+        ) {
             val node = OptimizedBvhNode()
-            aabbMin.set(1e308)
-            aabbMax.set(-1e308)
-            val (a, b, c) = triangle
-            aabbMin.min(a)
-            aabbMin.min(b)
-            aabbMin.min(c)
-            aabbMax.max(a)
-            aabbMax.max(b)
-            aabbMax.max(c)
+            bounds.set(a).union(b).union(c)
 
             // with quantization?
-            node.aabbMinOrg.set(aabbMin)
-            node.aabbMaxOrg.set(aabbMax)
+            bounds.getMin(node.aabbMinOrg)
+            bounds.getMax(node.aabbMaxOrg)
 
             node.escapeIndex = -1
 
@@ -181,7 +177,10 @@ class OptimizedBvh : Serializable {
         var optimizedTree: OptimizedBvh
     ) : InternalTriangleIndexCallback {
 
-        override fun internalProcessTriangleIndex(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
+        override fun internalProcessTriangleIndex(
+            a: Vector3d, b: Vector3d, c: Vector3d,
+            partId: Int, triangleIndex: Int
+        ) {
             // The partId and triangle index must fit in the same (positive) integer
             assert(partId < (1 shl MAX_NUM_PARTS_IN_BITS))
             assert(triangleIndex < (1 shl (31 - MAX_NUM_PARTS_IN_BITS)))
@@ -193,7 +192,6 @@ class OptimizedBvh : Serializable {
             val aabbMax = Stack.newVec()
             aabbMin.set(1e308)
             aabbMax.set(-1e308)
-            val (a, b, c) = triangle
             aabbMin.min(a).min(b).min(c)
             aabbMax.max(a).max(b).max(c)
 

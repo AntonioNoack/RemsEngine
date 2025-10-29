@@ -17,7 +17,7 @@ import org.joml.Vector3d
 open class CollisionObject() {
 
     @JvmField
-    var worldTransform = Transform()
+    val worldTransform = Transform()
 
     /** used for CCD and interpolation
      * it can be either previous or future (predicted) transform */

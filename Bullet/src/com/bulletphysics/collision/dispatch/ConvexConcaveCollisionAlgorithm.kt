@@ -169,7 +169,7 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
             identity.setIdentity()
         }
 
-        override fun processTriangle(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
+        override fun processTriangle(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int) {
             // do a swept sphere for now
 
             //btTransform ident;
@@ -178,7 +178,7 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
             val castResult = Stack.newCastResult()
             castResult.fraction = hitFraction
             val pointShape = SphereShape(ccdSphereRadius)
-            val triShape = TriangleShape(triangle[0], triangle[1], triangle[2])
+            val triShape = TriangleShape(a, b, c)
             val simplexSolver = Stack.newVSS()
             val convexCaster = SubSimplexConvexCast(pointShape, triShape, simplexSolver)
 

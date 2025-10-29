@@ -75,7 +75,7 @@ internal class ConvexTriangleCallback(
         clearCache()
     }
 
-    override fun processTriangle(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
+    override fun processTriangle(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int) {
         // aabb filter is already applied!
 
         ci.dispatcher1 = dispatcher
@@ -92,9 +92,9 @@ internal class ConvexTriangleCallback(
             val tmp2 = Stack.newVec()
             val tmp3 = Stack.newVec()
 
-            tr.transformPosition(triangle[0], tmp1)
-            tr.transformPosition(triangle[1], tmp2)
-            tr.transformPosition(triangle[2], tmp3)
+            tr.transformPosition(a, tmp1)
+            tr.transformPosition(b, tmp2)
+            tr.transformPosition(c, tmp3)
             debugDraw.drawLine(tmp1, tmp2, color)
             debugDraw.drawLine(tmp2, tmp3, color)
             debugDraw.drawLine(tmp3, tmp1, color)
@@ -104,7 +104,7 @@ internal class ConvexTriangleCallback(
 
         val convexShape = convexBody.collisionShape
         if (convexShape is ConvexShape) {
-            tm.init(triangle[0], triangle[1], triangle[2])
+            tm.init(a, b, c)
             tm.margin = collisionMarginTriangle
 
             val tmpShape = ob.collisionShape

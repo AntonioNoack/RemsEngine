@@ -1,6 +1,8 @@
 package com.bulletphysics.linearmath
 
+import com.bulletphysics.extras.gimpact.AABB
 import cz.advel.stack.Stack
+import org.joml.AABBd
 import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.max
@@ -101,20 +103,18 @@ object AabbUtil {
     /**
      * Conservative test for overlap between triangle and AABB.
      */
-    fun testTriangleAgainstAabb2(vertices: Array<Vector3d>, aabbMin: Vector3d, aabbMax: Vector3d): Boolean {
-        val p1 = vertices[0]
-        val p2 = vertices[1]
-        val p3 = vertices[2]
+    fun testTriangleAgainstAabb2(
+        a: Vector3d, b: Vector3d, c: Vector3d,
+        bounds: AABBd
+    ): Boolean {
+        if (min(min(a.x, b.x), c.x) > bounds.maxX) return false
+        if (max(max(a.x, b.x), c.x) < bounds.minX) return false
 
-        if (min(min(p1.x, p2.x), p3.x) > aabbMax.x) return false
-        if (max(max(p1.x, p2.x), p3.x) < aabbMin.x) return false
+        if (min(min(a.z, b.z), c.z) > bounds.maxZ) return false
+        if (max(max(a.z, b.z), c.z) < bounds.minZ) return false
 
-        if (min(min(p1.z, p2.z), p3.z) > aabbMax.z) return false
-        if (max(max(p1.z, p2.z), p3.z) < aabbMin.z) return false
-
-        if (min(min(p1.y, p2.y), p3.y) > aabbMax.y) return false
-        if (max(max(p1.y, p2.y), p3.y) < aabbMin.y) return false
-
+        if (min(min(a.y, b.y), c.y) > bounds.maxY) return false
+        if (max(max(a.y, b.y), c.y) < bounds.minY) return false
         return true
     }
 

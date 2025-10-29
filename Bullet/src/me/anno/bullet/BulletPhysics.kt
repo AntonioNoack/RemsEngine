@@ -13,6 +13,7 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.CompoundShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
+import com.bulletphysics.dynamics.character.KinematicCharacterController
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
 import com.bulletphysics.dynamics.constraintsolver.TypedConstraint
 import com.bulletphysics.dynamics.vehicle.DefaultVehicleRaycaster
@@ -22,6 +23,8 @@ import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.bullet.BulletRendering.renderGUI
+import me.anno.bullet.ToConvexShape.convertToConvexShape
+import me.anno.bullet.bodies.CharacterBody
 import me.anno.bullet.bodies.DynamicBody
 import me.anno.bullet.bodies.GhostBody
 import me.anno.bullet.bodies.KinematicBody
@@ -73,7 +76,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
     ): CollisionShape {
         val firstCollider = colliders.first()
         return if (colliders.size == 1 &&
-            firstCollider.entity === entity &&
+            firstCollider.entity === entity && // check transform
             centerOfMass.lengthSquared() == 0.0
         ) {
             // there is only one, and no transform needs to be applied -> use it directly
@@ -122,6 +125,17 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         body.collisionShape = collider
         body.userData = rigidBody
 
+        if (rigidBody is CharacterBody) {
+            val controller = KinematicCharacterController(
+                body as PairCachingGhostObject,
+                convertToConvexShape(body.collisionShape!!),
+                rigidBody
+            )
+            rigidBody.nativeInstance2 = controller
+            rigidBody.initialize(controller)
+            bulletInstance.addAction(controller)
+        }
+
         setMatrix(body, globalTransform, scale, centerOfMass)
 
         if (body is RigidBody && rigidBody is PhysicalBody) {
@@ -146,6 +160,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
 
         return ScaledBody(rigidBody, body, scale, centerOfMass)
     }
+
 
     private fun defineVehicle(entity: Entity, vehicleComp: Vehicle, body: RigidBody) {
         // todo correctly create vehicle, if the body is scaled
@@ -243,6 +258,8 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         when (rigidbody) {
             is GhostBody -> rigidbody.nativeInstance = bulletBody as PairCachingGhostObject
             is PhysicalBody -> rigidbody.nativeInstance = bulletBody as RigidBody
+            // CharacterBody is GhostBody
+            // KinematicBody is PhysicalBody
         }
 
         // create all constraints
@@ -399,17 +416,23 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
     }
 
-    override fun isDynamic(rigidbody: CollisionObject): Boolean {
-        return rigidbody is RigidBody && !rigidbody.isStaticOrKinematicObject
+    override fun isDynamic(scaledBody: ScaledBody<PhysicsBody<*>, CollisionObject>): Boolean {
+        val rigidbody = scaledBody.external
+        return (rigidbody is RigidBody && !rigidbody.isStaticOrKinematicObject) ||
+                scaledBody.internal is CharacterBody
     }
 
     override fun isActive(scaledBody: ScaledBody<PhysicsBody<*>, CollisionObject>): Boolean {
         val rigidbody = scaledBody.external
-        return rigidbody is RigidBody && rigidbody.isActive
+        return (rigidbody is RigidBody && rigidbody.isActive) ||
+                scaledBody.internal is CharacterBody
     }
 
     override fun worldRemoveRigidbody(scaledBody: ScaledBody<PhysicsBody<*>, CollisionObject>) {
         bulletInstance.removeCollisionObject(scaledBody.external)
+        val character = scaledBody.internal as? CharacterBody
+        val controller = character?.nativeInstance2
+        if (controller != null) bulletInstance.removeAction(controller)
     }
 
     override fun getMatrix(
@@ -520,14 +543,18 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
     }
 
     override fun invalidateTransform(entity: Entity) {
-        entity.validateTransform() // we need to know the global transform
         val dynamicBody = entity.getComponent(DynamicBody::class, false) ?: return
+        entity.validateTransform() // we need to know the global transform
         val globalTransform = entity.transform.globalTransform
         // todo support scale changes, and adjust Entity.scale then, too
         val scale = JomlPools.vec3d.create()
         globalTransform.getScale(scale)
         val transform = mat4x3ToTransform(globalTransform, scale, dynamicBody.centerOfMass, Transform())
-        dynamicBody.nativeInstance?.setWorldTransform(transform)
+        val nativeInstance = dynamicBody.nativeInstance
+        if (nativeInstance != null) {
+            nativeInstance.setWorldTransform(transform)
+            nativeInstance.activate() // it was moved, so it must be reactivated
+        }
         JomlPools.vec3d.sub(1)
     }
 

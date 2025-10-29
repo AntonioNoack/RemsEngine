@@ -32,8 +32,8 @@ abstract class TriangleConvexCastCallback(
         this.triangleCollisionMargin = triangleCollisionMargin
     }
 
-    override fun processTriangle(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
-        val triangleShape = TriangleShape(triangle[0], triangle[1], triangle[2])
+    override fun processTriangle(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int) {
+        val triangleShape = TriangleShape(a, b, c)
         triangleShape.margin = triangleCollisionMargin
 
         val simplexSolver = Stack.newVSS()

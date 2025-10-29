@@ -114,21 +114,24 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
             JomlPools.vec4f.sub(1)
 
             val bounds1 = JomlPools.aabbf.create()
-            bounds1.setMin(min2.x.toFloat(), min2.y.toFloat(), min2.z.toFloat())
-            bounds1.setMax(max2.x.toFloat(), max2.y.toFloat(), max2.z.toFloat())
+            bounds1.setMin(min2)
+            bounds1.setMax(max2)
 
-            val triangle = Array(3) { Vector3d() } // must be array
-            var ctr = 0
+            val ad = JomlPools.vec3d.create()
+            val bd = JomlPools.vec3d.create()
+            val cd = JomlPools.vec3d.create()
+            var triangleId = 0
             MarchingCubes.march(fx, fy, fz, field, 0f, bounds1, false) { a, b, c ->
                 // is the order correct? (front/back sides)
                 // or is this ignored by Bullet?
-                triangle[0].set(a.x.toDouble(), a.y.toDouble(), a.z.toDouble())
-                triangle[1].set(b.x.toDouble(), b.y.toDouble(), b.z.toDouble())
-                triangle[2].set(c.x.toDouble(), c.y.toDouble(), c.z.toDouble())
-                callback.processTriangle(triangle, 0, ctr++)
+                ad.set(a)
+                bd.set(b)
+                cd.set(c)
+                callback.processTriangle(ad, bd, cd, 0, triangleId++)
             }
+            JomlPools.vec3d.sub(3)
 
-            LOGGER.debug("Generated {} triangles", ctr)
+            LOGGER.debug("Generated {} triangles", triangleId)
         } else LOGGER.debug("Bounds were empty")
     }
 }

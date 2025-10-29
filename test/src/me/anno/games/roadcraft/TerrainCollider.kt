@@ -33,10 +33,7 @@ class TerrainCollider(
         val transform = getDrawMatrix(entity)
         val shape = createBulletCollider(Vector3d(1.0))
         val color = colliderLineColor
-        shape.processAllTriangles({ triangle, _, _ ->
-            val p0 = triangle[0]
-            val p1 = triangle[1]
-            val p2 = triangle[2]
+        shape.processAllTriangles({ p0, p1, p2, _, _ ->
             if (transform != null) {
                 transform.transformPosition(p0)
                 transform.transformPosition(p1)

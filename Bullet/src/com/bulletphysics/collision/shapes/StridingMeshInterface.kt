@@ -26,7 +26,8 @@ abstract class StridingMeshInterface {
             val cnt = data.indexCount / 3
             while (i < cnt) {
                 data.getTriangle(i * 3, meshScaling, triangle)
-                callback.internalProcessTriangleIndex(triangle, part, i)
+                val (a, b, c) = triangle
+                callback.internalProcessTriangleIndex(a, b, c, part, i)
                 i++
             }
             unLockReadOnlyVertexBase(part)
@@ -36,10 +37,13 @@ abstract class StridingMeshInterface {
     private class AabbCalculationCallback : InternalTriangleIndexCallback {
         val bounds = AABBd()
 
-        override fun internalProcessTriangleIndex(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
-            bounds.union(triangle[0])
-            bounds.union(triangle[1])
-            bounds.union(triangle[2])
+        override fun internalProcessTriangleIndex(
+            a: Vector3d, b: Vector3d, c: Vector3d,
+            partId: Int, triangleIndex: Int
+        ) {
+            bounds.union(a)
+            bounds.union(b)
+            bounds.union(c)
         }
     }
 

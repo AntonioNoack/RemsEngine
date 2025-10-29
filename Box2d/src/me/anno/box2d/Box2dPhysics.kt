@@ -205,8 +205,8 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
         // todo constraints
     }
 
-    override fun isDynamic(rigidbody: Body): Boolean {
-        return rigidbody.fixtureList.density > 0f
+    override fun isDynamic(scaledBody: ScaledBody<PhysicsBody2d, Body>): Boolean {
+        return scaledBody.external.fixtureList.density > 0f
     }
 
     override fun removeConstraints(entity: Entity) {

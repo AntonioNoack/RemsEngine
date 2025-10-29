@@ -4,16 +4,15 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.dispatch.CollisionWorld
 import com.bulletphysics.collision.dispatch.CollisionWorld.ClosestConvexResultCallback
-import com.bulletphysics.collision.dispatch.CollisionWorld.ClosestRayResultCallback
 import com.bulletphysics.collision.dispatch.CollisionWorld.LocalConvexResult
-import com.bulletphysics.collision.dispatch.CollisionWorld.LocalRayResult
 import com.bulletphysics.collision.dispatch.PairCachingGhostObject
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.dynamics.ActionInterface
 import com.bulletphysics.linearmath.IDebugDraw
 import cz.advel.stack.Stack
-import me.anno.ecs.components.collider.Axis
+import me.anno.bullet.bodies.CharacterBody
+import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.cos
@@ -33,43 +32,35 @@ import kotlin.math.min
 class KinematicCharacterController(
     private val ghostObject: PairCachingGhostObject,
     private val convexShape: ConvexShape,
-    var stepHeight: Double,
-    var upAxis: Axis
+    private val settings: CharacterBody
 ) : ActionInterface {
 
     // is also in ghostObject, but it needs to be convex, so we store it here
     // to avoid upcast
 
+    val stepHeight get() = settings.stepHeight
+    val upAxis get() = settings.upAxis
+
+    val fallSpeed: Double get() = settings.fallSpeed
+    val jumpSpeed: Double get() = settings.jumpSpeed
+
     var verticalVelocity: Double = 0.0
     var verticalOffset: Double = 0.0
 
     /**
-     * Terminal velocity of a skydiver in m/s.
-     * */
-    var fallSpeed: Double = 55.0
-    var jumpSpeed: Double = 10.0
-    var maxJumpHeight: Double = 0.0
-
-    /**
      * Slope angle that is set (used for returning the exact value)
      * */
-    var maxSlopeRadians: Double = 0.0
-        set(value) {
-            field = value
-            maxSlopeCosine = cos(value)
-        }
+    var maxSlopeRadians: Double get() = settings.maxSlopeDegrees.toRadians()
 
     /**
-     * Cosine equivalent of maxSlopeRadians (calculated once when set, for optimization)
+     * Cosine equivalent of maxSlopeRadians
      * */
-    var maxSlopeCosine: Double = 0.0
-        private set
+    val maxSlopeCosine: Double get() = cos(maxSlopeRadians)
 
     /**
      * 1G acceleration
      * */
-    var gravity: Double = 9.8
-    var turnAngle: Double = 0.0
+    val gravity: Double get() = settings.gravity
     var addedMargin: Double = 0.02 // @todo: remove this and fix the code
 
     // this is the desired walk direction, set by the user
@@ -195,10 +186,6 @@ class KinematicCharacterController(
             //System.out.println("playerStep 3");
             stepForwardAndStrafe(collisionWorld, walkDirection)
         } else {
-            println("playerStep 4")
-
-            //printf("  time: %f", m_velocityTimeInterval);
-
             // still have some time left for moving!
             val dtMoving = min(dt, velocityTimeInterval)
             velocityTimeInterval -= dt
@@ -206,8 +193,6 @@ class KinematicCharacterController(
             // how far will we move while we are moving?
             val move = Stack.newVec()
             walkDirection.mul(dtMoving, move)
-
-            //printf("  dtMoving: %f", dtMoving);
 
             // okay, step
             stepForwardAndStrafe(collisionWorld, move)
@@ -407,8 +392,6 @@ class KinematicCharacterController(
     }
 
     fun stepForwardAndStrafe(collisionWorld: CollisionWorld, walkMove: Vector3d) {
-        // printf("m_normalizedDirection=%f,%f,%f\n",
-        // 	m_normalizedDirection[0],m_normalizedDirection[1],m_normalizedDirection[2]);
         // phase 2: forward and strafe
         val start = Stack.newTrans()
         val end = Stack.newTrans()
@@ -420,8 +403,6 @@ class KinematicCharacterController(
         val distance2Vec = Stack.newVec()
         currentPosition.sub(targetPosition, distance2Vec)
         // var distance2 = distance2Vec.lengthSquared()
-
-        //printf("distance2=%f\n",distance2);
 
         /*if (touchingContact) {
 			if (normalizedDirection.dot(touchingNormal) > 0.0) {
@@ -538,18 +519,6 @@ class KinematicCharacterController(
         } else {
             // we dropped the full height
             currentPosition.set(targetPosition)
-        }
-    }
-
-    /** ///////////////////////////////////////////////////////////////////////// */
-    private class KinematicClosestNotMeRayResultCallback(var me: CollisionObject?) :
-        ClosestRayResultCallback(Vector3d(), Vector3d()) {
-        override fun addSingleResult(rayResult: LocalRayResult, normalInWorldSpace: Boolean): Double {
-            if (rayResult.collisionObject === me) {
-                return 1.0
-            }
-
-            return super.addSingleResult(rayResult, normalInWorldSpace)
         }
     }
 

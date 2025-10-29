@@ -43,11 +43,10 @@ class AABBf(
 
     override fun toString(): String = "($minX,$minY,$minZ)-($maxX,$maxY,$maxZ)"
 
-    fun setMin(v: Vector3f) =
-        setMin(v.x, v.y, v.z)
-
-    fun setMax(v: Vector3f) =
-        setMax(v.x, v.y, v.z)
+    fun setMin(v: Vector3f) = setMin(v.x, v.y, v.z)
+    fun setMax(v: Vector3f) = setMax(v.x, v.y, v.z)
+    fun setMin(v: Vector3d) = setMin(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
+    fun setMax(v: Vector3d) = setMax(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
 
     fun setMin(x: Float, y: Float, z: Float): AABBf {
         minX = x

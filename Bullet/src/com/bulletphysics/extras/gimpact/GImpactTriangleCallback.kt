@@ -20,8 +20,8 @@ internal class GImpactTriangleCallback : TriangleCallback {
     @JvmField
     var margin: Double = 0.0
 
-    override fun processTriangle(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
-        val tri1 = TriangleShapeEx(triangle[0], triangle[1], triangle[2])
+    override fun processTriangle(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int) {
+        val tri1 = TriangleShapeEx(a, b, c)
         tri1.margin = margin
         val algorithm = algorithm
         if (swapped) {

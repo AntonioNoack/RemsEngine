@@ -111,7 +111,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     @Group("Bodies")
     val numDynamicBodies: Int
         get() = rigidBodies.values.count { scaledBody ->
-            scaledBody != null && isDynamic(scaledBody.external)
+            scaledBody != null && isDynamic(scaledBody)
         }
 
     @DebugProperty
@@ -153,7 +153,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         invalidEntities.add(entity)
     }
 
-    abstract fun isDynamic(rigidbody: ExternalRigidBody): Boolean
+    abstract fun isDynamic(scaledBody: ScaledBody<InternalRigidBody, ExternalRigidBody>): Boolean
 
     open fun invalidateTransform(entity: Entity) {
         invalidate(entity)
@@ -213,7 +213,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         scaledBody: ScaledBody<InternalRigidBody, ExternalRigidBody>
     )
 
-    fun getRigidbody(rigidBody: InternalRigidBody): ExternalRigidBody? {
+    fun getRigidbody(rigidBody: InternalRigidBody): ScaledBody<InternalRigidBody, ExternalRigidBody>? {
 
         // todo when a rigidbody is invalidated, also re-create all constrained rigidbodies!
         //  otherwise we'll get issues, where one partner no longer is part of the world...
@@ -235,14 +235,14 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
             onCreateRigidbody(entity, rigidBody, scaledBody)
             // LOGGER.debug("+ ${entity.prefabPath}")
         }
-        return scaledBody?.external
+        return scaledBody
     }
 
     fun isEntityValid(entity: Entity): Boolean {
         return entity.root == Systems.world && entity.allInHierarchy { it.isEnabled }
     }
 
-    fun addOrGet(entity: Entity): ExternalRigidBody? {
+    fun addOrGet(entity: Entity): ScaledBody<InternalRigidBody, ExternalRigidBody>? {
         // LOGGER.info("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
         return if (isEntityValid(entity)) {
             val rigidbody = entity.getComponent(rigidComponentClass, false) ?: return null
@@ -413,7 +413,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     fun updateExternalTransforms() {
         for ((entity, scaledBody) in rigidBodies) {
-            if (scaledBody == null || isDynamic(scaledBody.external)) continue
+            if (scaledBody == null || isDynamic(scaledBody)) continue
             val (_, rigidbody, scale, centerOfMass) = scaledBody
 
             entity.validateTransform()
@@ -436,7 +436,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         for ((entity, scaledBody) in rigidBodies) {
             if (scaledBody == null ||
                 !isActive(scaledBody) ||
-                !isDynamic(scaledBody.external)
+                !isDynamic(scaledBody)
             ) continue
             entity.invalidateAABBsCompletely()
             entity.invalidateChildTransforms()
@@ -448,7 +448,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         for ((entity, scaledBody) in rigidBodies) {
             if (scaledBody == null ||
                 !isActive(scaledBody) ||
-                !isDynamic(scaledBody.external)
+                !isDynamic(scaledBody)
             ) continue
             updateDynamicRigidBody(entity, scaledBody)
             checkOutOfBounds(entity, deadEntities)

@@ -2,7 +2,6 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.TransformUtil
 import com.bulletphysics.linearmath.VectorUtil
 import cz.advel.stack.Stack
 import org.joml.Vector3d
@@ -47,40 +46,41 @@ class StaticPlaneShape(val planeNormal: Vector3d, var planeConstant: Double) : C
         planeNormal.mul(planeNormal.dot(center) - planeConstant, tmp)
         center.sub(tmp, projectedCenter)
 
-        val triangle: Array<Vector3d> = arrayOf(Stack.newVec(), Stack.newVec(), Stack.newVec())
+        val a = Stack.newVec()
+        val b = Stack.newVec()
+        val c = Stack.newVec()
 
         tangentDir0.mul(radius, tmp1)
         tangentDir1.mul(radius, tmp2)
-        VectorUtil.add(triangle[0], projectedCenter, tmp1, tmp2)
-
-        tangentDir0.mul(radius, tmp1)
-        tangentDir1.mul(radius, tmp2)
-        tmp1.sub(tmp2, tmp)
-        VectorUtil.add(triangle[1], projectedCenter, tmp)
+        VectorUtil.add(a, projectedCenter, tmp1, tmp2)
 
         tangentDir0.mul(radius, tmp1)
         tangentDir1.mul(radius, tmp2)
         tmp1.sub(tmp2, tmp)
-        projectedCenter.sub(tmp, triangle[2])
-
-        callback.processTriangle(triangle, 0, 0)
+        VectorUtil.add(b, projectedCenter, tmp)
 
         tangentDir0.mul(radius, tmp1)
         tangentDir1.mul(radius, tmp2)
         tmp1.sub(tmp2, tmp)
-        projectedCenter.sub(tmp, triangle[0])
+        projectedCenter.sub(tmp, c)
+
+        callback.processTriangle(a, b, c, 0, 0)
+
+        tangentDir0.mul(radius, tmp1)
+        tangentDir1.mul(radius, tmp2)
+        tmp1.sub(tmp2, tmp)
+        projectedCenter.sub(tmp, a)
 
         tangentDir0.mul(radius, tmp1)
         tangentDir1.mul(radius, tmp2)
         tmp1.add(tmp2, tmp)
-        projectedCenter.sub(tmp, triangle[1])
+        projectedCenter.sub(tmp, b)
 
         tangentDir0.mul(radius, tmp1)
         tangentDir1.mul(radius, tmp2)
-        VectorUtil.add(triangle[2], projectedCenter, tmp1, tmp2)
+        VectorUtil.add(c, projectedCenter, tmp1, tmp2)
 
-        callback.processTriangle(triangle, 0, 1)
-
+        callback.processTriangle(a, b, c, 0, 1)
         Stack.subVec(11)
     }
 

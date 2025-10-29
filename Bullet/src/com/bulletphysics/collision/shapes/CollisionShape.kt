@@ -4,7 +4,6 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
-import me.anno.maths.Maths
 import org.joml.Vector3d
 import kotlin.math.max
 import kotlin.math.min

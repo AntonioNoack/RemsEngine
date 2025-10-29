@@ -8,6 +8,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.utils.structures.lists.SimpleList
 
 /**
+ * Object that detects interactions, but does not cause them themselves, e.g. a door/lever sensor.
  * todo
  *  - handle this just like Entities with Rigidbodies,
  *  - just create a GhostObject instead of a vehicle or Rigidbody.
@@ -16,7 +17,7 @@ import me.anno.utils.structures.lists.SimpleList
  *
  * todo test scene, where a gate opens when a sphere reaches a certain area
  * */
-class GhostBody : PhysicsBody<GhostObject>() {
+open class GhostBody : PhysicsBody<GhostObject>() {
 
     init {
         collisionGroup = GHOST_GROUP_ID

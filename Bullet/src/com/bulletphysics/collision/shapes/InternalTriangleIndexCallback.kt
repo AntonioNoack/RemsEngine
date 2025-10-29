@@ -10,5 +10,5 @@ import org.joml.Vector3d
  * @author jezek2
  */
 interface InternalTriangleIndexCallback {
-    fun internalProcessTriangleIndex(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int)
+    fun internalProcessTriangleIndex(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int)
 }

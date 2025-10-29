@@ -174,34 +174,33 @@ class HeightMapShape : ConcaveShape() {
             }
         }
 
-        val vertex0 = Stack.newVec()
-        val vertex1 = Stack.newVec()
-        val vertex2 = Stack.newVec()
-        val triangle = arrayOf(vertex0, vertex1, vertex2)
+        val a = Stack.newVec()
+        val b = Stack.newVec()
+        val c = Stack.newVec()
         for (j in startJ..endJ) {
             for (x in startX..endX) {
                 if (flipTriangle(x, j)) {
                     // first triangle
-                    getVertex(x, j, vertex0)
-                    getVertex(x + 1, j, vertex1)
-                    getVertex(x + 1, j + 1, vertex2)
-                    callback.processTriangle(triangle, x, j)
+                    getVertex(x, j, a)
+                    getVertex(x + 1, j, b)
+                    getVertex(x + 1, j + 1, c)
+                    callback.processTriangle(a, b, c, x, j)
                     // second triangle
                     // getVertex(x, j, vertex0) // stays the same, thanks to Danny Chapman
-                    getVertex(x + 1, j + 1, vertex1)
-                    getVertex(x, j + 1, vertex2)
-                    callback.processTriangle(triangle, x, j)
+                    getVertex(x + 1, j + 1, b)
+                    getVertex(x, j + 1, c)
+                    callback.processTriangle(a, b, c, x, j)
                 } else {
                     // first triangle
-                    getVertex(x, j, vertex0)
-                    getVertex(x, j + 1, vertex1)
-                    getVertex(x + 1, j, vertex2)
-                    callback.processTriangle(triangle, x, j)
+                    getVertex(x, j, a)
+                    getVertex(x, j + 1, b)
+                    getVertex(x + 1, j, c)
+                    callback.processTriangle(a, b, c, x, j)
                     // second triangle
-                    getVertex(x + 1, j, vertex0)
+                    getVertex(x + 1, j, a)
                     // getVertex(x , j + 1, vertex1) // stays the same
-                    getVertex(x + 1, j + 1, vertex2)
-                    callback.processTriangle(triangle, x, j)
+                    getVertex(x + 1, j + 1, c)
+                    callback.processTriangle(a, b, c, x, j)
                 }
             }
         }

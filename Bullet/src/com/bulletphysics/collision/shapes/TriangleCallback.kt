@@ -13,5 +13,8 @@ import org.joml.Vector3d
  * @author jezek2
  */
 fun interface TriangleCallback {
-    fun processTriangle(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int)
+    fun processTriangle(
+        a: Vector3d, b: Vector3d, c: Vector3d,
+        partId: Int, triangleIndex: Int
+    )
 }

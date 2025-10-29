@@ -3,6 +3,7 @@ package com.bulletphysics.collision.shapes
 import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
+import org.joml.AABBd
 import org.joml.Vector3d
 
 /**
@@ -100,14 +101,18 @@ abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface?) : Co
             worldTrans.basis.transformTranspose(supportVecWorld, supportVecLocal)
         }
 
-        override fun processTriangle(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
-            for (i in 0..2) {
-                val dot = supportVecLocal.dot(triangle[i])
-                if (dot > maxDot) {
-                    maxDot = dot
-                    supportVertexLocal.set(triangle[i])
-                }
+        private fun processVertex(v: Vector3d) {
+            val dotA = supportVecLocal.dot(v)
+            if (dotA > maxDot) {
+                maxDot = dotA
+                supportVertexLocal.set(v)
             }
+        }
+
+        override fun processTriangle(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int) {
+            processVertex(a)
+            processVertex(b)
+            processVertex(c)
         }
 
         fun getSupportVertexWorldSpace(out: Vector3d): Vector3d {
@@ -124,18 +129,15 @@ abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface?) : Co
 
     private class FilteredCallback(var callback: TriangleCallback, aabbMin: Vector3d, aabbMax: Vector3d) :
         InternalTriangleIndexCallback {
-        val aabbMin: Vector3d = Vector3d()
-        val aabbMax: Vector3d = Vector3d()
 
-        init {
-            this.aabbMin.set(aabbMin)
-            this.aabbMax.set(aabbMax)
-        }
-
-        override fun internalProcessTriangleIndex(triangle: Array<Vector3d>, partId: Int, triangleIndex: Int) {
-            if (AabbUtil.testTriangleAgainstAabb2(triangle, aabbMin, aabbMax)) {
+        private val bounds = AABBd(aabbMin, aabbMax)
+        override fun internalProcessTriangleIndex(
+            a: Vector3d, b: Vector3d, c: Vector3d,
+            partId: Int, triangleIndex: Int
+        ) {
+            if (AabbUtil.testTriangleAgainstAabb2(a, b, c, bounds)) {
                 // check aabb in triangle-space, before doing this
-                callback.processTriangle(triangle, partId, triangleIndex)
+                callback.processTriangle(a, b, c, partId, triangleIndex)
             }
         }
     }
