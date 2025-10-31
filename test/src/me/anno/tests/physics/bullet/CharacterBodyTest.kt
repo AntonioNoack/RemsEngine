@@ -27,6 +27,7 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.ecs.systems.Systems.registerSystem
 import me.anno.engine.DefaultAssets
+import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
 import me.anno.input.Key
@@ -91,7 +92,7 @@ fun main() {
         .setPosition(0.0, 1.0, 0.0)
         .setScale(0.5f, 1f, 0.05f)
         .add(BoxCollider())
-        .add(MeshComponent(DefaultAssets.flatCube, DefaultAssets.silverMaterial))
+        .add(MeshComponent(DefaultAssets.flatCube, Material.diffuse(0xcc7722)))
         .add(KinematicBody().apply {
             // door should not activate sensors
             collisionMask = collisionMask.withoutFlag(GHOST_MASK)
@@ -104,8 +105,8 @@ fun main() {
             // pressure plate should not be activated by kinematic objects
             collisionMask = collisionMask.withoutFlag(KINEMATIC_MASK)
         })
-        .add(MeshComponent(DefaultAssets.flatCube, DefaultAssets.goldenMaterial))
-        .setPosition(1.0, 0.0, 1.0)
+        .add(MeshComponent(DefaultAssets.flatCube, Material.diffuse(0xff0000)))
+        .setPosition(1.0, 0.0, 1.5)
         .setScale(0.4f, 0.05f, 0.4f)
         .add(object : Component(), OnUpdate {
             var progress = 0f
@@ -122,8 +123,9 @@ fun main() {
 
     Entity("Player", scene)
         .add(PlayerController())
-        .add(CharacterBody())
+        .add(CharacterBody().apply { stepHeight = 1.0 })
         .add(CapsuleCollider().apply { radius = 0.5f; halfHeight = 0.5f })
+        .add(SphereCollider())
         .add(MeshComponent(CapsuleModel.createCapsule(20, 10, 0.5f, 0.5f)))
         .add(NearbyPusher())
         .setPosition(0.0, 1.0, 0.0)
@@ -143,7 +145,7 @@ fun main() {
     // add border around world to prevent balls from rolling away
     for (i in 0 until 12) {
         val angle = i * TAU / 12
-        val radius = 10f
+        val radius = 9.5f
         val length = radius * tan(PIf / 12)
         Entity("Border[$i]", scene)
             .add(StaticBody())
@@ -166,11 +168,6 @@ class NearbyPusher : Component(), OnPhysicsUpdate {
 
         val ghost = getComponent(CharacterBody::class) ?: return
         val ghost2 = ghost.nativeInstance2 ?: return
-        val characterVelocity = Vector3d(ghost2.walkDirection)
-        if (!ghost2.useWalkDirection) {
-            // Approximate movement direction
-            characterVelocity.normalize()
-        }
 
         val currentPosition = ghost2.currentPosition
         val dir = Vector3d()
@@ -188,6 +185,9 @@ class NearbyPusher : Component(), OnPhysicsUpdate {
                 val pushStrength = maxForce * clamp(1.0 - dir.length() / radius)
                 dir.safeNormalize(pushStrength)
 
+                // todo if aligning, add velocity onto force
+                // ghost2.targetVelocity
+
                 // Apply central force
                 other.activate()
                 other.applyCentralForce(dir)
@@ -196,26 +196,36 @@ class NearbyPusher : Component(), OnPhysicsUpdate {
     }
 }
 
+// todo bug: stepping up isn't working :(
 class PlayerController : Component(), OnUpdate {
 
-    val velocity = Vector3d()
+    var dtAcceleration = 5f
+    var speed = 3.0
+
+    private val velocity = Vector3d()
 
     override fun onUpdate() {
-        val body = getComponent(CharacterBody::class) ?: return
+        val character = getComponent(CharacterBody::class) ?: return
         val physics = Systems.findSystem(BulletPhysics::class.java) ?: return
         val dt = physics.fixedStep
         val dirX = Input.isKeyDown(Key.KEY_L) - Input.isKeyDown(Key.KEY_J)
         val dirZ = Input.isKeyDown(Key.KEY_K) - Input.isKeyDown(Key.KEY_I)
-        // todo rotate with camera...
+
         val dir = Vector3d(dirX.toDouble(), 0.0, dirZ.toDouble())
+        val rv = RenderView.currentInstance
+        if (rv != null && (dirX != 0 || dirZ != 0)) {
+            // rotate with camera
+            val angle = rv.orbitRotation.getEulerAngleYXZvY()
+            dir.rotateY(angle.toDouble())
+        }
+        dir.mul(speed)
 
-        velocity.lerp(dir, dtTo01(dt * 5f))
-        velocity.mul(dt, dir)
+        velocity.lerp(dir, dtTo01(dt * dtAcceleration))
 
-        body.nativeInstance2?.setWalkDirection(dir)
+        character.nativeInstance2?.setTargetVelocity(velocity)
         if (Input.wasKeyPressed(Key.KEY_SPACE)) {
-            body.jumpSpeed = 5.0
-            body.jump()
+            character.jumpSpeed = 5.0
+            character.jump()
         }
     }
 }

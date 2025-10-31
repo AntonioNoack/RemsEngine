@@ -17,7 +17,6 @@ import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * KinematicCharacterController is an object that supports a sliding motion in a world.
@@ -31,12 +30,13 @@ import kotlin.math.min
  */
 class KinematicCharacterController(
     val ghostObject: PairCachingGhostObject,
+    /**
+     * ghostObject.shape may be concave,
+     * this shape has been converted to be convex
+     * */
     private val convexShape: ConvexShape,
     private val settings: CharacterBody
 ) : ActionInterface {
-
-    // is also in ghostObject, but it needs to be convex, so we store it here
-    // to avoid upcast
 
     val stepHeight get() = settings.stepHeight
     val upAxis get() = settings.upAxis
@@ -64,7 +64,7 @@ class KinematicCharacterController(
     var addedMargin: Double = 0.02 // @todo: remove this and fix the code
 
     // this is the desired walk direction, set by the user
-    val walkDirection = Vector3d()
+    val targetVelocity = Vector3d()
     val normalizedDirection = Vector3d()
 
     // some internal variables
@@ -79,10 +79,7 @@ class KinematicCharacterController(
     val touchingNormal = Vector3d()
 
     var wasOnGround: Boolean = false
-
     var useGhostObjectSweepTest: Boolean = true
-    var useWalkDirection: Boolean = true
-    private var velocityTimeInterval: Double = 1.0
 
     init {
         this.maxSlopeRadians = (50.0 / 180.0) * Math.PI
@@ -95,44 +92,18 @@ class KinematicCharacterController(
     }
 
     // ActionInterface interface
-    override fun debugDraw(debugDrawer: IDebugDraw) {
+    override fun debugDraw(debugDrawer: IDebugDraw) {}
+
+    fun setTargetVelocity(targetVelocity: Vector3d) {
+        this.targetVelocity.set(targetVelocity)
+        normalizedDirection.set(targetVelocity).safeNormalize()
     }
 
-    /**
-     * This should probably be called setPositionIncrementPerSimulatorStep. This
-     * is neither a direction nor a velocity, but the amount to increment the
-     * position each simulation iteration, regardless of dt.
-     *
-     * This call will reset any velocity set by [.setVelocityForTimeInterval].
-     */
     @Suppress("unused")
-    fun setWalkDirection(walkDirection: Vector3d) {
-        useWalkDirection = true
-        this.walkDirection.set(walkDirection)
-        normalizedDirection.set(walkDirection).safeNormalize()
-    }
-
-    /**
-     * Caller provides a velocity with which the character should move for the
-     * given time period. After the time period, velocity is reset to zero.
-     * This call will reset any walk direction set by [.setWalkDirection].
-     * Negative time intervals will result in no motion.
-     */
-    @Suppress("unused")
-    fun setVelocityForTimeInterval(velocity: Vector3d, timeInterval: Double) {
-        useWalkDirection = false
-        walkDirection.set(velocity)
-        normalizedDirection.set(walkDirection).safeNormalize()
-        velocityTimeInterval = timeInterval
-    }
-
-    fun reset() {
-    }
-
-    fun warp(origin: Vector3d) {
+    fun teleportTo(newPosition: Vector3d) {
         val newTrans = Stack.newTrans()
         newTrans.setIdentity()
-        newTrans.setTranslation(origin)
+        newTrans.setTranslation(newPosition)
         ghostObject.setWorldTransform(newTrans)
         Stack.subTrans(1)
     }
@@ -155,15 +126,7 @@ class KinematicCharacterController(
     }
 
     fun playerStep(collisionWorld: CollisionWorld, dt: Double) {
-        //printf("playerStep(): ");
-        //printf("  dt = %f", dt);
-
         // quick check...
-
-        if (!useWalkDirection && velocityTimeInterval <= 0.0) {
-            //printf("\n");
-            return  // no motion
-        }
 
         wasOnGround = onGround()
 
@@ -179,28 +142,14 @@ class KinematicCharacterController(
 
         val xform = ghostObject.getWorldTransform(Stack.newTrans())
 
-        //printf("walkDirection(%f,%f,%f)\n",walkDirection[0],walkDirection[1],walkDirection[2]);
-        //printf("walkSpeed=%f\n",walkSpeed);
         stepUp(collisionWorld)
-        if (useWalkDirection) {
-            //System.out.println("playerStep 3");
-            stepForwardAndStrafe(collisionWorld, walkDirection)
-        } else {
-            // still have some time left for moving!
-            val dtMoving = min(dt, velocityTimeInterval)
-            velocityTimeInterval -= dt
-
-            // how far will we move while we are moving?
-            val move = Stack.newVec()
-            walkDirection.mul(dtMoving, move)
-
-            // okay, step
-            stepForwardAndStrafe(collisionWorld, move)
-            Stack.subVec(1) // move
+        stepForwardAndStrafe(collisionWorld, dt, targetVelocity)
+        if (!wasOnGround && verticalVelocity <= 0.0) {
+            // try to climb a small step if we were previously airborne and hit a wall
+            currentPosition.fma(0.1, upAxisV)
         }
         stepDown(collisionWorld, dt)
 
-        //printf("\n");
         xform.setTranslation(currentPosition)
         ghostObject.setWorldTransform(xform)
         Stack.subTrans(1)
@@ -308,28 +257,24 @@ class KinematicCharacterController(
         return penetration
     }
 
-    private val upAxisValue: Vector3d
+    private val upAxisV: Vector3d
         get() = upAxisDirection[upAxis.id]
 
     fun stepUp(world: CollisionWorld) {
         // phase 1: up
         val start = Stack.newTrans()
         val end = Stack.newTrans()
-        upAxisValue.mulAdd(stepHeight + max(verticalOffset, 0.0), currentPosition, targetPosition)
+        upAxisV.mulAdd(stepHeight + max(verticalOffset, 0.0), currentPosition, targetPosition)
 
         start.setIdentity()
         end.setIdentity()
 
         /* FIXME: Handle penetration properly */
-        upAxisValue.mulAdd(convexShape.margin + addedMargin, currentPosition, start.origin)
+        upAxisV.mulAdd(convexShape.margin + addedMargin + 0.1 * stepHeight, currentPosition, start.origin)
         end.setTranslation(targetPosition)
 
-        // Find only sloped/flat surface hits, avoid wall and ceiling hits...
-        val up = Stack.newVec()
-        upAxisValue.negate(up)
-
         val ghostObject = ghostObject
-        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, up, 0.0)
+        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, 0.0)
         callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
         if (useGhostObjectSweepTest) {
@@ -354,6 +299,8 @@ class KinematicCharacterController(
             currentStepOffset = stepHeight
             currentPosition.set(targetPosition)
         }
+
+        Stack.subTrans(2)
     }
 
     fun updateTargetPositionBasedOnCollision(
@@ -391,11 +338,11 @@ class KinematicCharacterController(
         } // else printf("movementLength don't normalize a zero vector\n");
     }
 
-    fun stepForwardAndStrafe(collisionWorld: CollisionWorld, walkMove: Vector3d) {
+    fun stepForwardAndStrafe(collisionWorld: CollisionWorld, dt: Double, walkMove: Vector3d) {
         // phase 2: forward and strafe
         val start = Stack.newTrans()
         val end = Stack.newTrans()
-        currentPosition.add(walkMove, targetPosition)
+        currentPosition.fma(dt, walkMove, targetPosition)
         start.setIdentity()
         end.setIdentity()
 
@@ -418,7 +365,7 @@ class KinematicCharacterController(
             end.setTranslation(targetPosition)
 
             val ghostObject = ghostObject
-            val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisValue, -1.0)
+            val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, -1.0)
             callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
             val margin = convexShape.margin
@@ -480,12 +427,12 @@ class KinematicCharacterController(
         val end = Stack.newTrans()
 
         // phase 3: down
-        val additionalDownStep = if (wasOnGround /*&& !onGround()*/) stepHeight else 0.0
+        val additionalDownStep = if (wasOnGround && !onGround()) stepHeight else 0.0
         val stepDrop = Stack.newVec()
-        upAxisValue.mul(currentStepOffset + additionalDownStep, stepDrop)
+        upAxisV.mul(currentStepOffset + additionalDownStep, stepDrop)
         val downVelocity = (if (additionalDownStep == 0.0 && verticalVelocity < 0.0) -verticalVelocity else 0.0) * dt
         val gravityDrop = Stack.newVec()
-        upAxisValue.mul(downVelocity, gravityDrop)
+        upAxisV.mul(downVelocity, gravityDrop)
         targetPosition.sub(stepDrop)
         targetPosition.sub(gravityDrop)
 
@@ -496,7 +443,7 @@ class KinematicCharacterController(
         end.setTranslation(targetPosition)
 
         val ghostObject = ghostObject
-        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisValue, maxSlopeCosine)
+        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, maxSlopeCosine)
         callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
         if (useGhostObjectSweepTest) {
