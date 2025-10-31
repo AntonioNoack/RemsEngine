@@ -30,7 +30,7 @@ import kotlin.math.min
  * @author tomrbryn
  */
 class KinematicCharacterController(
-    private val ghostObject: PairCachingGhostObject,
+    val ghostObject: PairCachingGhostObject,
     private val convexShape: ConvexShape,
     private val settings: CharacterBody
 ) : ActionInterface {
@@ -64,7 +64,7 @@ class KinematicCharacterController(
     var addedMargin: Double = 0.02 // @todo: remove this and fix the code
 
     // this is the desired walk direction, set by the user
-    private val walkDirection = Vector3d()
+    val walkDirection = Vector3d()
     val normalizedDirection = Vector3d()
 
     // some internal variables
@@ -81,7 +81,7 @@ class KinematicCharacterController(
     var wasOnGround: Boolean = false
 
     var useGhostObjectSweepTest: Boolean = true
-    private var useWalkDirection: Boolean = true
+    var useWalkDirection: Boolean = true
     private var velocityTimeInterval: Double = 1.0
 
     init {

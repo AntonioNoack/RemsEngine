@@ -14,7 +14,7 @@ object RingMeshModel {
         return createRingMesh(
             u, innerRadius, outerRadius,
             0, 1, 2,
-            0f, Mesh()
+            0f, false, Mesh()
         )
     }
 
@@ -22,14 +22,14 @@ object RingMeshModel {
     fun createRingMesh(
         u: Int, innerRadius: Float, outerRadius: Float,
         axisCos: Int, axisSin: Int, axisNormal: Int,
-        valueNormal: Float, mesh: Mesh
+        valueNormal: Float, flipFaces: Boolean, mesh: Mesh,
     ): Mesh {
         val positions = mesh.positions.resize((u + 1) * 2 * 3)
         for (i in 0..u) {
             val angle = i * TAUf / u
             for (j in 0 until 2) {
                 val radius = if (j == 0) outerRadius else innerRadius
-                val k = (i * 2 + j) * 3
+                val k = (i * 2 + (if (flipFaces) 1 - j else j)) * 3
                 positions[k + axisCos] = cos(angle) * radius
                 positions[k + axisSin] = sin(angle) * radius
                 positions[k + axisNormal] = valueNormal

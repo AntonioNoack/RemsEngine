@@ -675,14 +675,21 @@ object Lists {
         return this[posMod(i, size)]
     }
 
+    @JvmStatic
     fun <V> MutableList<V>.swapRemove(value: V): Int {
         val index = indexOf(value)
         if (index >= 0) swapRemoveAt(index)
         return index
     }
 
+    @JvmStatic
     fun <V> MutableList<V>.swapRemoveAt(i: Int): V {
         swap(i, lastIndex)
         return removeLast()
+    }
+
+    @JvmStatic
+    fun <V> List<V>.roundRobin(i: Int): V {
+        return this[posMod(i, size)]
     }
 }
