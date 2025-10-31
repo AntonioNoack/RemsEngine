@@ -5,10 +5,10 @@ import me.anno.config.DefaultConfig
 import me.anno.fonts.Codepoints
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
-import me.anno.fonts.FontManager
-import me.anno.fonts.GlyphLayout
 import me.anno.fonts.FontImpl.Companion.heightLimitToMaxNumLines
 import me.anno.fonts.FontImpl.Companion.widthLimitToRelative
+import me.anno.fonts.FontManager
+import me.anno.fonts.GlyphLayout
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -321,7 +321,8 @@ object DrawTexts {
             fun getTexture(char: Int): ITexture2D? {
                 return if (char > 0xffff || !char.toChar().isWhitespace()) {
                     val txt = char.joinChars()
-                    FontManager.getTexture(font, txt, -1, -1).waitFor()
+                    FontManager.getTexture(font, txt, -1, -1)
+                        .waitFor("drawTextCharByChar")
                 } else null
             }
 
@@ -389,7 +390,7 @@ object DrawTexts {
                     val fx = x + dxi + o0
                     val w = o1 - o0
                     val texture = FontManager.getTexture(font, txt, -1, -1)
-                        .waitFor()
+                        .waitFor("drawTextCharByChar")
                     if (texture != null && texture.wasCreated) {
                         texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
                         val x2 = fx + (w - texture.width).shr(1)
@@ -456,7 +457,8 @@ object DrawTexts {
         }
 
         if (key.text.isBlank2()) {
-            return FontManager.getSize(key).waitFor()
+            return FontManager.getSize(key)
+                .waitFor("drawTextChar")
                 ?: font.emptySize
         }
 
@@ -477,7 +479,7 @@ object DrawTexts {
 
             val txt = key.text.toString()
 
-            val texture = FontManager.getTexture(key).waitFor()
+            val texture = FontManager.getTexture(key).waitFor("drawTextChar")
             if (texture != null && texture.isCreated()) {
                 draw(shader, texture, x + dx + (wx - texture.width).shr(1), y2, txt, true)
             }
@@ -499,7 +501,7 @@ object DrawTexts {
             val fx = x + dxi + o0
             val w = o1 - o0
 
-            val texture = FontManager.getTexture(key).waitFor()
+            val texture = FontManager.getTexture(key).waitFor("drawTextChar")
             if (texture != null && texture.isCreated()) {
                 draw(shader, texture, fx + (w - texture.width).shr(1), y2, text, true)
             }
@@ -555,7 +557,7 @@ object DrawTexts {
 
         val async = !GFX.loadTexturesSync.peek()
         val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit)
-            .waitFor(async)
+            .waitFor("drawText", async)
 
         val charByChar = (tex0 == null || !tex0.isCreated()) && text.length > 1
         return if (charByChar) {
@@ -641,7 +643,7 @@ object DrawTexts {
         } else {
             val async = !GFX.loadTexturesSync.peek()
             val texture = FontManager.getTexture(key)
-                .waitFor(async)
+                .waitFor("drawText", async)
             if (texture == null || !texture.isCreated()) { // char by char
                 return drawTextCharByChar(
                     x, y, font, key.text,
@@ -706,7 +708,7 @@ object DrawTexts {
 
         val async = !GFX.loadTexturesSync.peek()
         val texture = FontManager.getTexture(key)
-            .waitFor(async)
+            .waitFor("drawText", async)
         if (texture == null || !texture.isCreated()) { // char by char
             return drawTextCharByChar(
                 x, y, key.createFont(), key.text, color,

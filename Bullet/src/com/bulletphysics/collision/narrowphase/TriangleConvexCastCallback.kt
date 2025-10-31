@@ -39,34 +39,29 @@ abstract class TriangleConvexCastCallback(
         val simplexSolver = Stack.newVSS()
 
         // TODO: implement ContinuousConvexCollision
-        val convexCaster = SubSimplexConvexCast(convexShape, triangleShape, simplexSolver)
-
         val castResult = Stack.newCastResult()
         castResult.fraction = 1.0
-        if (convexCaster.calcTimeOfImpact(
+        if (SubSimplexConvexCast.calcTimeOfImpactImpl(
+                convexShape, triangleShape, simplexSolver,
                 convexShapeFrom, convexShapeTo,
                 triangleToWorld, triangleToWorld, castResult
             )
         ) {
             // add hit
-            if (castResult.normal.lengthSquared() > 0.0001f) {
-                if (castResult.fraction < hitFraction) {
-                    /* btContinuousConvexCast's normal is already in world space */
-                    /*
-					// rotate normal into worldspace
-					convexShapeFrom.basis.transform(castResult.normal);
-					*/
+            if (castResult.normal.lengthSquared() > 0.0001f &&
+                castResult.fraction < hitFraction
+            ) {
+                // btContinuousConvexCast's normal is already in world space
+                // rotate normal into world space
+                // convexShapeFrom.basis.transform(castResult.normal);
 
-                    castResult.normal.normalize()
-
-                    reportHit(
-                        castResult.normal,
-                        castResult.hitPoint,
-                        castResult.fraction,
-                        partId,
-                        triangleIndex
-                    )
-                }
+                castResult.normal.normalize()
+                reportHit(
+                    castResult.normal,
+                    castResult.hitPoint,
+                    castResult.fraction,
+                    partId, triangleIndex
+                )
             }
         }
 

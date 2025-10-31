@@ -10,6 +10,7 @@ import com.bulletphysics.linearmath.Transform
 interface ConvexCast {
     /**
      * Cast a convex against another convex object.
+     * Returns whether a collision has happened.
      */
     fun calcTimeOfImpact(
         fromA: Transform, toA: Transform,

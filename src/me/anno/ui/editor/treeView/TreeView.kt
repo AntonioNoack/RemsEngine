@@ -252,7 +252,7 @@ abstract class TreeView<V : Any>(
     private fun addToTreeList(element: V, depth: Int, index0: Int): Int {
         var index = index0
         val name = getName(element)
-        val ttt = lazy { getTooltipText(element) }
+        val ttt = getTooltipText(element)
 
         while (index >= elementByIndex.size) elementByIndex.add(element)
         elementByIndex[index] = element
@@ -263,7 +263,7 @@ abstract class TreeView<V : Any>(
         val isCollapsed = isCollapsed(element)
         val search = search
         // todo go down some levels for search, if not all are searched
-        var isIncludedInSearch = search == null || fulfillsSearch(element, name, ttt.value, search)
+        var isIncludedInSearch = search == null || fulfillsSearch(element, name, ttt, search)
         if (!isCollapsed) {
             val children = getChildren(element)
             for (i in children.indices) {
@@ -275,7 +275,7 @@ abstract class TreeView<V : Any>(
         return if (isIncludedInSearch) {
             panel.setEntrySymbol(getSymbol(element))
             panel.setEntryName(name)
-            panel.setEntryTooltip(ttt.value ?: "")
+            panel.setEntryTooltip(ttt ?: "")
             val padding = panel.padding
             padding.left = inset * depth + padding.right
             index

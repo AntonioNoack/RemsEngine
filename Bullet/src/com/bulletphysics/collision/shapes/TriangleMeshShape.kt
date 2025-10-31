@@ -11,7 +11,7 @@ import org.joml.Vector3d
  *
  * @author jezek2
  */
-abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface?) : ConcaveShape() {
+abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface) : ConcaveShape() {
     val localAabbMin: Vector3d = Vector3d()
     val localAabbMax: Vector3d = Vector3d()
 
@@ -61,8 +61,7 @@ abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface?) : Co
 
     override fun processAllTriangles(callback: TriangleCallback, aabbMin: Vector3d, aabbMax: Vector3d) {
         val filterCallback = FilteredCallback(callback, aabbMin, aabbMax)
-
-        meshInterface!!.internalProcessAllTriangles(filterCallback)
+        meshInterface.internalProcessAllTriangles(filterCallback)
     }
 
     override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
@@ -71,12 +70,12 @@ abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface?) : Co
     }
 
     override fun setLocalScaling(scaling: Vector3d) {
-        meshInterface!!.setScaling(scaling)
+        meshInterface.setScaling(scaling)
         recalculateLocalAabb()
     }
 
     override fun getLocalScaling(out: Vector3d): Vector3d {
-        return meshInterface!!.getScaling(out)
+        return meshInterface.getScaling(out)
     }
 
     fun getLocalAabbMin(out: Vector3d): Vector3d {
@@ -115,20 +114,16 @@ abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface?) : Co
             processVertex(c)
         }
 
-        fun getSupportVertexWorldSpace(out: Vector3d): Vector3d {
-            out.set(supportVertexLocal)
-            worldTrans.transformPosition(out)
-            return out
-        }
-
         fun getSupportVertexLocal(out: Vector3d): Vector3d {
             out.set(supportVertexLocal)
             return out
         }
     }
 
-    private class FilteredCallback(var callback: TriangleCallback, aabbMin: Vector3d, aabbMax: Vector3d) :
-        InternalTriangleIndexCallback {
+    private class FilteredCallback(
+        private val callback: TriangleCallback,
+        aabbMin: Vector3d, aabbMax: Vector3d
+    ) : InternalTriangleIndexCallback {
 
         private val bounds = AABBd(aabbMin, aabbMax)
         override fun internalProcessTriangleIndex(

@@ -16,7 +16,7 @@ import org.joml.Vector3d
  */
 class VoronoiSimplexSolver : SimplexSolverInterface {
 
-    val subsimplexResultsPool = ObjectPool.Companion.get<SubSimplexClosestResult>(SubSimplexClosestResult::class.java)
+    val subsimplexResultsPool = ObjectPool.get<SubSimplexClosestResult>(SubSimplexClosestResult::class.java)
 
     var numVertices: Int = 0
 
@@ -30,7 +30,7 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
     val lastW: Vector3d = Vector3d()
     var cachedValidClosest: Boolean = false
 
-    val cachedBC: SubSimplexClosestResult = SubSimplexClosestResult()
+    val cachedBC = SubSimplexClosestResult()
 
     var needsUpdate: Boolean = false
 

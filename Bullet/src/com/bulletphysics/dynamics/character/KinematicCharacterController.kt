@@ -523,8 +523,10 @@ class KinematicCharacterController(
     }
 
     /** ///////////////////////////////////////////////////////////////////////// */
-    private class KinematicClosestNotMeConvexResultCallback(me: CollisionObject?, up: Vector3d, minSlopeDot: Double) :
-        ClosestConvexResultCallback() {
+    private class KinematicClosestNotMeConvexResultCallback(
+        me: CollisionObject?, up: Vector3d, minSlopeDot: Double
+    ) : ClosestConvexResultCallback() {
+
         var me: CollisionObject?
         val up: Vector3d
         var minSlopeDot: Double
@@ -537,30 +539,21 @@ class KinematicCharacterController(
         }
 
         override fun addSingleResult(convexResult: LocalConvexResult, normalInWorldSpace: Boolean): Double {
-            if (convexResult.hitCollisionObject === me) {
-                return 1.0
-            }
-
-            val hitNormalWorld: Vector3d?
+            if (convexResult.hitCollisionObject === me) return 1.0
             if (normalInWorldSpace) {
-                hitNormalWorld = convexResult.hitNormalLocal
-
+                val hitNormalWorld = convexResult.hitNormalLocal
                 val dotUp = up.dot(hitNormalWorld)
-                if (dotUp < minSlopeDot) {
-                    return 1.0
-                }
+                if (dotUp < minSlopeDot) return 1.0
             } else {
-                //need to transform normal into worldspace
-                hitNormalWorld = Stack.newVec()
-                hitCollisionObject!!.worldTransform.basis.transform(
-                    convexResult.hitNormalLocal,
-                    hitNormalWorld
-                )
+                // need to transform normal into worldspace
+                val hitNormalWorld = Stack.newVec()
+
+                convexResult.hitCollisionObject!!
+                    .worldTransform.basis
+                    .transform(convexResult.hitNormalLocal, hitNormalWorld)
 
                 val dotUp = up.dot(hitNormalWorld)
-                if (dotUp < minSlopeDot) {
-                    return 1.0
-                }
+                if (dotUp < minSlopeDot) return 1.0
 
                 Stack.subVec(1)
             }

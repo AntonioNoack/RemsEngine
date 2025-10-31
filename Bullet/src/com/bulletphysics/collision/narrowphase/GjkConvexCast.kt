@@ -13,7 +13,7 @@ import cz.advel.stack.Stack
  * @author jezek2
  */
 class GjkConvexCast : ConvexCast {
-    val pointInputsPool = ObjectPool.Companion.get(ClosestPointInput::class.java)
+    val pointInputsPool = ObjectPool.get(ClosestPointInput::class.java)
 
     private val simplexSolver: SimplexSolverInterface = VoronoiSimplexSolver()
     private lateinit var convexA: ConvexShape

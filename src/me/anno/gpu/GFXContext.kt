@@ -52,6 +52,13 @@ object GFXContext {
 
     private val LOGGER = LogManager.getLogger(GFXContext::class)
 
+    private class State {
+        var lastProgram: Int = -1
+        val textures: LongArray = LongArray(GFX.maxBoundTextures)
+    }
+
+    private val statePool = ArrayList<State>()
+
     fun invalidateState() {
         lastBlendMode = Unit
         lastDepthMode = null
@@ -76,14 +83,10 @@ object GFXContext {
                 run()
             } finally {
                 defaultPop(state)
+                statePool.add(state)
             }
         }
     }
-
-    private class State(
-        val lastProgram: Int,
-        val textures: LongArray
-    )
 
     private fun defaultPush(): State {
         blendMode.internalPush(null)
@@ -104,12 +107,18 @@ object GFXContext {
         framebuffer.internalPush(NullFramebuffer)
 
         // todo store bound buffers and attributes
-        val textures = LongArray(GFX.maxBoundTextures) { slot ->
-            Texture2D.getBindState(slot)
-        }
+        val state = statePool.removeLastOrNull() ?: State()
+        state.lastProgram = GPUShader.lastProgram
+        collectTextureState(state.textures)
 
         // todo bind x,y,w,h,changeSize?
-        return State(GPUShader.lastProgram, textures)
+        return state
+    }
+
+    private fun collectTextureState(dst: LongArray) {
+        for (slot in dst.indices) {
+            Texture2D.getBindState(slot)
+        }
     }
 
     private fun defaultPop(state: State) {

@@ -17,7 +17,6 @@ import com.bulletphysics.collision.shapes.CompoundShape
 import com.bulletphysics.collision.shapes.ConcaveShape
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.SphereShape
-import com.bulletphysics.collision.shapes.TriangleMeshShape
 import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.Transform
@@ -29,6 +28,7 @@ import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.CollisionFilters
 import me.anno.ecs.components.collider.CollisionFilters.collides
 import me.anno.utils.structures.lists.Lists.swapRemove
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 
 /**
@@ -156,9 +156,9 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
 
     private class BridgeTriangleConvexCastCallback(
         castShape: ConvexShape, from: Transform, to: Transform,
-        var resultCallback: ConvexResultCallback,
+        val resultCallback: ConvexResultCallback,
         val collisionObject: CollisionObject,
-        triangleMesh: TriangleMeshShape, triangleToWorld: Transform
+        triangleMesh: ConcaveShape, triangleToWorld: Transform
     ) : TriangleConvexCastCallback(
         castShape, from, to,
         triangleToWorld, triangleMesh.margin
@@ -167,21 +167,19 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         var normalInWorldSpace: Boolean = false
 
         override fun reportHit(
-            hitNormalLocal: Vector3d,
-            hitPointLocal: Vector3d,
-            hitFraction: Double,
-            partId: Int,
-            triangleIndex: Int
+            hitNormalLocal: Vector3d, hitPointLocal: Vector3d, hitFraction: Double,
+            partId: Int, triangleIndex: Int
         ): Double {
             val shapeInfo = LocalShapeInfo()
             shapeInfo.shapePart = partId
             shapeInfo.triangleIndex = triangleIndex
-            if (hitFraction <= resultCallback.closestHitFraction) {
-                val convexResult =
-                    LocalConvexResult(collisionObject, shapeInfo, hitNormalLocal, hitPointLocal, hitFraction)
-                return resultCallback.addSingleResult(convexResult, normalInWorldSpace)
-            }
-            return hitFraction
+            return if (hitFraction <= resultCallback.closestHitFraction) {
+                val convexResult = LocalConvexResult(
+                    collisionObject, shapeInfo,
+                    hitNormalLocal, hitPointLocal, hitFraction
+                )
+                resultCallback.addSingleResult(convexResult, normalInWorldSpace)
+            } else hitFraction
         }
     }
 
@@ -378,10 +376,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
     }
 
     open class ClosestConvexResultCallback : ConvexResultCallback() {
-        @JvmField
         val convexFromWorld: Vector3d = Vector3d() // used to calculate hitPointWorld from hitFraction
-
-        @JvmField
         val convexToWorld: Vector3d = Vector3d()
         val hitNormalWorld: Vector3d = Vector3d()
         val hitPointWorld: Vector3d = Vector3d()
@@ -408,7 +403,8 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             } else {
                 // need to transform normal into world space
                 hitNormalWorld.set(convexResult.hitNormalLocal)
-                hitCollisionObject!!.worldTransform.transformDirection(hitNormalWorld)
+                convexResult.hitCollisionObject!!.worldTransform
+                    .transformDirection(hitNormalWorld)
                 if (hitNormalWorld.length() > 2) {
                     println("CollisionWorld.addSingleResult world $hitNormalWorld")
                 }
@@ -438,6 +434,9 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(CollisionWorld::class)
+
         fun calculateTemporalBounds(
             selfShape: ConvexShape,
             convexFromWorld: Transform,
@@ -525,52 +524,44 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             val pointShape = SphereShape(0.0)
             pointShape.margin = 0.0
 
-            if (collisionShape is ConvexShape) {
-                val castResult = Stack.newCastResult()
-                castResult.fraction = resultCallback.closestHitFraction
+            when (collisionShape) {
+                is ConvexShape -> {
+                    val castResult = Stack.newCastResult()
+                    castResult.fraction = resultCallback.closestHitFraction
 
-                val simplexSolver = Stack.newVSS()
+                    val simplexSolver = Stack.newVSS()
+                    if (SubSimplexConvexCast.calcTimeOfImpactImpl(
+                            pointShape, collisionShape, simplexSolver,
+                            rayFromTrans, rayToTrans,
+                            colObjWorldTransform, colObjWorldTransform, castResult
+                        )
+                    ) {
+                        //add hit
+                        if (castResult.normal.lengthSquared() > 0.0001f) {
+                            if (castResult.fraction < resultCallback.closestHitFraction) {
+                                //#ifdef USE_SUBSIMPLEX_CONVEX_CAST
+                                //rotate normal into worldspace
+                                rayFromTrans.basis.transform(castResult.normal)
 
-                //#define USE_SUBSIMPLEX_CONVEX_CAST 1
-                //#ifdef USE_SUBSIMPLEX_CONVEX_CAST
-                val convexCaster = SubSimplexConvexCast(pointShape, collisionShape, simplexSolver)
+                                //#endif //USE_SUBSIMPLEX_CONVEX_CAST
+                                castResult.normal.normalize()
+                                val localRayResult = LocalRayResult(
+                                    collisionObject,
+                                    null,
+                                    castResult.normal,
+                                    castResult.fraction
+                                )
 
-                //#else
-                //btGjkConvexCast	convexCaster(castShape,convexShape,&simplexSolver);
-                //btContinuousConvexCollision convexCaster(castShape,convexShape,&simplexSolver,0);
-                //#endif //#USE_SUBSIMPLEX_CONVEX_CAST
-                if (convexCaster.calcTimeOfImpact(
-                        rayFromTrans, rayToTrans,
-                        colObjWorldTransform, colObjWorldTransform, castResult
-                    )
-                ) {
-                    //add hit
-                    if (castResult.normal.lengthSquared() > 0.0001f) {
-                        if (castResult.fraction < resultCallback.closestHitFraction) {
-                            //#ifdef USE_SUBSIMPLEX_CONVEX_CAST
-                            //rotate normal into worldspace
-                            rayFromTrans.basis.transform(castResult.normal)
-
-                            //#endif //USE_SUBSIMPLEX_CONVEX_CAST
-                            castResult.normal.normalize()
-                            val localRayResult = LocalRayResult(
-                                collisionObject,
-                                null,
-                                castResult.normal,
-                                castResult.fraction
-                            )
-
-                            val normalInWorldSpace = true
-                            resultCallback.addSingleResult(localRayResult, normalInWorldSpace)
+                                val normalInWorldSpace = true
+                                resultCallback.addSingleResult(localRayResult, normalInWorldSpace)
+                            }
                         }
                     }
+
+                    Stack.subVSS(1)
+                    Stack.subCastResult(1)
                 }
-
-                Stack.subVSS(1)
-                Stack.subCastResult(1)
-            } else {
-                if (collisionShape is ConcaveShape) {
-
+                is ConcaveShape -> {
                     val worldToCollisionObject = Stack.newTrans()
                     worldToCollisionObject.setInverse(colObjWorldTransform)
 
@@ -604,31 +595,31 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
 
                     Stack.subVec(2)
                     Stack.subTrans(1)
-                } else {
-                    // todo: use AABB tree or other BVH acceleration structure!
-                    if (collisionShape is CompoundShape) {
-                        val childWorldTrans = Stack.newTrans()
-                        val children = collisionShape.children
-                        for (i in children.indices) {
-                            val child = children[i]
-                            val childCollisionShape = child.shape
-                            childWorldTrans.setMul(colObjWorldTransform, child.transform)
-                            // replace collision shape so that callback can determine the triangle
-                            val saveCollisionShape = collisionObject.collisionShape
-                            collisionObject.collisionShape = (childCollisionShape)
-                            rayTestSingle(
-                                rayFromTrans, rayToTrans,
-                                collisionObject,
-                                childCollisionShape,
-                                childWorldTrans,
-                                resultCallback
-                            )
-                            // restore
-                            collisionObject.collisionShape = (saveCollisionShape)
-                        }
-                        Stack.subTrans(1)
-                    }
                 }
+                is CompoundShape -> {
+                    // todo: use AABB tree or other BVH acceleration structure!
+                    val childWorldTrans = Stack.newTrans()
+                    val children = collisionShape.children
+                    for (i in children.indices) {
+                        val child = children[i]
+                        val childCollisionShape = child.shape
+                        childWorldTrans.setMul(colObjWorldTransform, child.transform)
+                        // replace collision shape so that callback can determine the triangle
+                        val saveCollisionShape = collisionObject.collisionShape
+                        collisionObject.collisionShape = (childCollisionShape)
+                        rayTestSingle(
+                            rayFromTrans, rayToTrans,
+                            collisionObject,
+                            childCollisionShape,
+                            childWorldTrans,
+                            resultCallback
+                        )
+                        // restore
+                        collisionObject.collisionShape = (saveCollisionShape)
+                    }
+                    Stack.subTrans(1)
+                }
+                else -> LOGGER.warn("rayTestSingle is not supported for ${collisionShape.javaClass}")
             }
         }
 
@@ -646,95 +637,96 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             resultCallback: ConvexResultCallback,
             allowedPenetration: Double
         ) {
-            if (otherShape is ConvexShape) {
-                val castResult = Stack.newCastResult()
-                castResult.allowedPenetration = allowedPenetration
-                castResult.fraction = 1.0 // ??
+            when (otherShape) {
+                is ConvexShape -> {
+                    val castResult = Stack.newCastResult()
+                    castResult.allowedPenetration = allowedPenetration
+                    castResult.fraction = 1.0 // ??
 
-                // JAVA TODO: should be convexCaster1
-                //ContinuousConvexCollision convexCaster1(castShape,convexShape,&simplexSolver,&gjkEpaPenetrationSolver);
-                //btSubsimplexConvexCast convexCaster3(castShape,convexShape,&simplexSolver);
-                val castPtr = Stack.newGjkCC(convexShape, otherShape)
-                if (castPtr.calcTimeOfImpact(
-                        convexFromTrans, convexToTrans,
-                        otherWorldTransform, otherWorldTransform,
-                        castResult
-                    )
-                ) {
-                    // add hit
-                    if (castResult.normal.lengthSquared() > 0.0001f && castResult.fraction < resultCallback.closestHitFraction) {
-                        castResult.normal.normalize()
-                        val localConvexResult = LocalConvexResult(
-                            otherObject,
-                            null,
-                            castResult.normal,
-                            castResult.hitPoint,
-                            castResult.fraction
+                    // JAVA TODO: should be convexCaster1
+                    //ContinuousConvexCollision convexCaster1(castShape,convexShape,&simplexSolver,&gjkEpaPenetrationSolver);
+                    //btSubsimplexConvexCast convexCaster3(castShape,convexShape,&simplexSolver);
+                    val castPtr = Stack.newGjkCC(convexShape, otherShape)
+                    if (castPtr.calcTimeOfImpact(
+                            convexFromTrans, convexToTrans,
+                            otherWorldTransform, otherWorldTransform,
+                            castResult
                         )
+                    ) {
+                        // add hit
+                        if (castResult.normal.lengthSquared() > 0.0001f && castResult.fraction < resultCallback.closestHitFraction) {
+                            castResult.normal.normalize()
+                            val localConvexResult = LocalConvexResult(
+                                otherObject,
+                                null,
+                                castResult.normal,
+                                castResult.hitPoint,
+                                castResult.fraction
+                            )
 
-                        val normalInWorldSpace = true
-                        resultCallback.addSingleResult(localConvexResult, normalInWorldSpace)
+                            val normalInWorldSpace = true
+                            resultCallback.addSingleResult(localConvexResult, normalInWorldSpace)
+                        }
+                    }
+                    Stack.subCastResult(1)
+                    Stack.subGjkCC(1)
+                }
+                is ConcaveShape -> {
+                    val worldToCollisionObject = Stack.newTrans()
+                    worldToCollisionObject.setInverse(otherWorldTransform)
+
+                    val convexFromLocal = Stack.newVec()
+                    convexFromLocal.set(convexFromTrans.origin)
+                    worldToCollisionObject.transformPosition(convexFromLocal)
+
+                    val convexToLocal = Stack.newVec()
+                    convexToLocal.set(convexToTrans.origin)
+                    worldToCollisionObject.transformPosition(convexToLocal)
+
+                    // rotation of box in local mesh space = MeshRotation^-1 * ConvexToRotation
+                    val rotationXform = Stack.newTrans()
+                    val tmpMat = Stack.newMat()
+                    worldToCollisionObject.basis.mul(convexToTrans.basis, tmpMat)
+                    rotationXform.set(tmpMat)
+
+                    val callback = BridgeTriangleConvexCastCallback(
+                        convexShape, convexFromTrans, convexToTrans, resultCallback,
+                        otherObject, otherShape, otherWorldTransform
+                    )
+                    callback.hitFraction = resultCallback.closestHitFraction
+
+                    val boxMinLocal = Stack.newVec()
+                    val boxMaxLocal = Stack.newVec()
+                    convexShape.getBounds(rotationXform, boxMinLocal, boxMaxLocal)
+
+                    if (otherShape is BvhTriangleMeshShape) {
+
+                        callback.normalInWorldSpace = true
+
+                        otherShape.performConvexCast(callback, convexFromLocal, convexToLocal, boxMinLocal, boxMaxLocal)
+
+                        Stack.subVec(4)
+                        Stack.subTrans(2)
+                        Stack.subMat(1)
+                    } else {
+
+                        callback.normalInWorldSpace = false
+
+                        val rayAabbMinLocal = Stack.newVec()
+                        val rayAabbMaxLocal = Stack.newVec()
+
+                        convexFromLocal.min(convexToLocal, rayAabbMinLocal).add(boxMinLocal)
+                        convexFromLocal.max(convexToLocal, rayAabbMaxLocal).add(boxMaxLocal)
+
+                        otherShape.processAllTriangles(callback, rayAabbMinLocal, rayAabbMaxLocal)
+
+                        Stack.subVec(6)
+                        Stack.subTrans(2)
+                        Stack.subMat(1)
                     }
                 }
-                Stack.subCastResult(1)
-                Stack.subGjkCC(1)
-            } else if (otherShape is TriangleMeshShape) {
-
-                val worldToCollisionObject = Stack.newTrans()
-                worldToCollisionObject.setInverse(otherWorldTransform)
-
-                val convexFromLocal = Stack.newVec()
-                convexFromLocal.set(convexFromTrans.origin)
-                worldToCollisionObject.transformPosition(convexFromLocal)
-
-                val convexToLocal = Stack.newVec()
-                convexToLocal.set(convexToTrans.origin)
-                worldToCollisionObject.transformPosition(convexToLocal)
-
-                // rotation of box in local mesh space = MeshRotation^-1 * ConvexToRotation
-                val rotationXform = Stack.newTrans()
-                val tmpMat = Stack.newMat()
-                worldToCollisionObject.basis.mul(convexToTrans.basis, tmpMat)
-                rotationXform.set(tmpMat)
-
-                val callback = BridgeTriangleConvexCastCallback(
-                    convexShape, convexFromTrans, convexToTrans, resultCallback,
-                    otherObject, otherShape, otherWorldTransform
-                )
-                callback.hitFraction = resultCallback.closestHitFraction
-
-                val boxMinLocal = Stack.newVec()
-                val boxMaxLocal = Stack.newVec()
-                convexShape.getBounds(rotationXform, boxMinLocal, boxMaxLocal)
-
-                if (otherShape is BvhTriangleMeshShape) {
-
-                    callback.normalInWorldSpace = true
-
-                    otherShape.performConvexCast(callback, convexFromLocal, convexToLocal, boxMinLocal, boxMaxLocal)
-
-                    Stack.subVec(4)
-                    Stack.subTrans(2)
-                    Stack.subMat(1)
-                } else {
-
-                    callback.normalInWorldSpace = false
-
-                    val rayAabbMinLocal = Stack.newVec()
-                    val rayAabbMaxLocal = Stack.newVec()
-
-                    convexFromLocal.min(convexToLocal, rayAabbMinLocal).add(boxMinLocal)
-                    convexFromLocal.max(convexToLocal, rayAabbMaxLocal).add(boxMaxLocal)
-
-                    otherShape.processAllTriangles(callback, rayAabbMinLocal, rayAabbMaxLocal)
-
-                    Stack.subVec(6)
-                    Stack.subTrans(2)
-                    Stack.subMat(1)
-                }
-            } else {
-                // todo: use AABB tree or other BVH acceleration structure!
-                if (otherShape is CompoundShape) {
+                is CompoundShape -> {
+                    // todo: use AABB tree or other BVH acceleration structure!
                     val childWorldTrans = Stack.newTrans()
                     val children = otherShape.children
                     for (i in children.indices) {
@@ -754,6 +746,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                     }
                     Stack.subTrans(1)
                 }
+                else -> LOGGER.warn("objectQuerySingle is not supported for ${otherShape.javaClass}")
             }
         }
     }

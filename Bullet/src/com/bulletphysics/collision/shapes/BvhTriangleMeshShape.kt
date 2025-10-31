@@ -13,9 +13,8 @@ import org.joml.Vector3d
  * such as bounding volume hierarchy. It is recommended to enable useQuantizedAabbCompression
  * for better memory usage.
  *
- * It takes a triangle mesh as input, for example a [TriangleMesh] or
- * [TriangleIndexVertexArray]. The BvhTriangleMeshShape class allows for
- * triangle mesh deformations by a refit or partialRefit method.
+ * It takes a triangle mesh as input, for example a [TriangleIndexVertexArray].
+ * The BvhTriangleMeshShape class allows for triangle mesh deformations by a refit or partialRefit method.
  *
  * Instead of building the bounding volume hierarchy acceleration structure, it is
  * also possible to serialize (save) and deserialize (load) the structure from disk.
@@ -27,17 +26,10 @@ class BvhTriangleMeshShape : TriangleMeshShape {
     private var bvh: OptimizedBvh?
     private var useQuantizedAabbCompression = false
 
-    @get:Suppress("unused")
     var ownsBvh: Boolean
         private set
 
     private val myNodeCallbacks = ObjectPool.get<MyNodeOverlapCallback>(MyNodeOverlapCallback::class.java)
-
-    @Suppress("unused")
-    constructor() : super(null) {
-        this.bvh = null
-        this.ownsBvh = false
-    }
 
     @Suppress("unused")
     constructor(meshInterface: StridingMeshInterface, useQuantizedAabbCompression: Boolean) :
@@ -111,7 +103,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
 
     fun performRaycast(callback: TriangleCallback, raySource: Vector3d, rayTarget: Vector3d) {
         val myNodeCallback = myNodeCallbacks.get()
-        myNodeCallback.init(callback, meshInterface!!)
+        myNodeCallback.init(callback, meshInterface)
 
         bvh!!.reportRayOverlappingNodex(myNodeCallback, raySource, rayTarget)
 
@@ -123,7 +115,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
         aabbMin: Vector3d, aabbMax: Vector3d
     ) {
         val myNodeCallback = myNodeCallbacks.get()
-        myNodeCallback.init(callback, meshInterface!!)
+        myNodeCallback.init(callback, meshInterface)
 
         bvh!!.reportBoxCastOverlappingNodex(myNodeCallback, raySource, rayTarget, aabbMin, aabbMax)
 
@@ -142,7 +134,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
         // first get all the nodes
 
         val myNodeCallback = myNodeCallbacks.get()
-        myNodeCallback.init(callback, meshInterface!!)
+        myNodeCallback.init(callback, meshInterface)
 
         bvh!!.reportAabbOverlappingNodes(myNodeCallback, aabbMin, aabbMax)
 
@@ -154,7 +146,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
     fun refitTree(aabbMin: Vector3d?, aabbMax: Vector3d?) {
         // JAVA NOTE: update it for 2.70b1
         //bvh.refit(meshInterface, aabbMin, aabbMax);
-        bvh!!.refit(meshInterface!!)
+        bvh!!.refit(meshInterface)
 
         recalculateLocalAabb()
     }
@@ -186,14 +178,13 @@ class BvhTriangleMeshShape : TriangleMeshShape {
             // m_localAabbMin/m_localAabbMax is already re-calculated in btTriangleMeshShape. We could just scale aabb, but this needs some more work
             bvh = OptimizedBvh()
             // rebuild the bvh...
-            bvh!!.build(meshInterface!!, useQuantizedAabbCompression, localAabbMin, localAabbMax)
+            bvh!!.build(meshInterface, useQuantizedAabbCompression, localAabbMin, localAabbMax)
             ownsBvh = true
         }
         Stack.subVec(1)
     }
 
-    @get:Suppress("unused")
-    @set:Suppress("unused")
+    @Suppress("unused")
     var optimizedBvh: OptimizedBvh?
         get() = bvh
         set(bvh) {

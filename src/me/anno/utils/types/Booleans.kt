@@ -59,4 +59,14 @@ object Booleans {
     fun Long.withoutFlag(flag: Long): Long {
         return and(flag.inv())
     }
+
+    /**
+     * This method returns:
+     *  0 if both values are the same
+     * +1 if this is true, and other is false,
+     * -1 if this is false, and other is true
+     *
+     * This is equal to Boolean.compareTo(), and toInt() - other.toInt().
+     * */
+    operator fun Boolean.minus(other: Boolean) = compareTo(other)
 }

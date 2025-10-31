@@ -14,6 +14,7 @@ import org.lwjgl.opengl.KHRDebug
 import org.lwjgl.system.APIUtil
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil
+import java.nio.ByteBuffer
 
 /**
  * OpenGL utility for debugging - memory allocation optimized.
@@ -27,9 +28,20 @@ object LWJGLDebugCallback {
         "Pixel-path performance warning: Pixel transfer is synchronized with 3D rendering.",
         "is being recompiled based on GL state",
         "Buffer detailed info: Based on the usage hint and actual usage, buffer object"
-    )
+    ).map { it.encodeToByteArray() }
 
     private val LOGGER = LogManager.getLogger(LWJGLDebugCallback::class)
+
+    private fun ByteBuffer.contains(str: ByteArray): Boolean {
+        return (0 until remaining() - str.size).any { offset ->
+            startsWith(str, offset)
+        }
+    }
+
+    private fun ByteBuffer.startsWith(str: ByteArray, i0: Int): Boolean {
+        if (i0 < 0 || i0 + str.size > remaining()) return false
+        return str.indices.all { i -> this[i + i0] == str[i] }
+    }
 
     private fun handleMessage(
         id: Int, source: GLSource, issueType: GLIssueType, severity: GLSeverity,
@@ -37,9 +49,10 @@ object LWJGLDebugCallback {
     ) {
         if (id == PUSH_DEBUG_GROUP_MAGIC) return
 
-        val message = GLDebugMessageCallback.getMessage(length, message)
-        if (ignoredSequences.any2 { sequence -> message.contains(sequence) }) return
+        val messageBytes = MemoryUtil.memByteBuffer(message, length)
+        if (ignoredSequences.any2 { sequence -> messageBytes.contains(sequence) }) return
 
+        val message = MemoryUtil.memUTF8(messageBytes)
         val printedMessage = "#${id.toString(16)} $source $issueType $severity: $message"
         if (severity == GLSeverity.HIGH) LOGGER.error(printedMessage)
         else LOGGER.info(printedMessage)

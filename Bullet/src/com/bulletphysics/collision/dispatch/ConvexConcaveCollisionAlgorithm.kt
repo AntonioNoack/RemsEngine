@@ -180,12 +180,13 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
             val pointShape = SphereShape(ccdSphereRadius)
             val triShape = TriangleShape(a, b, c)
             val simplexSolver = Stack.newVSS()
-            val convexCaster = SubSimplexConvexCast(pointShape, triShape, simplexSolver)
 
-            //GjkConvexCast	convexCaster(&pointShape,convexShape,&simplexSolver);
-            //ContinuousConvexCollision convexCaster(&pointShape,convexShape,&simplexSolver,0);
             //local space?
-            if (convexCaster.calcTimeOfImpact(ccdSphereFromTrans, ccdSphereToTrans, identity, identity, castResult)) {
+            if (SubSimplexConvexCast.calcTimeOfImpactImpl(
+                    pointShape, triShape, simplexSolver,
+                    ccdSphereFromTrans, ccdSphereToTrans, identity, identity, castResult
+                )
+            ) {
                 if (hitFraction > castResult.fraction) {
                     hitFraction = castResult.fraction
                 }

@@ -1,6 +1,5 @@
 package com.bulletphysics.linearmath
 
-import com.bulletphysics.extras.gimpact.AABB
 import cz.advel.stack.Stack
 import org.joml.AABBd
 import org.joml.Vector3d
