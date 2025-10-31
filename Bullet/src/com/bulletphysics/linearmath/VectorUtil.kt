@@ -13,12 +13,8 @@ object VectorUtil {
 
     @JvmStatic
     fun maxAxis(v: Vector3d): Int {
-        var maxIndex = -1
-        var maxVal = -1e308
-        if (v.x > maxVal) {
-            maxIndex = 0
-            maxVal = v.x
-        }
+        var maxIndex = 0
+        var maxVal = v.x
         if (v.y > maxVal) {
             maxIndex = 1
             maxVal = v.y
@@ -40,12 +36,9 @@ object VectorUtil {
         z = abs(z)
         w = abs(w)
 
-        var maxIndex = -1
-        var maxVal = Double.NEGATIVE_INFINITY
-        if (x > maxVal) {
-            maxIndex = 0
-            maxVal = x
-        }
+        var maxIndex = 0
+        var maxVal = x
+
         if (y > maxVal) {
             maxIndex = 1
             maxVal = y

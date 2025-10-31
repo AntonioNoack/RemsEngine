@@ -123,11 +123,25 @@ fun main() {
 
     Entity("Player", scene)
         .add(PlayerController())
-        .add(CharacterBody().apply { stepHeight = 1.0 })
+        .add(CharacterBody().apply { stepHeight = 0.7; maxSlopeDegrees = 20.0 })
         .add(CapsuleCollider().apply { radius = 0.5f; halfHeight = 0.5f })
+        // .add(SphereCollider())
         .add(MeshComponent(CapsuleModel.createCapsule(20, 10, 0.5f, 0.5f)))
         .add(NearbyPusher())
         .setPosition(0.0, 1.0, 0.0)
+
+    // slopes with different angles to test walking up... 15° is barely working, 7° is fine
+    val angles = listOf(7f, 15f, 35f)
+    for (i in 0 until 3) {
+        val angle = angles[i].toRadians()
+        Entity("Slope[$i]", scene)
+            .add(StaticBody())
+            .add(BoxCollider())
+            .add(MeshComponent(DefaultAssets.flatCube))
+            .setPosition((i - 1) * 5.0, sin(angle) - 1.0, 5.0)
+            .setRotation(-angle, 0f, 0f)
+            .setScale(1f, 1f, 1f)
+    }
 
     val ngonMesh = RingMeshModel.createRingMesh(
         12, 0f, 1f,
@@ -142,17 +156,20 @@ fun main() {
         .setScale(10f)
 
     // add border around world to prevent balls from rolling away
+    val borders = Entity("Borders", scene)
     for (i in 0 until 12) {
         val angle = i * TAU / 12
-        val radius = 9.5f
-        val length = radius * tan(PIf / 12)
-        Entity("Border[$i]", scene)
-            .add(StaticBody())
-            .add(BoxCollider())
-            .add(MeshComponent(DefaultAssets.flatCube))
-            .setScale(length, 0.3f, 0.3f)
-            .setPosition(sin(angle) * radius, 0.3, cos(angle) * radius)
-            .setRotation(0f, angle.toFloat(), 0f)
+        for (j in 0 until 3) {
+            val radius = 9.5f + j * 0.6f
+            val length = radius * tan(PIf / 12)
+            Entity("Border[$i]", borders)
+                .add(StaticBody())
+                .add(BoxCollider())
+                .add(MeshComponent(DefaultAssets.flatCube))
+                .setScale(length, 0.3f * (j + 1), 0.3f)
+                .setPosition(sin(angle) * radius, 0.3 * (j + 1), cos(angle) * radius)
+                .setRotation(0f, angle.toFloat(), 0f)
+        }
     }
 
     testSceneWithUI("GemMiner", scene)
@@ -195,7 +212,6 @@ class NearbyPusher : Component(), OnPhysicsUpdate {
     }
 }
 
-// todo bug: stepping up isn't working :(
 class PlayerController : Component(), OnUpdate {
 
     var dtAcceleration = 5f

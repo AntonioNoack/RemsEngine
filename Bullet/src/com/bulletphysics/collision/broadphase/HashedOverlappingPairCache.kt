@@ -87,14 +87,15 @@ class HashedOverlappingPairCache : OverlappingPairCache {
         }
     }
 
+    val size get() = pairs.size
+
     override fun processAllOverlappingPairs(callback: (BroadphasePair) -> Unit) {
         pairs.forEach { _, pair -> callback(pair) }
     }
 
     override fun removeOverlappingPairsContainingProxy(proxy0: BroadphaseProxy, dispatcher: Dispatcher) {
-        val obsoleteProxy = proxy0
         pairs.removeIf { _, pair ->
-            pair.proxy0 === obsoleteProxy || pair.proxy1 === obsoleteProxy
+            pair.proxy0 === proxy0 || pair.proxy1 === proxy0
         }
     }
 

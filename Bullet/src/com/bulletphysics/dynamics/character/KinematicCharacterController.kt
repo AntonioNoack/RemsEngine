@@ -10,9 +10,13 @@ import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.dynamics.ActionInterface
 import com.bulletphysics.linearmath.IDebugDraw
+import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.bullet.bodies.CharacterBody
+import me.anno.engine.debug.DebugLine
+import me.anno.engine.debug.DebugShapes
 import me.anno.maths.Maths.clamp
+import me.anno.ui.UIColors
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
 import kotlin.math.cos
@@ -49,6 +53,7 @@ class KinematicCharacterController(
 
     /**
      * Slope angle that is set (used for returning the exact value)
+     * todo can we somehow use this??? maybe when there was no step & angle is above this, reset?
      * */
     val maxSlopeRadians: Double get() = settings.maxSlopeDegrees.toRadians()
 
@@ -67,9 +72,13 @@ class KinematicCharacterController(
     val normalizedDirection = Vector3d()
 
     // some internal variables
-    val currentPosition = Vector3d()
+    val currentPosition = ghostObject.worldTransform.origin
     var currentStepOffset: Double = 0.0
-    val targetPosition = Vector3d()
+
+    private val start = ghostObject.worldTransform
+    private val end = Transform()
+
+    val targetPosition = end.origin
 
     // keep track of the contact manifolds
     val manifolds = ArrayList<PersistentManifold>()
@@ -95,28 +104,27 @@ class KinematicCharacterController(
 
     @Suppress("unused")
     fun teleportTo(newPosition: Vector3d) {
-        val newTrans = Stack.newTrans()
-        newTrans.setIdentity()
-        newTrans.setTranslation(newPosition)
-        ghostObject.setWorldTransform(newTrans)
-        Stack.subTrans(1)
+        ghostObject.worldTransform.setTranslation(newPosition)
+    }
+
+    var penetration = 0.0
+        private set
+
+    val maxPenetrationIterations = 4
+
+    fun recoverFromPenetrationI(collisionWorld: CollisionWorld) {
+        touchingContact = false
+        for (i in 0 until maxPenetrationIterations) {
+            penetration = recoverFromPenetration(collisionWorld, true)
+            if (penetration == 0.0) break
+            touchingContact = true
+        }
     }
 
     fun preStep(collisionWorld: CollisionWorld) {
-        var numPenetrationLoops = 0
-        touchingContact = false
-        while (recoverFromPenetration(collisionWorld)) {
-            numPenetrationLoops++
-            touchingContact = true
-            if (numPenetrationLoops > 4) {
-                //printf("character could not recover from penetration = %d\n", numPenetrationLoops);
-                break
-            }
-        }
-
-        currentPosition.set(ghostObject.worldTransform.origin)
+        end.basis.set(start.basis)
+        recoverFromPenetrationI(collisionWorld)
         targetPosition.set(currentPosition)
-        //printf("m_targetPosition=%f,%f,%f\n",m_targetPosition[0],m_targetPosition[1],m_targetPosition[2]);
     }
 
     fun playerStep(collisionWorld: CollisionWorld, dt: Double) {
@@ -130,7 +138,7 @@ class KinematicCharacterController(
         stepForwardAndStrafe(collisionWorld, dt)
         stepDown(collisionWorld, dt)
 
-        ghostObject.worldTransform.origin.set(currentPosition)
+        recoverFromPenetrationI(collisionWorld)
     }
 
     fun canJump(): Boolean {
@@ -175,16 +183,18 @@ class KinematicCharacterController(
         return perpendicular
     }
 
-    fun recoverFromPenetration(collisionWorld: CollisionWorld): Boolean {
-        var penetration = false
-
+    /**
+     * Returns > 0, if penetrating, 0 else
+     * */
+    fun recoverFromPenetration(collisionWorld: CollisionWorld, apply: Boolean): Double {
         collisionWorld.dispatcher.dispatchAllCollisionPairs(
-            ghostObject.overlappingPairCache, collisionWorld.dispatchInfo, collisionWorld.dispatcher
+            ghostObject.overlappingPairCache,
+            collisionWorld.dispatchInfo, collisionWorld.dispatcher
         )
 
-        currentPosition.set(ghostObject.worldTransform.origin)
-
-        var maxPen = 0.0
+        var maxPenetration = 0.0
+        var numAdds = 0
+        val direction = Stack.newVec()
         ghostObject.overlappingPairCache.processAllOverlappingPairs { collisionPair ->
 
             manifolds.clear()
@@ -198,24 +208,38 @@ class KinematicCharacterController(
 
                     val dist = pt.distance
                     if (dist < 0.0) {
-                        if (dist < maxPen) {
-                            maxPen = dist
+                        if (dist < maxPenetration) {
+                            maxPenetration = dist
                             touchingNormal.set(pt.normalWorldOnB)
                             touchingNormal.mul(directionSign)
                         }
 
-                        currentPosition.fma(directionSign * dist * 0.2, pt.normalWorldOnB)
-
-                        penetration = true
+                        direction.fma(directionSign * dist, pt.normalWorldOnB)
+                        numAdds++
                     }
                 }
                 //manifold->clearManifold();
             }
         }
 
-        ghostObject.worldTransform
-            .setTranslation(currentPosition)
-        return penetration
+        if (numAdds > 0 && apply) {
+            direction.mul(1.0001 / numAdds)
+
+            // todo when trying to walk up... this resets everything
+            if (direction.length() > 1e-6) {
+                DebugShapes.showDebugLine(
+                    DebugLine(
+                        Vector3d(currentPosition),
+                        Vector3d(currentPosition).add(direction),
+                        UIColors.fireBrick, 3f,
+                    )
+                )
+            }
+
+            currentPosition.add(direction)
+        }
+
+        return -maxPenetration
     }
 
     private val upAxisV: Vector3d
@@ -223,14 +247,7 @@ class KinematicCharacterController(
 
     fun stepUp(world: CollisionWorld) {
         // phase 1: up
-        val start = Stack.newTrans()
-        val end = Stack.newTrans()
         upAxisV.mulAdd(stepHeight + max(verticalOffset, 0.0), currentPosition, targetPosition)
-
-        start.setIdentity()
-        end.setIdentity()
-        start.setTranslation(currentPosition)
-        end.setTranslation(targetPosition)
 
         val ghostObject = ghostObject
         val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, 0.0)
@@ -252,13 +269,11 @@ class KinematicCharacterController(
             currentStepOffset = stepHeight
             currentPosition.set(targetPosition)
         }
-
-        Stack.subTrans(2)
     }
 
     fun updateTargetPositionBasedOnCollision(
         hitNormal: Vector3d,
-        tangentMag: Double = 0.0,
+        tangentMag: Double = 0.5,
         normalMag: Double = 1.0
     ) {
         val movementDirection = Stack.newVec()
@@ -276,29 +291,22 @@ class KinematicCharacterController(
             targetPosition.set(currentPosition)
             targetPosition.fma(tangentMag * movementLength, parallelDir)
             targetPosition.fma(normalMag * movementLength, perpendicularDir)
+            Stack.subVec(3)
         }
+        Stack.subVec(1)
     }
 
     fun stepForwardAndStrafe(collisionWorld: CollisionWorld, dt: Double) {
         // phase 2: forward and strafe
-        val start = Stack.newTrans()
-        val end = Stack.newTrans()
         currentPosition.fma(dt, targetVelocity, targetPosition)
-        start.setIdentity()
-        end.setIdentity()
 
         var fraction = 1.0
-        val distance2Vec = Stack.newVec()
-        currentPosition.sub(targetPosition, distance2Vec)
-
         val ghostObject = ghostObject
         val hitDistanceVec = Stack.newVec()
         val currentDir = Stack.newVec()
 
         var maxIter = 10
         while (fraction > 0.01 && maxIter-- > 0) {
-            start.setTranslation(currentPosition)
-            end.setTranslation(targetPosition)
 
             val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, -1.0)
             callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
@@ -330,28 +338,18 @@ class KinematicCharacterController(
             }
         }
 
-        Stack.subTrans(2)
-        Stack.subVec(3)
+        Stack.subVec(2)
     }
 
     fun stepDown(collisionWorld: CollisionWorld, dt: Double) {
-        val start = Stack.newTrans()
-        val end = Stack.newTrans()
-
         // phase 3: down
         val additionalDownStep = if (wasOnGround && !onGround()) stepHeight else 0.0
         val stepDrop = currentStepOffset + additionalDownStep
         val gravityDrop = (if (additionalDownStep == 0.0 && verticalVelocity < 0.0) -verticalVelocity else 0.0) * dt
         targetPosition.fma(-(stepDrop + gravityDrop), upAxisV)
 
-        start.setIdentity()
-        end.setIdentity()
-
-        start.setTranslation(currentPosition)
-        end.setTranslation(targetPosition)
-
-        val ghostObject = ghostObject
-        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, maxSlopeCosine)
+        // if we use maxSlopeCosine here, some objects are ignored, which prevents us from taking steps upwards
+        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, -1.0)
         callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
         ghostObject.convexSweepTest(
@@ -368,6 +366,7 @@ class KinematicCharacterController(
             // we dropped the full height
             currentPosition.set(targetPosition)
         }
+
     }
 
     /** ///////////////////////////////////////////////////////////////////////// */

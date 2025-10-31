@@ -63,4 +63,7 @@ class CharacterBody : GhostBody() {
 
     @DebugProperty
     val verticalOffset get() = nativeInstance2?.verticalOffset ?: 0.0
+
+    @DebugProperty
+    val penetration get() = nativeInstance2?.penetration ?: 0.0
 }
