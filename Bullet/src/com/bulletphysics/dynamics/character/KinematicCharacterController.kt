@@ -12,9 +12,9 @@ import com.bulletphysics.dynamics.ActionInterface
 import com.bulletphysics.linearmath.IDebugDraw
 import cz.advel.stack.Stack
 import me.anno.bullet.bodies.CharacterBody
+import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
 
@@ -50,7 +50,7 @@ class KinematicCharacterController(
     /**
      * Slope angle that is set (used for returning the exact value)
      * */
-    var maxSlopeRadians: Double get() = settings.maxSlopeDegrees.toRadians()
+    val maxSlopeRadians: Double get() = settings.maxSlopeDegrees.toRadians()
 
     /**
      * Cosine equivalent of maxSlopeRadians
@@ -61,7 +61,6 @@ class KinematicCharacterController(
      * 1G acceleration
      * */
     val gravity: Double get() = settings.gravity
-    var addedMargin: Double = 0.02 // @todo: remove this and fix the code
 
     // this is the desired walk direction, set by the user
     val targetVelocity = Vector3d()
@@ -79,11 +78,6 @@ class KinematicCharacterController(
     val touchingNormal = Vector3d()
 
     var wasOnGround: Boolean = false
-    var useGhostObjectSweepTest: Boolean = true
-
-    init {
-        this.maxSlopeRadians = (50.0 / 180.0) * Math.PI
-    }
 
     // ActionInterface interface
     override fun updateAction(collisionWorld: CollisionWorld, deltaTimeStep: Double) {
@@ -126,54 +120,26 @@ class KinematicCharacterController(
     }
 
     fun playerStep(collisionWorld: CollisionWorld, dt: Double) {
-        // quick check...
-
         wasOnGround = onGround()
 
         // Update fall velocity.
-        verticalVelocity -= gravity * dt
-        if (verticalVelocity > 0.0 && verticalVelocity > jumpSpeed) {
-            verticalVelocity = jumpSpeed
-        }
-        if (verticalVelocity < 0.0 && abs(verticalVelocity) > abs(fallSpeed)) {
-            verticalVelocity = -abs(fallSpeed)
-        }
+        verticalVelocity = clamp(verticalVelocity - gravity * dt, -fallSpeed, jumpSpeed)
         verticalOffset = verticalVelocity * dt
 
-        val xform = ghostObject.getWorldTransform(Stack.newTrans())
-
         stepUp(collisionWorld)
-        stepForwardAndStrafe(collisionWorld, dt, targetVelocity)
-        if (!wasOnGround && verticalVelocity <= 0.0) {
-            // try to climb a small step if we were previously airborne and hit a wall
-            currentPosition.fma(0.1, upAxisV)
-        }
+        stepForwardAndStrafe(collisionWorld, dt)
         stepDown(collisionWorld, dt)
 
-        xform.setTranslation(currentPosition)
-        ghostObject.setWorldTransform(xform)
-        Stack.subTrans(1)
+        ghostObject.worldTransform.origin.set(currentPosition)
     }
 
     fun canJump(): Boolean {
         return onGround()
     }
 
-    @Suppress("unused")
     fun jump() {
         if (!canJump()) return
-
         verticalVelocity = jumpSpeed
-
-        //#if 0
-        //currently no jumping.
-        //btTransform xform;
-        //m_rigidBody->getMotionState()->getWorldTransform (xform);
-        //btVector3 up = xform.getBasis()[1];
-        //up.normalize ();
-        //btScalar magnitude = (btScalar(1.0)/m_rigidBody->getInvMass()) * btScalar(8.0);
-        //m_rigidBody->applyCentralImpulse (up * magnitude);
-        //#endif
     }
 
     fun onGround(): Boolean {
@@ -234,26 +200,21 @@ class KinematicCharacterController(
                     if (dist < 0.0) {
                         if (dist < maxPen) {
                             maxPen = dist
-                            touchingNormal.set(pt.normalWorldOnB) //??
+                            touchingNormal.set(pt.normalWorldOnB)
                             touchingNormal.mul(directionSign)
                         }
 
                         currentPosition.fma(directionSign * dist * 0.2, pt.normalWorldOnB)
 
                         penetration = true
-                    } // else printf("touching %f\n", dist);
+                    }
                 }
-
                 //manifold->clearManifold();
             }
         }
 
         ghostObject.worldTransform
             .setTranslation(currentPosition)
-
-        //printf("m_touchingNormal = %f,%f,%f\n",m_touchingNormal[0],m_touchingNormal[1],m_touchingNormal[2]);
-
-        //System.out.println("recoverFromPenetration "+penetration+" "+touchingNormal);
         return penetration
     }
 
@@ -268,31 +229,23 @@ class KinematicCharacterController(
 
         start.setIdentity()
         end.setIdentity()
-
-        /* FIXME: Handle penetration properly */
-        upAxisV.mulAdd(convexShape.margin + addedMargin + 0.1 * stepHeight, currentPosition, start.origin)
+        start.setTranslation(currentPosition)
         end.setTranslation(targetPosition)
 
         val ghostObject = ghostObject
         val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, 0.0)
         callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
-        if (useGhostObjectSweepTest) {
-            ghostObject.convexSweepTest(
-                convexShape,
-                start,
-                end,
-                callback,
-                world.dispatchInfo.allowedCcdPenetration
-            )
-        } else {
-            world.convexSweepTest(convexShape, start, end, callback)
-        }
+        ghostObject.convexSweepTest(
+            convexShape, start, end,
+            callback, world.dispatchInfo.allowedCcdPenetration
+        )
 
         if (callback.hasHit()) {
             // we moved up only a fraction of the step height
             currentStepOffset = stepHeight * callback.closestHitFraction
             currentPosition.lerp(targetPosition, callback.closestHitFraction)
+            // set onGround = true
             verticalVelocity = 0.0
             verticalOffset = 0.0
         } else {
@@ -321,66 +274,39 @@ class KinematicCharacterController(
             val perpendicularDir = perpendicularComponent(reflectDir, hitNormal, Stack.newVec())
 
             targetPosition.set(currentPosition)
-            if (false)  //tangentMag != 0.0)
-            {
-                val parComponent = Stack.newVec()
-                parallelDir.mul(tangentMag * movementLength, parComponent)
-                //printf("parComponent=%f,%f,%f\n",parComponent[0],parComponent[1],parComponent[2]);
-                targetPosition.add(parComponent)
-            }
-
-            if (normalMag != 0.0) {
-                val perpComponent = Stack.newVec()
-                perpendicularDir.mul(normalMag * movementLength, perpComponent)
-                //printf("perpComponent=%f,%f,%f\n",perpComponent[0],perpComponent[1],perpComponent[2]);
-                targetPosition.add(perpComponent)
-            }
-        } // else printf("movementLength don't normalize a zero vector\n");
+            targetPosition.fma(tangentMag * movementLength, parallelDir)
+            targetPosition.fma(normalMag * movementLength, perpendicularDir)
+        }
     }
 
-    fun stepForwardAndStrafe(collisionWorld: CollisionWorld, dt: Double, walkMove: Vector3d) {
+    fun stepForwardAndStrafe(collisionWorld: CollisionWorld, dt: Double) {
         // phase 2: forward and strafe
         val start = Stack.newTrans()
         val end = Stack.newTrans()
-        currentPosition.fma(dt, walkMove, targetPosition)
+        currentPosition.fma(dt, targetVelocity, targetPosition)
         start.setIdentity()
         end.setIdentity()
 
         var fraction = 1.0
         val distance2Vec = Stack.newVec()
         currentPosition.sub(targetPosition, distance2Vec)
-        // var distance2 = distance2Vec.lengthSquared()
 
-        /*if (touchingContact) {
-			if (normalizedDirection.dot(touchingNormal) > 0.0) {
-				updateTargetPositionBasedOnCollision(touchingNormal);
-			}
-		}*/
+        val ghostObject = ghostObject
         val hitDistanceVec = Stack.newVec()
         val currentDir = Stack.newVec()
 
         var maxIter = 10
-        while (fraction > 0.01f && maxIter-- > 0) {
+        while (fraction > 0.01 && maxIter-- > 0) {
             start.setTranslation(currentPosition)
             end.setTranslation(targetPosition)
 
-            val ghostObject = ghostObject
             val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, -1.0)
             callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
-            val margin = convexShape.margin
-            convexShape.margin = margin + addedMargin
-
-            if (useGhostObjectSweepTest) {
-                ghostObject.convexSweepTest(
-                    convexShape, start, end, callback,
-                    collisionWorld.dispatchInfo.allowedCcdPenetration
-                )
-            } else {
-                collisionWorld.convexSweepTest(convexShape, start, end, callback)
-            }
-
-            convexShape.margin = margin
+            ghostObject.convexSweepTest(
+                convexShape, start, end,
+                callback, collisionWorld.dispatchInfo.allowedCcdPenetration
+            )
 
             fraction -= callback.closestHitFraction
 
@@ -388,34 +314,20 @@ class KinematicCharacterController(
                 // we moved only a fraction
                 callback.hitPointWorld.sub(currentPosition, hitDistanceVec)
 
-                //double hitDistance = hitDistanceVec.length();
-
-                // if the distance is farther than the collision margin, move
-                //if (hitDistance > addedMargin) {
-                //	//printf("callback.m_closestHitFraction=%f\n",callback.m_closestHitFraction);
-                //	currentPosition.interpolate(currentPosition, targetPosition, callback.closestHitFraction);
-                //}
                 updateTargetPositionBasedOnCollision(callback.hitNormalWorld)
-
                 targetPosition.sub(currentPosition, currentDir)
                 val distance2 = currentDir.lengthSquared()
                 if (distance2 > BulletGlobals.SIMD_EPSILON) {
                     currentDir.normalize()
-                    // see Quake2: "If velocity is against original velocity, stop ead to avoid tiny oscilations in sloping corners."
+                    // see Quake2: "If velocity is against original velocity, stop to avoid tiny oscillations in sloping corners."
                     if (currentDir.dot(normalizedDirection) <= 0.0) {
                         break
                     }
-                } else {
-                    //printf("currentDir: don't normalize a zero vector\n");
-                    break
-                }
+                } else break
             } else {
                 // we moved whole way
                 currentPosition.set(targetPosition)
             }
-
-            //if (callback.m_closestHitFraction == 0.f)
-            //    break;
         }
 
         Stack.subTrans(2)
@@ -428,13 +340,9 @@ class KinematicCharacterController(
 
         // phase 3: down
         val additionalDownStep = if (wasOnGround && !onGround()) stepHeight else 0.0
-        val stepDrop = Stack.newVec()
-        upAxisV.mul(currentStepOffset + additionalDownStep, stepDrop)
-        val downVelocity = (if (additionalDownStep == 0.0 && verticalVelocity < 0.0) -verticalVelocity else 0.0) * dt
-        val gravityDrop = Stack.newVec()
-        upAxisV.mul(downVelocity, gravityDrop)
-        targetPosition.sub(stepDrop)
-        targetPosition.sub(gravityDrop)
+        val stepDrop = currentStepOffset + additionalDownStep
+        val gravityDrop = (if (additionalDownStep == 0.0 && verticalVelocity < 0.0) -verticalVelocity else 0.0) * dt
+        targetPosition.fma(-(stepDrop + gravityDrop), upAxisV)
 
         start.setIdentity()
         end.setIdentity()
@@ -446,17 +354,10 @@ class KinematicCharacterController(
         val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, maxSlopeCosine)
         callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
-        if (useGhostObjectSweepTest) {
-            ghostObject.convexSweepTest(
-                convexShape,
-                start,
-                end,
-                callback,
-                collisionWorld.dispatchInfo.allowedCcdPenetration
-            )
-        } else {
-            collisionWorld.convexSweepTest(convexShape, start, end, callback)
-        }
+        ghostObject.convexSweepTest(
+            convexShape, start, end,
+            callback, collisionWorld.dispatchInfo.allowedCcdPenetration
+        )
 
         if (callback.hasHit()) {
             // we dropped a fraction of the height -> hit floor
@@ -492,7 +393,7 @@ class KinematicCharacterController(
                 val dotUp = up.dot(hitNormalWorld)
                 if (dotUp < minSlopeDot) return 1.0
             } else {
-                // need to transform normal into worldspace
+                // need to transform normal into world space
                 val hitNormalWorld = Stack.newVec()
 
                 convexResult.hitCollisionObject!!

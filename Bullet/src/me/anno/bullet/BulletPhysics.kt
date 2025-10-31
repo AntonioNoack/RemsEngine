@@ -132,7 +132,6 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
                 rigidBody
             )
             rigidBody.nativeInstance2 = controller
-            rigidBody.initialize(controller)
             bulletInstance.addAction(controller)
         }
 

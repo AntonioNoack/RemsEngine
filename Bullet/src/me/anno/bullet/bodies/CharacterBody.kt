@@ -3,10 +3,10 @@ package me.anno.bullet.bodies
 import com.bulletphysics.dynamics.character.KinematicCharacterController
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Axis
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
-import me.anno.utils.types.Floats.toRadians
 
 /**
  * GhostBody, for implementing player controls.
@@ -26,9 +26,11 @@ class CharacterBody : GhostBody() {
     /**
      * Terminal velocity of a skydiver in m/s.
      * */
+    @Range(0.0, 1e308)
     @SerializedProperty
     var fallSpeed = 55.0
 
+    @Range(0.0, 1e308)
     @SerializedProperty
     var jumpSpeed = 10.0
 
@@ -61,8 +63,4 @@ class CharacterBody : GhostBody() {
 
     @DebugProperty
     val verticalOffset get() = nativeInstance2?.verticalOffset ?: 0.0
-
-    fun initialize(controller: KinematicCharacterController) {
-        controller.maxSlopeRadians = maxSlopeDegrees.toRadians()
-    }
 }

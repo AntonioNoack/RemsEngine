@@ -125,7 +125,6 @@ fun main() {
         .add(PlayerController())
         .add(CharacterBody().apply { stepHeight = 1.0 })
         .add(CapsuleCollider().apply { radius = 0.5f; halfHeight = 0.5f })
-        .add(SphereCollider())
         .add(MeshComponent(CapsuleModel.createCapsule(20, 10, 0.5f, 0.5f)))
         .add(NearbyPusher())
         .setPosition(0.0, 1.0, 0.0)
@@ -221,6 +220,13 @@ class PlayerController : Component(), OnUpdate {
         dir.mul(speed)
 
         velocity.lerp(dir, dtTo01(dt * dtAcceleration))
+
+        // not helping??
+        /*val normal = character.touchingNormal
+        if (character.touchingContact && normal != null) {
+            val dot = normal.dot(velocity)
+            if (dot > 0.0) velocity.fma(-dot, normal)
+        }*/
 
         character.nativeInstance2?.setTargetVelocity(velocity)
         if (Input.wasKeyPressed(Key.KEY_SPACE)) {
