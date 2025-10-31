@@ -35,7 +35,7 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
     ) {
         super.init(ci)
         this.isSwapped = isSwapped
-        this.triangleCallback = ConvexTriangleCallback(dispatcher!!, body0, body1, isSwapped)
+        this.triangleCallback = ConvexTriangleCallback(dispatcher, body0, body1, isSwapped)
     }
 
     override fun destroy() {
@@ -64,11 +64,7 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
             //m_dispatcher->clearManifold(m_btConvexTriangleCallback.m_manifoldPtr);
             callback.manifoldPtr.setBodies(convexBody, triBody)
 
-            concaveShape.processAllTriangles(
-                callback,
-                callback.getAabbMin(Stack.newVec()),
-                callback.getAabbMax(Stack.newVec())
-            )
+            concaveShape.processAllTriangles(callback, callback.aabbMin, callback.aabbMax)
 
             resultOut.refreshContactPoints()
         }
@@ -199,7 +195,7 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
 
     /** ///////////////////////////////////////////////////////////////////////// */
     class CreateFunc : CollisionAlgorithmCreateFunc() {
-        private val pool = ObjectPool.Companion.get(ConvexConcaveCollisionAlgorithm::class.java)
+        private val pool = ObjectPool.get(ConvexConcaveCollisionAlgorithm::class.java)
 
         override fun createCollisionAlgorithm(
             ci: CollisionAlgorithmConstructionInfo,

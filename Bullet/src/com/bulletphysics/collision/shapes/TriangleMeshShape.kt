@@ -12,8 +12,8 @@ import org.joml.Vector3d
  * @author jezek2
  */
 abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface) : ConcaveShape() {
-    val localAabbMin: Vector3d = Vector3d()
-    val localAabbMax: Vector3d = Vector3d()
+    val localAabbMin = Vector3d()
+    val localAabbMax = Vector3d()
 
     fun localGetSupportingVertex(vec: Vector3d, out: Vector3d): Vector3d {
         val identity = Stack.newTrans()

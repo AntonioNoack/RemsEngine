@@ -24,8 +24,8 @@ internal class ConvexTriangleCallback(
     private val convexBody: CollisionObject = if (isSwapped) body1 else body0
     private val triBody: CollisionObject = if (isSwapped) body0 else body1
 
-    private val aabbMin = Vector3d()
-    private val aabbMax = Vector3d()
+    val aabbMin = Vector3d()
+    val aabbMax = Vector3d()
 
     private var resultOut: ManifoldResult? = null
 
@@ -121,15 +121,5 @@ internal class ConvexTriangleCallback(
 
     fun clearCache() {
         dispatcher.clearManifold(manifoldPtr)
-    }
-
-    fun getAabbMin(out: Vector3d): Vector3d {
-        out.set(aabbMin)
-        return out
-    }
-
-    fun getAabbMax(out: Vector3d): Vector3d {
-        out.set(aabbMax)
-        return out
     }
 }
