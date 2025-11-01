@@ -107,6 +107,15 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
         }
 
     @Group("Rotation")
+    @Range(0.0, 10.0)
+    @Docs("How much each rotation component is affected by forced, e.g. set to 0/1/0 to only allow y-rotation")
+    var angularFactor = Vector3d()
+        set(value) {
+            field.set(value)
+            nativeInstance?.angularFactor?.set(value)
+        }
+
+    @Group("Rotation")
     @Range(0.0, 1.0)
     @Docs("Friction against rotation when moving through air / water")
     var angularDamping = 0.0

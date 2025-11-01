@@ -47,7 +47,7 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
 
     var inverseMass = 0.0
 
-    var angularFactor = 1.0
+    val angularFactor = Vector3d(1.0)
 
     val gravity = Vector3d()
     val invInertiaLocal = Vector3d()
@@ -276,7 +276,7 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
     fun applyImpulse(impulse: Vector3d, relPos: Vector3d) {
         if (inverseMass != 0.0) {
             applyCentralImpulse(impulse)
-            if (angularFactor != 0.0) {
+            if (!angularFactor.equals(0.0, 0.0, 0.0)) {
                 val tmp = Stack.newVec()
                 relPos.cross(impulse, tmp).mul(angularFactor)
                 applyTorqueImpulse(tmp)
@@ -291,9 +291,12 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
     fun internalApplyImpulse(linearComponent: Vector3d, angularComponent: Vector3d, impulseMagnitude: Double) {
         if (inverseMass != 0.0) {
             linearVelocity.fma(impulseMagnitude, linearComponent)
-            if (angularFactor != 0.0) {
-                angularVelocity.fma(impulseMagnitude * angularFactor, angularComponent)
-            }
+            val angularFactor = angularFactor
+            angularVelocity.add(
+                impulseMagnitude * angularFactor.x * angularComponent.x,
+                impulseMagnitude * angularFactor.y * angularComponent.y,
+                impulseMagnitude * angularFactor.z * angularComponent.z
+            )
         }
     }
 

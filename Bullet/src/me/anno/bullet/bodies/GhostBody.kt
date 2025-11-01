@@ -29,13 +29,13 @@ open class GhostBody : PhysicsBody<GhostObject>() {
         get() = overlappingBodies.size
 
     @Docs("Overlapping Dynamic/KinematicBodies; only safe to access onPhysicsUpdate")
-    val overlappingBodies: List<PhysicalBody> = OverlappingBodiesList(this)
+    val overlappingBodies: List<PhysicsBody<*>> = OverlappingBodiesList(this)
 
-    private class OverlappingBodiesList(val ghostBody: GhostBody) : SimpleList<PhysicalBody>() {
-        override fun get(index: Int): PhysicalBody {
+    private class OverlappingBodiesList(val ghostBody: GhostBody) : SimpleList<PhysicsBody<*>>() {
+        override fun get(index: Int): PhysicsBody<*> {
             val ghostObject = ghostBody.nativeInstance!!
             val rigidbody = ghostObject.overlappingPairs[index]
-            return rigidbody.userData as PhysicalBody
+            return rigidbody.userData as PhysicsBody<*>
         }
 
         override val size: Int

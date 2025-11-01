@@ -14,10 +14,10 @@ import org.joml.Vector3d
 class SolverBody {
 
     @JvmField
-    val angularVelocity: Vector3d = Vector3d()
+    val angularVelocity = Vector3d()
 
     @JvmField
-    var angularFactor: Double = 0.0
+    val angularFactor = Vector3d()
 
     @JvmField
     var invMass: Double = 0.0
@@ -52,14 +52,12 @@ class SolverBody {
     fun internalApplyImpulse(linearComponent: Vector3d, angularComponent: Vector3d, impulseMagnitude: Double) {
         if (invMass != 0.0) {
             linearVelocity.fma(impulseMagnitude, linearComponent)
-            angularVelocity.fma(impulseMagnitude * angularFactor, angularComponent)
-        }
-    }
-
-    fun internalApplyPushImpulse(linearComponent: Vector3d, angularComponent: Vector3d, impulseMagnitude: Double) {
-        if (invMass != 0.0) {
-            pushVelocity.fma(impulseMagnitude, linearComponent)
-            turnVelocity.fma(impulseMagnitude * angularFactor, angularComponent)
+            val angularFactor = angularFactor
+            angularVelocity.add(
+                impulseMagnitude * angularFactor.x * angularComponent.x,
+                impulseMagnitude * angularFactor.y * angularComponent.y,
+                impulseMagnitude * angularFactor.z * angularComponent.z,
+            )
         }
     }
 

@@ -125,6 +125,10 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         body.collisionShape = collider
         body.userData = rigidBody
 
+        if (body is RigidBody && rigidBody is DynamicBody) {
+            body.angularFactor.set(rigidBody.angularFactor)
+        }
+
         if (rigidBody is CharacterBody) {
             val controller = KinematicCharacterController(
                 body as PairCachingGhostObject,

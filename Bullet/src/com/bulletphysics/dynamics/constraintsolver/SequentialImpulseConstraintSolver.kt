@@ -100,7 +100,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             solverBody.invMass = collisionObject.inverseMass
             solverBody.linearVelocity.set(collisionObject.linearVelocity)
             solverBody.originalBody = collisionObject
-            solverBody.angularFactor = collisionObject.angularFactor
+            solverBody.angularFactor.set(collisionObject.angularFactor)
         } else {
             solverBody.angularVelocity.set(0.0)
             solverBody.centerOfMassPosition.set(collisionObject.worldTransform.origin)
@@ -108,7 +108,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             solverBody.invMass = 0.0
             solverBody.linearVelocity.set(0.0)
             solverBody.originalBody = null
-            solverBody.angularFactor = 1.0
+            solverBody.angularFactor.set(1.0)
         }
 
         solverBody.pushVelocity.set(0.0)
@@ -160,10 +160,10 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
             val tmp = Stack.newVec()
             contactConstraint.contactNormal.mul(body1.invMass, tmp)
-            body1.internalApplyPushImpulse(tmp, contactConstraint.angularComponentA, normalImpulse)
+            body1.internalApplyImpulse(tmp, contactConstraint.angularComponentA, normalImpulse)
 
             contactConstraint.contactNormal.mul(body2.invMass, tmp)
-            body2.internalApplyPushImpulse(tmp, contactConstraint.angularComponentB, -normalImpulse)
+            body2.internalApplyImpulse(tmp, contactConstraint.angularComponentB, -normalImpulse)
             Stack.subVec(1)
         }
     }
