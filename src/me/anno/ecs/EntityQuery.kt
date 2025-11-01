@@ -41,7 +41,7 @@ object EntityQuery {
     }
 
     fun <V : Any> Entity.getComponent(clazzName: String, includingDisabled: Boolean = false): V? {
-        val clazz = Saveable.getClass(clazzName) as? KClass ?: return null
+        val clazz = Saveable.getClass(clazzName)
         @Suppress("UNCHECKED_CAST")
         return getComponent(clazz as KClass<V>, includingDisabled)
     }
