@@ -142,90 +142,6 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
             nativeInstance?.setSleepingThresholds(linearSleepingThreshold, value)
         }
 
-    // getter not needed, is updated automatically from BulletPhysics.kt
-    @Group("Movement")
-    var globalLinearVelocity: Vector3d = Vector3d()
-        set(value) {
-            field.set(value)
-            nativeInstance?.setLinearVelocity(value)
-        }
-
-    @Group("Movement")
-    var localLinearVelocity: Vector3d = Vector3d()
-        get() {
-            transform?.globalTransform?.transformDirectionInverse(globalLinearVelocity, field)
-            return field
-        }
-        set(value) {
-            field.set(value)
-            val bi = nativeInstance
-            val tr = transform
-            if (tr != null && mass > 0.0 && bi != null && !isStatic) {
-                val global = tr.globalTransform.transformDirection(field, Vector3d())
-                bi.setLinearVelocity(global)
-            }
-        }
-
-    @DebugProperty
-    @Order(0)
-    @Group("Movement")
-    val localLinearVelocityX: Double
-        get() = globalLinearVelocity.dot(getLocalXAxis())
-
-    @DebugProperty
-    @Order(1)
-    @Group("Movement")
-    val localLinearVelocityY: Double
-        get() = globalLinearVelocity.dot(getLocalYAxis())
-
-    @DebugProperty
-    @Order(2)
-    @Group("Movement")
-    val localLinearVelocityZ: Double
-        get() = globalLinearVelocity.dot(getLocalZAxis())
-
-    // getter not needed, is updated automatically from BulletPhysics.kt
-    @Group("Rotation")
-    var globalAngularVelocity: Vector3d = Vector3d()
-        set(value) {
-            field.set(value)
-            nativeInstance?.setAngularVelocity(value)
-        }
-
-    @Group("Movement")
-    var localAngularVelocity: Vector3d = Vector3d()
-        get() {
-            transform?.globalTransform?.transformDirectionInverse(globalAngularVelocity, field)
-            return field
-        }
-        set(value) {
-            field.set(value)
-            val bi = nativeInstance
-            val tr = transform
-            if (tr != null && mass > 0.0 && bi != null && !isStatic) {
-                val global = tr.globalTransform.transformDirection(field, Vector3d())
-                bi.setAngularVelocity(global)
-            }
-        }
-
-    @DebugProperty
-    @Order(0)
-    @Group("Rotation")
-    val localAngularVelocityX: Double
-        get() = globalAngularVelocity.dot(getLocalXAxis())
-
-    @DebugProperty
-    @Order(1)
-    @Group("Rotation")
-    val localAngularVelocityY: Double
-        get() = globalAngularVelocity.dot(getLocalYAxis())
-
-    @DebugProperty
-    @Order(2)
-    @Group("Rotation")
-    val localAngularVelocityZ: Double
-        get() = globalAngularVelocity.dot(getLocalZAxis())
-
     @Group("Mass")
     @SerializedProperty
     var centerOfMass: Vector3d = Vector3d()
@@ -233,12 +149,6 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
             field.set(value)
             invalidateRigidbody()
         }
-
-    @Group("Mass")
-    @Docs("If an object is static, it will never move, and has infinite mass")
-    @NotSerializedProperty
-    val isStatic
-        get() = mass <= 0.0
 
     /**
      * applies "rotation force"

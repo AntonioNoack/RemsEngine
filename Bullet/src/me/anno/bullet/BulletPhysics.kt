@@ -561,12 +561,6 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         JomlPools.vec3d.sub(1)
     }
 
-    private fun createBulletWorld(): DiscreteDynamicsWorld {
-        val world = Companion.createBulletWorld()
-        world.debugDrawer = BulletDebugDraw
-        return world
-    }
-
     private fun createBulletWorldWithGravity(): DiscreteDynamicsWorld {
         val world = createBulletWorld()
         val tmp = Stack.borrowVec()
@@ -597,6 +591,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
             val solver = SequentialImpulseConstraintSolver()
             val world = DiscreteDynamicsWorld(dispatcher, bp, solver)
             world.broadphase.overlappingPairCache.setInternalGhostPairCallback(GhostPairCallback())
+            world.debugDrawer = BulletDebugDraw
             return world
         }
 

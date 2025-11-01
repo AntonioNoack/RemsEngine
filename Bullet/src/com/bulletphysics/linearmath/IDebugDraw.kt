@@ -15,13 +15,15 @@ import org.joml.Vector3d
  * @author jezek2
  */
 interface IDebugDraw {
-    fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d)
 
+    fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d)
     fun drawContactPoint(position: Vector3d, normal: Vector3d, distance: Double, lifeTime: Int, color: Vector3d)
+    fun draw3dText(location: Vector3d, textString: String)
 
     fun reportErrorWarning(warningString: String)
 
-    fun draw3dText(location: Vector3d, textString: String)
-
+    /**
+     * combination of values from DebugDrawModes
+     * */
     val debugMode: Int
 }

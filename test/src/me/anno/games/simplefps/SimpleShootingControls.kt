@@ -29,7 +29,7 @@ class SimpleShootingControls : Component(), CustomEditMode {
                 val hitComponent = query.result.component
                 val hitEntity = hitComponent?.entity
                 val hitRigidbody = hitEntity?.getComponent(DynamicBody::class)
-                if (hitRigidbody != null && !hitRigidbody.isStatic) {
+                if (hitRigidbody != null) {
                     val relativePos = query.result.positionWS.sub(hitEntity.transform.globalPosition, Vector3d())
                     val impulse = Vector3d(query.direction).mul(force)
                     hitRigidbody.applyImpulse(relativePos, impulse)

@@ -2,6 +2,7 @@ package me.anno.bullet
 
 import com.bulletphysics.linearmath.DebugDrawModes.NO_DEACTIVATION
 import com.bulletphysics.linearmath.IDebugDraw
+import me.anno.Build
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.utils.Color.rgb
@@ -12,24 +13,7 @@ object BulletDebugDraw : IDebugDraw {
 
     private val LOGGER = LogManager.getLogger(BulletDebugDraw::class)
 
-    /**
-    public static final int NO_DEBUG              = 0;
-    public static final int DRAW_WIREFRAME        = 1;
-    public static final int DRAW_AABB             = 2;
-    public static final int DRAW_FEATURES_TEXT    = 4;
-    public static final int DRAW_CONTACT_POINTS   = 8;
-    public static final int NO_DEACTIVATION       = 16;
-    public static final int NO_HELP_TEXT          = 32;
-    public static final int DRAW_TEXT             = 64;
-    public static final int PROFILE_TIMINGS       = 128;
-    public static final int ENABLE_SAT_COMPARISON = 256;
-    public static final int DISABLE_BULLET_LCP    = 512;
-    public static final int ENABLE_CCD            = 1024;
-    public static final int MAX_DEBUG_DRAW_MODE   = 1025;
-     * */
-
-    // all flags except deactivation
-    override val debugMode = 2047.and(NO_DEACTIVATION.inv())
+    override var debugMode = if (Build.isDebug) (-1).and(NO_DEACTIVATION.inv()) else 0
 
     override fun reportErrorWarning(warningString: String) {
         LOGGER.warn(warningString)
