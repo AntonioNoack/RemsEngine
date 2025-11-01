@@ -5,6 +5,8 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import org.joml.Quaternionf
+import kotlin.math.abs
+import kotlin.math.sign
 
 open class OrbitControls : CameraController() {
 
@@ -16,9 +18,10 @@ open class OrbitControls : CameraController() {
     var minRadius = 1e-3
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean): Boolean {
-        val newRadius = clamp(pow(2.0, -dy * mouseWheelSpeed) * radius, minRadius, maxRadius)
-        movementSpeed *= newRadius / radius
-        radius = newRadius
+        if (radius == 0.0) return false
+        val newRadius = clamp(pow(2.0, -dy * mouseWheelSpeed) * abs(radius), minRadius, maxRadius)
+        movementSpeed *= newRadius / abs(radius)
+        radius = newRadius * sign(radius)
         return true
     }
 

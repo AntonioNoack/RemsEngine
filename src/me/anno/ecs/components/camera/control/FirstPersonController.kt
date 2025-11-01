@@ -1,10 +1,10 @@
 package me.anno.ecs.components.camera.control
 
-import me.anno.ecs.Transform
-import me.anno.ecs.components.camera.Camera
-
-open class FirstPersonController : CameraController() {
-    override fun computeTransform(baseTransform: Transform, camTransform: Transform, camera: Camera) {
-        lastWarning = "hasn't been implemented yet"
+open class FirstPersonController : OrbitControls() {
+    init {
+        radius = -0.1
+        minRadius = 0.0
+        maxRadius = 0.0
+        mouseWheelSpeed = 0.0
     }
 }

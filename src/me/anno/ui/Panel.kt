@@ -16,7 +16,6 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.ui.background.Background

@@ -55,7 +55,7 @@ abstract class CameraController : Component(), InputListener, OnUpdate {
     /**
      * euler yxz rotation in radians, where x=x,y=y,z=z
      * */
-    var rotation = Vector3f()
+    val rotation = Vector3f()
 
     var movementSpeed = 1.0
     var rotationSpeed = 0.3f
