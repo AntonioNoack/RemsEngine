@@ -361,16 +361,15 @@ object Streams {
      * */
     @JvmStatic
     fun OutputStream.write0String(value: CharSequence) {
-        writeString(value, spaceNotZero = true) // if we allowed 0, we would fail reading a list of them
-        write(zero)
+        writeString(value, nullTerminate = true) // if we allowed 0, we would fail reading a list of them
     }
 
     @JvmStatic
-    fun OutputStream.writeString(value: CharSequence, spaceNotZero: Boolean = false) {
+    fun OutputStream.writeString(value: CharSequence, nullTerminate: Boolean = false) {
         val buf = getTmpBuffer()
         var written = 0
         value.forEachUTF8Codepoint { codepoint ->
-            val codepoint1 = if (spaceNotZero && codepoint == 0) ' '.code else codepoint
+            val codepoint1 = if (nullTerminate && codepoint == 0) ' '.code else codepoint
             written = buf.putUTF8(written, codepoint1)
 
             // if the buffer is nearly full, flush it
@@ -378,6 +377,10 @@ object Streams {
                 write(buf, 0, written)
                 written = 0
             }
+        }
+
+        if (nullTerminate) {
+            buf[written++] = 0
         }
 
         // flush the remainder
@@ -429,10 +432,4 @@ object Streams {
     fun OutputStream.write(src: ByteSlice) {
         write(src.bytes, src.range.first(), src.range.size)
     }
-
-    /**
-     * DeflaterOutputStream creates this unnecessary instance, if we want to write single bytes...
-     * so let's create it once here...
-     * */
-    private val zero = ByteArray(1)
 }
