@@ -362,7 +362,7 @@ object Streams {
     @JvmStatic
     fun OutputStream.write0String(value: CharSequence) {
         writeString(value, spaceNotZero = true) // if we allowed 0, we would fail reading a list of them
-        write(0)
+        write(zero)
     }
 
     @JvmStatic
@@ -429,4 +429,10 @@ object Streams {
     fun OutputStream.write(src: ByteSlice) {
         write(src.bytes, src.range.first(), src.range.size)
     }
+
+    /**
+     * DeflaterOutputStream creates this unnecessary instance, if we want to write single bytes...
+     * so let's create it once here...
+     * */
+    private val zero = ByteArray(1)
 }
