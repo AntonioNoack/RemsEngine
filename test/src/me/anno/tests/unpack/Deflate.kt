@@ -1,4 +1,4 @@
-package me.anno.tests.deflate
+package me.anno.tests.unpack
 
 import me.anno.io.files.Reference.getReference
 import java.util.zip.DeflaterOutputStream

@@ -18,7 +18,6 @@ import java.nio.file.Paths
 import java.nio.file.StandardWatchEventKinds
 import java.nio.file.WatchKey
 import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 
 object FileWatchImpl {
 

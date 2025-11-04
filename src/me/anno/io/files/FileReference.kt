@@ -82,6 +82,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    @Deprecated(Promise.ASYNC_WARNING)
     fun resolved(): FileReference {
         return if (this is LinkFileReference) original
         else this
@@ -352,12 +353,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         })
     }
 
-    @Deprecated(Promise.ASYNC_WARNING)
     fun getSibling(name: String): FileReference {
         return getParent().getChild(name)
     }
 
-    @Deprecated(Promise.ASYNC_WARNING)
     fun getSiblingWithExtension(ext: String): FileReference {
         return getParent().getChild("$nameWithoutExtension.$ext")
     }
