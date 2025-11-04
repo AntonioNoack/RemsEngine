@@ -49,7 +49,7 @@ object XML2JSON {
                     }
                 }
             }
-            is String -> node.children.add(escapeXML(json))
+            is String -> node.children.add(escapeXML(json).toString())
             else -> node.children.add(json.toString())
         }
         return node

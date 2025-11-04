@@ -21,10 +21,10 @@ object XMLWriter {
         for (i in 0 until depth) builder.append(indentation)
     }
 
-    fun StringBuilder.appendStringEscaped(str: String): StringBuilder {
-        for (cx in str.codepoints()) {
-            if (cx in 32 until 128) {
-                when (val c = cx.toChar()) {
+    fun StringBuilder.appendStringEscaped(str: CharSequence): StringBuilder {
+        for (codepoint in str.codepoints()) {
+            if (codepoint in 32 until 128) {
+                when (val c = codepoint.toChar()) {
                     in 'A'..'Z', in 'a'..'z',
                     in '0'..'9', in " .:,;-_!§$%/()=?[]{}" -> append(c)
                     '<' -> append("&lt;")
@@ -35,33 +35,33 @@ object XMLWriter {
                     else -> append("&#").append(c.code).append(';')
                 }
             } else {
-                append("&#").append(cx).append(';')
+                append("&#").append(codepoint).append(';')
             }
         }
         return this
     }
 
-    fun StringBuilder.appendXMLEscaped(str: String): StringBuilder {
-        for (c in str) {
-            when (c) {
+    fun StringBuilder.appendXMLEscaped(str: CharSequence): StringBuilder {
+        for (char in str) {
+            when (char) {
                 '<' -> append("&lt;")
                 '>' -> append("&gt;")
                 '\n' -> append("<br/>")
                 '"' -> append("&quot;")
                 '\'' -> append("&apos;")
                 '&' -> append("&amp;")
-                else -> append(c)
+                else -> append(char)
             }
         }
         return this
     }
 
-    fun escapeXML(str: String): String {
+    fun escapeXML(str: CharSequence): CharSequence {
         val extra = str.count { it in "<>\n\"'&" }
         if (extra == 0) return str
         val builder = StringBuilder(str.length + extra * 3)
         builder.appendXMLEscaped(str)
-        return builder.toString()
+        return builder
     }
 
     fun write(

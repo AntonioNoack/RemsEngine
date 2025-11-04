@@ -2,6 +2,7 @@ package me.anno.utils.types
 
 import me.anno.config.DefaultConfig
 import me.anno.fonts.Codepoints
+import me.anno.fonts.Codepoints.forEachChar
 import me.anno.fonts.Font
 import me.anno.fonts.IEmojiCache
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
@@ -41,10 +42,15 @@ object Strings {
     }
 
     @JvmStatic
+    fun StringBuilder.appendChars(codepoint: Int) {
+        codepoint.forEachChar { char -> append(char) }
+    }
+
+    @JvmStatic
     fun List<Int>.joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
         val builder = StringBuilder(endIndex - startIndex)
         for (i in startIndex until endIndex) {
-            builder.append(get(i).joinChars0())
+            builder.appendChars(get(i))
         }
         return builder
     }
@@ -53,7 +59,7 @@ object Strings {
     fun IntArray.joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
         val builder = StringBuilder(endIndex - startIndex)
         for (i in startIndex until endIndex) {
-            builder.append(get(i).joinChars0())
+            builder.appendChars(get(i))
         }
         return builder
     }
@@ -69,7 +75,7 @@ object Strings {
         for (i in startIndex until endIndex) {
             val char = get(i)
             if (filter(char)) {
-                builder.append(char.joinChars0())
+                builder.appendChars(get(i))
             }
         }
         return builder
@@ -452,6 +458,9 @@ object Strings {
 
     @JvmStatic
     fun CharSequence.toInt(i0: Int, i1: Int): Int = toLong(i0, i1).toInt()
+
+    @JvmStatic
+    fun CharSequence.toInt(base: Int, i0: Int, i1: Int): Int = toLong(base, i0, i1).toInt()
 
     @JvmStatic
     fun CharSequence.toLong(): Long {

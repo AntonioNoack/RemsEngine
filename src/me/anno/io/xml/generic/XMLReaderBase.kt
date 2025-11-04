@@ -2,7 +2,7 @@ package me.anno.io.xml.generic
 
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.types.Strings.joinChars
+import me.anno.utils.types.Strings.toInt
 import org.apache.logging.log4j.LogManager
 import java.io.Reader
 import kotlin.math.min
@@ -126,14 +126,14 @@ abstract class XMLReaderBase(val input: Reader) {
         }
     }
 
-    fun readStringUntilNextNode(first: Int): String {
+    fun readStringUntilNextNode(first: Int): CharSequence {
         val builder = valueBuilder
         builder.clear()
         if (first != 0) builder.append(first.toChar())
         appendStringUntil('<'.code, builder)
         // trim trailing whitespace
         while (builder.isNotEmpty() && builder.last().isWhitespace()) builder.length--
-        return builder.toString()
+        return builder
     }
 
     fun readStringUntilQuotes(quotesSymbol: Int): ComparableStringBuilder {
@@ -147,7 +147,7 @@ abstract class XMLReaderBase(val input: Reader) {
     fun appendStringUntil(endSymbol: Int, builder: ComparableStringBuilder) {
         while (true) {
             when (val char = readChar()) {
-                '&'.code -> builder.append(readEscapeSequence())
+                '&'.code -> builder.readEscapeSequence()
                 endSymbol, -1 -> {
                     last = char
                     return
@@ -157,36 +157,43 @@ abstract class XMLReaderBase(val input: Reader) {
         }
     }
 
-    fun readEscapeSequence(): String {
+    fun ComparableStringBuilder.readEscapeSequence() {
         // apos -> '
         // quot -> "
         // #102 -> decimal
         // #x4f -> hex
-        val builder = StringBuilder()
+        val i0 = length
         while (true) {
             val c = readChar()
             if (c < 0 || c == ';'.code) break
-            builder.append(c.toChar())
+            append(c.toChar())
         }
-        return when {
-            equals(builder, "apos") -> "'"
-            equals(builder, "quot") -> "\""
-            equals(builder, "amp") -> "&"
-            equals(builder, "lt") -> "<"
-            equals(builder, "gt") -> ">"
-            builder.startsWith("#x") -> {
-                builder.substring(2).toInt(16)
-                    .joinChars()
+        val replacement = when {
+            @Suppress("SpellCheckingInspection")
+            equals("apos", i0) -> "'"
+            equals("quot", i0) -> "\""
+            equals("amp", i0) -> "&"
+            equals("lt", i0) -> "<"
+            equals("gt", i0) -> ">"
+            startsWith("#x", i0) -> {
+                val codepoint = toInt(16, i0 + 2, length)
+                length = i0 // reset
+                appendChars(codepoint)
+                return
             }
-            builder.startsWith("#") -> {
-                builder.substring(1).toInt()
-                    .joinChars()
+            startsWith("#", i0) -> {
+                val codepoint = toInt(i0 + 1, length)
+                length = i0 // reset
+                appendChars(codepoint)
+                return
             }
             else -> {
-                LOGGER.warn("Unknown escape sequence $builder")
-                return ""
+                LOGGER.warn("Unknown escape sequence ${substring(i0)}")
+                ""
             }
         }
+        length = i0 // reset
+        append(replacement)
     }
 
     fun assert(a: Int, b: Char, c: Char) {

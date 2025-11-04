@@ -1,8 +1,11 @@
 package me.anno.io
 
 import me.anno.Engine
+import me.anno.fonts.Codepoints.forEachUTF8Codepoint
 import me.anno.graph.hdb.ByteSlice
+import me.anno.io.binary.ByteArrayIO.putUTF8
 import me.anno.maths.Packing.pack64
+import me.anno.utils.InternalAPI
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.Threads
 import me.anno.utils.hpc.threadLocal
@@ -26,6 +29,9 @@ object Streams {
 
     private val LOGGER = LogManager.getLogger(Streams::class)
     private val tmpBuffer = threadLocal { ByteArray(1024) }
+
+    @InternalAPI
+    fun getTmpBuffer(): ByteArray = tmpBuffer.get()
 
     // defined with a 2, if already present (newer Java versions)
     @JvmStatic
@@ -354,14 +360,30 @@ object Streams {
      * write a zero-terminated string, as they are commonly used in C
      * */
     @JvmStatic
-    fun OutputStream.write0String(str: String) {
-        writeString(str)
+    fun OutputStream.write0String(value: CharSequence) {
+        writeString(value, spaceNotZero = true) // if we allowed 0, we would fail reading a list of them
         write(0)
     }
 
     @JvmStatic
-    fun OutputStream.writeString(str: String) {
-        write(str.encodeToByteArray())
+    fun OutputStream.writeString(value: CharSequence, spaceNotZero: Boolean = false) {
+        val buf = getTmpBuffer()
+        var written = 0
+        value.forEachUTF8Codepoint { codepoint ->
+            val codepoint1 = if (spaceNotZero && codepoint == 0) ' '.code else codepoint
+            written = buf.putUTF8(written, codepoint1)
+
+            // if the buffer is nearly full, flush it
+            if (buf.size - written < 4) {
+                write(buf, 0, written)
+                written = 0
+            }
+        }
+
+        // flush the remainder
+        if (written > 0) {
+            write(buf, 0, written)
+        }
     }
 
     @JvmStatic

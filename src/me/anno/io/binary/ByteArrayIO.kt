@@ -1,5 +1,6 @@
 package me.anno.io.binary
 
+import me.anno.fonts.Codepoints.forEachUTF8Codepoint
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.ByteArrayList
 
@@ -258,5 +259,70 @@ object ByteArrayIO {
     fun beMagic(string: String): Int {
         assertEquals(4, string.length)
         return beMagic(string[0], string[1], string[2], string[3])
+    }
+
+    /**
+     * returns how many bytes are needed to encode a CharSequence
+     * */
+    @JvmStatic
+    fun getEncodedStringLength(str: CharSequence): Int {
+        var size = 0
+        str.forEachUTF8Codepoint { codepoint ->
+            size += getEncodedUTF8Length(codepoint)
+        }
+        return size
+    }
+
+    /**
+     * returns the end index
+     * */
+    @JvmStatic
+    fun ByteArray.writeString(index: Int, str: CharSequence): Int {
+        var written = index
+        str.forEachUTF8Codepoint { codepoint ->
+            written = putUTF8(written, codepoint)
+        }
+        return written
+    }
+
+    fun ByteArray.putUTF8(index: Int, codepoint: Int): Int {
+        var index = index
+        when {
+            codepoint <= 0x7F -> {
+                if (index < size) this[index++] = codepoint.toByte()
+                else index += 1
+            }
+            codepoint <= 0x7FF -> {
+                if (index + 1 < size) {
+                    this[index++] = (0b11000000 or (codepoint shr 6)).toByte()
+                    this[index++] = (0b10000000 or (codepoint and 0x3F)).toByte()
+                } else index += 2
+            }
+            codepoint <= 0xFFFF -> {
+                if (index + 2 < size) {
+                    this[index++] = (0b11100000 or (codepoint shr 12)).toByte()
+                    this[index++] = (0b10000000 or ((codepoint shr 6) and 0x3F)).toByte()
+                    this[index++] = (0b10000000 or (codepoint and 0x3F)).toByte()
+                } else index += 3
+            }
+            else -> {
+                if (index + 3 < size) {
+                    this[index++] = (0b11110000 or (codepoint shr 18)).toByte()
+                    this[index++] = (0b10000000 or ((codepoint shr 12) and 0x3F)).toByte()
+                    this[index++] = (0b10000000 or ((codepoint shr 6) and 0x3F)).toByte()
+                    this[index++] = (0b10000000 or (codepoint and 0x3F)).toByte()
+                } else index += 4
+            }
+        }
+        return index
+    }
+
+    fun getEncodedUTF8Length(codepoint: Int): Int {
+        return when {
+            codepoint <= 0x7F -> 1
+            codepoint <= 0x7FF -> 2
+            codepoint <= 0xFFFF -> 3
+            else -> 4
+        }
     }
 }

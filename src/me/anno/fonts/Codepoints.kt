@@ -1,5 +1,6 @@
 package me.anno.fonts
 
+import me.anno.utils.InternalAPI
 import me.anno.utils.hpc.threadLocal
 
 /**
@@ -36,12 +37,12 @@ object Codepoints {
 
     // join multi-char emojis, too? -> that seems very complicated
     @JvmStatic
-    private fun isHighSurrogate(high: Char): Boolean {
+    fun isHighSurrogate(high: Char): Boolean {
         return high.code in 0xd800..0xdbff
     }
 
     @JvmStatic
-    private fun isLowSurrogate(low: Char): Boolean {
+    fun isLowSurrogate(low: Char): Boolean {
         return low.code in 0xdc00..0xdfff
     }
 
@@ -49,7 +50,7 @@ object Codepoints {
      * Surrogate pairs encode the codepoints 0x10000 to 0x10FFFF
      * */
     @JvmStatic
-    private fun isSurrogatePair(high: Char, low: Char): Boolean {
+    fun isSurrogatePair(high: Char, low: Char): Boolean {
         return isHighSurrogate(high) and isLowSurrogate(low)
     }
 
@@ -57,23 +58,35 @@ object Codepoints {
      * Surrogate pairs encode the codepoints 0x10000 to 0x10FFFF
      * */
     @JvmStatic
-    private fun toCodepoint(high: Char, low: Char): Int {
+    fun toCodepoint(high: Char, low: Char): Int {
         return (high.code shl 10) + low.code - 0x35fdc00
     }
 
     @JvmStatic
     private val tmpChain = threadLocal { ArrayList<Int>() }
 
+    @InternalAPI
+    fun getTmpChain(): ArrayList<Int> = tmpChain.get()
+
     @JvmStatic
-    fun CharSequence.countCodepoints(): Int {
+    fun CharSequence.countCodepoints(joinEmojis: Boolean = true): Int {
         var counter = 0
-        forEachCodepoint { counter++ }
+        forEachCodepoint(joinEmojis) { counter++ }
         return counter
     }
 
     @JvmStatic
-    private inline fun CharSequence.forEachCodepoint(callback: (Int) -> Unit) {
-        val currEmoji = tmpChain.get()
+    inline fun CharSequence.forEachUTF8Codepoint(callback: (Int) -> Unit) {
+        forEachCodepoint(false, callback)
+    }
+
+    /**
+     * joinEmojis = true -> for text rendering, cursor positions, etc.
+     * joinEmojis = false -> for writing strings, just returning UTF-8 codepoints like the original method.
+     * */
+    @JvmStatic
+    inline fun CharSequence.forEachCodepoint(joinEmojis: Boolean, callback: (Int) -> Unit) {
+        val currEmoji = getTmpChain()
         val emojiCache = IEmojiCache.emojiCache
         var i = 0
         while (i < length) {
@@ -87,7 +100,7 @@ object Codepoints {
             }
 
             // todo can we handle variation selectors inside text?
-            if (currEmoji.isNotEmpty()) {
+            if (joinEmojis && currEmoji.isNotEmpty()) {
                 currEmoji.add(codepoint)
                 if (emojiCache.contains(currEmoji)) continue // emoji continues
                 currEmoji.remove(codepoint) // emoji ends here
@@ -98,6 +111,7 @@ object Codepoints {
             }
 
             when {
+                !joinEmojis -> callback(codepoint)
                 // variation selector outside an emoji -> can be immediately ignored
                 isVariationSelector(codepoint) -> {}
                 // keycap emoji with exactly two symbols ->
@@ -125,10 +139,24 @@ object Codepoints {
     }
 
     @JvmStatic
-    fun CharSequence.codepoints(dstLength: Int = countCodepoints()): IntArray {
+    fun CharSequence.codepoints(joinEmojis: Boolean = true, dstLength: Int = countCodepoints()): IntArray {
         val result = IntArray(dstLength)
         var writeIndex = 0
-        forEachCodepoint { result[writeIndex++] = it }
+        forEachCodepoint(joinEmojis) { codepoint -> result[writeIndex++] = codepoint }
         return result
+    }
+
+    @JvmStatic
+    inline fun Int.forEachChar(callback: (Char) -> Unit) {
+        if (isEmoji(this)) {
+            val emojiId = getEmojiId(this)
+            val string = IEmojiCache.emojiCache.getEmojiString(emojiId)
+            for (i in string.indices) callback(string[i])
+        } else if (Character.isBmpCodePoint(this)) {
+            callback(toChar())
+        } else {
+            callback(Character.highSurrogate(this))
+            callback(Character.lowSurrogate(this))
+        }
     }
 }

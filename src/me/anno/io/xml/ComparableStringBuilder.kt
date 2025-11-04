@@ -1,5 +1,6 @@
 package me.anno.io.xml
 
+import me.anno.fonts.Codepoints.forEachChar
 import me.anno.utils.assertions.assertTrue
 import kotlin.math.max
 
@@ -51,6 +52,11 @@ class ComparableStringBuilder(init: Int = 16) : CharSequence {
         return this
     }
 
+    fun appendChars(codepoint: Int): ComparableStringBuilder {
+        codepoint.forEachChar { char -> append(char) }
+        return this
+    }
+
     fun ensureCapacity(size: Int) {
         if (size < value.size) return
         value = value.copyOf(size)
@@ -70,14 +76,17 @@ class ComparableStringBuilder(init: Int = 16) : CharSequence {
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (other is CharSequence) {
-            if (length != other.length) return false
-            val value = value
-            for (i in indices) {
-                if (value[i] != other[i])
-                    return false
+        return other is CharSequence && equals(other, 0)
+    }
+
+    fun equals(other: CharSequence, i0: Int): Boolean {
+        if (length != i0 + other.length) return false
+        val value = value
+        for (i in other.indices) {
+            if (value[i + i0] != other[i]) {
+                return false
             }
-            return true
-        } else false
+        }
+        return true
     }
 }
