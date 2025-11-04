@@ -1,6 +1,7 @@
 package me.anno.io.xml.generic
 
 import me.anno.io.generic.GenericWriterImpl
+import me.anno.io.xml.ComparableStringBuilder
 import me.anno.utils.assertions.assertEquals
 import java.io.Reader
 
@@ -32,17 +33,37 @@ interface XMLScanner {
     private class XMLScannerImpl(val self: XMLScanner) : GenericWriterImpl() {
 
         private var depthI = -1
-        private val tags = ArrayList<String>()
+        private val tags = ArrayList<CharSequence>()
+        private val attributes = ArrayList<CharSequence>()
+
+        // to reduce unnecessary memory allocations when scanning large files
+        private val builders = ArrayList<ComparableStringBuilder>()
+
+        private fun newBuilder(content: CharSequence): CharSequence {
+            val dst = builders.removeLastOrNull() ?: ComparableStringBuilder()
+            dst.clear()
+            dst.append(content)
+            return dst
+        }
+
+        private fun recycleBuilder(builder: CharSequence) {
+            if (builder is ComparableStringBuilder) {
+                builder.clear()
+                builders.add(builder)
+            }
+        }
 
         override fun beginObject(tag: CharSequence?): Boolean {
             super.beginObject(tag)
-            tags.add(tag.toString())
+            tags.add(newBuilder(tag ?: "null"))
             return self.onStart(++depthI, tags.last())
         }
 
         override fun endObject() {
             super.endObject()
-            self.onEnd(depthI--, tags.removeLast())
+            val lastTag = tags.removeLast()
+            self.onEnd(depthI--, lastTag)
+            recycleBuilder(lastTag)
         }
 
         override fun beginArray(): Boolean {
@@ -53,13 +74,14 @@ interface XMLScanner {
 
         override fun endArray() {
             super.endArray()
-            assertEquals("", tags.removeLast())
+            val lastTag = tags.removeLast()
+            assertEquals("", lastTag)
+            recycleBuilder(lastTag)
         }
 
-        private val attributes = ArrayList<CharSequence>()
         override fun attr(tag: CharSequence): Boolean {
             super.attr(tag)
-            attributes.add(tag)
+            attributes.add(newBuilder(tag))
             return true
         }
 
@@ -70,7 +92,9 @@ interface XMLScanner {
                 self.onContent(depthI, tags[tags.size - 2], value)
             } else {
                 // in attributes
-                self.onAttribute(depthI, tags.last(), attributes.removeLast(), value)
+                val lastAttr = attributes.removeLast()
+                self.onAttribute(depthI, tags.last(), lastAttr, value)
+                recycleBuilder(lastAttr)
             }
         }
     }

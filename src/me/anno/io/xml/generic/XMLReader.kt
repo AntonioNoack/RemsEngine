@@ -47,7 +47,7 @@ open class XMLReader(input: Reader) : XMLReaderBase(input), GenericReader {
                     return endElement
                 }
                 else -> {
-                    readXMLNode(writer, type.toString())
+                    readXMLNode(writer, type)
                     return null
                 }
             }
@@ -101,14 +101,14 @@ open class XMLReader(input: Reader) : XMLReaderBase(input), GenericReader {
                     assert(start, '"', '\'')
                     val value = readStringUntilQuotes(start)
 
-                    writer.attr(propName.toString())
+                    writer.attr(propName)
                     writer.write(value, true)
                 }
             }
         }
     }
 
-    private fun readXMLNode(writer: GenericWriter, type: String): Any? {
+    private fun readXMLNode(writer: GenericWriter, type: CharSequence): Any? {
         var end = readChar()
         if (end == -1) return endOfReader
 

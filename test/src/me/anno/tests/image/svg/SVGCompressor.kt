@@ -257,11 +257,11 @@ fun compressSVG(src: FileReference, dst: FileReference) {
         when ((xml as? XMLNode)?.type) {
             "path" -> appendPath(xml)
             "g" -> {
-                val trI = xml["transform"] as? String
+                val trI = xml["transform"]
                 val group = trI != null && trI.contains("rotate")
                 val attr = xml.attributes.any { it.key != "transform" } || group
                 if (group) {
-                    bld.append("<g transform=\"$trI\"")
+                    bld.append("<g transform=\"").append(trI).append("\"")
                 } else if (trI != null) {
                     // save
                     stack.add(Matrix3x2f(tr))
@@ -306,8 +306,8 @@ fun compressSVG(src: FileReference, dst: FileReference) {
                     bld.append("<rect x=\"$x\" y=\"$y\" width=\"$w\" height=\"$h\"")
                     if (rx != 0) bld.append(" rx=\"$rx\"")
                     if (ry != 0) bld.append(" ry=\"$ry\"")
-                    attr(xml) {
-                        when (it) {
+                    attr(xml) { key ->
+                        when (key) {
                             "x", "y", "rx", "ry", "width", "height" -> false
                             else -> true
                         }
@@ -323,8 +323,8 @@ fun compressSVG(src: FileReference, dst: FileReference) {
                     val cx = f(tr.ax(cxi, cyi))
                     val cy = f(tr.ay(cxi, cyi))
                     bld.append("<circle cx=\"$cx\" cy=\"$cy\" r=\"$r\"")
-                    attr(xml) {
-                        when (it) {
+                    attr(xml) { key ->
+                        when (key) {
                             "cx", "cy", "r" -> false
                             else -> true
                         }
@@ -341,8 +341,8 @@ fun compressSVG(src: FileReference, dst: FileReference) {
                     val cx = f(tr.ax(cxi, cyi))
                     val cy = f(tr.ay(cxi, cyi))
                     bld.append("<ellipse cx=\"$cx\" cy=\"$cy\" rx=\"$rx\" ry=\"$ry\"")
-                    attr(xml) {
-                        when (it) {
+                    attr(xml) { key ->
+                        when (key) {
                             "cx", "cy", "rx", "ry" -> false
                             else -> true
                         }

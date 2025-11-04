@@ -39,9 +39,13 @@ class ComparableStringBuilder(init: Int = 16) : CharSequence {
         return this
     }
 
-    fun append(str: String): ComparableStringBuilder {
+    fun append(str: CharSequence): ComparableStringBuilder {
         if (length + str.length > value.size) ensureCapacity(max(value.size * 2, length + str.length))
-        str.toCharArray().copyInto(value, length)
+        val offset = length
+        val value = value
+        for (i in str.indices) {
+            value[i + offset] = str[i]
+        }
         length += str.length
         hash = 0
         return this
