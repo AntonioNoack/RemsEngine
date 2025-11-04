@@ -34,7 +34,7 @@ interface XMLScanner {
 
         private var depthI = -1
         private val tags = ArrayList<CharSequence>()
-        private val attributes = ArrayList<CharSequence>()
+        private var attrName: CharSequence = ""
 
         // to reduce unnecessary memory allocations when scanning large files
         private val builders = ArrayList<ComparableStringBuilder>()
@@ -81,20 +81,19 @@ interface XMLScanner {
 
         override fun attr(tag: CharSequence): Boolean {
             super.attr(tag)
-            attributes.add(newBuilder(tag))
+            attrName = tag
             return true
         }
 
         override fun write(value: CharSequence, isString: Boolean) {
             super.write(value, isString)
-            if (tags.last() == "") {
+            val currTag = tags.last()
+            if (currTag == "") {
                 // in content
                 self.onContent(depthI, tags[tags.size - 2], value)
             } else {
                 // in attributes
-                val lastAttr = attributes.removeLast()
-                self.onAttribute(depthI, tags.last(), lastAttr, value)
-                recycleBuilder(lastAttr)
+                self.onAttribute(depthI, currTag, attrName, value)
             }
         }
     }
