@@ -88,7 +88,6 @@ object ECSSceneTabs : ScrollPanelX(style) {
         synchronized(this) {
             currentTab = tab
             PrefabInspector.currentInspector = tab.inspector
-            EditorState.select(tab.prefab?.getSampleInstance())
             if (tab !in ecsTabs) content += tab
             val ws = window?.windowStack
             if (ws != null) for (window in ws) {
@@ -131,7 +130,9 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
     fun updatePrefab(prefab: Prefab, major: Boolean = true) {
         currentTab?.inspector?.onChange(major) // probably correct ^^
-        Systems.world = prefab.getSampleInstance()
+        val sampleInstance = prefab.getSampleInstance()
+        Systems.world = sampleInstance
+        if (major) EditorState.select(sampleInstance)
     }
 
     fun close(sceneTab: ECSSceneTab, setNextActive: Boolean) {

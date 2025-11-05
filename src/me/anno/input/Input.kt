@@ -57,9 +57,10 @@ object Input {
     var mouseWheelSumX = 0f
     var mouseWheelSumY = 0f
 
+    /**
+     * persistent state of which keys are down
+     * */
     val keysDown = HashMap<Key, Long>()
-    val keysWentDown = HashSet<Key>()
-    val keysWentUp = HashSet<Key>()
 
     private var lastShiftDownFrameIndex = -5
 
@@ -119,9 +120,22 @@ object Input {
 
     val shiftSlowdown get() = if (isAltDown) 5f else if (isShiftDown) 0.2f else 1f
 
+    var thisFrameKeys = ThisFrameKeys()
+        private set
+    var nextFrameKeys = ThisFrameKeys()
+        private set
+
+    /**
+     * This method should be called just before glfwWaitEvents(), and before updating/drawing.
+     * */
     fun resetFrameSpecificKeyStates() {
-        keysWentDown.clear()
-        keysWentUp.clear()
+        val s0 = thisFrameKeys
+        val s1 = nextFrameKeys
+
+        s0.clear()
+
+        thisFrameKeys = s1
+        nextFrameKeys = s0
     }
 
     fun onCharTyped(window: OSWindow, codepoint: Int) {
@@ -153,7 +167,7 @@ object Input {
      * */
     fun onKeyDown(window: OSWindow, key: Key, nanoTime: Long) {
         keysDown[key] = nanoTime
-        keysWentDown += key
+        nextFrameKeys.keysWentDown += key
 
         if (key == Key.KEY_LEFT_SHIFT || key == Key.KEY_RIGHT_SHIFT) {
             lastShiftDownFrameIndex = Time.frameIndex
@@ -172,7 +186,7 @@ object Input {
      * */
     fun onKeyUp(window: OSWindow, key: Key) {
         keyUpCtr++
-        keysWentUp += key
+        nextFrameKeys.keysWentUp += key
         if (!callKeyEventIsCancelled(window, key, UIEventType.KEY_UP)) {
             window.windowStack.inFocus0?.onKeyUp(window.mouseX, window.mouseY, key)
             ActionManager.onKeyUp(window, key)
@@ -185,6 +199,8 @@ object Input {
      * Contrary to onKeyUp, this repeats automatically after a while, e.g. for typing (char-typed is better for that).
      * */
     fun onKeyTyped(window: OSWindow, key: Key) {
+
+        nextFrameKeys.keysWentTyped += key
 
         if (callKeyEventIsCancelled(window, key, UIEventType.KEY_TYPED)) {
             return
@@ -361,7 +377,7 @@ object Input {
         mouseDownX = mouseX
         mouseDownY = mouseY
         mouseMovementSinceMouseDown = 0f
-        keysWentDown += button
+        nextFrameKeys.keysWentDown += button
 
         mouseStart = nanoTime
         mouseKeysDown.add(button)
@@ -495,7 +511,7 @@ object Input {
     fun onMouseUp(window: OSWindow, button: Key, nanoTime: Long) {
 
         keyUpCtr++
-        keysWentUp += button
+        nextFrameKeys.keysWentUp += button
 
         when (button) {
             Key.BUTTON_LEFT -> isLeftDown = false
@@ -704,7 +720,7 @@ object Input {
     }
 
     fun wasKeyPressed(key: Key): Boolean {
-        return key in keysWentDown
+        return key in thisFrameKeys.keysWentDown
     }
 
     fun wasKeyPressed(key: Char): Boolean {
@@ -719,8 +735,24 @@ object Input {
         return wasKeyPressed(keyCode)
     }
 
+    fun wasKeyTyped(key: Key): Boolean {
+        return key in thisFrameKeys.keysWentTyped
+    }
+
+    fun wasKeyTyped(key: Char): Boolean {
+        val key1 = Key.byId(key.uppercaseChar().code)
+        if (key1 == Key.KEY_UNKNOWN) return false
+        return wasKeyTyped(key1)
+    }
+
+    @Suppress("unused")
+    fun wasKeyTyped(key: String): Boolean {
+        val keyCode = KeyCombination.keyMapping[key] ?: return false
+        return wasKeyTyped(keyCode)
+    }
+
     fun wasKeyReleased(key: Key): Boolean {
-        return key in keysWentUp
+        return key in thisFrameKeys.keysWentUp
     }
 
     @Suppress("unused")

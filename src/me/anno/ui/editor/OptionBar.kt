@@ -105,7 +105,7 @@ class OptionBar(style: Style) : PanelListX(style.getChild("options")) {
             GFX.activeWindow?.windowStack == windowStack &&
             Input.isKeyDown(Key.KEY_LEFT_ALT)
         ) {
-            for (key in Input.keysWentDown) {
+            for (key in Input.thisFrameKeys.keysWentDown) {
                 val char = 'a' + (key.id - Key.KEY_A.id)
                 keyListeners.execute(char)
             }

@@ -482,54 +482,55 @@ open class FileExplorerEntry(
         // todo add created & modified information
 
         // if is selected, and there are multiple files selected, show group stats
-        if (isInFocus && siblings.count2 { (it.isInFocus && it is FileExplorerEntry) || it === this } > 1) {
-            val files = siblings
-                .filter { it.isInFocus || it === this }
-                .mapNotNull { (it as? FileExplorerEntry)?.file }
-            tooltip = "${files.count2 { it.isDirectory }} folders + ${files.count2 { !it.isDirectory }} files\n" +
-                    files.sumOf { it.length() }.formatFileSize()
+        tooltip = if (isInFocus && siblings.count2 { (it.isInFocus && it is FileExplorerEntry) || it === this } > 1) {
+            createMultiSelectTooltip()
         } else {
+            createTooltip(file)
+        }
+    }
 
-            fun getTooltip(file: FileReference): String {
-                return when {
-                    file.isDirectory -> {
-                        // todo add number of children?, or summed size
-                        file.name
-                    }
-                    file is InnerLinkFile -> "Link to " + getTooltip(file.link)
-                    file is PrefabReadable -> {
-                        val prefab = file.readPrefab()
-                        val name = prefab.instanceName
-                        val base = prefab.parentPrefabFile
-                        "" +
-                                "${file.name}\n" +
-                                (if (base != InvalidRef) "${base.nameWithoutExtension}\n" else "") +
-                                (if (name != null) "\"$name\"\n" else "") +
-                                "${prefab.clazzName}, ${prefab.countTotalChanges(true)} Changes"
-                    }
-                    file is ImageReadable -> {
-                        val (width, height) = file.readSize()
-                        file.name + "\n$width x $height"
-                    }
-                    else -> {
-                        val ttt = StringBuilder()
-                        ttt.append(file.name).append('\n')
-                        ttt.append(file.length().formatFileSize())
-                        val meta = getMeta(ref).value
-                        if (meta != null) {
-                            appendMetaTTT(file, ttt, meta)
-                        } else {
-                            val prefab = PrefabCache[file].value?.prefab
-                            if (prefab != null) {
-                                appendPrefabTTT(ttt, prefab)
-                            }
-                        }
-                        ttt.toString()
+    private fun createMultiSelectTooltip(): String {
+        val files = siblings
+            .filter { it.isInFocus || it === this }
+            .mapNotNull { (it as? FileExplorerEntry)?.file }
+        val numFolders = files.count2 { it.isDirectory }
+        val totalSize = files.sumOf { it.length() }
+        return "$numFolders folders + ${files.size - numFolders} files\n" +
+                totalSize.formatFileSize()
+    }
+
+    private fun createTooltip(file: FileReference): String {
+        return when {
+            file.isDirectory -> {
+                // todo add number of children?, or summed size
+                file.name
+            }
+            file is InnerLinkFile -> "Link to " + createTooltip(file.link)
+            file is PrefabReadable -> {
+                val ttt = StringBuilder()
+                val prefab = file.readPrefab()
+                appendPrefabTTT(ttt, prefab)
+                ttt.toString()
+            }
+            file is ImageReadable -> {
+                val (width, height) = file.readSize()
+                file.name + "\n$width x $height"
+            }
+            else -> {
+                val ttt = StringBuilder()
+                ttt.append(file.name).append('\n')
+                ttt.append(file.length().formatFileSize())
+                val meta = getMeta(ref).value
+                if (meta != null && (meta.hasVideo || meta.hasAudio)) {
+                    appendMetaTTT(file, ttt, meta)
+                } else {
+                    val prefab = PrefabCache[file].value?.prefab
+                    if (prefab != null) {
+                        appendPrefabTTT(ttt, prefab)
                     }
                 }
+                ttt.toString()
             }
-
-            tooltip = getTooltip(file)
         }
     }
 

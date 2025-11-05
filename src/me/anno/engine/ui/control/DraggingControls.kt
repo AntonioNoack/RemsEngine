@@ -133,13 +133,36 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     override fun onUpdate() {
         super.onUpdate()
+        updateFromRenderSettings()
+        updateGridFromSettings()
+        checkAlwaysActiveControls()
+    }
+
+    fun updateFromRenderSettings() {
         val renderSettings = settings
         renderView.renderMode = renderSettings.renderMode
         renderView.superMaterial = renderSettings.superMaterial
+    }
+
+    fun updateGridFromSettings() {
         val gs = settings
         renderView.drawGridWhenEditing = gs.showGridXY.toInt(1) +
                 gs.showGridXZ.toInt(2) +
                 gs.showGridYZ.toInt(4)
+    }
+
+    fun checkAlwaysActiveControls() {
+        if (isAnyChildInFocus || (isHovered && dragged != null)) {
+            when {
+                Input.wasKeyTyped(Key.KEY_COMMA) -> commaPressLike(-1f)
+                Input.wasKeyTyped(Key.KEY_PERIOD) -> commaPressLike(+1f)
+                Input.wasKeyTyped(Key.KEY_0) -> {
+                    resetDropTransform()
+                    // todo apply transform onto selected
+                    LOGGER.info("Reset transform")
+                }
+            }
+        }
     }
 
     override fun fill(pipeline: Pipeline) {
@@ -148,6 +171,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         if (dragged != null && isHovered) {
             // if something is dragged, draw it as a preview
             if (dragged.getContentType() == "File") {
+
                 val original = dragged.getOriginal()
                 val files = if (original is FileReference) listOf(original)
                 else original.castToList(FileReference::class)
@@ -266,19 +290,6 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 }
             }
             // todo else apply transform onto selected
-        }
-    }
-
-    override fun onKeyTyped(x: Float, y: Float, key: Key) {
-        when (key) {
-            Key.KEY_0 -> {
-                resetDropTransform()
-                // todo apply transform onto selected
-                LOGGER.info("Reset transform")
-            }
-            Key.KEY_COMMA -> commaPressLike(-1f)
-            Key.KEY_PERIOD -> commaPressLike(+1f)
-            else -> super.onKeyTyped(x, y, key)
         }
     }
 

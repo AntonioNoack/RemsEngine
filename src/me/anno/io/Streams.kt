@@ -366,26 +366,27 @@ object Streams {
 
     @JvmStatic
     fun OutputStream.writeString(value: CharSequence, nullTerminate: Boolean = false) {
-        val buf = getTmpBuffer()
+        val tmp = getTmpBuffer()
         var written = 0
         value.forEachUTF8Codepoint { codepoint ->
             val codepoint1 = if (nullTerminate && codepoint == 0) ' '.code else codepoint
-            written = buf.putUTF8(written, codepoint1)
+            written = tmp.putUTF8(written, codepoint1)
 
             // if the buffer is nearly full, flush it
-            if (buf.size - written < 4) {
-                write(buf, 0, written)
+            if (tmp.size - written < 4) {
+                write(tmp, 0, written)
                 written = 0
             }
         }
 
         if (nullTerminate) {
-            buf[written++] = 0
+            // always fits
+            tmp[written++] = 0
         }
 
         // flush the remainder
         if (written > 0) {
-            write(buf, 0, written)
+            write(tmp, 0, written)
         }
     }
 
