@@ -1,7 +1,7 @@
 package me.anno.fonts.signeddistfields
 
-import me.anno.cache.Promise
 import me.anno.cache.CacheSection
+import me.anno.cache.Promise
 import me.anno.fonts.Font
 import me.anno.fonts.GlyphLayout
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
@@ -31,7 +31,7 @@ class SDFGlyphLayout(
             val codepoint = getCodepoint(glyphIndex)
             val x0 = getX0(glyphIndex) * baseScale
             val x1 = getX1(glyphIndex) * baseScale
-            val y = getY(glyphIndex) * baseScale
+            val y = getY(glyphIndex, font) * baseScale
             val lineWidth = getLineWidth(glyphIndex) * baseScale
             val textSDF = getTextSDF(font, codepoint, roundCorners)
                 .waitFor()?.content ?: continue

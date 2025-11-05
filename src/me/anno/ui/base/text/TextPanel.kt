@@ -143,7 +143,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     fun calculateSize(w: Int, text: String) {
         val widthLimit = max(1, if (breaksIntoMultiline) w - padding.width else GFX.maxTextureSize)
-        val heightLimit = max(1, GFX.maxTextureSize)
         val size = getTextSize(font, text, widthLimit, heightLimit)
         minW = max(1, getSizeX(size) + padding.width)
         minH = max(1, getSizeY(size) + padding.height)
@@ -154,7 +153,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     fun underline(i0: Int, i1: Int, color: Int, thickness: Int) {
-        val textSize = getTextSize(font, text, -1, -1)
+        val textSize = getTextSize(font, text, widthLimit, heightLimit)
         val dx = textAlignmentX.getOffset(width, getSizeX(textSize) + padding.width)
         val dy = textAlignmentY.getOffset(height, getSizeY(textSize) + padding.height)
         underline(i0, i1, color, thickness, dx, dy)

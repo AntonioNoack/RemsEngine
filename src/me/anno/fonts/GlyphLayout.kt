@@ -17,14 +17,10 @@ open class GlyphLayout(
      * */
     val baseScale: Float = 1f / font.size
 
-    var width: Int = 0
-    var height: Int = 0
-    var numLines: Int = 0
-
     init {
         val fontImpl = FontManager.getFontImpl()
         actualFontSize = fontImpl.getLineHeight(font)
-        fontImpl.fillGlyphLayout(this, relativeWidthLimit, maxNumLines)
+        fontImpl.fillGlyphLayout(font, text, this, relativeWidthLimit, maxNumLines)
     }
 
     fun getSizeX(widthLimit: Int): Int {

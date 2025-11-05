@@ -2,62 +2,68 @@ package me.anno.fonts
 
 import kotlin.math.max
 
-open class GlyphList(capacity: Int) {
+open class GlyphList(capacity: Int) : IGlyphLayout() {
 
-    var size = 0
-        private set
+    companion object {
+        private const val NUM_INTS = 6
+        private const val ATTR_CODEPOINT = 0
+        private const val ATTR_LINE_INDEX = 1
+        private const val ATTR_FONT_INDEX = 2
+        private const val ATTR_X0 = 3
+        private const val ATTR_X1 = 4
+        private const val ATTR_LINE_WIDTH = 5
+    }
 
     val indices get() = 0 until size
 
     fun isEmpty() = size == 0
 
-    private var ints = IntArray(capacity * 7)
+    private var ints = IntArray(capacity * NUM_INTS)
 
-    fun add(
-        codepoint: Int,
-        x0: Int, x1: Int, lineWidth: Int,
-        y: Int, lineIndex: Int, fontIndex: Int
-    ) {
+    override fun add(codepoint: Int, x0: Int, x1: Int, lineIndex: Int, fontIndex: Int) {
         val glyphIndex = size
-        if (glyphIndex * 7 >= ints.size) {
-            val newSize = max(16, glyphIndex * 7)
-            ints = ints.copyOf(newSize * 7)
+        if (glyphIndex * NUM_INTS >= ints.size) {
+            val newSize = max(16, glyphIndex * NUM_INTS)
+            ints = ints.copyOf(newSize * NUM_INTS)
         }
 
         val ints = ints
-        val di = glyphIndex * 7
-        ints[di] = codepoint
-        ints[di + 1] = lineIndex
-        ints[di + 2] = fontIndex
-        ints[di + 3] = x0
-        ints[di + 4] = x1
-        ints[di + 5] = y
-        ints[di + 6] = lineWidth
+        val di = glyphIndex * NUM_INTS
+        ints[di + ATTR_CODEPOINT] = codepoint
+        ints[di + ATTR_LINE_INDEX] = lineIndex
+        ints[di + ATTR_FONT_INDEX] = fontIndex
+        ints[di + ATTR_X0] = x0
+        ints[di + ATTR_X1] = x1
         size = glyphIndex + 1
     }
 
-    fun getX0(glyphIndex: Int) = ints[glyphIndex * 7 + 3]
-    fun getX1(glyphIndex: Int) = ints[glyphIndex * 7 + 4]
-    fun getY(glyphIndex: Int) = ints[glyphIndex * 7 + 5]
-    fun getLineWidth(glyphIndex: Int) = ints[glyphIndex * 7 + 6]
+    fun getX0(glyphIndex: Int) = ints[glyphIndex * NUM_INTS + ATTR_X0]
+    fun getX1(glyphIndex: Int) = ints[glyphIndex * NUM_INTS + ATTR_X1]
+    fun getY(glyphIndex: Int, font: Font) = getLineIndex(glyphIndex) * font.lineHeightI + 1
+    fun getLineWidth(glyphIndex: Int) = ints[glyphIndex * NUM_INTS + ATTR_LINE_WIDTH]
     fun setLineWidth(glyphIndex: Int, lineWidth: Int) {
-        ints[glyphIndex * 7 + 6] = lineWidth
+        ints[glyphIndex * NUM_INTS + ATTR_LINE_WIDTH] = lineWidth
     }
 
-    fun getCodepoint(glyphIndex: Int) = ints[glyphIndex * 7]
+    fun getCodepoint(glyphIndex: Int) = ints[glyphIndex * NUM_INTS + ATTR_CODEPOINT]
 
     @Suppress("unused")
-    fun getLineIndex(glyphIndex: Int) = ints[glyphIndex * 7 + 1]
-    fun getFontIndex(glyphIndex: Int) = ints[glyphIndex * 7 + 2]
+    fun getLineIndex(glyphIndex: Int) = ints[glyphIndex * NUM_INTS + ATTR_LINE_INDEX]
+    fun getFontIndex(glyphIndex: Int) = ints[glyphIndex * NUM_INTS + ATTR_FONT_INDEX]
 
-    fun move(dx: Int, dy: Int, deltaLineWidth: Int) {
+    override fun move(dx: Int, deltaLineWidth: Int) {
         val ints = ints
         for (i in 0 until size) {
-            val di = i * 7
-            ints[di + 3] += dx
-            ints[di + 4] += dx
-            ints[di + 5] += dy
-            ints[di + 6] += deltaLineWidth
+            val di = i * NUM_INTS
+            ints[di + ATTR_X0] += dx
+            ints[di + ATTR_X1] += dx
+            ints[di + ATTR_LINE_WIDTH] += deltaLineWidth
+        }
+    }
+
+    override fun finishLine(i0: Int, i1: Int, lineWidth: Int) {
+        for (i in i0 until i1) {
+            setLineWidth(i, lineWidth)
         }
     }
 

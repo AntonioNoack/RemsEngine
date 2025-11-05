@@ -1,10 +1,8 @@
 package me.anno.gpu.drawing
 
 import me.anno.fonts.Font
-import me.anno.fonts.FontImpl.Companion.heightLimitToMaxNumLines
-import me.anno.fonts.FontImpl.Companion.widthLimitToRelative
 import me.anno.fonts.FontManager
-import me.anno.fonts.GlyphLayout
+import me.anno.fonts.IGlyphLayout
 import me.anno.fonts.keys.CharCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -25,15 +23,13 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.maths.Maths.roundDiv
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
-import me.anno.utils.algorithms.ForLoop.forLoop
-import me.anno.utils.types.Strings.splitLines
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
-import kotlin.math.max
 import kotlin.math.min
 
 object DrawTexts {
@@ -85,6 +81,42 @@ object DrawTexts {
         -1, -1
     )
 
+    private val sizeLayoutHelper = SizeLayoutHelper()
+
+    private object DrawLayoutHelper : IGlyphLayout() {
+
+        var x = 0
+        var y = 0
+        var lineHeight = 1
+        var mod2 = 0
+
+        lateinit var font: Font
+        lateinit var shader: GPUShader
+
+        override fun add(
+            codepoint: Int, x0: Int, x1: Int,
+            lineIndex: Int, fontIndex: Int
+        ) {
+            val index = size++
+            if (mod2 >= 0) {
+                if (index.and(1) != mod2) return
+            }
+
+            val dx = x0 + 1
+            val dy = lineIndex * lineHeight + 1
+            val key = CharCacheKey(font, codepoint, disableSubpixelRendering)
+            val texture = FontManager.getTexture(key)
+                .waitFor("drawTextCharByChar")
+            if (texture != null && texture.wasCreated) {
+                texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
+                drawChar(shader, texture, x + dx, y + dy, codepoint)
+            }
+        }
+
+        override fun move(dx: Int, deltaLineWidth: Int) {}
+        override fun finishLine(i0: Int, i1: Int, lineWidth: Int) {}
+    }
+
     fun drawText(
         x: Int, y: Int, padding: Int,
         font: Font, text: CharSequence,
@@ -94,38 +126,32 @@ object DrawTexts {
         alignY: AxisAlignment = AxisAlignment.MIN,
     ): Int {
 
-        if ('\n' in text) {
-            var sizeX = 0
-            val split = text.splitLines()
-            val lineOffset = font.lineHeightI
-            for (index in split.indices) {
-                val size = drawText(
-                    x, y + index * lineOffset, font, split[index],
-                    textColor, backgroundColor,
-                    widthLimit, heightLimit, alignX, alignY,
-                )
-                sizeX = max(getSizeX(size), sizeX)
-            }
-            return getSize(sizeX, (split.size - 1) * lineOffset + font.lineHeightI)
-        }
-
         val shader = chooseShader(textColor, backgroundColor)
         GFX.check()
 
-        // todo optimized version without allocation, if widthLimit = -1 && heightLimit = -1
-        val layout = GlyphLayout(
-            font, text,
-            widthLimitToRelative(widthLimit, font.size),
-            heightLimitToMaxNumLines(heightLimit, font.size)
-        )
+        val sizeHelper = sizeLayoutHelper
+        val fontImpl = FontManager.getFontImpl()
+        val relativeWidthLimit = widthLimit / font.size
+        val maxNumLines = if (heightLimit < 0) Int.MAX_VALUE else roundDiv(heightLimit, font.lineHeightI)
 
-        val x = x + getOffset(layout.width, alignX)
-        val y = y + getOffset(layout.height, alignY)
+        fontImpl.fillGlyphLayout(font, text, sizeHelper, relativeWidthLimit, maxNumLines)
+
+        val totalWidth = sizeHelper.width
+        val totalHeight = sizeHelper.height
+        val numChars = sizeHelper.size
+        sizeHelper.clear()
+
+        val drawHelper = DrawLayoutHelper
+        drawHelper.font = font
+        drawHelper.shader = shader
+        drawHelper.lineHeight = font.lineHeightI
+        drawHelper.x = x + getOffset(totalWidth, alignX)
+        drawHelper.y = y + getOffset(totalHeight, alignY)
 
         if (backgroundColor.a() != 0) {
             DrawRectangles.drawRect(
-                x - padding, y - padding,
-                layout.width + 2 * padding, layout.height + 2 * padding,
+                drawHelper.x - padding, drawHelper.y - padding,
+                totalWidth + 2 * padding, totalHeight + 2 * padding,
                 backgroundColor
             )
         }
@@ -133,37 +159,27 @@ object DrawTexts {
         GFX.loadTexturesSync.push(true)
 
         if (shader is ComputeShader) {
-            drawTextLine(shader, x, y, font, layout, 0, 2)
+
+            drawHelper.mod2 = 0
+            fontImpl.fillGlyphLayout(font, text, DrawLayoutHelper, relativeWidthLimit, maxNumLines)
             glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
-            if (layout.size > 1) {
-                drawTextLine(shader, x, y, font, layout, 1, 2)
+            drawHelper.clear()
+
+            if (numChars > 1) {
+                drawHelper.mod2 = 1
+                fontImpl.fillGlyphLayout(font, text, DrawLayoutHelper, relativeWidthLimit, maxNumLines)
                 glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+                drawHelper.clear()
             }
         } else {
-            drawTextLine(shader, x, y, font, layout, 0, 1)
+            drawHelper.mod2 = -1
+            fontImpl.fillGlyphLayout(font, text, DrawLayoutHelper, relativeWidthLimit, maxNumLines)
+            drawHelper.clear()
         }
 
         GFX.loadTexturesSync.pop()
 
-        return getSize(layout.width, layout.height)
-    }
-
-    private fun drawTextLine(
-        shader: GPUShader, x: Int, y: Int,
-        font: Font, layout: GlyphLayout, i0: Int, step: Int
-    ) {
-        forLoop(i0, layout.size, step) { index ->
-            val codepoint = layout.getCodepoint(index)
-            val dx = layout.getX0(index)
-            val dy = layout.getY(index)
-            val key = CharCacheKey(font, codepoint, disableSubpixelRendering)
-            val texture = FontManager.getTexture(key)
-                .waitFor("drawTextCharByChar")
-            if (texture != null && texture.wasCreated) {
-                texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
-                drawChar(shader, texture, x + dx, y + dy, codepoint)
-            }
-        }
+        return getSize(totalWidth, totalHeight)
     }
 
     var disableSubpixelRendering = false

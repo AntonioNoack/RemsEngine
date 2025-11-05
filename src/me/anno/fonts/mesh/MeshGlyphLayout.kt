@@ -42,7 +42,7 @@ class MeshGlyphLayout(
                 val codepoint = getCodepoint(element)
                 val alignmentOffset = (width - getLineWidth(element)) * lineAlignmentX
                 val px = (getX0(element) + alignmentOffset) * baseScale
-                val py = getY(element) * baseScale
+                val py = getY(element, font) * baseScale
                 dst.translation(px, -py, 0f)
 
                 if (Codepoints.isEmoji(codepoint)) {
@@ -59,7 +59,7 @@ class MeshGlyphLayout(
             val codepoint = getCodepoint(glyphIndex)
             val x0 = getX0(glyphIndex) * baseScale
             val x1 = getX1(glyphIndex) * baseScale
-            val y = getY(glyphIndex) * baseScale
+            val y = getY(glyphIndex, font) * baseScale
             val lineWidth = getLineWidth(glyphIndex) * baseScale
             val mesh = GlyphMeshCache.getMesh(meshCache, font, codepoint)
             if (callback.draw(mesh, x0, x1, y, lineWidth, glyphIndex)) break

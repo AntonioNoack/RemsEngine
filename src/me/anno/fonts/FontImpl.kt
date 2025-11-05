@@ -5,6 +5,8 @@ import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.IEmojiCache.Companion.emojiPadding
 import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks.addGPUTask
+import me.anno.gpu.drawing.GFXx2D.getSize
+import me.anno.gpu.drawing.SizeLayoutHelper
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -135,7 +137,7 @@ abstract class FontImpl<FallbackFonts> {
                 val fontIndex = layout.getFontIndex(glyphIndex)
                 val x0 = layout.getX0(glyphIndex)
                 val x1 = layout.getX1(glyphIndex)
-                val dy = layout.getY(glyphIndex)
+                val dy = layout.getY(glyphIndex, font)
                 drawGlyph(
                     image, x0, x1, dy, dy + dy0, false,
                     font, fallbackFonts, fontIndex,
@@ -149,7 +151,7 @@ abstract class FontImpl<FallbackFonts> {
             val codepoint = layout.getCodepoint(glyphIndex)
             if (Codepoints.isEmoji(codepoint)) {
                 val dx = layout.getX0(glyphIndex)
-                val dy = layout.getY(glyphIndex)
+                val dy = layout.getY(glyphIndex, font)
                 drawEmoji(image, font, codepoint, dx, dy)
             }
         }
@@ -228,24 +230,25 @@ abstract class FontImpl<FallbackFonts> {
     abstract fun getSupportLevel(fonts: FallbackFonts, codepoint: Int, lastSupportLevel: Int): Int
 
     fun calculateSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
-        val layout = GlyphLayout(
-            font, text,
+        val helper = SizeLayoutHelper()
+        fillGlyphLayout(
+            font, text, helper,
             widthLimitToRelative(widthLimit, font.size),
             heightLimitToMaxNumLines(heightLimit, font.size)
         )
-        return layout.getSize(widthLimit, heightLimit)
+        return getSize(helper.width, helper.height)
     }
 
     fun fillGlyphLayout(
-        result: GlyphLayout,
+        font: Font, text: CharSequence,
+        result: IGlyphLayout,
         relativeWidthLimit: Float,
         maxNumLines: Int,
     ) {
 
-        val font = result.font
         val offsetCache = getOffsetCache(font)
         val fonts = getFallbackFonts(font)
-        val codepoints = result.text.codepoints()
+        val codepoints = text.codepoints()
 
         val widthLimit = relativeWidthLimit * font.size
         val hasAutomaticLineBreak = widthLimit > 0f
@@ -257,7 +260,6 @@ abstract class FontImpl<FallbackFonts> {
 
         var currentX = 0
 
-        val fontHeight = result.actualFontSize.toIntOr()
         var startOfLine = result.size
 
         var wordEndI = 0
@@ -265,16 +267,13 @@ abstract class FontImpl<FallbackFonts> {
         fun finishLine() {
             val lineWidth = max(0, currentX - charSpacing)
             result.width = max(result.width, lineWidth)
-            for (i in startOfLine until result.size) {
-                result.setLineWidth(i, lineWidth)
-            }
+            result.finishLine(startOfLine, result.size, lineWidth)
             @Suppress("AssignedValueIsNeverRead") // Intellij is broken
             startOfLine = result.size
         }
 
         fun nextLine() {
             finishLine()
-            result.height += fontHeight
             result.numLines++
             currentX = 0
         }
@@ -286,10 +285,7 @@ abstract class FontImpl<FallbackFonts> {
                 val deltaX = offsetCache.getOffset(currCodepoint, nextCodepoint)
                 val nextX = currentX + deltaX
                 if (!currCodepoint.isBlank()) {
-                    result.add(
-                        currCodepoint, currentX, nextX, 0, result.height, result.numLines,
-                        fontIndex
-                    )
+                    result.add(currCodepoint, currentX, nextX, result.numLines, fontIndex)
                 }
                 currentX = nextX + charSpacing
             }
@@ -408,9 +404,9 @@ abstract class FontImpl<FallbackFonts> {
         }
 
         // adding padding
-        result.move(1, 0, 2)
+        result.move(1, 2)
         result.width += 2
-        result.height++
+        result.height = result.numLines * font.lineHeightI + 1
     }
 
     private fun getSupportLevelEx(fonts: FallbackFonts, codepoint: Int, lastSupportLevel: Int): Int {
