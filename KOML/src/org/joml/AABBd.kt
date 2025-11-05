@@ -492,6 +492,41 @@ class AABBd(
             .setMax(maxX + rx, maxY + ry, maxZ + rz)
     }
 
+    fun scale(s: Double): AABBd = scale(s, s, s)
+    fun scale(sx: Double, sy: Double, sz: Double): AABBd {
+        if (sx >= 0.0) {
+            minX *= sx
+            maxX *= sx
+        } else {
+            // negative -> min and max must be swapped
+            val min0 = minX
+            val max0 = maxX
+            maxX = min0 * sx
+            minX = max0 * sx
+        }
+        if (sy >= 0.0) {
+            minY *= sy
+            maxY *= sy
+        } else {
+            // negative -> min and max must be swapped
+            val min0 = minY
+            val max0 = maxY
+            maxY = min0 * sy
+            minY = max0 * sy
+        }
+        if (sz >= 0.0) {
+            minZ *= sz
+            maxZ *= sz
+        } else {
+            // negative -> min and max must be swapped
+            val min0 = minZ
+            val max0 = maxZ
+            maxZ = min0 * sz
+            minZ = max0 * sz
+        }
+        return this
+    }
+
     fun collideFront(pos: Vector3d, dir: Vector3d): Double {
         val dx = (if (dir.x < 0.0) maxX else minX) - pos.x
         val dy = (if (dir.y < 0.0) maxY else minY) - pos.y
