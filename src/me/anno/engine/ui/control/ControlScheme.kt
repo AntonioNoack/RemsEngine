@@ -228,7 +228,8 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         // show the entity in the property editor
         // but highlight the specific mesh
         ECSSceneTabs.refocus()
-        EditorState.select(c ?: e, Input.isShiftDown)
+        val multiselect = Input.isShiftDown || Input.isControlDown
+        EditorState.select(c ?: e, multiselect)
     }
 
     open fun drawGizmos() {
