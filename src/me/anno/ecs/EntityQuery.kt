@@ -24,15 +24,7 @@ object EntityQuery {
     }
 
     fun <V : Component> Entity.hasComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): Boolean {
-        if (hasComponent(clazz, includingDisabled)) return true
-        val children = children
-        for (index in children.indices) {
-            val child = children[index]
-            if (checkInstance(includingDisabled, child) && child.hasComponent(clazz, includingDisabled)) {
-                return true
-            }
-        }
-        return false
+        return getComponentInChildren(clazz, includingDisabled) != null
     }
 
     fun <V : Component> Component.hasComponentInChildren(
@@ -76,17 +68,12 @@ object EntityQuery {
     }
 
     fun <V : Any> Entity.getComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): V? {
-        var comp = getComponent(clazz, includingDisabled)
-        if (comp != null) return comp
-        val children = children
-        for (i in children.indices) {
-            val child = children[i]
-            if (checkInstance(includingDisabled, child)) {
-                comp = child.getComponentInChildren(clazz, includingDisabled)
-                if (comp != null) return comp
-            }
+        return Recursion.findRecursive(this) { entity, remaining ->
+            if (checkInstance(includingDisabled, entity)) {
+                remaining.addAll(entity.children)
+                entity.getComponent(clazz, includingDisabled)
+            } else null
         }
-        return null
     }
 
     fun <V : Any> Component.getComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): V? {
@@ -387,8 +374,8 @@ object EntityQuery {
     fun <ComponentType : Any, ListType : MutableList<ComponentType>> Entity.getComponentsInChildren(
         clazz: KClass<ComponentType>, includingDisabled: Boolean = false, dst: ListType
     ): ListType {
-        anyComponentInChildren(clazz, includingDisabled) {
-            dst.add(it)
+        anyComponentInChildren(clazz, includingDisabled) { v ->
+            dst.add(v)
             false
         }
         return dst
