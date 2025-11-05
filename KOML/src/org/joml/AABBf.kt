@@ -668,12 +668,36 @@ class AABBf(
 
     fun scale(s: Float): AABBf = scale(s, s, s)
     fun scale(sx: Float, sy: Float, sz: Float): AABBf {
-        minX *= sx
-        minY *= sy
-        minZ *= sz
-        maxX *= sx
-        maxY *= sy
-        maxZ *= sz
+        if (sx >= 0f) {
+            minX *= sx
+            maxX *= sx
+        } else {
+            // negative -> min and max must be swapped
+            val min0 = minX
+            val max0 = maxX
+            maxX = min0 * sx
+            minX = max0 * sx
+        }
+        if (sy >= 0f) {
+            minY *= sy
+            maxY *= sy
+        } else {
+            // negative -> min and max must be swapped
+            val min0 = minY
+            val max0 = maxY
+            maxY = min0 * sy
+            minY = max0 * sy
+        }
+        if (sz >= 0f) {
+            minZ *= sz
+            maxZ *= sz
+        } else {
+            // negative -> min and max must be swapped
+            val min0 = minZ
+            val max0 = maxZ
+            maxZ = min0 * sz
+            minZ = max0 * sz
+        }
         return this
     }
 

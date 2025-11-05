@@ -160,6 +160,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
     @NotSerializedProperty
     var wasInFocus = false
 
+    /**
+     * Whether this element, or any of its grand*children are in focus.
+     * */
     @DebugProperty
     @NotSerializedProperty
     var isAnyChildInFocus = false

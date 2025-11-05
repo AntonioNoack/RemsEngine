@@ -3,6 +3,7 @@ package me.anno.engine.ui.control
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityPhysics.invalidatePhysicsTransform
+import me.anno.ecs.EntityQuery.forAllEntitiesInChildren
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
@@ -22,6 +23,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
+import me.anno.gpu.drawing.DrawRectangles.drawBorder
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
@@ -32,6 +34,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
+import me.anno.ui.UIColors
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
@@ -49,15 +52,21 @@ import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toDegrees
+import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBf
 import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sign
 import kotlin.math.tan
+
+// todo rectangle-selection on shift-drag
 
 // todo for physics controlled objects, what do we need to make it possible to make them float? remember reference position?
 
@@ -214,17 +223,37 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
-        // show the mode
-        val modeName = when (mode) {
+        drawRectangleSelection()
+        drawStats()
+        drawModeName()
+    }
+
+    private fun getModeName(): String {
+        return when (mode) {
             Mode.TRANSLATING -> "T"
             Mode.ROTATING -> "R"
             Mode.SCALING -> "S"
             else -> "X"
         }
-        drawStats()
+    }
+
+    fun drawModeName() {
         drawSimpleTextCharByChar(
-            x + width, y + height, 2, modeName,
+            x + width, y + height, 2, getModeName(),
             -1, background.color, AxisAlignment.MAX, AxisAlignment.MAX
+        )
+    }
+
+    fun drawRectangleSelection() {
+        if (!Input.isLeftDown || !Input.isShiftDown || !isAnyChildInFocus) return
+        val window = window ?: return
+        val x0 = min(window.mouseX, window.mouseDownX).toIntOr()
+        val x1 = max(window.mouseX, window.mouseDownX).toIntOr()
+        val y0 = min(window.mouseY, window.mouseDownY).toIntOr()
+        val y1 = max(window.mouseY, window.mouseDownY).toIntOr()
+        drawBorder(
+            x0, y0, x1 - x0, y1 - y0,
+            UIColors.greenYellow, 2
         )
     }
 
@@ -430,7 +459,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 renderView.orbitCenter.sub(offset)
                 camera.invalidateBounds()
             }
-            isSelected && Input.isLeftDown && mode != Mode.NOTHING -> {
+            isSelected && Input.isLeftDown && mode != Mode.NOTHING && !Input.isShiftDown -> {
 
                 val selection = EditorState.selection
                 if (selection.isEmpty()) return
@@ -872,6 +901,49 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         return dst
     }
 
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT && Input.isShiftDown) {
+            selectEntitiesInRectangle()
+        } else super.onKeyUp(x, y, key)
+    }
+
+    private fun selectEntitiesInRectangle() {
+        val window = window ?: return
+        val root = renderView.getWorld() as? Entity ?: return
+        val mouseBounds = AABBf()
+            .union(window.mouseX, window.mouseY, 0f)
+            .union(window.mouseDownX, window.mouseDownY, 1e10f)
+            .translate(-(x + width * 0.5f), -(y + height * 0.5f), 0f)
+            .scale(+2f / width, -2f / height, 1f)
+        val tmp1 = Vector3d()
+        val tmp2 = Vector3f()
+        val bounds2d = AABBf()
+        val cameraPos = renderView.cameraPosition
+        val cameraMat = renderView.cameraMatrix
+        EditorState.select(null) // start with empty selection
+        root.forAllEntitiesInChildren(false) { entity ->
+            components@ for (component in entity.components) {
+                if (component is MeshComponentBase) {
+                    bounds2d.clear()
+                    val bounds3d = component.globalAABB
+                    for (i in 0 until 8) {
+                        tmp1.set(
+                            if (i.hasFlag(1)) bounds3d.minX else bounds3d.maxX,
+                            if (i.hasFlag(2)) bounds3d.minY else bounds3d.maxY,
+                            if (i.hasFlag(4)) bounds3d.minZ else bounds3d.maxZ
+                        ).sub(cameraPos)
+                        cameraMat.transformProject(tmp2.set(tmp1))
+                        if (tmp2.z > 0f) bounds2d.union(tmp2)
+                    }
+                    if (bounds2d.testAABB(mouseBounds)) {
+                        EditorState.select(entity, true) // add entity to selection
+                        break@components
+                    }
+                }
+            }
+        }
+    }
+
     override fun onCopyRequested(x: Float, y: Float): Any? {
         // get all selected items
         // make them into separate prefabs
@@ -879,10 +951,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         // then copy them, or their prefab text
         val cloneFiles = EditorState.selection
             .filterIsInstance<PrefabSaveable>()
-            .map {
-                if (it is Component) it.entity ?: it else it
-            } // prefer copying entities, so everything stays movable
-            .map { it.clone().ref }
+            .map { it.clone().apply { unlinkPrefab() }.ref }
         LOGGER.info("Requested copy -> $cloneFiles")
         return cloneFiles
     }

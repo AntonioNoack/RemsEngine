@@ -137,6 +137,11 @@ object EntityQuery {
         }
     }
 
+    /**
+     * Processes this entity, and all its grand*children recursively.
+     * If includingDisabled=false, recursion stops at any disabled entity.
+     * If it stops at the root, not a single callback will be executed.
+     * */
     fun Entity.forAllEntitiesInChildren(includingDisabled: Boolean, callback: (Entity) -> Unit) {
         Recursion.processRecursive(this) { entity, remaining ->
             if (checkInstance(includingDisabled, entity)) {
@@ -266,6 +271,10 @@ object EntityQuery {
         return entity?.anyComponentInChildren(clazz, includingDisabled, predicate) ?: false
     }
 
+    /**
+     * Calls callback on all components of the specified type within entity, or its grand*children recursively.
+     * If includingDisabled=false, recursion will stop at any disabled entity or component.
+     * */
     fun <V : Any> Entity.forAllComponentsInChildren(
         clazz: KClass<V>, includingDisabled: Boolean = false,
         callback: (V) -> Unit
