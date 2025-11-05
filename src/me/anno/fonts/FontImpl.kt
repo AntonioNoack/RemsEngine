@@ -88,11 +88,11 @@ abstract class FontImpl<FallbackFonts> {
         val emojiImage = IEmojiCache.emojiCache.getEmojiImage(emojiId, fontSize)
             .waitFor() ?: return
         // todo check these magic offsets for more fonts than just Verdana 20px
-        val extraY = min(max(0, font.lineHeightI - fontSize), fontSize / 3)
+        val extraY = min(max(0, font.lineHeightI - fontSize), fontSize / 3) - 2
         val yi = dy + extraY
         emojiImage.forEachPixel { pxi, pyi ->
             val color = emojiImage.getRGB(pxi, pyi).undoPremultiply()
-            gfx.setRGB(dx + pxi - 2, yi + pyi - 2, color)
+            gfx.setRGB(dx + pxi, yi + pyi, color)
         }
     }
 

@@ -39,7 +39,7 @@ open class GlyphList(capacity: Int) : IGlyphLayout() {
 
     fun getX0(glyphIndex: Int) = ints[glyphIndex * NUM_INTS + ATTR_X0]
     fun getX1(glyphIndex: Int) = ints[glyphIndex * NUM_INTS + ATTR_X1]
-    fun getY(glyphIndex: Int, font: Font) = getLineIndex(glyphIndex) * font.lineHeightI + 1
+    fun getY(glyphIndex: Int, font: Font) = getLineIndex(glyphIndex) * font.lineHeightI
     fun getLineWidth(glyphIndex: Int) = ints[glyphIndex * NUM_INTS + ATTR_LINE_WIDTH]
     fun setLineWidth(glyphIndex: Int, lineWidth: Int) {
         ints[glyphIndex * NUM_INTS + ATTR_LINE_WIDTH] = lineWidth

@@ -102,14 +102,13 @@ object DrawTexts {
                 if (index.and(1) != mod2) return
             }
 
-            val dx = x0 + 1
-            val dy = lineIndex * lineHeight + 1
+            val y0 = lineIndex * lineHeight
             val key = CharCacheKey(font, codepoint, disableSubpixelRendering)
             val texture = FontManager.getTexture(key)
                 .waitFor("drawTextCharByChar")
             if (texture != null && texture.wasCreated) {
                 texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
-                drawChar(shader, texture, x + dx, y + dy, codepoint)
+                drawChar(shader, texture, x + x0, y + y0, codepoint)
             }
         }
 

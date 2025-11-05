@@ -5,17 +5,13 @@ import me.anno.fonts.Font
 import me.anno.fonts.FontImpl
 import me.anno.image.raw.IntImage
 import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
-import me.anno.maths.Maths.fract
 import me.anno.utils.Color.g
-import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
-import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.max
 
 object AWTFont : FontImpl<List<FontData>>() {
