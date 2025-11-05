@@ -120,9 +120,9 @@ object Input {
 
     val shiftSlowdown get() = if (isAltDown) 5f else if (isShiftDown) 0.2f else 1f
 
-    var thisFrameKeys = ThisFrameKeys()
+    var thisFrameKeys = EventsForOneFrame()
         private set
-    var nextFrameKeys = ThisFrameKeys()
+    var nextFrameKeys = EventsForOneFrame()
         private set
 
     /**
