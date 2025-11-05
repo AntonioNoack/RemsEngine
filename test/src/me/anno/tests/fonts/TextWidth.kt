@@ -41,7 +41,7 @@ fun main() {
     fun test(text: String) {
         // fixed: somewhere, there is an inconsistency...
         // (png was cut off on long texts, because text was initially measured using Java Graphics, then by OffsetCache)
-        val size = getTextSize(font, text, -1, -1).waitFor()!!
+        val size = getTextSize(font, text, -1, -1)
         println("${getSizeX(size)} for '$text'")
         val texture = getTexture(font, text, 100, -1).waitFor()!!
         texture.write(folder.getChild(text.replace(" ", "")))

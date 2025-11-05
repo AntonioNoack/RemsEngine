@@ -54,7 +54,7 @@ fun main() {
                 } else {
                     FluidDebug.displayTextureRG(x0, y0, x1 - x0, y1 - y0, tex.getTexture0())
                 }
-                DrawTexts.drawSimpleTextCharByChar(
+                DrawTexts.drawText(
                     (x0 + x1) / 2, (y0 + y1) / 2, 2, title,
                     AxisAlignment.CENTER, AxisAlignment.CENTER
                 )

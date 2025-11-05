@@ -5,6 +5,7 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.disableSubpixelRendering
 import me.anno.gpu.drawing.GFXx2D
@@ -105,9 +106,10 @@ class MinimapPanel : Panel(style) {
         for (i in dirs.indices) {
             val f = r * 0.93f
             val angleI = angle + PIf * i * 0.5f
-            DrawTexts.drawSimpleTextCharByChar(
-                (x + r - f * sin(angleI)).toInt(), (y + r + f * cos(angleI)).toInt(),
-                1, dirs[i].toString(), black, white.withAlpha(0),
+            DrawTexts.drawText(
+                (x + r - f * sin(angleI)).toInt(), (y + r + f * cos(angleI)).toInt(), 1,
+                monospaceFont, dirs[i].toString(),
+                black, white.withAlpha(0),
                 AxisAlignment.CENTER, AxisAlignment.CENTER,
             )
         }

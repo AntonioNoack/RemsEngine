@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.workGPUTasksUntilShutdown
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D
@@ -57,7 +57,7 @@ fun main() {
                 texture, -1, null
             )
             // todo the 1 is missing for the first image???
-            drawSimpleTextCharByChar(x, 0, 1, "$format")
+            drawText(x, 0, 1, "$format")
         }
     }
     workGPUTasksUntilShutdown()

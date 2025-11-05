@@ -86,7 +86,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
     fun String.cpList() = Pair(
         this,
         codepoints().map { char ->
-            TextCacheKey(char.joinChars(), font)
+            TextCacheKey(font, char.joinChars(), -1, -1, true)
         })
 
     var glyphLayout: GlyphLayout? = null
@@ -119,7 +119,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
         val alignX = alignmentX
         val alignY = alignmentY
-        val equalSpaced = useMonospaceCharacters
 
         val time = (Time.gameTime % max(1.0, periodMillis * 1e-3)).toFloat()
         val shader =
@@ -137,82 +136,44 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
         if (!disableSubpixels) shader.v4f("backgroundColor", backgroundColor)
 
-        if (equalSpaced) {
 
-            val text1 = text.second
-            val charWidth = DrawTexts.getTextSizeX(font, "x", widthLimit, heightLimit)
-            val textWidth = charWidth * text1.size
+        val group = getTextGroup(text.first)
 
-            val dxi = DrawTexts.getOffset(textWidth, alignX)
-            val dyi = DrawTexts.getOffset(font.sampleHeight, alignY)
+        val textWidth = group.width
 
-            var fx = x + dxi
-            val y2 = y + dyi
+        val dxi = DrawTexts.getOffset(textWidth, alignX)
+        val dyi = DrawTexts.getOffset(font.sampleHeight, alignY)
 
-            for (index in text1.indices) {
-                val key = text1[index]
-                val size = FontManager.getSize(key).waitFor() ?: 0
-                h = GFXx2D.getSizeY(size)
-                if (!key.text.isBlank2()) {
-                    val texture = FontManager.getTexture(key).waitFor()
-                    if (texture != null && texture.wasCreated) {
-                        texture.bindTrulyNearest(0)
-                        val x2 = fx + (charWidth - texture.width) / 2
-                        if (resetTransform) transform.set(backup)
-                        val color2 = animate(time, index, x2 + texture.width / 2f, y2 + texture.height / 2f)
-                        if (color2.a() > 0) {
-                            shader.m4x4("transform", transform)
-                            posSize(shader, x2, y2, texture.width, texture.height, true)
-                            if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
-                            shader.v4f("textColor", color2)
-                            flat01.draw(shader)
-                        }
-                    }
-                }
-                fx += charWidth
-            }
+        val y2 = (y + dyi)
 
-            totalWidth = fx - (x + dxi)
-        } else {
-
-            val group = getTextGroup(text.first)
-
-            val textWidth = group.width
-
-            val dxi = DrawTexts.getOffset(textWidth.roundToIntOr(), alignX)
-            val dyi = DrawTexts.getOffset(font.sampleHeight, alignY)
-
-            val y2 = (y + dyi).toFloat()
-
-            val text1 = text.second
-            for (index in text1.indices) {
-                val txt = text1[index]
-                val size = FontManager.getSize(txt).waitFor() ?: 0
-                val dx0 = group.getX0(index)
-                val dx1 = group.getX1(index)
-                val fx = x + dxi + dx0
-                val w = dx1 - dx0
-                h = GFXx2D.getSizeY(size)
-                if (!txt.text.isBlank2()) {
-                    val texture = FontManager.getTexture(txt).waitFor()
-                    if (texture != null && texture.wasCreated) {
-                        texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
-                        val x2 = fx + (w - texture.width) / 2
-                        if (resetTransform) transform.set(backup)
-                        val color2 = animate(time, index, x2 + texture.width / 2f, y2 + texture.height / 2f)
-                        if (color2.a() > 0) {
-                            shader.m4x4("transform", transform)
-                            posSize(shader, x2, y2 + texture.height, texture.width.toFloat(), -texture.height.toFloat())
-                            if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
-                            shader.v4f("textColor", color2)
-                            flat01.draw(shader)
-                        }
+        val text1 = text.second
+        for (index in text1.indices) {
+            val txt = text1[index]
+            val size = FontManager.getSize(txt).waitFor() ?: 0
+            val dx0 = group.getX0(index)
+            val dx1 = group.getX1(index)
+            val fx = x + dxi + dx0
+            val w = dx1 - dx0
+            h = GFXx2D.getSizeY(size)
+            if (!txt.text.isBlank2()) {
+                val texture = FontManager.getTexture(txt).waitFor()
+                if (texture != null && texture.wasCreated) {
+                    texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
+                    val x2 = fx + (w - texture.width) / 2
+                    if (resetTransform) transform.set(backup)
+                    val color2 = animate(time, index, x2 + texture.width / 2f, y2 + texture.height / 2f)
+                    if (color2.a() > 0) {
+                        shader.m4x4("transform", transform)
+                        posSize(shader, x2, y2 + texture.height, texture.width, -texture.height)
+                        if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
+                        shader.v4f("textColor", color2)
+                        flat01.draw(shader)
                     }
                 }
             }
-
-            totalWidth = textWidth.roundToIntOr()
         }
+
+        totalWidth = textWidth
 
         transform.set(backup)
         JomlPools.mat4f.sub(1)

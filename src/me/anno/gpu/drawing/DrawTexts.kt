@@ -1,22 +1,15 @@
 package me.anno.gpu.drawing
 
-import me.anno.cache.Promise
-import me.anno.config.DefaultConfig
-import me.anno.fonts.Codepoints
-import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
 import me.anno.fonts.FontImpl.Companion.heightLimitToMaxNumLines
 import me.anno.fonts.FontImpl.Companion.widthLimitToRelative
 import me.anno.fonts.FontManager
 import me.anno.fonts.GlyphLayout
-import me.anno.fonts.keys.TextCacheKey
+import me.anno.fonts.keys.CharCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeType
-import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.drawing.DrawCurves.putRGBA
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.posSize
@@ -32,184 +25,20 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
-import me.anno.utils.Color.black
 import me.anno.utils.algorithms.ForLoop.forLoop
-import me.anno.utils.types.Floats.roundToIntOr
-import me.anno.utils.types.Floats.toIntOr
-import me.anno.utils.types.Strings.isBlank2
-import me.anno.utils.types.Strings.joinChars
 import me.anno.utils.types.Strings.splitLines
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
-import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
 object DrawTexts {
 
     private val LOGGER = LogManager.getLogger(DrawTexts::class)
-
-    val simpleChars0 = 33
-    val simpleCharsLen = 126 + 1 - 33
-    val simpleChars = IntArray(simpleCharsLen) { it + simpleChars0 }
-
-    private fun findMonospaceFont(): String {
-        val fonts = FontManager.fontSet
-        return when {
-            "Consolas" in fonts -> "Consolas" // best case
-            "Courier New" in fonts -> "Courier New" // second best case
-            else -> fonts.firstOrNull { it.contains("mono", true) }
-                ?: fonts.firstOrNull()
-                ?: "Courier New"
-        }
-    }
-
-    val monospaceFont by lazy {
-        val size = DefaultConfig.style.getSize("fontSize", 12)
-        val bold = false
-        val italic = false
-        val fontName = findMonospaceFont()
-        Font(fontName, size, bold, italic)
-    }
-
-    private val simpleBatch = object : Batch(
-        "simpleTextBatch", flat01, bind(
-            Attribute("instData", 3),
-            Attribute("color0", AttributeType.UINT8_NORM, 4),
-            Attribute("color1", AttributeType.UINT8_NORM, 4),
-        ), 4096
-    ) {
-        override fun bindShader(): Shader {
-            val shader = ShaderLib.subpixelCorrectTextGraphicsShader[1].value
-            shader.use()
-            return shader
-        }
-    }
-
-    fun drawSimpleTextCharByChar(
-        x: Int, y: Int,
-        padding: Int,
-        text: CharSequence,
-        alignX: AxisAlignment = AxisAlignment.MIN,
-        alignY: AxisAlignment = AxisAlignment.MIN,
-    ): Int = drawSimpleTextCharByChar(
-        x, y, padding, text, FrameTimings.textColor,
-        FrameTimings.background.color or black,
-        alignX, alignY
-    )
-
-    fun startSimpleBatch(): Int {
-        val font = monospaceFont
-        val x = pushBetterBlending(false)
-        val shader = chooseShader(-1, -1, 1)
-        val texture = FontManager.getASCIITexture(font)
-        texture.bindTrulyNearest(0)
-        val batch = if (shader is Shader) {
-            val batch = simpleBatch.start()
-            if (batch == 0) {
-                shader.use() // just in case
-                posSize(shader, 0f, 0f, texture.width.toFloat(), texture.height.toFloat())
-            }
-            batch
-        } else 0
-        return if (x) batch else batch.inv()
-    }
-
-    fun finishSimpleBatch(batch: Int) {
-        simpleBatch.finish(if (batch < 0) batch.inv() else batch)
-        popBetterBlending(batch >= 0)
-    }
-
-    fun drawSimpleTextCharByChar(
-        x: Int, y: Int, padding: Int, text: CharSequence,
-        textColor: Int = FrameTimings.textColor,
-        backgroundColor: Int = FrameTimings.backgroundColor or black,
-        alignX: AxisAlignment = AxisAlignment.MIN,
-        alignY: AxisAlignment = AxisAlignment.MIN,
-        batched: Boolean = false
-    ): Int {
-
-        val font = monospaceFont
-        val charWidth = font.sampleWidth
-        val size = text.length
-        val width = charWidth * size
-        val height = font.sampleHeight
-
-        val dx0 = getOffset(width, alignX) - padding
-        val dy0 = getOffset(height, alignY) - padding
-
-        if (backgroundColor.a() != 0) {
-            DrawRectangles.drawRect(
-                x + dx0, y + dy0,
-                charWidth * text.length + 2 * padding, font.sizeInt + 2 * padding,
-                backgroundColor
-            )
-        }
-
-        val background = backgroundColor and 0xffffff
-
-        val texture = FontManager.getASCIITexture(font)
-        var v = 1
-        val shader = if (!batched) {
-            val shader = chooseShader(textColor, background, 1)
-            texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
-            if (shader is Shader) {
-                v = simpleBatch.start()
-                posSize(shader, 0f, 0f, texture.width.toFloat(), texture.height.toFloat())
-            }
-            shader
-        } else null
-
-        val y2 = y + dy0 + padding - 1
-        var x2 = x + dx0 + padding + (charWidth - texture.width) / 2
-
-        if (shader is ComputeShader) {
-            fun drawChar(i: Int) {
-                val char = text[i]
-                val code = char.code - 33
-                if (code in simpleChars.indices) {
-                    shader.v1f("uvZ", code.toFloat())
-                    posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
-                }
-            }
-            forLoop(0, text.length, 2) { i ->
-                drawChar(i)
-                x2 += charWidth * 2
-            }
-            // must be called on every char overlap, or we get flickering
-            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
-            x2 = x + dx0 + padding + (charWidth - texture.width) / 2 + charWidth
-            forLoop(1, text.length, 2) { i ->
-                drawChar(i)
-                x2 += charWidth * 2
-            }
-            if (text.length > 1) glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
-            // x2 = x + dx0 + padding + (charWidth - texture.width) / 2 + charWidth * text.length
-        } else {
-            val posY = 1f - (y2 - GFX.viewportY).toFloat() / GFX.viewportHeight
-            var x2f = (x2 - GFX.viewportX).toFloat() / GFX.viewportWidth
-            val dxf = charWidth.toFloat() / GFX.viewportWidth
-            for (i in text.indices) {
-                val char = text[i]
-                val code = char.code - 33
-                if (code in simpleChars.indices) {
-                    simpleBatch.data
-                        .putFloat(x2f).putFloat(posY).putFloat(code.toFloat())
-                        .putRGBA(textColor).putRGBA(background)
-                    simpleBatch.next()
-                }
-                x2f += dxf
-            }
-            simpleBatch.finish(v)
-        }
-
-        return width
-    }
 
     var enableComputeRendering = false
         private set
@@ -244,44 +73,25 @@ object DrawTexts {
         return transform.isIdentity()
     }
 
-    fun getTextSizeCharByChar(font: Font, text: CharSequence, equalSpaced: Boolean): Int {
-
-        if ('\n' in text) {
-            var sizeX = 0
-            val split = text.splitLines()
-            val lineOffset = font.lineHeightI
-            for (index in split.indices) {
-                val size = getTextSizeCharByChar(font, split[index], equalSpaced)
-                sizeX = max(getSizeX(size), sizeX)
-            }
-            return getSize(sizeX, (split.size - 1) * lineOffset + font.lineHeightI)
-        }
-
-        if (text.isEmpty())
-            return font.emptySize
-
-        return if (equalSpaced) {
-            val charWidth = font.sampleWidth
-            val textWidth = charWidth * text.length
-            getSize(textWidth, font.lineHeightI)
-        } else {
-            val parts = GlyphLayout(font, text, 0f, Int.MAX_VALUE)
-            val textWidth = ceil(parts.width).toIntOr()
-            getSize(textWidth, font.lineHeightI)
-        }
-    }
-
-    fun drawTextCharByChar(
-        x: Int, y: Int,
-        font: Font,
-        text: CharSequence,
+    fun drawText(
+        x: Int, y: Int, padding: Int,
+        font: Font, text: CharSequence,
         textColor: Int,
         backgroundColor: Int,
-        widthLimit: Int,
-        heightLimit: Int,
+    ): Int = drawText(
+        x, y, padding,
+        font, text,
+        textColor, backgroundColor,
+        -1, -1
+    )
+
+    fun drawText(
+        x: Int, y: Int, padding: Int,
+        font: Font, text: CharSequence,
+        textColor: Int, backgroundColor: Int,
+        widthLimit: Int, heightLimit: Int,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN,
-        equalSpaced: Boolean
     ): Int {
 
         if ('\n' in text) {
@@ -289,127 +99,75 @@ object DrawTexts {
             val split = text.splitLines()
             val lineOffset = font.lineHeightI
             for (index in split.indices) {
-                val size = drawTextCharByChar(
+                val size = drawText(
                     x, y + index * lineOffset, font, split[index],
                     textColor, backgroundColor,
-                    widthLimit, heightLimit, alignX, alignY, equalSpaced
+                    widthLimit, heightLimit, alignX, alignY,
                 )
                 sizeX = max(getSizeX(size), sizeX)
             }
             return getSize(sizeX, (split.size - 1) * lineOffset + font.lineHeightI)
         }
 
-        if (text.isEmpty())
-            return font.emptySize
-
         val shader = chooseShader(textColor, backgroundColor)
         GFX.check()
 
-        if (equalSpaced) {
+        // todo optimized version without allocation, if widthLimit = -1 && heightLimit = -1
+        val layout = GlyphLayout(
+            font, text,
+            widthLimitToRelative(widthLimit, font.size),
+            heightLimitToMaxNumLines(heightLimit, font.size)
+        )
 
-            val charWidth = font.sampleWidth
-            val textWidth = charWidth * text.length
+        val x = x + getOffset(layout.width, alignX)
+        val y = y + getOffset(layout.height, alignY)
 
-            val dx = getOffset(textWidth, alignX)
-            val dy = getOffset(font.sampleHeight, alignY)
-            val y2 = y + dy - 1
-
-            // todo respect width limit
-
-            GFX.loadTexturesSync.push(true)
-
-            fun getTexture(char: Int): ITexture2D? {
-                return if (char > 0xffff || !char.toChar().isWhitespace()) {
-                    val txt = char.joinChars()
-                    FontManager.getTexture(font, txt, -1, -1)
-                        .waitFor("drawTextCharByChar")
-                } else null
-            }
-
-            var fx = x + dx - charWidth // -charWidth for 0th iteration
-            val cp = text.codepoints().iterator()
-
-            // to do: with more context like 4 or 5 characters, we could improve the layout even more
-            var tex0: ITexture2D?
-            var tex1: ITexture2D? = null
-            var tex2: ITexture2D? = null
-
-            fun drawChar(texture: ITexture2D?) {
-                tex0 = tex1
-                tex1 = tex2
-                tex2 = texture
-                val texI = tex1
-                if (texI != null) {
-                    var x2 = fx * 4 + (charWidth - texI.width) * 2
-                    if (tex0 != null && tex2 != null) {
-                        x2 += (tex0!!.width - tex2!!.width)
-                    }
-                    // +2 for rounding
-                    draw(shader, texI, (x2 + 2) shr 2, y2, "?", false)
-                }
-                fx += charWidth
-            }
-
-            // extra iteration at the end
-            while (cp.hasNext()) {
-                drawChar(getTexture(cp.nextInt()))
-            }
-            drawChar(null)
-
-            if (shader is ComputeShader) {
-                glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
-            }
-
-            GFX.loadTexturesSync.pop()
-
-            return getSize(fx - (x + dx), font.lineHeightI)
-        } else {
-
-            val layout = GlyphLayout(
-                font, text,
-                widthLimitToRelative(widthLimit, font.size),
-                heightLimitToMaxNumLines(heightLimit, font.size)
+        if (backgroundColor.a() != 0) {
+            DrawRectangles.drawRect(
+                x - padding, y - padding,
+                layout.width + 2 * padding, layout.height + 2 * padding,
+                backgroundColor
             )
+        }
 
-            val textWidth = ceil(layout.width).toIntOr()
+        GFX.loadTexturesSync.push(true)
 
-            val dxi = getOffset(textWidth, alignX)
-            val dyi = getOffset(font.sampleHeight, alignY)
-
-            GFX.loadTexturesSync.push(true)
-
-            val y2 = y + dyi
-            for (index in layout.indices) {
-                val codepoint = layout.getCodepoint(index)
-                if (Codepoints.isEmoji(codepoint)) {
-                    // todo draw emoji by ID
-                } else if (codepoint > 0xffff || !codepoint.toChar().isWhitespace()) {
-                    val txt = codepoint.joinChars()
-                    val o0 = layout.getX0(index).toInt()
-                    val o1 = layout.getX1(index).toInt()
-                    val fx = x + dxi + o0
-                    val w = o1 - o0
-                    val texture = FontManager.getTexture(font, txt, -1, -1)
-                        .waitFor("drawTextCharByChar")
-                    if (texture != null && texture.wasCreated) {
-                        texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
-                        val x2 = fx + (w - texture.width).shr(1)
-                        draw(shader, texture, x2, y2, txt, false)
-                    }
-                }
-            }
-            if (shader is ComputeShader) {
+        if (shader is ComputeShader) {
+            drawTextLine(shader, x, y, font, layout, 0, 2)
+            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+            if (layout.size > 1) {
+                drawTextLine(shader, x, y, font, layout, 1, 2)
                 glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             }
+        } else {
+            drawTextLine(shader, x, y, font, layout, 0, 1)
+        }
 
-            GFX.loadTexturesSync.pop()
+        GFX.loadTexturesSync.pop()
 
-            return getSize(textWidth, font.lineHeightI)
+        return getSize(layout.width, layout.height)
+    }
+
+    private fun drawTextLine(
+        shader: GPUShader, x: Int, y: Int,
+        font: Font, layout: GlyphLayout, i0: Int, step: Int
+    ) {
+        forLoop(i0, layout.size, step) { index ->
+            val codepoint = layout.getCodepoint(index)
+            val dx = layout.getX0(index)
+            val dy = layout.getY(index)
+            val key = CharCacheKey(font, codepoint, disableSubpixelRendering)
+            val texture = FontManager.getTexture(key)
+                .waitFor("drawTextCharByChar")
+            if (texture != null && texture.wasCreated) {
+                texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
+                drawChar(shader, texture, x + dx, y + dy, codepoint)
+            }
         }
     }
 
     var disableSubpixelRendering = false
-    private fun chooseShader(textColor: Int, backgroundColor: Int, instanced: Int = 0): GPUShader {
+    fun chooseShader(textColor: Int, backgroundColor: Int, instanced: Int = 0): GPUShader {
         GFX.check()
         val cuc = canUseComputeShader() && min(textColor.a(), backgroundColor.a()) < 255
         val shader = if (cuc && !ShaderLib.subpixelCorrectTextComputeShader[instanced].failedCompilation) {
@@ -441,82 +199,9 @@ object DrawTexts {
         return shader
     }
 
-    fun drawTextChar(
-        x: Int, y: Int,
-        font: Font,
-        key: TextCacheKey,
-        textColor: Int,
-        backgroundColor: Int,
-        alignX: AxisAlignment = AxisAlignment.MIN,
-        alignY: AxisAlignment = AxisAlignment.MIN,
-        equalSpaced: Boolean
-    ): Int {
-
-        if (key.text.isEmpty()) {
-            return font.emptySize
-        }
-
-        if (key.text.isBlank2()) {
-            return FontManager.getSize(key)
-                .waitFor("drawTextChar")
-                ?: font.emptySize
-        }
-
-        GFX.check()
-
-        val shader = chooseShader(textColor, backgroundColor)
-        GFX.check()
-
-        GFX.loadTexturesSync.push(true)
-
-        val charWidth = if (equalSpaced) {
-
-            val wx = font.sampleWidth
-
-            val dx = getOffset(wx, alignX)
-            val dy = getOffset(font.sampleHeight, alignY)
-            val y2 = y + dy - 1
-
-            val txt = key.text.toString()
-
-            val texture = FontManager.getTexture(key).waitFor("drawTextChar")
-            if (texture != null && texture.isCreated()) {
-                draw(shader, texture, x + dx + (wx - texture.width).shr(1), y2, txt, true)
-            }
-
-            wx
-        } else {
-
-            val text = key.text
-            val layout = GlyphLayout(font, text, 0f, Int.MAX_VALUE)
-
-            val wx = layout.width.roundToIntOr()
-            val dxi = getOffset(wx, alignX)
-            val dyi = getOffset(font.sampleHeight, alignY)
-
-            val y2 = y + dyi
-
-            val o0 = layout.getX0(0).toInt()
-            val o1 = layout.getX1(0).toInt()
-            val fx = x + dxi + o0
-            val w = o1 - o0
-
-            val texture = FontManager.getTexture(key).waitFor("drawTextChar")
-            if (texture != null && texture.isCreated()) {
-                draw(shader, texture, fx + (w - texture.width).shr(1), y2, text, true)
-            }
-
-            wx
-        }
-
-        GFX.loadTexturesSync.pop()
-
-        return getSize(charWidth, font.sizeInt)
-    }
-
-    private fun draw(
+    private fun drawChar(
         shader: GPUShader, texture: ITexture2D?,
-        x2: Int, y2: Int, txt: CharSequence, barrier: Boolean
+        x2: Int, y2: Int, txt: Int
     ) {
         if (texture != null && texture.isCreated()) {
             texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
@@ -528,12 +213,11 @@ object DrawTexts {
                 }
                 is ComputeShader -> {
                     posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
-                    if (barrier) glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
                 }
             }
         } else {
             LOGGER.warn(
-                "Texture for '$txt' is ${
+                "Texture for #$txt is ${
                     if (texture == null) "null"
                     else if (texture.isDestroyed) "destroyed"
                     else "not created"
@@ -544,198 +228,82 @@ object DrawTexts {
 
     fun drawText(
         x: Int, y: Int,
-        font: Font, text: String,
+        font: Font, text: CharSequence,
+        color: Int, backgroundColor: Int,
+        alignX: AxisAlignment = AxisAlignment.MIN,
+        alignY: AxisAlignment = AxisAlignment.MIN
+    ): Int = drawText(
+        x, y, 0, font, text,
+        color, backgroundColor,
+        -1, -1, alignX, alignY
+    )
+
+    fun drawText(
+        x: Int, y: Int,
+        text: CharSequence,
+        alignX: AxisAlignment = AxisAlignment.MIN,
+        alignY: AxisAlignment = AxisAlignment.MIN
+    ): Int = drawText(x, y, 0, text, alignX, alignY)
+
+    fun drawText(
+        x: Int, y: Int, padding: Int,
+        text: CharSequence,
+        alignX: AxisAlignment = AxisAlignment.MIN,
+        alignY: AxisAlignment = AxisAlignment.MIN
+    ): Int = drawText(
+        x, y, padding, monospaceFont, text,
+        FrameTimings.textColor, FrameTimings.backgroundColor,
+        -1, -1, alignX, alignY
+    )
+
+    fun drawText(
+        x: Int, y: Int, padding: Int,
+        font: Font, text: CharSequence,
+        color: Int, backgroundColor: Int,
+        alignX: AxisAlignment = AxisAlignment.MIN,
+        alignY: AxisAlignment = AxisAlignment.MIN
+    ): Int = drawText(
+        x, y, padding, font, text,
+        color, backgroundColor,
+        -1, -1, alignX, alignY
+    )
+
+    fun drawText(
+        x: Int, y: Int,
+        padding: Int, text: CharSequence,
+    ): Int = drawText(
+        x, y, padding, monospaceFont, text,
+        FrameTimings.textColor,
+        FrameTimings.backgroundColor,
+    )
+
+    fun drawText(
+        x: Int, y: Int,
+        font: Font, text: CharSequence,
         color: Int, backgroundColor: Int,
         widthLimit: Int, heightLimit: Int,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN
-    ): Int {
-
-        if (text.isEmpty()) return font.emptySize
-
-        GFX.check()
-
-        val async = !GFX.loadTexturesSync.peek()
-        val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit)
-            .waitFor("drawText", async)
-
-        val charByChar = (tex0 == null || !tex0.isCreated()) && text.length > 1
-        return if (charByChar) {
-            drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, heightLimit, alignX, alignY, false)
-        } else drawText(x, y, color, backgroundColor, tex0 ?: blackTexture, alignX, alignY)
-    }
-
-    /**
-     * aligns and draws the text; returns whether drawing failed
-     *
-     * todo use this everywhere, maybe remove synchronous text drawing everywhere
-     * */
-    fun drawTextOrFail(
-        x: Int, y: Int,
-        font: Font, text: String,
-        color: Int, backgroundColor: Int,
-        widthLimit: Int, heightLimit: Int,
-        alignX: AxisAlignment = AxisAlignment.MIN,
-        alignY: AxisAlignment = AxisAlignment.MIN
-    ): Boolean {
-        if (text.isEmpty()) return false
-        val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit).value
-        return if (tex0 != null && tex0.isCreated()) {
-            drawText(x, y, color, backgroundColor, tex0, alignX, alignY)
-            false
-        } else {
-            true
-        }
-    }
-
-    private fun drawText(
-        x: Int, y: Int,
-        textColor: Int, backgroundColor: Int,
-        texture: ITexture2D,
-        alignX: AxisAlignment = AxisAlignment.MIN,
-        alignY: AxisAlignment = AxisAlignment.MIN
-    ): Int {
-        val w = texture.width
-        val h = texture.height
-        // done if pixel is on the border of the drawn rectangle, make it grayscale, so we see no color seams
-        if (texture.isCreated()) {
-            GFX.check()
-            GFX.check()
-            texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
-            val x2 = x + getOffset(w, alignX)
-            val y2 = y + getOffset(h, alignY)
-            val shader = chooseShader(textColor, backgroundColor)
-            if (shader is ComputeShader) {
-                posSizeDraw(shader, x2, y2, w, h, 1)
-                glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
-            } else {
-                shader as Shader
-                posSize(shader, x2, y2, w, h, true)
-                flat01.draw(shader)
-            }
-            GFX.check()
-        }
-        return getSize(w, h)
-    }
+    ): Int = drawText(
+        x, y, 0, font, text,
+        color, backgroundColor,
+        widthLimit, heightLimit,
+        alignX, alignY
+    )
 
     fun getOffset(size: Int, alignment: AxisAlignment): Int {
         return alignment.getOffset(0, size - 1)
     }
 
-    fun drawText(
-        x: Int, y: Int,
-        font: Font, key: TextCacheKey,
-        color: Int, backgroundColor: Int,
-        alignX: AxisAlignment = AxisAlignment.MIN,
-        alignY: AxisAlignment = AxisAlignment.MIN,
-        equalSpaced: Boolean = false
-    ): Int {
-        GFX.check()
-        if (equalSpaced) {
-            return drawTextCharByChar(
-                x, y, font, key.text,
-                color, backgroundColor,
-                key.widthLimit,
-                key.heightLimit,
-                alignX, alignY,
-                true
-            )
-        } else {
-            val async = !GFX.loadTexturesSync.peek()
-            val texture = FontManager.getTexture(key)
-                .waitFor("drawText", async)
-            if (texture == null || !texture.isCreated()) { // char by char
-                return drawTextCharByChar(
-                    x, y, font, key.text,
-                    color, backgroundColor,
-                    key.widthLimit,
-                    key.heightLimit,
-                    alignX, alignY,
-                    false
-                )
-            }
-
-            return drawText(x, y, color, backgroundColor, texture, alignX, alignY)
-        }
-    }
-
-    fun drawTextOrFail(
-        x: Int, y: Int,
-        font: Font, key: TextCacheKey,
-        color: Int, backgroundColor: Int,
-        alignX: AxisAlignment = AxisAlignment.MIN,
-        alignY: AxisAlignment = AxisAlignment.MIN,
-        equalSpaced: Boolean = false
-    ): Boolean {
-        GFX.check()
-        if (equalSpaced) {
-            drawTextCharByChar(
-                x, y, font, key.text,
-                color, backgroundColor,
-                key.widthLimit,
-                key.heightLimit,
-                alignX, alignY,
-                true
-            )
-            return false
-        } else {
-            val texture = FontManager.getTexture(key).value
-            return if (texture != null && texture.isCreated()) {
-                drawText(x, y, color, backgroundColor, texture, alignX, alignY)
-                false
-            } else true
-        }
-    }
-
-    // minimalistic function only using key, coordinates, colors, and whether it's centered horizontally
-    fun drawText(
-        x: Int, y: Int,
-        key: TextCacheKey,
-        color: Int, backgroundColor: Int,
-        alignX: AxisAlignment = AxisAlignment.MIN,
-        alignY: AxisAlignment = AxisAlignment.MIN
-    ): Int {
-
-        GFX.check()
-
-        if (key.text.length < 2) {
-            val font = key.createFont()
-            return drawTextChar(
-                x, y, font, key, color, backgroundColor,
-                alignX, alignY, font == monospaceFont
-            )
-        }
-
-        val async = !GFX.loadTexturesSync.peek()
-        val texture = FontManager.getTexture(key)
-            .waitFor("drawText", async)
-        if (texture == null || !texture.isCreated()) { // char by char
-            return drawTextCharByChar(
-                x, y, key.createFont(), key.text, color,
-                backgroundColor, key.widthLimit, key.heightLimit, alignX, alignY, false
-            )
-        }
-
-        return drawText(x, y, color, backgroundColor, texture, alignX, alignY)
-    }
-
     fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
-        val size = getTextSize(font, text, widthLimit, heightLimit).value
-            ?: return text.length * font.sampleWidth
-        return getSizeX(size)
+        return getSizeX(getTextSize(font, text, widthLimit, heightLimit))
     }
 
     fun getTextSizeX(font: Font, text: CharSequence): Int {
         return getTextSizeX(font, text, -1, -1)
     }
 
-    fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Promise<Int> =
+    fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int =
         FontManager.getSize(font, text, widthLimit, heightLimit)
 
-    fun getTextSizeOr(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
-        return getTextSize(font, text, widthLimit, heightLimit).value
-            ?: return getSize(font.sampleWidth * text.length, font.sizeInt)
-    }
-
-    fun getTextSize(key: TextCacheKey): Promise<Int> = FontManager.getSize(key)
 }

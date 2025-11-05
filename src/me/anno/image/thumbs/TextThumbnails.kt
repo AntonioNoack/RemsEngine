@@ -4,6 +4,7 @@ import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
@@ -60,8 +61,8 @@ object TextThumbnails {
             val lines = getLines(itr, maxLineCount)
             val length = lines.maxOfOrNull { it.length } ?: 0
             if (length > 0) {
-                val sx = DrawTexts.monospaceFont.sampleWidth
-                val sy = DrawTexts.monospaceFont.sizeInt
+                val sx = monospaceFont.sampleWidth
+                val sy = monospaceFont.sizeInt
                 val w = (length + 1) * sx
                 val h = (lines.size + 1) * sy
                 addGPUTask("textThumbs", w, h) {
@@ -75,16 +76,18 @@ object TextThumbnails {
         val tex = Texture2D("textThumbs", w, h, 1)
         tex.create(TargetType.UInt8x3)
         GFXState.useFrame(tex) {
-            val tc = Color.black
-            val bg = -1
-            it.clearColor(bg)
+            val textColor = Color.black
+            val backgroundColor = Color.white
+            it.clearColor(backgroundColor)
             val x = sx.shr(1)
             for (yi in lines.indices) {
                 val line = lines[yi].trimEnd()
                 if (line.isNotEmpty()) {
                     val y = yi * sy + sy.shr(1)
-                    DrawTexts.drawSimpleTextCharByChar(
-                        x, y, 1, line, tc, bg
+                    DrawTexts.drawText(
+                        x, y, 1,
+                        monospaceFont, line,
+                        textColor, backgroundColor
                     )
                 }
             }

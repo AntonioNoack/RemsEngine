@@ -5,8 +5,6 @@ import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.IEmojiCache.Companion.emojiPadding
 import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks.addGPUTask
-import me.anno.gpu.drawing.DrawTexts.simpleChars0
-import me.anno.gpu.drawing.DrawTexts.simpleCharsLen
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -31,6 +29,10 @@ import kotlin.math.min
 abstract class FontImpl<FallbackFonts> {
 
     companion object {
+
+        val simpleChars0 = 33
+        val simpleCharsLen = 126 + 1 - 33
+        val simpleChars = IntArray(simpleCharsLen) { it + simpleChars0 }
 
         private val splittingOrder = listOf(
             intArrayOf(' '.code),
@@ -62,14 +64,14 @@ abstract class FontImpl<FallbackFonts> {
         }
     }
 
-    abstract fun getTextLength(font: Font, codepoint: Int): Float
-    abstract fun getTextLength(font: Font, codepointA: Int, codepointB: Int): Float
+    abstract fun getTextLength(font: Font, codepoint: Int): Int
+    abstract fun getTextLength(font: Font, codepointA: Int, codepointB: Int): Int
 
     /**
      * Like gfx.drawString.
      * */
     abstract fun drawGlyph(
-        image: IntImage, x0: Float, x1: Float, y0: Float, y1: Float, strictBounds: Boolean,
+        image: IntImage, x0: Int, x1: Int, y0: Int, y1: Int, strictBounds: Boolean,
         font: Font, fallbackFonts: FallbackFonts, fontIndex: Int,
         codepoint: Int, textColor: Int, backgroundColor: Int, portableImages: Boolean,
     )
@@ -78,18 +80,17 @@ abstract class FontImpl<FallbackFonts> {
      * like gfx.drawString, however this method is respecting the ideal character distances,
      * so there are no awkward spaces between T and e
      * */
-    private fun drawEmoji(gfx: IntImage, font: Font, codepoint: Int, dx: Float, dy: Float) {
+    private fun drawEmoji(gfx: IntImage, font: Font, codepoint: Int, dx: Int, dy: Int) {
         val fontSize = font.sizeInt
         val emojiId = Codepoints.getEmojiId(codepoint)
         val emojiImage = IEmojiCache.emojiCache.getEmojiImage(emojiId, fontSize)
             .waitFor() ?: return
         // todo check these magic offsets for more fonts than just Verdana 20px
-        val extraY = min(max(0, font.lineHeightI - fontSize).toFloat(), font.size * 0.30f)
-        val xi = (dx + fontSize * 0.07f).toIntOr()
-        val yi = (dy + extraY).toIntOr()
+        val extraY = min(max(0, font.lineHeightI - fontSize), fontSize / 3)
+        val yi = dy + extraY
         emojiImage.forEachPixel { pxi, pyi ->
             val color = emojiImage.getRGB(pxi, pyi).undoPremultiply()
-            gfx.setRGB(xi + pxi, yi + pyi, color)
+            gfx.setRGB(dx + pxi - 2, yi + pyi - 2, color)
         }
     }
 
@@ -111,8 +112,8 @@ abstract class FontImpl<FallbackFonts> {
             heightLimitToMaxNumLines(heightLimit, fontSize)
         )
 
-        val width = min(ceil(layout.width).toIntOr(), widthLimit)
-        val height = min(ceil(layout.height).toIntOr(), heightLimit)
+        val width = min(layout.width, widthLimit)
+        val height = min(layout.height, heightLimit)
 
         if (layout.isEmpty() || width < 1 || height < 1) {
             return callback.ok(FakeWhiteTexture(width, height, 1))
@@ -126,7 +127,7 @@ abstract class FontImpl<FallbackFonts> {
             image.data.fill(backgroundColor)
         }
 
-        val dy0 = layout.actualFontSize
+        val dy0 = layout.actualFontSize.toIntOr()
         val fallbackFonts = getFallbackFonts(font)
         for (glyphIndex in layout.indices) {
             val codepoint = layout.getCodepoint(glyphIndex)
@@ -174,7 +175,7 @@ abstract class FontImpl<FallbackFonts> {
 
         val alignment = getOffsetCache(font)
         val size = alignment.getOffset('w'.code, 'w'.code)
-        val width = min(widthLimit, ceil(size).toIntOr() + 1)
+        val width = min(widthLimit, size + 1)
         val height = min(heightLimit, ceil(getLineHeight(font)).toIntOr())
 
         val texture = Texture2DArray("awtAtlas", width, height, simpleCharsLen)
@@ -186,11 +187,11 @@ abstract class FontImpl<FallbackFonts> {
         var y = 0 // todo add this in AWTFont: fontMetrics.ascent.toFloat()
         val dy = texture.height
         val fallbackFonts = getFallbackFonts(font)
-        val x1 = texture.width.toFloat() // correct?
+        val x1 = texture.width // correct?
         for (yi in 0 until simpleCharsLen) {
             val codepoint = simpleChars0 + yi
             drawGlyph(
-                image, 0f, x1, y.toFloat(), (y + dy).toFloat(), true,
+                image, 0, x1, y, y + dy, true,
                 font, fallbackFonts, getSupportLevel(fallbackFonts, codepoint, 0),
                 codepoint, textColor, backgroundColor, portableImages
             )
@@ -250,19 +251,19 @@ abstract class FontImpl<FallbackFonts> {
         val hasAutomaticLineBreak = widthLimit > 0f
 
         val spaceWidth = offsetCache.spaceWidth
-        val extraSpacing = font.relativeCharSpacing * spaceWidth
-        val tabSize = (spaceWidth + extraSpacing) * font.relativeTabSize
-        val charSpacing = font.size * font.relativeCharSpacing
+        val extraSpacing = (font.relativeCharSpacing * spaceWidth).toIntOr()
+        val tabSize = ((spaceWidth + extraSpacing) * font.relativeTabSize).toIntOr()
+        val charSpacing = (font.size * font.relativeCharSpacing).toIntOr()
 
-        var currentX = 0f
+        var currentX = 0
 
-        val fontHeight = result.actualFontSize
+        val fontHeight = result.actualFontSize.toIntOr()
         var startOfLine = result.size
 
         var wordEndI = 0
 
         fun finishLine() {
-            val lineWidth = max(0f, currentX - charSpacing)
+            val lineWidth = max(0, currentX - charSpacing)
             result.width = max(result.width, lineWidth)
             for (i in startOfLine until result.size) {
                 result.setLineWidth(i, lineWidth)
@@ -275,7 +276,7 @@ abstract class FontImpl<FallbackFonts> {
             finishLine()
             result.height += fontHeight
             result.numLines++
-            currentX = 0f
+            currentX = 0
         }
 
         fun pushWord(wordStartI: Int, wordEndI: Int, fontIndex: Int) {
@@ -286,7 +287,7 @@ abstract class FontImpl<FallbackFonts> {
                 val nextX = currentX + deltaX
                 if (!currCodepoint.isBlank()) {
                     result.add(
-                        currCodepoint, currentX, nextX, 0f, result.height, result.numLines,
+                        currCodepoint, currentX, nextX, 0, result.height, result.numLines,
                         fontIndex
                     )
                 }
@@ -407,8 +408,8 @@ abstract class FontImpl<FallbackFonts> {
         }
 
         // adding padding
-        result.move(1f, 0f, 2f)
-        result.width += 2f
+        result.move(1, 0, 2)
+        result.width += 2
         result.height++
     }
 

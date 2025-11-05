@@ -3,15 +3,15 @@ package me.anno.ui.base.progress
 import me.anno.Time
 import me.anno.gpu.Clipping
 import me.anno.gpu.OSWindow
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
-import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.mix
+import me.anno.maths.MinMax.max
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
@@ -121,20 +121,20 @@ open class ProgressBar(
         val xt = x + w.shr(1)
         val yt = y + (h - monospaceFont.lineHeightI).shr(1)
         if (x1 > x) Clipping.clip(x, y, x1 - x, h) {
-            drawSimpleTextCharByChar(
-                xt, yt, padding, text, rightColor, leftColor,
+            drawText(
+                xt, yt, padding, monospaceFont, text, rightColor, leftColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
         if (x2 > x1) Clipping.clip(x1, y, x2 - x1, h) {
-            drawSimpleTextCharByChar(
-                xt, yt, padding, text, leftColor, rightColor,
+            drawText(
+                xt, yt, padding, monospaceFont, text, leftColor, rightColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
         if (x3 > x2) Clipping.clip(x2, y, x3 - x2, h) {
-            drawSimpleTextCharByChar(
-                xt, yt, padding, text, rightColor, leftColor,
+            drawText(
+                xt, yt, padding, monospaceFont, text, rightColor, leftColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
@@ -164,8 +164,10 @@ open class ProgressBar(
             min(x1, x + mid),
             min(y1, y + h)
         ) {
-            drawSimpleTextCharByChar(
-                xt, yt, padding, text, rightColor, leftColor,
+            drawText(
+                xt, yt, padding,
+                monospaceFont, text,
+                rightColor, leftColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
@@ -175,8 +177,10 @@ open class ProgressBar(
             min(x1, x + w),
             min(y1, y + h)
         ) {
-            drawSimpleTextCharByChar(
-                xt, yt, padding, text, leftColor, rightColor,
+            drawText(
+                xt, yt, padding,
+                monospaceFont, text,
+                leftColor, rightColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }

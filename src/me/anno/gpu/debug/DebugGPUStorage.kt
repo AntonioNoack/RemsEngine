@@ -5,8 +5,8 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GLNames
 import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.CubemapTexture
@@ -72,7 +72,7 @@ object DebugGPUStorage {
                 // transparency-showing background
                 DrawTextures.drawTransparentBackground(xi, yi, w, h)
                 drawTexture(xi, yi, w, h)
-                DrawTexts.drawSimpleTextCharByChar(x, y, 2, title)
+                DrawTexts.drawText(x, y, 2, title)
             } else isVisible = false
         }
 
@@ -182,7 +182,8 @@ object DebugGPUStorage {
     fun openMenu() {
         val fbsSum = fbs.sumOf { it.renderBufferAllocated }
         val bufferSum = buffers.sumOf { it.locallyAllocated }
-        Menu.openMenu(GFX.someWindow.windowStack, listOf(
+        Menu.openMenu(
+            GFX.someWindow.windowStack, listOf(
             createEntry("Texture2Ds", tex2d) { TexturePanel2D(it.name, it, false) },
             createEntry("Texture3Ds", tex3d) { TexturePanel3D(it) },
             createEntry("Texture2D[]s", tex2da) { TexturePanel2DA(it) },
@@ -209,14 +210,15 @@ object DebugGPUStorage {
                 // first, easy way:
                 openMenuOfPanels("Buffers", PanelListY(style)) { list ->
                     for (buffer in buffers.sortedBy { it.locallyAllocated }) {
-                        list.add(TextPanel(
-                            "\"${buffer.name}\", ${GLNames.getName(buffer.target)}, " +
-                                    "${buffer.elementCount} x ${buffer.attributes}, " +
-                                    "total: ${
-                                        (buffer.nioBuffer?.capacity()?.toLong() ?: buffer.locallyAllocated)
-                                            .formatFileSize()
-                                    }", style
-                        ).apply { breaksIntoMultiline = true })
+                        list.add(
+                            TextPanel(
+                                "\"${buffer.name}\", ${GLNames.getName(buffer.target)}, " +
+                                        "${buffer.elementCount} x ${buffer.attributes}, " +
+                                        "total: ${
+                                            (buffer.nioBuffer?.capacity()?.toLong() ?: buffer.locallyAllocated)
+                                                .formatFileSize()
+                                        }", style
+                            ).apply { breaksIntoMultiline = true })
                     }
                 }
             }

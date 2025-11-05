@@ -2,7 +2,7 @@ package me.anno.tests.map
 
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.maths.Maths.mix
 import me.anno.tests.map.OSMMapCache.getMapData
 import me.anno.ui.Style
@@ -30,7 +30,7 @@ class OSMPanelV2(style: Style) : MapPanel(style) {
         super.draw(x0, y0, x1, y1)
         for (x in listOf(x0, x1)) {
             for (y in listOf(y0, y1)) {
-                drawSimpleTextCharByChar(
+                drawText(
                     x, y, 1, "${windowToCoordsY(y.toDouble())}/${windowToCoordsX(x.toDouble())}",
                     if (x == x0) AxisAlignment.MIN else AxisAlignment.MAX,
                     if (y == y0) AxisAlignment.MIN else AxisAlignment.MAX

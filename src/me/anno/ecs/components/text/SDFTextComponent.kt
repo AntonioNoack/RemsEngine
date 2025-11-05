@@ -112,7 +112,7 @@ class SDFTextComponent(
     override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd) {
 
         // effectively just the same code as TextureTextComponent
-        val size = FontManager.getSize(font, text, -1, -1).waitFor() ?: 0
+        val size = FontManager.getSize(font, text, -1, -1)
         val baselineY = FontManager.getBaselineY(font)
 
         val scale = baselineY / font.size

@@ -28,17 +28,16 @@ import me.anno.gpu.debug.DebugGPUStorage.isDepthFormat
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawBorder
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.renderer.Renderer
@@ -76,7 +75,6 @@ import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.NumberFormatter.formatFloat
-import me.anno.utils.types.NumberFormatter.formatIntTriplets
 import me.anno.utils.types.Vectors.toLinear
 import me.anno.utils.types.Vectors.toSRGB
 import org.joml.Matrix4f
@@ -140,7 +138,7 @@ object DebugRendering {
                     } else {
                         DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
                     }
-                    DrawTexts.drawSimpleTextCharByChar(x, y + h - s, 2, "#${layer.toInt()}")
+                    DrawTexts.drawText(x, y + h - s, 2, "#${layer.toInt()}")
                 }
                 else -> {
                     if (Input.isShiftDown && light is PlanarReflection) {
@@ -195,7 +193,6 @@ object DebugRendering {
 
     fun showTimeRecords(rv: RenderView) {
         GFXState.drawCall("ShowTimeRecords") {
-            val textBatch = DrawTexts.startSimpleBatch()
             val records = GFXState.timeRecords
             var total = 0L
             for (i in records.indices) {
@@ -208,7 +205,6 @@ object DebugRendering {
             if (!(maySkip && !FrameGenInitNode.isLastFrame())) {
                 records.clear()
             }
-            DrawTexts.finishSimpleBatch(textBatch)
         }
     }
 
@@ -218,8 +214,10 @@ object DebugRendering {
         debugBuilder.append(name).append(": ")
             .formatFloat(time / (1e6 * divisor), 3, false)
             .append(" ms")
-        DrawTexts.drawSimpleTextCharByChar(
-            rv.x + rv.width, y, 1, debugBuilder,
+        DrawTexts.drawText(
+            rv.x + rv.width, y, 1,
+            monospaceFont, debugBuilder,
+            FrameTimings.textColor, FrameTimings.backgroundColor,
             AxisAlignment.MAX, AxisAlignment.MIN
         )
         debugBuilder.clear()
@@ -341,7 +339,6 @@ object DebugRendering {
         val texts = DebugShapes.debugTexts
         val cameraMatrix = view.cameraMatrix
         val ptb = DrawTexts.pushTrueBlending(true)
-        val batch = DrawTexts.startSimpleBatch()
         for (index in texts.indices) {
             val text = texts[index]
             val pos = text.position
@@ -352,15 +349,13 @@ object DebugRendering {
             if (v.w > 0f && v.x in -v.w..v.w && v.y in -v.w..v.w) {
                 val vx = v.x * sx / v.w + x0
                 val vy = v.y * sy / v.w + y0
-                DrawTexts.drawSimpleTextCharByChar(
-                    vx.toInt(), vy.toInt(), 0, text.text,
+                DrawTexts.drawText(
+                    vx.toInt(), vy.toInt(), monospaceFont, text.text,
                     text.color, text.color.withAlpha(0),
                     AxisAlignment.CENTER, AxisAlignment.CENTER,
-                    batched = true
                 )
             }
         }
-        DrawTexts.finishSimpleBatch(batch)
         DrawTexts.popTrueBlending(ptb)
     }
 
@@ -473,7 +468,7 @@ object DebugRendering {
                     x12, y12
                 ) { DrawTextures.drawTextureAlpha(x02, y02, x12 - x02, y12 - y02, texture) }
                 // draw title
-                DrawTexts.drawSimpleTextCharByChar(x02, y02, 2, texture.name)
+                DrawTexts.drawText(x02, y02, 2, texture.name)
             }
         }
         DrawTexts.popBetterBlending(pbb)
@@ -561,9 +556,11 @@ object DebugRendering {
                         null, applyTonemapping
                     )
                 }
-                DrawTexts.drawSimpleTextCharByChar(
+                DrawTexts.drawText(
                     (x02 + x12) / 2, (y02 + y12) / 2, 2,
-                    name, AxisAlignment.CENTER, AxisAlignment.CENTER
+                    monospaceFont, name,
+                    FrameTimings.textColor, FrameTimings.backgroundColor,
+                    AxisAlignment.CENTER, AxisAlignment.CENTER
                 )
             }
         }
@@ -723,8 +720,8 @@ object DebugRendering {
             }
             val x = x0 + WorkSplitter.partition(xi, view.width, nx)
             val y = y0 - sz + 1
-            DrawTexts.drawSimpleTextCharByChar(
-                x, y, 1, name,
+            DrawTexts.drawText(
+                x, y, 1, monospaceFont, name,
                 FrameTimings.textColor, view.background.color,
                 AxisAlignment.MIN, AxisAlignment.MAX
             )
@@ -744,15 +741,14 @@ object DebugRendering {
         val y2 = view.y + fontSize * 4
 
         fun drawLine(y: Int, text: String) {
-            DrawTexts.drawSimpleTextCharByChar(
-                x2, y2 + y * fontSize, 1,
+            DrawTexts.drawText(
+                x2, y2 + y * fontSize, 1, monospaceFont,
                 text, FrameTimings.textColor, view.background.color,
                 AxisAlignment.MIN, AxisAlignment.MAX
             )
         }
 
         // draw info and colors and numbers
-        val textBatch = DrawTexts.startSimpleBatch()
         drawLine(0, passName)
         drawLine(1, "${texture.name}, ${GLNames.getName(texture.internalFormat)} ${texture.samples}x, $xii,$yii")
         val offset = (inspectorPadding * inspectorSize + inspectorPadding) * 4
@@ -760,7 +756,6 @@ object DebugRendering {
             drawLine(i + 2, "${"RGBA"[i]}: ${values[i + offset]}")
         }
         drawLine(numChannels + 2, "Controls: Alt + Arrows / P")
-        DrawTexts.finishSimpleBatch(textBatch)
 
         // draw inspected color as rectangle
         val rectBatch = DrawRectangles.startBatch()

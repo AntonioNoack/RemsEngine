@@ -185,7 +185,7 @@ fun createCPUPanel(
         nextFrame()
 
         DrawTextures.drawTexture(it.x, it.y, it.width, it.height, cpuTexture, true, -1, null)
-        DrawTexts.drawSimpleTextCharByChar(
+        DrawTexts.drawText(
             it.x + 4,
             it.y + it.height - 50,
             2,

@@ -33,7 +33,6 @@ class NovelGamePanel(val stateMachine: StateMachine) : PanelList(DefaultConfig.s
         addChild(shownTextPanel)
         shownTextPanel.background.radius = 15f
         shownTextPanel.padding.set(10)
-        shownTextPanel.instantTextLoading = true // todo this isn't working :(
         shownTextPanel.background.color = background.color
         shownTextPanel.focusBackgroundColor = background.color
         shownTextPanel.focusTextColor = shownTextPanel.textColor

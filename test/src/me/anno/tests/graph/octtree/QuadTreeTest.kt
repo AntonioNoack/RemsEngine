@@ -3,12 +3,12 @@ package me.anno.tests.graph.octtree
 import me.anno.Time
 import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.RenderDoc.disableRenderDoc
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.QuadTreeF
 import me.anno.input.Input
@@ -275,13 +275,13 @@ fun main() {
 
         // draw statistics
         val lineHeight = monospaceFont.lineHeightI
-        drawSimpleTextCharByChar(it.x, it.y, 2, if (useQuadtree) "QuadTree" else "Naive")
-        drawSimpleTextCharByChar(it.x, it.y + lineHeight, 2, "$ctr Interactions")
+        drawText(it.x, it.y, 2, if (useQuadtree) "QuadTree" else "Naive")
+        drawText(it.x, it.y + lineHeight, 2, "$ctr Interactions")
 
         // draw help
         for (i in controlsText.indices) {
             val y = it.y + it.height + (i - controlsText.size) * lineHeight
-            drawSimpleTextCharByChar(it.x, y, 2, controlsText[i])
+            drawText(it.x, y, 2, controlsText[i])
         }
     }
 }

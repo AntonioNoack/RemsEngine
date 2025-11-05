@@ -1,13 +1,13 @@
 package me.anno.ui.editor.code
 
-import me.anno.cache.Promise
 import me.anno.cache.DualCacheSection
+import me.anno.cache.Promise
 import me.anno.fonts.Font
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
+import me.anno.gpu.drawing.DrawTextBatched
+import me.anno.gpu.drawing.DrawTextBatched.drawSimpleTextCharByChar
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.Streams.readNBytes2
@@ -159,9 +159,9 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         drawBackground(x0, y0, x1, y1)
         drawTextOrBackground(y0, y1, false)
         DrawRectangles.finishBatch(rectBatch)
-        val textBatch = DrawTexts.startSimpleBatch()
+        val textBatch = DrawTextBatched.startSimpleBatch()
         drawTextOrBackground(y0, y1, true)
-        DrawTexts.finishSimpleBatch(textBatch)
+        DrawTextBatched.finishSimpleBatch(textBatch)
     }
 
     fun drawTextOrBackground(y0: Int, y1: Int, textNotBackground: Boolean) {
@@ -279,7 +279,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         if (drawTextNotBackground) {
             drawSimpleTextCharByChar(
                 x, y, 0, char, textColor, backgroundColor,
-                AxisAlignment.MIN, AxisAlignment.MIN, batched = true
+                AxisAlignment.MIN, AxisAlignment.MIN,
             )
         } else if (backgroundColor != this.backgroundColor) {
             drawRect(x, y, charWidth, lineHeight, backgroundColor)
@@ -292,7 +292,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     ) {
         drawSimpleTextCharByChar(
             x, y, 0, char, textColor, backgroundColor,
-            AxisAlignment.MIN, AxisAlignment.MIN, batched = true
+            AxisAlignment.MIN, AxisAlignment.MIN,
         )
     }
 

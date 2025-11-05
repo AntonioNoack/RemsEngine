@@ -4,8 +4,8 @@ import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.jvm.HiddenOpenGLContext

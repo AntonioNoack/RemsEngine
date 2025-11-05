@@ -55,9 +55,6 @@ class TreeViewEntryPanel<V : Any>(
                 val font = font
                 minW = font.sampleWidth * 2 + padding.width
                 minH = font.sampleHeight + padding.height
-                if (text != textCacheKey.text || font.isBold != textCacheKey.isBold() || font.isItalic != textCacheKey.isItalic()) {
-                    textCacheKey = TextCacheKey(text, font)
-                }
             }
 
             override fun onCopyRequested(x: Float, y: Float) =

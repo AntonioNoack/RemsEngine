@@ -7,8 +7,8 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
-import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.raycast.RayHit
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.blendMode
@@ -18,8 +18,8 @@ import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -307,14 +307,12 @@ fun createCPUPanel(
 
         DrawTextures.drawTexture(it.x, it.y, it.width, it.height, cpuTexture, true, -1, null)
         val fontSize = monospaceFont.lineHeightI
-        DrawTexts.drawSimpleTextCharByChar(
-            it.x + 4,
-            it.y + it.height - fontSize * 2, 1,
+        DrawTexts.drawText(
+            it.x + 4, it.y + it.height - fontSize * 2, 1,
             "$cpuSpeed ns/e, $cpuFPS fps, $frameIndex spp"
         )
-        DrawTexts.drawSimpleTextCharByChar(
-            it.x + 4,
-            it.y + it.height - fontSize, 1,
+        DrawTexts.drawText(
+            it.x + 4, it.y + it.height - fontSize, 1,
             "CPU"
         )
     }
@@ -415,8 +413,8 @@ fun createGPUPanel(
 
         val gpuFPS = SECONDS_TO_NANOS / max(1, clockNanos.average)
         val fontSize = monospaceFont.sizeInt + 4
-        DrawTexts.drawSimpleTextCharByChar(it.x + 4, it.y + it.height - fontSize * 2, 2, "$gpuFPS fps, $frameIndex spp")
-        DrawTexts.drawSimpleTextCharByChar(it.x + 4, it.y + it.height - fontSize, 2, prefix)
+        DrawTexts.drawText(it.x + 4, it.y + it.height - fontSize * 2, 2, "$gpuFPS fps, $frameIndex spp")
+        DrawTexts.drawText(it.x + 4, it.y + it.height - fontSize, 2, prefix)
     }
 
     if (useComputeShader) {

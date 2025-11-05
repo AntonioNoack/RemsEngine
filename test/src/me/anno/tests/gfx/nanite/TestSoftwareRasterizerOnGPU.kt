@@ -83,7 +83,7 @@ fun testSoftwareRasterizerOnGPU() {
         it.editControls = object : DraggingControls(it.renderView) {
             override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.draw(x0, y0, x1, y1)
-                DrawTexts.drawSimpleTextCharByChar(
+                DrawTexts.drawText(
                     x1, y1, 2,
                     if (useTraditionalRendering()) "Baseline"
                     else "Software Rasterizer",

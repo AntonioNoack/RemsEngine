@@ -2,8 +2,6 @@ package me.anno.fonts
 
 import me.anno.cache.ICacheData
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.utils.types.Floats.toIntOr
-import kotlin.math.ceil
 import kotlin.math.min
 
 open class GlyphLayout(
@@ -19,8 +17,8 @@ open class GlyphLayout(
      * */
     val baseScale: Float = 1f / font.size
 
-    var width: Float = 0f
-    var height: Float = 0f
+    var width: Int = 0
+    var height: Int = 0
     var numLines: Int = 0
 
     init {
@@ -30,11 +28,11 @@ open class GlyphLayout(
     }
 
     fun getSizeX(widthLimit: Int): Int {
-        return min(ceil(width).toIntOr(), widthLimit)
+        return min(width, widthLimit)
     }
 
     fun getSizeY(heightLimit: Int): Int {
-        return min(ceil(height).toIntOr(), heightLimit)
+        return min(height, heightLimit)
     }
 
     fun getSize(widthLimit: Int, heightLimit: Int): Int {

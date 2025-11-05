@@ -1,6 +1,7 @@
 package me.anno.jvm.fonts
 
 import me.anno.config.DefaultConfig
+import me.anno.fonts.Font
 import me.anno.fonts.FontImpl
 import me.anno.image.raw.IntImage
 import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
@@ -15,42 +16,44 @@ import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.max
 
 object AWTFont : FontImpl<List<FontData>>() {
 
-    override fun getBaselineY(font: me.anno.fonts.Font): Float {
+    override fun getBaselineY(font: Font): Float {
         return FontManagerImpl.getAWTFont(font).baselineY
     }
 
-    override fun getFallbackFonts(font: me.anno.fonts.Font): List<FontData> {
+    override fun getFallbackFonts(font: Font): List<FontData> {
         return (listOf(font.name) + fallbackFontList).map { newName ->
             FontManagerImpl.getAWTFont(font.withName(newName))
         }
     }
 
-    override fun getLineHeight(font: me.anno.fonts.Font): Float {
+    override fun getLineHeight(font: Font): Float {
         return FontManagerImpl.getAWTFont(font).lineHeight
     }
 
-    override fun getTextLength(font: me.anno.fonts.Font, codepoint: Int): Float {
-        return FontManagerImpl.getTextLength1(font, codepoint).toFloat()
+    override fun getTextLength(font: Font, codepoint: Int): Int {
+        return FontManagerImpl.getTextLength1(font, codepoint)
     }
 
-    override fun getTextLength(font: me.anno.fonts.Font, codepointA: Int, codepointB: Int): Float {
-        return FontManagerImpl.getTextLength2(font, codepointA, codepointB).toFloat()
+    override fun getTextLength(font: Font, codepointA: Int, codepointB: Int): Int {
+        return FontManagerImpl.getTextLength2(font, codepointA, codepointB)
     }
 
     override fun drawGlyph(
         image: IntImage,
-        x0: Float, x1: Float, y0: Float, y1: Float, strictBounds: Boolean,
-        font: me.anno.fonts.Font, fallbackFonts: List<FontData>, fontIndex: Int,
-        codepoint: Int, textColor: Int, backgroundColor: Int, portableImages: Boolean
+        x0: Int, x1: Int, y0: Int, y1: Int, strictBounds: Boolean,
+        font: Font, fallbackFonts: List<FontData>, fontIndex: Int,
+        codepoint: Int, textColor: Int, backgroundColor: Int,
+        portableImages: Boolean
     ) {
 
         // todo cache the value if it makes sense... discretize fract(x0) and fract(y0) reasonably
 
         val fontData = fallbackFonts[fontIndex]
-        val tmp = BufferedImage((ceil(x1) - floor(x0)).toIntOr(), (y1 - y0).toIntOr(), BI_FORMAT)
+        val tmp = BufferedImage(max(x1 - x0 + 1, 1), y1 - y0, BI_FORMAT)
         val gfx = tmp.graphics as Graphics2D
         gfx.prepareGraphics(portableImages)
 
@@ -59,11 +62,9 @@ object AWTFont : FontImpl<List<FontData>>() {
 
         val text = if (codepoint in 0 until 128) asciiStrings[codepoint] else codepoint.joinChars()
         gfx.font = fontData.awtFont
-        gfx.drawString(text, fract(x0), fontData.baselineY + fract(y0))
+        gfx.drawString(text, 0f, fontData.baselineY)
         gfx.dispose()
 
-        val x0 = x0.toIntOr()
-        val y0 = y0.toIntOr()
         for (yi in 0 until tmp.height) {
             for (xi in 0 until tmp.width) {
                 val color = tmp.getRGB(xi, yi)

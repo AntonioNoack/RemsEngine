@@ -2,7 +2,6 @@ package me.anno.ui.editor.graph
 
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.fonts.Font
-import me.anno.fonts.FontManager
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
@@ -329,7 +328,7 @@ class NodePanel(
                 bg, gp.getTypeColor(con), bg
             )
         }
-        DrawTexts.drawTextOrFail(
+        DrawTexts.drawText(
             pxi + dx, pyi + dy, font, con.name, textColor,
             bg, -1, -1,
             if (dx < 0) AxisAlignment.MAX else AxisAlignment.MIN,

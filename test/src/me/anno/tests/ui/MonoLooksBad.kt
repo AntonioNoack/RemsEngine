@@ -1,7 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.drawing.DrawTexts.drawTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
@@ -18,10 +18,10 @@ fun main() {
     val font = TextPanel(style).font
     testDrawing("Messed up spacing") {
         it.clear()
-        drawTextCharByChar(
+        drawText(
             it.x + it.width / 2, it.y + it.height / 2, font, text, -1,
-            it.backgroundColor.withAlpha(0), -1, -1,
-            AxisAlignment.CENTER, AxisAlignment.CENTER, true
+            it.backgroundColor.withAlpha(0),
+            AxisAlignment.CENTER, AxisAlignment.CENTER
         )
     }
 }

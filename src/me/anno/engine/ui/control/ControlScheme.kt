@@ -23,8 +23,9 @@ import me.anno.engine.ui.render.DebugRendering.drawDebugSteps
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.input.Input
@@ -81,7 +82,6 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
 
     val isSelected get() = uiParent?.isAnyChildInFocus == true
 
-    private val rotQuad = Quaternionf()
     private val velocity = Vector3f()
 
     // todo this only works correctly like that in orthographic mode
@@ -460,9 +460,9 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
 
         val pbb = DrawTexts.pushBetterBlending(true)
         val usesBetterBlending = DrawTexts.canUseComputeShader()
-        drawSimpleTextCharByChar(
+        drawText(
             x + 2, y + height + 1,
-            0, debugBuilder,
+            monospaceFont, debugBuilder,
             FrameTimings.textColor,
             FrameTimings.background.color.withAlpha(if (usesBetterBlending) 0 else 255),
             AxisAlignment.MIN, AxisAlignment.MAX

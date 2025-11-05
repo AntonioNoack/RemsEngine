@@ -1,6 +1,6 @@
 package me.anno.tests.utils.hpc
 
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Threads
@@ -16,7 +16,7 @@ fun main() {
             synchronized(totalThreads) { totalThreads.add(Thread.currentThread().id) }
             Thread.sleep(1)
         }
-        drawSimpleTextCharByChar(
+        drawText(
             it.x + 10, it.y + it.height - 10, 0, "" +
                     "wait: ${Threads.numWaitingTasks}, " +
                     "sleep: ${Threads.numSleepingThreads}, " +

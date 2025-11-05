@@ -2,8 +2,10 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.WindowRenderFlags
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.input.Key
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
@@ -35,9 +37,9 @@ fun main() {
                     }
                 }
                 if (batch) DrawRectangles.finishBatch(v)
-                val size = DrawTexts.monospaceFont.sampleHeight
-                DrawTexts.drawSimpleTextCharByChar(x, y + height - size * 2, 2, if (batch) "Batch" else "Normal")
-                DrawTexts.drawSimpleTextCharByChar(x, y + height - size, 2, "${(y1 - y0) / s * (x1 - x0) / s}")
+                val size = monospaceFont.sampleHeight
+                drawText(x, y + height - size * 2, 2, if (batch) "Batch" else "Normal")
+                drawText(x, y + height - size, 2, "${(y1 - y0) / s * (x1 - x0) / s}")
             }
         }
     }

@@ -1,5 +1,6 @@
 package me.anno.experiments.elemental
 
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.io.config.ConfigBasics.cacheFolder
@@ -331,7 +332,7 @@ fun main() {
         }
 
         // var prevNode: Element? = null
-        val nameLengthFactor = DrawTexts.monospaceFont.sampleWidth / scale
+        val nameLengthFactor = monospaceFont.sampleWidth / scale
         for (node in nodesByX) {
 
             // val prevNode1 = prevNode
@@ -356,10 +357,9 @@ fun main() {
             DrawRectangles.drawRect(p0.x - halfSize, p0.y - halfSize, size, size, dotColor)
             DrawRectangles.drawRect(p1.x - halfSize, p1.y - halfSize, size, size, dotColor)
 
-            DrawTexts.drawSimpleTextCharByChar(
+            DrawTexts.drawText(
                 (p1.x + 1.5f * size).toInt(), p0.y.toInt(), 1, node.name,
-                AxisAlignment.MIN,
-                AxisAlignment.CENTER
+                AxisAlignment.MIN, AxisAlignment.CENTER
             )
 
             // zone labels

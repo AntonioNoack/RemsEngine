@@ -1,9 +1,9 @@
 package me.anno.ui.utils
 
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawCurves.lineBatch
-import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -68,18 +68,20 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         // good positioning for numbers
         val pow = -log10(gridSize).roundToIntOr()
         val msl = maxStringLength(max(abs(i0), abs(i1)), pow)
-        val dx = (DrawTexts.monospaceFont.sampleWidth * (2f + 0.5f * msl)).toInt()
-        val dy = DrawTexts.monospaceFont.sampleHeight shr 1
+        val dx = (monospaceFont.sampleWidth * (2f + 0.5f * msl)).toInt()
+        val dy = monospaceFont.sampleHeight shr 1
         val textX = clamp(coordsToWindowX(0.0).toInt(), x0 + dx, x1 - dx)
         val textY = clamp(coordsToWindowY(0.0).toInt(), y0 + dy, y1 - dy)
-        val bg = backgroundColor and 0xffffff
+        val backgroundColor = backgroundColor.withAlpha(0)
         var mod10i = i0 % 10
         if (mod10i < 0) mod10i += 10
         for (i in i0 until i1) {
             val gridX = i * gridSize
             val windowX = coordsToWindowX(gridX).toInt()
-            if (mod10i != 0L || all) drawSimpleTextCharByChar(
-                windowX, textY, 1, formatNumber(i, pow, gridSize), color, bg,
+            if (mod10i != 0L || all) drawText(
+                windowX, textY, 1,
+                monospaceFont, formatNumber(i, pow, gridSize),
+                color, backgroundColor,
                 AxisAlignment.CENTER, AxisAlignment.CENTER,
             )
             if (mod10i == 9L) mod10i = 0
@@ -90,8 +92,10 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         for (j in j0 until j1) {
             val gridY = j * gridSize
             val windowY = coordsToWindowY(gridY).toInt()
-            if (mod10j != 0L || all) drawSimpleTextCharByChar(
-                textX, windowY, 1, formatNumber(-j, pow, gridSize), color, bg,
+            if (mod10j != 0L || all) drawText(
+                textX, windowY, 1,
+                monospaceFont, formatNumber(-j, pow, gridSize),
+                color, backgroundColor,
                 AxisAlignment.CENTER, AxisAlignment.CENTER
             )
             if (mod10j == 9L) mod10j = 0
@@ -131,10 +135,7 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
             val mx = window.mouseX.toDouble()
             val vx = windowToCoordsX(mx)
             val vy = (0 until getNumFunctions()).map { getValue(it, vx) }
-            drawSimpleTextCharByChar(
-                x, y, 2,
-                "$funcName($vx): $vy"
-            )
+            drawText(x, y, 2, "$funcName($vx): $vy")
         }
     }
 

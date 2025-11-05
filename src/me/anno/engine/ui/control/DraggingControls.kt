@@ -24,7 +24,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.drawing.DrawRectangles.drawBorder
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.input.Key
@@ -238,9 +238,9 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     }
 
     fun drawModeName() {
-        drawSimpleTextCharByChar(
+        drawText(
             x + width, y + height, 2, getModeName(),
-            -1, background.color, AxisAlignment.MAX, AxisAlignment.MAX
+            AxisAlignment.MAX, AxisAlignment.MAX
         )
     }
 

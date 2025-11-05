@@ -4,12 +4,11 @@ import me.anno.config.DefaultConfig.style
 import me.anno.fonts.Font
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderDoc.disableRenderDoc
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.drawText
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.input.Key
 import me.anno.io.files.FileReference
@@ -198,7 +197,7 @@ fun main() {
                 val rx = radius * 3f
                 if (x + rx > this.x && y + rx > this.y && x - rx < this.x + width && y - rx < this.y + height) {
                     if (font.sizeInt in 5..(height / 3)) {
-                        drawText(
+                        DrawTexts.drawText(
                             x.toInt(), y.toInt(), font, pck.name,
                             if (pck == hoveredPck) cornFlowerBlue or black else textColor, backgroundColor.withAlpha(0),
                             -1, -1, AxisAlignment.CENTER, AxisAlignment.CENTER
@@ -257,13 +256,13 @@ fun main() {
                     x += 2
                     y += 2
                     val ts = monospaceFont.sizeInt
-                    drawSimpleTextCharByChar(x, y, 1, "--- ${pck.path} ---", tc, bc)
+                    drawText(x, y, 1, monospaceFont, "--- ${pck.path} ---", tc, bc)
                     y += ts * 3 / 2
                     for ((dep, times) in pck.dependencies2.entries
                         .sortedBy { it.key.path }
                         .sortedByDescending { it.value.size }) {
-                        drawSimpleTextCharByChar(
-                            x, y, 1,
+                        drawText(
+                            x, y, 1, monospaceFont,
                             if (times.size == 1) {
                                 times.first().path
                             } else {

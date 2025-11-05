@@ -7,7 +7,7 @@ import me.anno.engine.NamedTask
 import me.anno.gpu.GFX.INVALID_POINTER64
 import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.WindowManagement.glfwTasks
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.input.Input
 import me.anno.input.Output
 import me.anno.ui.Window

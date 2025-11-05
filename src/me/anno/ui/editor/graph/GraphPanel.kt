@@ -1,10 +1,10 @@
 package me.anno.ui.editor.graph
 
 import me.anno.Time
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawGradients
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.graph.visual.Graph
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeConnector
@@ -107,7 +107,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     override val childSizeX: Long get() = width + maxScrollPositionX
     override val childSizeY: Long get() = height + maxScrollPositionY
 
-    var font = DrawTexts.monospaceFont
+    var font = monospaceFont
 
     var gridColor = 0x10ffffff
 

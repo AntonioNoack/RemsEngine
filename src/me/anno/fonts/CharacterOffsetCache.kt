@@ -2,30 +2,33 @@ package me.anno.fonts
 
 import me.anno.maths.Maths
 import me.anno.maths.Packing
+import me.anno.utils.types.Floats.toIntOr
+import speiger.primitivecollections.IntToIntHashMap
 import speiger.primitivecollections.LongToDoubleHashMap
+import speiger.primitivecollections.LongToIntHashMap
 
 class CharacterOffsetCache(val font: Font) {
 
     private val fontImpl = FontManager.getFontImpl()
-    private val charDistance = LongToDoubleHashMap(0.0)// |a| = |ab| - |b|
-    private val charWidth = LongToDoubleHashMap(0.0)// |a|
+    private val charDistance = LongToIntHashMap(0)// |a| = |ab| - |b|
+    private val charWidth = IntToIntHashMap(0)// |a|
 
     val spaceWidth by lazy {
         val xLength = fontImpl.getTextLength(font, 'o'.code)
-        Maths.clamp(xLength, 1f, font.size) * 0.667f
+        Maths.clamp(xLength, 1, font.sizeInt) * 2 / 3
     }
 
-    val emojiSize = font.sizeInt.toFloat()
-    val emojiPadding = emojiSize * IEmojiCache.emojiPadding
+    val emojiSize = font.sizeInt
+    val emojiPadding = (emojiSize * IEmojiCache.emojiPadding).toIntOr()
 
-    fun getCharLength(codepoint: Int): Float {
+    fun getCharLength(codepoint: Int): Int {
         if (codepoint == ' '.code) return spaceWidth
-        return charWidth.getOrPut(codepoint.toLong()) {
-            fontImpl.getTextLength(font, codepoint).toDouble()
-        }.toFloat()
+        return charWidth.getOrPut(codepoint) {
+            fontImpl.getTextLength(font, codepoint)
+        }
     }
 
-    fun getLength(codepointA: Int, codepointB: Int): Float {
+    fun getLength(codepointA: Int, codepointB: Int): Int {
         return if (codepointA == ' '.code || codepointB == ' '.code) {
             getCharLength(codepointA) + getCharLength(codepointB)
         } else fontImpl.getTextLength(font, codepointA, codepointB)
@@ -34,7 +37,7 @@ class CharacterOffsetCache(val font: Font) {
     /**
      * get |AB| - |B| aka, the length of A when standing before B
      * */
-    fun getOffset(codepointA: Int, codepointB: Int): Float {
+    fun getOffset(codepointA: Int, codepointB: Int): Int {
         return synchronized(this) {
             charDistance.getOrPut(Packing.pack64(codepointA, codepointB)) {
                 val ai = Codepoints.isEmoji(codepointA)
@@ -49,8 +52,8 @@ class CharacterOffsetCache(val font: Font) {
                         val abLength = getLength(codepointA, codepointB)
                         abLength - bLength
                     }
-                }.toDouble()
-            }.toFloat()
+                }
+            }
         }
     }
 

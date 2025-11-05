@@ -2,7 +2,6 @@ package me.anno.ui.base.menu
 
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.getTextSizeCharByChar
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
@@ -83,13 +82,15 @@ class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val magicIndex: Int, val
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
-        minW += getSizeX(getTextSizeCharByChar(font, " →", true))
+        minW += DrawTexts.getTextSizeX(font, " →")
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
         DrawTexts.drawText( // draw arrow right-aligned
-            x + width - padding.right, y, font, TextCacheKey("→", font), textColor, backgroundColor,
+            x + width - padding.right, y,
+            font, "→",
+            textColor, backgroundColor,
             AxisAlignment.MAX, AxisAlignment.MIN
         )
         if (magicIndex in text.indices) {

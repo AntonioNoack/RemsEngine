@@ -7,7 +7,6 @@ import me.anno.image.raw.IntImage
 import me.anno.maths.Maths.clamp
 import me.anno.utils.OS.res
 import me.anno.utils.async.Callback
-import me.anno.utils.types.Floats.toIntOr
 
 /**
  * generates a fallback font when other text sources are unavailable using a pre-generated texture;
@@ -52,25 +51,25 @@ object AtlasFontGenerator : FontImpl<Unit>() {
 
     override fun drawGlyph(
         image: IntImage,
-        x0: Float, x1: Float, y0: Float, y1: Float, strictBounds: Boolean,
+        x0: Int, x1: Int, y0: Int, y1: Int, strictBounds: Boolean,
         font: Font, fallbackFonts: Unit, fontIndex: Int,
-        codepoint: Int, textColor: Int, backgroundColor: Int, portableImages: Boolean
+        codepoint: Int, textColor: Int, backgroundColor: Int,
+        portableImages: Boolean
     ) {
         val tmp = Promise<List<IntImage>>()
         getImageStack(font, tmp)
         val images = tmp.waitFor()!!
         val charImage = images[clamp(getIndex(codepoint), 0, images.lastIndex)]
-        val dx = x0.toIntOr()
-        val dy = ((y0 + y1) - charImage.height + 1).toIntOr()
-        charImage.copyInto(image, dx, dy)
+        val dy = (y0 + y1) - charImage.height + 1
+        charImage.copyInto(image, x0, dy)
     }
 
-    override fun getTextLength(font: Font, codepoint: Int): Float {
-        return charSizeX(font).toFloat()
+    override fun getTextLength(font: Font, codepoint: Int): Int {
+        return charSizeX(font)
     }
 
-    override fun getTextLength(font: Font, codepointA: Int, codepointB: Int): Float {
-        return charSizeX(font) * 2f + 1f // 1 for spacing
+    override fun getTextLength(font: Font, codepointA: Int, codepointB: Int): Int {
+        return charSizeX(font) * 2 + 1 // 1 for spacing
     }
 
     override fun getFallbackFonts(font: Font) = Unit

@@ -40,7 +40,7 @@ import me.anno.gpu.M4x3Delta.mul4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DeferredRenderer
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -345,7 +345,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     fun drawTextCenter(text: String) {
         val pbb = pushBetterBlending(true)
-        drawSimpleTextCharByChar(
+        drawText(
             x + width / 2, y + height / 2, 4, text,
             AxisAlignment.CENTER, AxisAlignment.CENTER
         )

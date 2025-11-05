@@ -19,6 +19,6 @@ fun main() {
     disableRenderDoc()
     OfficialExtensions.initForTests()
     val ui = PanelListY(style).add(PureTextInput(style))
-    println(getSizeY(getTextSize(Font("Verdana", 20), "x",-1,-1).waitFor()!!))
+    println(getSizeY(getTextSize(Font("Verdana", 20), "x",-1,-1)))
     testUI3("Incorrect Cursor", ui)
 }

@@ -16,9 +16,9 @@ fun main() {
     OfficialExtensions.initForTests()
 
     val font = Font("Verdana", 12f)
-    val w0 = getSizeX(getTextSize(font, "text", -1, -1).waitFor()!!)
-    val w1 = getSizeX(getTextSize(font, "text\t", -1, -1).waitFor()!!)
-    val w2 = getSizeX(getTextSize(font, "text\t\t", -1, -1).waitFor()!!)
+    val w0 = getSizeX(getTextSize(font, "text", -1, -1))
+    val w1 = getSizeX(getTextSize(font, "text\t", -1, -1))
+    val w2 = getSizeX(getTextSize(font, "text\t\t", -1, -1))
 
     println("ws: $w0, $w1, $w2")
 

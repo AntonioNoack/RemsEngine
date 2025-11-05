@@ -3,8 +3,8 @@ package me.anno.ui.base.text
 import me.anno.config.DefaultStyle
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
@@ -83,9 +83,9 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     }
 
     open fun drawLine(text: CharSequence, x: Int, y: Int) {
-        DrawTexts.drawSimpleTextCharByChar(
-            x, y, 2,
-            text, textColor, backgroundColor.withAlpha(0),
+        DrawTexts.drawText(
+            x, y, 2, monospaceFont, text,
+            textColor, backgroundColor.withAlpha(0),
             textAlignmentX, textAlignmentY
         )
     }

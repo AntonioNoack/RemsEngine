@@ -9,8 +9,8 @@ import me.anno.games.creeperworld.RockTypes.hardness
 import me.anno.games.creeperworld.RockTypes.rock
 import me.anno.games.creeperworld.RockTypes.stone
 import me.anno.gpu.GPUTasks.addGPUTask
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageCache
@@ -292,13 +292,13 @@ fun main() {
                     val mi = mx + my * w
                     val lineHeight = monospaceFont.lineHeightI
                     var yj = this.y + this.height - lineHeight * (world.fluidTypes.fluids.size + 1)
-                    drawSimpleTextCharByChar(
+                    drawText(
                         this.x, yj, 1,
                         "$mx, $my"
                     )
                     yj += lineHeight
                     for (fluid in world.fluidTypes.fluids) {
-                        drawSimpleTextCharByChar(
+                        drawText(
                             this.x, yj, 1,
                             "${fluid.id}: ${fluid.data.level.read[mi].f3()}, " +
                                     "vx: ${fluid.data.impulseX.read[mi].toInt()}, " +
@@ -312,7 +312,7 @@ fun main() {
             fun drawFluidTotals() {
                 var yj = this.y
                 for (fluid in world.fluidTypes.fluids) {
-                    drawSimpleTextCharByChar(
+                    drawText(
                         this.x + this.width, yj, 1,
                         "${fluid.id}: ${sumByType[fluid.id]}", AxisAlignment.MAX, AxisAlignment.MIN
                     )

@@ -31,7 +31,6 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
     private var loadTextSync = false
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(loadTextSync)
-        instantTextLoading = true
         super.draw(x0, y0, x1, y1)
         drawSuggestionLines(x0, x1)
         loadTexturesSync.pop()

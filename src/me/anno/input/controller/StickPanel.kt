@@ -1,7 +1,7 @@
 package me.anno.input.controller
 
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.utils.Color.black
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.maths.Maths.length
 import me.anno.maths.MinMax.max
 import me.anno.ui.Style
@@ -47,7 +47,7 @@ class StickPanel(
         val vx = controller.getRawAxis(axis0)
         val vy = controller.getRawAxis(axis1)
 
-        drawSimpleTextCharByChar(x, y, 2, "${vx.f3s()}, ${vy.f3s()}")
+        drawText(x, y, 2, "${vx.f3s()}, ${vy.f3s()}")
 
         cross(vx, vy, 0.3f, -1)
 

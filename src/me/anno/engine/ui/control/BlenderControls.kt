@@ -35,9 +35,8 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
     var isLocking = false
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-
-        DrawTexts.drawSimpleTextCharByChar(x, y, 2, number)
-        DrawTexts.drawSimpleTextCharByChar(x, y + 20, 2, mode.name)
+        DrawTexts.drawText(x, y, 2, number)
+        DrawTexts.drawText(x, y + 20, 2, mode.name)
     }
 
     fun getAxis(): Vector3f {

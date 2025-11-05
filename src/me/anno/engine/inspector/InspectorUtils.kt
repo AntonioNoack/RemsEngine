@@ -118,7 +118,7 @@ object InspectorUtils {
         xList.add(TextPanel("$title:", style))
         val relevantInstances = instances.filter { it::class == instances.first()::class }
         // todo bug: why is text floating at the top???
-        val limiter = SizeLimitingContainer(UpdatingSimpleTextPanel(100L, style) {
+        val limiter = SizeLimitingContainer(UpdatingTextPanel(100L, style) {
             relevantInstances.joinToString { relevantInstance ->
                 when (val i = getter(relevantInstance)) {
                     is AABBf -> "${i.minX} - ${i.maxX}\n" +

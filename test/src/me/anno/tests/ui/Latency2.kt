@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.RenderDoc.disableRenderDoc
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Input
 import me.anno.input.Key
@@ -63,9 +64,9 @@ fun main() {
             }
             toBeChanged -= Time.deltaTime.toFloat()
             it.clear()
-            DrawTexts.drawSimpleTextCharByChar(
+            DrawTexts.drawText(
                 it.x + it.width / 2, it.y + it.height / 2, 0,
-                shownText, white, it.backgroundColor,
+                monospaceFont, shownText, white, it.backgroundColor,
                 AxisAlignment.CENTER,
                 AxisAlignment.CENTER
             )

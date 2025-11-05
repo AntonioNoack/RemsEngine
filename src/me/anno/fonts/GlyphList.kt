@@ -11,56 +11,53 @@ open class GlyphList(capacity: Int) {
 
     fun isEmpty() = size == 0
 
-    private var ints = IntArray(capacity * 3)
-    private var floats = FloatArray(capacity * 4)
+    private var ints = IntArray(capacity * 7)
 
     fun add(
         codepoint: Int,
-        x0: Float, x1: Float, lineWidth: Float,
-        y: Float, lineIndex: Int, fontIndex: Int
+        x0: Int, x1: Int, lineWidth: Int,
+        y: Int, lineIndex: Int, fontIndex: Int
     ) {
         val glyphIndex = size
-        if (glyphIndex * 3 >= ints.size) {
-            val newSize = max(16, glyphIndex * 2)
-            floats = floats.copyOf(newSize * 4)
-            ints = ints.copyOf(newSize * 3)
+        if (glyphIndex * 7 >= ints.size) {
+            val newSize = max(16, glyphIndex * 7)
+            ints = ints.copyOf(newSize * 7)
         }
 
-        val floats = floats
-        val floatOffset = glyphIndex * 4
-        floats[floatOffset] = x0
-        floats[floatOffset + 1] = x1
-        floats[floatOffset + 2] = y
-        floats[floatOffset + 3] = lineWidth
-
         val ints = ints
-        ints[glyphIndex * 3] = codepoint
-        ints[glyphIndex * 3 + 1] = lineIndex
-        ints[glyphIndex * 3 + 2] = fontIndex
+        val di = glyphIndex * 7
+        ints[di] = codepoint
+        ints[di + 1] = lineIndex
+        ints[di + 2] = fontIndex
+        ints[di + 3] = x0
+        ints[di + 4] = x1
+        ints[di + 5] = y
+        ints[di + 6] = lineWidth
         size = glyphIndex + 1
     }
 
-    fun getX0(glyphIndex: Int) = floats[glyphIndex * 4]
-    fun getX1(glyphIndex: Int) = floats[glyphIndex * 4 + 1]
-    fun getY(glyphIndex: Int) = floats[glyphIndex * 4 + 2]
-    fun getLineWidth(glyphIndex: Int) = floats[glyphIndex * 4 + 3]
-    fun setLineWidth(glyphIndex: Int, lineWidth: Float) {
-        floats[glyphIndex * 4 + 3] = lineWidth
+    fun getX0(glyphIndex: Int) = ints[glyphIndex * 7 + 3]
+    fun getX1(glyphIndex: Int) = ints[glyphIndex * 7 + 4]
+    fun getY(glyphIndex: Int) = ints[glyphIndex * 7 + 5]
+    fun getLineWidth(glyphIndex: Int) = ints[glyphIndex * 7 + 6]
+    fun setLineWidth(glyphIndex: Int, lineWidth: Int) {
+        ints[glyphIndex * 7 + 6] = lineWidth
     }
 
-    fun getCodepoint(glyphIndex: Int) = ints[glyphIndex * 3]
+    fun getCodepoint(glyphIndex: Int) = ints[glyphIndex * 7]
 
     @Suppress("unused")
-    fun getLineIndex(glyphIndex: Int) = ints[glyphIndex * 3 + 1]
-    fun getFontIndex(glyphIndex: Int) = ints[glyphIndex * 3 + 2]
+    fun getLineIndex(glyphIndex: Int) = ints[glyphIndex * 7 + 1]
+    fun getFontIndex(glyphIndex: Int) = ints[glyphIndex * 7 + 2]
 
-    fun move(dx: Float, dy: Float, deltaLineWidth: Float) {
+    fun move(dx: Int, dy: Int, deltaLineWidth: Int) {
+        val ints = ints
         for (i in 0 until size) {
-            val di = i * 4
-            floats[di] += dx
-            floats[di + 1] += dx
-            floats[di + 2] += dy
-            floats[di + 3] += deltaLineWidth
+            val di = i * 7
+            ints[di + 3] += dx
+            ints[di + 4] += dx
+            ints[di + 5] += dy
+            ints[di + 6] += deltaLineWidth
         }
     }
 

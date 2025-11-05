@@ -3,6 +3,7 @@ package me.anno.tests.ui
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -19,7 +20,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
 
     val padding = 1
-    val lineHeight = DrawTexts.monospaceFont.sizeInt + padding
+    val lineHeight = monospaceFont.sizeInt + padding
 
     val lines = listOf(
         'A'..'Z',
@@ -31,7 +32,7 @@ fun main() {
         else it.toString()
     }
 
-    val charWidth = DrawTexts.monospaceFont.sampleWidth
+    val charWidth = monospaceFont.sampleWidth
     assertTrue(charWidth > 0)
 
     val image = Framebuffer("mono",
@@ -46,8 +47,10 @@ fun main() {
             val y = yi * lineHeight + padding
             for ((xi, char) in line.withIndex()) {
                 val x = padding + xi * (charWidth + padding)
-                DrawTexts.drawSimpleTextCharByChar(
-                    x, y, 0, char.toString(), -1, 0
+                DrawTexts.drawText(
+                    x, y, 0,
+                    monospaceFont, char.toString(),
+                    -1, 0
                 )
             }
         }

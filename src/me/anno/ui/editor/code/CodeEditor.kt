@@ -4,11 +4,10 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.history.StringHistory
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
-import me.anno.fonts.keys.TextCacheKey
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawStriped.drawRectStriped
 import me.anno.gpu.drawing.DrawTexts.drawText
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.Key
@@ -258,8 +257,9 @@ open class CodeEditor(style: Style) : Panel(style) {
         val y = getCharY(yi)
         drawRect(x, y, charWidth, lineHeight, backgroundColor or black)
         drawText(
-            x + charWidth.shr(1), y, font, TextCacheKey(char.toString(), font),
-            textColor, backgroundColor and 0xffffff,
+            x + charWidth.shr(1), y, 0,
+            font, char.toString(),
+            textColor, backgroundColor.withAlpha(0),
             AxisAlignment.CENTER, AxisAlignment.MIN
         )
     }
@@ -275,9 +275,9 @@ open class CodeEditor(style: Style) : Panel(style) {
         val font = fonts[bold.toInt(1) + italic.toInt(2)]
         val text = char.joinChars()
         drawText(
-            getCharX(xi) + charWidth.shr(1), getCharY(yi),
-            font, TextCacheKey(text, font),
-            textColor, backgroundColor and 0xffffff,
+            getCharX(xi) + charWidth.shr(1), getCharY(yi), 0,
+            font, text,
+            textColor, backgroundColor.withAlpha(0),
             AxisAlignment.CENTER, AxisAlignment.MIN
         )
     }

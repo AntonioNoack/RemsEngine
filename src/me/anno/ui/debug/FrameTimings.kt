@@ -1,13 +1,15 @@
 package me.anno.ui.debug
 
+import com.sun.java.swing.plaf.motif.resources.motif
 import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.GFXx2D.noTiling
@@ -212,8 +214,9 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
         val pad = 2
         val x = pushBetterBlending(true)
-        drawSimpleTextCharByChar(
-            x0 + pad, y0 + pad, pad, text,
+        drawText(
+            x0 + pad, y0 + pad, pad,
+            monospaceFont, text,
             textColor, backgroundColor.withAlpha(180)
         )
         popBetterBlending(x)

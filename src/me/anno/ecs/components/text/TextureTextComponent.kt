@@ -67,14 +67,14 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
     }
 
     private val material = Material()
-    private var key = TextCacheKey.getTextCacheKey(
+    private var key = TextCacheKey(
         font, text, widthLimitToAbsolute(relativeWidthLimit, font),
         -1, true
     )
 
     override fun onTextOrFontChange() {
         super.onTextOrFontChange()
-        key = TextCacheKey.getTextCacheKey(
+        key = TextCacheKey(
             font, text, widthLimitToAbsolute(relativeWidthLimit, font),
             -1, true
         )

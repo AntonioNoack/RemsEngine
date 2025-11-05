@@ -19,10 +19,9 @@ import me.anno.gpu.Clipping
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
-import me.anno.gpu.drawing.DrawTexts.drawTextCharByChar
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -148,7 +147,6 @@ open class FileExplorerEntry(
     init {
         titlePanel.breaksIntoMultiline = true
         titlePanel.parent = this
-        titlePanel.instantTextLoading = false
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -404,7 +402,7 @@ open class FileExplorerEntry(
             x0 - extra, y0 - extra, x1, y1,
             this.lx0, this.ly0, this.lx1, this.ly1
         ) { _, _, _, _ ->
-            drawSimpleTextCharByChar(x + padding - extra, y + padding - extra, 1, format)
+            drawText(x + padding - extra, y + padding - extra, 1, format)
         }
     }
 
@@ -594,14 +592,11 @@ open class FileExplorerEntry(
                 val text = column.type.getValue(ref1s)
                 val alignment = column.type.alignment
                 Clipping.clip(xi0, y, xi1 - xi0, h) {
-                    drawTextCharByChar(
+                    drawText(
                         alignment.getAnchor(xi0, xi1 - xi0),
-                        y + h, monospaceFont, text,
-                        titlePanel.textColor,
-                        titlePanel.backgroundColor,
-                        -1, -1,
-                        alignment, AxisAlignment.MAX,
-                        true
+                        y + h, 1, monospaceFont, text,
+                        titlePanel.textColor, titlePanel.backgroundColor,
+                        alignment, AxisAlignment.MAX
                     )
                 }
                 sumW += column.weight
@@ -655,7 +650,7 @@ open class FileExplorerEntry(
 
     private fun drawTitle(x0: Int, y0: Int, x1: Int, y1: Int) {
         val pbb = pushBetterBlending(true)
-        DrawTexts.drawTextOrFail(
+        DrawTexts.drawText(
             (x0 + x1).shr(1), (y0 + y1).shr(1),
             titlePanel.font, titlePanel.text,
             titlePanel.textColor,

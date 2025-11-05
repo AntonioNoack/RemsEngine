@@ -7,19 +7,20 @@ import me.anno.engine.DefaultAssets
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
-import me.anno.input.Key
-import me.anno.io.files.InvalidRef
-import me.anno.io.json.saveable.JsonStringReader
-import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.io.saveable.Saveable.Companion.registerCustomClass
-import me.anno.language.translation.NameDesc
 import me.anno.games.flatworld.buildings.controls.BuildingDeleteControls
 import me.anno.games.flatworld.buildings.controls.BuildingPlaceControls
 import me.anno.games.flatworld.streets.StreetSegmentData
 import me.anno.games.flatworld.streets.controls.StreetBuildingControls
 import me.anno.games.flatworld.streets.controls.StreetDeletingControls
 import me.anno.games.flatworld.vehicles.RandomVehicle.spawnRandomVehicle
+import me.anno.gpu.drawing.DefaultFonts.monospaceFont
+import me.anno.gpu.drawing.DrawTexts.drawText
+import me.anno.input.Key
+import me.anno.io.files.InvalidRef
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.buttons.TextButton.Companion.drawButtonBorder
@@ -181,9 +182,9 @@ class EditTypeButton(val sceneView: SceneView, val text: String, val controls: C
             leftColor, topColor, rightColor, bottomColor,
             true, borderSize, isPressed
         )
-        drawSimpleTextCharByChar(
+        drawText(
             x + width / 2, y + height / 2, 2,
-            text, -1, backgroundColor,
+            monospaceFont, text, -1, backgroundColor,
             AxisAlignment.CENTER, AxisAlignment.CENTER
         )
     }

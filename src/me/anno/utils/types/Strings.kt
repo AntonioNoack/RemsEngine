@@ -264,6 +264,16 @@ object Strings {
     }
 
     @JvmStatic
+    fun incrementTab(x0: Int, tabSize: Int, relativeTabSize: Float): Int {
+        var x = x0
+        x = (x / tabSize + 1) * tabSize
+        if ((1f - fract(x.toFloat() / tabSize.toFloat())) * relativeTabSize < 1f) {// smaller than a space? -> add a tab
+            x += tabSize
+        }
+        return x
+    }
+
+    @JvmStatic
     fun addPrefix(prefix: String?, suffix: String): String {
         return if (prefix == null) suffix
         else "$prefix$suffix"

@@ -3,7 +3,6 @@ package me.anno.fonts
 import me.anno.image.raw.IntImage
 import me.anno.io.base64.Base64
 import me.anno.utils.types.Booleans.hasFlag
-import me.anno.utils.types.Floats.toIntOr
 
 /**
  * generates a fallback font when other text sources are unavailable using 7-segment-style lines
@@ -62,11 +61,23 @@ object LinesFontGenerator : FontImpl<Unit>() {
         return charHeight(font).toFloat()
     }
 
-    private fun generateTexture(
-        image: IntImage, x0: Int, y0: Int,
-        font: Font, b: Byte
+    override fun getTextLength(font: Font, codepoint: Int): Int {
+        return charWidth(font)
+    }
+
+    override fun getTextLength(font: Font, codepointA: Int, codepointB: Int): Int {
+        return charWidth(font) * 2 + 1
+    }
+
+    override fun drawGlyph(
+        image: IntImage,
+        x0: Int, x1: Int, y0: Int, y1: Int, strictBounds: Boolean,
+        font: Font, fallbackFonts: Unit, fontIndex: Int,
+        codepoint: Int, textColor: Int, backgroundColor: Int,
+        portableImages: Boolean
     ) {
-        val bi = b.toInt()
+        if (codepoint > 0xffff) return
+        val bi = getCharValue(codepoint.toChar()).toInt()
         val height = charHeight(font)
         val sz = sz(font)
         // draw all lines
@@ -77,25 +88,6 @@ object LinesFontGenerator : FontImpl<Unit>() {
         if (bi.hasFlag(16)) h(image, y0 + 1, x0 + 2, sz)
         if (bi.hasFlag(32)) h(image, y0 + sz + 2, x0 + 2, sz)
         if (bi.hasFlag(64)) h(image, y0 + height - 2, x0 + 2, sz)
-    }
-
-    override fun getTextLength(font: Font, codepoint: Int): Float {
-        return charWidth(font).toFloat()
-    }
-
-    override fun getTextLength(font: Font, codepointA: Int, codepointB: Int): Float {
-        return charWidth(font) * 2f + 1f
-    }
-
-    override fun drawGlyph(
-        image: IntImage,
-        x0: Float, x1: Float, y0: Float, y1: Float, strictBounds: Boolean,
-        font: Font, fallbackFonts: Unit, fontIndex: Int,
-        codepoint: Int, textColor: Int, backgroundColor: Int, portableImages: Boolean
-    ) {
-        if (codepoint > 0xffff) return
-        val charValue = getCharValue(codepoint.toChar())
-        generateTexture(image, x0.toIntOr(), y0.toIntOr(), font, charValue)
     }
 
     override fun getFallbackFonts(font: Font): Unit = Unit
