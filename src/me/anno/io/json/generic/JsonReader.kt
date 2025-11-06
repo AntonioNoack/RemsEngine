@@ -63,10 +63,44 @@ open class JsonReader(val data: Reader) : GenericReader {
         return next.toChar()
     }
 
+    fun nextOrSpace(): Char {
+        if (tmpChar != 0.toChar()) {
+            val v = tmpChar
+            tmpChar = 0.toChar()
+            return v
+        }
+        val next = data.read()
+        if (next < 0) return ' '
+        return next.toChar()
+    }
+
     fun skipSpace(): Char {
-        return when (val next = next()) {
-            '\r', '\n', '\t', ' ' -> skipSpace()
-            else -> next
+        // todo add comment-skipping capabilities to the other JSON readers, too,
+        //  or better, let them use this generic JSON reader
+        search@ while (true) {
+            when (val next = next()) {
+                '\r', '\n', '\t', ' ' -> {}
+                '/' -> when (val next = next()) {
+                    '/' -> while (true) {
+                        when (next()) {
+                            '\n', '\r' -> continue@search
+                        }
+                    }
+                    '*' -> {
+                        var prev = ' '
+                        while (true) {
+                            val curr = next()
+                            if (curr == '/' && prev == '*') continue@search
+                            prev = curr
+                        }
+                    }
+                    else -> {
+                        putBack(next)
+                        return '/'
+                    }
+                }
+                else -> return next
+            }
         }
     }
 
@@ -138,7 +172,7 @@ open class JsonReader(val data: Reader) : GenericReader {
         builder.clear()
         var isFirst = true
         while (true) {
-            when (val next = if (isFirst) skipSpace() else next()) {
+            when (val next = if (isFirst) skipSpace() else nextOrSpace()) {
                 in '0'..'9', '+', '-', '.', 'e', 'E' -> {
                     builder.append(next)
                 }
@@ -210,16 +244,16 @@ open class JsonReader(val data: Reader) : GenericReader {
         writer.endObject()
     }
 
-    fun readObject(filter: ((CharSequence) -> Boolean)? = null): HashMap<String, Any?> {
-        val reader = object : ObjectReader() {
-            override fun attr(tag: CharSequence): Boolean {
-                super.attr(tag)
-                return if (filter != null) filter(tag) else true
-            }
+    private class FilteredObjectReader(val filter: ((CharSequence) -> Boolean)?) : ObjectReader() {
+        override fun attr(tag: CharSequence): Boolean {
+            super.attr(tag)
+            return if (filter != null) filter(tag) else true
         }
-        read(reader)
+    }
+
+    fun readObject(filter: ((CharSequence) -> Boolean)? = null): HashMap<String, Any?> {
         @Suppress("UNCHECKED_CAST")
-        return reader.result as HashMap<String, Any?>
+        return read(filter) as HashMap<String, Any?>
     }
 
     fun skipObject(readOpeningBracket: Boolean = true) {
@@ -242,6 +276,13 @@ open class JsonReader(val data: Reader) : GenericReader {
 
     override fun read(writer: GenericWriter) {
         readValue(skipSpace(), writer)
+    }
+
+
+    fun read(filter: ((CharSequence) -> Boolean)? = null): Any? {
+        val reader = FilteredObjectReader(filter)
+        read(reader)
+        return reader.result
     }
 
     fun readValue(next: Char, writer: GenericWriter) {

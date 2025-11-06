@@ -47,7 +47,7 @@ class JsonWriterPathTest {
 
     val instances0 = listOf(
         // complex objects with references like paths
-        Path.Companion.ROOT_PATH,
+        Path.ROOT_PATH,
         // objects with circular references
            Circular(1),
            Circular(2, Circular(3)),
@@ -58,9 +58,9 @@ class JsonWriterPathTest {
     fun testAnyPropertyWriter(encoding: FileEncoding) {
 
         // register classes
-        Saveable.Companion.registerCustomClass(UnknownSaveable())
-        Saveable.Companion.registerCustomClass(Path())
-        Saveable.Companion.registerCustomClass(Circular())
+        Saveable.registerCustomClass(UnknownSaveable())
+        Saveable.registerCustomClass(Path())
+        Saveable.registerCustomClass(Circular())
 
         // prepare mega-instance will all properties
         val instance = UnknownSaveable()

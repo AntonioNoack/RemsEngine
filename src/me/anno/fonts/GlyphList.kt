@@ -21,7 +21,7 @@ open class GlyphList(capacity: Int) : IGlyphLayout() {
     private var ints = IntArray(capacity * NUM_INTS)
 
     override fun add(codepoint: Int, x0: Int, x1: Int, lineIndex: Int, fontIndex: Int) {
-        val glyphIndex = size
+        val glyphIndex = size++
         if (glyphIndex * NUM_INTS >= ints.size) {
             val newSize = max(16, glyphIndex * NUM_INTS)
             ints = ints.copyOf(newSize * NUM_INTS)
@@ -34,7 +34,6 @@ open class GlyphList(capacity: Int) : IGlyphLayout() {
         ints[di + ATTR_FONT_INDEX] = fontIndex
         ints[di + ATTR_X0] = x0
         ints[di + ATTR_X1] = x1
-        size = glyphIndex + 1
     }
 
     fun getX0(glyphIndex: Int) = ints[glyphIndex * NUM_INTS + ATTR_X0]
