@@ -99,7 +99,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.TRIANGLE_MESH_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.CONCAVE_TRIANGLE_MESH
 
     fun performRaycast(callback: TriangleCallback, raySource: Vector3d, rayTarget: Vector3d) {
         val myNodeCallback = myNodeCallbacks.get()

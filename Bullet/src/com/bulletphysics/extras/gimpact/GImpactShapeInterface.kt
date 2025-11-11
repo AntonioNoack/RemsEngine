@@ -70,7 +70,7 @@ abstract class GImpactShapeInterface : ConcaveShape() {
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.GIMPACT_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.CONCAVE_GIMPACT_TRIANGLE_MESH
 
     /**
      * You must call updateBound() for update the box set.

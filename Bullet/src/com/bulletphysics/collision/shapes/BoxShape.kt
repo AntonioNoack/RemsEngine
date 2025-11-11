@@ -49,7 +49,7 @@ open class BoxShape(boxHalfExtents: Vector3d) : PolyhedralConvexShape() {
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.BOX_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.CUBOID
 
     override fun localGetSupportingVertex(dir: Vector3d, out: Vector3d): Vector3d {
         val halfExtents = getHalfExtentsWithoutMargin(out).add(margin)

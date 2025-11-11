@@ -28,9 +28,9 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
     var nearCallback: NearCallback = DefaultNearCallback()
 
     private val collisionPairCallback = CollisionPairCallback()
-    private val doubleDispatch = Array(MAX_BROADPHASE_COLLISION_TYPES * MAX_BROADPHASE_COLLISION_TYPES) { idx ->
-        val j = idx % MAX_BROADPHASE_COLLISION_TYPES
-        val i = idx / MAX_BROADPHASE_COLLISION_TYPES
+    private val doubleDispatch = Array(NUM_COLLISION_TYPES * NUM_COLLISION_TYPES) { idx ->
+        val j = idx % NUM_COLLISION_TYPES
+        val i = idx / NUM_COLLISION_TYPES
         collisionConfiguration.getCollisionAlgorithmCreateFunc(
             BroadphaseNativeType.entries[i],
             BroadphaseNativeType.entries[j]
@@ -40,11 +40,11 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
     private fun getCollisionCreateFunc(
         type0: BroadphaseNativeType, type1: BroadphaseNativeType
     ): CollisionAlgorithmCreateFunc {
-        return doubleDispatch[type0.ordinal * MAX_BROADPHASE_COLLISION_TYPES + type1.ordinal]
+        return doubleDispatch[type0.ordinal * NUM_COLLISION_TYPES + type1.ordinal]
     }
 
     fun registerCollisionCreateFunc(proxyType0: Int, proxyType1: Int, createFunc: CollisionAlgorithmCreateFunc) {
-        doubleDispatch[proxyType0 * MAX_BROADPHASE_COLLISION_TYPES + proxyType1] = createFunc
+        doubleDispatch[proxyType0 * NUM_COLLISION_TYPES + proxyType1] = createFunc
     }
 
     private val tmpCI = CollisionAlgorithmConstructionInfo()
@@ -156,6 +156,6 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
     }
 
     companion object {
-        private val MAX_BROADPHASE_COLLISION_TYPES = BroadphaseNativeType.MAX_BROADPHASE_COLLISION_TYPES.ordinal
+        private val NUM_COLLISION_TYPES = BroadphaseNativeType.entries.size
     }
 }

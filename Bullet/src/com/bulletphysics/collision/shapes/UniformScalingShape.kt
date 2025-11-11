@@ -87,7 +87,7 @@ class UniformScalingShape(val childShape: ConvexShape, val uniformScalingFactor:
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.UNIFORM_SCALING_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.UNIFORM_SCALING
 
     override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         // this linear upscaling is not realistic, but we don't deal with large mass ratios...

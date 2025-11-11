@@ -69,7 +69,7 @@ open class ConeShape(val radius: Double, val height: Double, val upAxis: Axis) :
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.CONE_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.CONE
 
     override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         // todo surely, there's a better formula than just the box inertia...

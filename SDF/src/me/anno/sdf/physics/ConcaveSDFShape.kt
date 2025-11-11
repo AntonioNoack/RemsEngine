@@ -27,9 +27,7 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
 
     // might be correct...
     override val shapeType: BroadphaseNativeType
-        get() {
-            return BroadphaseNativeType.FAST_CONCAVE_MESH_PROXYTYPE
-        }
+        get() = BroadphaseNativeType.CONCAVE_SIGNED_DISTANCE_FIELD
 
     val localScaling = Vector3d(1.0, 1.0, 1.0)
 

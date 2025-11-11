@@ -47,10 +47,10 @@ class DefaultCollisionConfiguration : CollisionConfiguration {
         proxyType1: BroadphaseNativeType
     ): CollisionAlgorithmCreateFunc {
         return when {
-            proxyType0 == BroadphaseNativeType.SPHERE_SHAPE_PROXYTYPE &&
-                    proxyType1 == BroadphaseNativeType.SPHERE_SHAPE_PROXYTYPE -> sphereSphereCreateFunc
-            proxyType0.isConvex && proxyType1 == BroadphaseNativeType.STATIC_PLANE_PROXYTYPE -> convexPlaneCreateFunc
-            proxyType1.isConvex && proxyType0 == BroadphaseNativeType.STATIC_PLANE_PROXYTYPE -> swappedConvexPlaneCreateFunc
+            proxyType0 == BroadphaseNativeType.SPHERE &&
+                    proxyType1 == BroadphaseNativeType.SPHERE -> sphereSphereCreateFunc
+            proxyType0.isConvex && proxyType1 == BroadphaseNativeType.STATIC_PLANE -> convexPlaneCreateFunc
+            proxyType1.isConvex && proxyType0 == BroadphaseNativeType.STATIC_PLANE -> swappedConvexPlaneCreateFunc
             proxyType0.isConvex && proxyType1.isConvex -> convexConvexCreateFunc
             proxyType0.isConvex && proxyType1.isConcave -> convexConcaveCreateFunc
             proxyType1.isConvex && proxyType0.isConcave -> swappedConvexConcaveCreateFunc

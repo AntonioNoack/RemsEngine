@@ -40,7 +40,7 @@ class SphereShape(radius: Double) : ConvexInternalShape() {
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.SPHERE_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.SPHERE
 
     override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         val radius = margin

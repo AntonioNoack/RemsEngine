@@ -18,7 +18,7 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
 
     // might be correct...
     override val shapeType get(): BroadphaseNativeType {
-        return BroadphaseNativeType.CONVEX_SHAPE_PROXYTYPE
+        return BroadphaseNativeType.CONVEX
     }
 
     var maxSteps = 10

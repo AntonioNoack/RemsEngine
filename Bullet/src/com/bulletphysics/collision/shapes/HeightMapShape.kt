@@ -231,5 +231,5 @@ class HeightMapShape : ConcaveShape() {
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.TERRAIN_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.CONCAVE_TERRAIN
 }

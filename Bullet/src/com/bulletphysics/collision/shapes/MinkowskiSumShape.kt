@@ -48,7 +48,7 @@ class MinkowskiSumShape @Suppress("unused") constructor(
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.MINKOWSKI_SUM_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.MINKOWSKI_SUM
 
     override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
         throw NotImplementedError()

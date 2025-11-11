@@ -44,7 +44,7 @@ open class TriangleShape : PolyhedralConvexShape {
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.TRIANGLE_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.TRIANGLE
 
     override val numEdges
         get(): Int {

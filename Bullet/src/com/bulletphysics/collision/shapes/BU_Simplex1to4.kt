@@ -44,7 +44,7 @@ open class BU_Simplex1to4 : PolyhedralConvexShape {
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.TETRAHEDRAL_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.TETRAHEDRAL
 
     fun addVertex(pt: Vector3d?) {
         if (vertices[numVertices] == null) {

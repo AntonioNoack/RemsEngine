@@ -131,7 +131,7 @@ open class CapsuleShape(radius: Double, height: Double, val upAxis: Axis) : Conv
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.CAPSULE_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.CAPSULE
 
     override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         val radius = radius

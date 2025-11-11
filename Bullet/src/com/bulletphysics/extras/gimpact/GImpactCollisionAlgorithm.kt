@@ -74,16 +74,16 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         val gimpactShape0: GImpactShapeInterface?
         val gimpactShape1: GImpactShapeInterface?
 
-        if (body0.collisionShape!!.shapeType == BroadphaseNativeType.GIMPACT_SHAPE_PROXYTYPE) {
+        if (body0.collisionShape!!.shapeType == BroadphaseNativeType.CONCAVE_GIMPACT_TRIANGLE_MESH) {
             gimpactShape0 = body0.collisionShape as GImpactShapeInterface?
 
-            if (body1.collisionShape!!.shapeType == BroadphaseNativeType.GIMPACT_SHAPE_PROXYTYPE) {
+            if (body1.collisionShape!!.shapeType == BroadphaseNativeType.CONCAVE_GIMPACT_TRIANGLE_MESH) {
                 gimpactShape1 = body1.collisionShape as GImpactShapeInterface?
                 gimpactVsGimpact(body0, body1, gimpactShape0!!, gimpactShape1!!)
             } else {
                 gimpactVsShape(body0, body1, gimpactShape0!!, body1.collisionShape!!, false)
             }
-        } else if (body1.collisionShape!!.shapeType == BroadphaseNativeType.GIMPACT_SHAPE_PROXYTYPE) {
+        } else if (body1.collisionShape!!.shapeType == BroadphaseNativeType.CONCAVE_GIMPACT_TRIANGLE_MESH) {
             gimpactShape1 = body1.collisionShape as GImpactShapeInterface?
             gimpactVsShape(body1, body0, gimpactShape1!!, body0.collisionShape!!, true)
         }
@@ -646,8 +646,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         @JvmStatic
         fun registerAlgorithm(dispatcher: CollisionDispatcher) {
             val createFunc = CreateFunc()
-            val numTypes = BroadphaseNativeType.MAX_BROADPHASE_COLLISION_TYPES.ordinal
-            val i = BroadphaseNativeType.GIMPACT_SHAPE_PROXYTYPE.ordinal
+            val numTypes = BroadphaseNativeType.entries.size
+            val i = BroadphaseNativeType.CONCAVE_GIMPACT_TRIANGLE_MESH.ordinal
             for (j in 0 until numTypes) {
                 dispatcher.registerCollisionCreateFunc(i, j, createFunc)
                 dispatcher.registerCollisionCreateFunc(j, i, createFunc)

@@ -89,7 +89,7 @@ open class CylinderShape(halfExtents: Vector3d, val upAxis: Axis) : BoxShape(hal
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.CYLINDER_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.CYLINDER
 
     val radius: Double
         get() {

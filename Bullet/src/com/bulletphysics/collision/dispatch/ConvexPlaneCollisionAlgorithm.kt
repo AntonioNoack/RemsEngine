@@ -138,7 +138,7 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
 
     /** ///////////////////////////////////////////////////////////////////////// */
     class CreateFunc : CollisionAlgorithmCreateFunc() {
-        private val pool = ObjectPool.Companion.get(ConvexPlaneCollisionAlgorithm::class.java)
+        private val pool = ObjectPool.get(ConvexPlaneCollisionAlgorithm::class.java)
 
         override fun createCollisionAlgorithm(
             ci: CollisionAlgorithmConstructionInfo,

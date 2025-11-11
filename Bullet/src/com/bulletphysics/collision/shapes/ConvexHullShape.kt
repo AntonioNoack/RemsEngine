@@ -104,7 +104,7 @@ class ConvexHullShape(val points: FloatArray, val triangles: IntArray?) :
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.CONVEX_HULL_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.CONVEX_HULL
 
     override fun draw(drawMatrix: Matrix4x3?, color: Int) {
         val vertices = List(numVertices) { idx ->

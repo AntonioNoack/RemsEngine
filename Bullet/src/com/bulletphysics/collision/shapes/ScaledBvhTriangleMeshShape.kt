@@ -71,7 +71,7 @@ class ScaledBvhTriangleMeshShape @Suppress("unused") constructor(
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.CONCAVE_SCALED_TRIANGLE_MESH
 
     override fun setLocalScaling(scaling: Vector3d) {
         localScaling.set(scaling)

@@ -4,7 +4,9 @@
       <w>aseprite</w>
       <w>bulletphysics</w>
       <w>dominos</w>
+      <w>gimpact</w>
       <w>inmod</w>
+      <w>softbody</w>
       <w>trimesh</w>
       <w>twemoji</w>
       <w>webgpu</w>

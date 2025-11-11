@@ -90,7 +90,7 @@ class StaticPlaneShape(val planeNormal: Vector3d, var planeConstant: Double) : C
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.STATIC_PLANE_PROXYTYPE
+        get() = BroadphaseNativeType.STATIC_PLANE
 
     override fun setLocalScaling(scaling: Vector3d) {
         localScaling.set(scaling)

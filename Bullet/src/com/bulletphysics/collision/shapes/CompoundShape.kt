@@ -82,7 +82,7 @@ class CompoundShape : CollisionShape() {
     }
 
     override val shapeType: BroadphaseNativeType
-        get() = BroadphaseNativeType.COMPOUND_SHAPE_PROXYTYPE
+        get() = BroadphaseNativeType.COMPOUND
 
     /**
      * Computes the exact moment of inertia and the transform from the coordinate
