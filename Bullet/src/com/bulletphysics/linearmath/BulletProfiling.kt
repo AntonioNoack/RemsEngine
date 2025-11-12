@@ -20,7 +20,7 @@ object BulletProfiling {
     /**
      * @param name must be [interned][String.intern] String (not needed for String literals)
      */
-    fun startProfile(name: String?) {
+    fun startProfile(name: String) {
         if (name != currentNode.name) {
             currentNode = currentNode.getSubNode(name)
         }

@@ -14,27 +14,28 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import me.anno.utils.assertions.assertEquals
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 
 // to do test a compound shape vs a regular shape,
 //  check all properties, and see that they're equal!
 class CompoundColliderTest {
 
-    val base: CollisionShape = SphereShape(1.0)
+    val base: CollisionShape = SphereShape(1f)
     val compound: CollisionShape = CompoundShape().apply {
         addChildShape(Transform(), base)
     }
 
-    val baseBody = RigidBody(1.0, base, base.calculateLocalInertia(1.0, Vector3d()))
-    val compoundBody = RigidBody(1.0, compound, compound.calculateLocalInertia(1.0, Vector3d()))
+    val baseBody = RigidBody(1f, base, base.calculateLocalInertia(1f, Vector3f()))
+    val compoundBody = RigidBody(1f, compound, compound.calculateLocalInertia(1f, Vector3f()))
 
-    val floor = StaticPlaneShape(Vector3d(0.0, 1.0, 0.0), -1.0)
-    val floorBody = RigidBody(0.0, floor)
+    val floor = StaticPlaneShape(Vector3f(0.0, 1.0, 0.0), -1.0)
+    val floorBody = RigidBody(0f, floor)
 
     @Test
     fun testLocalInertia() {
-        val baseInertia = base.calculateLocalInertia(1.0, Vector3d())
-        val compoundInertia = compound.calculateLocalInertia(1.0, Vector3d())
+        val baseInertia = base.calculateLocalInertia(1f, Vector3f())
+        val compoundInertia = compound.calculateLocalInertia(1f, Vector3f())
         assertEquals(baseInertia, compoundInertia)
     }
 
@@ -47,10 +48,10 @@ class CompoundColliderTest {
     @Test
     fun testGetBounds() {
         val t = Transform()
-        t.basis.rotateYXZ(0.1, 0.2, 0.3)
+        t.basis.rotateYXZ(0.1f, 0.2f, 0.3f)
         val min1 = Vector3d()
         val max1 = Vector3d()
-        val base = BoxShape(Vector3d(1.0)) // needed here, sphere has a better implementation
+        val base = BoxShape(Vector3f(1f)) // needed here, sphere has a better implementation
         base.getBounds(t, min1, max1)
         val min0 = Vector3d()
         val max0 = Vector3d()

@@ -22,6 +22,7 @@ import me.anno.ecs.components.collider.Axis
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.toIntOr
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
 
@@ -53,8 +54,6 @@ class HeightMapShape : ConcaveShape() {
     // var hdt = 0.1 // height type aka Floats/Shorts/...
     var pattern = TrianglePattern.NORMAL
 
-    val localScaling = Vector3d(1.0)
-
     val localAabbMin = Vector3d()
     val localAabbMax = Vector3d()
 
@@ -80,14 +79,14 @@ class HeightMapShape : ConcaveShape() {
         localAabbMax.add(localAabbMin, localOrigin).mul(0.5)
     }
 
-    override fun getVolume(): Double {
+    override fun getVolume(): Float {
         // terrain usually isn't moveable by physics (concave), so it shouldn't matter
-        return 1e308
+        return 1e38f
     }
 
     override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
-        val localMin = Stack.newVec()
-        val localMax = Stack.newVec()
+        val localMin = Stack.newVec3f()
+        val localMax = Stack.newVec3f()
 
         localAabbMin.sub(localOrigin, localMin).mul(localScaling)
         localAabbMax.sub(localOrigin, localMax).mul(localScaling)
@@ -97,7 +96,7 @@ class HeightMapShape : ConcaveShape() {
             margin, t, aabbMin, aabbMax
         )
 
-        Stack.subVec(2)
+        Stack.subVec3f(2)
     }
 
     /**
@@ -107,8 +106,7 @@ class HeightMapShape : ConcaveShape() {
     fun getRawHeightFieldValue(x: Int, y: Int): Double {
         // float wouldn't need heightScale
         val index = y * width + x
-        val heightData = heightData
-        return when (heightData) {
+        return when (val heightData = heightData) {
             is FloatArray -> heightData[index].toDouble()
             is ShortArray -> heightData[index].toInt().and(0xffff) * heightScale + minHeight
             else -> throw NotImplementedError()
@@ -141,8 +139,8 @@ class HeightMapShape : ConcaveShape() {
      */
     override fun processAllTriangles(callback: TriangleCallback, aabbMin: Vector3d, aabbMax: Vector3d) {
         // scale down the input aabb's so they are in local (non-scaled) coordinates
-        val localAabbMin = aabbMin.div(localScaling, Stack.newVec())
-        val localAabbMax = aabbMax.div(localScaling, Stack.newVec())
+        val localAabbMin = aabbMin.div(localScaling, Stack.newVec3d())
+        val localAabbMax = aabbMax.div(localScaling, Stack.newVec3d())
 
         // account for local origin
         localAabbMin.add(localOrigin)
@@ -174,9 +172,9 @@ class HeightMapShape : ConcaveShape() {
             }
         }
 
-        val a = Stack.newVec()
-        val b = Stack.newVec()
-        val c = Stack.newVec()
+        val a = Stack.newVec3d()
+        val b = Stack.newVec3d()
+        val c = Stack.newVec3d()
         for (j in startJ..endJ) {
             for (x in startX..endX) {
                 if (flipTriangle(x, j)) {
@@ -205,7 +203,7 @@ class HeightMapShape : ConcaveShape() {
             }
         }
 
-        Stack.subVec(5)
+        Stack.subVec3d(5)
     }
 
     private fun flipTriangle(x: Int, j: Int): Boolean {
@@ -217,17 +215,9 @@ class HeightMapShape : ConcaveShape() {
         }
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
         // moving concave objects not supported
-        return inertia.set(0.0)
-    }
-
-    override fun getLocalScaling(out: Vector3d): Vector3d {
-        return out.set(localScaling)
-    }
-
-    override fun setLocalScaling(scaling: Vector3d) {
-        localScaling.set(scaling)
+        return inertia.set(0f)
     }
 
     override val shapeType: BroadphaseNativeType

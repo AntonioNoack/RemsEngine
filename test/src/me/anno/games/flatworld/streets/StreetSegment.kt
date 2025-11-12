@@ -184,7 +184,7 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
     fun interpolateDx(t: Double, dx: Double, dst: Vector3d = Vector3d()): Vector3d {
         val result = interpolate(t, dst)
         val normal = interpolate(t + 0.001).sub(result)
-        normal.cross(0.0, 1.0, 0.0)
+        normal.crossY()
         normal.mulAdd(dx / normal.length(), result, result)
         return result
     }

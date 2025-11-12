@@ -13,6 +13,7 @@ import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * ConvexHullShape implements an implicit convex hull of an array of vertices.
@@ -30,23 +31,25 @@ class ConvexHullShape(val points: FloatArray, val triangles: IntArray?) :
         recalculateLocalAabb()
     }
 
-    override fun setLocalScaling(scaling: Vector3d) {
-        localScaling.set(scaling)
-        recalculateLocalAabb()
-    }
+    override var localScaling: Vector3f
+        get() = super.localScaling
+        set(value) {
+            super.localScaling = value
+            recalculateLocalAabb()
+        }
 
-    override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
+    override fun localGetSupportingVertexWithoutMargin(dir: Vector3f, out: Vector3f): Vector3f {
 
         val dx = dir.x
         val dy = dir.y
         val dz = dir.z
 
         // default aka center
-        out.set(0.0)
+        out.set(0f)
 
         val points = points
         val localScaling = localScaling
-        var maxDot = Double.NEGATIVE_INFINITY
+        var maxDot = Float.NEGATIVE_INFINITY
         forLoopSafely(points.size, 3) { i ->
             val x = points[i] * localScaling.x
             val y = points[i + 1] * localScaling.y
@@ -60,17 +63,17 @@ class ConvexHullShape(val points: FloatArray, val triangles: IntArray?) :
         return out
     }
 
-    override fun localGetSupportingVertex(dir: Vector3d, out: Vector3d): Vector3d {
+    override fun localGetSupportingVertex(dir: Vector3f, out: Vector3f): Vector3f {
         val supVertex = localGetSupportingVertexWithoutMargin(dir, out)
 
-        if (margin != 0.0) {
-            val vecNorm = Stack.newVec(dir)
+        if (margin != 0f) {
+            val vecNorm = Stack.newVec3f(dir)
             if (vecNorm.lengthSquared() < BulletGlobals.FLT_EPSILON_SQ) {
                 vecNorm.set(-1.0, -1.0, -1.0)
             }
             vecNorm.normalize()
             supVertex.fma(margin, vecNorm)
-            Stack.subVec(1)
+            Stack.subVec3f(1)
         }
         return out
     }
@@ -82,21 +85,15 @@ class ConvexHullShape(val points: FloatArray, val triangles: IntArray?) :
      * Currently just for debugging (drawing), perhaps future support for algebraic continuous collision detection.
      * Please note that you can debug-draw ConvexHullShape with the Raytracer Demo.
      */
-    override fun getEdge(i: Int, pa: Vector3d, pb: Vector3d) {
+    override fun getEdge(i: Int, pa: Vector3f, pb: Vector3f) {
         val index0 = (i % this.numPoints) * 3
         val index1 = ((i + 1) % this.numPoints) * 3
         pa.set(points, index0).mul(localScaling)
         pb.set(points, index1).mul(localScaling)
     }
 
-    override fun getVertex(i: Int, vtx: Vector3d) {
+    override fun getVertex(i: Int, vtx: Vector3f) {
         vtx.set(points, i * 3).mul(localScaling)
-    }
-
-    override val numPlanes get(): Int = 0
-
-    override fun getPlane(planeNormal: Vector3d, planeSupport: Vector3d, i: Int) {
-        throw NotImplementedError()
     }
 
     override fun isInside(pt: Vector3d, tolerance: Double): Boolean {

@@ -3,6 +3,9 @@ package com.bulletphysics
 import com.bulletphysics.util.ArrayPool
 import com.bulletphysics.util.ObjectPool
 import cz.advel.stack.Stack
+import me.anno.maths.Maths.PIf
+import me.anno.maths.Maths.TAUf
+import kotlin.math.nextUp
 
 /**
  * Bullet global settings and constants.
@@ -13,19 +16,19 @@ import cz.advel.stack.Stack
 object BulletGlobals {
     var DEBUG: Boolean = false
 
-    const val CONVEX_DISTANCE_MARGIN: Double = 0.04
+    const val CONVEX_DISTANCE_MARGIN = 0.04f
 
     // we may have to change that to the correct double value
-    const val FLT_EPSILON: Double = 2.220446049250313E-16
-    const val FLT_EPSILON_SQ: Double = FLT_EPSILON * FLT_EPSILON
-    const val SIMD_EPSILON: Double = FLT_EPSILON
+    const val FLT_EPSILON = 1e-7f
+    const val FLT_EPSILON_SQ = FLT_EPSILON * FLT_EPSILON
+    const val SIMD_EPSILON = FLT_EPSILON
 
-    const val SIMD_TAU: Double = Math.PI * 2.0
-    const val SIMD_PI: Double = Math.PI
-    const val SIMD_HALF_PI: Double = SIMD_TAU * 0.25
-    const val SIMD_RADS_PER_DEG: Double = SIMD_TAU / 360.0
-    const val SIMD_DEGS_PER_RAD: Double = 360.0 / SIMD_TAU
-    const val SIMD_INFINITY: Double = Double.MAX_VALUE
+    const val SIMD_TAU = TAUf
+    const val SIMD_PI = PIf
+    const val SIMD_HALF_PI = SIMD_TAU * 0.25f
+    const val SIMD_RADS_PER_DEG = SIMD_TAU / 360f
+    const val SIMD_DEGS_PER_RAD = 360f / SIMD_TAU
+    const val SIMD_INFINITY = Float.MAX_VALUE
 
     /** ///////////////////////////////////////////////////////////////////////// */
     private val INSTANCES = ThreadLocal.withInitial { Globals() }
@@ -49,14 +52,14 @@ object BulletGlobals {
             INSTANCE.contactProcessedCallback = callback
         }
 
-    var contactBreakingThreshold: Double
+    var contactBreakingThreshold: Float
         /** ///////////////////////////////////////////////////////////////////////// */
         get() = INSTANCE.contactBreakingThreshold
         set(threshold) {
             INSTANCE.contactBreakingThreshold = threshold
         }
 
-    var deactivationTime: Double
+    var deactivationTime: Float
         get() = INSTANCE.deactivationTime
         set(time) {
             INSTANCE.deactivationTime = time
@@ -83,10 +86,10 @@ object BulletGlobals {
         var contactAddedCallback: ContactAddedCallback? = null
         var contactProcessedCallback: ContactProcessedCallback? = null
 
-        var contactBreakingThreshold = 0.02
+        var contactBreakingThreshold = 0.02f
 
         // RigidBody
-        var deactivationTime = 0.1
+        var deactivationTime = 0.1f
         var disableDeactivation = false
     }
 }

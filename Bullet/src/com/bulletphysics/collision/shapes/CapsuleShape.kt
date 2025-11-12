@@ -7,7 +7,9 @@ import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.mul
 import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.Axis
+import me.anno.maths.Maths.PIf
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.sqrt
 
 /**
@@ -22,45 +24,45 @@ import kotlin.math.sqrt
  *
  * @author jezek2
  */
-open class CapsuleShape(radius: Double, height: Double, val upAxis: Axis) : ConvexInternalShape() {
+open class CapsuleShape(radius: Float, height: Float, val upAxis: Axis) : ConvexInternalShape() {
 
     init {
         implicitShapeDimensions.set(radius)
-        implicitShapeDimensions[upAxis.id] = 0.5 * height
+        implicitShapeDimensions[upAxis.id] = 0.5f * height
     }
 
-    override fun getVolume(): Double {
+    override fun getVolume(): Float {
         val radius = radius
         // common parts have been extracted
-        val commonPart = radius * radius * Math.PI
-        val sphereVolume = radius * 4.0 / 3.0
-        val cylinderVolume = halfHeight * 2.0
+        val commonPart = radius * radius * PIf
+        val sphereVolume = radius * 4f / 3f
+        val cylinderVolume = halfHeight * 2f
         return (sphereVolume + cylinderVolume) * commonPart
     }
 
-    override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
+    override fun localGetSupportingVertexWithoutMargin(dir: Vector3f, out: Vector3f): Vector3f {
 
         out.set(0.0, 0.0, 0.0)
 
-        var maxDot = -1e308
+        var maxDot = -1e38f
 
-        val vec = Stack.newVec(dir)
+        val vec = Stack.newVec3f(dir)
         val lenSqr = vec.lengthSquared()
         if (lenSqr < 0.0001f) {
             vec.set(1.0, 0.0, 0.0)
         } else {
-            val rlen = 1.0 / sqrt(lenSqr)
+            val rlen = 1f / sqrt(lenSqr)
             vec.mul(rlen)
         }
 
-        val vtx = Stack.newVec()
-        var newDot: Double
+        val vtx = Stack.newVec3f()
+        var newDot: Float
 
         val radius = radius
 
-        val tmp1 = Stack.newVec()
-        val tmp2 = Stack.newVec()
-        val pos = Stack.newVec()
+        val tmp1 = Stack.newVec3f()
+        val tmp2 = Stack.newVec3f()
+        val pos = Stack.newVec3f()
 
         run {
             pos.set(0.0, 0.0, 0.0)
@@ -94,19 +96,15 @@ open class CapsuleShape(radius: Double, height: Double, val upAxis: Axis) : Conv
             }
         }
 
-        Stack.subVec(5)
+        Stack.subVec3f(5)
         return out
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
         // as an approximation, take the inertia of the box that bounds the spheres
 
-        val identity = Stack.newTrans()
-        identity.setIdentity()
-
         val radius = radius
-
-        val halfExtents = Stack.newVec()
+        val halfExtents = Stack.newVec3f()
         halfExtents.set(radius, radius, radius)
         halfExtents[upAxis.id] = radius + halfHeight
 
@@ -120,14 +118,11 @@ open class CapsuleShape(radius: Double, height: Double, val upAxis: Axis) : Conv
         val z2 = lz * lz
         val scaledMass = mass * INV_12
 
-        inertia.x = scaledMass * (y2 + z2)
-        inertia.y = scaledMass * (x2 + z2)
-        inertia.z = scaledMass * (x2 + y2)
-
-        Stack.subVec(1)
-        Stack.subTrans(1)
+        Stack.subVec3f(1)
 
         return inertia
+            .set(y2 + z2, x2 + z2, x2 + y2)
+            .mul(scaledMass)
     }
 
     override val shapeType: BroadphaseNativeType
@@ -135,24 +130,24 @@ open class CapsuleShape(radius: Double, height: Double, val upAxis: Axis) : Conv
 
     override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         val radius = radius
-        val halfExtents = Stack.newVec()
+        val halfExtents = Stack.newVec3f()
         halfExtents.set(radius)
         halfExtents[upAxis.id] = radius + halfHeight
 
         AabbUtil.transformAabb(halfExtents, margin, t, aabbMin, aabbMax)
-        Stack.subVec(1)
+        Stack.subVec3f(1)
     }
 
-    val radius: Double
+    val radius: Float
         get() {
             val radiusAxis = (upAxis.id + 2) % 3
             return implicitShapeDimensions[radiusAxis]
         }
 
-    val halfHeight: Double
+    val halfHeight: Float
         get() = implicitShapeDimensions[upAxis.id]
 
     companion object {
-        private const val INV_12 = 1.0 / 12.0
+        private const val INV_12 = 1f / 12f
     }
 }

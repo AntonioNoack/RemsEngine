@@ -153,6 +153,10 @@ open class Quaternionf(
         return setAngleAxis(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
     }
 
+    fun setAngleAxis(angle: Float, axis: Vector3f): Quaternionf {
+        return setAngleAxis(angle, axis.x, axis.y, axis.z)
+    }
+
     fun setAngleAxis(angle: Float, x: Float, y: Float, z: Float): Quaternionf {
         val halfAngle = angle * 0.5f
         val s = sin(halfAngle)

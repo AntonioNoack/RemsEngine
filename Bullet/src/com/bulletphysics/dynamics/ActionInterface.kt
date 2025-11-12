@@ -9,6 +9,6 @@ import com.bulletphysics.linearmath.IDebugDraw
  * @author tomrbryn
  */
 interface ActionInterface {
-    fun updateAction(collisionWorld: CollisionWorld, deltaTimeStep: Double)
+    fun updateAction(collisionWorld: CollisionWorld, deltaTimeStep: Float)
     fun debugDraw(debugDrawer: IDebugDraw)
 }

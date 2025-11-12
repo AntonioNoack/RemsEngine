@@ -17,7 +17,7 @@ fun SDFCollider.getAABB(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
     aabbMin.set(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)
     aabbMax.set(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY)
 
-    val tmp = Stack.newVec()
+    val tmp = Stack.newVec3f()
     val basis = t.basis
     for (i in 0 until 8) {
         tmp.set(
@@ -26,15 +26,15 @@ fun SDFCollider.getAABB(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
             if (i.and(4) != 0) bounds.minZ else bounds.maxZ
         )
         basis.transform(tmp)
-        aabbMin.x = min(aabbMin.x, tmp.x)
-        aabbMin.y = min(aabbMin.y, tmp.y)
-        aabbMin.z = min(aabbMin.z, tmp.z)
-        aabbMax.x = max(aabbMax.x, tmp.x)
-        aabbMax.y = max(aabbMax.y, tmp.y)
-        aabbMax.z = max(aabbMax.z, tmp.z)
+        aabbMin.x = min(aabbMin.x, tmp.x.toDouble())
+        aabbMin.y = min(aabbMin.y, tmp.y.toDouble())
+        aabbMin.z = min(aabbMin.z, tmp.z.toDouble())
+        aabbMax.x = max(aabbMax.x, tmp.x.toDouble())
+        aabbMax.y = max(aabbMax.y, tmp.y.toDouble())
+        aabbMax.z = max(aabbMax.z, tmp.z.toDouble())
     }
 
     aabbMin.add(t.origin)
     aabbMax.add(t.origin)
-    Stack.subVec(1)
+    Stack.subVec3d(1)
 }

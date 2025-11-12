@@ -101,30 +101,29 @@ internal object ClipPolygon {
         clippedCount[0] = 0
 
         // clip first point0
-        val firstdist = distancePointPlane(plane, point0)
-        if (!(firstdist > BulletGlobals.SIMD_EPSILON)) {
+        val firstDistance = distancePointPlane(plane, point0)
+        if (!(firstDistance > BulletGlobals.SIMD_EPSILON)) {
             clipped[clippedCount[0]].set(point0)
             clippedCount[0]++
         }
 
         // point 1
-        var olddist = firstdist
+        var oldDistance = firstDistance
         var dist = distancePointPlane(plane, point1)
 
-        planeClipPolygonCollect(point0, point1, olddist, dist, clipped, clippedCount)
-
-        olddist = dist
+        planeClipPolygonCollect(point0, point1, oldDistance, dist, clipped, clippedCount)
+        oldDistance = dist
 
 
         // point 2
         dist = distancePointPlane(plane, point2)
 
-        planeClipPolygonCollect(point1, point2, olddist, dist, clipped, clippedCount)
-        olddist = dist
+        planeClipPolygonCollect(point1, point2, oldDistance, dist, clipped, clippedCount)
+        oldDistance = dist
 
 
         // RETURN TO FIRST point0
-        planeClipPolygonCollect(point2, point0, olddist, firstdist, clipped, clippedCount)
+        planeClipPolygonCollect(point2, point0, oldDistance, firstDistance, clipped, clippedCount)
 
         val ret = clippedCount[0]
         intArrays.release(clippedCount)

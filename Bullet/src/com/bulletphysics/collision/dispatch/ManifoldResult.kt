@@ -10,6 +10,7 @@ import cz.advel.stack.Stack
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * ManifoldResult is helper class to manage contact results.
@@ -62,7 +63,7 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
         this.index1 = index1
     }
 
-    override fun addContactPoint(normalOnBInWorld: Vector3d, pointInWorld: Vector3d, depth: Double) {
+    override fun addContactPoint(normalOnBInWorld: Vector3f, pointInWorld: Vector3d, depth: Float) {
         val manifold = manifold
         // order in manifold needs to match
         if (manifold == null || depth > manifold.contactBreakingThreshold) {
@@ -70,11 +71,11 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
         }
 
         val isSwapped = manifold.body0 !== body0
-        val pointA = Stack.newVec()
+        val pointA = Stack.newVec3d()
         normalOnBInWorld.mulAdd(depth, pointInWorld, pointA)
 
-        val localA = Stack.newVec()
-        val localB = Stack.newVec()
+        val localA = Stack.newVec3d()
+        val localB = Stack.newVec3d()
 
         if (isSwapped) {
             rootTransB.invXform(pointA, localA)
@@ -124,7 +125,7 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
             )
         }
 
-        Stack.subVec(3)
+        Stack.subVec3d(3)
         pointsPool.release(newPt)
     }
 
@@ -141,15 +142,15 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
     }
 
     companion object {
-        private const val MAX_FRICTION = 10.0
+        private const val MAX_FRICTION = 10f
 
         // User can override this material combiner by implementing contactAddedCallback and setting body0->m_collisionFlags |= btCollisionObject::customMaterialCallback;
-        private fun calculateCombinedFriction(body0: CollisionObject, body1: CollisionObject): Double {
+        private fun calculateCombinedFriction(body0: CollisionObject, body1: CollisionObject): Float {
             val combined = body0.friction * body1.friction
             return clamp(combined, -MAX_FRICTION, MAX_FRICTION)
         }
 
-        private fun calculateCombinedRestitution(body0: CollisionObject, body1: CollisionObject): Double {
+        private fun calculateCombinedRestitution(body0: CollisionObject, body1: CollisionObject): Float {
             return body0.restitution * body1.restitution
         }
     }

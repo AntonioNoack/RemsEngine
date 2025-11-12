@@ -1,6 +1,6 @@
 package com.bulletphysics.dynamics.constraintsolver
 
-import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * Stores some extra information to each contact point. It is not in the contact point,
@@ -13,46 +13,46 @@ class ConstraintPersistentData {
      * total applied impulse during most recent frame
      */
     @JvmField
-    var appliedImpulse: Double = 0.0
+    var appliedImpulse = 0f
     @JvmField
-    var prevAppliedImpulse: Double = 0.0
+    var prevAppliedImpulse = 0f
     @JvmField
-    var accumulatedTangentImpulse0: Double = 0.0
+    var accumulatedTangentImpulse0 = 0f
     @JvmField
-    var accumulatedTangentImpulse1: Double = 0.0
+    var accumulatedTangentImpulse1 = 0f
 
     @JvmField
-    var jacDiagABInv: Double = 0.0
+    var jacDiagABInv = 0f
     @JvmField
-    var jacDiagABInvTangent0: Double = 0.0
+    var jacDiagABInvTangent0 = 0f
     @JvmField
-    var jacDiagABInvTangent1: Double = 0.0
+    var jacDiagABInvTangent1 = 0f
     @JvmField
-    var persistentLifeTime: Int = 0
+    var persistentLifeTime = 0
     @JvmField
-    var restitution: Double = 0.0
+    var restitution = 0f
     @JvmField
-    var friction: Double = 0.0
+    var friction = 0f
     @JvmField
-    var penetration: Double = 0.0
+    var penetration = 0f
     @JvmField
-    val frictionWorldTangential0 = Vector3d()
+    val frictionWorldTangential0 = Vector3f()
     @JvmField
-    val frictionWorldTangential1 = Vector3d()
+    val frictionWorldTangential1 = Vector3f()
 
     @JvmField
-    val frictionAngularComponent0A = Vector3d()
+    val frictionAngularComponent0A = Vector3f()
     @JvmField
-    val frictionAngularComponent0B = Vector3d()
+    val frictionAngularComponent0B = Vector3f()
     @JvmField
-    val frictionAngularComponent1A = Vector3d()
+    val frictionAngularComponent1A = Vector3f()
     @JvmField
-    val frictionAngularComponent1B = Vector3d()
+    val frictionAngularComponent1B = Vector3f()
 
     @JvmField
-    val angularComponentA = Vector3d()
+    val angularComponentA = Vector3f()
     @JvmField
-    val angularComponentB = Vector3d()
+    val angularComponentB = Vector3f()
 
     @JvmField
     var contactSolverFunc: ContactSolverFunc? = null
@@ -60,29 +60,29 @@ class ConstraintPersistentData {
     var frictionSolverFunc: ContactSolverFunc? = null
 
     fun reset() {
-        appliedImpulse = 0.0
-        prevAppliedImpulse = 0.0
-        accumulatedTangentImpulse0 = 0.0
-        accumulatedTangentImpulse1 = 0.0
+        appliedImpulse = 0f
+        prevAppliedImpulse = 0f
+        accumulatedTangentImpulse0 = 0f
+        accumulatedTangentImpulse1 = 0f
 
-        jacDiagABInv = 0.0
-        jacDiagABInvTangent0 = 0.0
-        jacDiagABInvTangent1 = 0.0
+        jacDiagABInv = 0f
+        jacDiagABInvTangent0 = 0f
+        jacDiagABInvTangent1 = 0f
         persistentLifeTime = 0
-        restitution = 0.0
-        friction = 0.0
-        penetration = 0.0
+        restitution = 0f
+        friction = 0f
+        penetration = 0f
 
-        frictionWorldTangential0.set(0.0, 0.0, 0.0)
-        frictionWorldTangential1.set(0.0, 0.0, 0.0)
+        frictionWorldTangential0.set(0.0)
+        frictionWorldTangential1.set(0.0)
 
-        frictionAngularComponent0A.set(0.0, 0.0, 0.0)
-        frictionAngularComponent0B.set(0.0, 0.0, 0.0)
-        frictionAngularComponent1A.set(0.0, 0.0, 0.0)
-        frictionAngularComponent1B.set(0.0, 0.0, 0.0)
+        frictionAngularComponent0A.set(0.0)
+        frictionAngularComponent0B.set(0.0)
+        frictionAngularComponent1A.set(0.0)
+        frictionAngularComponent1B.set(0.0)
 
-        angularComponentA.set(0.0, 0.0, 0.0)
-        angularComponentB.set(0.0, 0.0, 0.0)
+        angularComponentA.set(0.0)
+        angularComponentB.set(0.0)
 
         contactSolverFunc = null
         frictionSolverFunc = null

@@ -66,11 +66,11 @@ class TrackVehicleControls : Component(), OnUpdate, OnPhysicsUpdate {
     var speed = 2f
     val trackPosition = Vector2d()
 
-    var strength = 300.0
-    var turnStrength = 300.0
+    var strength = 300f
+    var turnStrength = 300f
 
-    var targetTorque = 0.0
-    var torque = 0.0
+    var targetTorque = 0f
+    var torque = 0f
 
     override fun onUpdate() {
 
@@ -92,10 +92,10 @@ class TrackVehicleControls : Component(), OnUpdate, OnPhysicsUpdate {
         for (wheel in vehicle.wheels) {
             val isRight = wheel.steeringMultiplier > 0.0
             val control = if (isRight) right else left
-            wheel.steering = 0.0
+            wheel.steering = 0.0f
             wheel.engineForce = strength * control
-            wheel.brakeForce = if (control == 0f && !isTurning) strength else 0.0
-            wheel.frictionSlip = if (isTurning) 0.01 else 0.5
+            wheel.brakeForce = if (control == 0f && !isTurning) strength else 0f
+            wheel.frictionSlip = if (isTurning) 0.01f else 0.5f
             if (isRight) actualRight += wheel.rotation
             else actualLeft += wheel.rotation
         }
@@ -104,7 +104,7 @@ class TrackVehicleControls : Component(), OnUpdate, OnPhysicsUpdate {
         // todo test whether additional invisible wheels help
         targetTorque = if (isTurning) {
             turnStrength * (left - right)
-        } else 0.0
+        } else 0f
 
         trackPosition.x = actualLeft
         trackPosition.y = actualRight
@@ -114,9 +114,9 @@ class TrackVehicleControls : Component(), OnUpdate, OnPhysicsUpdate {
 
     override fun onPhysicsUpdate(dt: Double) {
         val vehicle = getComponent(Vehicle::class) ?: return
-        val effectiveness = 1.0 / (1.0 + 5.0 * sq(vehicle.globalAngularVelocity.y))
-        torque = mix(torque, targetTorque * effectiveness, dtTo10(dt))
-        vehicle.applyTorque(0.0, torque, 0.0)
+        val effectiveness = 1f / (1f + 5f * sq(vehicle.globalAngularVelocity.y))
+        torque = mix(torque, targetTorque * effectiveness, dtTo10(dt).toFloat())
+        vehicle.applyTorque(0f, torque, 0f)
     }
 }
 
@@ -147,24 +147,24 @@ fun main() {
     val meshFile = project.getChild("Vehicles/SM_Veh_Bulldozer_01.json")
     val bulldozer = PrefabCache[meshFile].waitFor()!!.newInstance() as Entity
     // todo add collision and rigidbody
-    bulldozer.add(Vehicle().apply { mass = 100.0 })
+    bulldozer.add(Vehicle().apply { mass = 100f })
     bulldozer.setPosition(0.0, 0.2, 0.0)
     scene.add(bulldozer)
 
     fun defineWheel(path: String, s: Double) {
         val wheel = getInstanceAt(bulldozer, path) as Entity
         wheel.add(VehicleWheel().apply {
-            radius = 0.8
-            steeringMultiplier = s
-            engineForce = 1.0
-            suspensionRestLength = 0.0
-            maxSuspensionTravel = 0.5
-            frictionSlip = 0.5 // max impulse / suspension force until the vehicle slips
-            suspensionStiffness = 100.0
+            radius = 0.8f
+            steeringMultiplier = s.toFloat()
+            engineForce = 1.0f
+            suspensionRestLength = 0.0f
+            maxSuspensionTravel = 0.5f
+            frictionSlip = 0.5f // max impulse / suspension force until the vehicle slips
+            suspensionStiffness = 100.0f
             // todo why does it start jumping when it's looking 90° rotated to the right???
-            suspensionDampingRelaxation = 5.0
-            suspensionDampingCompression = 5.0
-            rollInfluence = 0.25
+            suspensionDampingRelaxation = 5.0f
+            suspensionDampingCompression = 5.0f
+            rollInfluence = 0.25f
         })
     }
 

@@ -4,6 +4,7 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.TransformUtil
 import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * SolverBody is an internal data structure for the constraint solver. Only necessary
@@ -14,34 +15,34 @@ import org.joml.Vector3d
 class SolverBody {
 
     @JvmField
-    val angularVelocity = Vector3d()
+    val angularVelocity = Vector3f()
 
     @JvmField
-    val angularFactor = Vector3d()
+    val angularFactor = Vector3f()
 
     @JvmField
-    var invMass: Double = 0.0
+    var invMass = 0f
 
     @JvmField
-    var friction: Double = 0.0
+    var friction = 0f
 
     @JvmField
     var originalBody: RigidBody? = null
 
     @JvmField
-    val linearVelocity: Vector3d = Vector3d()
+    val linearVelocity = Vector3f()
 
     @JvmField
-    val centerOfMassPosition: Vector3d = Vector3d()
+    val centerOfMassPosition = Vector3d()
 
     @JvmField
-    val pushVelocity: Vector3d = Vector3d()
+    val pushVelocity = Vector3f()
 
     @JvmField
-    val turnVelocity: Vector3d = Vector3d()
+    val turnVelocity = Vector3f()
 
-    fun getVelocityInLocalPoint(relPos: Vector3d, velocity: Vector3d) {
-        val tmp = Stack.newVec()
+    fun getVelocityInLocalPoint(relPos: Vector3f, velocity: Vector3f) {
+        val tmp = Stack.borrowVec3f()
         angularVelocity.cross(relPos, tmp)
         linearVelocity.add(tmp, velocity)
     }
@@ -49,8 +50,8 @@ class SolverBody {
     /**
      * Optimization for the iterative solver: avoid calculating constant terms involving inertia, normal, relative position.
      */
-    fun internalApplyImpulse(linearComponent: Vector3d, angularComponent: Vector3d, impulseMagnitude: Double) {
-        if (invMass != 0.0) {
+    fun internalApplyImpulse(linearComponent: Vector3f, angularComponent: Vector3f, impulseMagnitude: Float) {
+        if (invMass != 0f) {
             linearVelocity.fma(impulseMagnitude, linearComponent)
             val angularFactor = angularFactor
             angularVelocity.add(
@@ -62,7 +63,7 @@ class SolverBody {
     }
 
     fun writebackVelocity() {
-        if (invMass != 0.0) {
+        if (invMass != 0f) {
             val originalBody = originalBody ?: return
             originalBody.setLinearVelocity(linearVelocity)
             originalBody.setAngularVelocity(angularVelocity)
@@ -70,8 +71,8 @@ class SolverBody {
         }
     }
 
-    fun writebackVelocity(timeStep: Double) {
-        if (invMass != 0.0) {
+    fun writebackVelocity(timeStep: Float) {
+        if (invMass != 0f) {
             val originalBody = originalBody ?: return
             originalBody.setLinearVelocity(linearVelocity)
             originalBody.setAngularVelocity(angularVelocity)
@@ -87,7 +88,7 @@ class SolverBody {
     }
 
     fun readVelocity() {
-        if (invMass != 0.0) {
+        if (invMass != 0f) {
             val originalBody = originalBody ?: return
             linearVelocity.set(originalBody.linearVelocity)
             angularVelocity.set(originalBody.angularVelocity)

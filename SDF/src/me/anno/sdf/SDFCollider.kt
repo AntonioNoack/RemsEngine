@@ -14,6 +14,7 @@ import me.anno.sdf.physics.ConvexSDFShape
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 // todo high gravity -> tunneling
 // todo position is effecting collider incorrectly (visuals != physics != displayed bounds != visuals)
@@ -21,7 +22,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
 
     companion object {
         @JvmField
-        val defaultShape = BoxShape(Vector3d(1.0, 1.0, 1.0))
+        val defaultShape = BoxShape(Vector3f(1f))
     }
 
     // could be assigned by hand...
@@ -32,7 +33,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
 
     override var isConvex = true
 
-    override fun createBulletCollider(scale: Vector3d): Any {
+    override fun createBulletCollider(scale: Vector3f): Any {
         // todo scale is missing...
         val sdf = sdf ?: return defaultShape
         return if (isConvex) {
@@ -42,16 +43,16 @@ class SDFCollider : Collider(), CustomBulletCollider {
         }
     }
 
-    fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
         // inertia of a box, because we have no better idea;
         // we could approximate it, but oh well...
         val sdf = sdf
         return if (sdf != null) {
             val bounds = sdf.globalAABB
             boxInertia(
-                bounds.deltaX * 0.5,
-                bounds.deltaY * 0.5,
-                bounds.deltaZ * 0.5,
+                bounds.deltaX.toFloat() * 0.5f,
+                bounds.deltaY.toFloat() * 0.5f,
+                bounds.deltaZ.toFloat() * 0.5f,
                 mass, inertia
             )
         } else inertia.set(mass / 12.0)

@@ -13,7 +13,6 @@ import me.anno.utils.Color.a
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Triangles
-import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -120,7 +119,7 @@ class HexagonSpherePhysics(
 
     val normal = Vector3f()
     val tmpQ1 = Quaternionf()
-    val tmpQ2 = Quaterniond()
+    val tmpQ2 = Quaternionf()
 
     fun defineLocalTransform(pos: Vector3f, transform: Transform) {
         // define a local transform for the shape :)
@@ -141,7 +140,7 @@ class HexagonSpherePhysics(
         triangle.vertices[2].set(c.x * scale, c.y * scale, c.z * scale)
 
         val nextDepth = measureCollisionDepth(nextTransform)
-        if (nextDepth == 0.0) {
+        if (nextDepth == 0f) {
             showTriangle(a, b, c, debugMeshInactiveColor)
             return false
         }
@@ -183,13 +182,13 @@ class HexagonSpherePhysics(
      * */
     var debugMeshInactiveColor = 0
 
-    fun measureCollisionDepth(localTransform: Transform): Double {
+    fun measureCollisionDepth(localTransform: Transform): Float {
         return if (solver.collide(
                 shape, localTransform,
                 triangle, nullTransform,
                 0.0, results
             )
-        ) results.depth else 0.0
+        ) results.depth else 0f
     }
 
     fun ensureNeighbors(hex: Hexagon) {

@@ -59,7 +59,7 @@ fun main() {
         .add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
         .add(BoxCollider())
         .add(StaticBody().apply {
-            friction = 1.0
+            friction = 1.0f
         })
         .setPosition(0.0, -22.0, 0.0)
         .setScale(20f)

@@ -7,6 +7,7 @@ import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * This class manages a sub part of a mesh supplied by the StridingMeshInterface interface.
@@ -66,7 +67,7 @@ class GImpactMeshShapePart : GImpactShapeInterface {
     override val primitiveManager: PrimitiveManagerBase
         get() = this.trimeshPrimitiveManager
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
         lockChildShapes()
 
         //#define CALC_EXACT_INERTIA 1
@@ -74,15 +75,15 @@ class GImpactMeshShapePart : GImpactShapeInterface {
         inertia.set(0.0, 0.0, 0.0)
 
         var i = this.vertexCount
-        val pointmass = mass / i.toDouble()
+        val massPerVertex = mass / i
 
-        val pointInertia = Stack.newVec()
+        val pointInertia = Stack.newVec3f()
         while ((i--) != 0) {
             getVertex(i, pointInertia)
-            getPointInertia(pointInertia, pointmass, pointInertia)
+            getPointInertia(pointInertia, massPerVertex, pointInertia)
             inertia.add(pointInertia)
         }
-        Stack.subVec(1)
+        Stack.subVec3f(1)
 
         unlockChildShapes()
         return inertia
@@ -110,26 +111,27 @@ class GImpactMeshShapePart : GImpactShapeInterface {
     val vertexCount: Int
         get() = trimeshPrimitiveManager.vertexCount
 
+    fun getVertex(vertexIndex: Int, vertex: Vector3f) {
+        trimeshPrimitiveManager.getVertex(vertexIndex, vertex)
+    }
+
     fun getVertex(vertexIndex: Int, vertex: Vector3d) {
         trimeshPrimitiveManager.getVertex(vertexIndex, vertex)
     }
 
-    override var margin: Double
+    override var margin: Float
         get() = trimeshPrimitiveManager.margin
         set(value) {
             trimeshPrimitiveManager.margin = value
             postUpdate()
         }
 
-    override fun setLocalScaling(scaling: Vector3d) {
-        trimeshPrimitiveManager.scale.set(scaling)
-        postUpdate()
-    }
-
-    override fun getLocalScaling(out: Vector3d): Vector3d {
-        out.set(trimeshPrimitiveManager.scale)
-        return out
-    }
+    override var localScaling: Vector3f
+        get() = trimeshPrimitiveManager.scale
+        set(value) {
+            trimeshPrimitiveManager.scale.set(value)
+            postUpdate()
+        }
 
     val part: Int
         get() = trimeshPrimitiveManager.part
@@ -160,7 +162,7 @@ class GImpactMeshShapePart : GImpactShapeInterface {
     }
 
     companion object {
-        private fun getPointInertia(point: Vector3d, mass: Double, out: Vector3d): Vector3d {
+        private fun getPointInertia(point: Vector3f, mass: Float, out: Vector3f): Vector3f {
             val x2 = point.x * point.x
             val y2 = point.y * point.y
             val z2 = point.z * point.z

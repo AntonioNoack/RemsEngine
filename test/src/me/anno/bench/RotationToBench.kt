@@ -164,7 +164,7 @@ fun rotationToJBullet(v0: Vector3d, v1: Vector3d, out: Quaterniond): Quaterniond
 
     val s = sqrt((1.0 + d) * 2.0)
     val rs = 1.0 / s
-    val c = Stack.borrowVec()
+    val c = Stack.borrowVec3d()
     v0.cross(v1, c)
     out.set(c.x * rs, c.y * rs, c.z * rs, s * 0.5)
 

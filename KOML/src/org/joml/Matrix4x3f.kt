@@ -962,6 +962,23 @@ open class Matrix4x3f : Matrix<Matrix4x3f, Vector3f, Vector4f> {
         return arr
     }
 
+    fun set(arr: FloatArray, offset: Int = 0): FloatArray {
+        m00 = arr[offset]
+        m01 = arr[offset + 1]
+        m02 = arr[offset + 2]
+        m10 = arr[offset + 3]
+        m11 = arr[offset + 4]
+        m12 = arr[offset + 5]
+        m20 = arr[offset + 6]
+        m21 = arr[offset + 7]
+        m22 = arr[offset + 8]
+        m30 = arr[offset + 9]
+        m31 = arr[offset + 10]
+        m32 = arr[offset + 11]
+        determineProperties()
+        return arr
+    }
+
     fun putInto(arr: FloatBuffer): FloatBuffer {
         arr.put(m00).put(m01).put(m02)
         arr.put(m10).put(m11).put(m12)

@@ -13,17 +13,22 @@ object BulletStats {
     // temp globals, to improve GJK/EPA/penetration calculations
     @JvmField
     var numDeepPenetrationChecks: Int = 0
+
     @JvmField
     var numGjkChecks: Int = 0
+
     @JvmField
     var numSplitImpulseRecoveries: Int = 0
 
     @JvmField
     var overlappingPairs: Int = 0
+
     @JvmField
     var removedPairs: Int = 0
+
     @JvmField
     var addedPairs: Int = 0
+
     @JvmField
     var findPairCalls: Int = 0
 
@@ -44,7 +49,7 @@ object BulletStats {
      * @param name must be [interned][String.intern] String (not needed for String literals)
      */
     @JvmStatic
-    fun pushProfile(name: String?) {
+    fun pushProfile(name: String) {
         if (isProfileEnabled) {
             BulletProfiling.startProfile(name)
         }
@@ -57,6 +62,15 @@ object BulletStats {
     fun popProfile() {
         if (isProfileEnabled) {
             BulletProfiling.stopProfile()
+        }
+    }
+
+    inline fun profile(name: String, run: () -> Unit) {
+        pushProfile(name)
+        try {
+            run()
+        } finally {
+            popProfile()
         }
     }
 }

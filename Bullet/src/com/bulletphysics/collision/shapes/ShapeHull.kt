@@ -3,6 +3,7 @@ package com.bulletphysics.collision.shapes
 import me.anno.maths.geometry.convexhull.ConvexHulls
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * ShapeHull takes a [ConvexShape], builds the convex hull using [ConvexHulls]
@@ -31,16 +32,16 @@ class ShapeHull(val shape: ConvexShape) {
             directions.add(Vector3d(constUnitSpherePoints[i]))
         }
 
+        val preferred = Vector3f()
         for (i in 0 until shape.numPreferredPenetrationDirections) {
-            val extraDirection = Vector3d()
-            shape.getPreferredPenetrationDirection(i, extraDirection)
-            directions.add(extraDirection)
+            shape.getPreferredPenetrationDirection(i, preferred)
+            directions.add(Vector3d(preferred))
         }
 
-        val tmp = Vector3d()
+        val tmp = Vector3f()
         for (i in directions.indices) {
             val v = directions[i]
-            shape.localGetSupportingVertex(tmp.set(v), v)
+            v.set(shape.localGetSupportingVertex(tmp.set(v), preferred))
         }
 
         val hullResult = ConvexHulls.calculateConvexHull(directions)
@@ -60,10 +61,10 @@ class ShapeHull(val shape: ConvexShape) {
         /** ///////////////////////////////////////////////////////////////////////// */
         const val NUM_UNIT_SPHERE_POINTS = 42
 
-        val constUnitSpherePoints = ArrayList<Vector3d>(NUM_UNIT_SPHERE_POINTS)
+        val constUnitSpherePoints = ArrayList<Vector3f>(NUM_UNIT_SPHERE_POINTS)
 
         private fun v(x: Double, y: Double, z: Double) {
-            constUnitSpherePoints.add(Vector3d(x, y, z))
+            constUnitSpherePoints.add(Vector3f(x, y, z))
         }
 
         init {

@@ -3,6 +3,7 @@ package com.bulletphysics.collision.narrowphase
 import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.Transform
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * This interface is made to be used by an iterative approach to do TimeOfImpact calculations.
@@ -20,20 +21,16 @@ interface DiscreteCollisionDetectorInterface {
     interface Result {
         /**setShapeIdentifiers provides experimental support for per-triangle material / custom material combiner */
         fun setShapeIdentifiers(partId0: Int, index0: Int, partId1: Int, index1: Int)
-
-        fun addContactPoint(normalOnBInWorld: Vector3d, pointInWorld: Vector3d, depth: Double)
+        fun addContactPoint(normalOnBInWorld: Vector3f, pointInWorld: Vector3d, depth: Float)
     }
 
     class ClosestPointInput {
-        @JvmField
 		val transformA = Transform()
-        @JvmField
 		val transformB = Transform()
-        @JvmField
-		var maximumDistanceSquared = Double.MAX_VALUE
+		var maximumDistanceSquared = Float.MAX_VALUE
 
         fun init() {
-            maximumDistanceSquared = Double.MAX_VALUE
+            maximumDistanceSquared = Float.MAX_VALUE
         }
     }
 

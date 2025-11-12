@@ -9,6 +9,7 @@ import com.bulletphysics.dynamics.constraintsolver.ContactSolverInfo
 import com.bulletphysics.dynamics.constraintsolver.TypedConstraint
 import com.bulletphysics.dynamics.vehicle.RaycastVehicle
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * DynamicsWorld is the interface class for several dynamics implementation,
@@ -26,8 +27,8 @@ abstract class DynamicsWorld(
 
     val solverInfo: ContactSolverInfo = ContactSolverInfo()
 
-    fun stepSimulation(timeStep: Double, maxSubSteps: Int = 1): Int {
-        return stepSimulation(timeStep, maxSubSteps, 1.0 / 60.0)
+    fun stepSimulation(timeStep: Float, maxSubSteps: Int = 1): Int {
+        return stepSimulation(timeStep, maxSubSteps, 1f / 60f)
     }
 
     /**
@@ -43,7 +44,7 @@ abstract class DynamicsWorld(
      * as second argument to stepSimulation, but in that case you have to keep the
      * timeStep constant.
      */
-    abstract fun stepSimulation(timeStep: Double, maxSubSteps: Int, fixedTimeStep: Double): Int
+    abstract fun stepSimulation(timeStep: Float, maxSubSteps: Int, fixedTimeStep: Float): Int
 
     abstract fun addConstraint(constraint: TypedConstraint, disableCollisionsBetweenLinkedBodies: Boolean = false)
     abstract fun removeConstraint(constraint: TypedConstraint)
@@ -61,8 +62,8 @@ abstract class DynamicsWorld(
      * Once a rigidbody is added to the dynamics world, it will get this gravity assigned.
      * Existing rigidbodies in the world get gravity assigned too, during this method.
      */
-    abstract fun setGravity(gravity: Vector3d)
-    abstract fun getGravity(out: Vector3d): Vector3d
+    abstract fun setGravity(gravity: Vector3f)
+    abstract fun getGravity(out: Vector3f): Vector3f
 
     abstract fun addRigidBody(body: RigidBody)
     abstract fun removeRigidBody(body: RigidBody)

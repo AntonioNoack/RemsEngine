@@ -6,12 +6,14 @@ http://gimpact.sf.net
 */
 package com.bulletphysics.dynamics.constraintsolver
 
-import com.bulletphysics.BulletGlobals
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
-import org.joml.Matrix3d
+import me.anno.maths.Maths.PIf
+import org.joml.Matrix3f
 import org.joml.Vector3d
+import org.joml.Vector3f
+import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.atan2
 
@@ -59,24 +61,24 @@ class Generic6DofConstraint : TypedConstraint {
     val frameInA: Transform = Transform() //!< the constraint space w.r.t body A
     val frameInB: Transform = Transform() //!< the constraint space w.r.t body B
 
-    val jacLinearDiagonalInv = DoubleArray(3) //!< 3 orthogonal linear constraints
-    val jacAngularDiagonalInv = DoubleArray(3) //!< 3 orthogonal angular constraints
+    val jacLinearDiagonalInv = FloatArray(3) //!< 3 orthogonal linear constraints
+    val jacAngularDiagonalInv = FloatArray(3) //!< 3 orthogonal angular constraints
 
     val linearLimits: TranslationalLimitMotor = TranslationalLimitMotor()
 
     val angularLimits /*[3]*/ =
         arrayOf(RotationalLimitMotor(), RotationalLimitMotor(), RotationalLimitMotor())
 
-    val calculatedTransformA: Transform = Transform()
-    val calculatedTransformB: Transform = Transform()
-    val calculatedAxisAngleDiff: Vector3d = Vector3d()
+    val calculatedTransformA = Transform()
+    val calculatedTransformB = Transform()
+    val calculatedAxisAngleDiff = Vector3f()
 
     /**
      * Get the rotation axis in global coordinates.
      * Generic6DofConstraint.buildJacobian must be called previously.
      */
-    val calculatedAxis = arrayOf(Vector3d(), Vector3d(), Vector3d())
-    private val anchorPos = Vector3d() // point betwen pivots of bodies A and B to solve linear axes
+    val calculatedAxis = arrayOf(Vector3f(), Vector3f(), Vector3f())
+    private val anchorPos = Vector3d() // point between pivots of bodies A and B to solve linear axes
 
     var useLinearReferenceFrameA: Boolean
 
@@ -122,10 +124,10 @@ class Generic6DofConstraint : TypedConstraint {
         // GetInfo1 then take the derivative. to prove this for angle[2] it is
         // easier to take the euler rate expression for d(angle[2])/dt with respect
         // to the components of w and set that to 0.
-        val axis0 = Stack.newVec()
+        val axis0 = Stack.newVec3f()
         calculatedTransformB.basis.getColumn(0, axis0)
 
-        val axis2 = Stack.newVec()
+        val axis2 = Stack.newVec3f()
         calculatedTransformA.basis.getColumn(2, axis2)
 
         axis2.cross(axis0, calculatedAxis[1])
@@ -133,7 +135,7 @@ class Generic6DofConstraint : TypedConstraint {
         axis0.cross(calculatedAxis[1], calculatedAxis[2])
 
         Stack.subMat(2)
-        Stack.subVec(2)
+        Stack.subVec3f(2)
     }
 
     /**
@@ -156,12 +158,12 @@ class Generic6DofConstraint : TypedConstraint {
     }
 
     fun buildLinearJacobian(
-        jacLinearIndex: Int, normalWorld: Vector3d, pivotAInW: Vector3d, pivotBInW: Vector3d
+        jacLinearIndex: Int, normalWorld: Vector3f, pivotAInW: Vector3d, pivotBInW: Vector3d
     ) {
-        val relPosA = Stack.newVec()
-        pivotAInW.sub(rigidBodyA.worldTransform.origin, relPosA)
+        val relPosA = Stack.newVec3f()
+        val relPosB = Stack.newVec3f()
 
-        val relPosB = Stack.newVec()
+        pivotAInW.sub(rigidBodyA.worldTransform.origin, relPosA)
         pivotBInW.sub(rigidBodyB.worldTransform.origin, relPosB)
 
         jacLinearDiagonalInv[jacLinearIndex] = JacobianEntry.calculateDiagonalInv(
@@ -171,10 +173,10 @@ class Generic6DofConstraint : TypedConstraint {
             rigidBodyB.invInertiaLocal, rigidBodyB.inverseMass
         )
 
-        Stack.subVec(2)
+        Stack.subVec3f(2)
     }
 
-    fun buildAngularJacobian(jacAngularIndex: Int, jointAxisW: Vector3d) {
+    fun buildAngularJacobian(jacAngularIndex: Int, jointAxisW: Vector3f) {
         jacAngularDiagonalInv[jacAngularIndex] = JacobianEntry.calculateDiagonalInv(
             jointAxisW,
             rigidBodyA.worldTransform.basis, rigidBodyB.worldTransform.basis,
@@ -199,9 +201,9 @@ class Generic6DofConstraint : TypedConstraint {
 
     override fun buildJacobian() {
         // Clear accumulated impulses for the next simulation step
-        linearLimits.accumulatedImpulse.set(0.0, 0.0, 0.0)
+        linearLimits.accumulatedImpulse.set(0f)
         for (i in 0..2) {
-            angularLimits[i].accumulatedImpulse = 0.0
+            angularLimits[i].accumulatedImpulse = 0f
         }
 
         // calculates transform
@@ -210,13 +212,13 @@ class Generic6DofConstraint : TypedConstraint {
         //  const btVector3& pivotAInW = m_calculatedTransformA.getOrigin();
         //  const btVector3& pivotBInW = m_calculatedTransformB.getOrigin();
         calcAnchorPos()
-        val pivotAInW = Stack.newVec(anchorPos)
-        val pivotBInW = Stack.newVec(anchorPos)
+        val pivotAInW = Stack.newVec3d(anchorPos)
+        val pivotBInW = Stack.newVec3d(anchorPos)
 
         // not used here
         //    btVector3 rel_pos1 = pivotAInW - m_rbA.getCenterOfMassPosition();
         //    btVector3 rel_pos2 = pivotBInW - m_rbB.getCenterOfMassPosition();
-        val normalWorld = Stack.newVec()
+        val normalWorld = Stack.newVec3f()
         // linear part
         for (i in 0..2) {
             if (linearLimits.isLimited(i)) {
@@ -243,17 +245,18 @@ class Generic6DofConstraint : TypedConstraint {
             }
         }
 
-        Stack.subVec(3)
+        Stack.subVec3f(1)
+        Stack.subVec3d(2)
     }
 
-    override fun solveConstraint(timeStep: Double) {
+    override fun solveConstraint(timeStep: Float) {
 
         // linear
-        val pointInA = Stack.newVec(calculatedTransformA.origin)
-        val pointInB = Stack.newVec(calculatedTransformB.origin)
+        val pointInA = Stack.newVec3d(calculatedTransformA.origin)
+        val pointInB = Stack.newVec3d(calculatedTransformB.origin)
 
-        var jacDiagABInv: Double
-        val linearAxis = Stack.newVec()
+        var jacDiagABInv: Float
+        val linearAxis = Stack.newVec3f()
         //calculateTransforms();
         for (i in 0 until 3) {
             if (linearLimits.isLimited(i)) {
@@ -266,8 +269,7 @@ class Generic6DofConstraint : TypedConstraint {
                 }
 
                 val impulse = linearLimits.solveLinearAxis(
-                    timeStep,
-                    jacDiagABInv,
+                    timeStep, jacDiagABInv,
                     rigidBodyA, pointInA,
                     rigidBodyB, pointInB,
                     i, linearAxis, anchorPos
@@ -280,14 +282,13 @@ class Generic6DofConstraint : TypedConstraint {
         }
 
         // angular
-        val angularAxis = Stack.newVec()
-        var angularJacDiagABInv: Double
+        val angularAxis = Stack.newVec3f()
         for (i in 0 until 3) {
             if (angularLimits[i].needApplyTorques()) {
                 // get axis
                 angularAxis.set(calculatedAxis[i])
 
-                angularJacDiagABInv = jacAngularDiagonalInv[i]
+                val angularJacDiagABInv = jacAngularDiagonalInv[i]
 
                 angularLimits[i].solveAngularLimits(
                     timeStep, angularAxis, angularJacDiagABInv,
@@ -297,18 +298,19 @@ class Generic6DofConstraint : TypedConstraint {
             }
         }
 
-        Stack.subVec(4)
+        Stack.subVec3f(2)
+        Stack.subVec3d(2)
     }
 
 
-    fun updateRHS(timeStep: Double) {
+    fun updateRHS(timeStep: Float) {
     }
 
     /**
      * Get the relative Euler angle.
      * Generic6DofConstraint.buildJacobian must be called previously.
      */
-    fun getAngle(axisIndex: Int): Double {
+    fun getAngle(axisIndex: Int): Float {
         return calculatedAxisAngleDiff[axisIndex]
     }
 
@@ -322,7 +324,7 @@ class Generic6DofConstraint : TypedConstraint {
     /**
      * first 3 are linear, next 3 are angular
      */
-    fun setLimit(axis: Int, lo: Double, hi: Double) {
+    fun setLimit(axis: Int, lo: Float, hi: Float) {
         if (axis < 3) {
             linearLimits.lowerLimit[axis] = lo
             linearLimits.upperLimit[axis] = hi
@@ -352,46 +354,40 @@ class Generic6DofConstraint : TypedConstraint {
     fun calcAnchorPos() {
         val imA = rigidBodyA.inverseMass
         val imB = rigidBodyB.inverseMass
-        val weight = if (imB == 0.0) 1.0 else imA / (imA + imB)
+        val weight = if (imB == 0f) 1f else imA / (imA + imB)
         val pA = calculatedTransformA.origin
         val pB = calculatedTransformB.origin
-        pB.lerp(pA, weight, anchorPos)
+        pB.lerp(pA, weight.toDouble(), anchorPos)
     }
 
     companion object {
-        private fun getMatrixElem(mat: Matrix3d, index: Int): Double {
-            val i = index % 3
-            val j = index / 3
-            return mat[j, i]
-        }
 
         /**
          * MatrixToEulerXYZ from [geometrictools.com](http://www.geometrictools.com/LibFoundation/Mathematics/Wm4Matrix3.inl.html)
          */
-        private fun matrixToEulerXYZ(mat: Matrix3d, xyz: Vector3d): Boolean {
-            //	// rot =  cy*cz          -cy*sz           sy
-            //	//        cz*sx*sy+cx*sz  cx*cz-sx*sy*sz -cy*sx
-            //	//       -cx*cz*sy+sx*sz  cz*sx+cx*sy*sz  cx*cy
-            //
+        private fun matrixToEulerXYZ(mat: Matrix3f, xyz: Vector3f): Boolean {
+            // rot =  cy*cz          -cy*sz           sy
+            //        cz*sx*sy+cx*sz  cx*cz-sx*sy*sz -cy*sx
+            //       -cx*cz*sy+sx*sz  cz*sx+cx*sy*sz  cx*cy
 
-            if (getMatrixElem(mat, 2) < 1.0) {
-                if (getMatrixElem(mat, 2) > -1.0) {
-                    xyz.x = atan2(-getMatrixElem(mat, 5), getMatrixElem(mat, 8))
-                    xyz.y = asin(getMatrixElem(mat, 2))
-                    xyz.z = atan2(-getMatrixElem(mat, 1), getMatrixElem(mat, 0))
+            if (mat.m02 < 1f) {
+                if (mat.m02 > -1f) {
+                    xyz.x = atan2(-mat.m12, mat.m22)
+                    xyz.y = asin(mat.m02)
+                    xyz.z = atan2(-mat.m01, mat.m00)
                     return true
                 } else {
                     // WARNING.  Not unique.  XA - ZA = -atan2(r10,r11)
-                    xyz.x = -atan2(getMatrixElem(mat, 3), getMatrixElem(mat, 4))
-                    xyz.y = -BulletGlobals.SIMD_HALF_PI
-                    xyz.z = 0.0
+                    xyz.x = -atan2(mat.m10, mat.m11)
+                    xyz.y = -PIf * 0.5f
+                    xyz.z = 0f
                     return false
                 }
             } else {
                 // WARNING.  Not unique.  XAngle + ZAngle = atan2(r10,r11)
-                xyz.x = atan2(getMatrixElem(mat, 3), getMatrixElem(mat, 4))
-                xyz.y = BulletGlobals.SIMD_HALF_PI
-                xyz.z = 0.0
+                xyz.x = atan2(mat.m10, mat.m11)
+                xyz.y = PIf * 0.5f
+                xyz.z = 0f
             }
 
             return false

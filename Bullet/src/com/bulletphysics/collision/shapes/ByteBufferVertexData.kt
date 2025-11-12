@@ -2,6 +2,7 @@ package com.bulletphysics.collision.shapes
 
 import java.nio.ByteBuffer
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * @author jezek2
@@ -26,21 +27,21 @@ class ByteBufferVertexData : VertexData() {
     @JvmField
     var indexType: ScalarType? = null
 
-    override fun getVertex(index: Int, out: Vector3d): Vector3d {
+    override fun getVertex(index: Int, out: Vector3f): Vector3f {
         val off = index * vertexStride
         val vertexData = vertexData!!
-        out.x = vertexData.getFloat(off).toDouble()
-        out.y = vertexData.getFloat(off + 4).toDouble()
-        out.z = vertexData.getFloat(off + 8).toDouble()
+        out.x = vertexData.getFloat(off)
+        out.y = vertexData.getFloat(off + 4)
+        out.z = vertexData.getFloat(off + 8)
         return out
     }
 
-    override fun setVertex(index: Int, x: Double, y: Double, z: Double) {
+    override fun setVertex(index: Int, x: Float, y: Float, z: Float) {
         val off = index * vertexStride
         val vertexData = vertexData!!
-        vertexData.putFloat(off, x.toFloat())
-        vertexData.putFloat(off + 4, y.toFloat())
-        vertexData.putFloat(off + 8, z.toFloat())
+        vertexData.putFloat(off, x)
+        vertexData.putFloat(off + 4, y)
+        vertexData.putFloat(off + 8, z)
     }
 
     override fun getIndex(index: Int): Int {

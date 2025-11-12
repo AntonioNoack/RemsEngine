@@ -34,7 +34,7 @@ class BulletVehicleTest {
 
     fun initPhysics(): BulletPhysics {
         val physics = BulletPhysics()
-        physics.gravity = Vector3d(0.0, -10.0, 0.0)
+        physics.gravity = Vector3f(0.0, -10.0, 0.0)
         physics.fixedStep = 0.0
         physics.maxSubSteps = 0
         Systems.registerSystem(physics)
@@ -44,7 +44,7 @@ class BulletVehicleTest {
     fun defineVehicle(): Entity {
         val vehicle = Entity("Vehicle")
             .setPosition(0.0, 0.3, 0.0)
-            .add(Vehicle().apply { mass = 1500.0 })
+            .add(Vehicle().apply { mass = 1500f })
             .add(BoxCollider().apply { halfExtents.set(1.2, 0.4, 2.2) })
             .add(
                 Entity("VehicleMesh")
@@ -61,13 +61,13 @@ class BulletVehicleTest {
                 val wheel = Entity("Wheel[$dx,$dz]")
                     .setPosition(dx * 1.0, 0.2, dz * 1.4)
                     .add(VehicleWheel().apply {
-                        steeringMultiplier = if (dz > 0.0) 1.0 else 0.0
-                        engineForceMultiplier = if (dz > 0.0) 1.0 else 0.0
-                        suspensionRestLength = 1.0
-                        suspensionStiffness = 10.0
-                        suspensionDampingCompression = 0.9
-                        suspensionDampingRelaxation = 0.9
-                        radius = 0.5
+                        steeringMultiplier = if (dz > 0.0) 1.0f else 0.0f
+                        engineForceMultiplier = if (dz > 0.0) 1.0f else 0.0f
+                        suspensionRestLength = 1.0f
+                        suspensionStiffness = 10.0f
+                        suspensionDampingCompression = 0.9f
+                        suspensionDampingRelaxation = 0.9f
+                        radius = 0.5f
                     })
                     .add(
                         Entity()
@@ -139,7 +139,7 @@ class BulletVehicleTest {
         assertEquals(Vector3d(0.0, 1.05, 0.0), vehicle.position, 0.05)
         assertEquals(Quaterniond(), vehicle.rotation, 0.01)
         // turn on motor
-        vehicle.getComponent(Vehicle::class)!!.engineForce = 1000.0
+        vehicle.getComponent(Vehicle::class)!!.engineForce = 1000.0f
         // check that it accelerates
         for (i in 0 until 50) {
             assertEquals(Vector3d(0.0, 1.05, sq((i - 0.5) / 48.5) * 12.25), vehicle.position, 0.05)
@@ -169,8 +169,8 @@ class BulletVehicleTest {
         assertEquals(Quaternionf(), vehicle.rotation, 0.01)
         // turn on motor & apply steering
         val vehicleI = vehicle.getComponent(Vehicle::class)!!
-        vehicleI.engineForce = 200.0
-        vehicleI.steering = 0.5
+        vehicleI.engineForce = 200.0f
+        vehicleI.steering = 0.5f
 
         var lastAngle = 0.0
 
@@ -255,7 +255,7 @@ class BulletVehicleTest {
         Systems.world = world
 
         val vehicleI = vehicle.getComponent(Vehicle::class)!!
-        vehicleI.brakeForce = 100.0
+        vehicleI.brakeForce = 100.0f
 
         // test the scene visually, if you want
         if (false) testSceneWithUI("TestVehicleRolling", world)

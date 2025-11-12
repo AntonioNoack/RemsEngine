@@ -92,7 +92,7 @@ fun main() {
             )
             .add(DynamicBody().apply {
                 centerOfMass.set(0.0, 0.1, 0.0)
-                mass = 1.0
+                mass = 1.0f
             })
             .add(MeshComponent(bunnyFile))
         for (i in hulls.indices) {

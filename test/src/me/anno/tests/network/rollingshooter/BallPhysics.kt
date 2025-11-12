@@ -103,7 +103,7 @@ class BallPhysics(
 
         val entity = entity!!
         val dynamicBody = entity.getComponent(DynamicBody::class)!!
-        val strength = 12.0 * dynamicBody.mass
+        val strength = 12f * dynamicBody.mass
         if (entity.position.y < -10.0 || Input.wasKeyPressed(Key.KEY_R)) {
             respawn(selfPlayerEntity, staticScene)
         }
@@ -111,10 +111,10 @@ class BallPhysics(
         val c = cos(rotY) * strength
         val s = sin(rotY) * strength
 
-        if (Input.isKeyDown(Key.KEY_W)) dynamicBody.applyTorque(-c, 0.0, +s)
-        if (Input.isKeyDown(Key.KEY_S)) dynamicBody.applyTorque(+c, 0.0, -s)
-        if (Input.isKeyDown(Key.KEY_A)) dynamicBody.applyTorque(+s, 0.0, +c)
-        if (Input.isKeyDown(Key.KEY_D)) dynamicBody.applyTorque(-s, 0.0, -c)
+        if (Input.isKeyDown(Key.KEY_W)) dynamicBody.applyTorque(-c, 0f, +s)
+        if (Input.isKeyDown(Key.KEY_S)) dynamicBody.applyTorque(+c, 0f, -s)
+        if (Input.isKeyDown(Key.KEY_A)) dynamicBody.applyTorque(+s, 0f, +c)
+        if (Input.isKeyDown(Key.KEY_D)) dynamicBody.applyTorque(-s, 0f, -c)
 
         if (jumpForce > 0f && abs(Time.gameTimeN - lastJumpTime) > jumpTimeout) {
             // only jump if we are on something
@@ -122,9 +122,9 @@ class BallPhysics(
             query.result.hitType = HitType.ANY
             if (Raycast.raycast(staticScene, query)) {
                 lastJumpTime = Time.gameTimeN
-                val iy = -10000.0 * strength * jumpForce
+                val iy = -10000f * strength * jumpForce
                 println("jumping with force $iy")
-                dynamicBody.applyImpulse(0.0, iy, 0.0)
+                dynamicBody.applyImpulse(0f, iy, 0f)
             } else println("floating in air")
             jumpForce = 0f
         }

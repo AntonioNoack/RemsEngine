@@ -33,7 +33,7 @@ fun main() {
         })
         .setPosition(0.0, 2.3, 0.0)
         .add(DynamicBody().apply {
-            angularDamping = 0.1
+            angularDamping = 0.1f
         })
 
     val pillarBody = StaticBody()
@@ -57,7 +57,7 @@ fun main() {
         .add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
         .add(BoxCollider())
         .add(StaticBody().apply {
-            friction = 1.0
+            friction = 1.0f
         })
         .setPosition(0.0, -1.5, 0.0)
         .setScale(1f, 0.3f, 1f)

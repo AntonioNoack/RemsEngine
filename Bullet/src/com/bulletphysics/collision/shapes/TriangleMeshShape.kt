@@ -5,6 +5,7 @@ import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import org.joml.AABBd
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * Concave triangle mesh abstract class. Use [BvhTriangleMeshShape] as concreteimplementation.
@@ -12,44 +13,44 @@ import org.joml.Vector3d
  * @author jezek2
  */
 abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface) : ConcaveShape() {
-    val localAabbMin = Vector3d()
-    val localAabbMax = Vector3d()
+    val localAabbMin = Vector3f()
+    val localAabbMax = Vector3f()
 
-    fun localGetSupportingVertex(vec: Vector3d, out: Vector3d): Vector3d {
+    fun localGetSupportingVertex(vec: Vector3f, out: Vector3f): Vector3f {
         val identity = Stack.newTrans()
         identity.setIdentity()
         val supportCallback = SupportVertexCallback(vec, identity)
 
-        val aabbMin = Stack.newVec()
-        val aabbMax = Stack.newVec()
+        val aabbMin = Stack.newVec3d()
+        val aabbMax = Stack.newVec3d()
         aabbMax.set(1e308, 1e308, 1e308)
         aabbMin.set(-1e308, -1e308, -1e308)
 
         processAllTriangles(supportCallback, aabbMin, aabbMax)
         supportCallback.getSupportVertexLocal(out)
 
-        Stack.subVec(2)
+        Stack.subVec3d(2)
         Stack.subTrans(1)
 
         return out
     }
 
-    fun localGetSupportingVertexWithoutMargin(vec: Vector3d, out: Vector3d): Vector3d {
-        assert(false)
+    fun localGetSupportingVertexWithoutMargin(vec: Vector3f, out: Vector3f): Vector3f {
         return localGetSupportingVertex(vec, out)
     }
 
     fun recalculateLocalAabb() {
+        val vec = Stack.newVec3f().set(0f)
+        val tmp = Stack.newVec3f()
         for (i in 0..2) {
-            val vec = Stack.newVec()
-            vec.set(0.0, 0.0, 0.0)
-            vec[i] = 1.0
-            val tmp = localGetSupportingVertex(vec, Stack.newVec())
+            vec[i] = 1f
+            localGetSupportingVertex(vec, tmp)
             localAabbMax[i] = tmp[i] + margin
-            vec[i] = -1.0
+            vec[i] = -1f
             localGetSupportingVertex(vec, tmp)
             localAabbMin[i] = tmp[i] - margin
         }
+        Stack.subVec3f(2)
     }
 
     override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
@@ -64,36 +65,17 @@ abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface) : Con
         meshInterface.internalProcessAllTriangles(filterCallback)
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
         // moving concave objects not supported
-        return inertia.set(0.0)
-    }
-
-    override fun setLocalScaling(scaling: Vector3d) {
-        meshInterface.setScaling(scaling)
-        recalculateLocalAabb()
-    }
-
-    override fun getLocalScaling(out: Vector3d): Vector3d {
-        return meshInterface.getScaling(out)
-    }
-
-    fun getLocalAabbMin(out: Vector3d): Vector3d {
-        out.set(localAabbMin)
-        return out
-    }
-
-    fun getLocalAabbMax(out: Vector3d): Vector3d {
-        out.set(localAabbMax)
-        return out
+        return inertia.set(0f)
     }
 
     /**///////////////////////////////////////////////////////////////////////// */
-    private class SupportVertexCallback(supportVecWorld: Vector3d, trans: Transform) : TriangleCallback {
-        private val supportVertexLocal = Vector3d(0.0, 0.0, 0.0)
+    private class SupportVertexCallback(supportVecWorld: Vector3f, trans: Transform) : TriangleCallback {
+        private val supportVertexLocal = Vector3f(0f)
         val worldTrans: Transform = Transform()
-        var maxDot: Double = -1e308
-        val supportVecLocal: Vector3d = Vector3d()
+        var maxDot = -1e308
+        val supportVecLocal = Vector3f()
 
         init {
             worldTrans.set(trans)
@@ -114,9 +96,8 @@ abstract class TriangleMeshShape(val meshInterface: StridingMeshInterface) : Con
             processVertex(c)
         }
 
-        fun getSupportVertexLocal(out: Vector3d): Vector3d {
-            out.set(supportVertexLocal)
-            return out
+        fun getSupportVertexLocal(out: Vector3f): Vector3f {
+            return out.set(supportVertexLocal)
         }
     }
 

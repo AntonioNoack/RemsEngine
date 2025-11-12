@@ -1,6 +1,7 @@
 package com.bulletphysics.collision.narrowphase
 
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * ManifoldPoint collects and maintains persistent contactpoints. Used to improve
@@ -10,27 +11,27 @@ import org.joml.Vector3d
  */
 class ManifoldPoint {
     @JvmField
-    val localPointA: Vector3d = Vector3d()
+    val localPointA = Vector3d()
 
     @JvmField
-    val localPointB: Vector3d = Vector3d()
+    val localPointB = Vector3d()
 
     @JvmField
-    val positionWorldOnB: Vector3d = Vector3d()
+    val positionWorldOnB = Vector3d()
 
     @JvmField
-    val positionWorldOnA: Vector3d = Vector3d()
+    val positionWorldOnA = Vector3d()
 
     @JvmField
-    val normalWorldOnB: Vector3d = Vector3d()
+    val normalWorldOnB = Vector3f()
 
-    var distance: Double = 0.0
-
-    @JvmField
-    var combinedFriction: Double = 0.0
+    var distance = 0f
 
     @JvmField
-    var combinedRestitution: Double = 0.0
+    var combinedFriction = 0f
+
+    @JvmField
+    var combinedRestitution = 0f
 
     // BP mod, store contact triangles.
     var partId0: Int = 0
@@ -42,45 +43,45 @@ class ManifoldPoint {
     var userPersistentData: Any? = null
 
     @JvmField
-    var appliedImpulse: Double = 0.0
+    var appliedImpulse = 0f
 
     @JvmField
     var lateralFrictionInitialized: Boolean = false
 
     @JvmField
-    var appliedImpulseLateral1: Double = 0.0
+    var appliedImpulseLateral1 = 0f
 
     @JvmField
-    var appliedImpulseLateral2: Double = 0.0
+    var appliedImpulseLateral2 = 0f
 
     @JvmField
     var lifeTime: Int = 0 // lifetime of the contact point in frames
 
     @JvmField
-    val lateralFrictionDir1: Vector3d = Vector3d()
+    val lateralFrictionDir1 = Vector3f()
 
     @JvmField
-    val lateralFrictionDir2: Vector3d = Vector3d()
+    val lateralFrictionDir2 = Vector3f()
 
     constructor() {
         this.userPersistentData = null
-        this.appliedImpulse = 0.0
+        this.appliedImpulse = 0f
         this.lateralFrictionInitialized = false
         this.lifeTime = 0
     }
 
-    fun init(pointA: Vector3d, pointB: Vector3d, normal: Vector3d, distance: Double) {
+    fun init(pointA: Vector3d, pointB: Vector3d, normal: Vector3f, distance: Float) {
         this.localPointA.set(pointA)
         this.localPointB.set(pointB)
         this.normalWorldOnB.set(normal)
         this.distance = distance
-        this.combinedFriction = 0.0
-        this.combinedRestitution = 0.0
+        this.combinedFriction = 0f
+        this.combinedRestitution = 0f
         this.userPersistentData = null
-        this.appliedImpulse = 0.0
+        this.appliedImpulse = 0f
         this.lateralFrictionInitialized = false
-        this.appliedImpulseLateral1 = 0.0
-        this.appliedImpulseLateral2 = 0.0
+        this.appliedImpulseLateral1 = 0f
+        this.appliedImpulseLateral2 = 0f
         this.lifeTime = 0
     }
 

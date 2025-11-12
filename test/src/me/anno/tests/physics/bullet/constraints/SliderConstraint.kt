@@ -31,7 +31,7 @@ fun main() {
         .add(BoxCollider())
         .setRotation(0f, 0f, 20f.toRadians())
         .add(staticCubeBody.apply {
-            friction = 0.0
+            friction = 0.0f
         })
 
     val sliding = SliderConstraint().apply {
@@ -50,9 +50,9 @@ fun main() {
         .add(BoxCollider())
         .setPosition(0.0, 2.3, 0.0)
         .add(DynamicBody().apply {
-            linearSleepingThreshold = 0.0
-            angularSleepingThreshold = 0.0
-            friction = 0.0
+            linearSleepingThreshold = 0.0f
+            angularSleepingThreshold = 0.0f
+            friction = 0.0f
         })
         .add(sliding)
 
@@ -60,7 +60,7 @@ fun main() {
         .add(MeshComponent(flatCube, Material.diffuse(0x333333)))
         .add(BoxCollider())
         .add(StaticBody().apply {
-            friction = 0.0
+            friction = 0.0f
         })
         .setPosition(0.0, -22.0, 0.0)
         .setScale(20f)

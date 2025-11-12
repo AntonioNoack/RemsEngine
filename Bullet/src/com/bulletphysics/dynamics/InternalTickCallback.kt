@@ -6,5 +6,5 @@ package com.bulletphysics.dynamics
  * @author jezek2
  */
 interface InternalTickCallback {
-    fun internalTick(world: DynamicsWorld, timeStep: Double)
+    fun internalTick(world: DynamicsWorld, timeStep: Float)
 }

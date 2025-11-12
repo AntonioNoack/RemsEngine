@@ -13,25 +13,24 @@ import com.bulletphysics.dynamics.vehicle.RaycastVehicle
 import com.bulletphysics.dynamics.vehicle.VehicleTuning
 import cz.advel.stack.Stack.Companion.reset
 import me.anno.utils.assertions.assertTrue
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 
 class VehicleTest {
     private fun createVehicle(world: DiscreteDynamicsWorld, startPos: Vector3d): RaycastVehicle {
-        val chassisShape: CollisionShape = BoxShape(Vector3d(1.0, 0.5, 2.0)) // Simple box car
+        val chassisShape: CollisionShape = BoxShape(Vector3f(1.0, 0.5, 2.0)) // Simple box car
 
-        val chassis: RigidBody =
-            StackOfBoxesTest.Companion.createRigidBody(800f, startPos, chassisShape) // Heavy for stability
+        val chassis: RigidBody = createRigidBody(800f, startPos, chassisShape) // Heavy for stability
         world.addRigidBody(chassis)
 
         val tuning = VehicleTuning()
-        tuning.suspensionStiffness = 20.0
-        tuning.suspensionDamping = 2.3
-        tuning.suspensionCompression = 4.4
-        tuning.frictionSlip = 1000.0
-        tuning.maxSuspensionTravel = 5.0
+        tuning.suspensionStiffness = 20.0f
+        tuning.suspensionDamping = 2.3f
+        tuning.suspensionCompression = 4.4f
+        tuning.frictionSlip = 1000.0f
+        tuning.maxSuspensionTravel = 5.0f
 
         val raycaster = DefaultVehicleRaycaster(world)
         val vehicle = RaycastVehicle(tuning, chassis, raycaster)
@@ -50,39 +49,39 @@ class VehicleTest {
             Vector3d(1.0, -0.5, 2.0),
             wheelDirection,
             wheelAxle,
-            suspensionRestLength.toDouble(),
-            wheelRadius.toDouble(),
+            suspensionRestLength,
+            wheelRadius,
             tuning,
         )
         vehicle.addWheel(
             Vector3d(-1.0, -0.5, 2.0),
             wheelDirection,
             wheelAxle,
-            suspensionRestLength.toDouble(),
-            wheelRadius.toDouble(),
+            suspensionRestLength,
+            wheelRadius,
             tuning,
         )
         vehicle.addWheel(
             Vector3d(1.0, -0.5, -2.0),
             wheelDirection,
             wheelAxle,
-            suspensionRestLength.toDouble(),
-            wheelRadius.toDouble(),
+            suspensionRestLength,
+            wheelRadius,
             tuning,
         )
         vehicle.addWheel(
             Vector3d(-1.0, -0.5, -2.0),
             wheelDirection,
             wheelAxle,
-            suspensionRestLength.toDouble(),
-            wheelRadius.toDouble(),
+            suspensionRestLength,
+            wheelRadius,
             tuning,
         )
 
         return vehicle
     }
 
-    private fun normalize(d: Vector3d): Vector3d {
+    private fun normalize(d: Vector3f): Vector3f {
         d.normalize()
         return d
     }
@@ -91,7 +90,7 @@ class VehicleTest {
     fun testVehicleBehavior() {
         // Step 1: Flat ground test
         var world = createWorld()
-        createGroundPlane(Vector3d(0.0, 1.0, 0.0), world) // Flat plane
+        createGroundPlane(Vector3f(0.0, 1.0, 0.0), world) // Flat plane
         var vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
 
         simulate(world, 120)
@@ -101,7 +100,7 @@ class VehicleTest {
 
         // Step 2: Hill test (no engine force)
         world = createWorld()
-        createGroundPlane(normalize(Vector3d(0.0, 1.0, -0.5)), world) // Inclined
+        createGroundPlane(normalize(Vector3f(0.0, 1.0, -0.5)), world) // Inclined
         vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
 
         simulate(world, 240) // 4 seconds
@@ -111,7 +110,7 @@ class VehicleTest {
 
         // Step 3: Driving test
         world = createWorld()
-        createGroundPlane(Vector3d(0.0, 1.0, 0.0), world) // Flat
+        createGroundPlane(Vector3f(0.0, 1.0, 0.0), world) // Flat
         vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
         applyEngineForce(vehicle, 800f) // Drive forward
 
@@ -122,7 +121,7 @@ class VehicleTest {
 
         // Step 4: Driving downhill
         world = createWorld()
-        createGroundPlane(normalize(Vector3d(0.0, 1.0, 0.2)), world) // Mild hill
+        createGroundPlane(normalize(Vector3f(0.0, 1.0, 0.2)), world) // Mild hill
         vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
         applyEngineForce(vehicle, 800f)
 
@@ -133,7 +132,7 @@ class VehicleTest {
 
         // Step 5: Turning
         world = createWorld()
-        createGroundPlane(Vector3d(0.0, 1.0, 0.0), world) // Flat again
+        createGroundPlane(Vector3f(0.0, 1.0, 0.0), world) // Flat again
         vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
         applyEngineForce(vehicle, 800f)
         applySteering(vehicle, 0.3f) // Turn wheels slightly
@@ -149,7 +148,7 @@ class VehicleTest {
         val world = createWorld()
 
         // Create downhill plane (slope in +Z)
-        createGroundPlane(normalize(Vector3d(0.0, 1.0, 0.2)), world)
+        createGroundPlane(normalize(Vector3f(0.0, 1.0, 0.2)), world)
 
         // Create vehicle
         val vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
@@ -179,31 +178,31 @@ class VehicleTest {
 
     private fun applyBrakes(vehicle: RaycastVehicle, brakeForce: Float) {
         for (i in 0 until vehicle.numWheels) {
-            vehicle.setBrake(brakeForce.toDouble(), i)
+            vehicle.setBrake(brakeForce, i)
         }
     }
 
     private fun applyEngineForce(vehicle: RaycastVehicle, force: Float) {
         for (i in 0 until vehicle.numWheels) {
-            vehicle.applyEngineForce(force.toDouble(), i)
+            vehicle.applyEngineForce(force, i)
         }
     }
 
     private fun applySteering(vehicle: RaycastVehicle, steering: Float) {
         // Only front wheels
-        vehicle.setSteeringValue(steering.toDouble(), 0)
-        vehicle.setSteeringValue(steering.toDouble(), 1)
+        vehicle.setSteeringValue(steering, 0)
+        vehicle.setSteeringValue(steering, 1)
     }
 
     private fun simulate(world: DiscreteDynamicsWorld, steps: Int) {
         for (i in 0 until steps) {
-            world.stepSimulation((1f / 60f).toDouble(), 10)
+            world.stepSimulation((1f / 60f), 10)
             reset(false)
         }
     }
 
-    private fun createGroundPlane(normal: Vector3d, world: DiscreteDynamicsWorld) {
-        val planeShape: CollisionShape = StaticPlaneShape(normal, 0f.toDouble())
+    private fun createGroundPlane(normal: Vector3f, world: DiscreteDynamicsWorld) {
+        val planeShape: CollisionShape = StaticPlaneShape(normal, 0.0)
         val ground: RigidBody = createRigidBody(0f, Vector3d(0f, 0f, 0f), planeShape)
         world.addRigidBody(ground)
     }

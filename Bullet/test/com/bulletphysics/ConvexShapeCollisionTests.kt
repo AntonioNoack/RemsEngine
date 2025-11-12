@@ -11,28 +11,30 @@ import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.collision.shapes.TriangleIndexVertexArray
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.extras.gimpact.GImpactCollisionAlgorithm.Companion.registerAlgorithm
+import com.bulletphysics.extras.gimpact.GImpactCollisionAlgorithm
 import com.bulletphysics.extras.gimpact.GImpactMeshShape
 import me.anno.ecs.components.collider.Axis
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.nio.ByteBuffer
 
 class ConvexShapeCollisionTests {
     var shapes: Array<CollisionShape> = arrayOf(
-        BoxShape(Vector3d(0.5, 0.5, 0.5)),
-        SphereShape(0.5),
-        CapsuleShape(0.3, 1.0, Axis.X),
-        CapsuleShape(0.3, 1.0, Axis.Y),
-        CapsuleShape(0.3, 1.0, Axis.Z),
-        CylinderShape(Vector3d(0.5, 0.5, 0.5), Axis.X),
-        CylinderShape(Vector3d(0.5, 0.5, 0.5), Axis.Y),
-        CylinderShape(Vector3d(0.5, 0.5, 0.5), Axis.Z),
-        ConeShape(0.5, 1.0, Axis.X),
-        ConeShape(0.5, 1.0, Axis.Y),
-        ConeShape(0.5, 1.0, Axis.Z),
+        BoxShape(Vector3f(0.5, 0.5, 0.5)),
+        SphereShape(0.5f),
+        CapsuleShape(0.3f, 1.0f, Axis.X),
+        CapsuleShape(0.3f, 1.0f, Axis.Y),
+        CapsuleShape(0.3f, 1.0f, Axis.Z),
+        CylinderShape(Vector3f(0.5, 0.5, 0.5), Axis.X),
+        CylinderShape(Vector3f(0.5, 0.5, 0.5), Axis.Y),
+        CylinderShape(Vector3f(0.5, 0.5, 0.5), Axis.Z),
+        ConeShape(0.5f, 1.0f, Axis.X),
+        ConeShape(0.5f, 1.0f, Axis.Y),
+        ConeShape(0.5f, 1.0f, Axis.Z),
+        // todo add a soft-body, when we have it
     )
 
     @Test
@@ -94,7 +96,7 @@ class ConvexShapeCollisionTests {
         world.addRigidBody(bodyB)
 
         // Simulate
-        world.stepSimulation(1.0 / 60.0, 10)
+        world.stepSimulation(1.0f / 60.0f, 10)
 
         return isColliding(world, bodyA, bodyB)
     }
@@ -104,7 +106,9 @@ class ConvexShapeCollisionTests {
         val world = StackOfBoxesTest.createWorld()
 
         // IMPORTANT: Register GImpactCollisionAlgorithm
-        registerAlgorithm(world.dispatcher as CollisionDispatcher)
+        world.dispatcher as CollisionDispatcher
+        GImpactCollisionAlgorithm.registerAlgorithm(world.dispatcher)
+        // SoftBodyCollisionAlgorithm.registerAlgorithm(world.dispatcher)
 
         val meshBody = StackOfBoxesTest.createRigidBody(0f, Vector3d(0f, 0f, 0f), meshShape)
         world.addRigidBody(meshBody)
@@ -112,8 +116,8 @@ class ConvexShapeCollisionTests {
         val convexBody = StackOfBoxesTest.createRigidBody(1f, Vector3d(0f, 0.5f, 0f), convexShape)
         world.addRigidBody(convexBody)
 
-        for (i in 0..9) {
-            world.stepSimulation((1f / 240f).toDouble(), 10)
+        repeat(10) {
+            world.stepSimulation((1f / 240f), 10)
         }
 
         return isColliding(world, convexBody, meshBody)
@@ -140,7 +144,7 @@ class ConvexShapeCollisionTests {
 
         // Step simulation a few times
         repeat(5) {
-            world.stepSimulation((1f / 60f).toDouble(), 10)
+            world.stepSimulation((1f / 60f), 10)
         }
 
         return isColliding(world, bodyA, bodyB)

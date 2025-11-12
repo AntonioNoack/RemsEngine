@@ -1,21 +1,21 @@
 package com.bulletphysics
 
-import cz.advel.stack.Stack.Companion.borrowVec
-import cz.advel.stack.Stack.Companion.newVec
-import cz.advel.stack.Stack.Companion.subVec
+import cz.advel.stack.Stack.Companion.borrowVec3d
+import cz.advel.stack.Stack.Companion.newVec3d
+import cz.advel.stack.Stack.Companion.subVec3d
 
 object StackTest {
     @JvmStatic
     fun main(args: Array<String>) {
-        newVec()
-        newVec(1.0)
-        newVec(1.0, 2.0, 3.0)
-        subVec(1)
-        borrowVec()
+        newVec3d()
+        newVec3d(1.0)
+        newVec3d(1.0, 2.0, 3.0)
+        subVec3d(1)
+        borrowVec3d()
         sub()
     }
 
     fun sub() {
-        subVec(1)
+        subVec3d(1)
     }
 }

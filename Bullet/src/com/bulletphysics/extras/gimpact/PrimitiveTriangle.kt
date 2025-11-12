@@ -22,15 +22,15 @@ class PrimitiveTriangle {
     @JvmField
     val vertices = Array(3) { Vector3d() }
     val plane = Vector4d()
-    var margin = 0.01
+    var margin = 0.01f
 
     fun buildTriPlane() {
-        val normal = Stack.newVec()
+        val normal = Stack.newVec3d()
         subCross(vertices[0], vertices[1], vertices[2], normal)
             .normalize()
 
         plane.set(normal.x, normal.y, normal.z, vertices[0].dot(normal))
-        Stack.subVec(1)
+        Stack.subVec3d(1)
     }
 
     /**
@@ -61,7 +61,7 @@ class PrimitiveTriangle {
         val e0 = vertices[edge_index]
         val e1 = vertices[(edge_index + 1) % 3]
 
-        val tmp = Stack.newVec()
+        val tmp = Stack.newVec3d()
         tmp.set(this.plane.x, this.plane.y, this.plane.z)
 
         edgePlane(e0, e1, tmp, plane)
@@ -110,7 +110,7 @@ class PrimitiveTriangle {
      * This triangle and other must have their triangles calculated.
      */
     fun findTriangleCollisionClipMethod(other: PrimitiveTriangle, contacts: TriangleContact): Boolean {
-        val margin = this.margin + other.margin
+        val margin = (this.margin + other.margin).toDouble()
 
         val clippedPoints = tmpVecList3
 
@@ -120,14 +120,14 @@ class PrimitiveTriangle {
 
         contacts1.separatingNormal.set(plane)
 
-        var clippedCount: Int = clipTriangle(other, clippedPoints)
+        var clippedCount = clipTriangle(other, clippedPoints)
         if (clippedCount == 0) {
             return false // Reject
         }
 
         // find most deep interval face1
         contacts1.mergePoints(contacts1.separatingNormal, margin, clippedPoints, clippedCount)
-        if (contacts1.pointCount == 0) {
+        if (contacts1.numPoints == 0) {
             return false // too far
             // Normal pointing to this triangle
         }
@@ -147,7 +147,7 @@ class PrimitiveTriangle {
 
         // find most deep interval face1
         contacts2.mergePoints(contacts2.separatingNormal, margin, clippedPoints, clippedCount)
-        if (contacts2.pointCount == 0) {
+        if (contacts2.numPoints == 0) {
             return false // too far
 
             // check most dir for contacts

@@ -3,6 +3,7 @@ package com.bulletphysics.linearmath
 import cz.advel.stack.Stack
 import org.joml.AABBd
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -32,15 +33,15 @@ object AabbUtil {
         rayTo: Vector3d,
         aabbMin: Vector3d,
         aabbMax: Vector3d,
-        param: DoubleArray,
-        normal: Vector3d
+        param: FloatArray,
+        normal: Vector3f
     ): Boolean {
-        val aabbHalfExtent = Stack.newVec()
-        val aabbCenter = Stack.newVec()
-        val source = Stack.newVec()
-        val target = Stack.newVec()
-        val r = Stack.newVec()
-        val hitNormal = Stack.newVec()
+        val aabbHalfExtent = Stack.newVec3d()
+        val aabbCenter = Stack.newVec3d()
+        val source = Stack.newVec3d()
+        val target = Stack.newVec3d()
+        val r = Stack.newVec3d()
+        val hitNormal = Stack.newVec3d()
 
         aabbMax.sub(aabbMin, aabbHalfExtent)
         aabbHalfExtent.mul(0.5)
@@ -55,7 +56,7 @@ object AabbUtil {
         val targetOutcode = outcode(target, aabbHalfExtent)
         var hit = false
         if ((sourceOutcode and targetOutcode) == 0x0) {
-            var lambdaEnter = 0.0
+            var lambdaEnter = 0f
             var lambdaExit = param[0]
             target.sub(source, r)
 
@@ -68,13 +69,13 @@ object AabbUtil {
                     if ((sourceOutcode and bit) != 0) {
                         val lambda = (-source[i] - aabbHalfExtent[i] * normSign) / r[i]
                         if (lambdaEnter <= lambda) {
-                            lambdaEnter = lambda
+                            lambdaEnter = lambda.toFloat()
                             hitNormal.set(0.0)
                             hitNormal[i] = normSign
                         }
                     } else if ((targetOutcode and bit) != 0) {
                         val lambda = (-source[i] - aabbHalfExtent[i] * normSign) / r[i]
-                        lambdaExit = min(lambdaExit, lambda)
+                        lambdaExit = min(lambdaExit, lambda.toFloat())
                     }
                     bit = bit shl 1
                 }
@@ -86,7 +87,7 @@ object AabbUtil {
                 hit = true
             }
         }
-        Stack.subVec(6)
+        Stack.subVec3d(6)
         return hit
     }
 
@@ -118,7 +119,7 @@ object AabbUtil {
     }
 
     fun transformAabb(
-        halfExtents: Vector3d, margin: Double, t: Transform,
+        halfExtents: Vector3f, margin: Float, t: Transform,
         aabbMinOut: Vector3d, aabbMaxOut: Vector3d
     ) {
         val ex = halfExtents.x + margin
@@ -136,37 +137,33 @@ object AabbUtil {
     }
 
     @JvmStatic
-    private fun absDot(ax: Double, ay: Double, az: Double, bx: Double, by: Double, bz: Double): Double {
+    private fun absDot(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float): Float {
         return abs(ax) * bx + abs(ay) * by + abs(az) * bz
     }
 
     fun transformAabb(
-        localAabbMin: Vector3d, localAabbMax: Vector3d,
-        margin: Double, trans: Transform,
+        localAabbMin: Vector3f, localAabbMax: Vector3f,
+        margin: Float, trans: Transform,
         aabbMinOut: Vector3d, aabbMaxOut: Vector3d
     ) {
-
-        // assert(localAabbMin.x <= localAabbMax.x)
-        // assert(localAabbMin.y <= localAabbMax.y)
-        // assert(localAabbMin.z <= localAabbMax.z)
-
-        val center = Stack.newVec()
-        localAabbMax.add(localAabbMin, center)
-        center.mul(0.5)
+        val center = Stack.newVec3d()
+            .set(localAabbMin)
+            .add(localAabbMax)
+            .mul(0.5)
         trans.transformPosition(center)
 
-        val ex = ((localAabbMax.x - localAabbMin.x) * 0.5) + margin
-        val ey = ((localAabbMax.y - localAabbMin.y) * 0.5) + margin
-        val ez = ((localAabbMax.z - localAabbMin.z) * 0.5) + margin
+        val halfExtendsX = ((localAabbMax.x - localAabbMin.x) * 0.5f) + margin
+        val halfExtendsY = ((localAabbMax.y - localAabbMin.y) * 0.5f) + margin
+        val halfExtendsZ = ((localAabbMax.z - localAabbMin.z) * 0.5f) + margin
 
         val basis = trans.basis
-        val dx = absDot(basis.m00, basis.m10, basis.m20, ex, ey, ez)
-        val dy = absDot(basis.m01, basis.m11, basis.m21, ex, ey, ez)
-        val dz = absDot(basis.m02, basis.m12, basis.m22, ex, ey, ez)
+        val dx = absDot(basis.m00, basis.m10, basis.m20, halfExtendsX, halfExtendsY, halfExtendsZ)
+        val dy = absDot(basis.m01, basis.m11, basis.m21, halfExtendsX, halfExtendsY, halfExtendsZ)
+        val dz = absDot(basis.m02, basis.m12, basis.m22, halfExtendsX, halfExtendsY, halfExtendsZ)
 
         center.sub(dx, dy, dz, aabbMinOut)
         center.add(dx, dy, dz, aabbMaxOut)
 
-        Stack.subVec(1)
+        Stack.subVec3d(1)
     }
 }

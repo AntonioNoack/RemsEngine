@@ -4,6 +4,7 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 
 /**
@@ -16,9 +17,9 @@ class Generic6DofSpringConstraint : TypedConstraint {
     var useLinearReferenceFrameA = false
 
     val springEnabled = BooleanArray(6)
-    val equilibriumPoint = Array(2) { Vector3d() }
-    val springStiffness = DoubleArray(6)
-    val springDamping = DoubleArray(6) { 1.0 }
+    val equilibriumPoint = Array(2) { Vector3f() }
+    val springStiffness = FloatArray(6)
+    val springDamping = FloatArray(6) { 1f }
 
     val linearLimits = TranslationalLimitMotor()
 
@@ -50,8 +51,8 @@ class Generic6DofSpringConstraint : TypedConstraint {
         }
     }
 
-    val calculatedLinearDiff = Vector3d()
-    val calculatedAngleDiff = Vector3d()
+    val calculatedLinearDiff = Vector3f()
+    val calculatedAngleDiff = Vector3f()
 
     fun calculateTransforms() {
         TODO()
@@ -92,7 +93,7 @@ class Generic6DofSpringConstraint : TypedConstraint {
         TODO("Not yet implemented")
     }
 
-    override fun solveConstraint(timeStep: Double) {
+    override fun solveConstraint(timeStep: Float) {
         TODO("Not yet implemented")
     }
 }

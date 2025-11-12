@@ -12,8 +12,9 @@ import me.anno.maths.geometry.convexhull.ConvexHulls
 import me.anno.utils.assertions.assertNull
 import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix3d
+import org.joml.Matrix3f
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 object ToConvexShape {
 
@@ -26,7 +27,7 @@ object ToConvexShape {
             shape is CompoundShape && shape.children.size == 1 &&
                     shape.children[0].shape is ConvexShape &&
                     shape.children[0].transform.origin.length() < 1e-9 &&
-                    shape.children[0].transform.basis.equals(Matrix3d(), 1e-5) -> {
+                    shape.children[0].transform.basis.equals(Matrix3f(), 1e-5) -> {
                 shape.children[0].shape as ConvexShape
             }
             else -> {
@@ -40,7 +41,7 @@ object ToConvexShape {
 
                 val hull = ConvexHulls.calculateConvexHull(vertices, 48)
                 // if hull result is empty, use bounds as convex hull
-                    ?: return BoxShape(boundsMax.sub(boundsMin).mul(0.5))
+                    ?: return BoxShape(Vector3f(boundsMax.sub(boundsMin).mul(0.5)))
                 ConvexHullShape(hull.vertices.toFloatArray(), hull.triangles)
             }
         }
@@ -57,18 +58,19 @@ object ToConvexShape {
     fun collectHullVertices(transform: Transform?, shape: CollisionShape, dst: ArrayList<Vector3d>) {
         when (shape) {
             is ConvexShape -> {
-                val dir = Vector3d()
+                val dir = Vector3f()
+                val tmp = Vector3f()
                 for (i in 0 until shape.numPreferredPenetrationDirections) {
                     shape.getPreferredPenetrationDirection(i, dir)
-                    val support = shape.localGetSupportingVertex(dir, Vector3d())
+                    val support = shape.localGetSupportingVertex(dir, tmp)
                     transform?.transformPosition(support)
-                    dst.add(support)
+                    dst.add(Vector3d(support))
                 }
                 for (dir0 in directions.value) {
                     dir.set(dir0)
-                    val support = shape.localGetSupportingVertex(dir, Vector3d())
+                    val support = shape.localGetSupportingVertex(dir, tmp)
                     transform?.transformPosition(support)
-                    dst.add(support)
+                    dst.add(Vector3d(support))
                 }
             }
             is ConcaveShape -> {

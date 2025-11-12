@@ -1,6 +1,7 @@
 package com.bulletphysics.linearmath
 
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.joml.Vector4d
 import kotlin.math.abs
 
@@ -82,7 +83,17 @@ object VectorUtil {
     }
 
     @JvmStatic
+    fun mul(dst: Vector3f, v1: Vector3f, v2: Vector3f) {
+        v1.mul(v2, dst)
+    }
+
+    @JvmStatic
     fun div(dst: Vector3d, v1: Vector3d, v2: Vector3d) {
+        v1.div(v2, dst)
+    }
+
+    @JvmStatic
+    fun div(dst: Vector3f, v1: Vector3f, v2: Vector3f) {
         v1.div(v2, dst)
     }
 
@@ -104,6 +115,11 @@ object VectorUtil {
     @JvmStatic
     fun setMax(dst: Vector3d, a: Vector3d, b: Vector3d) {
         a.max(b, dst)
+    }
+
+    @JvmStatic
+    fun dot3(v0: Vector3f, v1: Vector4d): Double {
+        return (v0.x * v1.x + v0.y * v1.y + v0.z * v1.z)
     }
 
     @JvmStatic

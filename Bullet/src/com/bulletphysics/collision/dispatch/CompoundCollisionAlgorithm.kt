@@ -104,7 +104,7 @@ class CompoundCollisionAlgorithm : CollisionAlgorithm() {
         body1: CollisionObject,
         dispatchInfo: DispatcherInfo,
         resultOut: ManifoldResult
-    ): Double {
+    ): Float {
         val colObj = if (isSwapped) body1 else body0
         val otherObj = if (isSwapped) body0 else body1
 
@@ -118,7 +118,7 @@ class CompoundCollisionAlgorithm : CollisionAlgorithm() {
         // and vise versa.
         val childTransform = Stack.newTrans()
         val originalTransform = Stack.newTrans()
-        var hitFraction = 1.0
+        var hitFraction = 1f
 
         val numChildren = childCollisionAlgorithms.size
         val originalShape = colObj.collisionShape
@@ -155,7 +155,7 @@ class CompoundCollisionAlgorithm : CollisionAlgorithm() {
 
     /**///////////////////////////////////////////////////////////////////////// */
     class CreateFunc : CollisionAlgorithmCreateFunc() {
-        private val pool = ObjectPool.Companion.get(CompoundCollisionAlgorithm::class.java)
+        private val pool = ObjectPool.get(CompoundCollisionAlgorithm::class.java)
 
         override fun createCollisionAlgorithm(
             ci: CollisionAlgorithmConstructionInfo,

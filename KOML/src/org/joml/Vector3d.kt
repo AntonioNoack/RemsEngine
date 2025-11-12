@@ -148,6 +148,14 @@ open class Vector3d(
      * dst = a * b + this
      * if (this === dst): dst += a * b
      * */
+    fun fma(a: Float, b: Vector3f, dst: Vector3d = this): Vector3d {
+        return fma(a.toDouble(), b, dst)
+    }
+
+    /**
+     * dst = a * b + this
+     * if (this === dst): dst += a * b
+     * */
     fun fma(a: Double, b: Vector3f, dst: Vector3d = this): Vector3d {
         dst.x = (a * b.x + x)
         dst.y = (a * b.y + y)
@@ -482,6 +490,18 @@ open class Vector3d(
         return dst.set(rx, ry, rz)
     }
 
+    fun crossX(dst: Vector3d = this): Vector3d {
+        return dst.set(0.0, z, -y)
+    }
+
+    fun crossY(dst: Vector3d = this): Vector3d {
+        return dst.set(-z, 0.0, x)
+    }
+
+    fun crossZ(dst: Vector3d = this): Vector3d {
+        return dst.set(y, -x, 0.0)
+    }
+
     fun length(): Double = length(x, y, z)
     fun lengthSquared(): Double = lengthSquared(x, y, z)
     fun distance(v: Vector3f) = distance(v.x, v.y, v.z)
@@ -546,8 +566,16 @@ open class Vector3d(
         return dst.set(max(x, vx), max(y, vy), max(z, vz))
     }
 
+    fun min(v: Vector3f, dst: Vector3d = this): Vector3d {
+        return min(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), dst)
+    }
+
     fun min(v: Vector3d, dst: Vector3d = this): Vector3d {
         return min(v.x, v.y, v.z, dst)
+    }
+
+    fun max(v: Vector3f, dst: Vector3d = this): Vector3d {
+        return max(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), dst)
     }
 
     fun max(v: Vector3d, dst: Vector3d = this): Vector3d {
@@ -818,6 +846,8 @@ open class Vector3d(
     fun normalToQuaternionY(dst: Quaterniond = Quaterniond()): Quaterniond {
         return dst.rotateTo(0.0, 1.0, 0.0, x, y, z)
     }
+
+    fun product() = x * y * z
 
     companion object {
         @JvmStatic

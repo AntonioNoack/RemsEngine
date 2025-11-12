@@ -29,9 +29,7 @@ class EmptyAlgorithm : CollisionAlgorithm() {
         body1: CollisionObject,
         dispatchInfo: DispatcherInfo,
         resultOut: ManifoldResult
-    ): Double {
-        return 1.0
-    }
+    ): Float = 1f
 
     override fun getAllContactManifolds(dst: ArrayList<PersistentManifold>) {
     }

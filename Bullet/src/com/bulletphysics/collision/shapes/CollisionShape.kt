@@ -5,6 +5,7 @@ import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
 
@@ -19,10 +20,10 @@ abstract class CollisionShape {
     /**getAabb returns the axis aligned bounding box in the coordinate frame of the given transform t. */
     abstract fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d)
 
-    open fun getVolume(): Double {
+    open fun getVolume(): Float {
         // use bounds as volume guess
-        val aabbMin = Stack.newVec()
-        val aabbMax = Stack.newVec()
+        val aabbMin = Stack.newVec3d()
+        val aabbMax = Stack.newVec3d()
 
         val identity = Stack.newTrans()
         identity.setIdentity()
@@ -33,27 +34,26 @@ abstract class CollisionShape {
                 max(aabbMax.z - aabbMin.z, 0.0)
 
         Stack.subTrans(1)
-        Stack.subVec(2)
-        return volume
+        Stack.subVec3d(2)
+        return volume.toFloat()
     }
 
-    fun getBoundingSphere(center: Vector3d): Double {
-        val tmp = Stack.newVec()
+    fun getBoundingSphere(center: Vector3d?): Float {
 
         val tr = Stack.newTrans()
         tr.setIdentity()
-        val aabbMin = Stack.newVec()
-        val aabbMax = Stack.newVec()
+
+        val aabbMin = Stack.newVec3d()
+        val aabbMax = Stack.newVec3d()
 
         getBounds(tr, aabbMin, aabbMax)
 
-        aabbMax.sub(aabbMin, tmp)
-        val dst = tmp.length() * 0.5 // halfExtents.length()
+        val dst = aabbMin.distance(aabbMax).toFloat() * 0.5f
+        if (center != null) {
+            aabbMin.add(aabbMax, center).mul(0.5)
+        }
 
-        aabbMin.add(aabbMax, tmp)
-        tmp.mul(0.5, center)
-
-        Stack.subVec(3)
+        Stack.subVec3d(2)
         Stack.subTrans(1)
 
         return dst
@@ -62,12 +62,12 @@ abstract class CollisionShape {
     /**
      * maximum radius needed for Conservative Advancement to handle time-of-impact with rotations
      * */
-    open val angularMotionDisc: Double
+    open val angularMotionDisc: Float
         get() {
-            val center = Stack.newVec()
+            val center = Stack.newVec3d()
             var dst = getBoundingSphere(center)
-            dst += center.length()
-            Stack.subVec(1)
+            dst += center.length().toFloat()
+            Stack.subVec3d(1)
             return dst
         }
 
@@ -77,9 +77,9 @@ abstract class CollisionShape {
      * */
     fun calculateTemporalAabb(
         curTrans: Transform,
-        linVel: Vector3d,
-        angVelLength: Double,
-        timeStep: Double,
+        linVel: Vector3f,
+        angVelLength: Float,
+        timeStep: Float,
         dstAabbMin: Vector3d,
         dstAabbMax: Vector3d
     ) {
@@ -91,33 +91,30 @@ abstract class CollisionShape {
         val stepZ = linVel.z * timeStep
 
         // add conservative angular motion
-        val angularMotion = angVelLength * angularMotionDisc * timeStep
+        val angularMotion = (angVelLength * angularMotionDisc * timeStep).toDouble()
 
         // only add if < 0 | > 0
         dstAabbMin.add(
-            min(stepX, 0.0) - angularMotion,
-            min(stepY, 0.0) - angularMotion,
-            min(stepZ, 0.0) - angularMotion
-        )
+            min(stepX, 0f),
+            min(stepY, 0f),
+            min(stepZ, 0f)
+        ).sub(angularMotion)
         dstAabbMax.add(
-            max(stepX, 0.0) + angularMotion,
-            max(stepY, 0.0) + angularMotion,
-            max(stepZ, 0.0) + angularMotion
-        )
+            max(stepX, 0f),
+            max(stepY, 0f),
+            max(stepZ, 0f)
+        ).add(angularMotion)
     }
 
     abstract val shapeType: BroadphaseNativeType
 
-    abstract fun setLocalScaling(scaling: Vector3d)
+    abstract fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f
 
-    abstract fun getLocalScaling(out: Vector3d): Vector3d
-
-    abstract fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d
-
-    open var margin: Double = BulletGlobals.CONVEX_DISTANCE_MARGIN
+    open var localScaling: Vector3f = Vector3f(1f)
+    open var margin: Float = BulletGlobals.CONVEX_DISTANCE_MARGIN
 
     /**
      * can be used as a multiplier for volume
      * */
-    var density = 1.0
+    var density = 1f
 }

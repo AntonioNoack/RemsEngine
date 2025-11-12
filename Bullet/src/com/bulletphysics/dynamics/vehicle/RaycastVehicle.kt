@@ -7,8 +7,11 @@ import com.bulletphysics.dynamics.constraintsolver.TypedConstraint
 import com.bulletphysics.linearmath.MiscUtil.resize
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
-import me.anno.utils.structures.arrays.DoubleArrayList
+import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.posMod
+import me.anno.utils.structures.arrays.FloatArrayList
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -22,20 +25,20 @@ import kotlin.math.sqrt
 class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private val vehicleRaycaster: VehicleRaycaster) :
     TypedConstraint() {
 
-    val forwardWS = ArrayList<Vector3d>()
-    val axle = ArrayList<Vector3d>()
-    val forwardImpulse = DoubleArrayList(8)
-    val sideImpulse = DoubleArrayList(8)
+    val forwardWS = ArrayList<Vector3f>()
+    val axle = ArrayList<Vector3f>()
+    val forwardImpulse = FloatArrayList(8)
+    val sideImpulse = FloatArrayList(8)
 
-    private val tau = 0.0
-    private val damping = 0.0
-    private var pitchControl = 0.0
-    private var steeringValue = 0.0
+    private val tau = 0f
+    private val damping = 0f
+    private var pitchControl = 0f
+    private var steeringValue = 0f
 
     /**
      * Velocity of vehicle (positive if velocity vector has same direction as foward vector).
      */
-    var currentSpeedKmHour: Double = 0.0
+    var currentSpeedKmHour = 0f
         private set
 
     var rightAxis: Int = 0
@@ -55,8 +58,8 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
     }
 
     private fun defaultInit(tuning: VehicleTuning?) {
-        this.currentSpeedKmHour = 0.0
-        steeringValue = 0.0
+        this.currentSpeedKmHour = 0f
+        steeringValue = 0f
     }
 
     /**
@@ -64,7 +67,7 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
      */
     fun addWheel(
         connectionPointCS: Vector3d, wheelDirectionCS0: Vector3d, wheelAxleCS: Vector3d,
-        suspensionRestLength: Double, wheelRadius: Double, tuning: VehicleTuning
+        suspensionRestLength: Float, wheelRadius: Float, tuning: VehicleTuning
     ): WheelInfo {
 
         val ci = WheelInfoConstructionInfo()
@@ -99,10 +102,10 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
     fun updateWheelTransform(wheelIndex: Int) {
         val wheel = wheels[wheelIndex]
         updateWheelTransformsWS(wheel)
-        val up = Stack.newVec()
+        val up = Stack.newVec3f()
         wheel.raycastInfo.wheelDirectionWS.negate(up)
         val right = wheel.raycastInfo.wheelAxleWS
-        val fwd = Stack.newVec()
+        val fwd = Stack.newVec3f()
         up.cross(right, fwd)
         fwd.normalize()
 
@@ -112,7 +115,8 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
         val steeringOrn = Stack.newQuat().setAngleAxis(steering, up)
         val steeringMat = Stack.newMat().set(steeringOrn)
 
-        val rotatingOrn = Stack.newQuat().setAngleAxis(-wheel.rotation, right)
+        val wheelRotation = posMod(-wheel.rotation, TAU).toFloat()
+        val rotatingOrn = Stack.newQuat().setAngleAxis(wheelRotation, right)
         val rotatingMat = Stack.newMat().set(rotatingOrn)
 
         val basis2 = Stack.newMat()
@@ -130,7 +134,7 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
             wheel.worldTransform.origin
         )
 
-        Stack.subVec(2)
+        Stack.subVec3f(2)
         Stack.subMat(3)
         Stack.subQuat(2)
     }
@@ -139,10 +143,10 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
         for (i in wheels.indices) {
             val wheel = wheels[i]
             wheel.raycastInfo.suspensionLength = wheel.suspensionRestLength
-            wheel.suspensionRelativeVelocity = 0.0
+            wheel.suspensionRelativeVelocity = 0f
 
             wheel.raycastInfo.wheelDirectionWS.negate(wheel.raycastInfo.contactNormalWS)
-            wheel.clippedInvContactDotSuspension = 1.0
+            wheel.clippedInvContactDotSuspension = 1f
         }
     }
 
@@ -160,25 +164,21 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
         chassisTrans.transformDirection(wheel.raycastInfo.wheelAxleWS)
     }
 
-    fun rayCast(wheel: WheelInfo): Double {
+    fun rayCast(wheel: WheelInfo): Float {
         updateWheelTransformsWS(wheel)
 
-        var depth = -1.0
+        var depth = -1f
 
         val rayLength = wheel.suspensionRestLength + wheel.wheelRadius
 
-        val rayVector = Stack.newVec()
+        val rayVector = Stack.newVec3f()
         wheel.raycastInfo.wheelDirectionWS.mul(rayLength, rayVector)
         val source = wheel.raycastInfo.hardPointWS
         source.add(rayVector, wheel.raycastInfo.contactPointWS)
         val target = wheel.raycastInfo.contactPointWS
 
-        val param: Double
-
+        val param: Float
         val rayResults = VehicleRaycasterResult()
-
-        checkNotNull(vehicleRaycaster)
-
         val instance = vehicleRaycaster.castRay(source, target, rayResults)
 
         wheel.raycastInfo.groundObject = null
@@ -209,8 +209,8 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
             val denominator = wheel.raycastInfo.contactNormalWS.dot(wheel.raycastInfo.wheelDirectionWS)
 
-            val chassisVelocityAtContactPoint = Stack.newVec()
-            val relativePosition = Stack.newVec()
+            val chassisVelocityAtContactPoint = Stack.newVec3f()
+            val relativePosition = Stack.newVec3f()
             wheel.raycastInfo.contactPointWS.sub(
                 rigidBody.worldTransform.origin,
                 relativePosition
@@ -220,22 +220,22 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
             val projVel = wheel.raycastInfo.contactNormalWS.dot(chassisVelocityAtContactPoint)
 
-            if (denominator >= -0.1) {
-                wheel.suspensionRelativeVelocity = 0.0
-                wheel.clippedInvContactDotSuspension = 1.0 / 0.1
+            if (denominator >= -0.1f) {
+                wheel.suspensionRelativeVelocity = 0f
+                wheel.clippedInvContactDotSuspension = 1f / 0.1f
             } else {
-                val inv = -1.0 / denominator
+                val inv = -1f / denominator
                 wheel.suspensionRelativeVelocity = projVel * inv
                 wheel.clippedInvContactDotSuspension = inv
             }
-            Stack.subVec(3)
+            Stack.subVec3d(3)
         } else {
             // put wheel info as in rest position
             wheel.raycastInfo.suspensionLength = wheel.suspensionRestLength
-            wheel.suspensionRelativeVelocity = 0.0
+            wheel.suspensionRelativeVelocity = 0f
             wheel.raycastInfo.wheelDirectionWS.negate(wheel.raycastInfo.contactNormalWS)
-            wheel.clippedInvContactDotSuspension = 1.0
-            Stack.subVec(1)
+            wheel.clippedInvContactDotSuspension = 1f
+            Stack.subVec3d(1)
         }
 
         // todo stack cleanup
@@ -247,14 +247,14 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
         return rigidBody.getCenterOfMassTransform(out)
     }
 
-    fun updateVehicle(step: Double) {
+    fun updateVehicle(timeStep: Float) {
         for (i in wheels.indices) {
             updateWheelTransform(i)
         }
 
         currentSpeedKmHour = 3.6f * rigidBody.linearVelocity.length()
 
-        val forwardW = Stack.newVec()
+        val forwardW = Stack.newVec3d()
         val chassisTrans = rigidBody.worldTransform
         forwardW.set(
             chassisTrans.basis[forwardAxis, 0],
@@ -262,8 +262,8 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
             chassisTrans.basis[forwardAxis, 2]
         )
 
-        if (forwardW.dot(rigidBody.linearVelocity) < 0.0) {
-            currentSpeedKmHour *= -1.0
+        if (forwardW.dot(rigidBody.linearVelocity) < 0f) {
+            currentSpeedKmHour = -currentSpeedKmHour
         }
 
         //
@@ -273,9 +273,9 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
             rayCast(wheels[i])
         }
 
-        updateSuspension(step)
+        updateSuspension(timeStep)
 
-        val tmp = Stack.newVec()
+        val tmp = Stack.newVec3f()
 
         for (i in wheels.indices) {
             // apply suspension force
@@ -283,23 +283,23 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
             var suspensionForce = wheel.wheelsSuspensionForce
 
-            val gMaxSuspensionForce = 6000.0
+            val gMaxSuspensionForce = 6000f
             if (suspensionForce > gMaxSuspensionForce) {
                 suspensionForce = gMaxSuspensionForce
             }
-            val impulse = Stack.newVec()
-            wheel.raycastInfo.contactNormalWS.mul(suspensionForce * step, impulse)
-            val relPos = Stack.newVec()
+            val impulse = Stack.newVec3f()
+            wheel.raycastInfo.contactNormalWS.mul(suspensionForce * timeStep, impulse)
+            val relPos = Stack.newVec3f()
             wheel.raycastInfo.contactPointWS.sub(rigidBody.worldTransform.origin, relPos)
 
             this.rigidBody.applyImpulse(impulse, relPos)
-            Stack.subVec(2)
+            Stack.subVec3f(2)
         }
 
-        updateFriction(step)
+        updateFriction(timeStep)
 
-        val relPos = Stack.newVec()
-        val vel = Stack.newVec()
+        val relPos = Stack.newVec3f()
+        val vel = Stack.newVec3f()
         for (i in wheels.indices) {
             val wheel = wheels[i]
             wheel.raycastInfo.hardPointWS.sub(rigidBody.worldTransform.origin, relPos)
@@ -307,7 +307,7 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
             if (wheel.raycastInfo.isInContact) {
                 val chassisWorldTransform = rigidBody.worldTransform
-                val fwd = Stack.newVec()
+                val fwd = Stack.newVec3f()
                 fwd.set(
                     chassisWorldTransform.basis[forwardAxis, 0],
                     chassisWorldTransform.basis[forwardAxis, 1],
@@ -320,28 +320,29 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
                 val proj2 = fwd.dot(vel)
 
-                wheel.deltaRotation = (proj2 * step) / (wheel.wheelRadius)
-                Stack.subVec(1)
+                wheel.deltaRotation = (proj2 * timeStep) / (wheel.wheelRadius)
+                Stack.subVec3f(1)
             }
 
             wheel.rotation += wheel.deltaRotation
-            wheel.deltaRotation *= 0.99 // damping of rotation when not in contact
+            wheel.deltaRotation *= 0.99f // damping of rotation when not in contact
         }
-        Stack.subVec(4)
+        Stack.subVec3f(3)
+        Stack.subVec3d(1)
     }
 
-    fun setSteeringValue(steering: Double, wheel: Int) {
+    fun setSteeringValue(steering: Float, wheel: Int) {
         assert(wheel >= 0 && wheel < this.numWheels)
 
         val wheelInfo = getWheelInfo(wheel)
         wheelInfo.steering = steering
     }
 
-    fun getSteeringValue(wheel: Int): Double {
+    fun getSteeringValue(wheel: Int): Float {
         return getWheelInfo(wheel).steering
     }
 
-    fun applyEngineForce(force: Double, wheel: Int) {
+    fun applyEngineForce(force: Float, wheel: Int) {
         assert(wheel >= 0 && wheel < this.numWheels)
         val wheelInfo = getWheelInfo(wheel)
         wheelInfo.engineForce = force
@@ -351,19 +352,19 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
         return wheels[index]
     }
 
-    fun setBrake(brake: Double, wheelIndex: Int) {
+    fun setBrake(brake: Float, wheelIndex: Int) {
         assert((wheelIndex >= 0) && (wheelIndex < this.numWheels))
         getWheelInfo(wheelIndex).brake = brake
     }
 
-    fun updateSuspension(deltaTime: Double) {
-        val chassisMass = 1.0 / rigidBody.inverseMass
+    fun updateSuspension(deltaTime: Float) {
+        val chassisMass = 1f / rigidBody.inverseMass
 
         for (wheelIndex in wheels.indices) {
             val wheelInfo = this.wheels[wheelIndex]
 
             if (wheelInfo.raycastInfo.isInContact) {
-                var force: Double
+                var force: Float
                 //	Spring
                 run {
                     val suspensionLength = wheelInfo.suspensionRestLength
@@ -388,27 +389,27 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
                 // RESULT
                 wheelInfo.wheelsSuspensionForce = force * chassisMass
-                if (wheelInfo.wheelsSuspensionForce < 0.0) {
-                    wheelInfo.wheelsSuspensionForce = 0.0
+                if (wheelInfo.wheelsSuspensionForce < 0f) {
+                    wheelInfo.wheelsSuspensionForce = 0f
                 }
             } else {
-                wheelInfo.wheelsSuspensionForce = 0.0
+                wheelInfo.wheelsSuspensionForce = 0f
             }
         }
     }
 
-    private fun calcRollingFriction(contactPoint: WheelContactPoint, numWheelsOnGround: Int): Double {
+    private fun calcRollingFriction(contactPoint: WheelContactPoint, numWheelsOnGround: Int): Float {
         val contactPosWorld = contactPoint.frictionPositionWorld
 
-        val relPos1 = Stack.newVec()
+        val relPos1 = Stack.newVec3f()
+        val relPos2 = Stack.newVec3f()
         contactPosWorld.sub(contactPoint.body0.worldTransform.origin, relPos1)
-        val relPos2 = Stack.newVec()
         contactPosWorld.sub(contactPoint.body1.worldTransform.origin, relPos2)
 
         val maxImpulse = contactPoint.maxImpulse
 
-        val vel1 = contactPoint.body0.getVelocityInLocalPoint(relPos1, Stack.newVec())
-        val vel2 = contactPoint.body1.getVelocityInLocalPoint(relPos2, Stack.newVec())
+        val vel1 = contactPoint.body0.getVelocityInLocalPoint(relPos1, Stack.newVec3f())
+        val vel2 = contactPoint.body1.getVelocityInLocalPoint(relPos2, Stack.newVec3f())
         val vel = vel1.sub(vel2)
 
         val relativeVelocity = contactPoint.frictionDirectionWorld.dot(vel)
@@ -418,24 +419,23 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
         impulse = min(impulse, maxImpulse)
         impulse = max(impulse, -maxImpulse)
 
-        Stack.subVec(4)
-
+        Stack.subVec3f(4)
         return impulse
     }
 
-    fun updateFriction(timeStep: Double) {
+    fun updateFriction(timeStep: Float) {
         // calculate the impulse, so that the wheels don't move sidewards
         val numWheel = this.numWheels
         if (numWheel == 0) {
             return
         }
 
-        resize(forwardWS, numWheel, Vector3d::class.java)
-        resize(axle, numWheel, Vector3d::class.java)
-        resize(forwardImpulse, numWheel, 0.0)
-        resize(sideImpulse, numWheel, 0.0)
+        resize(forwardWS, numWheel, Vector3f::class.java)
+        resize(axle, numWheel, Vector3f::class.java)
+        resize(forwardImpulse, numWheel, 0f)
+        resize(sideImpulse, numWheel, 0f)
 
-        val tmp = Stack.newVec()
+        val tmp = Stack.newVec3f()
 
         var numWheelsOnGround = 0
 
@@ -446,13 +446,12 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
             if (groundObject != null) {
                 numWheelsOnGround++
             }
-            sideImpulse.set(i, 0.0)
-            forwardImpulse.set(i, 0.0)
+            sideImpulse[i] = 0f
+            forwardImpulse[i] = 0f
         }
 
         run {
             val wheelTrans = Stack.newTrans()
-            val impulse = Stack.newDoublePtr()
             for (i in wheels.indices) {
                 val wheelInfo = wheels[i]
                 val groundObject = wheelInfo.raycastInfo.groundObject
@@ -460,7 +459,7 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
                 if (groundObject != null) {
                     getWheelTransformWS(i, wheelTrans)
 
-                    wheelTrans.basis.getColumn(rightAxis,axle[i])
+                    wheelTrans.basis.getColumn(rightAxis, axle[i])
 
                     val surfNormalWS = wheelInfo.raycastInfo.contactNormalWS
                     val proj = axle[i].dot(surfNormalWS)
@@ -471,35 +470,33 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
                     surfNormalWS.cross(axle[i], forwardWS[i])
                     forwardWS[i].normalize()
 
-                    ContactConstraint.resolveSingleBilateral(
+                    val impulse = ContactConstraint.resolveSingleBilateral(
                         rigidBody, wheelInfo.raycastInfo.contactPointWS,
                         groundObject, wheelInfo.raycastInfo.contactPointWS,
-                        axle[i], impulse
+                        axle[i]
                     )
-                    sideImpulse.set(i, impulse[0])
-                    sideImpulse.set(i, sideImpulse.get(i) * SIDE_FRICTION_STIFFNESS2)
+                    sideImpulse[i] = impulse * SIDE_FRICTION_STIFFNESS2
                 }
             }
             Stack.subTrans(1)
-            Stack.subDoublePtr(1)
         }
 
-        val sideFactor = 1.0
-        val fwdFactor = 0.5
+        val sideFactor = 1.0f
+        val fwdFactor = 0.5f
 
         var sliding = false
         for (wheel in wheels.indices) {
             val wheelI = wheels[wheel]
             val groundObject = wheelI.raycastInfo.groundObject
 
-            var rollingFriction = 0.0
+            var rollingFriction = 0f
 
             if (groundObject != null) {
-                if (wheelI.engineForce != 0.0) {
+                if (wheelI.engineForce != 0f) {
                     rollingFriction = wheelI.engineForce * timeStep
                 } else {
-                    val defaultRollingFrictionImpulse = 0.0
-                    val maxImpulse = if (wheelI.brake != 0.0) wheelI.brake else defaultRollingFrictionImpulse
+                    val defaultRollingFrictionImpulse = 0f
+                    val maxImpulse = if (wheelI.brake != 0f) wheelI.brake else defaultRollingFrictionImpulse
                     val contactPt = WheelContactPoint(
                         rigidBody, groundObject, wheelI.raycastInfo.contactPointWS,
                         forwardWS[wheel], maxImpulse
@@ -509,11 +506,11 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
             }
 
             // switch between active rolling (throttle), braking and non-active rolling friction (no throttle/break)
-            forwardImpulse.set(wheel, 0.0)
-            wheels[wheel].skidInfo = 1.0
+            forwardImpulse[wheel] = 0f
+            wheels[wheel].skidInfo = 1f
 
             if (groundObject != null) {
-                wheels[wheel].skidInfo = 1.0
+                wheels[wheel].skidInfo = 1f
 
                 val maxImpulse = wheelI.wheelsSuspensionForce * timeStep * wheelI.frictionSlip
 
@@ -534,8 +531,8 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
         if (sliding) {
             for (wheel in wheels.indices) {
-                if (sideImpulse[wheel] != 0.0) {
-                    if (wheels[wheel].skidInfo < 1.0) {
+                if (sideImpulse[wheel] != 0f) {
+                    if (wheels[wheel].skidInfo < 1f) {
                         forwardImpulse[wheel] = forwardImpulse[wheel] * wheels[wheel].skidInfo
                         sideImpulse[wheel] = sideImpulse[wheel] * wheels[wheel].skidInfo
                     }
@@ -545,23 +542,23 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
         // apply the impulses
         run {
-            val relPos = Stack.newVec()
+            val relPos = Stack.newVec3f()
             for (wheel in wheels.indices) {
                 val wheelInfo = wheels[wheel]
                 wheelInfo.raycastInfo.contactPointWS.sub(rigidBody.worldTransform.origin, relPos)
 
-                if (forwardImpulse.get(wheel) != 0.0) {
-                    forwardWS[wheel].mul(forwardImpulse.get(wheel), tmp)
+                if (forwardImpulse[wheel] != 0f) {
+                    forwardWS[wheel].mul(forwardImpulse[wheel], tmp)
                     rigidBody.applyImpulse(tmp, relPos)
                 }
-                if (sideImpulse.get(wheel) != 0.0) {
+                if (sideImpulse[wheel] != 0f) {
                     val groundObject = wheels[wheel].raycastInfo.groundObject!!
 
-                    val relPos2 = Stack.newVec()
+                    val relPos2 = Stack.newVec3f()
                     wheelInfo.raycastInfo.contactPointWS.sub(groundObject.worldTransform.origin, relPos2)
 
-                    val sideImp = Stack.newVec()
-                    axle[wheel].mul(sideImpulse.get(wheel), sideImp)
+                    val sideImp = Stack.newVec3f()
+                    axle[wheel].mul(sideImpulse[wheel], sideImp)
 
                     relPos.z *= wheelInfo.rollInfluence
                     rigidBody.applyImpulse(sideImp, relPos)
@@ -570,33 +567,33 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
                     sideImp.negate(tmp)
                     groundObject.applyImpulse(tmp, relPos2)
 
-                    Stack.subVec(2)
+                    Stack.subVec3f(2)
                 }
             }
-            Stack.subVec(1) // relPos
+            Stack.subVec3f(1) // relPos
         }
-        Stack.subVec(1) // tmp
+        Stack.subVec3f(1) // tmp
     }
 
     override fun buildJacobian() {
         // not yet
     }
 
-    override fun solveConstraint(timeStep: Double) {
+    override fun solveConstraint(timeStep: Float) {
         // not yet
     }
 
     val numWheels: Int
         get() = wheels.size
 
-    fun setPitchControl(pitch: Double) {
+    fun setPitchControl(pitch: Float) {
         this.pitchControl = pitch
     }
 
     /**
      * World space forward vector.
      */
-    fun getForwardVector(out: Vector3d): Vector3d {
+    fun getForwardVector(out: Vector3f): Vector3f {
         val chassisTrans = rigidBody.worldTransform
         chassisTrans.basis.getColumn(forwardAxis, out)
         return out
@@ -613,13 +610,13 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
         var body0: RigidBody,
         var body1: RigidBody,
         frictionPosWorld: Vector3d,
-        frictionDirectionWorld: Vector3d,
-        maxImpulse: Double
+        frictionDirectionWorld: Vector3f,
+        maxImpulse: Float
     ) {
-        val frictionPositionWorld: Vector3d = Vector3d()
-        val frictionDirectionWorld: Vector3d = Vector3d()
-        var jacDiagABInv: Double
-        var maxImpulse: Double
+        val frictionPositionWorld = Vector3d()
+        val frictionDirectionWorld = Vector3f()
+        var jacDiagABInv: Float
+        var maxImpulse: Float
 
         init {
             this.frictionPositionWorld.set(frictionPosWorld)
@@ -628,13 +625,12 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
             val denom0 = body0.computeImpulseDenominator(frictionPosWorld, frictionDirectionWorld)
             val denom1 = body1.computeImpulseDenominator(frictionPosWorld, frictionDirectionWorld)
-            val relaxation = 1.0
-            jacDiagABInv = relaxation / (denom0 + denom1)
+            jacDiagABInv = 1f / (denom0 + denom1)
         }
     }
 
     companion object {
-        private val FIXED_OBJECT = RigidBody(0.0, SphereShape((0.0)))
-        private const val SIDE_FRICTION_STIFFNESS2 = 1.0
+        private val FIXED_OBJECT = RigidBody(0f, SphereShape(0f))
+        private const val SIDE_FRICTION_STIFFNESS2 = 1f
     }
 }

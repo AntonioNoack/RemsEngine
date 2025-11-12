@@ -2,8 +2,7 @@ package com.bulletphysics.dynamics
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.BulletStats
-import com.bulletphysics.BulletStats.popProfile
-import com.bulletphysics.BulletStats.pushProfile
+import com.bulletphysics.BulletStats.profile
 import com.bulletphysics.collision.broadphase.BroadphaseInterface
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.broadphase.Dispatcher
@@ -22,6 +21,7 @@ import com.bulletphysics.dynamics.vehicle.RaycastVehicle
 import com.bulletphysics.linearmath.BulletProfiling
 import com.bulletphysics.linearmath.DebugDrawModes
 import com.bulletphysics.linearmath.IDebugDraw
+import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.TransformUtil
 import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.CollisionFilters
@@ -31,6 +31,7 @@ import me.anno.graph.octtree.KdTreePairs.queryPairs
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -47,15 +48,15 @@ class DiscreteDynamicsWorld(
 
     val simulationIslandManager = SimulationIslandManager()
     val constraints = ArrayList<TypedConstraint>()
-    val gravity = Vector3d(0.0, -10.0, 0.0)
+    val gravity = Vector3f(0f, -10f, 0f)
 
     //for variable timesteps
-    var localTime: Double = 1.0 / 60.0
+    var localTime: Float = 1f / 60f
 
     val vehicles = ArrayList<RaycastVehicle>()
-    val actions = ArrayList<ActionInterface?>()
+    val actions = ArrayList<ActionInterface>()
 
-    fun saveKinematicState(timeStep: Double) {
+    fun saveKinematicState(timeStep: Float) {
         for (i in collisionObjects.indices) {
             val colObj = collisionObjects[i]
             val body = colObj as? RigidBody ?: continue
@@ -124,16 +125,15 @@ class DiscreteDynamicsWorld(
         }
     }
 
-    override fun stepSimulation(timeStep: Double, maxSubSteps: Int, fixedTimeStep: Double): Int {
+    override fun stepSimulation(timeStep: Float, maxSubSteps: Int, fixedTimeStep: Float): Int {
         var maxSubSteps = maxSubSteps
         var fixedTimeStep = fixedTimeStep
         // startProfiling() // resets the profiling counters
 
         val t0 = System.nanoTime()
 
-        pushProfile("stepSimulation")
-        try {
-            var numSimulationSubSteps = 0
+        var numSimulationSubSteps = 0
+        profile("stepSimulation") {
             if (maxSubSteps != 0) {
                 // fixed timestep with interpolation
                 localTime += timeStep
@@ -179,17 +179,13 @@ class DiscreteDynamicsWorld(
             BulletProfiling.incrementFrameCounter()
 
             //#endif //BT_NO_PROFILE
-            return numSimulationSubSteps
-        } finally {
-            popProfile()
-
-            BulletStats.stepSimulationTime = (System.nanoTime() - t0) / 1000000
         }
+        BulletStats.stepSimulationTime = (System.nanoTime() - t0) / 1000000
+        return numSimulationSubSteps
     }
 
-    fun internalSingleStepSimulation(timeStep: Double) {
-        pushProfile("internalSingleStepSimulation")
-        try {
+    fun internalSingleStepSimulation(timeStep: Float) {
+        profile("internalSingleStepSimulation") {
             // apply gravity, predict motion
             predictUnconstrainedMotion(timeStep)
 
@@ -224,8 +220,6 @@ class DiscreteDynamicsWorld(
             updateActivationState(timeStep)
 
             internalTickCallback?.internalTick(this, timeStep)
-        } finally {
-            popProfile()
         }
     }
 
@@ -239,7 +233,7 @@ class DiscreteDynamicsWorld(
         }
     }
 
-    override fun setGravity(gravity: Vector3d) {
+    override fun setGravity(gravity: Vector3f) {
         this.gravity.set(gravity)
         for (i in collisionObjects.indices) {
             val body = collisionObjects[i] as? RigidBody
@@ -247,7 +241,7 @@ class DiscreteDynamicsWorld(
         }
     }
 
-    override fun getGravity(out: Vector3d): Vector3d {
+    override fun getGravity(out: Vector3f): Vector3f {
         out.set(gravity)
         return out
     }
@@ -288,32 +282,24 @@ class DiscreteDynamicsWorld(
         }
     }
 
-    fun updateActions(timeStep: Double) {
-        pushProfile("updateActions")
-        try {
+    fun updateActions(timeStep: Float) {
+        profile("updateActions") {
             for (i in actions.indices) {
-                actions[i]!!.updateAction(this, timeStep)
+                actions[i].updateAction(this, timeStep)
             }
-        } finally {
-            popProfile()
         }
     }
 
-    fun updateVehicles(timeStep: Double) {
-        pushProfile("updateVehicles")
-        try {
+    fun updateVehicles(timeStep: Float) {
+        profile("updateVehicles") {
             for (i in vehicles.indices) {
-                val vehicle = vehicles[i]
-                vehicle.updateVehicle(timeStep)
+                vehicles[i].updateVehicle(timeStep)
             }
-        } finally {
-            popProfile()
         }
     }
 
-    fun updateActivationState(timeStep: Double) {
-        pushProfile("updateActivationState")
-        try {
+    fun updateActivationState(timeStep: Float) {
+        profile("updateActivationState") {
             var stackPos: IntArray? = null
             for (i in collisionObjects.indices) {
                 stackPos = Stack.getPosition(stackPos)
@@ -330,8 +316,7 @@ class DiscreteDynamicsWorld(
                                 body.setActivationStateMaybe(ActivationState.WANTS_DEACTIVATION)
                             }
                             if (body.activationState == ActivationState.SLEEPING) {
-                                val zero = Stack.borrowVec()
-                                zero.set(0.0, 0.0, 0.0)
+                                val zero = Stack.borrowVec3f().set(0f)
                                 body.setAngularVelocity(zero)
                                 body.setLinearVelocity(zero)
                             }
@@ -344,8 +329,6 @@ class DiscreteDynamicsWorld(
                 }
                 Stack.reset(stackPos)
             }
-        } finally {
-            popProfile()
         }
     }
 
@@ -459,8 +442,7 @@ class DiscreteDynamicsWorld(
     private val solverCallback = InplaceSolverIslandCallback()
 
     fun solveConstraints(solverInfo: ContactSolverInfo) {
-        pushProfile("solveConstraints")
-        try {
+        profile("solveConstraints") {
             // sorted version of all btTypedConstraint, based on islandId
             sortedConstraints.clear()
             sortedConstraints.addAll(constraints)
@@ -483,14 +465,11 @@ class DiscreteDynamicsWorld(
                 collisionObjects,
                 solverCallback
             )
-        } finally {
-            popProfile()
         }
     }
 
     fun calculateSimulationIslands() {
-        pushProfile("calculateSimulationIslands")
-        try {
+        profile("calculateSimulationIslands") {
             simulationIslandManager.updateActivationState(this)
 
             for (i in constraints.indices) {
@@ -509,61 +488,56 @@ class DiscreteDynamicsWorld(
 
             // Store the island id in each body
             simulationIslandManager.storeIslandActivationState(this)
-        } finally {
-            popProfile()
         }
     }
 
     private val sweepResults = ClosestNotMeConvexResultCallback()
     private val collisionTree = CollisionTree()
 
-    fun integrateTransforms(timeStep: Double) {
+    fun integrateTransforms(timeStep: Float) {
         integrateTransformsBegin(timeStep)
         integrateTransformsCCD(timeStep)
         integrateTransformsEnd()
     }
 
-    fun integrateTransformsBegin(timeStep: Double) {
-        val linVel = Stack.newVec()
+    fun integrateTransformsBegin(timeStep: Float) {
+        val linVel = Stack.newVec3f()
         val tmpSphere = tmpSphere.get()
+        collisionTree.clear() // clear it here, so we later still have access to it
+
         for (i in collisionObjects.indices) {
             val self0 = collisionObjects[i]
 
             val self = self0 as? RigidBody ?: continue
             if (!self.isActive || self.isStaticOrKinematicObject) continue
 
-            self.hitFraction = 1.0
-            val predictedTrans = self.predictedTransform
-            self.predictIntegratedTransform(timeStep, predictedTrans)
+            self.hitFraction = 1f
+            val transform1 = self.predictedTransform
+            self.predictIntegratedTransform(timeStep, transform1)
 
-            val squareMotion = predictedTrans.origin.distanceSquared(self.worldTransform.origin)
-            if (self.ccdSquareMotionThreshold != 0.0 &&
+            val squareMotion = transform1.origin.distanceSquared(self.worldTransform.origin)
+            if (self.ccdSquareMotionThreshold != 0f &&
                 self.ccdSquareMotionThreshold < squareMotion &&
                 self.collisionShape is ConvexShape
             ) {
 
                 BulletStats.numClampedCcdMotions++
-
                 tmpSphere.radius = self.ccdSweptSphereRadius
-
-                val convexFromWorld = self.worldTransform
-                val convexToWorld = predictedTrans
-
-                val angVel = TransformUtil.calculateVelocity(convexFromWorld, convexToWorld, 1.0, linVel)
+                val transform0 = self.worldTransform
+                val angVel = TransformUtil.calculateVelocity(transform0, transform1, 1f, linVel)
                 tmpSphere.calculateTemporalAabb(
-                    convexFromWorld, linVel, angVel, 1.0,
+                    transform0, linVel, angVel, 1f,
                     self.collisionAabbMin, self.collisionAabbMax
                 )
 
                 collisionTree.add(self)
             }
         }
-        Stack.subVec(1)
+        Stack.subVec3f(1)
     }
 
-    fun integrateTransformsCCD(timeStep: Double) {
-        pushProfile("integrateTransforms")
-        try {
+    fun integrateTransformsCCD(timeStep: Float) {
+        profile("integrateTransforms") {
             collisionTree.queryPairs(FLAG_SWAPPED_PAIRS) { self, other ->
 
                 // does this need swapped pairs? yes, looks like that
@@ -595,33 +569,26 @@ class DiscreteDynamicsWorld(
                 if (results.hasHit() && results.closestHitFraction > 0.0001f) {
                     self.hitFraction = results.closestHitFraction
                     self.predictIntegratedTransform(timeStep * self.hitFraction, predictedTrans)
-                    self.hitFraction = 0.0
+                    self.hitFraction = 0f
                 }
 
                 false
             }
-        } finally {
-            popProfile()
         }
     }
 
     fun integrateTransformsEnd() {
-        pushProfile("integrateTransforms")
-        try {
+        profile("integrateTransforms") {
             for (i in collisionObjects.indices) {
                 val self = collisionObjects[i] as? RigidBody ?: continue
                 if (!self.isActive || self.isStaticOrKinematicObject) continue
                 self.proceedToTransform(self.predictedTransform)
             }
-        } finally {
-            collisionTree.clear()
-            popProfile()
         }
     }
 
-    fun predictUnconstrainedMotion(timeStep: Double) {
-        pushProfile("predictUnconstrainedMotion")
-        try {
+    fun predictUnconstrainedMotion(timeStep: Float) {
+        profile("predictUnconstrainedMotion") {
             for (i in collisionObjects.indices) {
                 val body = collisionObjects[i] as? RigidBody ?: continue
                 if (!body.isStaticOrKinematicObject && body.isActive) {
@@ -631,9 +598,20 @@ class DiscreteDynamicsWorld(
                     body.predictIntegratedTransform(timeStep, body.interpolationWorldTransform)
                 }
             }
-        } finally {
-            popProfile()
         }
+    }
+
+    override fun convexSweepTest(
+        selfShape: ConvexShape,
+        convexFromWorld: Transform,
+        convexToWorld: Transform,
+        resultCallback: ConvexResultCallback
+    ) {
+        convexSweepTest(
+            selfShape, convexFromWorld, convexToWorld,
+            resultCallback, dispatchInfo.allowedCcdPenetration,
+            collisionTree
+        )
     }
 
     private class ClosestNotMeConvexResultCallback : ClosestConvexResultCallback() {
@@ -654,25 +632,23 @@ class DiscreteDynamicsWorld(
             this.dispatcher = dispatcher
         }
 
-        override fun addSingleResult(convexResult: LocalConvexResult, normalInWorldSpace: Boolean): Double {
-            if (convexResult.hitCollisionObject === me) {
-                return 1.0
-            }
+        override fun addSingleResult(convexResult: LocalConvexResult, normalInWorldSpace: Boolean): Float {
+            if (convexResult.hitCollisionObject === me) return 1f
 
-            val linVelA = Stack.newVec()
-            val linVelB = Stack.newVec()
+            val linVelA = Stack.newVec3d()
+            val linVelB = Stack.newVec3d()
             convexToWorld.sub(convexFromWorld, linVelA)
             linVelB.set(0.0, 0.0, 0.0) //toB.getOrigin()-fromB.getOrigin();
 
-            val relativeVelocity = Stack.newVec()
+            val relativeVelocity = Stack.newVec3d()
             linVelA.sub(linVelB, relativeVelocity)
 
             // don't report time of impact for motion away from the contact normal (or causes minor penetration)
             val allowedPenetration = 0.0
             val ignored = convexResult.hitNormalLocal.dot(relativeVelocity) >= -allowedPenetration
 
-            Stack.subVec(3)
-            if (ignored) return 1.0
+            Stack.subVec3d(3)
+            if (ignored) return 1f
 
             return super.addSingleResult(convexResult, normalInWorldSpace)
         }
@@ -719,7 +695,7 @@ class DiscreteDynamicsWorld(
 
     companion object {
 
-        val tmpSphere = threadLocal { SphereShape(1.0) }
+        val tmpSphere = threadLocal { SphereShape(1f) }
 
         private fun getConstraintIslandId(constraint: TypedConstraint): Int {
             val colObj0 = constraint.rigidBodyA

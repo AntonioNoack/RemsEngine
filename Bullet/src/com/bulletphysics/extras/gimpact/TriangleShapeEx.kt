@@ -14,16 +14,16 @@ class TriangleShapeEx : TriangleShape {
     constructor(p0: Vector3d, p1: Vector3d, p2: Vector3d) : super(p0, p1, p2)
 
     override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
-        val tv0 = t.transformPosition(vertices[0], Stack.newVec())
-        val tv1 = t.transformPosition(vertices[1], Stack.newVec())
-        val tv2 = t.transformPosition(vertices[2], Stack.newVec())
+        val tv0 = t.transformPosition(vertices[0], Stack.newVec3d())
+        val tv1 = t.transformPosition(vertices[1], Stack.newVec3d())
+        val tv2 = t.transformPosition(vertices[2], Stack.newVec3d())
 
         val triangleBox = AABB()
-        triangleBox.calcFromTriangleMargin(tv0, tv1, tv2, margin)
+        triangleBox.calcFromTriangleMargin(tv0, tv1, tv2, margin.toDouble())
 
         aabbMin.set(triangleBox.min)
         aabbMax.set(triangleBox.max)
 
-        Stack.subVec(3)
+        Stack.subVec3d(3)
     }
 }

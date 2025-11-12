@@ -14,5 +14,5 @@ fun interface ContactSolverFunc {
         body2: RigidBody,
         contactPoint: ManifoldPoint,
         info: ContactSolverInfo
-    ): Double
+    ): Float
 }

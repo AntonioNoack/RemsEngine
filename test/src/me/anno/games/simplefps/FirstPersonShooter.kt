@@ -52,7 +52,7 @@ fun main() {
     for (i in 0 until 5) {
         val color = HSLuvColorSpace.hsluvToRgb(Vector3d(360.0 * i / 5, 100.0, 70.0))
         Entity("Cube[$i]", scene)
-            .add(DynamicBody().apply { mass = 2.5 })
+            .add(DynamicBody().apply { mass = 2.5f })
             .add(BoxCollider().apply { roundness = 0.001f })
             .add(MeshComponent(flatCube, Material.diffuse(color.toRGB())))
             .setPosition(0.0, i * 1.002 + 0.001, 0.0)

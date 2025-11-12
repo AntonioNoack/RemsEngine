@@ -75,7 +75,7 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
         body1: CollisionObject,
         dispatchInfo: DispatcherInfo,
         resultOut: ManifoldResult
-    ): Double {
+    ): Float {
 
         val convexBody = if (isSwapped) body1 else body0
         val concaveBody = if (isSwapped) body0 else body1
@@ -87,7 +87,7 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
         val squareMot0 = convexBody.interpolationWorldTransform.origin
             .distanceSquared(convexBody.worldTransform.origin)
         if (squareMot0 < convexBody.ccdSquareMotionThreshold) {
-            return 1.0
+            return 1f
         }
 
         //const btVector3& from = convexbody->m_worldTransform.getOrigin();
@@ -103,19 +103,19 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
         convexToLocal.setMul(triInv, convexBody.interpolationWorldTransform)
 
         val concaveShape = concaveBody.collisionShape
-        var result = 1.0
+        var result = 1f
         if (concaveShape is ConcaveShape) {
-            val rayAabbMin = Stack.newVec(convexFromLocal.origin)
+            val rayAabbMin = Stack.newVec3d(convexFromLocal.origin)
             setMin(rayAabbMin, convexToLocal.origin)
 
-            val rayAabbMax = Stack.newVec(convexFromLocal.origin)
+            val rayAabbMax = Stack.newVec3d(convexFromLocal.origin)
             setMax(rayAabbMax, convexToLocal.origin)
 
-            val ccdRadius0 = convexBody.ccdSweptSphereRadius
+            val ccdRadius0 = convexBody.ccdSweptSphereRadius.toDouble()
             rayAabbMin.sub(ccdRadius0)
             rayAabbMax.add(ccdRadius0)
 
-            val curHitFraction = 1.0 // is this available?
+            val curHitFraction = 1f // is this available?
             val raycastCallback = LocalTriangleSphereCastCallback(
                 convexFromLocal, convexToLocal,
                 convexBody.ccdSweptSphereRadius, curHitFraction
@@ -124,7 +124,7 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
             raycastCallback.hitFraction = convexBody.hitFraction
 
             concaveShape.processAllTriangles(raycastCallback, rayAabbMin, rayAabbMax)
-            Stack.subVec(2) // rayAabbMin, rayAabbMax
+            Stack.subVec3d(2) // rayAabbMin, rayAabbMax
 
             if (raycastCallback.hitFraction < convexBody.hitFraction) {
                 convexBody.hitFraction = raycastCallback.hitFraction
@@ -144,14 +144,14 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
     private class LocalTriangleSphereCastCallback(
         from: Transform,
         to: Transform,
-        ccdSphereRadius: Double,
-        hitFraction: Double
+        ccdSphereRadius: Float,
+        hitFraction: Float
     ) : TriangleCallback {
         val ccdSphereFromTrans: Transform = Transform()
         val ccdSphereToTrans: Transform = Transform()
 
-        var ccdSphereRadius: Double
-        var hitFraction: Double
+        var ccdSphereRadius: Float
+        var hitFraction: Float
 
         private val identity = Transform()
 

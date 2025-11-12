@@ -46,7 +46,7 @@ fun main() {
 
     val barSize = Vector3d(1.2, 0.1, 0.35)
     val barSpacing = 0.1
-    val density = 0.5
+    val density = 0.5f
 
     val height = 3.0
     val pillarSize = Vector3d(1.5, height, 1.5)
@@ -69,9 +69,9 @@ fun main() {
             })
             .add(MeshComponent(pillarMesh, pillarMaterial))
             .add(StaticBody().apply {
-                friction = 1.0
+                friction = 1f
                 if (this is DynamicBody) {
-                    mass = pillarSize.x * pillarSize.y * pillarSize.z * density
+                    mass = (pillarSize.x * pillarSize.y * pillarSize.z * density).toFloat()
                 }
             })
         toLink.add(entity)
@@ -89,8 +89,8 @@ fun main() {
             })
             .add(MeshComponent(barMesh, barMaterial))
             .add(DynamicBody().apply {
-                mass = density * barSize.x * barSize.y * barSize.z
-                friction = 0.5
+                mass = (density * barSize.x * barSize.y * barSize.z).toFloat()
+                friction = 0.5f
             })
         toLink.add(entity)
     }
@@ -109,7 +109,7 @@ fun main() {
             link.disableCollisionsBetweenLinked = false
             // link.breakingImpulseThreshold = 0.3 // a little fun ^^
             link.other = b.getComponent(PhysicalBody::class)
-            link.lerpingSpeed = 0.5
+            link.lerpingSpeed = 0.5f
             a.add(link)
             val z = ((i - 1.5) - (numBars - 1) * 0.5) * (barSpacing + barSize.z)
             val x = (j - (numLinks - 1) * 0.5) * linkSpacing
@@ -161,14 +161,14 @@ fun spawnFloor(scene: Entity) {
     Entity("Floor", scene)
         .add(MeshComponent(plane))
         .add(InfinitePlaneCollider())
-        .add(StaticBody().apply { friction = 1.0 })
+        .add(StaticBody().apply { friction = 1.0f })
         .setScale(10f)
 }
 
 fun spawnSampleCubes(scene: Entity) {
     // spawn a few cubes, we can lay on top
     val numCubes = 5
-    val cubeDensity = 1.0
+    val cubeDensity = 1.0f
     val cubeSize = { i: Int -> 1f / (i + 1) }
     val cubeMaterial = Material.diffuse(0x5599ff)
     val cubeMesh = flatCube.front
@@ -181,8 +181,8 @@ fun spawnSampleCubes(scene: Entity) {
             .add(MeshComponent(cubeMesh, cubeMaterial))
             .setScale(size * 0.5f)
             .add(DynamicBody().apply {
-                friction = 0.5
-                mass = cubeDensity * size.pow(3)
+                friction = 0.5f
+                mass = (cubeDensity * size.pow(3))
             })
             .setPosition(8.0, size * 0.5, (i - (numCubes - 1) * 0.5) * 3.5)
     }

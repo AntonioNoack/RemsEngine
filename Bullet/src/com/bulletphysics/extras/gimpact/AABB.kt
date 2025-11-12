@@ -85,36 +85,34 @@ class AABB {
      * Apply a transform to an AABB.
      */
     fun applyTransform(trans: Transform) {
-        val tmp = Stack.newVec()
 
-        val center = Stack.newVec()
+        val center = Stack.newVec3d()
         max.add(min, center)
         center.mul(0.5)
 
-        val extents = Stack.newVec()
+        val extents = Stack.newVec3d()
         max.sub(center, extents)
 
         // Compute new center
         trans.transformPosition(center)
 
-        val transformedExtents = Stack.newVec()
+        val transformedExtents = Stack.newVec3d()
 
-        trans.basis.getRow(0, tmp)
-        tmp.absolute()
+        val tmp = Stack.newVec3f()
+        trans.basis.getRow(0, tmp).absolute()
         transformedExtents.x = extents.dot(tmp)
 
-        trans.basis.getRow(1, tmp)
-        tmp.absolute()
+        trans.basis.getRow(1, tmp).absolute()
         transformedExtents.y = extents.dot(tmp)
 
-        trans.basis.getRow(2, tmp)
-        tmp.absolute()
+        trans.basis.getRow(2, tmp).absolute()
         transformedExtents.z = extents.dot(tmp)
 
         center.sub(transformedExtents, min)
         center.add(transformedExtents, max)
 
-        Stack.subVec(4)
+        Stack.subVec3f(1)
+        Stack.subVec3d(3)
     }
 
     /**
@@ -150,10 +148,10 @@ class AABB {
      * @param dir    a vec3 with the direction of the ray
      */
     fun collideRay(origin: Vector3d, dir: Vector3d): Boolean {
-        val extents = Stack.newVec()
-        val center = Stack.newVec()
+        val extents = Stack.newVec3d()
+        val center = Stack.newVec3d()
         getCenterExtend(center, extents)
-        Stack.subVec(2)
+        Stack.subVec3d(2)
 
         val Dx = origin.x - center.x
         if (absGreater(Dx, extents.x) && Dx * dir.x >= 0.0) return false
@@ -178,24 +176,24 @@ class AABB {
 
     fun projectionInterval(direction: Vector3d, interval: Vector3d) {
 
-        val center = Stack.newVec()
-        val extend = Stack.newVec()
+        val center = Stack.newVec3d()
+        val extend = Stack.newVec3d()
         getCenterExtend(center, extend)
 
         val fOrigin = direction.dot(center)
         val fMaximumExtent = extend.dot(abs(direction.x), abs(direction.y), abs(direction.z))
         interval.x = fOrigin - fMaximumExtent
         interval.y = fOrigin + fMaximumExtent
-        Stack.subVec(2)
+        Stack.subVec3d(2)
     }
 
     fun planeClassify(plane: Vector4d): PlaneIntersectionType {
-        val tmp = Stack.newVec()
-        val interval = Stack.newVec()
+        val tmp = Stack.newVec3d()
+        val interval = Stack.newVec3d()
         tmp.set(plane.x, plane.y, plane.z)
         projectionInterval(tmp, interval)
         val (min, max) = interval
-        Stack.subVec(2)
+        Stack.subVec3d(2)
 
         if (plane.w > max + BOX_PLANE_EPSILON) {
             return PlaneIntersectionType.BACK_PLANE
@@ -212,17 +210,17 @@ class AABB {
      * transcache is the transformation cache from box to this AABB.
      */
     fun overlappingTransCache(box: AABB, transformCache: BoxBoxTransformCache, allowFullTest: Boolean): Boolean {
-        val tmp = Stack.newVec()
+        val tmp = Stack.newVec3d()
 
         // Taken from OPCODE
-        val ea = Stack.newVec()
-        val eb = Stack.newVec() //extents
-        val ca = Stack.newVec()
-        val cb = Stack.newVec() //extents
+        val ea = Stack.newVec3d()
+        val eb = Stack.newVec3d() //extents
+        val ca = Stack.newVec3d()
+        val cb = Stack.newVec3d() //extents
         getCenterExtend(ca, ea)
         box.getCenterExtend(cb, eb)
 
-        val T = Stack.newVec()
+        val T = Stack.newVec3d()
         var t1: Double
         var t2: Double
 
@@ -272,7 +270,7 @@ class AABB {
             }
             return true
         } finally {
-            Stack.subVec(6)
+            Stack.subVec3d(6)
         }
     }
 }

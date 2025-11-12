@@ -34,7 +34,7 @@ abstract class CollisionAlgorithm {
         body1: CollisionObject,
         dispatchInfo: DispatcherInfo,
         resultOut: ManifoldResult
-    ): Double
+    ): Float
 
     abstract fun getAllContactManifolds(dst: ArrayList<PersistentManifold>)
 

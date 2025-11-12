@@ -44,10 +44,10 @@ class BoxBoxTransformCache {
 
     fun transform(point: Vector3d, out: Vector3d): Vector3d {
         var point = point
-        val tmp = Stack.newVec()
+        val tmp = Stack.newVec3d()
 
         if (point === out) {
-            point = Stack.borrowVec(point)
+            point = Stack.borrowVec3d(point)
         }
         R1to0.getRow(0, tmp)
         out.x = tmp.dot(point) + T1to0.x
@@ -56,7 +56,7 @@ class BoxBoxTransformCache {
         R1to0.getRow(2, tmp)
         out.z = tmp.dot(point) + T1to0.z
 
-        Stack.subVec(1)
+        Stack.subVec3d(1)
         return out
     }
 }

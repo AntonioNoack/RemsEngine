@@ -2,11 +2,10 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
-import com.bulletphysics.linearmath.VectorUtil.setMax
-import com.bulletphysics.linearmath.VectorUtil.setMin
 import com.bulletphysics.util.ObjectPool
 import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * BvhTriangleMeshShape is a static-triangle mesh shape with several optimizations,
@@ -29,7 +28,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
     var ownsBvh: Boolean
         private set
 
-    private val myNodeCallbacks = ObjectPool.get<MyNodeOverlapCallback>(MyNodeOverlapCallback::class.java)
+    private val myNodeCallbacks = ObjectPool.get<BvhNodeOverlapCallback>(BvhNodeOverlapCallback::class.java)
 
     @Suppress("unused")
     constructor(meshInterface: StridingMeshInterface, useQuantizedAabbCompression: Boolean) :
@@ -45,8 +44,8 @@ class BvhTriangleMeshShape : TriangleMeshShape {
 
         // construct bvh from meshInterface
         //#ifndef DISABLE_BVH
-        val bvhAabbMin = Stack.newVec()
-        val bvhAabbMax = Stack.newVec()
+        val bvhAabbMin = Stack.newVec3d()
+        val bvhAabbMax = Stack.newVec3d()
         meshInterface.calculateAabbBruteForce(bvhAabbMin, bvhAabbMax)
 
         if (buildBvh) {
@@ -57,7 +56,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
             // JAVA NOTE: moved from TriangleMeshShape
             recalculateLocalAabb()
         }
-        Stack.subVec(2)
+        Stack.subVec3d(2)
 
         //#endif //DISABLE_BVH
     }
@@ -158,37 +157,42 @@ class BvhTriangleMeshShape : TriangleMeshShape {
     fun partialRefitTree(aabbMin: Vector3d, aabbMax: Vector3d) {
         bvh!!.refitPartial(meshInterface, aabbMin, aabbMax)
 
-        setMin(localAabbMin, aabbMin)
-        setMax(localAabbMax, aabbMax)
+        localAabbMin.min(aabbMin)
+        localAabbMax.max(aabbMax)
     }
 
-    override fun setLocalScaling(scaling: Vector3d) {
-        val tmp = Stack.newVec()
-        getLocalScaling(tmp).sub(scaling)
-
-        if (tmp.lengthSquared() > BulletGlobals.SIMD_EPSILON) {
-            super.setLocalScaling(scaling)
-            /*
-			if (ownsBvh)
-			{
-			m_bvh->~btOptimizedBvh();
-			btAlignedFree(m_bvh);
-			}
-			*/
-            // m_localAabbMin/m_localAabbMax is already re-calculated in btTriangleMeshShape. We could just scale aabb, but this needs some more work
-            bvh = OptimizedBvh()
-            // rebuild the bvh...
-            bvh!!.build(meshInterface, useQuantizedAabbCompression, localAabbMin, localAabbMax)
-            ownsBvh = true
+    override var localScaling: Vector3f
+        get() = super.localScaling
+        set(value) {
+            if (value.distanceSquared(super.localScaling) > BulletGlobals.SIMD_EPSILON) {
+                rebuildBVH()
+                super.localScaling = value
+            }
         }
-        Stack.subVec(1)
+
+    private fun rebuildBVH() {
+        /*
+        if (ownsBvh)
+        {
+        m_bvh->~btOptimizedBvh();
+        btAlignedFree(m_bvh);
+        }
+        */
+        // m_localAabbMin/m_localAabbMax is already re-calculated in btTriangleMeshShape. We could just scale aabb, but this needs some more work
+        bvh = OptimizedBvh()
+        // rebuild the bvh...
+        bvh!!.build(
+            meshInterface, useQuantizedAabbCompression,
+            Vector3d(localAabbMin), Vector3d(localAabbMax)
+        )
+        ownsBvh = true
     }
 
     @Suppress("unused")
     var optimizedBvh: OptimizedBvh?
         get() = bvh
         set(bvh) {
-            val scaling = Stack.newVec()
+            val scaling = Stack.newVec3d()
             scaling.set(1.0, 1.0, 1.0)
             setOptimizedBvh(bvh, scaling)
         }
@@ -200,13 +204,9 @@ class BvhTriangleMeshShape : TriangleMeshShape {
         this.bvh = bvh
 
         // update the scaling without rebuilding the bvh
-        val tmp = Stack.newVec()
-        getLocalScaling(tmp).sub(scaling, tmp)
-
-        if (tmp.lengthSquared() > BulletGlobals.SIMD_EPSILON) {
-            super.setLocalScaling(scaling)
+        if (scaling.distanceSquared(localScaling) > BulletGlobals.SIMD_EPSILON) {
+            localScaling.set(scaling) // hacky
         }
-        Stack.subVec(1)
     }
 
     @Suppress("unused")
@@ -214,7 +214,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
         return useQuantizedAabbCompression
     }
 
-    class MyNodeOverlapCallback : NodeOverlapCallback {
+    class BvhNodeOverlapCallback : NodeOverlapCallback {
         var meshInterface: StridingMeshInterface? = null
         var callback: TriangleCallback? = null
 
@@ -229,9 +229,7 @@ class BvhTriangleMeshShape : TriangleMeshShape {
             val meshInterface = meshInterface!!
             val data = meshInterface.getLockedReadOnlyVertexIndexBase(subPart)
 
-            val meshScaling = meshInterface.getScaling(Stack.newVec())
-            data.getTriangle(triangleIndex * 3, meshScaling, triangle)
-            Stack.subVec(1)
+            data.getTriangle(triangleIndex * 3, meshInterface.scaling, triangle)
 
             /* Perform ray vs. triangle collision here */
             val (a, b, c) = triangle

@@ -7,6 +7,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.PI
 
 // todo draw limits
@@ -44,7 +45,7 @@ class GenericConstraint : Constraint<Generic6DofConstraint>() {
 
     // yz only have half pi as range!
     @Range(-PI, PI)
-    var lowerAngleLimit = Vector3d()
+    var lowerAngleLimit = Vector3f()
         set(value) {
             field.set(value)
             val limits = bulletInstance?.angularLimits
@@ -57,7 +58,7 @@ class GenericConstraint : Constraint<Generic6DofConstraint>() {
 
     // yz only have half pi as range!
     @Range(-PI, PI)
-    var upperAngleLimit = Vector3d()
+    var upperAngleLimit = Vector3f()
         set(value) {
             field.set(value)
             val limits = bulletInstance?.angularLimits

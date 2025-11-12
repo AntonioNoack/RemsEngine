@@ -32,6 +32,7 @@ import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.KdTreeNearest.findNearest
 import me.anno.graph.octtree.OctTree
 import me.anno.input.Input
+import me.anno.maths.Maths.PIf
 import me.anno.maths.geometry.convexhull.ConvexHulls
 import me.anno.utils.OS
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
@@ -179,8 +180,8 @@ fun main() {
 
         val radius = sphereRadii[bone.index] * 0.95 // safety-margin
         val dynamicBody = DynamicBody().apply {
-            mass = radius.pow(3) * 4.0 / PI
-            friction = 0.7
+            mass = radius.pow(3).toFloat() * 4f / PIf
+            friction = 0.7f
             // todo why do we need high friction to prevent explosions?
            // linearDamping = 0.7
            // angularDamping = 0.7
@@ -229,11 +230,11 @@ fun main() {
                 val delta = parentPos - bonePos
                 selfPosition.set(delta).mul(0.5)
                 otherPosition.set(delta).mul(-0.5)
-                breakingImpulseThreshold = 50.0
+                breakingImpulseThreshold = 50f
             })
             // disableCollisionsBetweenLinked = false
             (constraint as? PointConstraint)?.apply {
-                damping = 0.5
+                damping = 0.5f
             }
             (constraint as? ConeTwistConstraint)?.apply {
                 // twist = 0.1
@@ -252,8 +253,8 @@ fun main() {
             .translation(-bonePos)
     }
 
-    val totalBoneMass = rigidbodies.filterNotNull().sumOf { it.mass }
-    val massCorrectionFactor = totalMass / totalBoneMass
+    val totalBoneMass = rigidbodies.filterNotNull().sumOf { it.mass.toDouble() }
+    val massCorrectionFactor = (totalMass / totalBoneMass).toFloat()
     for (rigidbody in rigidbodies) {
         rigidbody ?: continue
         rigidbody.mass *= massCorrectionFactor
@@ -270,9 +271,9 @@ fun main() {
                 other = root2
                 selfPosition.set(delta).mul(0.5)
                 otherPosition.set(delta).mul(-0.5)
-                breakingImpulseThreshold = 50.0
+                breakingImpulseThreshold = 50f
                 // disableCollisionsBetweenLinked = false
-                damping = 0.5
+                damping = 0.5f
             })
         }
     }

@@ -2,15 +2,15 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import org.joml.Vector3d
-import kotlin.math.max
+import org.joml.Vector3f
 
 /**
- * BU_Simplex1to4 implements feature based and implicit simplex of up to 4 vertices
+ * BUSimplex1to4 implements feature based and implicit simplex of up to 4 vertices
  * (tetrahedron, triangle, line, vertex).
  *
  * @author jezek2
  */
-open class BU_Simplex1to4 : PolyhedralConvexShape {
+open class BUSimplex1to4 : PolyhedralConvexShape {
 
     override var numVertices: Int = 0
     var vertices: Array<Vector3d?> = arrayOfNulls(4)
@@ -67,7 +67,7 @@ open class BU_Simplex1to4 : PolyhedralConvexShape {
             else -> 0
         }
 
-    override fun getEdge(i: Int, pa: Vector3d, pb: Vector3d) {
+    override fun getEdge(i: Int, pa: Vector3f, pb: Vector3f) {
         @Suppress("UNCHECKED_CAST") // any accessed elements are guaranteed to nto be null
         val vertices = vertices as Array<Vector3d>
         when (numVertices) {
@@ -118,19 +118,8 @@ open class BU_Simplex1to4 : PolyhedralConvexShape {
         }
     }
 
-    override fun getVertex(i: Int, vtx: Vector3d) {
+    override fun getVertex(i: Int, vtx: Vector3f) {
         vtx.set(vertices[i]!!)
-    }
-
-    override val numPlanes
-        get(): Int {
-            if (numVertices >= 0 && numVertices <= 4) {
-                return max(numVertices - 2, 0) * 2
-            }
-            return 0
-        }
-
-    override fun getPlane(planeNormal: Vector3d, planeSupport: Vector3d, i: Int) {
     }
 
     fun getIndex(i: Int): Int {

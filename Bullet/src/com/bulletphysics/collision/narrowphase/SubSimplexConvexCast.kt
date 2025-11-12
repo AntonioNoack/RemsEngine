@@ -45,90 +45,89 @@ class SubSimplexConvexCast(
             fromB: Transform, toB: Transform,
             result: CastResult
         ): Boolean {
-            val tmp = Stack.newVec()
+            val tmp = Stack.newVec3f()
 
             simplexSolver.reset()
 
-            val linVelA = Stack.newVec()
-            val linVelB = Stack.newVec()
+            val linVelA = Stack.newVec3f()
+            val linVelB = Stack.newVec3f()
             toA.origin.sub(fromA.origin, linVelA)
             toB.origin.sub(fromB.origin, linVelB)
 
-            var lambda = 0.0
+            var lambda = 0f
 
             val interpolatedTransA = Stack.newTrans(fromA)
             val interpolatedTransB = Stack.newTrans(fromB)
 
-            val relVelocity = Stack.newVec()
+            val relVelocity = Stack.newVec3f()
             linVelA.sub(linVelB, relVelocity)
 
-            val v = Stack.newVec()
+            val supportDir = Stack.newVec3f()
 
             relVelocity.negate(tmp)
             fromA.basis.transformTranspose(tmp)
-            val supVertexA = convexA.localGetSupportingVertex(tmp, Stack.newVec())
+            val supVertexA = convexA.localGetSupportingVertex(tmp, Stack.newVec3f())
             fromA.transformPosition(supVertexA)
 
             fromB.basis.transformTranspose(relVelocity, tmp)
-            val supVertexB = convexB.localGetSupportingVertex(tmp, Stack.newVec())
+            val supVertexB = convexB.localGetSupportingVertex(tmp, Stack.newVec3f())
             fromB.transformPosition(supVertexB)
 
-            supVertexA.sub(supVertexB, v)
+            supVertexA.sub(supVertexB, supportDir)
 
             var maxIter: Int = MAX_ITERATIONS
 
-            val n = Stack.newVec()
-            n.set(0.0, 0.0, 0.0)
+            val n = Stack.newVec3f().set(0f)
 
-            var dist2 = v.lengthSquared()
-            val epsilon = 0.0001
-            val w = Stack.newVec()
+            var dist2 = supportDir.lengthSquared()
+            val epsilon = 0.0001f
+            val diff = Stack.newVec3f()
 
             while ((dist2 > epsilon) && (maxIter--) != 0) {
                 // basic plane separation algorithm
-                v.negate(tmp)
+                supportDir.negate(tmp)
                 interpolatedTransA.basis.transformTranspose(tmp, tmp)
                 convexA.localGetSupportingVertex(tmp, supVertexA)
                 interpolatedTransA.transformPosition(supVertexA)
 
-                interpolatedTransB.basis.transformTranspose(v, tmp)
+                interpolatedTransB.basis.transformTranspose(supportDir, tmp)
                 convexB.localGetSupportingVertex(tmp, supVertexB)
                 interpolatedTransB.transformPosition(supVertexB)
 
-                supVertexA.sub(supVertexB, w)
+                supVertexA.sub(supVertexB, diff)
 
                 if (lambda > 1.0) {
-                    Stack.subVec(8)
+                    Stack.subVec3d(8)
                     Stack.subTrans(2)
                     return false
                 }
 
-                val depth = v.dot(w)
+                val depth = supportDir.dot(diff)
                 if (depth > 0.0) {
-                    val alignment = v.dot(relVelocity)
+                    val alignment = supportDir.dot(relVelocity)
                     if (alignment >= -BulletGlobals.FLT_EPSILON_SQ) {
-                        Stack.subVec(8)
+                        Stack.subVec3d(8)
                         Stack.subTrans(2)
                         return false
                     } else {
                         lambda -= depth / alignment
                         // interpolate to next lambda
                         //	x = s + lambda * r;
-                        setInterpolate3(interpolatedTransA.origin, fromA.origin, toA.origin, lambda)
-                        setInterpolate3(interpolatedTransB.origin, fromB.origin, toB.origin, lambda)
+                        setInterpolate3(interpolatedTransA.origin, fromA.origin, toA.origin, lambda.toDouble())
+                        setInterpolate3(interpolatedTransB.origin, fromB.origin, toB.origin, lambda.toDouble())
                         // check next line
-                        supVertexA.sub(supVertexB, w)
-                        n.set(v)
+                        supVertexA.sub(supVertexB, diff)
+                        n.set(supportDir)
                     }
                 }
 
-                simplexSolver.addVertex(w, supVertexA, supVertexB)
-                if (simplexSolver.closest(v)) {
-                    dist2 = v.lengthSquared()
+                simplexSolver.addVertex(diff, supVertexA, supVertexB)
+                dist2 = if (simplexSolver.closest(supportDir)) {
+                    supportDir.lengthSquared()
                     // todo: check this normal for validity
                     //n.set(v);
                 } else {
-                    dist2 = 0.0
+                    0f
                 }
             }
 
@@ -137,22 +136,23 @@ class SubSimplexConvexCast(
             if (n.lengthSquared() >= BulletGlobals.SIMD_EPSILON * BulletGlobals.SIMD_EPSILON) {
                 n.normalize(result.normal)
             } else {
-                result.normal.set(0.0, 0.0, 0.0)
+                result.normal.set(0f)
             }
 
             // don't report time of impact for motion away from the contact normal (or causes minor penetration)
             if (result.normal.dot(relVelocity) >= -result.allowedPenetration) {
-                Stack.subVec(8)
+                Stack.subVec3d(8)
                 Stack.subTrans(2)
                 return false
             }
 
-            val hitA = Stack.newVec()
-            val hitB = Stack.newVec()
+            val hitA = Stack.newVec3f()
+            val hitB = Stack.newVec3f()
             simplexSolver.computePoints(hitA, hitB)
             result.hitPoint.set(hitB)
 
-            Stack.subVec(10)
+            Stack.subVec3f(2)
+            Stack.subVec3d(8)
             Stack.subTrans(2)
             return true
         }

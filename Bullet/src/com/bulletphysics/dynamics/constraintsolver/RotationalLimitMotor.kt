@@ -1,6 +1,6 @@
 /*
 2007-09-09
-btGeneric6DofConstraint Refactored by Francisco Le�n
+btGeneric6DofConstraint Refactored by Francisco Leon
 email: projectileman@yahoo.com
 http://gimpact.sf.net
 */
@@ -9,7 +9,7 @@ package com.bulletphysics.dynamics.constraintsolver
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
-import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -21,44 +21,43 @@ import kotlin.math.min
  */
 class RotationalLimitMotor {
     @JvmField
-    var lowerLimit: Double = -BulletGlobals.SIMD_INFINITY
+    var lowerLimit = -BulletGlobals.SIMD_INFINITY
 
     @JvmField
-    var upperLimit: Double = BulletGlobals.SIMD_INFINITY
+    var upperLimit = BulletGlobals.SIMD_INFINITY
 
-    var targetVelocity: Double = 0.0
-    var maxMotorForce: Double = 0.1
-    var maxLimitForce: Double = 300.0
-    var damping: Double = 1.0
+    var targetVelocity = 0f
+    var maxMotorForce = 0.1f
+    var maxLimitForce = 300f
+    var damping = 1f
 
     /**
      * Relaxation factor
      */
-    var limitSoftness: Double = 0.5
+    var limitSoftness = 0.5f
 
     /**
      * Error tolerance factor when joint is at limit
      */
-    var ERP: Double = 0.5
+    var ERP = 0.5f
 
     /**
      * restitution factor
      */
-    var bounce: Double = 0.0
+    var bounce = 0f
     var enableMotor: Boolean = false
 
     /**
      * How much is violated this limit
      */
-    var currentLimitError: Double = 0.0
+    var currentLimitError = 0f
 
     /**
      * 0=free, 1=at low limit, 2=at high limit
      */
     var currentLimit: Int = 0
 
-    @JvmField
-    var accumulatedImpulse: Double = 0.0
+    var accumulatedImpulse = 0f
 
     val isLimited: Boolean
         /**
@@ -76,7 +75,7 @@ class RotationalLimitMotor {
     /**
      * Calculates error. Calculates currentLimit and currentLimitError.
      */
-    fun testLimitValue(testValue: Double): Int {
+    fun testLimitValue(testValue: Float): Int {
         if (lowerLimit > upperLimit) {
             currentLimit = 0 // Free from violation
             return 0
@@ -100,11 +99,11 @@ class RotationalLimitMotor {
      * Apply the correction impulses for two bodies.
      */
     fun solveAngularLimits(
-        timeStep: Double, axis: Vector3d, jacDiagABInv: Double,
+        timeStep: Float, axis: Vector3f, jacDiagABInv: Float,
         body0: RigidBody, body1: RigidBody?, constraint: TypedConstraint
-    ): Double {
+    ): Float {
         if (!needApplyTorques()) {
-            return 0.0
+            return 0f
         }
 
         var targetVelocity = targetVelocity
@@ -119,7 +118,7 @@ class RotationalLimitMotor {
         maxMotorForce *= timeStep
 
         // current velocity difference
-        val velocityDifference = Stack.newVec()
+        val velocityDifference = Stack.newVec3f()
         velocityDifference.set(body0.angularVelocity)
         if (body1 != null) {
             velocityDifference.sub(body1.angularVelocity)
@@ -131,36 +130,36 @@ class RotationalLimitMotor {
         val motorRelativeVelocity = limitSoftness * (targetVelocity - damping * relativeVelocity)
 
         if (motorRelativeVelocity < BulletGlobals.FLT_EPSILON && motorRelativeVelocity > -BulletGlobals.FLT_EPSILON) {
-            Stack.subVec(1)
-            return 0.0 // no need for applying force
+            Stack.subVec3f(1)
+            return 0f // no need for applying force
         }
 
         // correction impulse
         val unclippedMotorImpulse = (1 + bounce) * motorRelativeVelocity * jacDiagABInv
         if (abs(unclippedMotorImpulse) > constraint.breakingImpulseThreshold) {
             constraint.isBroken = true
-            Stack.subVec(1)
-            return 0.0
+            Stack.subVec3f(1)
+            return 0f
         }
 
         // clip correction impulse
-        var clippedMotorImpulse = if (unclippedMotorImpulse > 0.0) {
+        var clippedMotorImpulse = if (unclippedMotorImpulse > 0f) {
             min(unclippedMotorImpulse, maxMotorForce)
         } else {
             max(unclippedMotorImpulse, -maxMotorForce)
         }
 
         // sort with accumulated impulses
-        val lo = -1e308
-        val hi = 1e308
+        val lo = -1e38f
+        val hi = 1e38f
 
         val oldImpulseSum = accumulatedImpulse
         val sum = oldImpulseSum + clippedMotorImpulse
-        accumulatedImpulse = if (sum > hi) 0.0 else if (sum < lo) 0.0 else sum
+        accumulatedImpulse = if (sum > hi) 0f else if (sum < lo) 0f else sum
 
         clippedMotorImpulse = accumulatedImpulse - oldImpulseSum
 
-        val motorImp = Stack.newVec()
+        val motorImp = Stack.newVec3f()
         axis.mul(clippedMotorImpulse, motorImp)
 
         body0.applyTorqueImpulse(motorImp)
@@ -169,7 +168,7 @@ class RotationalLimitMotor {
             body1.applyTorqueImpulse(motorImp)
         }
 
-        Stack.subVec(2)
+        Stack.subVec3f(2)
         return clippedMotorImpulse
     }
 }

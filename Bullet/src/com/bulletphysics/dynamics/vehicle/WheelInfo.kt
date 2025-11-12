@@ -4,6 +4,7 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * WheelInfo contains information per wheel about friction and suspension.
@@ -18,13 +19,13 @@ class WheelInfo(ci: WheelInfoConstructionInfo) {
     val worldTransform = Transform()
 
     @JvmField
-    val chassisConnectionPointCS = Vector3d()
+    val chassisConnectionPointCS = Vector3f()
 
     @JvmField
-    val wheelDirectionCS = Vector3d()
+    val wheelDirectionCS = Vector3f()
 
     @JvmField
-    val wheelAxleCS = Vector3d() // const or modified by steering
+    val wheelAxleCS = Vector3f() // const or modified by steering
 
     @JvmField
     var suspensionRestLength = ci.suspensionRestLength
@@ -48,38 +49,38 @@ class WheelInfo(ci: WheelInfoConstructionInfo) {
     var frictionSlip = ci.frictionSlip
 
     @JvmField
-    var steering = 0.0
+    var steering = 0f
 
     @JvmField
     var rotation = 0.0
 
     @JvmField
-    var deltaRotation = 0.0
+    var deltaRotation = 0f
 
     @JvmField
-    var rollInfluence = 0.1
+    var rollInfluence = 0.1f
 
     @JvmField
-    var engineForce = 0.0
+    var engineForce = 0f
 
     @JvmField
-    var brake = 0.0
+    var brake = 0f
 
     // set to me.anno.bullet.bodies.VehicleWheel
     var clientInfo: Any? = null // can be used to store pointer to sync transforms...
 
     @JvmField
-    var clippedInvContactDotSuspension = 0.0
+    var clippedInvContactDotSuspension = 0f
 
     @JvmField
-    var suspensionRelativeVelocity = 0.0
+    var suspensionRelativeVelocity = 0f
 
     // calculated by suspension
     @JvmField
-    var wheelsSuspensionForce = 0.0
+    var wheelsSuspensionForce = 0f
 
     @JvmField
-    var skidInfo = 0.0
+    var skidInfo = 0f
 
     init {
         chassisConnectionPointCS.set(ci.chassisConnectionCS)
@@ -91,47 +92,48 @@ class WheelInfo(ci: WheelInfoConstructionInfo) {
     fun updateWheel(chassis: RigidBody, raycastInfo: RaycastInfo) {
         if (raycastInfo.isInContact) {
             val project = raycastInfo.contactNormalWS.dot(raycastInfo.wheelDirectionWS)
-            val chassisVelocityAtContactPoint = Stack.newVec()
-            val relPos = Stack.newVec()
-            raycastInfo.contactPointWS.sub(chassis.getCenterOfMassPosition(Stack.newVec()), relPos)
+            val chassisVelocityAtContactPoint = Stack.newVec3f()
+            val relPos = Stack.newVec3f()
+            raycastInfo.contactPointWS.sub(chassis.worldTransform.origin, relPos)
             chassis.getVelocityInLocalPoint(relPos, chassisVelocityAtContactPoint)
             val projVel = raycastInfo.contactNormalWS.dot(chassisVelocityAtContactPoint)
-            if (project >= -0.1) {
-                suspensionRelativeVelocity = 0.0
-                clippedInvContactDotSuspension = 1.0 / 0.1
+            if (project >= -0.1f) {
+                suspensionRelativeVelocity = 0f
+                clippedInvContactDotSuspension = 1f / 0.1f
             } else {
-                val inv = -1.0 / project
+                val inv = -1f / project
                 suspensionRelativeVelocity = projVel * inv
                 clippedInvContactDotSuspension = inv
             }
+            Stack.subVec3f(2)
         } else {
             // Not in contact : position wheel in a nice (rest length) position
             raycastInfo.suspensionLength = this.suspensionRestLength
-            suspensionRelativeVelocity = 0.0
+            suspensionRelativeVelocity = 0f
             raycastInfo.wheelDirectionWS.negate(raycastInfo.contactNormalWS)
-            clippedInvContactDotSuspension = 1.0
+            clippedInvContactDotSuspension = 1f
         }
     }
 
     class RaycastInfo {
         // set by raycaster
         @JvmField
-        val contactNormalWS = Vector3d()
+        val contactNormalWS = Vector3f()
 
         @JvmField
         val contactPointWS = Vector3d() // raycast hit point
 
         @JvmField
-        var suspensionLength: Double = 0.0
+        var suspensionLength = 0f
 
         @JvmField
         val hardPointWS = Vector3d() // raycast starting point
 
         @JvmField
-        val wheelDirectionWS = Vector3d() // direction in worldSpace
+        val wheelDirectionWS = Vector3f() // direction in worldSpace
 
         @JvmField
-        val wheelAxleWS = Vector3d() // axle in worldSpace
+        val wheelAxleWS = Vector3f() // axle in worldSpace
 
         @JvmField
         var isInContact = false

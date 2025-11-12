@@ -49,7 +49,7 @@ open class GhostObject : CollisionObject() {
         convexFromWorld: Transform,
         convexToWorld: Transform,
         resultCallback: ConvexResultCallback,
-        allowedCcdPenetration: Double
+        allowedCcdPenetration: Float
     ) {
         CollisionWorld.convexSweepTest(
             selfShape, convexFromWorld, convexToWorld,

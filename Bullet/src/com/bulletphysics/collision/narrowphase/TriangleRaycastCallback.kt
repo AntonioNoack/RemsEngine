@@ -4,6 +4,7 @@ import com.bulletphysics.collision.shapes.TriangleCallback
 import cz.advel.stack.Stack
 import me.anno.utils.types.Triangles.subCross
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * @author jezek2
@@ -13,11 +14,12 @@ abstract class TriangleRaycastCallback(from: Vector3d, to: Vector3d) : TriangleC
     val from = Vector3d(from)
     val to = Vector3d(to)
 
-    var hitFraction = 1.0
+    var hitFraction = 1f
 
     override fun processTriangle(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int) {
-        val triangleNormal = Stack.newVec()
-        subCross(a, b, c, triangleNormal)
+        val triangleNormal0 = Stack.newVec3d()
+        subCross(a, b, c, triangleNormal0)
+        val triangleNormal = Stack.newVec3f().set(triangleNormal0)
 
         val dist = a.dot(triangleNormal)
         val distA = triangleNormal.dot(from) - dist
@@ -38,27 +40,28 @@ abstract class TriangleRaycastCallback(from: Vector3d, to: Vector3d) : TriangleC
             val point = Vector3d()
             from.lerp(to, distance, point)
 
-            val v0p = a.sub(point, Stack.newVec())
-            val v1p = b.sub(point, Stack.newVec())
-            val cp01 = v0p.cross(v1p, Stack.newVec())
+            val v0p = a.sub(point, Stack.newVec3d())
+            val v1p = b.sub(point, Stack.newVec3d())
+            val cp01 = v0p.cross(v1p, Stack.newVec3d())
 
             if (cp01.dot(triangleNormal) >= edgeTolerance) {
-                val v2p = c.sub(point, Stack.newVec())
-                val cp12 = v1p.cross(v2p, Stack.newVec())
+                val v2p = c.sub(point, Stack.newVec3d())
+                val cp12 = v1p.cross(v2p, Stack.newVec3d())
 
                 if (cp12.dot(triangleNormal) >= edgeTolerance) {
                     v2p.cross(v0p, cp12)
                     if (cp12.dot(triangleNormal) >= edgeTolerance) {
                         if (distA <= 0.0) triangleNormal.negate()
-                        hitFraction = reportHit(triangleNormal, distance, partId, triangleIndex)
+                        hitFraction = reportHit(triangleNormal, distance.toFloat(), partId, triangleIndex)
                     }
                 }
-                Stack.subVec(2)
+                Stack.subVec3d(2)
             }
-            Stack.subVec(3)
+            Stack.subVec3d(3)
         }
-        Stack.subVec(1) // triangleNormal
+        Stack.subVec3f(1) // triangleNormal
+        Stack.subVec3d(1) // triangleNormal0
     }
 
-    abstract fun reportHit(hitNormalLocal: Vector3d, hitFraction: Double, partId: Int, triangleIndex: Int): Double
+    abstract fun reportHit(hitNormalLocal: Vector3f, hitFraction: Float, partId: Int, triangleIndex: Int): Float
 }

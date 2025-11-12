@@ -10,37 +10,37 @@ class ConeTwistConstraint : Constraint<com.bulletphysics.dynamics.constraintsolv
 
     // todo draw limits (cone + twist-arrow, if not angular only)
 
-    var softness = 0.8
+    var softness = 0.8f
         set(value) {
             field = value
             bulletInstance?.limitSoftness = value
         }
 
-    var biasFactor = 0.3 // ?
+    var biasFactor = 0.3f // ?
         set(value) {
             field = value
             bulletInstance?.biasFactor = biasFactor
         }
 
-    var relaxation = 1.0
+    var relaxation = 1f
         set(value) {
             field = value
             bulletInstance?.relaxationFactor = value
         }
 
-    var twist = 1.0
+    var twist = 1f
         set(value) {
             field = value
             bulletInstance?.twistSpan = value
         }
 
-    var angleX = 1.0
+    var angleX = 1f
         set(value) {
             field = value
             bulletInstance?.swingSpan1 = value
         }
 
-    var angleY = 1.0
+    var angleY = 1f
         set(value) {
             field = value
             bulletInstance?.swingSpan2 = value

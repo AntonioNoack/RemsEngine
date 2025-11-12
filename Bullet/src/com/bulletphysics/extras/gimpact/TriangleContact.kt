@@ -14,10 +14,10 @@ class TriangleContact() {
     private val intArrays: ArrayPool<IntArray> = ArrayPool.get(Int::class.javaPrimitiveType!!)
 
     @JvmField
-    var penetrationDepth: Double = 0.0
+    var penetrationDepth = 0f
 
     @JvmField
-    var pointCount: Int = 0
+    var numPoints = 0
 
     @JvmField
     val separatingNormal = Vector4d()
@@ -37,8 +37,8 @@ class TriangleContact() {
     fun copyFrom(other: TriangleContact) {
         penetrationDepth = other.penetrationDepth
         separatingNormal.set(other.separatingNormal)
-        pointCount = other.pointCount
-        var i = pointCount
+        numPoints = other.numPoints
+        var i = numPoints
         while ((i--) != 0) {
             points[i].set(other.points[i])
         }
@@ -48,27 +48,26 @@ class TriangleContact() {
      * Classify points that are closer.
      */
     fun mergePoints(plane: Vector4d, margin: Double, points: Array<Vector3d>, pointCount1: Int) {
-        this.pointCount = 0
-        penetrationDepth = -1000.0
+        this.numPoints = 0
+        penetrationDepth = -1000f
 
         val pointIndices = intArrays.getFixed(MAX_TRI_CLIPPING)
 
         for (k in 0 until pointCount1) {
-            val dist = -ClipPolygon.distancePointPlane(plane, points[k]) + margin
-
-            if (dist >= 0.0) {
+            val dist = (-ClipPolygon.distancePointPlane(plane, points[k]) + margin).toFloat()
+            if (dist >= 0f) {
                 if (dist > penetrationDepth) {
                     penetrationDepth = dist
                     pointIndices[0] = k
-                    this.pointCount = 1
+                    this.numPoints = 1
                 } else if ((dist + BulletGlobals.SIMD_EPSILON) >= penetrationDepth) {
-                    pointIndices[this.pointCount] = k
-                    this.pointCount++
+                    pointIndices[this.numPoints] = k
+                    this.numPoints++
                 }
             }
         }
 
-        for (k in 0 until this.pointCount) {
+        for (k in 0 until this.numPoints) {
             this.points[k].set(points[pointIndices[k]])
         }
 

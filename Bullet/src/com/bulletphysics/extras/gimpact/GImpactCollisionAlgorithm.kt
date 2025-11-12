@@ -20,6 +20,7 @@ import com.bulletphysics.util.ObjectPool
 import cz.advel.stack.Stack
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.joml.Vector4d
 
 /**
@@ -320,11 +321,11 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         gimpactInConcaveSpace.inverse()
         gimpactInConcaveSpace.mul(body0.worldTransform)
 
-        val minAABB = Stack.newVec()
-        val maxAABB = Stack.newVec()
+        val minAABB = Stack.newVec3d()
+        val maxAABB = Stack.newVec3d()
         shape0.getBounds(gimpactInConcaveSpace, minAABB, maxAABB)
         shape1.processAllTriangles(callback, minAABB, maxAABB)
-        Stack.subVec(2)
+        Stack.subVec3d(2)
     }
 
     /**
@@ -390,8 +391,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         body0: CollisionObject,
         body1: CollisionObject,
         point: Vector3d,
-        normal: Vector3d,
-        distance: Double
+        normal: Vector3f,
+        distance: Float
     ) {
         resultOut!!.setShapeIdentifiers(part0, this.face0, part1, this.face1)
         checkManifold(body0, body1)
@@ -405,7 +406,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         shape1: GImpactMeshShapePart,
         pairs: IntPairList
     ) {
-        val normal = Stack.newVec()
+        val normal = Stack.newVec3f()
 
         val orgTrans0 = body0.worldTransform
         val orgTrans1 = body1.worldTransform
@@ -434,10 +435,10 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
             // test conservative
             if (tri0.overlapTestConservative(tri1)) {
                 if (tri0.findTriangleCollisionClipMethod(tri1, contactData)) {
-                    for (j in 0 until contactData.pointCount) {
-                        normal.x = contactData.separatingNormal.x
-                        normal.y = contactData.separatingNormal.y
-                        normal.z = contactData.separatingNormal.z
+                    for (j in 0 until contactData.numPoints) {
+                        normal.x = contactData.separatingNormal.x.toFloat()
+                        normal.y = contactData.separatingNormal.y.toFloat()
+                        normal.z = contactData.separatingNormal.z.toFloat()
 
                         addContactPoint(
                             body0, body1,
@@ -452,7 +453,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         shape0.unlockChildShapes()
         shape1.unlockChildShapes()
 
-        Stack.subVec(1)
+        Stack.subVec3f(1)
     }
 
     fun shapeVsShapeCollision(
@@ -570,7 +571,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         // test box against plane
         val triangleBounds = AABB()
         shape0.getBounds(orgTrans0, triangleBounds.min, triangleBounds.max)
-        triangleBounds.incrementMargin(shape1.margin)
+        triangleBounds.incrementMargin(shape1.margin.toDouble())
 
         if (triangleBounds.planeClassify(plane) != PlaneIntersectionType.COLLIDE_PLANE) {
             return
@@ -580,15 +581,15 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
 
         val margin = shape0.margin + shape1.margin
 
-        val vertex = Stack.newVec()
-        val tmp = Stack.newVec()
+        val vertex = Stack.newVec3d()
+        val tmp = Stack.newVec3f()
 
         var vi = shape0.vertexCount
         while ((vi--) != 0) {
             shape0.getVertex(vi, vertex)
             orgTrans0.transformPosition(vertex)
 
-            val distance = dot3(vertex, plane) - plane.w - margin
+            val distance = (dot3(vertex, plane) - plane.w - margin).toFloat()
             if (distance < 0.0) { //add contact
                 if (swapped) {
                     tmp.set(-plane.x, -plane.y, -plane.z)
@@ -601,7 +602,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         }
 
         shape0.unlockChildShapes()
-        Stack.subVec(2)
+        Stack.subVec3f(1)
+        Stack.subVec3d(1)
     }
 
 
@@ -610,9 +612,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         body1: CollisionObject,
         dispatchInfo: DispatcherInfo,
         resultOut: ManifoldResult
-    ): Double {
-        return 1.0
-    }
+    ): Float = 1f
 
     override fun getAllContactManifolds(dst: ArrayList<PersistentManifold>) {
         val lastManifold = lastManifold

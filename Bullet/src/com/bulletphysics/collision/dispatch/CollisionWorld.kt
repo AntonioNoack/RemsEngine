@@ -1,8 +1,7 @@
 package com.bulletphysics.collision.dispatch
 
 import com.bulletphysics.BulletGlobals
-import com.bulletphysics.BulletStats.popProfile
-import com.bulletphysics.BulletStats.pushProfile
+import com.bulletphysics.BulletStats.profile
 import com.bulletphysics.collision.broadphase.BroadphaseInterface
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.broadphase.Dispatcher
@@ -17,6 +16,7 @@ import com.bulletphysics.collision.shapes.CompoundShape
 import com.bulletphysics.collision.shapes.ConcaveShape
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.SphereShape
+import com.bulletphysics.dynamics.CollisionTree
 import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.Transform
@@ -30,13 +30,14 @@ import me.anno.ecs.components.collider.CollisionFilters.collides
 import me.anno.utils.structures.lists.Lists.swapRemove
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * CollisionWorld is interface and container for the collision detection.
  *
  * @author jezek2
  */
-open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: BroadphaseInterface) {
+abstract class CollisionWorld(val dispatcher: Dispatcher, val broadphase: BroadphaseInterface) {
 
     val collisionObjects = ArrayList<CollisionObject>()
     val dispatchInfo = DispatcherInfo()
@@ -66,8 +67,8 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
 
         // calculate new AABB
         val shape = collisionObject.collisionShape!!
-        val minAabb = Stack.newVec()
-        val maxAabb = Stack.newVec()
+        val minAabb = Stack.newVec3d()
+        val maxAabb = Stack.newVec3d()
         shape.getBounds(collisionObject.worldTransform, minAabb, maxAabb)
 
         val type = shape.shapeType
@@ -76,27 +77,18 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             collisionObject, collisionFilter, dispatcher
         )
 
-        Stack.subVec(2)
+        Stack.subVec3d(2)
     }
 
     fun performDiscreteCollisionDetection() {
-        pushProfile("performDiscreteCollisionDetection")
-        try {
+        profile("performDiscreteCollisionDetection") {
             updateAabbs()
-            pushProfile("calculateOverlappingPairs")
-            try {
+            profile("calculateOverlappingPairs") {
                 broadphase.calculateOverlappingPairs(dispatcher)
-            } finally {
-                popProfile()
             }
-            pushProfile("dispatchAllCollisionPairs")
-            try {
+            profile("dispatchAllCollisionPairs") {
                 dispatcher.dispatchAllCollisionPairs(broadphase.overlappingPairCache, dispatchInfo, dispatcher)
-            } finally {
-                popProfile()
             }
-        } finally {
-            popProfile()
         }
     }
 
@@ -118,8 +110,8 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
 
     // JAVA NOTE: ported from 2.74, missing contact threshold stuff
     fun updateSingleAabb(colObj: CollisionObject) {
-        val minAabb = Stack.newVec()
-        val maxAabb = Stack.newVec()
+        val minAabb = Stack.newVec3d()
+        val maxAabb = Stack.newVec3d()
 
         val shape = colObj.collisionShape!!
         shape.getBounds(colObj.worldTransform, minAabb, maxAabb)
@@ -129,7 +121,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         // Should be greater than or equal to the collision margin of the objects involved.
         // Too small: Contacts break too early → jittery or unstable simulation.
         // Too large: Contacts persist unrealistically → ghost contacts or sticking.
-        val margin = BulletGlobals.contactBreakingThreshold
+        val margin = BulletGlobals.contactBreakingThreshold.toDouble()
         minAabb.sub(margin)
         maxAabb.add(margin)
 
@@ -137,20 +129,17 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             broadphase.setAabb(colObj.broadphaseHandle!!, minAabb, maxAabb, dispatcher)
         }
 
-        Stack.subVec(2)
+        Stack.subVec3d(2)
     }
 
     fun updateAabbs() {
-        pushProfile("updateAabbs")
-        try {
+        profile("updateAabbs") {
             for (i in collisionObjects.indices) {
                 val colObj = collisionObjects[i]
                 // todo this can be skipped if the object is inactive AND
                 //  only iff we update it manually if we transform an object (editor)
                 updateSingleAabb(colObj)
             }
-        } finally {
-            popProfile()
         }
     }
 
@@ -167,9 +156,12 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         var normalInWorldSpace: Boolean = false
 
         override fun reportHit(
-            hitNormalLocal: Vector3d, hitPointLocal: Vector3d, hitFraction: Double,
-            partId: Int, triangleIndex: Int
-        ): Double {
+            hitNormalLocal: Vector3f,
+            hitPointLocal: Vector3d,
+            hitFraction: Float,
+            partId: Int,
+            triangleIndex: Int
+        ): Float {
             val shapeInfo = LocalShapeInfo()
             shapeInfo.shapePart = partId
             shapeInfo.triangleIndex = triangleIndex
@@ -197,14 +189,15 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         rayToTrans.setTranslation(rayToWorld)
 
         // go over all objects, and if the ray intersects their aabb, do a ray-shape query using convexCaster (CCD)
-        val collisionObjectAabbMin = Stack.newVec()
-        val collisionObjectAabbMax = Stack.newVec()
-        val hitLambda = Stack.newDoublePtr()
-        val hitNormal = Stack.newVec()
+        val collisionObjectAabbMin = Stack.newVec3d()
+        val collisionObjectAabbMax = Stack.newVec3d()
+        val hitLambda = Stack.newFloatPtr()
+        val hitNormal = Stack.newVec3f()
 
+        // todo use collisionTree instead
         for (i in collisionObjects.indices) {
             // terminate further ray tests, once the closestHitFraction reached zero
-            if (resultCallback.closestHitFraction == 0.0) {
+            if (resultCallback.closestHitFraction == 0f) {
                 break
             }
 
@@ -234,26 +227,21 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         }
 
         Stack.subTrans(2)
-        Stack.subVec(3)
-        Stack.subDoublePtr(1)
+        Stack.subVec3f(1)
+        Stack.subVec3d(2)
+        Stack.subFloatPtr(1)
     }
 
     /**
      * convexTest performs a swept convex cast on all objects in the [CollisionWorld], and calls the resultCallback
      * This allows for several queries: first hit, all hits, any hit, dependent on the value return by the callback.
      */
-    fun convexSweepTest(
+    abstract fun convexSweepTest(
         selfShape: ConvexShape,
         convexFromWorld: Transform,
         convexToWorld: Transform,
         resultCallback: ConvexResultCallback
-    ) {
-        convexSweepTest(
-            selfShape, convexFromWorld, convexToWorld,
-            resultCallback, dispatchInfo.allowedCcdPenetration,
-            collisionObjects
-        )
-    }
+    )
 
     /**
      * LocalShapeInfo gives extra information for complex shapes.
@@ -268,16 +256,10 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
     class LocalRayResult(
         val collisionObject: CollisionObject?,
         val localShapeInfo: LocalShapeInfo?,
-        hitNormalLocal: Vector3d,
-        hitFraction: Double
+        hitNormalLocal: Vector3f,
+        var hitFraction: Float
     ) {
-        val hitNormalLocal: Vector3d = Vector3d()
-        var hitFraction: Double
-
-        init {
-            this.hitNormalLocal.set(hitNormalLocal)
-            this.hitFraction = hitFraction
-        }
+        val hitNormalLocal = Vector3f(hitNormalLocal)
     }
 
     /**
@@ -285,7 +267,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
      */
     abstract class RayResultCallback {
 
-        var closestHitFraction: Double = 1.0
+        var closestHitFraction = 1f
         var collisionObject: CollisionObject? = null
         var collisionFilter = CollisionFilters.DEFAULT_ALL
 
@@ -297,25 +279,17 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             return collides(proxy0.collisionFilter, collisionFilter)
         }
 
-        abstract fun addSingleResult(rayResult: LocalRayResult, normalInWorldSpace: Boolean): Double
+        abstract fun addSingleResult(rayResult: LocalRayResult, normalInWorldSpace: Boolean): Float
     }
 
     open class ClosestRayResultCallback(rayFromWorld: Vector3d, rayToWorld: Vector3d) : RayResultCallback() {
-        val rayFromWorld: Vector3d = Vector3d() //used to calculate hitPointWorld from hitFraction
-        val rayToWorld: Vector3d = Vector3d()
+        val rayFromWorld = Vector3d(rayFromWorld) //used to calculate hitPointWorld from hitFraction
+        val rayToWorld = Vector3d(rayToWorld)
 
-        @JvmField
-        val hitNormalWorld: Vector3d = Vector3d()
+        val hitNormalWorld = Vector3f()
+        val hitPointWorld = Vector3d()
 
-        @JvmField
-        val hitPointWorld: Vector3d = Vector3d()
-
-        init {
-            this.rayFromWorld.set(rayFromWorld)
-            this.rayToWorld.set(rayToWorld)
-        }
-
-        override fun addSingleResult(rayResult: LocalRayResult, normalInWorldSpace: Boolean): Double {
+        override fun addSingleResult(rayResult: LocalRayResult, normalInWorldSpace: Boolean): Float {
             // caller already does the filter on the closestHitFraction
             assert(rayResult.hitFraction <= closestHitFraction)
 
@@ -329,7 +303,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                 collisionObject!!.worldTransform.transformDirection(hitNormalWorld)
             }
 
-            setInterpolate3(hitPointWorld, rayFromWorld, rayToWorld, rayResult.hitFraction)
+            setInterpolate3(hitPointWorld, rayFromWorld, rayToWorld, rayResult.hitFraction.toDouble())
             return rayResult.hitFraction
         }
     }
@@ -337,49 +311,42 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
     class LocalConvexResult(
         val hitCollisionObject: CollisionObject?,
         val localShapeInfo: LocalShapeInfo?,
-        hitNormalLocal: Vector3d,
-        hitPointLocal: Vector3d,
-        hitFraction: Double
+        hitNormalLocal: Vector3f,
+        hitPointLocal: Vector3d, // local, so could it be 3f?
+        var hitFraction: Float
     ) {
-        val hitNormalLocal: Vector3d = Vector3d()
-        val hitPointLocal: Vector3d = Vector3d()
-        var hitFraction: Double
-
-        init {
-            this.hitNormalLocal.set(hitNormalLocal)
-            this.hitPointLocal.set(hitPointLocal)
-            this.hitFraction = hitFraction
-        }
+        val hitNormalLocal = Vector3f(hitNormalLocal)
+        val hitPointLocal = Vector3d(hitPointLocal)
     }
 
     abstract class ConvexResultCallback {
         @JvmField
-        var closestHitFraction: Double = 1.0
+        var closestHitFraction = 1f
 
         @JvmField
         var collisionFilter = CollisionFilters.DEFAULT_ALL
 
         fun init() {
-            closestHitFraction = 1.0
+            closestHitFraction = 1f
             collisionFilter = CollisionFilters.DEFAULT_ALL
         }
 
         fun hasHit(): Boolean {
-            return closestHitFraction < 1.0
+            return closestHitFraction < 1f
         }
 
         open fun needsCollision(proxy0: BroadphaseProxy): Boolean {
             return collides(proxy0.collisionFilter, collisionFilter)
         }
 
-        abstract fun addSingleResult(convexResult: LocalConvexResult, normalInWorldSpace: Boolean): Double
+        abstract fun addSingleResult(convexResult: LocalConvexResult, normalInWorldSpace: Boolean): Float
     }
 
     open class ClosestConvexResultCallback : ConvexResultCallback() {
-        val convexFromWorld: Vector3d = Vector3d() // used to calculate hitPointWorld from hitFraction
-        val convexToWorld: Vector3d = Vector3d()
-        val hitNormalWorld: Vector3d = Vector3d()
-        val hitPointWorld: Vector3d = Vector3d()
+        val convexFromWorld = Vector3d() // used to calculate hitPointWorld from hitFraction
+        val convexToWorld = Vector3d()
+        val hitNormalWorld = Vector3f()
+        val hitPointWorld = Vector3d()
         var hitCollisionObject: CollisionObject? = null
 
         fun init(convexFromWorld: Vector3d, convexToWorld: Vector3d) {
@@ -389,7 +356,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             this.hitCollisionObject = null
         }
 
-        override fun addSingleResult(convexResult: LocalConvexResult, normalInWorldSpace: Boolean): Double {
+        override fun addSingleResult(convexResult: LocalConvexResult, normalInWorldSpace: Boolean): Float {
             // caller already does the filter on the m_closestHitFraction
             assert(convexResult.hitFraction <= closestHitFraction)
 
@@ -421,7 +388,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
         var collisionObject: CollisionObject?
     ) : TriangleRaycastCallback(from, to) {
 
-        override fun reportHit(hitNormalLocal: Vector3d, hitFraction: Double, partId: Int, triangleIndex: Int): Double {
+        override fun reportHit(hitNormalLocal: Vector3f, hitFraction: Float, partId: Int, triangleIndex: Int): Float {
             val shapeInfo = LocalShapeInfo()
             shapeInfo.shapePart = partId
             shapeInfo.triangleIndex = triangleIndex
@@ -445,14 +412,14 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             selfAabbMax: Vector3d
         ) {
 
-            val linVel = Stack.newVec()
-            val angVel = TransformUtil.calculateVelocity(convexFromWorld, convexToWorld, 1.0, linVel)
+            val linVel = Stack.newVec3f()
+            val angVel = TransformUtil.calculateVelocity(convexFromWorld, convexToWorld, 1f, linVel)
             val tmp = Stack.newTrans()
             tmp.setIdentity()
             tmp.basis.set(convexFromWorld.basis)
-            selfShape.calculateTemporalAabb(tmp, linVel, angVel, 1.0, selfAabbMin, selfAabbMax)
+            selfShape.calculateTemporalAabb(tmp, linVel, angVel, 1f, selfAabbMin, selfAabbMax)
 
-            Stack.subVec(1)
+            Stack.subVec3f(1)
             Stack.subTrans(1)
         }
 
@@ -465,22 +432,22 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             convexFromWorld: Transform,
             convexToWorld: Transform,
             resultCallback: ConvexResultCallback,
-            allowedPenetration: Double,
+            allowedPenetration: Float,
             otherObjects: List<CollisionObject>
         ) {
-            val selfAabbMin = Stack.newVec()
-            val selfAabbMax = Stack.newVec()
+            val selfAabbMin = Stack.newVec3d()
+            val selfAabbMax = Stack.newVec3d()
 
             // Compute AABB that encompasses angular movement
             calculateTemporalBounds(selfShape, convexFromWorld, convexToWorld, selfAabbMin, selfAabbMax)
 
-            val otherAabbMin = Stack.newVec()
-            val otherAabbMax = Stack.newVec()
-            val hitLambda = Stack.newDoublePtr()
+            val otherAabbMin = Stack.newVec3d()
+            val otherAabbMax = Stack.newVec3d()
+            val hitLambda = Stack.newFloatPtr()
 
             // go over all objects, and if the ray intersects their aabb + cast shape aabb,
             // do a ray-shape query using convexCaster (CCD)
-            val hitNormal = Stack.newVec()
+            val hitNormal = Stack.newVec3f()
             var stackPos: IntArray? = null
             for (i in otherObjects.indices) {
                 val other = otherObjects[i]
@@ -491,7 +458,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                     val otherShape = other.collisionShape!!
                     otherShape.getBounds(other.worldTransform, otherAabbMin, otherAabbMax)
                     AabbUtil.aabbExpand(otherAabbMin, otherAabbMax, selfAabbMin, selfAabbMax) // minkowski sum
-                    hitLambda[0] = 1.0 // could use resultCallback.closestHitFraction, but needs testing
+                    hitLambda[0] = 1f // could use resultCallback.closestHitFraction, but needs testing
                     if (AabbUtil.rayAabb(
                             convexFromWorld.origin,
                             convexToWorld.origin,
@@ -509,8 +476,67 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                 }
             }
 
-            Stack.subDoublePtr(1)
-            Stack.subVec(4)
+            Stack.subFloatPtr(1)
+            Stack.subVec3d(3)
+            Stack.subVec3f(1)
+        }
+
+        /**
+         * convexTest performs a swept convex cast on all objects in the [CollisionWorld], and calls the resultCallback
+         * This allows for several queries: first hit, all hits, any hit, dependent on the value return by the callback.
+         */
+        fun convexSweepTest(
+            selfShape: ConvexShape,
+            convexFromWorld: Transform,
+            convexToWorld: Transform,
+            resultCallback: ConvexResultCallback,
+            allowedPenetration: Float,
+            otherObjects: CollisionTree
+        ) {
+            val selfAabbMin = Stack.newVec3d()
+            val selfAabbMax = Stack.newVec3d()
+
+            // Compute AABB that encompasses angular movement
+            calculateTemporalBounds(selfShape, convexFromWorld, convexToWorld, selfAabbMin, selfAabbMax)
+
+            val otherAabbMin = Stack.newVec3d()
+            val otherAabbMax = Stack.newVec3d()
+            val hitLambda = Stack.newFloatPtr()
+
+            // go over all objects, and if the ray intersects their aabb + cast shape aabb,
+            // do a ray-shape query using convexCaster (CCD)
+            val hitNormal = Stack.newVec3f()
+            var stackPos: IntArray? = null
+            otherObjects.query(selfAabbMin, selfAabbMax) { other ->
+                // only perform raycast if filterMask matches
+                if (resultCallback.needsCollision(other.broadphaseHandle!!)) {
+                    stackPos = Stack.getPosition(stackPos)
+
+                    val otherShape = other.collisionShape!!
+                    otherShape.getBounds(other.worldTransform, otherAabbMin, otherAabbMax)
+                    AabbUtil.aabbExpand(otherAabbMin, otherAabbMax, selfAabbMin, selfAabbMax) // minkowski sum
+                    hitLambda[0] = 1f // could use resultCallback.closestHitFraction, but needs testing
+                    if (AabbUtil.rayAabb(
+                            convexFromWorld.origin,
+                            convexToWorld.origin,
+                            otherAabbMin, otherAabbMax,
+                            hitLambda, hitNormal
+                        )
+                    ) {
+                        objectQuerySingle(
+                            selfShape, convexFromWorld, convexToWorld,
+                            other, otherShape, other.worldTransform,
+                            resultCallback, allowedPenetration
+                        )
+                    }
+                    Stack.reset(stackPos)
+                }
+                false
+            }
+
+            Stack.subFloatPtr(1)
+            Stack.subVec3d(3)
+            Stack.subVec3f(1)
         }
 
         @JvmStatic
@@ -521,8 +547,8 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             colObjWorldTransform: Transform,
             resultCallback: RayResultCallback
         ) {
-            val pointShape = SphereShape(0.0)
-            pointShape.margin = 0.0
+            val pointShape = SphereShape(0f)
+            pointShape.margin = 0f
 
             when (collisionShape) {
                 is ConvexShape -> {
@@ -565,10 +591,10 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                     val worldToCollisionObject = Stack.newTrans()
                     worldToCollisionObject.setInverse(colObjWorldTransform)
 
-                    val rayFromLocal = Stack.newVec(rayFromTrans.origin)
+                    val rayFromLocal = Stack.newVec3d(rayFromTrans.origin)
                     worldToCollisionObject.transformPosition(rayFromLocal)
 
-                    val rayToLocal = Stack.newVec(rayToTrans.origin)
+                    val rayToLocal = Stack.newVec3d(rayToTrans.origin)
                     worldToCollisionObject.transformPosition(rayToLocal)
 
                     val rcb = BridgeTriangleRaycastCallback(
@@ -582,18 +608,18 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                         collisionShape.performRaycast(rcb, rayFromLocal, rayToLocal)
                     } else {
 
-                        val rayAabbMinLocal = Stack.newVec(rayFromLocal)
+                        val rayAabbMinLocal = Stack.newVec3d(rayFromLocal)
                         setMin(rayAabbMinLocal, rayToLocal)
 
-                        val rayAabbMaxLocal = Stack.newVec(rayFromLocal)
+                        val rayAabbMaxLocal = Stack.newVec3d(rayFromLocal)
                         setMax(rayAabbMaxLocal, rayToLocal)
 
                         collisionShape.processAllTriangles(rcb, rayAabbMinLocal, rayAabbMaxLocal)
 
-                        Stack.subVec(2)
+                        Stack.subVec3d(2)
                     }
 
-                    Stack.subVec(2)
+                    Stack.subVec3d(2)
                     Stack.subTrans(1)
                 }
                 is CompoundShape -> {
@@ -635,13 +661,13 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             otherShape: CollisionShape,
             otherWorldTransform: Transform,
             resultCallback: ConvexResultCallback,
-            allowedPenetration: Double
+            allowedPenetration: Float
         ) {
             when (otherShape) {
                 is ConvexShape -> {
                     val castResult = Stack.newCastResult()
                     castResult.allowedPenetration = allowedPenetration
-                    castResult.fraction = 1.0 // ??
+                    castResult.fraction = 1f
 
                     // JAVA TODO: should be convexCaster1
                     //ContinuousConvexCollision convexCaster1(castShape,convexShape,&simplexSolver,&gjkEpaPenetrationSolver);
@@ -675,11 +701,11 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                     val worldToCollisionObject = Stack.newTrans()
                     worldToCollisionObject.setInverse(otherWorldTransform)
 
-                    val convexFromLocal = Stack.newVec()
+                    val convexFromLocal = Stack.newVec3d()
                     convexFromLocal.set(convexFromTrans.origin)
                     worldToCollisionObject.transformPosition(convexFromLocal)
 
-                    val convexToLocal = Stack.newVec()
+                    val convexToLocal = Stack.newVec3d()
                     convexToLocal.set(convexToTrans.origin)
                     worldToCollisionObject.transformPosition(convexToLocal)
 
@@ -695,8 +721,8 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                     )
                     callback.hitFraction = resultCallback.closestHitFraction
 
-                    val boxMinLocal = Stack.newVec()
-                    val boxMaxLocal = Stack.newVec()
+                    val boxMinLocal = Stack.newVec3d()
+                    val boxMaxLocal = Stack.newVec3d()
                     convexShape.getBounds(rotationXform, boxMinLocal, boxMaxLocal)
 
                     if (otherShape is BvhTriangleMeshShape) {
@@ -705,22 +731,22 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
 
                         otherShape.performConvexCast(callback, convexFromLocal, convexToLocal, boxMinLocal, boxMaxLocal)
 
-                        Stack.subVec(4)
+                        Stack.subVec3d(4)
                         Stack.subTrans(2)
                         Stack.subMat(1)
                     } else {
 
                         callback.normalInWorldSpace = false
 
-                        val rayAabbMinLocal = Stack.newVec()
-                        val rayAabbMaxLocal = Stack.newVec()
+                        val rayAabbMinLocal = Stack.newVec3d()
+                        val rayAabbMaxLocal = Stack.newVec3d()
 
                         convexFromLocal.min(convexToLocal, rayAabbMinLocal).add(boxMinLocal)
                         convexFromLocal.max(convexToLocal, rayAabbMaxLocal).add(boxMaxLocal)
 
                         otherShape.processAllTriangles(callback, rayAabbMinLocal, rayAabbMaxLocal)
 
-                        Stack.subVec(6)
+                        Stack.subVec3d(6)
                         Stack.subTrans(2)
                         Stack.subMat(1)
                     }

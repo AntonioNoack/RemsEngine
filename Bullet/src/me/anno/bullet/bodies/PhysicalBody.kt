@@ -16,6 +16,7 @@ import me.anno.ecs.components.physics.Physics.Companion.hasValidComponents
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 abstract class PhysicalBody : PhysicsBody<RigidBody>() {
 
@@ -27,7 +28,7 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
      * */
     @Group("Movement")
     @Range(0.0, 1.0)
-    var friction: Double = 0.5
+    var friction = 0.5f
         set(value) {
             field = value
             nativeInstance?.friction = friction
@@ -35,7 +36,7 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
 
     @Docs("How elastic a body is, 1 = fully elastic, 0 = all energy absorbed (knead)")
     @Range(0.0, 1.0)
-    var restitution = 0.0
+    var restitution = 0f
         set(value) {
             field = value
             nativeInstance?.restitution = value
@@ -53,14 +54,14 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
 
     // getter not needed, is updated automatically from BulletPhysics.kt
     @Group("Movement")
-    var globalLinearVelocity: Vector3d = Vector3d()
+    var globalLinearVelocity: Vector3f = Vector3f()
         set(value) {
             field.set(value)
             nativeInstance?.setLinearVelocity(value)
         }
 
     @Group("Movement")
-    var localLinearVelocity: Vector3d = Vector3d()
+    var localLinearVelocity: Vector3f = Vector3f()
         get() {
             transform?.globalTransform?.transformDirectionInverse(globalLinearVelocity, field)
             return field
@@ -70,7 +71,7 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
             val bi = nativeInstance
             val tr = transform
             if (tr != null && bi != null) {
-                val global = tr.globalTransform.transformDirection(field, Vector3d())
+                val global = tr.globalTransform.transformDirection(field, Vector3f())
                 bi.setLinearVelocity(global)
             }
         }
@@ -95,14 +96,14 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
 
     // getter not needed, is updated automatically from BulletPhysics.kt
     @Group("Rotation")
-    var globalAngularVelocity: Vector3d = Vector3d()
+    var globalAngularVelocity: Vector3f = Vector3f()
         set(value) {
             field.set(value)
             nativeInstance?.setAngularVelocity(value)
         }
 
     @Group("Movement")
-    var localAngularVelocity: Vector3d = Vector3d()
+    var localAngularVelocity: Vector3f = Vector3f()
         get() {
             transform?.globalTransform?.transformDirectionInverse(globalAngularVelocity, field)
             return field
@@ -112,7 +113,7 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
             val bi = nativeInstance
             val tr = transform
             if (tr != null && bi != null) {
-                val global = tr.globalTransform.transformDirection(field, Vector3d())
+                val global = tr.globalTransform.transformDirection(field, Vector3f())
                 bi.setAngularVelocity(global)
             }
         }

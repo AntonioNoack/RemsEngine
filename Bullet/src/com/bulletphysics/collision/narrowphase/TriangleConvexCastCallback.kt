@@ -6,6 +6,7 @@ import com.bulletphysics.collision.shapes.TriangleShape
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * @author jezek2
@@ -15,21 +16,18 @@ abstract class TriangleConvexCastCallback(
     convexShapeFrom: Transform,
     convexShapeTo: Transform,
     triangleToWorld: Transform,
-    triangleCollisionMargin: Double
+    var triangleCollisionMargin: Float
 ) : TriangleCallback {
 
-    val convexShapeFrom: Transform = Transform()
-    val convexShapeTo: Transform = Transform()
-    val triangleToWorld: Transform = Transform()
-    var hitFraction: Double
-    var triangleCollisionMargin: Double
+    val convexShapeFrom = Transform()
+    val convexShapeTo = Transform()
+    val triangleToWorld = Transform()
+    var hitFraction = 1f
 
     init {
         this.convexShapeFrom.set(convexShapeFrom)
         this.convexShapeTo.set(convexShapeTo)
         this.triangleToWorld.set(triangleToWorld)
-        this.hitFraction = 1.0
-        this.triangleCollisionMargin = triangleCollisionMargin
     }
 
     override fun processTriangle(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int) {
@@ -40,7 +38,7 @@ abstract class TriangleConvexCastCallback(
 
         // TODO: implement ContinuousConvexCollision
         val castResult = Stack.newCastResult()
-        castResult.fraction = 1.0
+        castResult.fraction = 1f
         if (SubSimplexConvexCast.calcTimeOfImpactImpl(
                 convexShape, triangleShape, simplexSolver,
                 convexShapeFrom, convexShapeTo,
@@ -70,10 +68,10 @@ abstract class TriangleConvexCastCallback(
     }
 
     abstract fun reportHit(
-        hitNormalLocal: Vector3d,
+        hitNormalLocal: Vector3f,
         hitPointLocal: Vector3d,
-        hitFraction: Double,
+        hitFraction: Float,
         partId: Int,
         triangleIndex: Int
-    ): Double
+    ): Float
 }

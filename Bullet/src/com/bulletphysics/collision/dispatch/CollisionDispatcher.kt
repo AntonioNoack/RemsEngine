@@ -16,6 +16,8 @@ import java.util.Collections
  * CollisionDispatcher supports algorithms that handle ConvexConvex and ConvexConcave collision pairs.
  * Time of Impact, Closest Points and Penetration Depth.
  *
+ * If you have completely custom collision types, use this class to register them (see GImpact and SoftBody).
+ *
  * @author jezek2
  */
 class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Dispatcher {
@@ -46,6 +48,16 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
     fun registerCollisionCreateFunc(proxyType0: Int, proxyType1: Int, createFunc: CollisionAlgorithmCreateFunc) {
         doubleDispatch[proxyType0 * NUM_COLLISION_TYPES + proxyType1] = createFunc
     }
+
+    fun registerCollisionCreateFunc(
+        proxyType0: BroadphaseNativeType,
+        proxyType1: BroadphaseNativeType,
+        createFunc: CollisionAlgorithmCreateFunc
+    ) = registerCollisionCreateFunc(
+        proxyType0.ordinal,
+        proxyType1.ordinal,
+        createFunc
+    )
 
     private val tmpCI = CollisionAlgorithmConstructionInfo()
     override fun findAlgorithm(

@@ -4,6 +4,7 @@ import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * MinkowskiSumShape is only for advanced users. This shape represents implicit
@@ -24,10 +25,10 @@ class MinkowskiSumShape @Suppress("unused") constructor(
         this.transB.setIdentity()
     }
 
-    override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
-        val tmp = Stack.newVec()
-        val supVertexA = Stack.newVec()
-        val supVertexB = Stack.newVec()
+    override fun localGetSupportingVertexWithoutMargin(dir: Vector3f, out: Vector3f): Vector3f {
+        val tmp = Stack.newVec3f()
+        val supVertexA = Stack.newVec3f()
+        val supVertexB = Stack.newVec3f()
 
         dir.negate(tmp)
         transA.basis.transformTranspose(tmp)
@@ -39,7 +40,7 @@ class MinkowskiSumShape @Suppress("unused") constructor(
         transB.transformPosition(supVertexB)
 
         supVertexA.sub(supVertexB, out)
-        Stack.subVec(3)
+        Stack.subVec3f(3)
         return out
     }
 
@@ -50,11 +51,11 @@ class MinkowskiSumShape @Suppress("unused") constructor(
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.MINKOWSKI_SUM
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
         throw NotImplementedError()
     }
 
-    override var margin: Double
+    override var margin: Float
         get() = shapeA.margin + shapeB.margin
 
     @Suppress("unused")

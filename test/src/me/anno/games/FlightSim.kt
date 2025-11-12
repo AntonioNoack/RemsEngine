@@ -167,7 +167,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
     rotor.add(object : Component(), OnPhysicsUpdate {
         var position = 0.0
         var speed = 0.0
-        val tmp = Vector3d()
+        val tmp = Vector3f()
         override fun onPhysicsUpdate(dt: Double) {
             // todo why is the plane turning upside-down???
 
@@ -195,7 +195,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
                     )
                 )
             )
-            body.angularDamping = 0.9
+            body.angularDamping = 0.9f
             // rotation depends on speed along local z axis
             val steering = Input.isKeyDown(Key.KEY_ARROW_LEFT).toInt() - Input.isKeyDown(Key.KEY_ARROW_RIGHT).toInt()
             val rolling = Input.isKeyDown(Key.KEY_D).toInt() - Input.isKeyDown(Key.KEY_A).toInt()
@@ -216,7 +216,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
     })
 
     // add friction
-    body.friction = 0.5
+    body.friction = 0.5f
 
     plane.setPosition(0.0, 2.25, 0.0)
 
@@ -239,7 +239,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
     addCollider("Right Wheel", Vector3f(+1.75f, -1.43f, 1.88f), Vector3f(0.11f, 0.81f, 0.26f))
     addCollider("Back Wheel", Vector3f(0f, -0.83f, -2.58f), Vector3f(0.08f, 0.29f, 0.13f))
 
-    body.mass = 1100.0 // taken from Republic P-47 Thunderbolt, which looks similar
+    body.mass = 1100.0f // taken from Republic P-47 Thunderbolt, which looks similar
     plane.add(body)
 
     // camera in the cockpit / around the plane

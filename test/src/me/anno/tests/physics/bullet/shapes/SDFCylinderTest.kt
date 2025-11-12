@@ -4,12 +4,14 @@ import me.anno.bullet.createBulletCylinderShape
 import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.CylinderCollider
 import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.TAUf
 import me.anno.sdf.SDFCollider
 import me.anno.sdf.physics.ConvexSDFShape
 import me.anno.sdf.shapes.SDFCylinder
 import me.anno.tests.physics.bullet.shapes.SDFSphereTest.Companion.nextPos
 import me.anno.utils.assertions.assertEquals
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import kotlin.math.cos
 import kotlin.math.sin
@@ -35,8 +37,8 @@ class SDFCylinderTest {
         val baseline = CylinderCollider().apply {
             axis = axisI
             roundness = marginI
-        }.createBulletCylinderShape(Vector3d(1.0))
-        assertEquals(marginI, baseline.margin.toFloat())
+        }.createBulletCylinderShape(Vector3f(1f))
+        assertEquals(marginI, baseline.margin)
         val tested = ConvexSDFShape(
             SDFCylinder().apply {
                 axis = axisI
@@ -48,18 +50,18 @@ class SDFCylinderTest {
                     .setMax(1.0, 1.0, 1.0)
             }, SDFCollider()
         )
-        tested.margin = 0.0
+        tested.margin = 0f
         val random = Random(1234)
         val accurate = marginI == 0f
         // it's a shame that we have to use soo big margins :/
-        val threshold = if (accurate) 1e-5 else 1.0 + marginI
+        val threshold = if (accurate) 1e-5f else 1f + marginI
         repeat(100) {
-            val pos = random.nextPos()
+            val pos = Vector3f(random.nextPos())
 
             // if possible, use smaller margins by spawning a point on the surface
             if (accurate) {
-                val angle = random.nextDouble() * TAU
-                val y = if (random.nextBoolean()) 1.0 else -1.0
+                val angle = random.nextFloat() * TAUf
+                val y = if (random.nextBoolean()) 1f else -1f
                 when (axisI) {
                     Axis.X -> {
                         pos.x = y
@@ -79,8 +81,8 @@ class SDFCylinderTest {
                 }
             }
 
-            val expected = baseline.localGetSupportingVertex(pos, Vector3d())
-            val actual = tested.localGetSupportingVertex(pos, Vector3d())
+            val expected = baseline.localGetSupportingVertex(pos, Vector3f())
+            val actual = tested.localGetSupportingVertex(pos, Vector3f())
             assertEquals(expected.x, actual.x, threshold)
             assertEquals(expected.y, actual.y, threshold)
             assertEquals(expected.z, actual.z, threshold)

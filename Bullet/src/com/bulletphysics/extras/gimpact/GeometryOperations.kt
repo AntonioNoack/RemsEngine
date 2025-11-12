@@ -13,9 +13,9 @@ internal object GeometryOperations {
      */
     @JvmStatic
     fun edgePlane(e1: Vector3d, e2: Vector3d, normal: Vector3d, plane: Vector4d) {
-        val n = Stack.newVec()
+        val n = Stack.newVec3d()
         e2.sub(e1, n).cross(normal).normalize()
         plane.set(n.x, n.y, n.z, e2.dot(n))
-        Stack.subVec(1)
+        Stack.subVec3d(1)
     }
 }

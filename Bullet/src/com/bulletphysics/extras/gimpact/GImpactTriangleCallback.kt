@@ -14,11 +14,8 @@ internal class GImpactTriangleCallback : TriangleCallback {
     lateinit var body1: CollisionObject
     lateinit var shape: GImpactShapeInterface
 
-    @JvmField
-    var swapped: Boolean = false
-
-    @JvmField
-    var margin: Double = 0.0
+    var swapped = false
+    var margin = 0f
 
     override fun processTriangle(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int) {
         val tri1 = TriangleShapeEx(a, b, c)

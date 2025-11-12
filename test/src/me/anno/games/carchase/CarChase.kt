@@ -151,12 +151,12 @@ fun createUI(): Panel {
     for (x in listOf(-1, +1)) {
         for (z in listOf(-1, +1)) {
             val wheel = VehicleWheel().apply {
-                suspensionRestLength = -0.15
-                suspensionStiffness = 50.0
-                suspensionDampingRelaxation = 0.95
-                maxSuspensionTravel = 0.2
-                brakeForceMultiplier = 0.02 // what unit is this value??? why has it to be that low???
-                radius = 0.42678
+                suspensionRestLength = -0.15f
+                suspensionStiffness = 50.0f
+                suspensionDampingRelaxation = 0.95f
+                maxSuspensionTravel = 0.2f
+                brakeForceMultiplier = 0.02f // what unit is this value??? why has it to be that low???
+                radius = 0.42678f
             }
             val wheelObj = Entity("Wheel[$x,$z]")
                 .add(wheel)
@@ -168,7 +168,7 @@ fun createUI(): Panel {
             if (x > 0) {
                 wheelMesh.setRotation(0f, PIf, 0f)
             }
-            if (z < 0) wheel.steeringMultiplier = 0.0
+            if (z < 0) wheel.steeringMultiplier = 0.0f
             carEntity.add(wheelObj)
         }
     }

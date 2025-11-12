@@ -14,10 +14,11 @@ import me.anno.ui.UIColors
 import me.anno.utils.Color.black
 import org.joml.Matrix4x3
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 class BulletDebugComponent(
     val world: DynamicsWorld,
-    val timeStep: Double, val maxSubSteps: Int
+    val timeStep: Float, val maxSubSteps: Int
 ) : Component(), OnUpdate {
 
     @DebugAction
@@ -42,10 +43,10 @@ class BulletDebugComponent(
             val shape = co.collisionShape
             m.set(tr.basis).setTranslation(tr.origin)
             when (shape) {
-                is SphereShape -> LineShapes.drawSphere(null, shape.radius, tr.origin, -1)
+                is SphereShape -> LineShapes.drawSphere(null, shape.radius.toDouble(), tr.origin, -1)
                 is BoxShape -> {
-                    val tmp = shape.getHalfExtentsWithMargin(Vector3d())
-                    LineShapes.drawBox(m, -1, tmp.x, tmp.y, tmp.z)
+                    val tmp = shape.getHalfExtentsWithMargin(Vector3f())
+                    LineShapes.drawBox(m, -1, tmp.x.toDouble(), tmp.y.toDouble(), tmp.z.toDouble())
                 }
                 is StaticPlaneShape -> {
                     for (s in listOf(1.0, 3.0, 9.0)) {

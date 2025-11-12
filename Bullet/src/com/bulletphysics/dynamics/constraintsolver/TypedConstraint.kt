@@ -3,6 +3,7 @@ package com.bulletphysics.dynamics.constraintsolver
 import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.dynamics.RigidBody
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * TypedConstraint is the base class for Bullet constraints and vehicles.
@@ -15,17 +16,17 @@ abstract class TypedConstraint @JvmOverloads constructor(
 ) {
 
     @JvmField
-    var appliedImpulse: Double = 0.0
+    var appliedImpulse = 0f
 
     @JvmField
-    var breakingImpulseThreshold: Double = 1e308
+    var breakingImpulseThreshold = 1e38f
 
     init {
-        FIXED.setMassProps(0.0, Vector3d(0.0, 0.0, 0.0))
+        FIXED.setMassProps(0f, Vector3f())
     }
 
     abstract fun buildJacobian()
-    abstract fun solveConstraint(timeStep: Double)
+    abstract fun solveConstraint(timeStep: Float)
 
     var isBroken: Boolean
         get() = breakingImpulseThreshold < 0
@@ -36,6 +37,6 @@ abstract class TypedConstraint @JvmOverloads constructor(
         }
 
     companion object {
-        private val FIXED = RigidBody(0.0, SphereShape(0.0))
+        private val FIXED = RigidBody(0f, SphereShape(0f))
     }
 }

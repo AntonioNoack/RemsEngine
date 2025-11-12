@@ -3,6 +3,7 @@ package com.bulletphysics.dynamics.constraintsolver
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * 2007-09-09
@@ -15,37 +16,37 @@ import org.joml.Vector3d
 class TranslationalLimitMotor {
 
     @JvmField
-    val lowerLimit = Vector3d()
+    val lowerLimit = Vector3f()
 
     @JvmField
-    val upperLimit = Vector3d()
+    val upperLimit = Vector3f()
 
     @JvmField
-    val accumulatedImpulse = Vector3d()
+    val accumulatedImpulse = Vector3f()
 
     /**
      * Softness for linear limit
      * */
-    var limitSoftness: Double
+    var limitSoftness: Float
 
     /**
      * Damping for linear limit
      * */
-    var damping: Double
+    var damping: Float
 
     /**
      * Bounce parameter for linear limit
      * */
-    var restitution: Double
+    var restitution: Float
 
     constructor() {
-        lowerLimit.set(0.0, 0.0, 0.0)
-        upperLimit.set(0.0, 0.0, 0.0)
-        accumulatedImpulse.set(0.0, 0.0, 0.0)
+        lowerLimit.set(0f)
+        upperLimit.set(0f)
+        accumulatedImpulse.set(0f)
 
-        limitSoftness = 0.7
-        damping = 1.0
-        restitution = 0.5
+        limitSoftness = 0f
+        damping = 1f
+        restitution = 0.5f
     }
 
     constructor(other: TranslationalLimitMotor) {
@@ -72,25 +73,23 @@ class TranslationalLimitMotor {
     }
 
     fun solveLinearAxis(
-        timeStep: Double, jacDiagABInv: Double, body1: RigidBody, pointInA: Vector3d,
+        timeStep: Float, jacDiagABInv: Float,
+        body1: RigidBody, pointInA: Vector3d,
         body2: RigidBody, pointInB: Vector3d, limitIndex: Int,
-        axisNormalOnA: Vector3d, anchorPos: Vector3d
-    ): Double {
-        val tmp = Stack.newVec()
-        val tmpVec = Stack.newVec()
+        axisNormalOnA: Vector3f, anchorPos: Vector3d
+    ): Float {
+        val tmp = Stack.newVec3f()
 
         // find relative velocity
-        val relPos1 = Stack.newVec()
-        //relPos1.sub(pointInA, body1.getCenterOfMassPosition(tmpVec));
-        anchorPos.sub(body1.getCenterOfMassPosition(tmpVec), relPos1)
+        val relPos1 = Stack.newVec3f()
+        anchorPos.sub(body1.worldTransform.origin, relPos1)
 
-        val relPos2 = Stack.newVec()
-        //relPos2.sub(pointInB, body2.getCenterOfMassPosition(tmpVec));
-        anchorPos.sub(body2.getCenterOfMassPosition(tmpVec), relPos2)
+        val relPos2 = Stack.newVec3f()
+        anchorPos.sub(body2.worldTransform.origin, relPos2)
 
-        val vel1 = body1.getVelocityInLocalPoint(relPos1, Stack.newVec())
-        val vel2 = body2.getVelocityInLocalPoint(relPos2, Stack.newVec())
-        val vel = Stack.newVec()
+        val vel1 = body1.getVelocityInLocalPoint(relPos1, Stack.newVec3f())
+        val vel2 = body2.getVelocityInLocalPoint(relPos2, Stack.newVec3f())
+        val vel = Stack.newVec3f()
         vel1.sub(vel2, vel)
 
         val relVel = axisNormalOnA.dot(vel)
@@ -99,9 +98,9 @@ class TranslationalLimitMotor {
 
         // positional error (zeroth order error)
         pointInA.sub(pointInB, tmp)
-        var depth = -(tmp).dot(axisNormalOnA)
-        var lo = -1e308
-        var hi = 1e308
+        var depth = -tmp.dot(axisNormalOnA).toFloat()
+        var lo = -1e38f
+        var hi = 1e38f
 
         val minLimit = lowerLimit[limitIndex]
         val maxLimit = upperLimit[limitIndex]
@@ -110,13 +109,13 @@ class TranslationalLimitMotor {
         if (minLimit < maxLimit) {
             if (depth > maxLimit) {
                 depth -= maxLimit
-                lo = 0.0
+                lo = 0f
             } else {
                 if (depth < minLimit) {
                     depth -= minLimit
-                    hi = 0.0
+                    hi = 0f
                 } else {
-                    return 0.0
+                    return 0f
                 }
             }
         }
@@ -125,17 +124,17 @@ class TranslationalLimitMotor {
 
         val oldNormalImpulse = accumulatedImpulse[limitIndex]
         val sum = oldNormalImpulse + normalImpulse
-        accumulatedImpulse[limitIndex] = if (sum > hi) 0.0 else if (sum < lo) 0.0 else sum
+        accumulatedImpulse[limitIndex] = if (sum > hi) 0f else if (sum < lo) 0f else sum
         normalImpulse = accumulatedImpulse[limitIndex] - oldNormalImpulse
 
-        val impulseVector = Stack.newVec()
+        val impulseVector = Stack.newVec3f()
         axisNormalOnA.mul(normalImpulse, impulseVector)
         body1.applyImpulse(impulseVector, relPos1)
 
         impulseVector.negate(tmp)
         body2.applyImpulse(tmp, relPos2)
 
-        Stack.subVec(8)
+        Stack.subVec3f(7)
         return normalImpulse
     }
 }

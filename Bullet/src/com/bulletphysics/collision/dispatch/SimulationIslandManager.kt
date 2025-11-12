@@ -1,7 +1,6 @@
 package com.bulletphysics.collision.dispatch
 
-import com.bulletphysics.BulletStats.popProfile
-import com.bulletphysics.BulletStats.pushProfile
+import com.bulletphysics.BulletStats.profile
 import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import cz.advel.stack.Stack
@@ -40,7 +39,7 @@ class SimulationIslandManager {
             val objI = objects[i]
             objI.islandTag = i
             objI.companionId = -1
-            objI.hitFraction = 1.0
+            objI.hitFraction = 1f
         }
 
         // do the union find
@@ -63,8 +62,7 @@ class SimulationIslandManager {
     }
 
     fun buildIslands(dispatcher: Dispatcher, collisionObjects: List<CollisionObject>) {
-        pushProfile("islandUnionFindAndQuickSort")
-        try {
+        profile("islandUnionFindAndQuickSort") {
             islandManifold.clear()
 
             // we are going to sort the unionfind array, and store the element id in the size
@@ -169,8 +167,6 @@ class SimulationIslandManager {
                     }
                 }
             }
-        } finally {
-            popProfile()
         }
     }
 
@@ -185,8 +181,7 @@ class SimulationIslandManager {
         var startIslandIndex: Int
         val numElem = this.unionFind.numElements
 
-        pushProfile("processIslands")
-        try {
+        profile("processIslands") {
             val numManifolds = islandManifold.size
 
             // we should do radix sort, it it much faster (O(n) instead of O (n log2(n))
@@ -262,8 +257,6 @@ class SimulationIslandManager {
                 Stack.reset(stackPos)
                 startIslandIndex = endIslandIndex
             }
-        } finally {
-            popProfile()
         }
     }
 

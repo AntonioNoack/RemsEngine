@@ -3,6 +3,7 @@ package com.bulletphysics.collision.shapes
 import cz.advel.stack.Stack
 import org.joml.AABBd
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * StridingMeshInterface is the abstract class for high performance access to
@@ -12,14 +13,12 @@ import org.joml.Vector3d
  * @author jezek2
  */
 abstract class StridingMeshInterface {
-    val scaling: Vector3d = Vector3d(1.0, 1.0, 1.0)
 
     fun internalProcessAllTriangles(callback: InternalTriangleIndexCallback) {
         val graphicsSubParts = this.numSubParts
-        val triangle = arrayOf(Stack.newVec(), Stack.newVec(), Stack.newVec())
+        val triangle = arrayOf(Stack.newVec3d(), Stack.newVec3d(), Stack.newVec3d())
 
-        val meshScaling = getScaling(Stack.newVec())
-
+        val meshScaling = scaling
         for (part in 0 until graphicsSubParts) {
             val data = getLockedReadOnlyVertexIndexBase(part)
             var i = 0
@@ -32,6 +31,7 @@ abstract class StridingMeshInterface {
             }
             unLockReadOnlyVertexBase(part)
         }
+        Stack.subVec3d(3)
     }
 
     private class AabbCalculationCallback : InternalTriangleIndexCallback {
@@ -87,12 +87,5 @@ abstract class StridingMeshInterface {
 
     abstract fun preallocateIndices(numIndices: Int)
 
-    fun getScaling(out: Vector3d): Vector3d {
-        out.set(scaling)
-        return out
-    }
-
-    fun setScaling(scaling: Vector3d) {
-        this.scaling.set(scaling)
-    }
+    var scaling: Vector3f = Vector3f()
 }

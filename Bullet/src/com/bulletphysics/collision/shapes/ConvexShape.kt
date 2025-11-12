@@ -2,6 +2,7 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.linearmath.Transform
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * ConvexShape is an abstract shape class. It describes general convex shapes
@@ -12,12 +13,12 @@ import org.joml.Vector3d
  */
 abstract class ConvexShape : CollisionShape() {
 
-    abstract fun localGetSupportingVertex(dir: Vector3d, out: Vector3d): Vector3d
-    abstract fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d
+    abstract fun localGetSupportingVertex(dir: Vector3f, out: Vector3f): Vector3f
+    abstract fun localGetSupportingVertexWithoutMargin(dir: Vector3f, out: Vector3f): Vector3f
 
     //notice that the vectors should be unit length
     open fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        dirs: Array<Vector3d>, outs: Array<Vector3d>, numVectors: Int
+        dirs: Array<Vector3f>, outs: Array<Vector3f>, numVectors: Int
     ) {
         for (i in 0 until numVectors) {
             localGetSupportingVertexWithoutMargin(dirs[i], outs[i])
@@ -26,15 +27,7 @@ abstract class ConvexShape : CollisionShape() {
 
     abstract fun getAabbSlow(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d)
 
-    abstract override fun setLocalScaling(scaling: Vector3d)
-
-    abstract override fun getLocalScaling(out: Vector3d): Vector3d
-
     abstract val numPreferredPenetrationDirections: Int
 
-    abstract fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3d)
-
-    companion object {
-        const val MAX_PREFERRED_PENETRATION_DIRECTIONS: Int = 10
-    }
+    abstract fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3f)
 }

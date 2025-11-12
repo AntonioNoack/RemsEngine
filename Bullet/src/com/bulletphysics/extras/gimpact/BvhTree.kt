@@ -11,15 +11,15 @@ internal class BvhTree {
     var nodePointer: BvhTreeNodeArray = BvhTreeNodeArray()
 
     fun calcSplittingAxis(primitiveBoxes: BvhDataArray, startIndex: Int, endIndex: Int): Int {
-        val means = Stack.newVec(0.0)
-        val variance = Stack.newVec(0.0)
+        val means = Stack.newVec3d(0.0)
+        val variance = Stack.newVec3d(0.0)
 
         val numIndices = endIndex - startIndex
 
-        val center = Stack.newVec()
-        val diff2 = Stack.newVec()
+        val center = Stack.newVec3d()
+        val diff2 = Stack.newVec3d()
 
-        val tmp1 = Stack.newVec()
+        val tmp1 = Stack.newVec3d()
 
         for (i in startIndex until endIndex) {
             primitiveBoxes.getBoundsMax(i, center)
@@ -40,7 +40,7 @@ internal class BvhTree {
         // only used for maxAxis -> scaling not necessary
         // variance.mul(1.0 / (numIndices - 1).toDouble())
         val result = maxAxis(variance)
-        Stack.subVec(5)
+        Stack.subVec3d(5)
         return result
     }
 
@@ -52,8 +52,8 @@ internal class BvhTree {
         var splitIndex = startIndex
         val numIndices = endIndex - startIndex
 
-        val tmp = Stack.newVec()
-        val means = Stack.newVec(0.0)
+        val tmp = Stack.newVec3d()
+        val means = Stack.newVec3d(0.0)
         for (i in startIndex until endIndex) {
             means.add(primitiveBoxes.getBoundsMax(i, tmp))
             means.add(primitiveBoxes.getBoundsMin(i, tmp))
@@ -64,7 +64,7 @@ internal class BvhTree {
         val splitValue = means[splitAxis]
 
         // sort leafNodes so all values larger than splitValue comes first, and smaller values start from 'splitIndex'.
-        val center = Stack.newVec()
+        val center = Stack.newVec3d()
         for (i in startIndex until endIndex) {
             primitiveBoxes.getBoundsMax(i, center)
             primitiveBoxes.getBoundsMin(i, tmp)
@@ -77,7 +77,7 @@ internal class BvhTree {
                 splitIndex++
             }
         }
-        Stack.subVec(3)
+        Stack.subVec3d(3)
 
         // if the splitIndex causes unbalanced trees, fix this by using the center in between startIndex and endIndex
         // otherwise the tree-building might fail due to stack-overflows in certain cases.

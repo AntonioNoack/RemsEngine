@@ -12,10 +12,11 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.input.Key
 import me.anno.utils.Color.black
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 class SimpleShootingControls : Component(), CustomEditMode {
 
-    var force = 25.0
+    var force = 25f
 
     override fun onEditClick(button: Key, long: Boolean): Boolean {
         if (button == Key.BUTTON_LEFT) {
@@ -30,8 +31,8 @@ class SimpleShootingControls : Component(), CustomEditMode {
                 val hitEntity = hitComponent?.entity
                 val hitRigidbody = hitEntity?.getComponent(DynamicBody::class)
                 if (hitRigidbody != null) {
-                    val relativePos = query.result.positionWS.sub(hitEntity.transform.globalPosition, Vector3d())
-                    val impulse = Vector3d(query.direction).mul(force)
+                    val relativePos = query.result.positionWS.sub(hitEntity.transform.globalPosition, Vector3f())
+                    val impulse = Vector3f(query.direction).mul(force)
                     hitRigidbody.applyImpulse(relativePos, impulse)
                 } else {
                     showDebugArrow(

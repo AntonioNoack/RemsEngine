@@ -3,6 +3,7 @@ package com.bulletphysics.linearmath
 import com.bulletphysics.BulletGlobals
 import cz.advel.stack.Stack
 import org.joml.Matrix3d
+import org.joml.Matrix3f
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -22,7 +23,7 @@ object DiagonalizeMatrix {
      * been executed. Note that this matrix is assumed to be symmetric.
      */
     // JAVA NOTE: diagonalize method from 2.71
-    fun diagonalize(mat: Matrix3d, rot: Matrix3d, threshold: Double, maxSteps: Int) {
+    fun diagonalize(mat: Matrix3f, rot: Matrix3f, threshold: Float, maxSteps: Int) {
         rot.identity()
         var step = maxSteps
         while (step > 0) {
@@ -54,20 +55,20 @@ object DiagonalizeMatrix {
             }
 
             // compute Jacobi rotation J which leads to a zero for element [p][q]
-            val mpq = mat[q, p]
-            val theta = (mat[q, q] - mat[p, p]) / (2 * mpq)
+            val mpq = mat[q, p].toFloat()
+            val theta = (mat[q, q] - mat[p, p]).toFloat() / (2f * mpq)
             val theta2 = theta * theta
-            val cos: Double
+            val cos: Float
             if ((theta2 * theta2) < (10f / BulletGlobals.SIMD_EPSILON)) {
-                t = if (theta >= 0.0)
-                    1.0 / (theta + sqrt(1.0 + theta2))
+                t = if (theta >= 0f)
+                    1f / (theta + sqrt(1f + theta2))
                 else
-                    1.0 / (theta - sqrt(1.0 + theta2))
-                cos = 1.0 / sqrt(1.0 + t * t)
+                    1f / (theta - sqrt(1f + theta2))
+                cos = 1f / sqrt(1f + t * t)
             } else {
                 // approximation for large theta-value, i.e., a nearly diagonal matrix
-                t = 1 / (theta * (2 + 0.5 / theta2))
-                cos = 1 - 0.5 * t * t
+                t = 1f / (theta * (2f + 0.5f / theta2))
+                cos = 1f - 0.5f * t * t
             }
             val sin = cos * t
 
@@ -84,7 +85,7 @@ object DiagonalizeMatrix {
             mat[r, q] = cos * mrq + sin * mrp
 
             // apply rotation to rot (rot = rot * J)
-            val row = Stack.borrowVec()
+            val row = Stack.borrowVec3f()
             for (i in 0..2) {
                 rot.getRow(i, row)
 

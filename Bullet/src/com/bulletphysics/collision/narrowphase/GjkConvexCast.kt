@@ -35,22 +35,22 @@ class GjkConvexCast : ConvexCast {
 
         // compute linear velocity for this interval, to interpolate
         // assume no rotation/angular velocity, assert here?
-        val linVelA = Stack.newVec()
-        val linVelB = Stack.newVec()
+        val linVelA = Stack.newVec3d()
+        val linVelB = Stack.newVec3d()
 
         toA.origin.sub(fromA.origin, linVelA)
         toB.origin.sub(fromB.origin, linVelB)
 
         val radius = 0.001
-        var lambda = 0.0
-        val v = Stack.newVec()
+        var lambda = 0f
+        val v = Stack.newVec3d()
         v.set(1.0, 0.0, 0.0)
 
-        val n = Stack.newVec()
+        val n = Stack.newVec3d()
         n.set(0.0, 0.0, 0.0)
         val hasResult: Boolean
-        val c = Stack.newVec()
-        val r = Stack.newVec()
+        val c = Stack.newVec3d()
+        val r = Stack.newVec3d()
         linVelA.sub(linVelB, r)
 
         var lastLambda = lambda
@@ -92,10 +92,10 @@ class GjkConvexCast : ConvexCast {
                     }
 
                     val projectedLinearVelocity = r.dot(n)
-                    lambda -= dist / projectedLinearVelocity
+                    lambda -= (dist / projectedLinearVelocity).toFloat()
 
-                    if (lambda > 1.0) return false
-                    if (lambda < 0.0) {
+                    if (lambda > 1f) return false
+                    if (lambda < 0f) {
                         return false // todo: next check with relative epsilon
                     }
 
@@ -103,9 +103,8 @@ class GjkConvexCast : ConvexCast {
                     lastLambda = lambda
 
                     // interpolate to next lambda
-                    result.debugDraw(lambda)
-                    setInterpolate3(input.transformA.origin, fromA.origin, toA.origin, lambda)
-                    setInterpolate3(input.transformB.origin, fromB.origin, toB.origin, lambda)
+                    setInterpolate3(input.transformA.origin, fromA.origin, toA.origin, lambda.toDouble())
+                    setInterpolate3(input.transformB.origin, fromB.origin, toB.origin, lambda.toDouble())
 
                     gjk.getClosestPoints(input, pointCollector, null)
                     if (pointCollector.hasResult) {
@@ -139,7 +138,7 @@ class GjkConvexCast : ConvexCast {
             return false
         } finally {
             pointInputsPool.release(input)
-            Stack.subVec(6)
+            Stack.subVec3d(6)
             Stack.subTrans(1)
             Stack.subPointCollector(1)
         }

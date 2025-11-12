@@ -8,6 +8,7 @@ import me.anno.sdf.SDFComponent
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 
 class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexShape() {
@@ -22,30 +23,20 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
     }
 
     var maxSteps = 10
-    val localScaling = Vector3d(1.0, 1.0, 1.0)
 
-    override fun setLocalScaling(scaling: Vector3d) {
-        localScaling.set(scaling)
-    }
-
-    override fun getLocalScaling(out: Vector3d): Vector3d {
-        out.set(localScaling)
-        return out
-    }
-
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
         return collider.calculateLocalInertia(mass, inertia)
     }
 
-    override var margin: Double
-        get() = collider.margin.toDouble()
+    override var margin: Float
+        get() = collider.margin
         set(value) {
-            collider.margin = value.toFloat()
+            collider.margin = value
         }
 
     override fun localGetSupportingVertex(
-        dir: Vector3d,
-        out: Vector3d // = margin * normal
+        dir: Vector3f,
+        out: Vector3f // = margin * normal
     ) = localGetSupportingVertex(dir, out, margin)
 
     private val seeds = IntArrayList(8)
@@ -54,10 +45,10 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
      * return the closest point to that
      * */
     fun localGetSupportingVertex(
-        pos: Vector3d,
-        out: Vector3d,
-        margin: Double
-    ): Vector3d {
+        pos: Vector3f,
+        out: Vector3f,
+        margin: Float
+    ): Vector3f {
 
         val bounds = sdf.localAABB
         val dir2 = JomlPools.vec3f.create().set(pos.x, pos.y, pos.z).normalize()
@@ -66,7 +57,7 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
 
         val start = JomlPools.vec3f.create().set(dir2).mul(maxDistance)
             .add(bounds.centerX.toFloat(), bounds.centerY.toFloat(), bounds.centerZ.toFloat())
-        dir2.mul(-1f)
+        dir2.negate()
 
         val distance = sdf.raycast(
             start, dir2, 0f,
@@ -80,8 +71,8 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
         return out
     }
 
-    override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d) =
-        localGetSupportingVertex(dir, out, 0.0)
+    override fun localGetSupportingVertexWithoutMargin(dir: Vector3f, out: Vector3f): Vector3f =
+        localGetSupportingVertex(dir, out, 0f)
 
     override fun getAabbSlow(
         t: Transform, aabbMin: Vector3d, aabbMax: Vector3d
@@ -91,7 +82,7 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
     }
 
     override val numPreferredPenetrationDirections get() = 0
-    override fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3d) {
+    override fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3f) {
         throw InternalError()
     }
 

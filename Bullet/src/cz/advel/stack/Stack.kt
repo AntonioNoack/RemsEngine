@@ -7,9 +7,10 @@ import com.bulletphysics.collision.narrowphase.VoronoiSimplexSolver
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
 import org.joml.AABBd
-import org.joml.Matrix3d
-import org.joml.Quaterniond
+import org.joml.Matrix3f
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 import java.nio.BufferUnderflowException
 
 /**
@@ -18,13 +19,15 @@ import java.nio.BufferUnderflowException
  */
 class Stack {
     private var vectorPosition = 0
+    private var vectorPositionF = 0
     private var matrixPosition = 0
     private var quatPosition = 0
     private var transPosition = 0
 
     private var vectors = Array(32) { Vector3d() }
-    private var matrices = Array(32) { Matrix3d() }
-    private var quads = Array(32) { Quaterniond() }
+    private var vectorsF = Array(32) { Vector3f() }
+    private var matrices = Array(32) { Matrix3f() }
+    private var quads = Array(32) { Quaternionf() }
     private var transforms = Array(32) { Transform() }
 
     // I either didn't find the library, or it was too large for my liking:
@@ -34,19 +37,22 @@ class Stack {
             println(
                 "[BulletStack]: Slack: " +
                         vectorPosition + " vectors, " +
+                        vectorPositionF + " vectors, " +
                         matrixPosition + " matrices, " +
                         quatPosition + " quaternions, " +
                         transPosition + " transforms"
             )
         }
         vectorPosition = 0
+        vectorPositionF = 0
         matrixPosition = 0
         quatPosition = 0
         transPosition = 0
     }
 
-    fun reset2(vec: Int, mat: Int, quat: Int, trans: Int) {
+    fun reset2(vec: Int, vec2: Int, mat: Int, quat: Int, trans: Int) {
         vectorPosition = vec
+        vectorPositionF = vec2
         matrixPosition = mat
         quatPosition = quat
         transPosition = trans
@@ -58,6 +64,7 @@ class Stack {
         println(
             "[BulletStack]: " +
                     vectors.size + " vectors, " +
+                    vectorsF.size + " vectors, " +
                     matrices.size + " matrices, " +
                     quads.size + " quads, " +
                     transforms.size + " transforms"
@@ -68,7 +75,7 @@ class Stack {
         if (newSize > limit) throw OutOfMemoryError("Reached stack limit $limit, probably leaking")
     }
 
-    fun newVec2(): Vector3d {
+    fun newVec3d(): Vector3d {
         var values = vectors
         if (vectorPosition >= values.size) {
             val newSize = values.size * 2
@@ -79,23 +86,34 @@ class Stack {
         return values[vectorPosition++]
     }
 
-    fun newQuat2(): Quaterniond {
+    fun newVec3f(): Vector3f {
+        var values = vectorsF
+        if (vectorPositionF >= values.size) {
+            val newSize = values.size * 2
+            checkLeaking(newSize)
+            values = Array(newSize) { values.getOrNull(it) ?: Vector3f() }
+            vectorsF = values
+        }
+        return values[vectorPositionF++]
+    }
+
+    fun newQuatF(): Quaternionf {
         var values = quads
         if (quatPosition >= values.size) {
             val newSize = values.size * 2
             checkLeaking(newSize)
-            values = Array(newSize) { values.getOrNull(it) ?: Quaterniond() }
+            values = Array(newSize) { values.getOrNull(it) ?: Quaternionf() }
             quads = values
         }
         return values[quatPosition++]
     }
 
-    fun newMat2(): Matrix3d {
+    fun newMat2(): Matrix3f {
         var values = matrices
         if (matrixPosition >= values.size) {
             val newSize = values.size * 2
             checkLeaking(newSize)
-            values = Array(newSize) { values.getOrNull(it) ?: Matrix3d() }
+            values = Array(newSize) { values.getOrNull(it) ?: Matrix3f() }
             matrices = values
         }
         return values[matrixPosition++]
@@ -114,7 +132,7 @@ class Stack {
 
     companion object {
 
-        private val DOUBLE_PTRS = GenericStack({ DoubleArray(1) }, "double*")
+        private val FLOAT_PTRS = GenericStack({ FloatArray(1) }, "float*")
         private val ARRAY_LISTS = GenericStack({ ArrayList<Any?>(16) }, "ObjectArrayList")
         private val AABBs = GenericStack({ AABBd() }, "AABBd")
         private val VSSs = GenericStack({ VoronoiSimplexSolver() }, "VoronoiSimplexSolver")
@@ -134,13 +152,13 @@ class Stack {
             }
         }
 
-        fun reset(vec: Int, mat: Int, quat: Int, trans: Int) {
-            instances.get().reset2(vec, mat, quat, trans)
+        fun reset(vec: Int, vec2: Int, mat: Int, quat: Int, trans: Int) {
+            instances.get().reset2(vec, vec2, mat, quat, trans)
         }
 
         fun getPosition(dst: IntArray?): IntArray {
             if (dst == null) return getPosition(IntArray(4))
-            val instance: Stack = instances.get()
+            val instance = instances.get()
             dst[0] = instance.vectorPosition
             dst[1] = instance.matrixPosition
             dst[2] = instance.quatPosition
@@ -152,7 +170,7 @@ class Stack {
 
         @Suppress("unused")
         fun checkSlack(pos: IntArray, name: String = "") {
-            val instance: Stack = instances.get()
+            val instance = instances.get()
             val dv = instance.vectorPosition - pos[0]
             val dm = instance.matrixPosition - pos[1]
             val dq = instance.quatPosition - pos[2]
@@ -163,7 +181,7 @@ class Stack {
         }
 
         fun reset(positions: IntArray) {
-            val instance: Stack = instances.get()
+            val instance = instances.get()
             instance.vectorPosition = positions[0]
             instance.matrixPosition = positions[1]
             instance.quatPosition = positions[2]
@@ -176,27 +194,35 @@ class Stack {
         }
 
         @JvmStatic
-        fun subVec(delta: Int) {
-            val stack: Stack = instances.get()
+        fun subVec3d(delta: Int) {
+            val stack = instances.get()
             stack.vectorPosition -= delta
             printCaller("subVec(?)", 2, stack.vectorPosition)
             checkUnderflow(stack.vectorPosition)
         }
 
+        @JvmStatic
+        fun subVec3f(delta: Int) {
+            val stack = instances.get()
+            stack.vectorPositionF -= delta
+            printCaller("subVecF(?)", 2, stack.vectorPositionF)
+            checkUnderflow(stack.vectorPositionF)
+        }
+
         fun subMat(delta: Int) {
-            val stack: Stack = instances.get()
+            val stack = instances.get()
             stack.matrixPosition -= delta
             checkUnderflow(stack.matrixPosition)
         }
 
         fun subQuat(delta: Int) {
-            val stack: Stack = instances.get()
+            val stack = instances.get()
             stack.quatPosition -= delta
             checkUnderflow(stack.quatPosition)
         }
 
         fun subTrans(delta: Int) {
-            val stack: Stack = instances.get()
+            val stack = instances.get()
             stack.transPosition -= delta
             checkUnderflow(stack.transPosition)
         }
@@ -214,7 +240,7 @@ class Stack {
             if (elements == null || depth >= elements.size) return
 
             val builder = StringBuilder()
-            for (i in elements.indices) {
+            repeat(elements.size) {
                 builder.append(" ")
             }
             builder.append(type).append(" on ").append(elements[depth])
@@ -222,60 +248,58 @@ class Stack {
             println(builder)
         }
 
-        @JvmStatic
-        fun newVec(): Vector3d {
-            val stack: Stack = instances.get()
+        fun newVec3d(): Vector3d {
+            val stack = instances.get()
             printCaller("newVec()", 2, stack.vectorPosition)
-            val v = stack.newVec2()
-            v.set(0.0, 0.0, 0.0)
-            return v
+            return stack.newVec3d().set(0.0, 0.0, 0.0)
+        }
+
+        fun newVec3f(): Vector3f {
+            val stack = instances.get()
+            printCaller("newVec()", 2, stack.vectorPosition)
+            return stack.newVec3f().set(0f, 0f, 0f)
         }
 
         @JvmStatic
-        fun newVec(xyz: Double): Vector3d {
-            val stack: Stack = instances.get()
+        fun newVec3f(src: Vector3f): Vector3f {
+            val stack = instances.get()
+            printCaller("newVec()", 2, stack.vectorPosition)
+            return stack.newVec3f().set(src)
+        }
+
+        @JvmStatic
+        fun newVec3d(xyz: Double): Vector3d {
+            val stack = instances.get()
             printCaller("newVec(d)", 2, stack.vectorPosition)
-            val v = stack.newVec2()
-            v.set(xyz, xyz, xyz)
-            return v
+            return stack.newVec3d().set(xyz, xyz, xyz)
         }
 
         @JvmStatic
-        fun newVec(x: Double, y: Double, z: Double): Vector3d {
-            val stack: Stack = instances.get()
+        fun newVec3d(x: Double, y: Double, z: Double): Vector3d {
+            val stack = instances.get()
             printCaller("newVec(xyz)", 2, stack.vectorPosition)
-            val v = stack.newVec2()
-            v.set(x, y, z)
-            return v
+            return stack.newVec3d().set(x, y, z)
         }
 
-        fun newVec(src: Vector3d): Vector3d {
-            val stack: Stack = instances.get()
+        fun newVec3d(src: Vector3d): Vector3d {
+            val stack = instances.get()
             printCaller("newVec(src)", 2, stack.vectorPosition)
-            val value = stack.newVec2()
-            value.set(src)
-            return value
+            return stack.newVec3d().set(src)
         }
 
-        fun newQuat(): Quaterniond {
-            val v: Quaterniond = instances.get().newQuat2()
-            v.set(0.0, 0.0, 0.0, 1.0)
+        fun newQuat(): Quaternionf {
+            val v = instances.get().newQuatF()
+            v.identity()
             return v
         }
 
-        fun newQuat(base: Quaterniond): Quaterniond {
-            val v: Quaterniond = instances.get().newQuat2()
+        fun newMat(base: Matrix3f): Matrix3f {
+            val v = instances.get().newMat2()
             v.set(base)
             return v
         }
 
-        fun newMat(base: Matrix3d): Matrix3d {
-            val v: Matrix3d = instances.get().newMat2()
-            v.set(base)
-            return v
-        }
-
-        fun newMat(): Matrix3d {
+        fun newMat(): Matrix3f {
             return instances.get().newMat2()
         }
 
@@ -289,27 +313,45 @@ class Stack {
             return v
         }
 
-        fun newDoublePtr(): DoubleArray {
-            return DOUBLE_PTRS.create()
+        fun newFloatPtr(): FloatArray {
+            return FLOAT_PTRS.create()
         }
 
-        fun subDoublePtr(delta: Int) {
-            DOUBLE_PTRS.release(delta)
+        fun subFloatPtr(delta: Int) {
+            FLOAT_PTRS.release(delta)
         }
 
         @JvmStatic
-        fun borrowVec(): Vector3d {
-            val stack: Stack = instances.get()
-            printCaller("borrowVec()", 2, stack.vectorPosition)
-            val v = stack.newVec2()
+        fun borrowVec3d(): Vector3d {
+            val stack = instances.get()
+            printCaller("borrowVec3d()", 2, stack.vectorPosition)
+            val v = stack.newVec3d()
             stack.vectorPosition--
             return v
         }
 
-        fun borrowVec(src: Vector3d): Vector3d {
-            val stack: Stack = instances.get()
-            printCaller("borrowVec(src)", 2, stack.vectorPosition)
-            val v = stack.newVec2()
+        @JvmStatic
+        fun borrowVec3f(): Vector3f {
+            val stack = instances.get()
+            printCaller("borrowVec3f()", 2, stack.vectorPositionF)
+            val v = stack.newVec3f()
+            stack.vectorPositionF--
+            return v
+        }
+
+        @JvmStatic
+        fun borrowVec3f(src: Vector3f): Vector3f {
+            val stack = instances.get()
+            printCaller("borrowVec3f()", 2, stack.vectorPositionF)
+            val v = stack.newVec3f()
+            stack.vectorPositionF--
+            return v.set(src)
+        }
+
+        fun borrowVec3d(src: Vector3d): Vector3d {
+            val stack = instances.get()
+            printCaller("borrowVec3d(src)", 2, stack.vectorPosition)
+            val v = stack.newVec3d()
             stack.vectorPosition--
             v.set(src)
             return v
@@ -319,9 +361,9 @@ class Stack {
          * used in Rem's Engine for converting types
          */
         @Suppress("unused")
-        fun borrowQuat(): Quaterniond {
-            val stack: Stack = instances.get()
-            val v = stack.newQuat2()
+        fun borrowQuat(): Quaternionf {
+            val stack = instances.get()
+            val v = stack.newQuatF()
             stack.quatPosition--
             return v
         }
@@ -331,18 +373,10 @@ class Stack {
          */
         @Suppress("unused")
         fun borrowTrans(): Transform {
-            val stack: Stack = instances.get()
+            val stack = instances.get()
             val t = stack.newTrans2()
             stack.transPosition--
             return t
-        }
-
-        fun borrowMat(set: Matrix3d): Matrix3d {
-            val stack: Stack = instances.get()
-            val m = stack.newMat2()
-            m.set(set)
-            stack.matrixPosition--
-            return m
         }
 
         fun libraryCleanCurrentThread() {

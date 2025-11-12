@@ -2,6 +2,7 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * implements feature based and implicit simplex of up to 4 vertices
@@ -66,7 +67,7 @@ class Simplex1to4 : PolyhedralConvexShape {
             return 0
         }
 
-    override fun getEdge(i: Int, pa: Vector3d, pb: Vector3d) {
+    override fun getEdge(i: Int, pa: Vector3f, pb: Vector3f) {
         @Suppress("UNCHECKED_CAST")
         val vertices = vertices as Array<Vector3d>
         when (numVertices) {
@@ -117,20 +118,8 @@ class Simplex1to4 : PolyhedralConvexShape {
         }
     }
 
-    override fun getVertex(i: Int, vtx: Vector3d) {
+    override fun getVertex(i: Int, vtx: Vector3f) {
         vtx.set(vertices[i]!!)
-    }
-
-    override val numPlanes: Int
-        get() {
-            return when (numVertices) {
-                3 -> 2
-                4 -> 4
-                else -> 0
-            }
-        }
-
-    override fun getPlane(planeNormal: Vector3d, planeSupport: Vector3d, i: Int) {
     }
 
     override fun isInside(pt: Vector3d, tolerance: Double): Boolean {

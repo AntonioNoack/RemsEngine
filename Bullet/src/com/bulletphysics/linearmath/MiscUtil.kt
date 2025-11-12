@@ -1,7 +1,7 @@
 package com.bulletphysics.linearmath
 
 import com.bulletphysics.extras.gimpact.IntPairList
-import me.anno.utils.structures.arrays.DoubleArrayList
+import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 
 /**
@@ -27,7 +27,7 @@ object MiscUtil {
      * Resizes list to exact size, filling with given value when expanding.
      */
     @JvmStatic
-    fun resize(list: DoubleArrayList, size: Int, value: Double) {
+    fun resize(list: FloatArrayList, size: Int, value: Float) {
         list.ensureCapacity(size)
         if (size > list.size) {
             list.values.fill(value, list.size, size)

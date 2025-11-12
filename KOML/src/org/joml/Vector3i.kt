@@ -76,6 +76,7 @@ open class Vector3i(
         return sub(v.x, v.y, v.z, dst)
     }
 
+    fun sub(v: Int, dst: Vector3i = this) = sub(v, v, v, dst)
     fun sub(x: Int, y: Int, z: Int, dst: Vector3i = this): Vector3i {
         dst.x = this.x - x
         dst.y = this.y - y
@@ -253,6 +254,8 @@ open class Vector3i(
     fun equals(x: Int, y: Int, z: Int): Boolean {
         return x == this.x && y == this.y && z == this.z
     }
+
+    fun product(): Int = x * y * z
 
     companion object {
 

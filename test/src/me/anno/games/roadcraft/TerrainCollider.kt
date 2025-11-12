@@ -8,6 +8,7 @@ import me.anno.engine.ui.LineShapes.getDrawMatrix
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 class TerrainCollider(
     val width: Int, val length: Int,
@@ -15,7 +16,7 @@ class TerrainCollider(
     val heightData: ShortArray
 ) : Collider(), CustomBulletCollider {
 
-    override fun createBulletCollider(scale: Vector3d): HeightMapShape {
+    override fun createBulletCollider(scale: Vector3f): HeightMapShape {
         val shape = HeightMapShape()
         shape.upAxis = Axis.Y
         shape.width = width
@@ -24,14 +25,14 @@ class TerrainCollider(
         shape.maxHeight = maxHeight.toDouble()
         shape.heightData = heightData
         shape.defineBounds()
-        shape.setLocalScaling(scale)
+        shape.localScaling = scale
         return shape
     }
 
     override fun drawShape(pipeline: Pipeline) {
         // unoptimized implementation, but as a plus, it's very easy;
         val transform = getDrawMatrix(entity)
-        val shape = createBulletCollider(Vector3d(1.0))
+        val shape = createBulletCollider(Vector3f(1f))
         val color = colliderLineColor
         shape.processAllTriangles({ p0, p1, p2, _, _ ->
             if (transform != null) {

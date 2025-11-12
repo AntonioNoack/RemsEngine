@@ -19,7 +19,7 @@ import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.ui.UIColors
-import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 
 // constraints: https://download.autodesk.com/global/docs/maya2014/en_us/index.html?url=files/GUID-CDB3638D-23AF-49EF-8EF6-53081EE4D39D.htm,topicNumber=d30e571077
@@ -74,7 +74,7 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
             invalidateConstraint()
         }
 
-    var selfRotation = Quaterniond()
+    var selfRotation = Quaternionf()
         set(value) {
             field.set(value)
             invalidateConstraint()
@@ -86,13 +86,16 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
             invalidateConstraint()
         }
 
-    var otherRotation = Quaterniond()
+    var otherRotation = Quaternionf()
         set(value) {
             field.set(value)
             invalidateConstraint()
         }
 
-    var breakingImpulseThreshold: Double = 1e308
+    /**
+     * When the impulse is this large, the constraint shall break (be removed, be it deleted or disabled)
+     * */
+    var breakingImpulseThreshold: Float = 1e38f
         set(value) {
             field = value
             bulletInstance?.breakingImpulseThreshold = value

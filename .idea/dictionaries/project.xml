@@ -9,6 +9,7 @@
       <w>softbody</w>
       <w>trimesh</w>
       <w>twemoji</w>
+      <w>verlet</w>
       <w>webgpu</w>
     </words>
   </dictionary>

@@ -6,6 +6,7 @@ import com.bulletphysics.collision.shapes.ConcaveShape
 import com.bulletphysics.collision.shapes.TriangleCallback
 import com.bulletphysics.linearmath.Transform
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * Base class for gimpact shapes.
@@ -15,13 +16,11 @@ import org.joml.Vector3d
 abstract class GImpactShapeInterface : ConcaveShape() {
     val localAABB: AABB = AABB()
     var needsUpdate: Boolean
-    val localScaling: Vector3d = Vector3d()
     var boxSet = GImpactBvh() // optionally boxset
 
     init {
         localAABB.invalidate()
         needsUpdate = true
-        localScaling.set(1.0, 1.0, 1.0)
     }
 
     /**
@@ -75,17 +74,14 @@ abstract class GImpactShapeInterface : ConcaveShape() {
     /**
      * You must call updateBound() for update the box set.
      */
-    override fun setLocalScaling(scaling: Vector3d) {
-        localScaling.set(scaling)
-        postUpdate()
-    }
+    override var localScaling: Vector3f
+        get() = super.localScaling
+        set(value) {
+            super.localScaling = value
+            postUpdate()
+        }
 
-    override fun getLocalScaling(out: Vector3d): Vector3d {
-        out.set(localScaling)
-        return out
-    }
-
-    override var margin: Double
+    override var margin: Float
         get() = collisionMargin
         set(value) {
             collisionMargin = value
@@ -98,7 +94,7 @@ abstract class GImpactShapeInterface : ConcaveShape() {
     /**
      * Base method for determining which kind of GIMPACT shape we get.
      */
-    abstract val gImpactShapeType: ShapeType?
+    abstract val gImpactShapeType: ShapeType
 
     /**
      * Determines if this class has a hierarchy structure for sorting its primitives.

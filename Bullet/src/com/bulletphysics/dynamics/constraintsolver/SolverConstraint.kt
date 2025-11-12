@@ -1,6 +1,7 @@
 package com.bulletphysics.dynamics.constraintsolver
 
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * 1D constraint along a normal axis between bodyA and bodyB. It can be combined
@@ -10,41 +11,41 @@ import org.joml.Vector3d
  */
 class SolverConstraint {
     @JvmField
-    val relPos1CrossNormal: Vector3d = Vector3d()
+    val relPos1CrossNormal = Vector3f()
     @JvmField
-    val relPos2CrossNormal: Vector3d = Vector3d()
+    val relPos2CrossNormal = Vector3f()
 
     @JvmField
-    val angularComponentA: Vector3d = Vector3d()
+    val angularComponentA = Vector3f()
     @JvmField
-    val angularComponentB: Vector3d = Vector3d()
+    val angularComponentB = Vector3f()
 
     @JvmField
-    val contactNormal: Vector3d = Vector3d()
+    val contactNormal = Vector3f()
 
     @JvmField
-    var appliedPushImpulse: Double = 0.0
+    var appliedPushImpulse = 0f
     @JvmField
-    var appliedImpulse: Double = 0.0
+    var appliedImpulse = 0f
 
     @JvmField
-    var solverBodyIdA: Int = 0
+    var solverBodyIdA = 0
     @JvmField
-    var solverBodyIdB: Int = 0
+    var solverBodyIdB = 0
 
     @JvmField
-    var friction: Double = 0.0
+    var friction = 0f
     @JvmField
-    var restitution: Double = 0.0
+    var restitution = 0f
     @JvmField
-    var jacDiagABInv: Double = 0.0
+    var jacDiagABInv = 0f
     @JvmField
-    var penetration: Double = 0.0
+    var penetration = 0f
 
     @JvmField
     var constraintType: SolverConstraintType? = null
     @JvmField
-    var frictionIndex: Int = 0
+    var frictionIndex = 0
     @JvmField
     var originalContactPoint: Any? = null
 }

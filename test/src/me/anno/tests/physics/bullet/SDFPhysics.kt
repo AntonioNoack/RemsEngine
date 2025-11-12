@@ -17,6 +17,7 @@ import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import org.joml.Vector3d
+import org.joml.Vector3f
 import java.util.Random
 
 fun main() {
@@ -62,7 +63,7 @@ fun main() {
 
         val random = Random(1234L)
         val samples = Array(64) {
-            Vector3d(random.nextGaussian(), random.nextGaussian(), random.nextGaussian())
+            Vector3f(random.nextGaussian(), random.nextGaussian(), random.nextGaussian())
         }
 
         println(samples)
@@ -80,29 +81,27 @@ fun main() {
             println("$min - $max")
             println(shape.margin)
             println(shape.shapeType)
-            println(shape.getBoundingSphere(Vector3d()))
+            println(shape.getBoundingSphere(null))
             shape as ConvexShape
             println("${shape.numPreferredPenetrationDirections}") // only used for hull building
-            println(samples.map { shape.localGetSupportingVertex(it, Vector3d()) })
-            println(samples.map { shape.localGetSupportingVertexWithoutMargin(it, Vector3d()) })
-            println(samples.map {
-                val out = arrayOf(Vector3d())
+            println(samples.map { shape.localGetSupportingVertex(it, Vector3f()) })
+            println(samples.map { shape.localGetSupportingVertexWithoutMargin(it, Vector3f()) })
+            println(samples.map { dir ->
+                val out = arrayOf(Vector3f())
                 shape.batchedUnitVectorGetSupportingVertexWithoutMargin(
-                    arrayOf(it),
-                    out,
-                    1
+                    arrayOf(dir), out, 1
                 )
                 out[0]
             })
             println()
         }
 
-        val shape0 = BoxCollider().createBulletBoxShape(Vector3d(1.0))
+        val shape0 = BoxCollider().createBulletBoxShape(Vector3f(1f))
         val shape1c = SDFCollider()
         val entity = Entity()
         entity.add(SDFBox())
         entity.add(shape1c)
-        val shape1 = shape1c.createBulletCollider(Vector3d(1.0))
+        val shape1 = shape1c.createBulletCollider(Vector3f(1f))
         print(shape0)
         print(shape1)
     }

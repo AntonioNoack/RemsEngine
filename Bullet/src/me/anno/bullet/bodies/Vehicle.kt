@@ -10,20 +10,20 @@ import me.anno.engine.serialization.SerializedProperty
 class Vehicle : DynamicBody() {
 
     @SerializedProperty
-    var suspensionStiffness = 5.88
+    var suspensionStiffness = 5.88f
 
     @SerializedProperty
-    var suspensionCompression = 0.83
+    var suspensionCompression = 0.83f
 
     @SerializedProperty
-    var suspensionDamping = 0.88
+    var suspensionDamping = 0.88f
 
     @SerializedProperty
-    var maxSuspensionTravelCm = 500.0
+    var maxSuspensionTravelCm = 500f
 
     // todo test this: this should be the threshold for drifting
     @SerializedProperty
-    var frictionSlip = 10.5
+    var frictionSlip = 10.5f
 
     @DebugProperty
     val wheelCount get() = wheels.size
@@ -33,16 +33,16 @@ class Vehicle : DynamicBody() {
     @DebugProperty
     @Docs("Uniform getter/setter")
     @NotSerializedProperty
-    var steering: Double
+    var steering: Float
         get() {
             val wheels = wheels
             for (i in wheels.indices) {
                 val wheel = wheels[i]
-                if (wheel.steeringMultiplier != 0.0) {
+                if (wheel.steeringMultiplier != 0f) {
                     return wheel.steering / wheel.steeringMultiplier
                 }
             }
-            return 0.0
+            return 0f
         }
         set(value) {
             val wheels = wheels
@@ -55,8 +55,8 @@ class Vehicle : DynamicBody() {
     @DebugProperty
     @Docs("Uniform getter/setter")
     @NotSerializedProperty
-    var engineForce: Double
-        get() = wheels.firstOrNull()?.engineForce ?: 0.0
+    var engineForce: Float
+        get() = wheels.firstOrNull()?.engineForce ?: 0f
         set(value) {
             val wheels = wheels
             for (i in wheels.indices) {
@@ -67,18 +67,14 @@ class Vehicle : DynamicBody() {
     @DebugProperty
     @Docs("Uniform getter/setter")
     @NotSerializedProperty
-    var brakeForce: Double
-        get() = wheels.firstOrNull()?.brakeForce ?: 0.0
+    var brakeForce: Float
+        get() = wheels.firstOrNull()?.brakeForce ?: 0f
         set(value) {
             val wheels = wheels
             for (i in wheels.indices) {
                 wheels[i].brakeForce = value
             }
         }
-
-    init {
-        mass = 1.0
-    }
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

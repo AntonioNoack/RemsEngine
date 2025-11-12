@@ -55,7 +55,7 @@ fun main() {
     }
 
     // todo using a capsule, the collisions often are neighbor triangles... why???
-    val shape = SphereShape(0.25)
+    val shape = SphereShape(0.25f)
     val triQ = MCTriangleQuery(world)
     val physics = HexagonSpherePhysics(sphere, shape, triQ)
 

@@ -4,17 +4,17 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * ConvexInternalShape is an internal base class, shared by most convex shape implementations.
+ * collisionMargin is not scaled!
  *
  * @author jezek2
  */
 abstract class ConvexInternalShape : ConvexShape() {
 
-    // local scaling. collisionMargin is not scaled !
-    val localScaling: Vector3d = Vector3d(1.0, 1.0, 1.0)
-    val implicitShapeDimensions: Vector3d = Vector3d()
+    val implicitShapeDimensions = Vector3f()
 
     /**
      * getAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version.
@@ -25,59 +25,55 @@ abstract class ConvexInternalShape : ConvexShape() {
 
     override fun getAabbSlow(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         val margin = margin
-        val vec = Stack.newVec()
-        val tmp1 = Stack.newVec()
-        val tmp2 = Stack.newVec()
+        val dir = Stack.newVec3f()
+        val globalDir = Stack.newVec3f()
+        val globalPos = Stack.newVec3f()
 
         for (i in 0..2) {
-            vec.set(0.0, 0.0, 0.0)
-            vec[i] = 1.0
+            dir.set(0f)
+            dir[i] = 1f
 
-            t.basis.transformTranspose(vec, tmp1)
-            localGetSupportingVertex(tmp1, tmp2)
+            dir.mulTranspose(t.basis, globalDir)
+            localGetSupportingVertex(globalDir, globalPos)
 
-            t.transformPosition(tmp2)
+            t.transformPosition(globalPos)
 
-            aabbMax[i] = tmp2[i] + margin
-            vec[i] = -1.0
+            aabbMax[i] = (globalPos[i] + margin).toDouble()
+            dir[i] = -1f
 
-            t.basis.transformTranspose(vec, tmp1)
-            localGetSupportingVertex(tmp1, tmp2)
-            t.transformPosition(tmp2)
+            dir.mulTranspose(t.basis, globalDir)
+            localGetSupportingVertex(globalDir, globalPos)
+            t.transformPosition(globalPos)
 
-            aabbMin[i] = tmp2[i] - margin
+            aabbMin[i] = (globalPos[i] - margin).toDouble()
         }
-        Stack.subVec(3)
+        Stack.subVec3f(3)
     }
 
-    override fun localGetSupportingVertex(dir: Vector3d, out: Vector3d): Vector3d {
+    override fun localGetSupportingVertex(dir: Vector3f, out: Vector3f): Vector3f {
         val supVertex = localGetSupportingVertexWithoutMargin(dir, out)
-        if (margin != 0.0) {
+        if (margin != 0f) {
             /*val offset = margin / max(dir.length(), 1e-308)
             supVertex.fma(offset, dir)*/
-            val vecNorm = Stack.newVec(dir)
+            val vecNorm = Stack.newVec3f(dir)
             if (vecNorm.lengthSquared() < BulletGlobals.FLT_EPSILON_SQ) {
                 vecNorm.set(-1.0, -1.0, -1.0)
             }
             vecNorm.normalize()
             supVertex.fma(margin, vecNorm)
-            Stack.subVec(1)
+            Stack.subVec3f(1)
         }
         return out
     }
 
-    override fun setLocalScaling(scaling: Vector3d) {
-        scaling.absolute(localScaling)
-    }
-
-    override fun getLocalScaling(out: Vector3d): Vector3d {
-        out.set(localScaling)
-        return out
-    }
+    override var localScaling: Vector3f = Vector3f(1f)
+        set(value) {
+            field.set(value).absolute()
+        }
 
     override val numPreferredPenetrationDirections: Int get() = 0
 
-    override fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3d) {
+    override fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3f) {
         throw NotImplementedError()
     }
 }

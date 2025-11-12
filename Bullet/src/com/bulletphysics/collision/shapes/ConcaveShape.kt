@@ -9,9 +9,9 @@ import org.joml.Vector3d
  */
 abstract class ConcaveShape : CollisionShape() {
 
-    var collisionMargin: Double = 0.0
+    var collisionMargin = 0f
 
-    override var margin: Double
+    override var margin: Float
         get() = collisionMargin
         set(value) {
             collisionMargin = value

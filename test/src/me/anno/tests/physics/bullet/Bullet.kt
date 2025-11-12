@@ -11,6 +11,7 @@ import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.systems.Systems
 import me.anno.maths.Maths
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 fun main() {
     libraryTest3d()
@@ -25,9 +26,9 @@ private fun libraryTest3d() {
 
     world.addRigidBody(
         RigidBody(
-            0.0,
-            BoxShape(Vector3d(50.0, 5.0, 50.0)),
-            Vector3d()
+            0f,
+            BoxShape(Vector3f(50.0, 5.0, 50.0)),
+            Vector3f()
         ).apply {
             val transform = worldTransform
             transform.setIdentity()
@@ -37,9 +38,9 @@ private fun libraryTest3d() {
     )
 
     val boxBody = RigidBody(
-        1.0,
-        BoxShape(Vector3d(1.0, 1.0, 1.0)),
-        Vector3d()
+        1f,
+        BoxShape(Vector3f(1.0, 1.0, 1.0)),
+        Vector3f()
     ).apply {
         val transform = worldTransform
         transform.setIdentity()
@@ -51,7 +52,7 @@ private fun libraryTest3d() {
 
     repeat(10) {
         println(boxBody.getWorldTransform(Transform()).origin)
-        world.stepSimulation(1.0, 10, 0.1)
+        world.stepSimulation(1.0f, 10, 0.1f)
     }
 }
 
@@ -78,7 +79,7 @@ private fun engineTest3d() {
     box.add(boxRB)
     box.setPosition(0.0, 10.0, 0.0)
     val boxShape = BoxCollider()
-    boxRB.mass = 1.0
+    boxRB.mass = 1.0f
     boxShape.halfExtents.set(1.0)
     box.add(boxShape)
     world.add(box)

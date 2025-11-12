@@ -10,7 +10,7 @@ import me.anno.Time
  *
  * @author jezek2
  */
-internal class ProfilingNode(var name: String?, val parent: ProfilingNode?) {
+internal class ProfilingNode(var name: String, val parent: ProfilingNode?) {
 
     var totalCalls: Int = 0
     var totalTimeNanos: Long = 0L
@@ -29,7 +29,7 @@ internal class ProfilingNode(var name: String?, val parent: ProfilingNode?) {
         reset()
     }
 
-    fun getSubNode(name: String?): ProfilingNode {
+    fun getSubNode(name: String): ProfilingNode {
         // Try to find this sub node
         var child = this.child
         while (child != null) {

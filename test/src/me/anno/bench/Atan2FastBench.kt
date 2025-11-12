@@ -17,7 +17,7 @@ private val LOGGER = LogManager.getLogger("Atan2Fast-Bench")
  * */
 fun main() {
     val rnd = Random(1324)
-    val data = DoubleArray(512) { rnd.nextDouble() * 2.0 - 1.0 }
+    val data = FloatArray(512) { rnd.nextFloat() * 2f - 1f }
     var err = 0.0
     val validations = 10000
     for (i in 0 until validations) {

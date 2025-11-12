@@ -5,6 +5,7 @@ import me.anno.bullet.bodies.DynamicBody
 import me.anno.bullet.bodies.StaticBody
 import me.anno.bullet.constraints.HingeConstraint
 import me.anno.ecs.Entity
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
@@ -36,7 +37,7 @@ fun main() {
     })
     box0.setPosition(0.0, 2.3, 0.0)
     val body0 = DynamicBody()
-    body0.mass = 1.0
+    body0.mass = 1f
     box0.add(body0)
 
     // todo why is the hinge flopping downwards, when it is invalidated???
@@ -53,9 +54,9 @@ fun main() {
     fun addHinge(y: Double) {
         val sliding = HingeConstraint()
         sliding.description = "Toggle 'Enable Motor' to open/close the door"
-        sliding.axis = 1
-        sliding.motorTorque = 100.0
-        sliding.motorVelocity = -3.0
+        sliding.axis = Axis.Y
+        sliding.motorTorque = 100.0f
+        sliding.motorVelocity = -3.0f
         sliding.enableMotor = false
         sliding.otherPosition.set(0.0, y, 0.0)
         sliding.selfPosition.set(0.55, y, 0.0)
@@ -69,7 +70,7 @@ fun main() {
         .add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
         .add(BoxCollider())
         .add(DynamicBody().apply {
-            friction = 1.0
+            friction = 1.0f
         })
         .setPosition(0.0, -22.0, 0.0)
         .setScale(20f)

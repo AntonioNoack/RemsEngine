@@ -8,13 +8,10 @@ import com.bulletphysics.linearmath.IDebugDraw
  * @author jezek2
  */
 class DispatcherInfo {
-    @JvmField
-    var timeStep: Double = 0.0
+    var timeOfImpact = 1f
+    var timeStep: Float = 1f / 60f
+    var allowedCcdPenetration = 0.04f
 
     var discreteDispatch = true
-    var timeOfImpact: Double = 1.0
-
-    @JvmField
     var debugDraw: IDebugDraw? = null
-    var allowedCcdPenetration: Double = 0.04
 }

@@ -38,6 +38,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
@@ -89,7 +90,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         .setMax(+1e300, 1e300, +1e300)
 
     @SerializedProperty
-    var gravity: Vector3d = Vector3d(0.0, -9.81, 0.0)
+    var gravity: Vector3f = Vector3f(0f, -9.81f, 0f)
         set(value) {
             field = value
             updateGravity()
@@ -376,12 +377,12 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     abstract fun getMatrix(
         rigidbody: ExternalRigidBody, dstTransform: Matrix4x3,
-        scale: Vector3d, centerOfMass: Vector3d,
+        scale: Vector3f, centerOfMass: Vector3d,
     )
 
     abstract fun setMatrix(
         rigidbody: ExternalRigidBody, srcTransform: Matrix4x3,
-        scale: Vector3d, centerOfMass: Vector3d,
+        scale: Vector3f, centerOfMass: Vector3d,
     )
 
     @DebugAction

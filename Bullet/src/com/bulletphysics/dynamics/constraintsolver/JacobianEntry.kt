@@ -2,8 +2,9 @@ package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.linearmath.VectorUtil.mul
 import cz.advel.stack.Stack
-import org.joml.Matrix3d
+import org.joml.Matrix3f
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 //notes:
 // Another memory optimization would be to store m_1MinvJt in the remaining 3 w components
@@ -22,17 +23,17 @@ object JacobianEntry {
      * Constraint between two different rigidbodies.
      */
     fun calculateDiagonalInv(
-        a2World: Matrix3d, b2World: Matrix3d,
-        relPosA: Vector3d, relPosB: Vector3d, jointAxis: Vector3d,
-        inertiaInvA: Vector3d, massInvA: Double,
-        inertiaInvB: Vector3d, massInvB: Double
-    ): Double {
+        a2World: Matrix3f, b2World: Matrix3f,
+        relPosA: Vector3f, relPosB: Vector3f, jointAxis: Vector3f,
+        inertiaInvA: Vector3f, massInvA: Float,
+        inertiaInvB: Vector3f, massInvB: Float
+    ): Float {
 
-        val aJ = Stack.newVec()
-        val bJ = Stack.newVec()
+        val aJ = Stack.newVec3f()
+        val bJ = Stack.newVec3f()
 
-        val m0MinVJt = Stack.newVec()
-        val m1MinVJt = Stack.newVec()
+        val m0MinVJt = Stack.newVec3f()
+        val m1MinVJt = Stack.newVec3f()
 
         relPosA.cross(jointAxis, aJ)
         a2World.transformTranspose(aJ)
@@ -45,26 +46,26 @@ object JacobianEntry {
         val diagonal = massInvA + m0MinVJt.dot(aJ) +
                 massInvB + m1MinVJt.dot(bJ)
 
-        Stack.subVec(4)
-        assert(diagonal > 0.0)
-        return 1.0 / diagonal
+        Stack.subVec3f(4)
+        assert(diagonal > 0f)
+        return 1f / diagonal
     }
 
     /**
      * Angular constraint between two different rigidbodies.
      */
     fun calculateDiagonalInv(
-        jointAxis: Vector3d,
-        a2World: Matrix3d, b2World: Matrix3d,
-        inertiaInvA: Vector3d,
-        inertiaInvB: Vector3d
-    ): Double {
+        jointAxis: Vector3f,
+        a2World: Matrix3f, b2World: Matrix3f,
+        inertiaInvA: Vector3f,
+        inertiaInvB: Vector3f
+    ): Float {
 
-        val aJ = Stack.newVec()
-        val bJ = Stack.newVec()
+        val aJ = Stack.newVec3f()
+        val bJ = Stack.newVec3f()
 
-        val m0MinVJt = Stack.newVec()
-        val m1MinVJt = Stack.newVec()
+        val m0MinVJt = Stack.newVec3f()
+        val m1MinVJt = Stack.newVec3f()
 
         a2World.transformTranspose(jointAxis, aJ)
         b2World.transformTranspose(jointAxis, bJ).negate()
@@ -73,8 +74,8 @@ object JacobianEntry {
         mul(m1MinVJt, inertiaInvB, bJ)
         val diagonal = m0MinVJt.dot(aJ) + m1MinVJt.dot(bJ)
 
-        Stack.subVec(4)
-        assert(diagonal > 0.0)
-        return 1.0 / diagonal
+        Stack.subVec3f(4)
+        assert(diagonal > 0f)
+        return 1f / diagonal
     }
 }

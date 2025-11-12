@@ -119,7 +119,7 @@ fun run2dPhysicsWithUI() {
     val physics = Box2dPhysics
     physics.velocityIterations = 1
     physics.positionIterations = 1
-    physics.gravity.y = 90.0
+    physics.gravity.y = 90f
     physics.allowedSpace.all()
     physics.updateGravity()
     Systems.registerSystem(physics)

@@ -107,12 +107,12 @@ class DbvtBroadphase() : BroadphaseInterface() {
         } else {
             // dynamic set:
             if (proxy.leaf!!.bounds.testAABB(aabb)) { /* Moving */
-                val delta = Stack.newVec() // this.center - proxy.center
+                val delta = Stack.newVec3d() // this.center - proxy.center
                 aabbMin.add(aabbMax, delta).mul(0.5)
-                delta.sub(proxy.aabb.getCenter(Stack.newVec()))
+                delta.sub(proxy.aabb.getCenter(Stack.newVec3d()))
                 delta.mul(predictedFrames)
                 dynamicSet.update(proxy.leaf!!, aabb, delta, DBVT_BP_MARGIN)
-                Stack.subVec(2)
+                Stack.subVec3d(2)
             } else {
                 // teleporting:
                 dynamicSet.update(proxy.leaf!!, aabb)

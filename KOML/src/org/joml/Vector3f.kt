@@ -121,6 +121,13 @@ open class Vector3f(
         return dst
     }
 
+    fun mulAdd(a: Float, b: Vector3d, dst: Vector3d): Vector3d {
+        dst.x = x * a + b.x
+        dst.y = y * a + b.y
+        dst.z = z * a + b.z
+        return dst
+    }
+
     fun mulAdd(a: Double, b: Vector3d, dst: Vector3d): Vector3d {
         dst.x = x * a + b.x
         dst.y = y * a + b.y
@@ -417,6 +424,18 @@ open class Vector3f(
         return dst.set(rx, ry, rz)
     }
 
+    fun crossX(dst: Vector3f = this): Vector3f {
+        return dst.set(0f, z, -y)
+    }
+
+    fun crossY(dst: Vector3f = this): Vector3f {
+        return dst.set(-z, 0f, x)
+    }
+
+    fun crossZ(dst: Vector3f = this): Vector3f {
+        return dst.set(y, -x, 0f)
+    }
+
     fun length(): Float = length(x, y, z)
     fun lengthSquared(): Float = x * x + y * y + z * z
     fun distance(v: Vector3f): Float = distance(v.x, v.y, v.z)
@@ -471,6 +490,7 @@ open class Vector3f(
     }
 
     fun min(v: Vector3f, dst: Vector3f = this) = min(v.x, v.y, v.z, dst)
+    fun min(v: Vector3d, dst: Vector3f = this) = min(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), dst)
     fun min(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
         dst.x = min(this.x, x)
         dst.y = min(this.y, y)
@@ -479,6 +499,7 @@ open class Vector3f(
     }
 
     fun max(v: Vector3f, dst: Vector3f = this) = max(v.x, v.y, v.z, dst)
+    fun max(v: Vector3d, dst: Vector3f = this) = max(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), dst)
     fun max(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
         dst.x = max(this.x, x)
         dst.y = max(this.y, y)
@@ -770,6 +791,8 @@ open class Vector3f(
     fun normalToQuaternionY(dst: Quaternionf = Quaternionf()): Quaternionf {
         return dst.rotateTo(0f, 1f, 0f, x, y, z)
     }
+
+    fun product(): Float = x * y * z
 
     companion object {
 

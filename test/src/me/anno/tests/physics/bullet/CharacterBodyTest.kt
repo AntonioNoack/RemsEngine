@@ -42,6 +42,7 @@ import me.anno.utils.types.Booleans.minus
 import me.anno.utils.types.Booleans.withoutFlag
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sign
@@ -123,7 +124,7 @@ fun main() {
 
     Entity("Player", scene)
         .add(PlayerController())
-        .add(CharacterBody().apply { stepHeight = 0.7; maxSlopeDegrees = 20.0 })
+        .add(CharacterBody().apply { stepHeight = 0.7f; maxSlopeDegrees = 20.0f })
         .add(CapsuleCollider().apply { radius = 0.5f; halfHeight = 0.5f })
         // .add(SphereCollider())
         .add(MeshComponent(CapsuleModel.createCapsule(20, 10, 0.5f, 0.5f)))
@@ -177,8 +178,8 @@ fun main() {
 
 class NearbyPusher : Component(), OnPhysicsUpdate {
 
-    var maxForce = 10.0
-    var radius = 1.0
+    var maxForce = 10f
+    var radius = 1f
 
     override fun onPhysicsUpdate(dt: Double) {
 
@@ -186,7 +187,7 @@ class NearbyPusher : Component(), OnPhysicsUpdate {
         val ghost2 = ghost.nativeInstance2 ?: return
 
         val currentPosition = ghost2.currentPosition
-        val dir = Vector3d()
+        val dir = Vector3f()
         ghost2.ghostObject.overlappingPairCache.processAllOverlappingPairs { pair ->
             val other = if (pair.proxy0.clientObject === ghost2.ghostObject) {
                 pair.proxy1.clientObject
@@ -195,10 +196,10 @@ class NearbyPusher : Component(), OnPhysicsUpdate {
             if (other is RigidBody && !other.isStaticOrKinematicObject) {
                 // Compute push direction (horizontal only)
                 other.worldTransform.origin.sub(currentPosition, dir)
-                dir.y = 0.0
+                dir.y = 0f
 
                 // Strength decreases with distance
-                val pushStrength = maxForce * clamp(1.0 - dir.length() / radius)
+                val pushStrength = maxForce * clamp(1f - dir.length() / radius)
                 dir.safeNormalize(pushStrength)
 
                 // todo if aligning, add velocity onto force
@@ -246,7 +247,7 @@ class PlayerController : Component(), OnUpdate {
 
         character.nativeInstance2?.setTargetVelocity(velocity)
         if (Input.wasKeyPressed(Key.KEY_SPACE)) {
-            character.jumpSpeed = 5.0
+            character.jumpSpeed = 5.0f
             character.jump()
         }
     }

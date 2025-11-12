@@ -2,7 +2,7 @@ package com.bulletphysics.linearmath
 
 import com.bulletphysics.BulletGlobals
 import cz.advel.stack.Stack
-import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -14,15 +14,15 @@ import kotlin.math.sqrt
  */
 object TransformUtil {
 
-    private const val ANGULAR_MOTION_THRESHOLD = 0.5 * BulletGlobals.SIMD_HALF_PI
-    private const val INV_48 = 1.0 / 48.0
+    private const val ANGULAR_MOTION_THRESHOLD = 0.5f * BulletGlobals.SIMD_HALF_PI
+    private const val INV_48 = 1.0f / 48.0f
 
     @JvmStatic
     fun integrateTransform(
-        curTrans: Transform, linearVelocity: Vector3d, angularVelocity: Vector3d,
-        timeStep: Double, predictedTransform: Transform
+        curTrans: Transform, linearVelocity: Vector3f, angularVelocity: Vector3f,
+        timeStep: Float, predictedTransform: Transform
     ) {
-        linearVelocity.mulAdd(timeStep, curTrans.origin, predictedTransform.origin)
+        linearVelocity.mulAdd(timeStep.toDouble(), curTrans.origin, predictedTransform.origin)
 
         //	//#define QUATERNION_DERIVATIVE
 //	#ifdef QUATERNION_DERIVATIVE
@@ -32,7 +32,7 @@ object TransformUtil {
 //	#else
         // Exponential map
         // google for "Practical Parameterization of Rotations Using the Exponential Map", F. Sebastian Grassia
-        val axis = Stack.newVec()
+        val axis = Stack.newVec3f()
         var fAngle = angularVelocity.length()
 
         // limit the angular motion
@@ -42,14 +42,14 @@ object TransformUtil {
 
         if (fAngle < 0.001f) {
             // use Taylor's expansions of sync function
-            angularVelocity.mul(0.5 * timeStep - (timeStep * timeStep * timeStep) * INV_48 * fAngle * fAngle, axis)
+            angularVelocity.mul(0.5f * timeStep - (timeStep * timeStep * timeStep) * INV_48 * fAngle * fAngle, axis)
         } else {
             // sync(fAngle) = sin(c*fAngle)/t
-            angularVelocity.mul(sin(0.5 * fAngle * timeStep) / fAngle, axis)
+            angularVelocity.mul(sin(0.5f * fAngle * timeStep) / fAngle, axis)
         }
 
         val dorn = Stack.newQuat()
-        dorn.set(axis.x, axis.y, axis.z, cos(fAngle * timeStep * 0.5))
+        dorn.set(axis.x, axis.y, axis.z, cos(fAngle * timeStep * 0.5f))
         val orn0 = curTrans.getRotation(Stack.newQuat())
 
         val predictedOrn = Stack.newQuat()
@@ -58,30 +58,30 @@ object TransformUtil {
         //  #endif
         predictedTransform.setRotation(predictedOrn)
 
-        Stack.subVec(1)
+        Stack.subVec3f(1)
         Stack.subQuat(3)
     }
 
     @JvmStatic
-    fun calculateAngularVelocity(transform0: Transform, transform1: Transform, timeStep: Double, angVel: Vector3d) {
-        val axis = Stack.newVec()
+    fun calculateAngularVelocity(transform0: Transform, transform1: Transform, timeStep: Float, angVel: Vector3f) {
+        val axis = Stack.newVec3f()
         val angle = calculateDiffAxisAngle(transform0, transform1, axis)
         axis.mul(angle / timeStep, angVel)
-        Stack.subVec(1)
+        Stack.subVec3f(1)
     }
 
     @JvmStatic
-    fun calculateVelocity(transform0: Transform, transform1: Transform, timeStep: Double, linVel: Vector3d): Double {
+    fun calculateVelocity(transform0: Transform, transform1: Transform, timeStep: Float, linVel: Vector3f): Float {
         calculateLinearVelocity(transform0, transform1, timeStep, linVel)
         return calculateDiffAxisAngle(transform0, transform1) / timeStep
     }
 
     @JvmStatic
-    fun calculateLinearVelocity(transform0: Transform, transform1: Transform, timeStep: Double, linVel: Vector3d) {
-        transform1.origin.sub(transform0.origin, linVel).mul(1.0 / timeStep)
+    fun calculateLinearVelocity(transform0: Transform, transform1: Transform, timeStep: Float, linVel: Vector3f) {
+        transform1.origin.sub(transform0.origin, linVel).mul(1f / timeStep)
     }
 
-    fun calculateDiffAxisAngle(transform0: Transform, transform1: Transform, axis: Vector3d): Double {
+    fun calculateDiffAxisAngle(transform0: Transform, transform1: Transform, axis: Vector3f): Float {
         val tmp = Stack.newMat()
         transform0.basis.invert(tmp)
 
@@ -100,9 +100,9 @@ object TransformUtil {
         // check for axis length
         val len = axis.lengthSquared()
         if (len < BulletGlobals.FLT_EPSILON_SQ) {
-            axis.set(1.0, 0.0, 0.0)
+            axis.set(1f, 0f, 0f)
         } else {
-            axis.mul(1.0 / sqrt(len))
+            axis.mul(1f / sqrt(len))
         }
 
         Stack.subMat(2)
@@ -111,7 +111,7 @@ object TransformUtil {
         return result
     }
 
-    fun calculateDiffAxisAngle(transform0: Transform, transform1: Transform): Double {
+    fun calculateDiffAxisAngle(transform0: Transform, transform1: Transform): Float {
         val tmp = Stack.newMat()
         transform0.basis.transpose(tmp)
 

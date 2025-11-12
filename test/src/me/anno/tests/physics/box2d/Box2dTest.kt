@@ -24,6 +24,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector2f
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -213,7 +214,7 @@ class Box2dTest {
     private fun setupGravityTest(gravity: Float) {
         registerSystem(physics)
 
-        physics.gravity = Vector3d(0.0, gravity.toDouble(), 0.0)
+        physics.gravity = Vector3f(0f, gravity, 0f)
         physics.positionIterations = 1
         physics.velocityIterations = 1
         physics.allowedSpace.all()

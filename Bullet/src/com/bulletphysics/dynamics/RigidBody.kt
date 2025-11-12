@@ -12,8 +12,9 @@ import com.bulletphysics.linearmath.TransformUtil.calculateLinearVelocity
 import com.bulletphysics.linearmath.TransformUtil.integrateTransform
 import cz.advel.stack.Stack
 import me.anno.maths.Maths.clamp
-import org.joml.Matrix3d
+import org.joml.Matrix3f
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.pow
 
 /**
@@ -37,40 +38,40 @@ import kotlin.math.pow
  *
  * @author jezek2
  */
-class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : CollisionObject() {
+class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : CollisionObject() {
 
-    constructor(mass: Double, shape: CollisionShape) : this(mass, shape, Vector3d())
+    constructor(mass: Float, shape: CollisionShape) : this(mass, shape, Vector3f())
 
-    val invInertiaTensorWorld = Matrix3d()
-    val linearVelocity = Vector3d()
-    val angularVelocity = Vector3d()
+    val invInertiaTensorWorld = Matrix3f()
+    val linearVelocity = Vector3f()
+    val angularVelocity = Vector3f()
 
-    var inverseMass = 0.0
+    var inverseMass = 0f
 
-    val angularFactor = Vector3d(1.0)
+    val angularFactor = Vector3f(1f)
 
-    val gravity = Vector3d()
-    val invInertiaLocal = Vector3d()
-    private val totalForce = Vector3d()
-    private val totalTorque = Vector3d()
+    val gravity = Vector3f()
+    val invInertiaLocal = Vector3f()
+    private val totalForce = Vector3f()
+    private val totalTorque = Vector3f()
 
-    var linearDamping = 0.0
+    var linearDamping = 0f
         set(value) {
             field = clamp(value)
         }
 
-    var angularDamping = 0.5
+    var angularDamping = 0.5f
         set(value) {
             field = clamp(value)
         }
 
     private var additionalDamping = false
-    private var additionalDampingFactor = 0.005
-    private var additionalLinearDampingThresholdSqr = 0.01
-    private var additionalAngularDampingThresholdSqr = 0.01
+    private var additionalDampingFactor = 0.005f
+    private var additionalLinearDampingThresholdSqr = 0.01f
+    private var additionalAngularDampingThresholdSqr = 0.01f
 
-    var linearSleepingThreshold = 0.8
-    var angularSleepingThreshold = 1.0
+    var linearSleepingThreshold = 0.8f
+    var angularSleepingThreshold = 1.0f
 
     val predictedTransform = Transform()
 
@@ -78,8 +79,8 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
     val constraintRefs = ArrayList<TypedConstraint>()
 
     init {
-        friction = 0.5
-        restitution = 0.0
+        friction = 0.5f
+        restitution = 0f
         collisionShape = shape
         setMassProps(mass, localInertia)
     }
@@ -102,13 +103,13 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
     /**
      * Continuous collision detection needs prediction.
      */
-    fun predictIntegratedTransform(timeStep: Double, predictedTransform: Transform) {
+    fun predictIntegratedTransform(timeStep: Float, predictedTransform: Transform) {
         integrateTransform(worldTransform, linearVelocity, angularVelocity, timeStep, predictedTransform)
     }
 
-    fun saveKinematicState(timeStep: Double) {
+    fun saveKinematicState(timeStep: Float) {
         //todo: clamp to some (user definable) safe minimum timestep, to limit maximum angular/linear velocities
-        if (timeStep == 0.0) return
+        if (timeStep == 0f) return
 
         // linear
         calculateLinearVelocity(interpolationWorldTransform, worldTransform, timeStep, linearVelocity)
@@ -125,17 +126,17 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
     fun applyGravity() {
         if (isStaticOrKinematicObject) return
 
-        applyCentralForce(gravity, 1.0 / inverseMass)
+        applyCentralForce(gravity, 1f / inverseMass)
     }
 
-    fun setGravity(acceleration: Vector3d) {
+    fun setGravity(acceleration: Vector3f) {
         gravity.set(acceleration)
     }
 
     /**
      * Damps the velocity, using the given linearDamping and angularDamping.
      */
-    fun applyDamping(timeStep: Double) {
+    fun applyDamping(timeStep: Float) {
         // On new damping: see discussion/issue report here: http://code.google.com/p/bullet/issues/detail?id=74
         // todo: do some performance comparisons (but other parts of the engine are probably bottleneck anyway
 
@@ -145,8 +146,8 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
         //angularVelocity.mul(MiscUtil.GEN_clamped((1.0 - timeStep * angularDamping), 0.0, 1.0));
         //#else
 
-        linearVelocity.mul((1.0 - linearDamping).pow(timeStep))
-        angularVelocity.mul((1.0 - angularDamping).pow(timeStep))
+        linearVelocity.mul((1f - linearDamping).pow(timeStep))
+        angularVelocity.mul((1f - angularDamping).pow(timeStep))
 
         //#endif
         if (additionalDamping) {
@@ -161,9 +162,9 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
 
             val speed = linearVelocity.length()
             if (speed < linearDamping) {
-                val dampVel = 0.005
+                val dampVel = 0.005f
                 if (speed > dampVel) {
-                    val dir = Stack.newVec(linearVelocity)
+                    val dir = Stack.borrowVec3f(linearVelocity)
                     dir.normalize()
                     dir.mul(dampVel)
                     linearVelocity.sub(dir)
@@ -174,9 +175,9 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
 
             val angSpeed = angularVelocity.length()
             if (angSpeed < angularDamping) {
-                val angDampVel = 0.005
+                val angDampVel = 0.005f
                 if (angSpeed > angDampVel) {
-                    val dir = Stack.newVec(angularVelocity)
+                    val dir = Stack.borrowVec3f(angularVelocity)
                     dir.normalize()
                     dir.mul(angDampVel)
                     angularVelocity.sub(dir)
@@ -187,39 +188,39 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
         }
     }
 
-    fun setMassProps(mass: Double, inertia: Vector3d) {
-        if (mass == 0.0) {
+    fun setMassProps(mass: Float, inertia: Vector3f) {
+        if (mass == 0f) {
             collisionFlags = collisionFlags or CollisionFlags.STATIC_OBJECT
-            inverseMass = 0.0
+            inverseMass = 0f
         } else {
             collisionFlags = collisionFlags and (CollisionFlags.STATIC_OBJECT.inv())
-            inverseMass = 1.0 / mass
+            inverseMass = 1f / mass
         }
 
         invInertiaLocal.set(
-            if (inertia.x != 0.0) 1.0 / inertia.x else 0.0,
-            if (inertia.y != 0.0) 1.0 / inertia.y else 0.0,
-            if (inertia.z != 0.0) 1.0 / inertia.z else 0.0
+            if (inertia.x != 0f) 1f / inertia.x else 0f,
+            if (inertia.y != 0f) 1f / inertia.y else 0f,
+            if (inertia.z != 0f) 1f / inertia.z else 0f
         )
 
         updateInertiaTensor()
     }
 
-    fun integrateVelocities(step: Double) {
+    fun integrateVelocities(timeStep: Float) {
         if (isStaticOrKinematicObject) {
             return
         }
 
-        linearVelocity.fma(inverseMass * step, totalForce)
-        val tmp = Stack.newVec(totalTorque)
+        linearVelocity.fma(inverseMass * timeStep, totalForce)
+        val tmp = Stack.newVec3f(totalTorque)
         invInertiaTensorWorld.transform(tmp)
-        angularVelocity.fma(step, tmp)
-        Stack.subVec(1)
+        angularVelocity.fma(timeStep, tmp)
+        Stack.subVec3f(1)
 
         // clamp angular velocity. collision calculations will fail on higher angular velocities
         val angVel = angularVelocity.length()
-        if (angVel * step > MAX_ANGULAR_VELOCITY) {
-            angularVelocity.mul((MAX_ANGULAR_VELOCITY / step) / angVel)
+        if (angVel * timeStep > MAX_ANGULAR_VELOCITY) {
+            angularVelocity.mul((MAX_ANGULAR_VELOCITY / timeStep) / angVel)
         }
     }
 
@@ -235,52 +236,52 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
         updateInertiaTensor()
     }
 
-    fun applyCentralForce(force: Vector3d) {
+    fun applyCentralForce(force: Vector3f) {
         totalForce.add(force)
     }
 
-    fun applyCentralForce(force: Vector3d, strength: Double) {
+    fun applyCentralForce(force: Vector3f, strength: Float) {
         totalForce.x += strength * force.x
         totalForce.y += strength * force.y
         totalForce.z += strength * force.z
     }
 
-    fun setSleepingThresholds(linear: Double, angular: Double) {
+    fun setSleepingThresholds(linear: Float, angular: Float) {
         linearSleepingThreshold = linear
         angularSleepingThreshold = angular
     }
 
-    fun applyTorque(torque: Vector3d) {
+    fun applyTorque(torque: Vector3f) {
         totalTorque.add(torque)
     }
 
-    fun applyForce(force: Vector3d, relPos: Vector3d) {
+    fun applyForce(force: Vector3f, relPos: Vector3f) {
         applyCentralForce(force)
 
-        val tmp = Stack.newVec()
+        val tmp = Stack.newVec3f()
         relPos.cross(force, tmp).mul(angularFactor)
         applyTorque(tmp)
-        Stack.subVec(1)
+        Stack.subVec3f(1)
     }
 
-    fun applyCentralImpulse(impulse: Vector3d) {
+    fun applyCentralImpulse(impulse: Vector3f) {
         linearVelocity.fma(inverseMass, impulse)
     }
 
-    fun applyTorqueImpulse(torque: Vector3d) {
-        val tmp = Stack.borrowVec(torque)
+    fun applyTorqueImpulse(torque: Vector3f) {
+        val tmp = Stack.borrowVec3f(torque)
         invInertiaTensorWorld.transform(tmp)
         angularVelocity.add(tmp)
     }
 
-    fun applyImpulse(impulse: Vector3d, relPos: Vector3d) {
-        if (inverseMass != 0.0) {
+    fun applyImpulse(impulse: Vector3f, relPos: Vector3f) {
+        if (inverseMass != 0f) {
             applyCentralImpulse(impulse)
-            if (!angularFactor.equals(0.0, 0.0, 0.0)) {
-                val tmp = Stack.newVec()
+            if (!angularFactor.equals(0f, 0f, 0f)) {
+                val tmp = Stack.newVec3f()
                 relPos.cross(impulse, tmp).mul(angularFactor)
                 applyTorqueImpulse(tmp)
-                Stack.subVec(1)
+                Stack.subVec3f(1)
             }
         }
     }
@@ -288,8 +289,8 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
     /**
      * Optimization for the iterative solver: avoid calculating constant terms involving inertia, normal, relative position.
      */
-    fun internalApplyImpulse(linearComponent: Vector3d, angularComponent: Vector3d, impulseMagnitude: Double) {
-        if (inverseMass != 0.0) {
+    fun internalApplyImpulse(linearComponent: Vector3f, angularComponent: Vector3f, impulseMagnitude: Float) {
+        if (inverseMass != 0f) {
             linearVelocity.fma(impulseMagnitude, linearComponent)
             val angularFactor = angularFactor
             angularVelocity.add(
@@ -307,7 +308,8 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
 
     fun updateInertiaTensor() {
         val basisPerLocalInertia = Stack.newMat()
-        worldTransform.basis.scale(invInertiaLocal, basisPerLocalInertia)
+            .set(worldTransform.basis)
+            .scale(invInertiaLocal)
 
         val worldBasisTransposed = Stack.newMat(worldTransform.basis)
         worldBasisTransposed.transpose()
@@ -326,47 +328,44 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
         return out
     }
 
-    fun setLinearVelocity(linVel: Vector3d) {
+    fun setLinearVelocity(linVel: Vector3f) {
         assert(collisionFlags != CollisionFlags.STATIC_OBJECT)
         linearVelocity.set(linVel)
     }
 
-    fun setAngularVelocity(angVel: Vector3d) {
+    fun setAngularVelocity(angVel: Vector3f) {
         assert(collisionFlags != CollisionFlags.STATIC_OBJECT)
         angularVelocity.set(angVel)
     }
 
-    fun getVelocityInLocalPoint(relPos: Vector3d, out: Vector3d): Vector3d {
+    fun getVelocityInLocalPoint(relPos: Vector3f, out: Vector3f): Vector3f {
         // we also calculate lin/ang velocity for kinematic objects
         angularVelocity.cross(relPos, out)
         out.add(linearVelocity)
         return out
-
-        //for kinematic objects, we could also use use:
-        //		return 	(m_worldTransform(rel_pos) - m_interpolationWorldTransform(rel_pos)) / m_kinematicTimeStep;
     }
 
-    fun computeImpulseDenominator(pos: Vector3d, normal: Vector3d): Double {
-        val r0 = Stack.newVec()
-        pos.sub(getCenterOfMassPosition(Stack.newVec()), r0)
+    fun computeImpulseDenominator(relPos: Vector3d, normal: Vector3f): Float {
+        val delta = Stack.newVec3f()
+        relPos.sub(worldTransform.origin, delta)
 
-        val c0 = Stack.newVec()
-        r0.cross(normal, c0)
+        val cross = Stack.newVec3f()
+        delta.cross(normal, cross)
 
-        invInertiaTensorWorld.transformTranspose(c0)
+        invInertiaTensorWorld.transformTranspose(cross)
 
-        val answer = inverseMass + normal.dot(c0.cross(r0))
-        Stack.subVec(3)
+        val answer = inverseMass + normal.dot(cross.cross(delta))
+        Stack.subVec3d(2)
         return answer
     }
 
-    fun computeAngularImpulseDenominator(axis: Vector3d): Double {
-        val vec = Stack.borrowVec()
+    fun computeAngularImpulseDenominator(axis: Vector3f): Float {
+        val vec = Stack.borrowVec3f()
         invInertiaTensorWorld.transformTranspose(axis, vec)
         return axis.dot(vec)
     }
 
-    fun updateDeactivation(timeStep: Double) {
+    fun updateDeactivation(timeStep: Float) {
         if ((activationState == ActivationState.SLEEPING) || (activationState == ActivationState.ALWAYS_ACTIVE)) {
             return
         }
@@ -376,7 +375,7 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
         ) {
             deactivationTime += timeStep
         } else {
-            deactivationTime = 0.0
+            deactivationTime = 0f
             setActivationStateMaybe(ActivationState.ACTIVE)
         }
     }
@@ -388,7 +387,7 @@ class RigidBody(mass: Double, shape: CollisionShape, localInertia: Vector3d) : C
         }
 
         // disable deactivation
-        if (BulletGlobals.isDeactivationDisabled || (BulletGlobals.deactivationTime == 0.0)) {
+        if (BulletGlobals.isDeactivationDisabled || (BulletGlobals.deactivationTime == 0f)) {
             return false
         }
 

@@ -124,8 +124,8 @@ object BulletRendering {
     private fun BulletPhysics.drawAABBs() {
 
         val tmpTrans = Stack.newTrans()
-        val minAabb = Stack.newVec()
-        val maxAabb = Stack.newVec()
+        val minAabb = Stack.newVec3d()
+        val maxAabb = Stack.newVec3d()
 
         val collisionObjects = bulletInstance.collisionObjects
 
@@ -168,12 +168,13 @@ object BulletRendering {
 
         JomlPools.aabbd.sub(1)
         Stack.subTrans(1)
-        Stack.subVec(2)
+        Stack.subVec3d(2)
     }
 
     private fun BulletPhysics.drawBodiesWithAxesAndCenter() {
         val bodies = bulletInstance.collisionObjects
-        val tmp = JomlPools.vec3d.create()
+        val pos3f = JomlPools.vec3f.borrow()
+        val pos3d = JomlPools.vec3d.borrow()
         val colorX = UIColors.axisXColor
         val colorY = UIColors.axisYColor
         val colorZ = UIColors.axisZColor
@@ -181,18 +182,20 @@ object BulletRendering {
             val transform = bodies[i].worldTransform
             val center = transform.origin
             val basis = transform.basis
-            val scale = 0.1 * center.distance(cameraPosition)
+            val scale = 0.1f * center.distance(cameraPosition).toFloat()
 
-            basis.getColumn(0, tmp).mul(scale).add(center)
-            addLine(center, tmp, colorX)
+            basis.getColumn(0, pos3f).mul(scale)
+            pos3d.set(pos3f).add(center)
+            addLine(center, pos3d, colorX)
 
-            basis.getColumn(1, tmp).mul(scale).add(center)
-            addLine(center, tmp, colorY)
+            basis.getColumn(1, pos3f).mul(scale)
+            pos3d.set(pos3f).add(center)
+            addLine(center, pos3d, colorY)
 
-            basis.getColumn(2, tmp).mul(scale).add(center)
-            addLine(center, tmp, colorZ)
+            basis.getColumn(2, pos3f).mul(scale)
+            pos3d.set(pos3f).add(center)
+            addLine(center, pos3d, colorZ)
         }
-        JomlPools.vec3d.sub(1)
     }
 
     private fun BulletPhysics.drawVehicles() {
@@ -200,7 +203,7 @@ object BulletRendering {
         val world = bulletInstance
         val vehicles = world.vehicles
 
-        val tmp = Stack.newVec()
+        val tmp = Stack.newVec3d()
         val mat = Stack.newTrans()
 
         for (i in vehicles.indices) {
@@ -228,7 +231,7 @@ object BulletRendering {
             }
         }
 
-        Stack.subVec(1)
+        Stack.subVec3d(1)
         Stack.subTrans(1)
     }
 

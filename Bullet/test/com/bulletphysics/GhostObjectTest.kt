@@ -13,6 +13,7 @@ import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.SphereShape
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 
 class GhostObjectTest {
@@ -23,7 +24,7 @@ class GhostObjectTest {
         createGround(world)
 
         // Ghost object region (box shape)
-        val ghostShape = BoxShape(Vector3d(1.0, 0.5, 1.0))
+        val ghostShape = BoxShape(Vector3f(1.0, 0.5, 1.0))
         val ghost = GhostObject()
         ghost.collisionShape = ghostShape
         val ghostTransform = ghost.worldTransform
@@ -35,7 +36,7 @@ class GhostObjectTest {
         world.addCollisionObject(ghost, createFilter(GHOST_GROUP_ID, ALL_MASK))
 
         // Falling dynamic sphere
-        val sphereShape = SphereShape(0.25)
+        val sphereShape = SphereShape(0.25f)
         val sphere = createRigidBody(1f, Vector3d(0f, 5f, 0f), sphereShape)
         world.addRigidBody(sphere)
 
@@ -48,7 +49,7 @@ class GhostObjectTest {
         val steps = 70
 
         repeat(steps) {
-            world.stepSimulation(timeStep.toDouble())
+            world.stepSimulation(timeStep)
 
             var inside = false
 

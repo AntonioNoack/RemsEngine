@@ -12,6 +12,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
 
@@ -29,25 +30,14 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.CONCAVE_SIGNED_DISTANCE_FIELD
 
-    val localScaling = Vector3d(1.0, 1.0, 1.0)
-
-    override fun setLocalScaling(scaling: Vector3d) {
-        localScaling.set(scaling)
-    }
-
-    override fun getLocalScaling(out: Vector3d): Vector3d {
-        out.set(localScaling)
-        return out
-    }
-
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
         return collider.calculateLocalInertia(mass, inertia).mul(localScaling)
     }
 
-    override var margin: Double
-        get() = collider.margin.toDouble()
+    override var margin: Float
+        get() = collider.margin
         set(value) {
-            collider.margin = value.toFloat()
+            collider.margin = value
         }
 
     val fx = 6

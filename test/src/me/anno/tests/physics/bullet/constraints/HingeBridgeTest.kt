@@ -63,9 +63,9 @@ fun main() {
             })
             .add(MeshComponent(pillarMesh, pillarMaterial))
             .add(DynamicBody().apply {
-                friction = 1.0
+                friction = 1.0f
                 if (this is DynamicBody) {
-                    mass = pillarSize.x * pillarSize.y * pillarSize.z * density
+                    mass = (pillarSize.x * pillarSize.y * pillarSize.z * density).toFloat()
                 }
             })
         toLink.add(entity)
@@ -83,8 +83,8 @@ fun main() {
             })
             .add(MeshComponent(barMesh, barMaterial))
             .add(DynamicBody().apply {
-                mass = density * barSize.x * barSize.y * barSize.z
-                friction = 0.5
+                mass =( density * barSize.product()).toFloat()
+                friction = 0.5f
             })
         toLink.add(entity)
     }
@@ -103,8 +103,8 @@ fun main() {
         link.disableCollisionsBetweenLinked = false
         // link.breakingImpulseThreshold = 0.3 // a little fun ^^
         link.other = b.getComponent(PhysicalBody::class)
-        link.lowerLimit = -2.0
-        link.upperLimit = +2.0
+        link.lowerLimit = -2.0f
+        link.upperLimit = +2.0f
         // link.lerpingSpeed = 0.5
         a.add(link)
         val z = ((i - 1.5) - (numBars - 1) * 0.5) * (barSpacing + barSize.z)

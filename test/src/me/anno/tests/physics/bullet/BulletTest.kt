@@ -37,6 +37,7 @@ import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.f3s
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -62,8 +63,8 @@ class BulletTest {
         val dynamicBody = DynamicBody()
         val sphere = Entity()
             .add(dynamicBody.apply {
-                linearDamping = 0.0
-                mass = 1.0
+                linearDamping = 0f
+                mass = 1f
             })
             .add(SphereCollider())
 
@@ -100,8 +101,8 @@ class BulletTest {
         val collider = SphereCollider()
         val sphere = Entity()
             .add(dynamicBody.apply {
-                linearDamping = 0.0
-                mass = 1.0
+                linearDamping = 0f
+                mass = 1f
             })
             .add(collider)
 
@@ -153,7 +154,7 @@ class BulletTest {
     private fun setupGravityTest(physics: BulletPhysics, gravity: Float) {
         Systems.registerSystem(physics)
 
-        physics.gravity = Vector3d(0.0, gravity.toDouble(), 0.0)
+        physics.gravity = Vector3f(0f, gravity, 0f)
         physics.allowedSpace.all()
 
         physics.fixedStep = 0.0
@@ -177,15 +178,15 @@ class BulletTest {
             override fun onPhysicsUpdate(dt: Double) {
                 val rb = getComponent(DynamicBody::class)!!
                 val mass = rb.mass
-                rb.applyForce(0.0, extraAcceleration * mass, 0.0)
+                rb.applyForce(0f, extraAcceleration * mass, 0f)
             }
         }
 
         val dynamicBody = DynamicBody()
         val sphere = Entity()
             .add(dynamicBody.apply {
-                linearDamping = 0.0
-                mass = 1.0
+                linearDamping = 0f
+                mass = 1f
             })
             .add(ExtraForceComponent())
             .add(SphereCollider())
@@ -193,7 +194,7 @@ class BulletTest {
         val world = Entity().add(sphere)
         Systems.world = world
 
-        val dt = 1.0
+        val dt = 1f
         var expectedPosition = 0.0
         var expectedVelocity = 0.0
         repeat(20) {
@@ -201,7 +202,7 @@ class BulletTest {
             val actualPosition = sphere.position.y
             val actualVelocity = dynamicBody.globalLinearVelocity.y
             assertEquals(expectedPosition, actualPosition)
-            assertEquals(expectedVelocity, actualVelocity)
+            assertEquals(expectedVelocity, actualVelocity.toDouble())
 
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
 
@@ -232,7 +233,7 @@ class BulletTest {
         val floor = Entity()
             .setPosition(0.0, -10.0, 0.0)
             .add(StaticBody().apply {
-                friction = floorFriction.toDouble()
+                friction = floorFriction
             })
             .add(BoxCollider().apply {
                 halfExtents.set(30.0, 10.0, 30.0)
@@ -240,14 +241,14 @@ class BulletTest {
         world.add(floor)
 
         val underTest = DynamicBody()
-        underTest.globalAngularVelocity.z = 1.0
+        underTest.globalAngularVelocity.z = 1f
         val sphere = Entity()
             .setPosition(0.0, 1.0 + 1.0 / 8.0, 0.0)
             .add(underTest.apply {
-                friction = circleFriction.toDouble()
-                linearDamping = 0.0
-                angularDamping = 0.0
-                mass = 1.0
+                friction = circleFriction
+                linearDamping = 0.0f
+                angularDamping = 0.0f
+                mass = 1.0f
             })
             .add(SphereCollider())
         world.add(sphere)
@@ -272,8 +273,8 @@ class BulletTest {
 
         if (floorFriction > 0f && circleFriction > 0f) {
             assertTrue(sphere.position.x < 0f)
-            assertEquals(-0.362, underTest.globalLinearVelocity.x, 0.01)
-            assertEquals(0.0, underTest.globalLinearVelocity.y, 0.08) // todo why is there y-movement??
+            assertEquals(-0.362f, underTest.globalLinearVelocity.x, 0.01f)
+            assertEquals(0.0f, underTest.globalLinearVelocity.y, 0.08f) // todo why is there y-movement??
             assertEquals(Vector3d(0.0, 0.0, 0.365), underTest.globalAngularVelocity, 0.01)
         } else {
             assertEquals(Vector3d(0.0, 1.0, 0.0), sphere.position, 0.15)
@@ -305,7 +306,7 @@ class BulletTest {
         val floor = Entity()
             .setRotation(0f, 0f, angle)
             .add(StaticBody().apply {
-                friction = 0.5
+                friction = 0.5f
             })
             .add(BoxCollider().apply {
                 halfExtents.set(30.0, 10.0, 30.0)
@@ -317,12 +318,12 @@ class BulletTest {
         val sphere = Entity()
             .setPosition(-sin(angle) * dist, cos(angle) * dist, 0.0)
             .add(underTest.apply {
-                linearSleepingThreshold = 0.0
-                angularSleepingThreshold = 0.0
-                linearDamping = 0.0
-                angularDamping = 0.0
-                friction = 0.5
-                mass = 1.0
+                linearSleepingThreshold = 0.0f
+                angularSleepingThreshold = 0.0f
+                linearDamping = 0.0f
+                angularDamping = 0.0f
+                friction = 0.5f
+                mass = 1.0f
             })
             .add(SphereCollider())
         world.add(sphere)
@@ -358,7 +359,7 @@ class BulletTest {
         val floor = Entity()
             .setRotation(0f, 0f, angle)
             .add(StaticBody().apply {
-                friction = 0.9
+                friction = 0.9f
             })
             .add(BoxCollider().apply {
                 halfExtents.set(30.0, 10.0, 30.0)
@@ -371,8 +372,8 @@ class BulletTest {
             .setPosition(-sin(angle) * dist, cos(angle) * dist, 0.0)
             .setRotation(0f, 0f, angle)
             .add(underTest.apply {
-                friction = 0.9
-                mass = 1.0
+                friction = 0.9f
+                mass = 1.0f
             })
             .add(BoxCollider().apply {
                 halfExtents.set(1.0)
@@ -415,9 +416,9 @@ class BulletTest {
             val body = DynamicBody()
             val entity = Entity()
                 .add(body.apply {
-                    mass = 1.0
-                    friction = 0.0
-                    restitution = 1.0
+                    mass = 1.0f
+                    friction = 0.0f
+                    restitution = 1.0f
                 })
                 .add(SphereCollider())
             world.add(entity)
@@ -425,7 +426,7 @@ class BulletTest {
         }
 
         fun resetShape(entity: Entity, body: DynamicBody, x: Double, dx: Double, collider: Collider) {
-            body.globalLinearVelocity = Vector3d(dx, 0.0, 0.0)
+            body.globalLinearVelocity = Vector3f(dx, 0.0, 0.0)
             entity.setPosition(x, 0.0, 0.0)
             entity.remove(entity.components[1] as Collider)
             entity.add(collider)
@@ -504,14 +505,14 @@ class BulletTest {
 
                 fun createShape(x: Double, dx: Double, collider: Collider): Pair<Entity, DynamicBody> {
                     val body = DynamicBody()
-                    body.globalLinearVelocity = Vector3d(dx, 0.0, 0.0)
+                    body.globalLinearVelocity = Vector3f(dx, 0.0, 0.0)
                     val entity = Entity()
                         .setPosition(x, 0.0, 0.0)
                         .setRotation(0f, 0f, 0f)
                         .add(body.apply {
-                            mass = 1.0
-                            friction = 0.0
-                            restitution = 0.0
+                            mass = 1.0f
+                            friction = 0.0f
+                            restitution = 0.0f
                         })
                         .add(collider)
                     world.add(entity)
@@ -582,7 +583,7 @@ class BulletTest {
                 StaticBody()
             } else {
                 DynamicBody().apply {
-                    linearDamping = 0.999
+                    linearDamping = 0.999f
                 }
             }
             Entity("$i", world)
@@ -667,9 +668,9 @@ class BulletTest {
         val world = Entity()
         fun createPoint(i: Int, static: Boolean): PhysicalBody {
             val result = if (static) StaticBody() else DynamicBody().apply {
-                linearDamping = 0.999
-                linearSleepingThreshold = 0.0
-                angularSleepingThreshold = 0.0
+                linearDamping = 0.999f
+                linearSleepingThreshold = 0.0f
+                angularSleepingThreshold = 0.0f
             }
             Entity("$i", world)
                 .setPosition(i * dist, initialShape(i), 0.0)

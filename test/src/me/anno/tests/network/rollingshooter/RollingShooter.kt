@@ -94,10 +94,10 @@ fun main() {
     fun createPlayerBase(color: Int): Entity {
         val player = Entity("Player", players)
         player.add(DynamicBody().apply {
-            mass = 5.0
-            friction = 1.0
-            angularDamping = 0.9
-            restitution = 0.0
+            mass = 5.0f
+            friction = 1.0f
+            angularDamping = 0.9f
+            restitution = 0.0f
         })
         player.add(SphereCollider().apply { radius = 1f })
         player.add(MeshComponent(sphereMesh).apply {
@@ -211,8 +211,8 @@ fun main() {
     cameraArm.add(camera)
 
     staticScene.add(StaticBody().apply {
-        restitution = 0.0
-        friction = 1.0
+        restitution = 0.0f
+        friction = 1.0f
     })
 
     val betterScene = InvalidRef // res.getChild("meshes/NavMesh.fbx")
@@ -265,8 +265,8 @@ fun respawn(
             newPosition.y += radius - query.result.distance
             entity.position = newPosition
             val rb = entity.getComponent(DynamicBody::class)!!
-            rb.globalLinearVelocity = Vector3d()
-            rb.globalAngularVelocity = Vector3d()
+            rb.globalLinearVelocity = Vector3f()
+            rb.globalAngularVelocity = Vector3f()
             break
         }
     } while (true)

@@ -2,8 +2,9 @@ package com.bulletphysics.extras.gimpact
 
 import com.bulletphysics.collision.shapes.StridingMeshInterface
 import com.bulletphysics.collision.shapes.VertexData
-import com.bulletphysics.linearmath.VectorUtil
+import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * @author jezek2
@@ -11,13 +12,13 @@ import org.joml.Vector3d
 class TrimeshPrimitiveManager : PrimitiveManagerBase {
 
     @JvmField
-    var margin: Double
+    var margin: Float
 
     @JvmField
     var meshInterface: StridingMeshInterface?
 
     @JvmField
-    val scale: Vector3d = Vector3d()
+    val scale = Vector3f()
 
     @JvmField
     var part: Int
@@ -31,8 +32,8 @@ class TrimeshPrimitiveManager : PrimitiveManagerBase {
     constructor() {
         meshInterface = null
         part = 0
-        margin = 0.01
-        scale.set(1.0, 1.0, 1.0)
+        margin = 0.01f
+        scale.set(1f)
     }
 
     constructor(manager: TrimeshPrimitiveManager) {
@@ -42,11 +43,11 @@ class TrimeshPrimitiveManager : PrimitiveManagerBase {
         scale.set(manager.scale)
     }
 
-    constructor(meshInterface: StridingMeshInterface?, part: Int) {
+    constructor(meshInterface: StridingMeshInterface, part: Int) {
         this.meshInterface = meshInterface
         this.part = part
-        this.meshInterface!!.getScaling(scale)
-        margin = 0.1
+        scale.set(meshInterface.scaling)
+        margin = 0.1f
     }
 
     fun lock() {
@@ -88,17 +89,23 @@ class TrimeshPrimitiveManager : PrimitiveManagerBase {
         out[2] = vertexData.getIndex(faceIndex * 3 + 2)
     }
 
-    fun getVertex(vertexIndex: Int, vertex: Vector3d) {
-        vertexData!!.getVertex(vertexIndex, vertex)
-        VectorUtil.mul(vertex, vertex, scale)
+    fun getVertex(vertexIndex: Int, dst: Vector3f) {
+        vertexData!!.getVertex(vertexIndex, dst)
+        dst.mul(scale)
+    }
+
+    fun getVertex(vertexIndex: Int, dst: Vector3d) {
+        val tmp = Stack.borrowVec3f()
+        getVertex(vertexIndex, tmp)
+        dst.set(tmp)
     }
 
     override fun getPrimitiveBox(primitiveIndex: Int, dst: AABB) {
         val triangle = PrimitiveTriangle()
         getPrimitiveTriangle(primitiveIndex, triangle)
         dst.calcFromTriangleMargin(
-            triangle.vertices[0],
-            triangle.vertices[1], triangle.vertices[2], triangle.margin
+            triangle.vertices[0], triangle.vertices[1], triangle.vertices[2],
+            triangle.margin.toDouble()
         )
     }
 

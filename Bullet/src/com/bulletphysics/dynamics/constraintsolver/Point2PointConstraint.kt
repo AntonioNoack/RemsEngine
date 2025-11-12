@@ -16,7 +16,7 @@ class Point2PointConstraint : TypedConstraint {
     /**
      * 3 orthogonal linear constraints
      * */
-    private val jacobianInvDiagonals = DoubleArray(3)
+    private val jacobianInvDiagonals = FloatArray(3)
 
     private val pivotInA = Vector3d()
     private val pivotInB = Vector3d()
@@ -32,63 +32,67 @@ class Point2PointConstraint : TypedConstraint {
     }
 
     override fun buildJacobian() {
-        appliedImpulse = 0.0
+        appliedImpulse = 0f
 
-        val normal = Stack.newVec()
-        normal.set(0.0)
+        val normal = Stack.newVec3f().set(0f)
 
-        val globalPivotRelativeToA = Stack.newVec()
-        val globalPivotRelativeToB = Stack.newVec()
+        val globalPivotRelativeToA = Stack.newVec3d()
+        val globalPivotRelativeToB = Stack.newVec3d()
+
+        val globalPivotRelativeToA1 = Stack.newVec3f()
+        val globalPivotRelativeToB1 = Stack.newVec3f()
 
         val transformA = rigidBodyA.worldTransform
         val transformB = rigidBodyB.worldTransform
 
         for (i in 0..2) {
-            normal[i] = 1.0
+            normal[i] = 1f
 
             transformA.transformPosition(pivotInA, globalPivotRelativeToA)
             globalPivotRelativeToA.sub(transformA.origin)
+            globalPivotRelativeToA1.set(globalPivotRelativeToA)
 
             transformB.transformPosition(pivotInB, globalPivotRelativeToB)
             globalPivotRelativeToB.sub(transformB.origin)
+            globalPivotRelativeToB1.set(globalPivotRelativeToB)
 
             jacobianInvDiagonals[i] = JacobianEntry.calculateDiagonalInv(
                 transformA.basis, transformB.basis,
-                globalPivotRelativeToA, globalPivotRelativeToB, normal,
+                globalPivotRelativeToA1, globalPivotRelativeToB1, normal,
                 rigidBodyA.invInertiaLocal, rigidBodyA.inverseMass,
                 rigidBodyB.invInertiaLocal, rigidBodyB.inverseMass
             )
-            normal[i] = 0.0
+            normal[i] = 0f
         }
 
-        Stack.subVec(3)
+        Stack.subVec3f(3)
+        Stack.subVec3d(2)
     }
 
-    override fun solveConstraint(timeStep: Double) {
-        val tmp = Stack.newVec()
-        val tmp2 = Stack.newVec()
+    override fun solveConstraint(timeStep: Float) {
+        val tmp = Stack.newVec3f()
+        val tmp2 = Stack.newVec3f()
 
         val centerOfMassA = rigidBodyA.worldTransform
         val centerOfMassB = rigidBodyB.worldTransform
 
-        val pivotAInW = Stack.newVec(pivotInA)
+        val pivotAInW = Stack.newVec3d(pivotInA)
         centerOfMassA.transformPosition(pivotAInW)
 
-        val pivotBInW = Stack.newVec(pivotInB)
+        val pivotBInW = Stack.newVec3d(pivotInB)
         centerOfMassB.transformPosition(pivotBInW)
 
-        val normal = Stack.newVec()
-        normal.set(0.0, 0.0, 0.0)
+        val normal = Stack.newVec3f().set(0f)
 
-        val relPos1 = Stack.newVec()
-        val relPos2 = Stack.newVec()
-        val vel1 = Stack.newVec()
-        val vel2 = Stack.newVec()
-        val vel = Stack.newVec()
-        val impulseVector = Stack.newVec()
+        val relPos1 = Stack.newVec3f()
+        val relPos2 = Stack.newVec3f()
+        val vel1 = Stack.newVec3f()
+        val vel2 = Stack.newVec3f()
+        val vel = Stack.newVec3f()
+        val impulseVector = Stack.newVec3f()
 
         for (i in 0..2) {
-            normal[i] = 1.0
+            normal[i] = 1f
 
             val jacDiagABInv = jacobianInvDiagonals[i]
 
@@ -119,7 +123,7 @@ class Point2PointConstraint : TypedConstraint {
             }
 
             val impulseClamp = setting.impulseClamp
-            if (impulseClamp > 0.0) {
+            if (impulseClamp > 0f) {
                 if (impulse < -impulseClamp) {
                     impulse = -impulseClamp
                 }
@@ -137,16 +141,17 @@ class Point2PointConstraint : TypedConstraint {
             pivotBInW.sub(rigidBodyB.worldTransform.origin, tmp2)
             rigidBodyB.applyImpulse(tmp, tmp2)
 
-            normal[i] = 0.0
+            normal[i] = 0f
         }
 
-        Stack.subVec(11)
+        Stack.subVec3f(9)
+        Stack.subVec3d(2)
     }
 
     /** ///////////////////////////////////////////////////////////////////////// */
     class ConstraintSetting {
-        var tau: Double = 0.3
-        var damping: Double = 1.0
-        var impulseClamp: Double = 0.0
+        var tau = 0.3f
+        var damping = 1f
+        var impulseClamp = 0f
     }
 }

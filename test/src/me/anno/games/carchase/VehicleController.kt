@@ -15,35 +15,37 @@ import me.anno.maths.Maths
 
 class VehicleController : Component(), InputListener, OnPhysicsUpdate {
 
-    var accelerationStrength = 1.0
-    var steeringStrength = 0.5
-    var brakeStrength = 2.0
+    var accelerationStrength = 1f
+    var steeringStrength = 0.5f
+    var brakeStrength = 2f
 
-    var smoothing = 5.0
-
-    @DebugProperty
-    @NotSerializedProperty
-    var lastForce = 0.0
+    var smoothing = 5f
 
     @DebugProperty
     @NotSerializedProperty
-    var lastSteering = 0.0
+    var lastForce = 0f
 
     @DebugProperty
     @NotSerializedProperty
-    var lastBrake = 0.0
+    var lastSteering = 0f
+
+    @DebugProperty
+    @NotSerializedProperty
+    var lastBrake = 0f
 
     override fun onPhysicsUpdate(dt: Double) {
 
-        var steeringSum = 0.0
+        val dt = dt.toFloat()
+
+        var steeringSum = 0f
         if (Input.isKeyDown(Key.KEY_A)) steeringSum += steeringStrength
         if (Input.isKeyDown(Key.KEY_D)) steeringSum -= steeringStrength
 
-        var forceSum = 0.0
+        var forceSum = 0f
         if (Input.isKeyDown(Key.KEY_W)) forceSum += accelerationStrength
         if (Input.isKeyDown(Key.KEY_S)) forceSum -= accelerationStrength
 
-        var brake = 0.0
+        var brake = 0f
         if (Input.isKeyDown(Key.KEY_SPACE)) brake += brakeStrength
         val vehicle = getComponent(Vehicle::class)
         if (vehicle != null && forceSum * vehicle.localLinearVelocityZ < 0.0) {
@@ -59,7 +61,7 @@ class VehicleController : Component(), InputListener, OnPhysicsUpdate {
             it.steering = lastSteering * it.steeringMultiplier
             it.brakeForce = lastBrake * it.brakeForceMultiplier
             // bullet engine refused to brake, if the motor is running
-            it.engineForce = if (it.brakeForce > 0.0) 0.0 else lastForce * it.engineForceMultiplier
+            it.engineForce = if (it.brakeForce > 0f) 0f else lastForce * it.engineForceMultiplier
         }
     }
 }

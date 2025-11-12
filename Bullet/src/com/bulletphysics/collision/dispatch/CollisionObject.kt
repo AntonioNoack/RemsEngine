@@ -6,6 +6,7 @@ import com.bulletphysics.linearmath.Transform
 import me.anno.bullet.bodies.PhysicsBody
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * CollisionObject can be used to manage collision detection objects.
@@ -29,10 +30,10 @@ open class CollisionObject() {
      * without destroying the continuous interpolated motion (which uses this interpolation velocities)
      */
     @JvmField
-    val interpolationLinearVelocity = Vector3d()
+    val interpolationLinearVelocity = Vector3f()
 
     @JvmField
-    val interpolationAngularVelocity = Vector3d()
+    val interpolationAngularVelocity = Vector3f()
 
     /**
      * bounds including linear and angular motion,
@@ -63,32 +64,32 @@ open class CollisionObject() {
     var activationState = ActivationState.ACTIVE
 
     @JvmField
-    var deactivationTime: Double = 0.0
+    var deactivationTime = 0f
 
     @JvmField
-    var friction: Double = 0.5
+    var friction = 0.5f
 
     @JvmField
-    var restitution: Double = 0.0
+    var restitution = 0.0f
 
     /**
      * time of impact calculation
      */
     @JvmField
-    var hitFraction: Double = 1.0
+    var hitFraction = 1f
 
     /**
      * Swept sphere radius (0.0 by default), see btConvexConvexAlgorithm::
      * CCD = convex collision detection
      */
     @JvmField
-    var ccdSweptSphereRadius: Double = 0.0
+    var ccdSweptSphereRadius = 0f
 
     /**
      * Don't do continuous collision detection if the motion (in one step) is less then ccdMotionThreshold
      */
     @JvmField
-    var ccdMotionThreshold: Double = 0.0
+    var ccdMotionThreshold = 0f
 
     /**
      * If some object should have elaborate collision filtering by subclasses
@@ -136,7 +137,7 @@ open class CollisionObject() {
     fun activate(forceActivation: Boolean = false) {
         if (forceActivation || (collisionFlags and (CollisionFlags.STATIC_OBJECT or CollisionFlags.KINEMATIC_OBJECT)) == 0) {
             setActivationStateMaybe(ActivationState.ACTIVE)
-            deactivationTime = 0.0
+            deactivationTime = 0f
         }
     }
 
@@ -171,7 +172,7 @@ open class CollisionObject() {
         interpolationAngularVelocity.set(angvel)
     }
 
-    val ccdSquareMotionThreshold: Double
+    val ccdSquareMotionThreshold: Float
         get() = ccdMotionThreshold * ccdMotionThreshold
 
     fun checkCollideWith(co: CollisionObject?): Boolean {

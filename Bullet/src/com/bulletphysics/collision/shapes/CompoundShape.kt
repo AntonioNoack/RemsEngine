@@ -7,6 +7,7 @@ import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.maths.Maths.clamp
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * CompoundShape allows to store multiple other [CollisionShape]s.
@@ -19,26 +20,24 @@ class CompoundShape : CollisionShape() {
 
     val children = ArrayList<CompoundShapeChild>()
 
-    private val localAabbMin = Vector3d(Double.POSITIVE_INFINITY)
-    private val localAabbMax = Vector3d(Double.NEGATIVE_INFINITY)
+    private val localAabbMin = Vector3f(Float.POSITIVE_INFINITY)
+    private val localAabbMax = Vector3f(Float.NEGATIVE_INFINITY)
 
     init {
-        margin = 0.0
+        margin = 0f
     }
-
-    val localScaling: Vector3d = Vector3d(1.0)
 
     fun addChildShape(localTransform: Transform, shape: CollisionShape) {
         children.add(CompoundShapeChild(localTransform, shape))
 
         // extend the local aabbMin/aabbMax
-        val childAabbMin = Stack.newVec()
-        val childAabbMax = Stack.newVec()
+        val childAabbMin = Stack.newVec3d()
+        val childAabbMax = Stack.newVec3d()
         shape.getBounds(localTransform, childAabbMin, childAabbMax)
 
-        this.localAabbMin.min(childAabbMin)
-        this.localAabbMax.max(childAabbMax)
-        Stack.subVec(2)
+        localAabbMin.min(childAabbMin)
+        localAabbMax.max(childAabbMax)
+        Stack.subVec3d(2)
     }
 
     /**
@@ -51,19 +50,11 @@ class CompoundShape : CollisionShape() {
         )
     }
 
-    override fun setLocalScaling(scaling: Vector3d) {
-        localScaling.set(scaling)
-    }
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
 
-    override fun getLocalScaling(out: Vector3d): Vector3d {
-        return out.set(localScaling)
-    }
-
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
-
-        val masses = DoubleArray(children.size)
-        var totalMass = 0.0
-        val massLimit = 1e100
+        val masses = FloatArray(children.size)
+        var totalMass = 0f
+        val massLimit = 1e15f
         for (i in children.indices) {
             val childShape = children[i].shape
             var childMass = childShape.getVolume() * childShape.density
@@ -94,21 +85,21 @@ class CompoundShape : CollisionShape() {
      * with the principal axes. This also necessitates a correction of the world transform
      * of the collision object by the principal transform.
      */
-    fun calculatePrincipalAxisTransform(masses: DoubleArray, principal: Transform, inertia: Vector3d) {
+    fun calculatePrincipalAxisTransform(masses: FloatArray, principal: Transform, inertia: Vector3f) {
         var totalMass = 0.0
-        val center = Stack.newVec()
+        val center = Stack.newVec3d()
         center.set(0.0, 0.0, 0.0)
         for (i in children.indices) {
-            val mass = masses[i]
+            val mass = masses[i].toDouble()
             center.fma(mass, children[i].transform.origin)
             totalMass += mass
         }
-        center.mul(1.0 / totalMass)
+        center.mul(1f / totalMass)
         principal.setTranslation(center)
 
         val tensorSum = Stack.newMat()
         val childTensor = Stack.newMat()
-        val localInertia = Stack.newVec()
+        val localInertia = Stack.newVec3f()
         tensorSum.zero()
 
         for (i in children.indices) {
@@ -118,7 +109,7 @@ class CompoundShape : CollisionShape() {
             child.shape.calculateLocalInertia(mass, localInertia)
 
             val childTransform = child.transform
-            val offset = Stack.newVec()
+            val offset = Stack.newVec3d()
             childTransform.origin.sub(center, offset)
 
             // compute inertia tensor in coordinate system of compound shape
@@ -130,7 +121,9 @@ class CompoundShape : CollisionShape() {
             tensorSum.add(childTensor)
 
             // compute inertia tensor of pointmass at offset and add inertia tensor of pointmass
-            val (ox, oy, oz) = offset
+            val ox = offset.x.toFloat()
+            val oy = offset.y.toFloat()
+            val oz = offset.z.toFloat()
             val x2 = mass * ox * ox
             val y2 = mass * oy * oy
             val z2 = mass * oz * oz
@@ -151,7 +144,7 @@ class CompoundShape : CollisionShape() {
             tensorSum.m21 -= yz
         }
 
-        DiagonalizeMatrix.diagonalize(tensorSum, principal.basis, 0.00001, 20)
+        DiagonalizeMatrix.diagonalize(tensorSum, principal.basis, 0.00001f, 20)
         inertia.set(tensorSum.m00, tensorSum.m11, tensorSum.m22)
     }
 }

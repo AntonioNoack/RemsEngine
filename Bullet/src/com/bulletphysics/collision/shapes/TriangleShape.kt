@@ -7,6 +7,7 @@ import cz.advel.stack.Stack
 import me.anno.utils.types.Triangles.getTriangleArea
 import me.anno.utils.types.Triangles.subCross
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.pow
 
@@ -39,7 +40,7 @@ open class TriangleShape : PolyhedralConvexShape {
             return 3
         }
 
-    override fun getVertex(i: Int, vtx: Vector3d) {
+    override fun getVertex(i: Int, vtx: Vector3f) {
         vtx.set(vertices[i])
     }
 
@@ -51,7 +52,7 @@ open class TriangleShape : PolyhedralConvexShape {
             return 3
         }
 
-    override fun getEdge(i: Int, pa: Vector3d, pb: Vector3d) {
+    override fun getEdge(i: Int, pa: Vector3f, pb: Vector3f) {
         getVertex(i, pa)
         getVertex((i + 1) % 3, pb)
     }
@@ -60,38 +61,28 @@ open class TriangleShape : PolyhedralConvexShape {
         getAabbSlow(t, aabbMin, aabbMax)
     }
 
-    override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
-        val dots = Stack.newVec()
+    override fun localGetSupportingVertexWithoutMargin(dir: Vector3f, out: Vector3f): Vector3f {
+        val dots = Stack.newVec3d()
         dots.set(dir.dot(vertices[0]), dir.dot(vertices[1]), dir.dot(vertices[2]))
         out.set(vertices[maxAxis(dots)])
-        Stack.subVec(1)
+        Stack.subVec3d(1)
         return out
     }
 
-    override fun getPlane(planeNormal: Vector3d, planeSupport: Vector3d, i: Int) {
-        getPlaneEquation(planeNormal, planeSupport)
+    fun calcNormal(normal: Vector3f) {
+        val tmp = Stack.newVec3d()
+        subCross(vertices[0], vertices[1], vertices[2], tmp).normalize()
+        normal.set(tmp)
     }
 
-    override val numPlanes get() = 1
-
-    fun calcNormal(normal: Vector3d) {
-        subCross(vertices[0], vertices[1], vertices[2], normal)
-            .normalize()
-    }
-
-    fun getPlaneEquation(planeNormal: Vector3d, planeSupport: Vector3d) {
-        calcNormal(planeNormal)
-        planeSupport.set(vertices[0])
-    }
-
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
         // moving convex shapes is not supported
-        val area = getTriangleArea(vertices[0],vertices[1],vertices[2])
-        return inertia.set(abs(area).pow(1.5))
+        val area = getTriangleArea(vertices[0],vertices[1],vertices[2]).toFloat()
+        return inertia.set(abs(area).pow(1.5f))
     }
 
     override fun isInside(pt: Vector3d, tolerance: Double): Boolean {
-        val normal = Stack.newVec()
+        val normal = Stack.newVec3f()
         calcNormal(normal)
         // distance to plane
         var dist = pt.dot(normal)
@@ -99,10 +90,10 @@ open class TriangleShape : PolyhedralConvexShape {
         dist -= planeConst
         if (dist >= -tolerance && dist <= tolerance) {
             // inside check on edge-planes
-            val pa = Stack.newVec()
-            val pb = Stack.newVec()
-            val edge = Stack.newVec()
-            val edgeNormal = Stack.newVec()
+            val pa = Stack.newVec3f()
+            val pb = Stack.newVec3f()
+            val edge = Stack.newVec3f()
+            val edgeNormal = Stack.newVec3f()
             for (i in 0 until 3) {
                 getEdge(i, pa, pb)
                 pb.sub(pa, edge)
@@ -113,24 +104,24 @@ open class TriangleShape : PolyhedralConvexShape {
                 val edgeConst = pa.dot(edgeNormal)
                 dist -= edgeConst
                 if (dist < -tolerance) {
-                    Stack.subVec(5)
+                    Stack.subVec3f(5)
                     return false
                 }
             }
-            Stack.subVec(5)
+            Stack.subVec3f(5)
             return true
         }
-        Stack.subVec(1) // normal
+        Stack.subVec3f(1) // normal
         return false
     }
 
     override val numPreferredPenetrationDirections: Int
         get() = 2
 
-    override fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3d) {
+    override fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3f) {
         calcNormal(penetrationVector)
         if (index != 0) {
-            penetrationVector.mul(-1.0)
+            penetrationVector.negate()
         }
     }
 }

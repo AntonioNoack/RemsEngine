@@ -5,6 +5,7 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 
 class DominoChainTest {
@@ -16,8 +17,8 @@ class DominoChainTest {
     }
 
     private fun runDominoToppleTest(dominoCount: Int) {
-        val world: DiscreteDynamicsWorld = StackOfBoxesTest.Companion.createWorld()
-        StackOfBoxesTest.Companion.createGround(world)
+        val world: DiscreteDynamicsWorld = StackOfBoxesTest.createWorld()
+        StackOfBoxesTest.createGround(world)
 
         // Domino dimensions (in meters)
         val scaleForStability = 2f
@@ -25,7 +26,7 @@ class DominoChainTest {
         val width = 0.025f * scaleForStability
         val depth = 0.01f * scaleForStability
         val dominoShape: CollisionShape =
-            BoxShape(Vector3d((width / 2).toDouble(), (height / 2).toDouble(), (depth / 2).toDouble()))
+            BoxShape(Vector3f((width / 2).toDouble(), (height / 2).toDouble(), (depth / 2).toDouble()))
 
         // Positioning
         val spacing = depth + 0.002f // slight gap
@@ -35,8 +36,8 @@ class DominoChainTest {
 
         val dominos = Array(dominoCount) {
             val domino = StackOfBoxesTest.createRigidBody(0.05f, Vector3d(startX + it * spacing, y, z), dominoShape)
-            domino.friction = 0.5
-            domino.restitution = 0.1
+            domino.friction = 0.5f
+            domino.restitution = 0.1f
             world.addRigidBody(domino)
             domino
         }
@@ -45,20 +46,20 @@ class DominoChainTest {
         val firstDomino = dominos[0]
         // firstDomino.applyTorqueImpulse(new Vector3d(0, 0, -0.02f)); // tip around X-axis (forward)
         firstDomino.applyImpulse(
-            Vector3d(0.02, 0.0, 0.0),
-            Vector3d(0.0, (height / 2).toDouble(), (depth / 2).toDouble())
+            Vector3f(0.02, 0.0, 0.0),
+            Vector3f(0.0, (height / 2).toDouble(), (depth / 2).toDouble())
         )
 
         var lastFallenCount = 0
         val timeStep = 1f / 240f
         val numSteps = 2000
         for (i in 0 until numSteps) {
-            world.stepSimulation(timeStep.toDouble(), 10)
+            world.stepSimulation(timeStep, 10)
 
             var fallen = 0
             for (d in 0 until dominoCount) {
                 val tf = dominos[d].worldTransform
-                val up = Vector3d()
+                val up = Vector3f()
                 tf.basis.getColumn(1, up) // local Y axis
                 val dot = up.dot(Vector3d(0.0, 1.0, 0.0)) // how aligned with world up
                 if (dot < 0.7f) { // ~45 degrees tipped
@@ -75,7 +76,7 @@ class DominoChainTest {
         // Check that the last domino has fallen (tipped significantly)
         val lastTransform = dominos[dominoCount - 1].worldTransform
 
-        val upVector = Vector3d()
+        val upVector = Vector3f()
         lastTransform.basis.getColumn(1, upVector) // Y-axis of the last domino
 
         val verticalDot = upVector.dot(Vector3d(0.0, 1.0, 0.0)) // close to 1 if upright

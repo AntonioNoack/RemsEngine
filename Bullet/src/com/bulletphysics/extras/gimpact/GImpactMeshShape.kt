@@ -6,6 +6,7 @@ import com.bulletphysics.collision.shapes.TriangleCallback
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * @author jezek2
@@ -25,15 +26,17 @@ class GImpactMeshShape(meshInterface: StridingMeshInterface) : GImpactShapeInter
         return meshParts[index]
     }
 
-    override fun setLocalScaling(scaling: Vector3d) {
-        localScaling.set(scaling)
-        for (i in meshParts.indices) {
-            meshParts[i].setLocalScaling(scaling)
+    override var localScaling: Vector3f
+        get() = super.localScaling
+        set(value) {
+            super.localScaling = value
+            for (i in meshParts.indices) {
+                meshParts[i].localScaling = value
+            }
+            needsUpdate = true
         }
-        needsUpdate = true
-    }
 
-    override var margin: Double
+    override var margin: Float
         get() = collisionMargin
         set(value) {
             collisionMargin = value
@@ -50,22 +53,22 @@ class GImpactMeshShape(meshInterface: StridingMeshInterface) : GImpactShapeInter
         needsUpdate = true
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
 
-        val partialMass = mass / meshPartCount.toDouble()
+        val partialMass = mass / meshPartCount
 
-        inertia.set(0.0)
-        val partialInertia = Stack.newVec()
+        inertia.set(0f)
+        val partialInertia = Stack.newVec3f()
         for (i in 0 until meshPartCount) {
             getMeshPart(i).calculateLocalInertia(partialMass, partialInertia)
             inertia.add(partialInertia)
         }
-        Stack.subVec(1)
+        Stack.subVec3f(1)
 
         return inertia
     }
 
-    override val primitiveManager: PrimitiveManagerBase?
+    override val primitiveManager: PrimitiveManagerBase
         get() = throw NotImplementedError()
 
     override val numChildShapes: Int
@@ -109,22 +112,18 @@ class GImpactMeshShape(meshInterface: StridingMeshInterface) : GImpactShapeInter
         throw NotImplementedError()
     }
 
-    override val gImpactShapeType: ShapeType?
+    override val gImpactShapeType: ShapeType
         get() = ShapeType.TRIMESH_SHAPE
 
     override fun processAllTriangles(callback: TriangleCallback, aabbMin: Vector3d, aabbMax: Vector3d) {
         for (i in meshParts.indices) {
-            meshParts[i]
-                .processAllTriangles(callback, aabbMin, aabbMax)
+            meshParts[i].processAllTriangles(callback, aabbMin, aabbMax)
         }
     }
 
     fun buildMeshParts(meshInterface: StridingMeshInterface) {
-        var i = 0
-        val len = meshInterface.numSubParts
-        while (i < len) {
+        for (i in 0 until meshInterface.numSubParts) {
             meshParts.add(GImpactMeshShapePart(meshInterface, i))
-            i++
         }
     }
 

@@ -56,12 +56,7 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
         dispatchInfo: DispatcherInfo,
         resultOut: ManifoldResult
     ) {
-        val manifoldPtr = manifoldPtr
-        if (manifoldPtr == null) {
-            return
-        }
-
-        val tmpTrans = Stack.newTrans()
+        val manifoldPtr = manifoldPtr ?: return
 
         val convexObj = if (isSwapped) body1 else body0
         val planeObj = if (isSwapped) body0 else body1
@@ -69,7 +64,7 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
         val convexShape = convexObj.collisionShape as ConvexShape
         val planeShape = planeObj.collisionShape as StaticPlaneShape
 
-        val planeNormal = Stack.newVec().set(planeShape.planeNormal)
+        val planeNormal = Stack.newVec3f().set(planeShape.planeNormal)
         val planeConstant = planeShape.planeConstant
 
         val planeInConvex = Stack.newTrans()
@@ -81,33 +76,34 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
         convexInPlaneTrans.setInverse(planeObj.worldTransform)
         convexInPlaneTrans.mul(convexObj.worldTransform)
 
-        val tmp = Stack.newVec()
+        val tmp = Stack.newVec3f()
         planeNormal.negate(tmp)
-        planeInConvex.basis.transform(tmp)
+        tmp.mul(planeInConvex.basis)
 
-        val vtx = convexShape.localGetSupportingVertex(tmp, Stack.newVec())
-        val vtxInPlane = Stack.newVec(vtx)
+        val vtx = convexShape.localGetSupportingVertex(tmp, Stack.newVec3f())
+        val vtxInPlane = Stack.newVec3f(vtx)
         convexInPlaneTrans.transformPosition(vtxInPlane)
 
-        val distance = (planeNormal.dot(vtxInPlane) - planeConstant)
+        val distance = (planeNormal.dot(vtxInPlane) - planeConstant).toFloat()
 
-        val vtxInPlaneProjected = Stack.newVec()
+        val vtxInPlaneProjected = Stack.newVec3f()
         planeNormal.mul(distance, tmp)
         vtxInPlane.sub(tmp, vtxInPlaneProjected)
 
-        val vtxInPlaneWorld = Stack.newVec(vtxInPlaneProjected)
-        planeObj.getWorldTransform(tmpTrans).transformPosition(vtxInPlaneWorld)
+        val vtxInPlaneWorld = Stack.newVec3f(vtxInPlaneProjected)
+        planeObj.worldTransform.transformPosition(vtxInPlaneWorld)
 
         val hasCollision = distance < manifoldPtr.contactBreakingThreshold
         resultOut.persistentManifold = manifoldPtr
         if (hasCollision) {
             // report a contact. internally this will be kept persistent, and contact reduction is done
-            val normalOnSurfaceB = Stack.newVec(planeNormal)
-            planeObj.getWorldTransform(tmpTrans).basis.transform(normalOnSurfaceB)
+            val normalOnSurfaceB = Stack.newVec3f(planeNormal)
+            normalOnSurfaceB.mul(planeObj.worldTransform.basis)
 
-            val pOnB = Stack.newVec(vtxInPlaneWorld)
+            val pOnB = Stack.newVec3d().set(vtxInPlaneWorld)
             resultOut.addContactPoint(normalOnSurfaceB, pOnB, distance)
-            Stack.subVec(2)
+            Stack.subVec3f(1)
+            Stack.subVec3f(1)
         }
         if (ownsManifold) {
             if (manifoldPtr.numContacts != 0) {
@@ -115,8 +111,8 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
             }
         }
 
-        Stack.subTrans(3)
-        Stack.subVec(6)
+        Stack.subTrans(2)
+        Stack.subVec3f(6)
     }
 
     override fun calculateTimeOfImpact(
@@ -124,9 +120,9 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
         body1: CollisionObject,
         dispatchInfo: DispatcherInfo,
         resultOut: ManifoldResult
-    ): Double {
+    ): Float {
         // not yet
-        return 1.0
+        return 1f
     }
 
     override fun getAllContactManifolds(dst: ArrayList<PersistentManifold>) {

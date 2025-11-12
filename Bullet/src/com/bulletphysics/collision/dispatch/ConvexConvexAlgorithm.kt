@@ -22,10 +22,10 @@ import cz.advel.stack.Stack
  */
 class ConvexConvexAlgorithm : CollisionAlgorithm() {
     companion object {
-        private val unusedSphere = SphereShape(1.0)
+        private val unusedSphere = SphereShape(1f)
     }
 
-    val pointInputsPool = ObjectPool.Companion.get(ClosestPointInput::class.java)
+    val pointInputsPool = ObjectPool.get(ClosestPointInput::class.java)
 
     private val gjkPairDetector = GjkPairDetector()
 
@@ -103,7 +103,7 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
     override fun calculateTimeOfImpact(
         body0: CollisionObject, body1: CollisionObject,
         dispatchInfo: DispatcherInfo, resultOut: ManifoldResult
-    ): Double {
+    ): Float {
 
         // Rather than checking ALL pairs, only calculate TOI when motion exceeds threshold
 
@@ -113,7 +113,7 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
         val squareMot0 = body0.interpolationWorldTransform.origin.distanceSquared(body0.worldTransform.origin)
         val squareMot1 = body1.interpolationWorldTransform.origin.distanceSquared(body1.worldTransform.origin)
 
-        var resultFraction = 1.0
+        var resultFraction = 1f
         if (squareMot0 < body0.ccdSquareMotionThreshold &&
             squareMot1 < body1.ccdSquareMotionThreshold
         ) return resultFraction
@@ -135,7 +135,7 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
         return calculateTimeOfImpactI(body0, body1, sphere0, convex1, resultFraction)
     }
 
-    private fun createSphere(radius: Double): SphereShape {
+    private fun createSphere(radius: Float): SphereShape {
         val sphere = DiscreteDynamicsWorld.tmpSphere.get()
         sphere.radius = radius
         return sphere
@@ -144,8 +144,8 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
     private fun calculateTimeOfImpactI(
         body0: CollisionObject, body1: CollisionObject,
         convex0: ConvexShape, sphere1: ConvexShape,
-        resultFraction: Double
-    ): Double {
+        resultFraction: Float
+    ): Float {
 
         // todo: allow non-zero sphere sizes, for better approximation
         val result = Stack.newCastResult()
@@ -189,7 +189,7 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
     /** ///////////////////////////////////////////////////////////////////////// */
     class CreateFunc(val simplexSolver: SimplexSolverInterface, val pdSolver: ConvexPenetrationDepthSolver) :
         CollisionAlgorithmCreateFunc() {
-        private val pool = ObjectPool.Companion.get(ConvexConvexAlgorithm::class.java)
+        private val pool = ObjectPool.get(ConvexConvexAlgorithm::class.java)
 
         override fun createCollisionAlgorithm(
             ci: CollisionAlgorithmConstructionInfo,

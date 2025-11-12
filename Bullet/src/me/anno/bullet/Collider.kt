@@ -45,7 +45,7 @@ fun verticesToFloatArray(vertices: List<Vector3d>): FloatArray {
     return dst
 }
 
-fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
+fun MeshCollider.createBulletMeshShape(scale: Vector3f): CollisionShape {
 
     val mesh = mesh as? Mesh ?: return defaultShape
 
@@ -67,8 +67,8 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
 
         val convex = ConvexHullShape(positions, null)
 
-        convex.setLocalScaling(scale)
-        convex.margin = 0.0
+        convex.localScaling = scale
+        convex.margin = 0f
 
         val min = Vector3d()
         val max = Vector3d()
@@ -77,7 +77,7 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
         val maxNumVertices = maxNumVertices
         val numVertices = positions.size / 3
         if (maxNumVertices !in 4..numVertices) {
-            convex.margin = margin.toDouble()
+            convex.margin = margin
             return convex
         }
 
@@ -95,12 +95,12 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
         val hull = ConvexHulls.calculateConvexHull(positions, maxNumVertices)
         if (hull == null) {
             LOGGER.warn("Failed to create convex hull for ${mesh.ref}")
-            convex.margin = margin.toDouble()
+            convex.margin = margin
             return convex
         }
 
         val shape = ConvexHullShape(verticesToFloatArray(hull.vertices), hull.triangles)
-        shape.margin = margin.toDouble()
+        shape.margin = margin
         bulletInstance = shape
         return shape
     } else {
@@ -135,18 +135,15 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
             .order(ByteOrder.nativeOrder())
 
         val fb = vertexBase.asFloatBuffer()
-        if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
+        if (scale.x == 1f && scale.y == 1f && scale.z == 1f) {
             fb.put(positions)
         } else {
-            val sx = scale.x.toFloat()
-            val sy = scale.y.toFloat()
-            val sz = scale.z.toFloat()
             val tmp = Vector3f()
             forLoop(0, positions.size - 2, 3) { i ->
                 tmp.set(positions[i], positions[i + 1], positions[i + 2])
-                fb.put(tmp.x * sx)
-                fb.put(tmp.y * sy)
-                fb.put(tmp.z * sz)
+                fb.put(tmp.x * scale.x)
+                fb.put(tmp.y * scale.y)
+                fb.put(tmp.z * scale.z)
             }
         }
         fb.flip()
@@ -160,40 +157,40 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
             vertexCount, vertexBase, 12
         )
         val shape = BvhTriangleMeshShape(smi, true, true)
-        shape.margin = margin.toDouble()
+        shape.margin = margin
         return shape
     }
 }
 
-fun CapsuleCollider.createBulletCapsuleShape(scale: Vector3d): CapsuleShape {
+fun CapsuleCollider.createBulletCapsuleShape(scale: Vector3f): CapsuleShape {
     return when (axis) {
-        Axis.X -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2.0, axis) // x
-        Axis.Y -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2.0, axis) // y
-        Axis.Z -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2.0, axis) // z
-    }.apply { margin = roundness.toDouble() }
+        Axis.X -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2f, axis) // x
+        Axis.Y -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2f, axis) // y
+        Axis.Z -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2f, axis) // z
+    }.apply { margin = roundness }
 }
 
-fun ConeCollider.createBulletConeShape(scale: Vector3d): ConeShape {
+fun ConeCollider.createBulletConeShape(scale: Vector3f): ConeShape {
     val axis = axis
     return when (axis) {
         Axis.X -> ConeShape(radius * scale.y, height * scale.x, axis)
         Axis.Y -> ConeShape(radius * scale.x, height * scale.y, axis)
         Axis.Z -> ConeShape(radius * scale.x, height * scale.z, axis)
-    }.apply { margin = roundness.toDouble() }
+    }.apply { margin = roundness }
 }
 
-fun CylinderCollider.createBulletCylinderShape(scale: Vector3d): CylinderShape {
+fun CylinderCollider.createBulletCylinderShape(scale: Vector3f): CylinderShape {
     val axis = axis
     return when (axis) {
-        Axis.X -> CylinderShape(Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z), axis)
-        Axis.Y -> CylinderShape(Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z), axis)
-        Axis.Z -> CylinderShape(Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z), axis)
-    }.apply { margin = roundness.toDouble() }
+        Axis.X -> CylinderShape(Vector3f(halfHeight * scale.x, radius * scale.y, radius * scale.z), axis)
+        Axis.Y -> CylinderShape(Vector3f(radius * scale.x, halfHeight * scale.y, radius * scale.z), axis)
+        Axis.Z -> CylinderShape(Vector3f(radius * scale.x, radius * scale.y, halfHeight * scale.z), axis)
+    }.apply { margin = roundness }
 }
 
-fun BoxCollider.createBulletBoxShape(scale: Vector3d): BoxShape {
+fun BoxCollider.createBulletBoxShape(scale: Vector3f): BoxShape {
     return BoxShape(
-        Vector3d(
+        Vector3f(
             halfExtents.x * scale.x,
             halfExtents.y * scale.y,
             halfExtents.z * scale.z
@@ -201,23 +198,23 @@ fun BoxCollider.createBulletBoxShape(scale: Vector3d): BoxShape {
     ).apply { margin = roundness * scale.absMax() }
 }
 
-fun SphereCollider.createBulletSphereShape(scale: Vector3d): SphereShape {
+fun SphereCollider.createBulletSphereShape(scale: Vector3f): SphereShape {
     val maxScale = scale.absMax()
     return SphereShape(radius * maxScale).apply {
-        if (maxScale > 0.0) {
-            setLocalScaling(Vector3d(scale.x, scale.y, scale.z).div(maxScale))
+        if (maxScale > 0f) {
+            localScaling = Vector3f(scale).div(maxScale)
         } // else everything is 0 anyway
     }
 }
 
-fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
+fun createBulletShape(collider: Collider, scale: Vector3f): CollisionShape {
     return when (collider) {
         is MeshCollider -> collider.createBulletMeshShape(scale)
         is CapsuleCollider -> collider.createBulletCapsuleShape(scale)
         is ConeCollider -> collider.createBulletConeShape(scale)
         is ConvexCollider -> {
             val shape = ConvexHullShape(collider.points!!, null)
-            shape.setLocalScaling(scale)
+            shape.localScaling = scale
             shape.margin = collider.roundness * scale.absMax()
             shape
         }
@@ -225,7 +222,7 @@ fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
         // is CircleCollider -> SphereShape(collider.radius * scale.dot(0.33, 0.34, 0.33))
         is SphereCollider -> collider.createBulletSphereShape(scale)
         is BoxCollider -> collider.createBulletBoxShape(scale)
-        is InfinitePlaneCollider -> StaticPlaneShape(Vector3d(0.0, 1.0, 0.0), 0.0)
+        is InfinitePlaneCollider -> StaticPlaneShape(Vector3f(0.0, 1.0, 0.0), 0.0)
         /*is RectCollider -> {
             val halfExtents = collider.halfExtents
             return BoxShape(
@@ -244,12 +241,12 @@ fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
 
 fun createBulletCollider(
     collider: Collider, base: Entity,
-    bodyScale: Vector3d, centerOfMass: Vector3d
+    bodyScale: Vector3f, centerOfMass: Vector3d
 ): Pair<Transform, CollisionShape> {
     val transform0 = collider.entity!!.fromLocalToOtherLocal(base)
 
-    val localScale = JomlPools.vec3d.create()
-    val totalScale = JomlPools.vec3d.create()
+    val localScale = JomlPools.vec3f.create()
+    val totalScale = JomlPools.vec3f.create()
     val centerOfMass1 = JomlPools.vec3d.create()
 
     transform0.getScale(localScale)
@@ -262,11 +259,12 @@ fun createBulletCollider(
         centerOfMass1, Transform()
     )
     val shape = createBulletShape(collider, totalScale)
-    JomlPools.vec3d.sub(3)
+    JomlPools.vec3f.sub(1)
+    JomlPools.vec3d.sub(2)
 
     // there may be extra scale hidden in there
     return transform to shape
 }
 
 @JvmField
-val defaultShape = BoxShape(Vector3d(1.0, 1.0, 1.0))
+val defaultShape = BoxShape(Vector3f(1f))

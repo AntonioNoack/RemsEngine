@@ -4,6 +4,7 @@ import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * UniformScalingShape allows to re-use uniform scaled instances of [ConvexShape]
@@ -12,21 +13,21 @@ import org.joml.Vector3d
  *
  * @author jezek2
  */
-class UniformScalingShape(val childShape: ConvexShape, val uniformScalingFactor: Double) : ConvexShape() {
-    override fun localGetSupportingVertex(dir: Vector3d, out: Vector3d): Vector3d {
+class UniformScalingShape(val childShape: ConvexShape, val uniformScalingFactor: Float) : ConvexShape() {
+    override fun localGetSupportingVertex(dir: Vector3f, out: Vector3f): Vector3f {
         childShape.localGetSupportingVertex(dir, out)
         out.mul(uniformScalingFactor)
         return out
     }
 
-    override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
+    override fun localGetSupportingVertexWithoutMargin(dir: Vector3f, out: Vector3f): Vector3f {
         childShape.localGetSupportingVertexWithoutMargin(dir, out)
         out.mul(uniformScalingFactor)
         return out
     }
 
     override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        dirs: Array<Vector3d>, outs: Array<Vector3d>, numVectors: Int
+        dirs: Array<Vector3f>, outs: Array<Vector3f>, numVectors: Int
     ) {
         childShape.batchedUnitVectorGetSupportingVertexWithoutMargin(dirs, outs, numVectors)
         for (i in 0 until numVectors) {
@@ -36,11 +37,11 @@ class UniformScalingShape(val childShape: ConvexShape, val uniformScalingFactor:
 
     override fun getAabbSlow(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         childShape.getAabbSlow(t, aabbMin, aabbMax)
-        val aabbCenter = Stack.newVec()
+        val aabbCenter = Stack.newVec3d()
         aabbMax.add(aabbMin, aabbCenter)
             .mul(0.5)
 
-        val scaledAabbHalfExtents = Stack.newVec()
+        val scaledAabbHalfExtents = Stack.newVec3d()
         aabbMax.sub(aabbMin, scaledAabbHalfExtents)
             .mul(0.5 * uniformScalingFactor)
 
@@ -48,16 +49,13 @@ class UniformScalingShape(val childShape: ConvexShape, val uniformScalingFactor:
         aabbCenter.add(scaledAabbHalfExtents, aabbMax)
     }
 
-    override fun setLocalScaling(scaling: Vector3d) {
-        childShape.setLocalScaling(scaling)
-    }
+    override var localScaling: Vector3f
+        get() = childShape.localScaling
+        set(value) {
+            childShape.localScaling = value
+        }
 
-    override fun getLocalScaling(out: Vector3d): Vector3d {
-        childShape.getLocalScaling(out)
-        return out
-    }
-
-    override var margin: Double
+    override var margin: Float
         get() = childShape.margin * uniformScalingFactor
         set(margin) {
             childShape.margin = margin
@@ -66,30 +64,30 @@ class UniformScalingShape(val childShape: ConvexShape, val uniformScalingFactor:
     override val numPreferredPenetrationDirections: Int
         get() = childShape.numPreferredPenetrationDirections
 
-    override fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3d) {
+    override fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3f) {
         childShape.getPreferredPenetrationDirection(index, penetrationVector)
     }
 
     override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         childShape.getBounds(t, aabbMin, aabbMax)
 
-        val aabbCenter = Stack.newVec()
+        val aabbCenter = Stack.newVec3d()
         aabbMax.add(aabbMin, aabbCenter)
             .mul(0.5)
 
-        val scaledAabbHalfExtents = Stack.newVec()
+        val scaledAabbHalfExtents = Stack.newVec3d()
         aabbMax.sub(aabbMin, scaledAabbHalfExtents)
             .mul(0.5 * uniformScalingFactor)
 
         aabbCenter.sub(scaledAabbHalfExtents, aabbMin)
         aabbCenter.add(scaledAabbHalfExtents, aabbMax)
-        Stack.subVec(2)
+        Stack.subVec3d(2)
     }
 
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.UNIFORM_SCALING
 
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
         // this linear upscaling is not realistic, but we don't deal with large mass ratios...
         return childShape.calculateLocalInertia(mass, inertia).mul(uniformScalingFactor)
     }

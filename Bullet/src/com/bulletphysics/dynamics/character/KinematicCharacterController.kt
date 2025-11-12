@@ -19,6 +19,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.ui.UIColors
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.max
 
@@ -45,35 +46,35 @@ class KinematicCharacterController(
     val stepHeight get() = settings.stepHeight
     val upAxis get() = settings.upAxis
 
-    val fallSpeed: Double get() = settings.fallSpeed
-    val jumpSpeed: Double get() = settings.jumpSpeed
+    val fallSpeed get() = settings.fallSpeed
+    val jumpSpeed get() = settings.jumpSpeed
 
-    var verticalVelocity: Double = 0.0
-    var verticalOffset: Double = 0.0
+    var verticalVelocity = 0f
+    var verticalOffset = 0f
 
     /**
      * Slope angle that is set (used for returning the exact value)
      * todo can we somehow use this??? maybe when there was no step & angle is above this, reset?
      * */
-    val maxSlopeRadians: Double get() = settings.maxSlopeDegrees.toRadians()
+    val maxSlopeRadians get() = settings.maxSlopeDegrees.toRadians()
 
     /**
      * Cosine equivalent of maxSlopeRadians
      * */
-    val maxSlopeCosine: Double get() = cos(maxSlopeRadians)
+    val maxSlopeCosine get() = cos(maxSlopeRadians)
 
     /**
      * 1G acceleration
      * */
-    val gravity: Double get() = settings.gravity
+    val gravity get() = settings.gravity
 
     // this is the desired walk direction, set by the user
-    val targetVelocity = Vector3d()
-    val normalizedDirection = Vector3d()
+    val targetVelocity = Vector3f()
+    val normalizedDirection = Vector3f()
 
     // some internal variables
     val currentPosition = ghostObject.worldTransform.origin
-    var currentStepOffset: Double = 0.0
+    var currentStepOffset = 0f
 
     private val start = ghostObject.worldTransform
     private val end = Transform()
@@ -83,13 +84,13 @@ class KinematicCharacterController(
     // keep track of the contact manifolds
     val manifolds = ArrayList<PersistentManifold>()
 
-    var touchingContact: Boolean = false
-    val touchingNormal = Vector3d()
+    var touchingContact = false
+    val touchingNormal = Vector3f()
 
-    var wasOnGround: Boolean = false
+    var wasOnGround = false
 
     // ActionInterface interface
-    override fun updateAction(collisionWorld: CollisionWorld, deltaTimeStep: Double) {
+    override fun updateAction(collisionWorld: CollisionWorld, deltaTimeStep: Float) {
         preStep(collisionWorld)
         playerStep(collisionWorld, deltaTimeStep)
     }
@@ -107,7 +108,7 @@ class KinematicCharacterController(
         ghostObject.worldTransform.setTranslation(newPosition)
     }
 
-    var penetration = 0.0
+    var penetration = 0f
         private set
 
     val maxPenetrationIterations = 4
@@ -116,7 +117,7 @@ class KinematicCharacterController(
         touchingContact = false
         for (i in 0 until maxPenetrationIterations) {
             penetration = recoverFromPenetration(collisionWorld, true)
-            if (penetration == 0.0) break
+            if (penetration == 0f) break
             touchingContact = true
         }
     }
@@ -127,16 +128,16 @@ class KinematicCharacterController(
         targetPosition.set(currentPosition)
     }
 
-    fun playerStep(collisionWorld: CollisionWorld, dt: Double) {
+    fun playerStep(collisionWorld: CollisionWorld, timeStep: Float) {
         wasOnGround = onGround()
 
         // Update fall velocity.
-        verticalVelocity = clamp(verticalVelocity - gravity * dt, -fallSpeed, jumpSpeed)
-        verticalOffset = verticalVelocity * dt
+        verticalVelocity = clamp(verticalVelocity - gravity * timeStep, -fallSpeed, jumpSpeed)
+        verticalOffset = verticalVelocity * timeStep
 
         stepUp(collisionWorld)
-        stepForwardAndStrafe(collisionWorld, dt)
-        stepDown(collisionWorld, dt)
+        stepForwardAndStrafe(collisionWorld, timeStep)
+        stepDown(collisionWorld, timeStep)
 
         recoverFromPenetrationI(collisionWorld)
     }
@@ -151,7 +152,7 @@ class KinematicCharacterController(
     }
 
     fun onGround(): Boolean {
-        return verticalVelocity == 0.0 && verticalOffset == 0.0
+        return verticalVelocity == 0f && verticalOffset == 0f
     }
 
     /**
@@ -160,15 +161,15 @@ class KinematicCharacterController(
      *
      * From: [Stanford-Article](http://www-cs-students.stanford.edu/~adityagp/final/node3.html)
      */
-    fun computeReflectionDirection(direction: Vector3d, normal: Vector3d, out: Vector3d): Vector3d {
-        normal.mul(-2.0 * direction.dot(normal), out)
+    fun computeReflectionDirection(direction: Vector3f, normal: Vector3f, out: Vector3f): Vector3f {
+        normal.mul(-2f * direction.dot(normal), out)
         return out.add(direction)
     }
 
     /**
      * Returns the portion of 'direction' that is parallel to 'normal'
      */
-    fun parallelComponent(direction: Vector3d, normal: Vector3d, out: Vector3d): Vector3d {
+    fun parallelComponent(direction: Vector3f, normal: Vector3f, out: Vector3f): Vector3f {
         val magnitude = direction.dot(normal)
         return normal.mul(magnitude, out)
     }
@@ -176,7 +177,7 @@ class KinematicCharacterController(
     /**
      * Returns the portion of 'direction' that is perpendicular to 'normal'
      */
-    fun perpendicularComponent(direction: Vector3d, normal: Vector3d, out: Vector3d): Vector3d {
+    fun perpendicularComponent(direction: Vector3f, normal: Vector3f, out: Vector3f): Vector3f {
         // perpendicular = direction - parallel
         val perpendicular = parallelComponent(direction, normal, out)
         direction.sub(perpendicular, perpendicular)
@@ -186,15 +187,15 @@ class KinematicCharacterController(
     /**
      * Returns > 0, if penetrating, 0 else
      * */
-    fun recoverFromPenetration(collisionWorld: CollisionWorld, apply: Boolean): Double {
+    fun recoverFromPenetration(collisionWorld: CollisionWorld, apply: Boolean): Float {
         collisionWorld.dispatcher.dispatchAllCollisionPairs(
             ghostObject.overlappingPairCache,
             collisionWorld.dispatchInfo, collisionWorld.dispatcher
         )
 
-        var maxPenetration = 0.0
+        var maxPenetration = 0f
         var numAdds = 0
-        val direction = Stack.newVec()
+        val direction = Stack.newVec3f()
         ghostObject.overlappingPairCache.processAllOverlappingPairs { collisionPair ->
 
             manifolds.clear()
@@ -202,12 +203,12 @@ class KinematicCharacterController(
 
             for (j in manifolds.indices) {
                 val manifold = manifolds[j]
-                val directionSign = if (manifold.body0 === ghostObject) -1.0 else 1.0
+                val directionSign = if (manifold.body0 === ghostObject) -1f else 1f
                 for (p in 0 until manifold.numContacts) {
                     val pt = manifold.getContactPoint(p)
 
                     val dist = pt.distance
-                    if (dist < 0.0) {
+                    if (dist < 0f) {
                         if (dist < maxPenetration) {
                             maxPenetration = dist
                             touchingNormal.set(pt.normalWorldOnB)
@@ -223,10 +224,10 @@ class KinematicCharacterController(
         }
 
         if (numAdds > 0 && apply) {
-            direction.mul(1.0001 / numAdds)
+            direction.mul(1.0001f / numAdds)
 
             // todo when trying to walk up... this resets everything
-            if (direction.length() > 1e-6) {
+            if (direction.length() > 1e-6f) {
                 DebugShapes.showDebugLine(
                     DebugLine(
                         Vector3d(currentPosition),
@@ -242,15 +243,15 @@ class KinematicCharacterController(
         return -maxPenetration
     }
 
-    private val upAxisV: Vector3d
+    private val upAxisV: Vector3f
         get() = upAxisDirection[upAxis.id]
 
     fun stepUp(world: CollisionWorld) {
         // phase 1: up
-        upAxisV.mulAdd(stepHeight + max(verticalOffset, 0.0), currentPosition, targetPosition)
+        upAxisV.mulAdd(stepHeight + max(verticalOffset, 0f), currentPosition, targetPosition)
 
         val ghostObject = ghostObject
-        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, 0.0)
+        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, 0f)
         callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
         ghostObject.convexSweepTest(
@@ -261,10 +262,10 @@ class KinematicCharacterController(
         if (callback.hasHit()) {
             // we moved up only a fraction of the step height
             currentStepOffset = stepHeight * callback.closestHitFraction
-            currentPosition.lerp(targetPosition, callback.closestHitFraction)
+            currentPosition.lerp(targetPosition, callback.closestHitFraction.toDouble())
             // set onGround = true
-            verticalVelocity = 0.0
-            verticalOffset = 0.0
+            verticalVelocity = 0f
+            verticalOffset = 0f
         } else {
             currentStepOffset = stepHeight
             currentPosition.set(targetPosition)
@@ -272,43 +273,43 @@ class KinematicCharacterController(
     }
 
     fun updateTargetPositionBasedOnCollision(
-        hitNormal: Vector3d,
-        tangentMag: Double = 0.5,
-        normalMag: Double = 1.0
+        hitNormal: Vector3f,
+        tangentMag: Float = 0.5f,
+        normalMag: Float = 1f
     ) {
-        val movementDirection = Stack.newVec()
+        val movementDirection = Stack.newVec3f()
         targetPosition.sub(currentPosition, movementDirection)
         val movementLength = movementDirection.length()
         if (movementLength > BulletGlobals.SIMD_EPSILON) {
             movementDirection.normalize()
 
-            val reflectDir = computeReflectionDirection(movementDirection, hitNormal, Stack.newVec())
+            val reflectDir = computeReflectionDirection(movementDirection, hitNormal, Stack.newVec3f())
             reflectDir.normalize()
 
-            val parallelDir = parallelComponent(reflectDir, hitNormal, Stack.newVec())
-            val perpendicularDir = perpendicularComponent(reflectDir, hitNormal, Stack.newVec())
+            val parallelDir = parallelComponent(reflectDir, hitNormal, Stack.newVec3f())
+            val perpendicularDir = perpendicularComponent(reflectDir, hitNormal, Stack.newVec3f())
 
             targetPosition.set(currentPosition)
             targetPosition.fma(tangentMag * movementLength, parallelDir)
             targetPosition.fma(normalMag * movementLength, perpendicularDir)
-            Stack.subVec(3)
+            Stack.subVec3f(3)
         }
-        Stack.subVec(1)
+        Stack.subVec3f(1)
     }
 
-    fun stepForwardAndStrafe(collisionWorld: CollisionWorld, dt: Double) {
+    fun stepForwardAndStrafe(collisionWorld: CollisionWorld, timeStep: Float) {
         // phase 2: forward and strafe
-        currentPosition.fma(dt, targetVelocity, targetPosition)
+        currentPosition.fma(timeStep, targetVelocity, targetPosition)
 
-        var fraction = 1.0
+        var fraction = 1f
         val ghostObject = ghostObject
-        val hitDistanceVec = Stack.newVec()
-        val currentDir = Stack.newVec()
+        val hitDistanceVec = Stack.newVec3d()
+        val currentDir = Stack.newVec3d()
 
         var maxIter = 10
-        while (fraction > 0.01 && maxIter-- > 0) {
+        while (fraction > 0.01f && maxIter-- > 0) {
 
-            val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, -1.0)
+            val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, -1f)
             callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
             ghostObject.convexSweepTest(
@@ -328,7 +329,7 @@ class KinematicCharacterController(
                 if (distance2 > BulletGlobals.SIMD_EPSILON) {
                     currentDir.normalize()
                     // see Quake2: "If velocity is against original velocity, stop to avoid tiny oscillations in sloping corners."
-                    if (currentDir.dot(normalizedDirection) <= 0.0) {
+                    if (currentDir.dot(normalizedDirection) <= 0f) {
                         break
                     }
                 } else break
@@ -338,18 +339,18 @@ class KinematicCharacterController(
             }
         }
 
-        Stack.subVec(2)
+        Stack.subVec3d(2)
     }
 
-    fun stepDown(collisionWorld: CollisionWorld, dt: Double) {
+    fun stepDown(collisionWorld: CollisionWorld, timeStep: Float) {
         // phase 3: down
-        val additionalDownStep = if (wasOnGround && !onGround()) stepHeight else 0.0
+        val additionalDownStep = if (wasOnGround && !onGround()) stepHeight else 0f
         val stepDrop = currentStepOffset + additionalDownStep
-        val gravityDrop = (if (additionalDownStep == 0.0 && verticalVelocity < 0.0) -verticalVelocity else 0.0) * dt
-        targetPosition.fma(-(stepDrop + gravityDrop), upAxisV)
+        val gravityDrop = (if (additionalDownStep == 0f && verticalVelocity < 0f) -verticalVelocity else 0f) * timeStep
+        targetPosition.fma(-(stepDrop + gravityDrop).toDouble(), upAxisV)
 
         // if we use maxSlopeCosine here, some objects are ignored, which prevents us from taking steps upwards
-        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, -1.0)
+        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisV, -1f)
         callback.collisionFilter = ghostObject.broadphaseHandle!!.collisionFilter
 
         ghostObject.convexSweepTest(
@@ -359,9 +360,9 @@ class KinematicCharacterController(
 
         if (callback.hasHit()) {
             // we dropped a fraction of the height -> hit floor
-            currentPosition.lerp(targetPosition, callback.closestHitFraction)
-            verticalVelocity = 0.0
-            verticalOffset = 0.0
+            currentPosition.lerp(targetPosition, callback.closestHitFraction.toDouble())
+            verticalVelocity = 0f
+            verticalOffset = 0f
         } else {
             // we dropped the full height
             currentPosition.set(targetPosition)
@@ -371,38 +372,31 @@ class KinematicCharacterController(
 
     /** ///////////////////////////////////////////////////////////////////////// */
     private class KinematicClosestNotMeConvexResultCallback(
-        me: CollisionObject?, up: Vector3d, minSlopeDot: Double
+        val me: CollisionObject?, val up: Vector3f, var minSlopeDot: Float
     ) : ClosestConvexResultCallback() {
-
-        var me: CollisionObject?
-        val up: Vector3d
-        var minSlopeDot: Double
 
         init {
             init(Vector3d(), Vector3d())
-            this.me = me
-            this.up = up
-            this.minSlopeDot = minSlopeDot
         }
 
-        override fun addSingleResult(convexResult: LocalConvexResult, normalInWorldSpace: Boolean): Double {
-            if (convexResult.hitCollisionObject === me) return 1.0
+        override fun addSingleResult(convexResult: LocalConvexResult, normalInWorldSpace: Boolean): Float {
+            if (convexResult.hitCollisionObject === me) return 1f
             if (normalInWorldSpace) {
                 val hitNormalWorld = convexResult.hitNormalLocal
                 val dotUp = up.dot(hitNormalWorld)
-                if (dotUp < minSlopeDot) return 1.0
+                if (dotUp < minSlopeDot) return 1f
             } else {
                 // need to transform normal into world space
-                val hitNormalWorld = Stack.newVec()
+                val hitNormalWorld = Stack.newVec3f()
 
                 convexResult.hitCollisionObject!!
                     .worldTransform.basis
                     .transform(convexResult.hitNormalLocal, hitNormalWorld)
 
                 val dotUp = up.dot(hitNormalWorld)
-                if (dotUp < minSlopeDot) return 1.0
+                if (dotUp < minSlopeDot) return 1f
 
-                Stack.subVec(1)
+                Stack.subVec3d(1)
             }
 
             return super.addSingleResult(convexResult, normalInWorldSpace)
@@ -411,9 +405,9 @@ class KinematicCharacterController(
 
     companion object {
         private val upAxisDirection = arrayOf(
-            Vector3d(1.0, 0.0, 0.0),
-            Vector3d(0.0, 1.0, 0.0),
-            Vector3d(0.0, 0.0, 1.0),
+            Vector3f(1.0, 0.0, 0.0),
+            Vector3f(0.0, 1.0, 0.0),
+            Vector3f(0.0, 0.0, 1.0),
         )
     }
 }

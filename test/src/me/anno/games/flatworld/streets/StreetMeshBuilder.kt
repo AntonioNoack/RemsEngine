@@ -108,7 +108,7 @@ object StreetMeshBuilder {
         p: Vector3d, p0: Vector3d, p1: Vector3d
     ) {
         val dx = p1.sub(p0, Vector3d())
-            .cross(0.0, 1.0, 0.0)
+            .crossY()
             .safeNormalize()
         leftRightStepAdd(result, p, dx)
     }

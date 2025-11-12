@@ -15,27 +15,27 @@ import me.anno.engine.serialization.SerializedProperty
 class CharacterBody : GhostBody() {
 
     @SerializedProperty
-    var stepHeight = 0.5
+    var stepHeight = 0.5f
 
     @SerializedProperty
     var upAxis = Axis.Y
 
     @SerializedProperty
-    var maxSlopeDegrees = 30.0
+    var maxSlopeDegrees = 30f
 
     /**
      * Terminal velocity of a skydiver in m/s.
      * */
     @Range(0.0, 1e308)
     @SerializedProperty
-    var fallSpeed = 55.0
+    var fallSpeed = 55f
 
     @Range(0.0, 1e308)
     @SerializedProperty
-    var jumpSpeed = 10.0
+    var jumpSpeed = 10f
 
     @SerializedProperty
-    var gravity = 9.81
+    var gravity = 9.81f
 
     @DebugProperty
     @NotSerializedProperty
@@ -59,11 +59,11 @@ class CharacterBody : GhostBody() {
     }
 
     @DebugProperty
-    val verticalVelocity get() = nativeInstance2?.verticalVelocity ?: 0.0
+    val verticalVelocity get() = nativeInstance2?.verticalVelocity ?: 0f
 
     @DebugProperty
-    val verticalOffset get() = nativeInstance2?.verticalOffset ?: 0.0
+    val verticalOffset get() = nativeInstance2?.verticalOffset ?: 0f
 
     @DebugProperty
-    val penetration get() = nativeInstance2?.penetration ?: 0.0
+    val penetration get() = nativeInstance2?.penetration ?: 0f
 }

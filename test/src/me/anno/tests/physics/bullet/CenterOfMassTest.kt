@@ -42,7 +42,7 @@ fun main() {
         .add(SphereCollider())
         .add(DynamicBody().apply {
             centerOfMass.set(0.0, 0.25, 0.0)
-            mass = 1.0
+            mass = 1.0f
         })
         .setPosition(+1.5, 1.0, 0.0)
 

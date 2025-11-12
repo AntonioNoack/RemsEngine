@@ -19,7 +19,7 @@ class CenterOfMassTests {
             .rotateY(0.2f)
             .rotateZ(0.3f)
 
-        val scale = Vector3d(1.0, 2.0, 3.0)
+        val scale = Vector3f(1.0, 2.0, 3.0)
         val position = Vector3d(-5.0, 3.0, 1.0)
         val centerOfMass = Vector3d(7.0, 2.0, 13.0)
 

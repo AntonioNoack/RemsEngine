@@ -79,9 +79,9 @@ fun runDominoTest(numDominos: Int, numSteps: Int) {
             .setPosition(x.toDouble(), (halfExtents1.y + margin1).toDouble(), z.toDouble())
             .add(MeshComponent(mesh))
             .add(DynamicBody().apply {
-                mass = mass1
-                friction = 0.3
-                restitution = 0.0
+                mass = mass1.toFloat()
+                friction = 0.3f
+                restitution = 0.0f
             })
             .add(BoxCollider().apply {
                 halfExtents = halfExtents1
@@ -93,8 +93,8 @@ fun runDominoTest(numDominos: Int, numSteps: Int) {
     Entity("Floor", scene)
         .add(InfinitePlaneCollider())
         .add(StaticBody().apply {
-            friction = 0.9
-            restitution = 0.0
+            friction = 0.9f
+            restitution = 0.0f
         })
 
     val spacingZ = height * 0.7f

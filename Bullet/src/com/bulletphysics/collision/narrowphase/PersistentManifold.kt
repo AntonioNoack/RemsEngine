@@ -89,16 +89,16 @@ class PersistentManifold {
     }
 
     private fun getPenetration(pt: ManifoldPoint, i: Int, j: Int, k: Int): Double {
-        val a3 = Stack.newVec(pt.localPointA)
+        val a3 = Stack.newVec3d(pt.localPointA)
         a3.sub(pointCache[i].localPointA)
 
-        val b3 = Stack.newVec(pointCache[j].localPointA)
+        val b3 = Stack.newVec3d(pointCache[j].localPointA)
         b3.sub(pointCache[k].localPointA)
 
-        val cross = Stack.newVec()
+        val cross = Stack.newVec3d()
         a3.cross(b3, cross)
         val res3 = cross.lengthSquared()
-        Stack.subVec(3)
+        Stack.subVec3d(3)
         return res3
     }
 
@@ -119,15 +119,15 @@ class PersistentManifold {
         return pointCache[index]
     }
 
-    val contactBreakingThreshold: Double
-        // todo: get this margin from the current physics / collision environment
+    // todo: get this margin from the current physics / collision environment
+    val contactBreakingThreshold: Float
         get() = BulletGlobals.contactBreakingThreshold
 
     fun getCacheEntry(newPoint: ManifoldPoint): Int {
-        var shortestDist = sq(contactBreakingThreshold)
+        var shortestDist = sq(contactBreakingThreshold.toDouble())
         val size = this.numContacts
         var nearestPoint = -1
-        val diffA = Stack.newVec()
+        val diffA = Stack.newVec3d()
         val newLocalPoint = newPoint.localPointA
         for (i in 0 until size) {
             pointCache[i].localPointA
@@ -138,7 +138,7 @@ class PersistentManifold {
                 nearestPoint = i
             }
         }
-        Stack.subVec(1)
+        Stack.subVec3d(1)
         return nearestPoint
     }
 
@@ -172,10 +172,10 @@ class PersistentManifold {
             pointCache[index].set(pointCache[lastUsedIndex])
             //get rid of duplicated userPersistentData pointer
             pointCache[lastUsedIndex].userPersistentData = null
-            pointCache[lastUsedIndex].appliedImpulse = 0.0
+            pointCache[lastUsedIndex].appliedImpulse = 0f
             pointCache[lastUsedIndex].lateralFrictionInitialized = false
-            pointCache[lastUsedIndex].appliedImpulseLateral1 = 0.0
-            pointCache[lastUsedIndex].appliedImpulseLateral2 = 0.0
+            pointCache[lastUsedIndex].appliedImpulseLateral1 = 0f
+            pointCache[lastUsedIndex].appliedImpulseLateral2 = 0f
             pointCache[lastUsedIndex].lifeTime = 0
         }
 
@@ -208,7 +208,7 @@ class PersistentManifold {
 
     // calculated new worldspace coordinates and depth, and reject points that exceed the collision margin
     fun refreshContactPoints(trA: Transform, trB: Transform) {
-        val tmp = Stack.newVec()
+        val tmp = Stack.newVec3d()
         //#ifdef DEBUG_PERSISTENCY
 //	printf("refreshContactPoints posA = (%f,%f,%f) posB = (%f,%f,%f)\n",
 //		trA.getOrigin().getX(),
@@ -228,16 +228,15 @@ class PersistentManifold {
             manifoldPoint.positionWorldOnB.set(manifoldPoint.localPointB)
             trB.transformPosition(manifoldPoint.positionWorldOnB)
 
-            tmp.set(manifoldPoint.positionWorldOnA)
-            tmp.sub(manifoldPoint.positionWorldOnB)
-            manifoldPoint.distance = tmp.dot(manifoldPoint.normalWorldOnB)
+            tmp.set(manifoldPoint.positionWorldOnA).sub(manifoldPoint.positionWorldOnB)
+            manifoldPoint.distance = tmp.dot(manifoldPoint.normalWorldOnB).toFloat()
 
             manifoldPoint.lifeTime++
         }
 
         // then
-        val projectedDifference = Stack.newVec()
-        val projectedPoint = Stack.newVec()
+        val projectedDifference = Stack.newVec3d()
+        val projectedPoint = Stack.newVec3d()
 
         for (i in numContacts - 1 downTo 0) {
             val manifoldPoint = pointCache[i]
@@ -246,7 +245,7 @@ class PersistentManifold {
                 removeContactPoint(i)
             } else {
                 // contact also becomes invalid when relative movement orthogonal to normal exceeds margin
-                manifoldPoint.normalWorldOnB.mul(manifoldPoint.distance, tmp)
+                tmp.set(manifoldPoint.normalWorldOnB).mul(manifoldPoint.distance.toDouble())
                 manifoldPoint.positionWorldOnA.sub(tmp, projectedPoint)
                 manifoldPoint.positionWorldOnB.sub(projectedPoint, projectedDifference)
                 val distance2d = projectedDifference.dot(projectedDifference)
@@ -255,18 +254,18 @@ class PersistentManifold {
                 } else {
                     // contact point processed callback
                     BulletGlobals.contactProcessedCallback
-                        ?.contactProcessed(manifoldPoint, body0!!, body1!!)
+                        ?.contactProcessed(manifoldPoint, body0, body1)
                 }
             }
         }
 
-        Stack.subVec(3)
+        Stack.subVec3d(3)
     }
 
     fun clearManifold() {
-        for (i in 0 until this.numContacts) {
+        for (i in 0 until numContacts) {
             clearUserCache(pointCache[i])
         }
-        this.numContacts = 0
+        numContacts = 0
     }
 }

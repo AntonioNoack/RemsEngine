@@ -4,28 +4,29 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.prefab.PrefabSaveable
-import org.joml.Vector3d
-import kotlin.math.PI
+import me.anno.maths.Maths.PIf
+import org.joml.Vector3f
 
 class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.HingeConstraint>() {
 
     @Range(0.0, 2.0)
-    var axis = 0
+    var axis = Axis.X
         set(value) {
-            if (field != value && value in 0..2) {
+            if (field != value) {
                 field = value
                 invalidateConstraint()
             }
         }
 
-    var motorTorque = 0.0
+    var motorTorque = 0f
         set(value) {
             field = value
             bulletInstance?.maxMotorImpulse = value
         }
 
-    var motorVelocity = 0.0
+    var motorVelocity = 0f
         set(value) {
             field = value
             bulletInstance?.motorTargetVelocity = value
@@ -43,19 +44,19 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
             bulletInstance?.angularOnly = value
         }
 
-    var limitSoftness = 0.9
+    var limitSoftness = 0.9f
         set(value) {
             field = value
             bulletInstance?.limitSoftness = value
         }
 
-    var biasFactor = 0.3
+    var biasFactor = 0.3f
         set(value) {
             field = value
             bulletInstance?.biasFactor = value
         }
 
-    var relaxation = 1.0
+    var relaxation = 1.0f
         set(value) {
             field = value
             bulletInstance?.relaxationFactor = value
@@ -63,7 +64,7 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
 
     @Range(-3.1416, 3.1416)
     @Docs("Minimum allowed angle in radians; only works if strictly less than upperLimit")
-    var lowerLimit = -PI / 2
+    var lowerLimit = -PIf / 2
         set(value) {
             field = value
             bulletInstance?.lowerLimit = value
@@ -71,7 +72,7 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
 
     @Range(-3.1416, 3.1416)
     @Docs("Maximum allowed angle in radians; only works if strictly more than lowerLimit")
-    var upperLimit = PI / 2
+    var upperLimit = +PIf / 2
         set(value) {
             field = value
             bulletInstance?.upperLimit = value
@@ -80,12 +81,12 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
     override fun createConstraint(
         a: RigidBody, b: RigidBody, ta: Transform, tb: Transform
     ): com.bulletphysics.dynamics.constraintsolver.HingeConstraint {
-        val axisA = Vector3d()
-        val axisB = Vector3d()
+        val axisA = Vector3f()
+        val axisB = Vector3f()
         // col or row?
         // it's rotation, so at worst, it's the opposite direction
-        ta.basis.getColumn(axis, axisA)
-        tb.basis.getColumn(axis, axisB)
+        ta.basis.getColumn(axis.ordinal, axisA)
+        tb.basis.getColumn(axis.ordinal, axisB)
         val instance = com.bulletphysics.dynamics.constraintsolver.HingeConstraint(
             a, b, ta.origin, tb.origin,
             axisA, axisB

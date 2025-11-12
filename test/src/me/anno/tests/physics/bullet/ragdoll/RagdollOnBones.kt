@@ -132,11 +132,11 @@ fun main() {
         val centerPos = parentPos.add(bonePos, Vector3d()).mul(0.5)
         val direction = Vector3f(parentPos - bonePos)
         val dynamicBody = DynamicBody().apply {
-            mass = length
-            friction = 0.7
+            mass = length.toFloat()
+            friction = 0.7f
             // todo why do we need high friction to prevent explosions?
-            linearDamping = 0.7
-            angularDamping = 0.7
+            linearDamping = 0.7f
+            angularDamping = 0.7f
             rigidbodies.add(this)
         }
 
@@ -210,11 +210,11 @@ fun main() {
                 other = parentBody
                 selfPosition.set(0.0, +length * 0.5, 0.0)
                 otherPosition.set(0.0, -parent.length(bones) * 0.5, 0.0)
-                breakingImpulseThreshold = 50.0
+                breakingImpulseThreshold = 50.0f
             })
             // disableCollisionsBetweenLinked = false
             (constraint as? PointConstraint)?.apply {
-                damping = 0.5
+                damping = 0.5f
             }
             (constraint as? ConeTwistConstraint)?.apply {
                 // twist = 0.1
@@ -234,8 +234,8 @@ fun main() {
             .translationRotateInvert(centerPos, baseRotation)
     }
 
-    val totalBoneMass = rigidbodies.filterNotNull().sumOf { it.mass }
-    val massCorrectionFactor = totalMass / totalBoneMass
+    val totalBoneMass = rigidbodies.filterNotNull().sumOf { it.mass.toDouble() }
+    val massCorrectionFactor =( totalMass / totalBoneMass).toFloat()
     for (rigidbody in rigidbodies) {
         rigidbody ?: continue
         rigidbody.mass *= massCorrectionFactor
@@ -251,9 +251,9 @@ fun main() {
                 other = root2
                 selfPosition.set(0.0, root1Len * 0.5, 0.0)
                 otherPosition.set(0.0, root2Len * 0.5, 0.0)
-                breakingImpulseThreshold = 50.0
+                breakingImpulseThreshold = 50f
                 // disableCollisionsBetweenLinked = false
-                damping = 0.5
+                damping = 0.5f
             })
         }
     }

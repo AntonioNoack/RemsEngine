@@ -10,7 +10,9 @@ import com.bulletphysics.dynamics.constraintsolver.HingeConstraint
 import com.bulletphysics.dynamics.constraintsolver.Point2PointConstraint
 import com.bulletphysics.dynamics.constraintsolver.SliderConstraint
 import com.bulletphysics.linearmath.Transform
+import me.anno.maths.Maths.PIf
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
@@ -88,7 +90,7 @@ class ConstraintTest {
         world.addConstraint(sliderConstraint, true)
 
         slider.activationState = ActivationState.ALWAYS_ACTIVE
-        slider.applyCentralForce(Vector3d(20.0, 20.0, 20.0)) // Slide forward
+        slider.applyCentralForce(Vector3f(20.0, 20.0, 20.0)) // Slide forward
 
         simulate(world, 240)
 
@@ -118,7 +120,7 @@ class ConstraintTest {
         world.addConstraint(dof, true)
 
         body.activationState = ActivationState.ALWAYS_ACTIVE
-        body.applyCentralForce(Vector3d(20.0, 0.0, 20.0))
+        body.applyCentralForce(Vector3f(20.0, 0.0, 20.0))
 
         simulate(world, 240)
 
@@ -143,11 +145,11 @@ class ConstraintTest {
             bodyA, bodyB,
             Vector3d(0.0, -0.5, 0.0), Vector3d(0.0, 0.5, 0.0)
         )
-        constraint.breakingImpulseThreshold = 5.0 // Very low threshold
+        constraint.breakingImpulseThreshold = 5.0f // Very low threshold
         world.addConstraint(constraint, true)
 
         // Apply strong impulse to break it
-        bodyB.applyCentralImpulse(Vector3d(50.0, 0.0, 0.0))
+        bodyB.applyCentralImpulse(Vector3f(50.0, 0.0, 0.0))
 
         simulate(world, 60)
 
@@ -178,14 +180,14 @@ class ConstraintTest {
         pivotInB.setTranslation(-0.5, 0.0, 0.0)
 
         val hinge = HingeConstraint(base, bar, pivotInA, pivotInB)
-        hinge.lowerLimit = -Math.PI / 4 // ±45°
-        hinge.upperLimit = Math.PI / 4
-        hinge.limitSoftness = 0.9
-        hinge.biasFactor = 0.3
-        hinge.relaxationFactor = 1.0
+        hinge.lowerLimit = -PIf / 4f // ±45°
+        hinge.upperLimit = PIf / 4f
+        hinge.limitSoftness = 0.9f
+        hinge.biasFactor = 0.3f
+        hinge.relaxationFactor = 1.0f
         hinge.enableAngularMotor = true
-        hinge.motorTargetVelocity = 2.0
-        hinge.maxMotorImpulse = 0.1
+        hinge.motorTargetVelocity = 2.0f
+        hinge.maxMotorImpulse = 0.1f
 
         world.addConstraint(hinge, true)
 
@@ -202,10 +204,10 @@ class ConstraintTest {
     }
 
     private fun createDynamicBox(pos: Vector3d, mass: Float): RigidBody {
-        val shape: CollisionShape = BoxShape(Vector3d(0.5, 0.5, 0.5))
-        val inertia = Vector3d()
-        shape.calculateLocalInertia(mass.toDouble(), inertia)
-        val body = RigidBody(mass.toDouble(), shape, inertia)
+        val shape = BoxShape(Vector3f(0.5, 0.5, 0.5))
+        val inertia = Vector3f()
+        shape.calculateLocalInertia(mass, inertia)
+        val body = RigidBody(mass, shape, inertia)
         val tmp = body.worldTransform
         tmp.setIdentity()
         tmp.setTranslation(pos)
@@ -220,7 +222,7 @@ class ConstraintTest {
     private fun simulate(world: DynamicsWorld, steps: Int) {
         val timeStep = 1f / 60f
         repeat(steps) {
-            world.stepSimulation(timeStep.toDouble())
+            world.stepSimulation(timeStep)
         }
     }
 }

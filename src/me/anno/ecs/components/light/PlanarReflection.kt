@@ -105,7 +105,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         isBackSide = cameraPosition.dot(mirrorNormal) < mirrorPosition.dot(mirrorNormal)
         if (isBackSide) {
             if (bothSided) {
-                mirrorNormal.mul(-1f)
+                mirrorNormal.negate()
             } else {
                 destroyFramebuffers()
                 return

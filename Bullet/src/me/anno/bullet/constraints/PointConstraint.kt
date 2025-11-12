@@ -14,7 +14,7 @@ class PointConstraint : Constraint<Point2PointConstraint>() {
 
     @Docs("ensures that the impulse is below a certain threshold; 0 = disabled, otherwise impulse = clamp(impulse,-impulseClamp,+impulseClamp)")
     @Range(0.0, 1e308)
-    var impulseClamp = 0.0
+    var impulseClamp = 0f
         set(value) {
             field = value
             bulletInstance?.setting?.impulseClamp = value
@@ -22,7 +22,7 @@ class PointConstraint : Constraint<Point2PointConstraint>() {
 
     @Docs("when close, how much the velocity is reduced to avoid forward-backward-jiggling; 0 = allow jiggle, 1 = no jiggle")
     @Range(0.0, 1.0)
-    var damping = 1.0
+    var damping = 1f
         set(value) {
             field = value
             bulletInstance?.setting?.damping = damping
@@ -30,7 +30,7 @@ class PointConstraint : Constraint<Point2PointConstraint>() {
 
     @Docs("how fast the point is moved towards that other point; 0 = never, 1 = instantly")
     @Range(0.0, 1.0)
-    var lerpingSpeed = 0.3
+    var lerpingSpeed = 0.3f
         set(value) {
             field = value
             bulletInstance?.setting?.tau = lerpingSpeed

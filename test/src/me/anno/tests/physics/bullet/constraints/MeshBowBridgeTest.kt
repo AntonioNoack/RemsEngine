@@ -40,13 +40,13 @@ fun main() {
             .add(MeshComponent(mesh))
         if (i == 0 || i == meshes.lastIndex) {
             entity.add(StaticBody().apply {
-                friction = 0.9
+                friction = 0.9f
             })
         } else {
             entity.add(DynamicBody().apply {
                 // make the middle heavier for better stability?
-               mass = 500.0 * (2.0 - abs(x))
-                friction = 0.9
+               mass = 500f * (2f - abs(x))
+                friction = 0.9f
             })
         }
     }

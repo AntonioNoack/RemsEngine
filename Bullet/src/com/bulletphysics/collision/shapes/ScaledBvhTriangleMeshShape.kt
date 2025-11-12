@@ -3,9 +3,9 @@ package com.bulletphysics.collision.shapes
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.VectorUtil.mul
 import cz.advel.stack.Stack
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 // JAVA NOTE: ScaledBvhTriangleMeshShape from 2.73 SP1
 /**
@@ -17,23 +17,21 @@ import org.joml.Vector3d
  */
 class ScaledBvhTriangleMeshShape @Suppress("unused") constructor(
     var childShape: BvhTriangleMeshShape,
-    localScaling: Vector3d
+    localScaling: Vector3f
 ) : ConcaveShape() {
 
-    val localScaling: Vector3d = Vector3d()
-
     init {
-        this.localScaling.set(localScaling)
+        this.localScaling = localScaling
     }
 
     override fun processAllTriangles(callback: TriangleCallback, aabbMin: Vector3d, aabbMax: Vector3d) {
         val scaledCallback = ScaledTriangleCallback(callback, localScaling)
 
-        val invLocalScaling = Stack.newVec()
+        val invLocalScaling = Stack.newVec3d()
         invLocalScaling.set(1.0 / localScaling.x, 1.0 / localScaling.y, 1.0 / localScaling.z)
 
-        val scaledAabbMin = Stack.newVec()
-        val scaledAabbMax = Stack.newVec()
+        val scaledAabbMin = Stack.newVec3d()
+        val scaledAabbMax = Stack.newVec3d()
 
         // support negative scaling
         scaledAabbMin.x = if (localScaling.x >= 0.0) aabbMin.x * invLocalScaling.x else aabbMax.x * invLocalScaling.x
@@ -48,13 +46,13 @@ class ScaledBvhTriangleMeshShape @Suppress("unused") constructor(
     }
 
     override fun getBounds(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
-        val localAabbMin = childShape.getLocalAabbMin(Stack.newVec())
-        val localAabbMax = childShape.getLocalAabbMax(Stack.newVec())
+        val localAabbMin = Stack.newVec3f(childShape.localAabbMin)
+        val localAabbMax = Stack.newVec3f(childShape.localAabbMax)
 
-        val tmpLocalAabbMin = Stack.newVec()
-        val tmpLocalAabbMax = Stack.newVec()
-        mul(tmpLocalAabbMin, localAabbMin, localScaling)
-        mul(tmpLocalAabbMax, localAabbMax, localScaling)
+        val tmpLocalAabbMin = Stack.newVec3f()
+        val tmpLocalAabbMax = Stack.newVec3f()
+        localAabbMin.mul(localScaling, tmpLocalAabbMin)
+        localAabbMax.mul(localScaling, tmpLocalAabbMax)
 
         localAabbMin.x = if (localScaling.x >= 0.0) tmpLocalAabbMin.x else tmpLocalAabbMax.x
         localAabbMin.y = if (localScaling.y >= 0.0) tmpLocalAabbMin.y else tmpLocalAabbMax.y
@@ -67,38 +65,29 @@ class ScaledBvhTriangleMeshShape @Suppress("unused") constructor(
             localAabbMin, localAabbMax, margin,
             t, aabbMin, aabbMax
         )
-        Stack.subVec(4)
+        Stack.subVec3f(4)
     }
 
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.CONCAVE_SCALED_TRIANGLE_MESH
 
-    override fun setLocalScaling(scaling: Vector3d) {
-        localScaling.set(scaling)
-    }
-
-    override fun getLocalScaling(out: Vector3d): Vector3d {
-        out.set(localScaling)
-        return out
-    }
-
-    override fun calculateLocalInertia(mass: Double, inertia: Vector3d): Vector3d {
+    override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {
         return childShape.calculateLocalInertia(mass, inertia).mul(localScaling) // correct?
     }
 
     /**///////////////////////////////////////////////////////////////////////// */
     private class ScaledTriangleCallback(
         private val originalCallback: TriangleCallback,
-        private val localScaling: Vector3d
+        private val localScaling: Vector3f
     ) : TriangleCallback {
         private val newA = Vector3d()
         private val newB = Vector3d()
         private val newC = Vector3d()
 
         override fun processTriangle(a: Vector3d, b: Vector3d, c: Vector3d, partId: Int, triangleIndex: Int) {
-            mul(newA, a, localScaling)
-            mul(newB, b, localScaling)
-            mul(newC, c, localScaling)
+            a.mul(localScaling, newA)
+            b.mul(localScaling, newB)
+            c.mul(localScaling, newC)
             originalCallback.processTriangle(newA, newB, newC, partId, triangleIndex)
         }
     }

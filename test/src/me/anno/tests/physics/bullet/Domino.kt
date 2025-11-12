@@ -112,11 +112,11 @@ fun main() {
                 .setPosition(x.toDouble(), (halfExtents1.y + margin1).toDouble(), z.toDouble())
                 .add(MeshComponent(mesh))
                 .add(DynamicBody().apply {
-                    mass = mass1
-                    friction = 0.3
-                    restitution = 0.0
-                    linearSleepingThreshold = 0.0
-                    angularSleepingThreshold = 0.0
+                    mass = mass1.toFloat()
+                    friction = 0.3f
+                    restitution = 0.0f
+                    linearSleepingThreshold = 0.0f
+                    angularSleepingThreshold = 0.0f
                 })
                 .add(BoxCollider().apply {
                     halfExtents = halfExtents1
@@ -130,8 +130,8 @@ fun main() {
         Entity("Floor", scene)
             .add(InfinitePlaneCollider())
             .add(StaticBody().apply {
-                friction = 0.9
-                restitution = 0.0
+                friction = 0.9f
+                restitution = 0.0f
             })
         Entity("Floor Visuals", scene)
             .add(MeshComponent(flatCube.front))

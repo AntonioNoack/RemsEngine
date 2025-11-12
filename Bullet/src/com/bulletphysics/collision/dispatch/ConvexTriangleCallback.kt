@@ -30,7 +30,7 @@ internal class ConvexTriangleCallback(
     private var resultOut: ManifoldResult? = null
 
     private var dispatchInfoPtr: DispatcherInfo? = null
-    private var collisionMarginTriangle = 0.0
+    private var collisionMarginTriangle = 0f
 
     /**
      * create the manifold from the dispatcher 'manifold pool'
@@ -43,7 +43,7 @@ internal class ConvexTriangleCallback(
     }
 
     fun setTimeStepAndCounters(
-        collisionMarginTriangle: Double,
+        collisionMarginTriangle: Float,
         dispatchInfo: DispatcherInfo?,
         resultOut: ManifoldResult
     ) {
@@ -61,8 +61,8 @@ internal class ConvexTriangleCallback(
         val convexShape = convexBody.collisionShape
         convexShape!!.getBounds(convexInTriangleSpace, aabbMin, aabbMax)
 
-        aabbMax.add(collisionMarginTriangle)
-        aabbMin.sub(collisionMarginTriangle)
+        aabbMax.add(collisionMarginTriangle.toDouble())
+        aabbMin.sub(collisionMarginTriangle.toDouble())
 
         Stack.subTrans(1)
     }
@@ -85,12 +85,12 @@ internal class ConvexTriangleCallback(
         // debug drawing of the overlapping triangles
         val debugDraw = dispatchInfoPtr?.debugDraw
         if (debugDraw != null && debugDraw.debugMode != 0) {
-            val color = Stack.newVec().set(255.0, 255.0, 0.0)
+            val color = Stack.newVec3d().set(255.0, 255.0, 0.0)
             val tr = ob.worldTransform
 
-            val tmp1 = Stack.newVec()
-            val tmp2 = Stack.newVec()
-            val tmp3 = Stack.newVec()
+            val tmp1 = Stack.newVec3d()
+            val tmp2 = Stack.newVec3d()
+            val tmp3 = Stack.newVec3d()
 
             tr.transformPosition(a, tmp1)
             tr.transformPosition(b, tmp2)
@@ -99,7 +99,7 @@ internal class ConvexTriangleCallback(
             debugDraw.drawLine(tmp2, tmp3, color)
             debugDraw.drawLine(tmp3, tmp1, color)
 
-            Stack.subVec(3)
+            Stack.subVec3d(3)
         }
 
         val convexShape = convexBody.collisionShape

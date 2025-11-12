@@ -15,6 +15,7 @@ import com.bulletphysics.dynamics.constraintsolver.SliderConstraint
 import com.bulletphysics.linearmath.Transform
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 
@@ -70,15 +71,15 @@ class StackOfBoxesTest {
         // Sphere shape and setup
         val sphereRadius = 0.5f
         val sphereMass = 50f // Heavy sphere
-        val sphereShape = SphereShape(sphereRadius.toDouble())
+        val sphereShape = SphereShape(sphereRadius)
 
         val sphereTransform = Transform()
         sphereTransform.setIdentity()
         sphereTransform.setTranslation(-5.0, (boxSize * 2 * boxes.size - 1f).toDouble(), 0.0) // at height of top box
 
         val sphereBody = createRigidBody(sphereMass, sphereTransform, sphereShape)
-        sphereBody.friction = 0.0
-        sphereBody.restitution = 0.2 // some energy loss on impact
+        sphereBody.friction = 0.0f
+        sphereBody.restitution = 0.2f // some energy loss on impact
         world.addRigidBody(sphereBody)
 
         val frameInWorld = Transform()
@@ -87,7 +88,7 @@ class StackOfBoxesTest {
 
 
         // Static body representing the world (for slider reference)
-        val staticRail = createRigidBody(0f, Transform(), BoxShape(Vector3d(0.1, 0.1, 0.1)))
+        val staticRail = createRigidBody(0f, Transform(), BoxShape(Vector3f(0.1f)))
         world.addRigidBody(staticRail)
 
         // Frame in sphere's local space (starts at origin)
@@ -102,14 +103,14 @@ class StackOfBoxesTest {
 
         // You can also set frameInB.basis to rotate if you want motion along a different axis
         val slider = SliderConstraint(sphereBody, staticRail, frameInA, frameInB, true)
-        slider.lowerLinearLimit = -10.0
-        slider.upperLinearLimit = 10.0
-        slider.lowerAngularLimit = 0.0
-        slider.upperAngularLimit = 0.0
+        slider.lowerLinearLimit = -10.0f
+        slider.upperLinearLimit = 10.0f
+        slider.lowerAngularLimit = 0.0f
+        slider.upperAngularLimit = 0.0f
         world.addConstraint(slider)
 
         // Apply initial velocity to slide the sphere along X toward the tower
-        sphereBody.setLinearVelocity(Vector3d(10.0, 0.0, 0.0)) // Move right
+        sphereBody.setLinearVelocity(Vector3f(10.0, 0.0, 0.0)) // Move right
 
         runSimulation(world)
 
@@ -128,7 +129,7 @@ class StackOfBoxesTest {
         val maxSubSteps = 10
         val steps = 240 // 4 seconds of simulation
         repeat(steps) {
-            dynamicsWorld.stepSimulation(timeStep.toDouble(), maxSubSteps)
+            dynamicsWorld.stepSimulation(timeStep, maxSubSteps)
         }
     }
 
@@ -137,7 +138,7 @@ class StackOfBoxesTest {
         val boxSize = 1f
         val boxCount = 5
         val boxes = arrayOfNulls<RigidBody>(boxCount)
-        val boxShape: CollisionShape = BoxShape(Vector3d(boxSize.toDouble(), boxSize.toDouble(), boxSize.toDouble()))
+        val boxShape: CollisionShape = BoxShape(Vector3f(boxSize))
 
         for (i in 0 until boxCount) {
             val boxTransform = Transform()
@@ -160,7 +161,7 @@ class StackOfBoxesTest {
 
         fun createGround(dynamicsWorld: DiscreteDynamicsWorld) {
             // Ground plane
-            val groundShape = StaticPlaneShape(Vector3d(0.0, 1.0, 0.0), 1.0)
+            val groundShape = StaticPlaneShape(Vector3f(0.0, 1.0, 0.0), 1.0)
             val groundBody = createRigidBody(0f, Vector3d(0f, -1f, 0f), groundShape)
             dynamicsWorld.addRigidBody(groundBody)
         }
@@ -173,17 +174,17 @@ class StackOfBoxesTest {
             val solver = SequentialImpulseConstraintSolver()
             val world = DiscreteDynamicsWorld(dispatcher, broadphase, solver)
 
-            world.setGravity(Vector3d(0.0, -10.0, 0.0))
+            world.setGravity(Vector3f(0.0, -10.0, 0.0))
             return world
         }
 
         fun createRigidBody(mass: Float, transform: Transform, shape: CollisionShape): RigidBody {
-            val localInertia = Vector3d(0.0, 0.0, 0.0)
+            val localInertia = Vector3f(0.0, 0.0, 0.0)
             if (mass != 0f) {
-                shape.calculateLocalInertia(mass.toDouble(), localInertia)
+                shape.calculateLocalInertia(mass, localInertia)
             }
 
-            val body = RigidBody(mass.toDouble(), shape, localInertia)
+            val body = RigidBody(mass, shape, localInertia)
             body.setInitialTransform(transform)
             return body
         }

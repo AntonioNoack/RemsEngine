@@ -20,6 +20,7 @@ import org.jbox2d.dynamics.FixtureDef
 import org.jbox2d.dynamics.World
 import org.joml.Matrix4x3
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -50,7 +51,7 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
     var positionIterations = 2
 
     @NotSerializedProperty
-    private val world = World(Vec2(gravity.x.toFloat(), gravity.y.toFloat()))
+    private val world = World(Vec2(gravity.x, gravity.y))
 
     init {
         Settings.maxTranslation = 1e6f
@@ -60,7 +61,7 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
     }
 
     override fun updateGravity() {
-        world.gravity.set(gravity.x.toFloat(), gravity.y.toFloat())
+        world.gravity.set(gravity.x, gravity.y)
     }
 
     override fun worldStepSimulation(step: Double) {
@@ -189,7 +190,7 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
             body.createFixture(fixDef)
         }
 
-        return ScaledBody(rigidBody, body, Vector3d(1.0), Vector3d())
+        return ScaledBody(rigidBody, body, Vector3f(1f), Vector3d())
     }
 
     override fun onCreateRigidbody(
@@ -221,7 +222,7 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
 
     override fun getMatrix(
         rigidbody: Body, dstTransform: Matrix4x3,
-        scale: Vector3d, centerOfMass: Vector3d
+        scale: Vector3f, centerOfMass: Vector3d
     ) {
         val pos = rigidbody.position
         val angle = rigidbody.angle
@@ -235,7 +236,7 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
         )
     }
 
-    override fun setMatrix(rigidbody: Body, srcTransform: Matrix4x3, scale: Vector3d, centerOfMass: Vector3d) {
+    override fun setMatrix(rigidbody: Body, srcTransform: Matrix4x3, scale: Vector3f, centerOfMass: Vector3d) {
         // todo validate this teleports static objects correctly... do we even need this in 2D?
         val global = srcTransform
         rigidbody.position.set(global.m30.toFloat(), global.m31.toFloat())

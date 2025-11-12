@@ -172,7 +172,7 @@ class Frustum {
 
         for (i in 0 until 6 step 2) {
             positions[i].sub(positions[i + 1], normals[i])
-            normals[i + 1].set(normals[i]).mul(-1f)
+            normals[i + 1].set(normals[i]).negate()
         }
 
         for (i in 0 until 6) {
