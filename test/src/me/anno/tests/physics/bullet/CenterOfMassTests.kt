@@ -29,6 +29,6 @@ class CenterOfMassTests {
         val asTransform = mat4x3ToTransform(basis, scale, centerOfMass, Transform())
         val convertedBack = transformToMat4x3(asTransform, scale, centerOfMass, Matrix4x3())
 
-        assertEquals(basis, convertedBack, 1e-15)
+        assertEquals(basis, convertedBack, 1e-6)
     }
 }

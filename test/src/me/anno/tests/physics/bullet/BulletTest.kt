@@ -79,7 +79,7 @@ class BulletTest {
             val actualPosition = sphere.position.y
             val actualVelocity = dynamicBody.globalLinearVelocity.y
             assertEquals(expectedPosition, actualPosition)
-            assertEquals(expectedVelocity, actualVelocity)
+            assertEquals(expectedVelocity, actualVelocity.toDouble())
 
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
 
@@ -140,7 +140,7 @@ class BulletTest {
             val actualVelocity = dynamicBody.globalLinearVelocity.y
             // println("Step[$i -> $di -> $disabledMask], $actualPosition, $actualVelocity")
             assertEquals(expectedPosition, actualPosition)
-            assertEquals(expectedVelocity, actualVelocity)
+            assertEquals(expectedVelocity, actualVelocity.toDouble())
 
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
 
@@ -256,8 +256,8 @@ class BulletTest {
         Systems.world = world
 
         assertEquals(Vector3d(0.0, 1.125, 0.0), sphere.position)
-        assertEquals(Vector3d(0.0), underTest.globalLinearVelocity)
-        assertEquals(Vector3d(0.0, 0.0, 1.0), underTest.globalAngularVelocity)
+        assertEquals(Vector3f(0f), underTest.globalLinearVelocity)
+        assertEquals(Vector3f(0f, 0f, 1f), underTest.globalAngularVelocity)
 
         val dt = 1f / 8f
         physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
@@ -337,8 +337,8 @@ class BulletTest {
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
 
-        assertEquals(Vector3d(-0.89, -0.09, 0.0), underTest.globalLinearVelocity, 0.09)
-        assertEquals(Vector3d(0.0, 0.0, 0.904), underTest.globalAngularVelocity, 0.04)
+        assertEquals(Vector3d(-0.86, 0.11, 0.0), underTest.globalLinearVelocity, 0.09)
+        assertEquals(Vector3d(0.0, 0.0, 0.852), underTest.globalAngularVelocity, 0.04)
     }
 
     /**

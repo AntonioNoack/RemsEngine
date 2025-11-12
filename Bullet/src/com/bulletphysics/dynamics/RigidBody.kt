@@ -355,7 +355,7 @@ class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : Co
         invInertiaTensorWorld.transformTranspose(cross)
 
         val answer = inverseMass + normal.dot(cross.cross(delta))
-        Stack.subVec3d(2)
+        Stack.subVec3f(2)
         return answer
     }
 

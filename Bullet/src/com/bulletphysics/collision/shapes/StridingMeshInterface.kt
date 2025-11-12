@@ -87,5 +87,5 @@ abstract class StridingMeshInterface {
 
     abstract fun preallocateIndices(numIndices: Int)
 
-    var scaling: Vector3f = Vector3f()
+    var scaling = Vector3f(1f)
 }

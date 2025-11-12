@@ -228,14 +228,14 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
                 wheel.suspensionRelativeVelocity = projVel * inv
                 wheel.clippedInvContactDotSuspension = inv
             }
-            Stack.subVec3d(3)
+            Stack.subVec3f(3)
         } else {
             // put wheel info as in rest position
             wheel.raycastInfo.suspensionLength = wheel.suspensionRestLength
             wheel.suspensionRelativeVelocity = 0f
             wheel.raycastInfo.wheelDirectionWS.negate(wheel.raycastInfo.contactNormalWS)
             wheel.clippedInvContactDotSuspension = 1f
-            Stack.subVec3d(1)
+            Stack.subVec3f(1)
         }
 
         // todo stack cleanup

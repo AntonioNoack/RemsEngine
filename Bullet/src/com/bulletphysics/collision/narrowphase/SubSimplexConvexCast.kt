@@ -141,7 +141,7 @@ class SubSimplexConvexCast(
 
             // don't report time of impact for motion away from the contact normal (or causes minor penetration)
             if (result.normal.dot(relVelocity) >= -result.allowedPenetration) {
-                Stack.subVec3d(8)
+                Stack.subVec3f(9)
                 Stack.subTrans(2)
                 return false
             }
@@ -151,8 +151,7 @@ class SubSimplexConvexCast(
             simplexSolver.computePoints(hitA, hitB)
             result.hitPoint.set(hitB)
 
-            Stack.subVec3f(2)
-            Stack.subVec3d(8)
+            Stack.subVec3f(11)
             Stack.subTrans(2)
             return true
         }

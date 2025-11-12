@@ -18,7 +18,7 @@ class MeshSphereTest {
     @Test
     fun testMeshSphereConvexWithoutSimplifications() {
         val baseline = SphereCollider().createBulletSphereShape(Vector3f(1f))
-        assertEquals(1.0, baseline.margin)
+        assertEquals(1f, baseline.margin)
         val tested = MeshCollider(IcosahedronModel.createIcosphere(2))
             .apply {
                 margin = 0f
@@ -26,7 +26,7 @@ class MeshSphereTest {
                 isConvex = true
             }
             .createBulletMeshShape(Vector3f(1f)) as ConvexShape
-        assertEquals(0.0, tested.margin)
+        assertEquals(0f, tested.margin)
         val random = Random(1234)
         for (i in 0 until 100) {
             val pos = Vector3f(random.nextPos())
@@ -40,7 +40,7 @@ class MeshSphereTest {
     @FlakyTest
     fun testMeshSphereConvexWithSimplifications() {
         val baseline = SphereCollider().createBulletSphereShape(Vector3f(1f))
-        assertEquals(1.0, baseline.margin)
+        assertEquals(1f, baseline.margin)
         val tested = MeshCollider(IcosahedronModel.createIcosphere(3))
             .apply {
                 margin = 0f
@@ -48,7 +48,7 @@ class MeshSphereTest {
                 isConvex = true
             }
             .createBulletMeshShape(Vector3f(1f)) as ConvexShape
-        assertEquals(0.0, tested.margin)
+        assertEquals(0f, tested.margin)
         val random = Random(1234)
         repeat(100) {
             val pos = Vector3f(random.nextPos())
@@ -61,14 +61,14 @@ class MeshSphereTest {
     @Test
     fun testMeshSphereConcave() {
         val baseline = SphereCollider().createBulletSphereShape(Vector3f(1f))
-        assertEquals(1.0, baseline.margin)
+        assertEquals(1f, baseline.margin)
         val tested = MeshCollider(IcosahedronModel.createIcosphere(2))
             .apply {
                 margin = 0f
                 isConvex = false
             }
             .createBulletMeshShape(Vector3f(1f)) as TriangleMeshShape
-        assertEquals(0.0, tested.margin)
+        assertEquals(0f, tested.margin)
         val random = Random(1234)
         for (i in 0 until 100) {
             val pos = Vector3f(random.nextPos())

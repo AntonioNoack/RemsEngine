@@ -582,7 +582,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         warmstarting(cp.appliedImpulseLateral1, solverConstraint, frictionConstraint1, rb1, rb2, infoGlobal, tmp)
         warmstarting(cp.appliedImpulseLateral2, solverConstraint, frictionConstraint2, rb1, rb2, infoGlobal, tmp)
 
-        Stack.subVec3d(4)
+        Stack.subVec3f(4)
     }
 
     private fun preparePools() {
