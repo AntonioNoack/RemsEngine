@@ -18,7 +18,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.base.text.SimpleTextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.debug.console.ConsoleOutputLine
 import me.anno.utils.Color.black
@@ -34,7 +34,7 @@ import kotlin.math.max
 /**
  * displays all recent logging messages, and opens an overview on double click
  * */
-open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
+open class ConsoleOutputPanel(style: Style) : TextPanel(style) {
 
     val textColor0 = textColor
 

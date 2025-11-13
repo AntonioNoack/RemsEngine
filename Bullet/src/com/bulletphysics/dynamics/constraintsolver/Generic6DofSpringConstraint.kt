@@ -8,12 +8,15 @@ import org.joml.Vector3f
 import kotlin.math.abs
 
 /**
- * Taken from https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.cpp
+ * Taken from https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.cpp
+ *
+ * todo convert all functionality...
+ * until this is implemented, you maybe can use Point2PointConstraint. RestLength > 0 makes it a spring.
  * */
 class Generic6DofSpringConstraint : TypedConstraint {
 
-    val frameInA: Transform = Transform() //!< the constraint space w.r.t body A
-    val frameInB: Transform = Transform() //!< the constraint space w.r.t body B
+    val frameInA = Transform() //!< the constraint space w.r.t body A
+    val frameInB = Transform() //!< the constraint space w.r.t body B
     var useLinearReferenceFrameA = false
 
     val springEnabled = BooleanArray(6)

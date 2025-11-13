@@ -17,7 +17,6 @@ import me.anno.ui.base.groups.PropertyTablePanel
 import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.groups.TablePanel
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.base.text.UpdatingSimpleTextPanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.SettingCategory

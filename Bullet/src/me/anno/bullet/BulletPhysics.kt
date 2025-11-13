@@ -289,7 +289,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         }
 
         if (engineBody is DynamicBody || otherEngineBody is DynamicBody) {
-            val otherBody = getRigidbody(otherEngineBody)
+            val otherBody = getRigidbody(otherEngineBody)?.external
             if (otherBody is RigidBody) {
                 // create constraint
                 val bulletConstraint = constraint.createConstraint(
@@ -356,8 +356,6 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
                         wheelE.transform.globalTransform
                     )
                 )
-                // transform * entity
-                wheelI
             }
             world.removeVehicle(vehicle)
         }

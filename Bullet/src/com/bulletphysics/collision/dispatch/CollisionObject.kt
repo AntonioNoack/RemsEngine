@@ -91,16 +91,10 @@ open class CollisionObject() {
     @JvmField
     var ccdMotionThreshold = 0f
 
-    /**
-     * If some object should have elaborate collision filtering by subclasses
-     */
-    @JvmField
-    var checkCollideWith: Boolean = false
-
     @JvmField
     var userData: PhysicsBody<*>? = null
 
-    open fun checkCollideWithOverride(co: CollisionObject?): Boolean {
+    open fun checkCollideWith(co: CollisionObject): Boolean {
         return true
     }
 
@@ -175,10 +169,4 @@ open class CollisionObject() {
     val ccdSquareMotionThreshold: Float
         get() = ccdMotionThreshold * ccdMotionThreshold
 
-    fun checkCollideWith(co: CollisionObject?): Boolean {
-        if (checkCollideWith) {
-            return checkCollideWithOverride(co)
-        }
-        return true
-    }
 }

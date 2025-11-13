@@ -9,7 +9,7 @@ import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
 import me.anno.language.translation.Dict
 import me.anno.ui.Style
-import me.anno.ui.base.text.SimpleTextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.JSMemory.jsUsedMemory
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
@@ -19,7 +19,7 @@ import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 
-class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
+class RuntimeInfoPanel(style: Style) : TextPanel(style) {
 
     var updateInterval = 100_000_000
     var lastUpdate = 0L

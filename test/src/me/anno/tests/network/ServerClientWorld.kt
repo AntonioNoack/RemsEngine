@@ -17,7 +17,7 @@ import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.scrolling.ScrollPanelY
-import me.anno.ui.base.text.UpdatingSimpleTextPanel
+import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Threads
 import me.anno.utils.types.Strings.isNotBlank2
@@ -76,7 +76,7 @@ fun createClient(i: Int): Panel {
     val client = Instance(clientName)
     val controls = PanelListY(style)
 
-    controls.add(UpdatingSimpleTextPanel(0, style) {
+    controls.add(UpdatingTextPanel(0, style) {
         "$i" +
                 (if (client.server != null) "s" else "") +
                 (if (client.client?.isRunning == true) "c" else "") +

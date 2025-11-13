@@ -109,7 +109,7 @@ fun main() {
         fun add(x: Float, z: Float): Entity {
             // todo why are smaller bricks unstable?
             return Entity(dominos)
-                .setPosition(x.toDouble(), (halfExtents1.y + margin1).toDouble(), z.toDouble())
+                .setPosition(x.toDouble(), (halfExtents1.y).toDouble(), z.toDouble())
                 .add(MeshComponent(mesh))
                 .add(DynamicBody().apply {
                     mass = mass1.toFloat()

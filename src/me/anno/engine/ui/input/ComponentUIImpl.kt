@@ -114,7 +114,7 @@ object ComponentUIImpl {
     ): Panel {
         val type = NumberType(
             AnyToFloat.getFloat(default, 0f),
-            { clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() },
+            { clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()) },
             { it })
         return FloatInput(nameDesc, visibilityKey, type, style).apply {
             alignmentX = AxisAlignment.FILL

@@ -109,7 +109,6 @@ fun main() {
             link.disableCollisionsBetweenLinked = false
             // link.breakingImpulseThreshold = 0.3 // a little fun ^^
             link.other = b.getComponent(PhysicalBody::class)
-            link.lerpingSpeed = 0.5f
             a.add(link)
             val z = ((i - 1.5) - (numBars - 1) * 0.5) * (barSpacing + barSize.z)
             val x = (j - (numLinks - 1) * 0.5) * linkSpacing

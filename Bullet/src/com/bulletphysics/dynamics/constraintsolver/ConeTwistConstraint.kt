@@ -79,8 +79,6 @@ class ConeTwistConstraint : TypedConstraint {
 
         val tmpTrans = Stack.newTrans()
 
-        appliedImpulse = 0f
-
         // set bias, sign, clear accumulator
         swingCorrection = 0f
         twistLimitSign = 0f
@@ -259,14 +257,13 @@ class ConeTwistConstraint : TypedConstraint {
                 val relVel = normal.dot(relVel)
                 // positional error (zeroth order error)
                 pivotAInW.sub(pivotBInW, tmp1)
-                val depth = -tmp1.dot(normal).toFloat() // this is the error projected on the normal
-                val impulse = depth * tau / timeStep * jacDiagABInv - relVel * jacDiagABInv
+                val depth = -tmp1.dot(normal) // this is the error projected on the normal
+                val impulse = (depth * tau / timeStep - relVel) * jacDiagABInv
                 if (impulse > breakingImpulseThreshold) {
                     isBroken = true
                     break
                 }
 
-                appliedImpulse += impulse
                 normal.mul(impulse, impulseVector)
 
                 pivotAInW.sub(rigidBodyA.worldTransform.origin, tmp1)

@@ -69,7 +69,7 @@ fun main() {
     Entity("Floor", scene)
         .add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
         .add(BoxCollider())
-        .add(DynamicBody().apply {
+        .add(StaticBody().apply {
             friction = 1.0f
         })
         .setPosition(0.0, -22.0, 0.0)

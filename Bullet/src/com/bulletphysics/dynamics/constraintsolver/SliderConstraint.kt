@@ -15,14 +15,14 @@ import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.atan2
 
-// JAVA NOTE: SliderConstraint from 2.71
 /**
+ * JAVA NOTE: SliderConstraint from 2.71
  * @author jezek2
  */
 class SliderConstraint : TypedConstraint {
 
-    val frameOffsetA: Transform = Transform()
-    val frameOffsetB: Transform = Transform()
+    val frameOffsetA = Transform()
+    val frameOffsetB = Transform()
 
     // use frameA fo define limits, if true
     var useLinearReferenceFrameA: Boolean
@@ -170,13 +170,11 @@ class SliderConstraint : TypedConstraint {
 
     override fun solveConstraint(timeStep: Float) {
         this.timeStep = timeStep
-        val stackPos = Stack.getPosition(null)
         if (useLinearReferenceFrameA) {
             solveConstraintInt(rigidBodyA, rigidBodyB)
         } else {
             solveConstraintInt(rigidBodyB, rigidBodyA)
         }
-        Stack.reset(stackPos)
     }
 
     fun buildJacobianInt(rbA: RigidBody, rbB: RigidBody, frameInA: Transform, frameInB: Transform) {
@@ -221,20 +219,18 @@ class SliderConstraint : TypedConstraint {
     }
 
     fun solveConstraintInt(rbA: RigidBody, rbB: RigidBody) {
-        // todo the stack isn't cleaned here
         val tmp = Stack.newVec3f()
 
         // linear
         val velA = rbA.getVelocityInLocalPoint(relPosA, Stack.newVec3f())
         val velB = rbB.getVelocityInLocalPoint(relPosB, Stack.newVec3f())
-        val vel = Stack.newVec3f()
-        velA.sub(velB, vel)
+        val relVel = Stack.newVec3f()
+        velA.sub(velB, relVel)
 
         val impulseVector = Stack.newVec3f()
-
         for (i in 0..2) {
             val normal = jacLin[i]
-            val relVel = normal.dot(vel)
+            val relVel = normal.dot(relVel)
             // calculate positional error
             val depth = depth[i]
             // get parameters
@@ -290,23 +286,23 @@ class SliderConstraint : TypedConstraint {
         // angular
         // get axes in world space
         val axisA = Stack.newVec3f()
-        calculatedTransformA.basis.getColumn(0, axisA)
         val axisB = Stack.newVec3f()
+        calculatedTransformA.basis.getColumn(0, axisA)
         calculatedTransformB.basis.getColumn(0, axisB)
 
         val angVelA = rbA.angularVelocity
         val angVelB = rbB.angularVelocity
 
         val angVelAroundAxisA = Stack.newVec3f()
-        axisA.mul(axisA.dot(angVelA), angVelAroundAxisA)
         val angVelAroundAxisB = Stack.newVec3f()
-        axisB.mul(axisB.dot(angVelB), angVelAroundAxisB)
-
         val angleAOrthogonal = Stack.newVec3f()
-        angVelA.sub(angVelAroundAxisA, angleAOrthogonal)
         val angleBOrthogonal = Stack.newVec3f()
-        angVelB.sub(angVelAroundAxisB, angleBOrthogonal)
         val velRelOrthogonal = Stack.newVec3f()
+
+        axisA.mul(axisA.dot(angVelA), angVelAroundAxisA)
+        axisB.mul(axisB.dot(angVelB), angVelAroundAxisB)
+        angVelA.sub(angVelAroundAxisA, angleAOrthogonal)
+        angVelB.sub(angVelAroundAxisB, angleBOrthogonal)
         angleAOrthogonal.sub(angleBOrthogonal, velRelOrthogonal)
 
         // solve orthogonal angular velocity correction
@@ -339,16 +335,16 @@ class SliderConstraint : TypedConstraint {
         rbA.applyTorqueImpulse(tmp)
         tmp.negate()
         rbB.applyTorqueImpulse(tmp)
+        Stack.subVec3f(1) // angularError
 
         var impulseMag: Float
 
         // solve angular limits
+        angVelB.sub(angVelA, tmp)
         if (solveAngLim) {
-            angVelB.sub(angVelA, tmp)
             impulseMag = tmp.dot(axisA) * dampingLimitAngular + angularPosition * restitutionLimitAngular / timeStep
             impulseMag *= kAngle * softnessLimitAngular
         } else {
-            angVelB.sub(angVelA, tmp)
             impulseMag = tmp.dot(axisA) * dampingDirAngular + angularPosition * restitutionDirAngular / timeStep
             impulseMag *= kAngle * softnessDirAngular
         }
@@ -358,47 +354,69 @@ class SliderConstraint : TypedConstraint {
             impulseMag = 0f
         }
 
+        applyTorqueImpulse(impulseMag, axisA, tmp, rbA, rbB)
+
+        // apply angular motor
+        if (poweredAngularMotor && accumulatedAngMotorImpulse < maxAngularMotorForce) {
+            applyAngularMotor(
+                angVelAroundAxisA, angVelAroundAxisB,
+                axisA, tmp, rbA, rbB
+            )
+        }
+
+        Stack.subVec3f(12)
+    }
+
+    private fun applyTorqueImpulse(
+        impulseMag: Float,
+        axisA: Vector3f, tmp: Vector3f,
+        rbA: RigidBody, rbB: RigidBody
+    ) {
         val impulse = Stack.newVec3f()
         axisA.mul(impulseMag, impulse)
         rbA.applyTorqueImpulse(impulse)
         impulse.negate(tmp)
         rbB.applyTorqueImpulse(tmp)
         Stack.subVec3f(1) // impulse
+    }
 
-        // apply angular motor
-        if (poweredAngularMotor && accumulatedAngMotorImpulse < maxAngularMotorForce) {
-            val velRel = Stack.newVec3f()
-            angVelAroundAxisA.sub(angVelAroundAxisB, velRel)
-            val projRelVel = velRel.dot(axisA)
+    private fun applyAngularMotor(
+        angVelAroundAxisA: Vector3f,
+        angVelAroundAxisB: Vector3f,
+        axisA: Vector3f, tmp: Vector3f,
+        rbA: RigidBody, rbB: RigidBody
+    ) {
+        val velRel = Stack.newVec3f()
+        angVelAroundAxisA.sub(angVelAroundAxisB, velRel)
+        val projRelVel = velRel.dot(axisA)
 
-            val desiredMotorVel = targetAngularMotorVelocity
-            val motorRelVel = desiredMotorVel - projRelVel
+        val desiredMotorVel = targetAngularMotorVelocity
+        val motorRelVel = desiredMotorVel - projRelVel
 
-            var angImpulse = kAngle * motorRelVel
-            if (abs(angImpulse) > breakingImpulseThreshold) {
-                isBroken = true
-                angImpulse = 0f
-            }
-
-            // clamp accumulated impulse
-            var newAcc = accumulatedAngMotorImpulse + abs(angImpulse)
-            if (newAcc > maxAngularMotorForce) {
-                newAcc = maxAngularMotorForce
-            }
-            val del = newAcc - accumulatedAngMotorImpulse
-            angImpulse = if (angImpulse < 0f) -del else del
-
-            accumulatedAngMotorImpulse = newAcc
-
-            // apply clamped impulse
-            val motorImp = Stack.newVec3f()
-            axisA.mul(angImpulse, motorImp)
-            rbA.applyTorqueImpulse(motorImp)
-            motorImp.negate(tmp)
-            rbB.applyTorqueImpulse(tmp)
-
-            Stack.subVec3f(2) // motorImp, velRel
+        var angImpulse = kAngle * motorRelVel
+        if (abs(angImpulse) > breakingImpulseThreshold) {
+            isBroken = true
+            angImpulse = 0f
         }
+
+        // clamp accumulated impulse
+        var newAcc = accumulatedAngMotorImpulse + abs(angImpulse)
+        if (newAcc > maxAngularMotorForce) {
+            newAcc = maxAngularMotorForce
+        }
+        val del = newAcc - accumulatedAngMotorImpulse
+        angImpulse = if (angImpulse < 0f) -del else del
+
+        accumulatedAngMotorImpulse = newAcc
+
+        // apply clamped impulse
+        val motorImp = Stack.newVec3f()
+        axisA.mul(angImpulse, motorImp)
+        rbA.applyTorqueImpulse(motorImp)
+        motorImp.negate(tmp)
+        rbB.applyTorqueImpulse(tmp)
+
+        Stack.subVec3f(2) // motorImp, velRel
     }
 
     fun testLinLimits() {
@@ -423,19 +441,19 @@ class SliderConstraint : TypedConstraint {
         angularPosition = 0f
         solveAngLim = false
         if (lowerAngularLimit <= upperAngularLimit) {
-            val axisA0 = Stack.newVec3f()
-            val axisA1 = Stack.newVec3f()
-            val axisB0 = Stack.newVec3f()
-            calculatedTransformA.basis.getColumn(1, axisA0)
-            calculatedTransformA.basis.getColumn(2, axisA1)
-            calculatedTransformB.basis.getColumn(1, axisB0)
+            val axisAY = Stack.newVec3f()
+            val axisAZ = Stack.newVec3f()
+            val axisBY = Stack.newVec3f()
+            calculatedTransformA.basis.getColumn(1, axisAY)
+            calculatedTransformA.basis.getColumn(2, axisAZ)
+            calculatedTransformB.basis.getColumn(1, axisBY)
 
-            val rot = atan2(axisB0.dot(axisA1), axisB0.dot(axisA0))
-            if (rot < lowerAngularLimit) {
-                angularPosition = rot - lowerAngularLimit
+            val rotation = atan2(axisBY.dot(axisAZ), axisBY.dot(axisAY))
+            if (rotation < lowerAngularLimit) {
+                angularPosition = rotation - lowerAngularLimit
                 solveAngLim = true
-            } else if (rot > upperAngularLimit) {
-                angularPosition = rot - upperAngularLimit
+            } else if (rotation > upperAngularLimit) {
+                angularPosition = rotation - upperAngularLimit
                 solveAngLim = true
             }
             Stack.subVec3f(3)

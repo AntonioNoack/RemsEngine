@@ -29,7 +29,7 @@ open class IntInput(
     private var savedDelta = 0f
 
     init {
-        setText(value.toString(), false)
+        setText(stringify(value), false)
         inputPanel.addChangeListener {
             val newValue = parseValue(it)
             if (newValue != null) {

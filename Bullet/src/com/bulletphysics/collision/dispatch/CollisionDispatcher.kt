@@ -10,6 +10,7 @@ import com.bulletphysics.collision.broadphase.OverlapCallback
 import com.bulletphysics.collision.broadphase.OverlappingPairCache
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.util.ObjectPool
+import org.apache.logging.log4j.LogManager
 import java.util.Collections
 
 /**
@@ -108,16 +109,13 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
     }
 
     override fun needsCollision(body0: CollisionObject, body1: CollisionObject): Boolean {
-        checkNotNull(body0)
-        checkNotNull(body1)
-
         var needsCollision = true
 
         if (!staticWarningReported) {
             // broadphase filtering already deals with this
             if (body0.isStaticOrKinematicObject && body1.isStaticOrKinematicObject) {
                 staticWarningReported = true
-                System.err.println("warning CollisionDispatcher.needsCollision: static-static collision!")
+                LOGGER.warn("needsCollision(): Static-static collision!?! Masks are probably misconfigured!")
             }
         }
 
@@ -169,5 +167,6 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
 
     companion object {
         private val NUM_COLLISION_TYPES = BroadphaseNativeType.entries.size
+        private val LOGGER = LogManager.getLogger(CollisionDispatcher::class)
     }
 }

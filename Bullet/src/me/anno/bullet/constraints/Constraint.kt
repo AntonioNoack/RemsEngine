@@ -19,6 +19,8 @@ import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.ui.UIColors
+import me.anno.utils.pooling.JomlPools
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 
@@ -128,12 +130,25 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
     abstract fun createConstraint(a: RigidBody, b: RigidBody, ta: Transform, tb: Transform): TypedConstraint
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
+        val color = constraintColor
         val sideLength = 0.02 * (selfPosition.distance(cameraPosition) + otherPosition.distance(cameraPosition))
-        LineShapes.drawPoint(entity, selfPosition, sideLength, constraintColor)
-        LineShapes.drawLine(entity, zero, selfPosition, constraintColor)
+        LineShapes.drawPoint(entity, selfPosition, sideLength, color)
+        LineShapes.drawLine(entity, zero, selfPosition, color)
         val other = other?.entity ?: entity
-        LineShapes.drawPoint(other, otherPosition, sideLength, constraintColor)
-        LineShapes.drawLine(other, zero, otherPosition, constraintColor)
+        LineShapes.drawPoint(other, otherPosition, sideLength, color)
+        LineShapes.drawLine(other, zero, otherPosition, color)
+
+        // draw line from one to the other
+        val selfGlobal = JomlPools.vec3d.create().set(selfPosition)
+        val otherGlobal = JomlPools.vec3d.create().set(otherPosition)
+
+        entity?.transform?.globalTransform?.transformPosition(selfGlobal)
+        other?.transform?.globalTransform?.transformPosition(otherGlobal)
+
+        LineShapes.drawLine(null as Matrix4x3?, selfGlobal, otherGlobal, color)
+
+        JomlPools.vec3d.sub(2)
+
     }
 
     override fun copyInto(dst: PrefabSaveable) {

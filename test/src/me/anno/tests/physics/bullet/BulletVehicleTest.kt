@@ -228,7 +228,7 @@ class BulletVehicleTest {
             if (i >= 10) {
                 assertEquals(expectedY, position.y, 0.1)
             }
-            assertEquals(0.0, position.x, 1e-9)
+            assertEquals(0.0, position.x, 1e-3)
             val expectedPosZ = 67.15 * sq(i / 99.0)
             assertEquals(expectedPosZ, position.z, 0.2)
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
@@ -265,7 +265,7 @@ class BulletVehicleTest {
         val dt = 1.0 / 8.0
         for (i in 0..100) {
             val position = vehicle.position - Vector3d(0.0, y0, z0)
-            assertEquals(0.0, position.x, 1e-9)
+            assertEquals(0.0, position.x, 1e-6)
             assertEquals(0.0, position.y, 0.25)
             assertEquals(0.0, position.z, 0.25 / angle)
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)

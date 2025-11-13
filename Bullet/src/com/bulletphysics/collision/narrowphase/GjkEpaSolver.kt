@@ -138,15 +138,13 @@ class GjkEpaSolver {
         fun support(direction: Vector3f, ray: Ray) {
             ray.direction.set(direction)
 
-            val tmp1 = localSupport(direction, 0, Stack.newVec3d())
+            val support0 = localSupport(direction, 0, Stack.newVec3d())
+            direction.negate()
+            val support1 = localSupport(direction, 1, Stack.newVec3d())
+            direction.negate()
 
-            val tmp = Stack.newVec3f()
-            tmp.set(direction).negate()
-            val tmp2 = localSupport(tmp, 1, Stack.newVec3d())
-
-            tmp1.sub(tmp2, ray.origin)
+            support0.sub(support1, ray.origin)
             ray.origin.fma(margin, direction)
-            Stack.subVec3f(1)
             Stack.subVec3d(2)
         }
 
@@ -451,7 +449,8 @@ class GjkEpaSolver {
             out.set(a1, a2, a0)
             out.mul(1f / (if (sm > 0f) sm else 1f))
 
-            Stack.subVec3f(4)
+            Stack.subVec3f(3)
+            Stack.subVec3d(1)
             return out
         }
 

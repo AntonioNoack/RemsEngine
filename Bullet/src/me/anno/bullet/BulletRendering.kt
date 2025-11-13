@@ -46,7 +46,9 @@ object BulletRendering {
         val max = Vector3d()
         val boundsById = IntToObjectHashMap<AABBd>()
         val countMap = CountMap<Int>()
-        for (instance in bulletInstance.collisionObjects) {
+        val instances = bulletInstance.collisionObjects
+        for (i in instances.indices) {
+            val instance = instances.getOrNull(i) ?: break
             val tag = instance.islandTag
             if (tag < 0) continue // no island available
             // get transformed bounds
@@ -68,8 +70,10 @@ object BulletRendering {
     }
 
     private fun BulletPhysics.drawColliders(pipeline: Pipeline) {
-        for ((_, bodyWithScale) in rigidBodies) {
-            drawColliders(pipeline, bodyWithScale?.internal ?: continue)
+        synchronized(rigidBodies) {
+            for ((_, bodyWithScale) in rigidBodies) {
+                drawColliders(pipeline, bodyWithScale?.internal ?: continue)
+            }
         }
     }
 
@@ -82,9 +86,11 @@ object BulletRendering {
     }
 
     private fun BulletPhysics.drawConstraints(pipeline: Pipeline) {
-        for ((_, bodyWithScale) in rigidBodies) {
-            val body = bodyWithScale?.internal as? PhysicalBody ?: continue
-            drawConstraints(pipeline, body)
+        synchronized(rigidBodies) {
+            for ((_, bodyWithScale) in rigidBodies) {
+                val body = bodyWithScale?.internal as? PhysicalBody ?: continue
+                drawConstraints(pipeline, body)
+            }
         }
     }
 

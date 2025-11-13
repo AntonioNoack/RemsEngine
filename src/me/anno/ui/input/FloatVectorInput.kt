@@ -196,7 +196,13 @@ open class FloatVectorInput(
         return this
     }
 
-    override fun onCopyRequested(x: Float, y: Float) = "[$vxd, $vyd, $vzd, $vwd]"
+    override fun onCopyRequested(x: Float, y: Float): String {
+        return when (components) {
+            2 -> "[$vxd, $vyd]"
+            3 -> "[$vxd, $vyd, $vzd]"
+            else -> "[$vxd, $vyd, $vzd, $vwd]"
+        }
+    }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         pasteVector(data)

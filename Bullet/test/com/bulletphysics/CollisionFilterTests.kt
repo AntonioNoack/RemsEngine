@@ -7,11 +7,13 @@ import me.anno.ecs.components.collider.CollisionFilters.KINEMATIC_MASK
 import me.anno.ecs.components.collider.CollisionFilters.NUM_GROUPS
 import me.anno.ecs.components.collider.CollisionFilters.STATIC_GROUP_ID
 import me.anno.ecs.components.collider.CollisionFilters.STATIC_MASK
-import me.anno.ecs.components.collider.CollisionFilters.createFilter
 import me.anno.ecs.components.collider.CollisionFilters.collides
+import me.anno.ecs.components.collider.CollisionFilters.createFilter
 import me.anno.ecs.components.collider.CollisionFilters.getGroupId
 import me.anno.ecs.components.collider.CollisionFilters.getMask
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
 
@@ -44,5 +46,25 @@ class CollisionFilterTests {
                 assertEquals(expected, collides(filterI, filterJ))
             }
         }
+    }
+
+    @Test
+    fun testCollisions() {
+        val dynamic = DEFAULT_ALL
+        val static = createFilter(STATIC_GROUP_ID, ALL_MASK and (STATIC_MASK or KINEMATIC_MASK).inv())
+        val kinematic = createFilter(KINEMATIC_GROUP_ID, ALL_MASK and (STATIC_MASK or KINEMATIC_MASK).inv())
+
+        // with itself
+        assertTrue(collides(dynamic, dynamic))
+        assertFalse(collides(static, static))
+        assertFalse(collides(kinematic, kinematic))
+
+        // with others
+        assertTrue(collides(static, dynamic))
+        assertTrue(collides(dynamic, static))
+        assertFalse(collides(static, kinematic))
+        assertFalse(collides(kinematic, static))
+        assertTrue(collides(kinematic, dynamic))
+        assertTrue(collides(dynamic, kinematic))
     }
 }

@@ -76,7 +76,7 @@ class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : Co
     val predictedTransform = Transform()
 
     // keep track of typed constraints referencing this rigid body
-    val constraintRefs = ArrayList<TypedConstraint>()
+    val constraintsForIgnoredCollisions = ArrayList<TypedConstraint>()
 
     init {
         friction = 0.5f
@@ -93,7 +93,7 @@ class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : Co
     fun destroy() {
         // No constraints should point to this rigidbody
         // Remove constraints from the dynamics world before you delete the related rigidbodies.
-        assert(constraintRefs.isEmpty())
+        assert(constraintsForIgnoredCollisions.isEmpty())
     }
 
     fun proceedToTransform(newTrans: Transform) {
@@ -274,6 +274,9 @@ class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : Co
         angularVelocity.add(tmp)
     }
 
+    /**
+     * impulse and relPos are in world space
+     * */
     fun applyImpulse(impulse: Vector3f, relPos: Vector3f) {
         if (inverseMass != 0f) {
             applyCentralImpulse(impulse)
@@ -302,8 +305,8 @@ class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : Co
     }
 
     fun clearForces() {
-        totalForce.set(0.0, 0.0, 0.0)
-        totalTorque.set(0.0, 0.0, 0.0)
+        totalForce.set(0f)
+        totalTorque.set(0f)
     }
 
     fun updateInertiaTensor() {
@@ -398,10 +401,10 @@ class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : Co
         return deactivationTime > BulletGlobals.deactivationTime
     }
 
-    override fun checkCollideWithOverride(co: CollisionObject?): Boolean {
+    override fun checkCollideWith(co: CollisionObject): Boolean {
         if (co !is RigidBody) return true
-        for (i in constraintRefs.indices) {
-            val c = constraintRefs[i]
+        for (i in constraintsForIgnoredCollisions.indices) {
+            val c = constraintsForIgnoredCollisions[i]
             if (c.rigidBodyA === co || c.rigidBodyB === co) {
                 return false
             }
@@ -410,17 +413,14 @@ class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : Co
     }
 
     fun addConstraintRef(c: TypedConstraint) {
-        val index = constraintRefs.indexOf(c)
+        val index = constraintsForIgnoredCollisions.indexOf(c)
         if (index == -1) {
-            constraintRefs.add(c)
+            constraintsForIgnoredCollisions.add(c)
         }
-
-        checkCollideWith = true
     }
 
     fun removeConstraintRef(c: TypedConstraint) {
-        constraintRefs.remove(c)
-        checkCollideWith = !constraintRefs.isEmpty()
+        constraintsForIgnoredCollisions.remove(c)
     }
 
     companion object {

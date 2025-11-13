@@ -365,7 +365,7 @@ class DiscreteDynamicsWorld(
     private class InplaceSolverIslandCallback : IslandCallback() {
         var solverInfo: ContactSolverInfo? = null
         var solver: ConstraintSolver? = null
-        var sortedConstraints: List<TypedConstraint>? = null
+        var sortedConstraints: List<TypedConstraint> = emptyList()
         var numConstraints: Int = 0
         var debugDrawer: IDebugDraw? = null
 
@@ -375,7 +375,7 @@ class DiscreteDynamicsWorld(
         fun init(
             solverInfo: ContactSolverInfo,
             solver: ConstraintSolver,
-            sortedConstraints: List<TypedConstraint>?,
+            sortedConstraints: List<TypedConstraint>,
             numConstraints: Int,
             debugDrawer: IDebugDraw?,
             dispatcher: Dispatcher
@@ -404,34 +404,29 @@ class DiscreteDynamicsWorld(
 
                 // also add all non-contact constraints/joints for this island
                 //ObjectArrayList<TypedConstraint> startConstraint = null;
-                var startConstraintIdx = -1
-                var numCurConstraints = 0
+                var currConstraintStart = -1
+                var currNumConstraints = 0
 
                 val sortedConstraints = sortedConstraints
-
-                if (sortedConstraints != null) {
-                    // find the first constraint for this island
-                    for (i in 0 until numConstraints) {
-                        if (getConstraintIslandId(sortedConstraints[i]) == islandId) {
-                            //startConstraint = &m_sortedConstraints[i];
-                            //startConstraint = sortedConstraints.subList(i, sortedConstraints.size);
-                            startConstraintIdx = i
-                            break
-                        }
+                // find the first constraint for this island
+                for (i in 0 until numConstraints) {
+                    if (getConstraintIslandId(sortedConstraints[i]) == islandId) {
+                        currConstraintStart = i
+                        break
                     }
-                    // count the number of constraints in this island
-                    for (i in 0 until numConstraints) {
-                        if (getConstraintIslandId(sortedConstraints[i]) == islandId) {
-                            numCurConstraints++
-                        }
+                }
+                // count the number of constraints in this island
+                for (i in 0 until numConstraints) {
+                    if (getConstraintIslandId(sortedConstraints[i]) == islandId) {
+                        currNumConstraints++
                     }
                 }
 
                 // only call solveGroup if there is some work: avoid virtual function call, its overhead can be excessive
-                if (numManifolds + numCurConstraints > 0) {
+                if (numManifolds + currNumConstraints > 0) {
                     solver!!.solveGroup(
                         bodies, numBodies, manifolds, manifoldsOffset, numManifolds, sortedConstraints,
-                        startConstraintIdx, numCurConstraints, solverInfo!!, debugDrawer, dispatcher!!
+                        currConstraintStart, currNumConstraints, solverInfo!!, debugDrawer, dispatcher!!
                     )
                 }
             }
@@ -448,23 +443,14 @@ class DiscreteDynamicsWorld(
             sortedConstraints.addAll(constraints)
             sortedConstraints.sortWith(sortConstraintOnIslandPredicate)
 
-            val constraintsPtr = if (constraints.isNotEmpty()) sortedConstraints else null
-
             solverCallback.init(
-                solverInfo,
-                constraintSolver,
-                constraintsPtr,
-                sortedConstraints.size,
-                debugDrawer,  /*,m_stackAlloc*/
-                dispatcher
+                solverInfo, constraintSolver,
+                sortedConstraints, sortedConstraints.size,
+                debugDrawer, dispatcher
             )
 
             // solve all the constraints for this island
-            simulationIslandManager.buildAndProcessIslands(
-                dispatcher,
-                collisionObjects,
-                solverCallback
-            )
+            simulationIslandManager.buildAndProcessIslands(dispatcher, collisionObjects, solverCallback)
         }
     }
 

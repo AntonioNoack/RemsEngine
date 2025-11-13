@@ -15,7 +15,7 @@ interface ConstraintSolver {
     fun solveGroup(
         bodies: List<CollisionObject>, numBodies: Int,
         manifold: List<PersistentManifold>, manifoldOffset: Int, numManifolds: Int,
-        constraints: List<TypedConstraint>?, constraintsOffset: Int, numConstraints: Int,
+        constraints: List<TypedConstraint>, constraintsOffset: Int, numConstraints: Int,
         info: ContactSolverInfo, debugDrawer: IDebugDraw?, dispatcher: Dispatcher
     )
 

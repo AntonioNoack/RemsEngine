@@ -157,12 +157,13 @@ class Stack {
         }
 
         fun getPosition(dst: IntArray?): IntArray {
-            if (dst == null) return getPosition(IntArray(4))
+            val dst = dst ?: IntArray(5)
             val instance = instances.get()
             dst[0] = instance.vectorPosition
-            dst[1] = instance.matrixPosition
-            dst[2] = instance.quatPosition
-            dst[3] = instance.transPosition
+            dst[1] = instance.vectorPositionF
+            dst[2] = instance.matrixPosition
+            dst[3] = instance.quatPosition
+            dst[4] = instance.transPosition
             // System.out.println("Getting state [" + instance.depth + "] at " + Arrays.toString(dst));
             instance.depth++
             return dst
@@ -171,21 +172,23 @@ class Stack {
         @Suppress("unused")
         fun checkSlack(pos: IntArray, name: String = "") {
             val instance = instances.get()
-            val dv = instance.vectorPosition - pos[0]
-            val dm = instance.matrixPosition - pos[1]
-            val dq = instance.quatPosition - pos[2]
-            val dt = instance.transPosition - pos[3]
-            if (dv != 0 || dm != 0 || dq != 0 || dt != 0) {
-                throw IllegalStateException("Slack: $dv vec + $dm mat + $dq quat + $dt trans, '$name'")
+            val dv3d = instance.vectorPosition - pos[0]
+            val dv3f = instance.vectorPositionF - pos[1]
+            val dm = instance.matrixPosition - pos[2]
+            val dq = instance.quatPosition - pos[3]
+            val dt = instance.transPosition - pos[4]
+            if (dv3d != 0 || dv3f != 0 || dm != 0 || dq != 0 || dt != 0) {
+                throw IllegalStateException("Slack: $dv3d+$dv3f vec + $dm mat + $dq quat + $dt trans, '$name'")
             }
         }
 
         fun reset(positions: IntArray) {
             val instance = instances.get()
             instance.vectorPosition = positions[0]
-            instance.matrixPosition = positions[1]
-            instance.quatPosition = positions[2]
-            instance.transPosition = positions[3]
+            instance.vectorPositionF = positions[1]
+            instance.matrixPosition = positions[2]
+            instance.quatPosition = positions[3]
+            instance.transPosition = positions[4]
             instance.depth--
         }
 

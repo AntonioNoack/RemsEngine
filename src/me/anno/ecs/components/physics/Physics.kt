@@ -111,8 +111,10 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     @DebugProperty
     @Group("Bodies")
     val numDynamicBodies: Int
-        get() = rigidBodies.values.count { scaledBody ->
-            scaledBody != null && isDynamic(scaledBody)
+        get() = synchronized(rigidBodies) {
+            rigidBodies.values.count { scaledBody ->
+                scaledBody != null && isDynamic(scaledBody)
+            }
         }
 
     @DebugProperty
@@ -226,9 +228,11 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         entity.validateTransform()
 
         var newlyCreated = false
-        val scaledBody = rigidBodies.getOrPut(entity) {
-            newlyCreated = true
-            createRigidbody(entity, rigidBody)
+        val scaledBody = synchronized(rigidBodies) {
+            rigidBodies.getOrPut(entity) {
+                newlyCreated = true
+                createRigidbody(entity, rigidBody)
+            }
         }
         if (newlyCreated && scaledBody != null) {
             // after creating and registering, so
@@ -413,14 +417,16 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     fun updateExternalTransforms() {
-        for ((entity, scaledBody) in rigidBodies) {
-            if (scaledBody == null || isDynamic(scaledBody)) continue
-            val (_, rigidbody, scale, centerOfMass) = scaledBody
+        synchronized(rigidBodies) {
+            for ((entity, scaledBody) in rigidBodies) {
+                if (scaledBody == null || isDynamic(scaledBody)) continue
+                val (_, rigidbody, scale, centerOfMass) = scaledBody
 
-            entity.validateTransform()
+                entity.validateTransform()
 
-            val srcTransform = entity.transform.globalTransform
-            setMatrix(rigidbody, srcTransform, scale, centerOfMass)
+                val srcTransform = entity.transform.globalTransform
+                setMatrix(rigidbody, srcTransform, scale, centerOfMass)
+            }
         }
     }
 
@@ -434,25 +440,29 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     fun validateEntityTransforms() {
         // update the local transforms last, so all global transforms have been completely updated
-        for ((entity, scaledBody) in rigidBodies) {
-            if (scaledBody == null ||
-                !isActive(scaledBody) ||
-                !isDynamic(scaledBody)
-            ) continue
-            entity.invalidateAABBsCompletely()
-            entity.invalidateChildTransforms()
-            entity.validateTransform()
+        synchronized(rigidBodies) {
+            for ((entity, scaledBody) in rigidBodies) {
+                if (scaledBody == null ||
+                    !isActive(scaledBody) ||
+                    !isDynamic(scaledBody)
+                ) continue
+                entity.invalidateAABBsCompletely()
+                entity.invalidateChildTransforms()
+                entity.validateTransform()
+            }
         }
     }
 
     fun updateDynamicBodies(deadEntities: MutableList<Entity>) {
-        for ((entity, scaledBody) in rigidBodies) {
-            if (scaledBody == null ||
-                !isActive(scaledBody) ||
-                !isDynamic(scaledBody)
-            ) continue
-            updateDynamicRigidBody(entity, scaledBody)
-            checkOutOfBounds(entity, deadEntities)
+        synchronized(rigidBodies) {
+            for ((entity, scaledBody) in rigidBodies) {
+                if (scaledBody == null ||
+                    !isActive(scaledBody) ||
+                    !isDynamic(scaledBody)
+                ) continue
+                updateDynamicRigidBody(entity, scaledBody)
+                checkOutOfBounds(entity, deadEntities)
+            }
         }
     }
 

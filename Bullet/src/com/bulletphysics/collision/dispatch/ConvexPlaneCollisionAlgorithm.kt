@@ -103,7 +103,7 @@ class ConvexPlaneCollisionAlgorithm : CollisionAlgorithm() {
             val pOnB = Stack.newVec3d().set(vtxInPlaneWorld)
             resultOut.addContactPoint(normalOnSurfaceB, pOnB, distance)
             Stack.subVec3f(1)
-            Stack.subVec3f(1)
+            Stack.subVec3d(1)
         }
         if (ownsManifold) {
             if (manifoldPtr.numContacts != 0) {

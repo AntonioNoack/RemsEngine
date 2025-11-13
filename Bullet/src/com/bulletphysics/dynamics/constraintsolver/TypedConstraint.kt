@@ -2,7 +2,6 @@ package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.dynamics.RigidBody
-import org.joml.Vector3d
 import org.joml.Vector3f
 
 /**
@@ -15,14 +14,15 @@ abstract class TypedConstraint @JvmOverloads constructor(
     @JvmField var rigidBodyB: RigidBody = FIXED
 ) {
 
-    @JvmField
-    var appliedImpulse = 0f
-
-    @JvmField
     var breakingImpulseThreshold = 1e38f
 
     init {
         FIXED.setMassProps(0f, Vector3f())
+    }
+
+    fun activate() {
+        rigidBodyA.activate()
+        rigidBodyB.activate()
     }
 
     abstract fun buildJacobian()

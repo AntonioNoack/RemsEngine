@@ -5,6 +5,7 @@ import me.anno.bullet.bodies.DynamicBody
 import me.anno.bullet.bodies.PhysicalBody
 import me.anno.bullet.bodies.StaticBody
 import me.anno.bullet.constraints.HingeConstraint
+import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
@@ -27,7 +28,7 @@ import org.joml.Vector3f
 /**
  * using bullet constraints, build a hanging bridge, and a few objects on top for testing
  *
- * todo build a string-hung bridge using spring constraints??
+ * todo bug: when moving static body, (pillar base), the part above moved with it only with big lag...
  * */
 fun main() {
 
@@ -35,7 +36,7 @@ fun main() {
 
     val scene = Entity("Scene")
     Systems.registerSystem(BulletPhysics().apply {
-        // updateInEditMode = true
+        updateInEditMode = true
         enableDebugRendering = true
     })
 
@@ -54,6 +55,9 @@ fun main() {
     val pillarMesh = flatCube.scaled(Vector3f(pillarSize).mul(0.5f)).front
     val pillarSideMesh = flatCube.scaled(Vector3f(pillarSideSize).mul(0.5f)).front
 
+    /**
+     * pillars and bars
+     * */
     val toLink = ArrayList<Entity>()
     val linkMaterial = Material.diffuse(0x777777)
     val barMaterial = Material.diffuse(0x6A5540)
@@ -169,12 +173,17 @@ fun main() {
     createLink(1)
     createLink(3)
 
-    fun createSpringConstraint(i0: Int, i1: Int, sign: Int) {
-        val a = toLink[i0]
-        val b = toLink[i1]
+    fun createSpringConstraint(pillarI: Int, bridgeI: Int, sign: Int) {
+        val pillar = toLink[pillarI]
+        val bridge = toLink[bridgeI]
 
-        // todo implement that and make it work...
-        // val spring = SpringConstraint()
+        val spring = PointConstraint()
+        spring.selfPosition.set(0.0, pillarSize.y * 1.5, -0.5 * sign * pillarSize.z)
+        spring.otherPosition.set(0.0, 0.0, -barSize.z * 0.5 * sign)
+        spring.other = bridge.getComponent(DynamicBody::class)!!
+        spring.restLength = 4.6f
+        spring.tau = 0.05f
+        pillar.add(spring)
     }
 
     createSpringConstraint(0, 1, -1)

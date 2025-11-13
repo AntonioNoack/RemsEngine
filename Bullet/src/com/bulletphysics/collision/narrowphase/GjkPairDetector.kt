@@ -246,7 +246,7 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
                     localTransA, localTransB,
                     cachedSeparatingAxis,
                     tmpPointOnA, tmpPointOnB,
-                    debugDraw /*,input.stackAlloc*/
+                    debugDraw
                 )
 
                 if (isValid2) {
@@ -280,10 +280,9 @@ class GjkPairDetector : DiscreteCollisionDetectorInterface {
             output.addContactPoint(normalInB, tmp, distance)
         }
 
-        // todo fix counts
-        /*Stack.subVec3f(1)
-        Stack.subVec3d(12)
-        Stack.subTrans(2)*/
+        Stack.subVec3f(8)
+        Stack.subVec3d(7)
+        Stack.subTrans(2)
     }
 
     companion object {

@@ -10,7 +10,16 @@ import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.roundToLongOr
 import me.anno.utils.types.Strings.isBlank2
+import org.joml.Matrix2f
+import org.joml.Matrix3f
+import org.joml.Matrix3x2f
+import org.joml.Matrix4f
+import org.joml.Matrix4x3f
+import org.joml.Quaternionf
 import org.joml.Vector
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -32,7 +41,7 @@ open class FloatInput(
 
     init {
         // to do only override text, if the users presses enter (??)
-        setText(value.toString(), false)
+        setText(stringify(value), false)
         inputPanel.addChangeListener {
             val newValue = parseValue(it)
             value = newValue
@@ -87,8 +96,13 @@ open class FloatInput(
         /*val userWasScientific = isInFocus && inputPanel.text.run {
             contains("e+", true) || contains("e-", true)
         }*/
-        return if (type.defaultValue is Double) v.toString()
-        else v.toFloat().toString()
+        val isFloat = when (type.defaultValue) {
+            is Float, is Vector2f, is Vector3f, is Vector4f,
+            is Quaternionf, is Matrix2f, is Matrix3x2f, is Matrix3f,
+            is Matrix4x3f, is Matrix4f -> true
+            else -> false
+        }
+        return if (isFloat) v.toFloat().toString() else v.toString()
     }
 
     override fun changeValue(dx: Float, dy: Float) {

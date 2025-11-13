@@ -310,7 +310,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
     fun solveGroupCacheFriendlySetup(
         manifoldPtr: List<PersistentManifold>, manifoldOffset: Int, numManifolds: Int,
-        constraints: List<TypedConstraint>?, constraintsOffset: Int,
+        constraints: List<TypedConstraint>, constraintsOffset: Int,
         numConstraints: Int, infoGlobal: ContactSolverInfo
     ) {
         if (numConstraints + numManifolds == 0) return
@@ -323,10 +323,8 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 }
             }
 
-            if (constraints != null) {
-                for (j in 0 until numConstraints) {
-                    constraints[constraintsOffset + j].buildJacobian()
-                }
+            for (j in 0 until numConstraints) {
+                constraints[constraintsOffset + j].buildJacobian()
             }
 
             preparePools()
@@ -601,7 +599,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
     }
 
     fun solveGroupCacheFriendlyIterations(
-        constraints: List<TypedConstraint>?, constraintsOffset: Int, numConstraints: Int,
+        constraints: List<TypedConstraint>, constraintsOffset: Int, numConstraints: Int,
         infoGlobal: ContactSolverInfo
     ) {
         profile("solveGroupCacheFriendlyIterations") {
@@ -614,11 +612,9 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
                 if (infoGlobal.solverMode.hasFlag(SolverMode.SOLVER_RANDOMIZE_ORDER) &&
                     (iteration and 7) == 0
-                ) randomizeOrder(numConstraintPool, numFrictionPool)
+                ) shufflePools(numConstraintPool, numFrictionPool)
 
-                if (constraints != null) {
-                    solveConstraints(constraints, constraintsOffset, numConstraints, infoGlobal)
-                }
+                solveConstraints(constraints, constraintsOffset, numConstraints, infoGlobal)
 
                 solvePoolConstraints(infoGlobal)
                 solveFrictionConstraints()
@@ -632,19 +628,17 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         }
     }
 
-    private fun randomizeOrder(numConstraintPool: Int, numFrictionPool: Int) {
-        for (j in 0 until numConstraintPool) {
-            val tmp = orderTmpConstraintPool[j]
-            val swapi = randInt2(j + 1)
-            orderTmpConstraintPool[j] = orderTmpConstraintPool[swapi]
-            orderTmpConstraintPool[swapi] = tmp
-        }
+    private fun shufflePools(numConstraints: Int, numFrictionConstraints: Int) {
+        shufflePool(numConstraints, orderTmpConstraintPool.values)
+        shufflePool(numFrictionConstraints, orderFrictionConstraintPool.values)
+    }
 
-        for (j in 0 until numFrictionPool) {
-            val tmp = orderFrictionConstraintPool[j]
-            val swapi = randInt2(j + 1)
-            orderFrictionConstraintPool[j] = orderFrictionConstraintPool[swapi]
-            orderFrictionConstraintPool[swapi] = tmp
+    private fun shufflePool(numConstraints: Int, pool: IntArray) {
+        for (j in 1 until numConstraints) {
+            val tmp = pool[j]
+            val swapIndex = randInt2(j + 1)
+            pool[j] = pool[swapIndex]
+            pool[swapIndex] = tmp
         }
     }
 
@@ -652,6 +646,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         constraints: List<TypedConstraint>, constraintsOffset: Int, numConstraints: Int,
         infoGlobal: ContactSolverInfo
     ) {
+        var pos: IntArray? = null
         for (k in 0 until numConstraints) {
             val constraint = constraints[constraintsOffset + k]
 
@@ -663,7 +658,9 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 tmpSolverBodyPool[constraint.rigidBodyB.companionId].writebackVelocity()
             }
 
+            pos = Stack.getPosition(pos)
             constraint.solveConstraint(infoGlobal.timeStep)
+            Stack.checkSlack(pos, constraint.javaClass.simpleName)
 
             if ((constraint.rigidBodyA.islandTag >= 0) && (constraint.rigidBodyA.companionId >= 0)) {
                 tmpSolverBodyPool[constraint.rigidBodyA.companionId].readVelocity()
@@ -712,7 +709,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
     fun solveGroupCacheFriendly(
         manifoldPtr: List<PersistentManifold>, manifoldOffset: Int, numManifolds: Int,
-        constraints: List<TypedConstraint>?, constraintsOffset: Int, numConstraints: Int,
+        constraints: List<TypedConstraint>, constraintsOffset: Int, numConstraints: Int,
         infoGlobal: ContactSolverInfo
     ) {
         solveGroupCacheFriendlySetup(
@@ -758,7 +755,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
     override fun solveGroup(
         bodies: List<CollisionObject>, numBodies: Int,
         manifold: List<PersistentManifold>, manifoldOffset: Int, numManifolds: Int,
-        constraints: List<TypedConstraint>?, constraintsOffset: Int, numConstraints: Int,
+        constraints: List<TypedConstraint>, constraintsOffset: Int, numConstraints: Int,
         info: ContactSolverInfo, debugDrawer: IDebugDraw?, dispatcher: Dispatcher
     ) {
         if (numBodies <= 0) return
