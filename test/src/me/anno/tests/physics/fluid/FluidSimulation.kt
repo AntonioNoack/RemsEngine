@@ -6,6 +6,7 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.maths.Maths.ceilDiv
 import org.joml.Vector2f
+import kotlin.math.max
 import kotlin.math.sqrt
 
 class FluidSimulation(val width: Int, val height: Int, numSurfaceParticles: Int) {
@@ -18,8 +19,8 @@ class FluidSimulation(val width: Int, val height: Int, numSurfaceParticles: Int)
     var dissipation = 0.2f // friction factor
 
     val particles = run {
-        val w = sqrt(numSurfaceParticles.toFloat()).toInt()
-        val h = ceilDiv(numSurfaceParticles, w)
+        val w = max(sqrt(numSurfaceParticles.toFloat()).toInt(), 1)
+        val h = max(ceilDiv(numSurfaceParticles, w), 1)
         val targets = listOf(
             TargetType.Float32x3, // position,
             TargetType.Float32x3, // velocity,
