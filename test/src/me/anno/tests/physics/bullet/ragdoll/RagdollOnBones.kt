@@ -210,7 +210,7 @@ fun main() {
                 other = parentBody
                 selfPosition.set(0.0, +length * 0.5, 0.0)
                 otherPosition.set(0.0, -parent.length(bones) * 0.5, 0.0)
-                breakingImpulseThreshold = 50.0f
+                breakingImpulse = 50.0f
             })
             // disableCollisionsBetweenLinked = false
             (constraint as? PointConstraint)?.apply {
@@ -251,7 +251,7 @@ fun main() {
                 other = root2
                 selfPosition.set(0.0, root1Len * 0.5, 0.0)
                 otherPosition.set(0.0, root2Len * 0.5, 0.0)
-                breakingImpulseThreshold = 50f
+                breakingImpulse = 50f
                 // disableCollisionsBetweenLinked = false
                 damping = 0.5f
             })

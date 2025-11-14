@@ -9,11 +9,11 @@ package com.bulletphysics.dynamics.constraintsolver
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
+import me.anno.bullet.constraints.GenericConstraint
 import me.anno.maths.Maths.PIf
 import org.joml.Matrix3f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.atan2
 
@@ -56,15 +56,19 @@ import kotlin.math.atan2
  * @author jezek2
  */
 @Suppress("unused")
-class Generic6DofConstraint : TypedConstraint {
+class Generic6DofConstraint(
+    val settings: GenericConstraint,
+    rbA: RigidBody,
+    rbB: RigidBody
+) : TypedConstraint(rbA, rbB) {
 
-    val frameInA: Transform = Transform() //!< the constraint space w.r.t body A
-    val frameInB: Transform = Transform() //!< the constraint space w.r.t body B
+    val frameInA = Transform() //!< the constraint space w.r.t body A
+    val frameInB = Transform() //!< the constraint space w.r.t body B
 
     val jacLinearDiagonalInv = FloatArray(3) //!< 3 orthogonal linear constraints
     val jacAngularDiagonalInv = FloatArray(3) //!< 3 orthogonal angular constraints
 
-    val linearLimits: TranslationalLimitMotor = TranslationalLimitMotor()
+    val linearLimits = TranslationalLimitMotor()
 
     val angularLimits /*[3]*/ =
         arrayOf(RotationalLimitMotor(), RotationalLimitMotor(), RotationalLimitMotor())
@@ -80,19 +84,22 @@ class Generic6DofConstraint : TypedConstraint {
     val calculatedAxis = arrayOf(Vector3f(), Vector3f(), Vector3f())
     private val anchorPos = Vector3d() // point between pivots of bodies A and B to solve linear axes
 
-    var useLinearReferenceFrameA: Boolean
+    override var breakingImpulse: Float
+        get() = settings.breakingImpulse
+        set(value) {
+            settings.breakingImpulse = value
+        }
 
-    constructor() {
-        useLinearReferenceFrameA = true
-    }
+    var useLinearReferenceFrameA: Boolean = false
 
     constructor(
+        settings: GenericConstraint,
         rbA: RigidBody,
         rbB: RigidBody,
         frameInA: Transform,
         frameInB: Transform,
         useLinearReferenceFrameA: Boolean
-    ) : super(rbA, rbB) {
+    ) : this(settings, rbA, rbB) {
         this.frameInA.set(frameInA)
         this.frameInB.set(frameInB)
         this.useLinearReferenceFrameA = useLinearReferenceFrameA
@@ -274,7 +281,7 @@ class Generic6DofConstraint : TypedConstraint {
                     rigidBodyB, pointInB,
                     i, linearAxis, anchorPos
                 )
-                if (impulse > breakingImpulseThreshold) {
+                if (impulse > breakingImpulse) {
                     isBroken = true
                     break
                 }
@@ -317,9 +324,7 @@ class Generic6DofConstraint : TypedConstraint {
     /**
      * Retrieves the angular limit informacion.
      */
-    fun getRotationalLimitMotor(index: Int): RotationalLimitMotor? {
-        return angularLimits[index]
-    }
+    fun getRotationalLimitMotor(index: Int) = angularLimits[index]
 
     /**
      * first 3 are linear, next 3 are angular

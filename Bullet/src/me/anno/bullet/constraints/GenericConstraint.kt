@@ -69,8 +69,13 @@ class GenericConstraint : Constraint<Generic6DofConstraint>() {
             }
         }
 
-    override fun createConstraint(a: RigidBody, b: RigidBody, ta: Transform, tb: Transform): Generic6DofConstraint {
-        val instance = Generic6DofConstraint(a, b, ta, tb, linearLimitsAreInASpaceNotBSpace)
+    override fun createConstraint(a: RigidBody, b: RigidBody): Generic6DofConstraint {
+        val ta = Transform(selfPosition, selfRotation)
+        val tb = Transform(otherPosition, otherRotation)
+        val instance = Generic6DofConstraint(
+            this, a, b, ta, tb,
+            linearLimitsAreInASpaceNotBSpace
+        )
         instance.linearLimits.lowerLimit.set(lowerLimit)
         instance.linearLimits.upperLimit.set(upperLimit)
         instance.angularLimits[0].lowerLimit = lowerAngleLimit.x
@@ -79,7 +84,6 @@ class GenericConstraint : Constraint<Generic6DofConstraint>() {
         instance.angularLimits[0].upperLimit = upperAngleLimit.x
         instance.angularLimits[1].upperLimit = upperAngleLimit.y
         instance.angularLimits[2].upperLimit = upperAngleLimit.z
-        instance.breakingImpulseThreshold = breakingImpulseThreshold
         return instance
     }
 

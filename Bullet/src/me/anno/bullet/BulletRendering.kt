@@ -5,7 +5,6 @@ import com.bulletphysics.collision.dispatch.CollisionDispatcher
 import com.bulletphysics.collision.narrowphase.ManifoldPoint
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.ConvexHullShape
-import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.bullet.bodies.PhysicalBody
 import me.anno.bullet.bodies.PhysicsBody
@@ -41,7 +40,7 @@ object BulletRendering {
     }
 
     private fun BulletPhysics.drawIslands() {
-        val transform = Transform()
+
         val min = Vector3d()
         val max = Vector3d()
         val boundsById = IntToObjectHashMap<AABBd>()
@@ -52,7 +51,7 @@ object BulletRendering {
             val tag = instance.islandTag
             if (tag < 0) continue // no island available
             // get transformed bounds
-            instance.getWorldTransform(transform)
+            val transform = instance.worldTransform
             instance.collisionShape!!.getBounds(transform, min, max)
             // add bounds to island
             boundsById.getOrPut(tag) { AABBd() }
@@ -129,7 +128,6 @@ object BulletRendering {
 
     private fun BulletPhysics.drawAABBs() {
 
-        val tmpTrans = Stack.newTrans()
         val minAabb = Stack.newVec3d()
         val maxAabb = Stack.newVec3d()
 
@@ -152,11 +150,12 @@ object BulletRendering {
 
             try {
                 val shape = colObj.collisionShape!!
-                shape.getBounds(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
+                val transform = colObj.worldTransform
+                shape.getBounds(transform, minAabb, maxAabb)
                 if (shape is ConvexHullShape) {
                     forLoopSafely(shape.points.size, 3) { idx ->
                         val p1 = Vector3d(shape.points, idx)
-                        tmpTrans.transformPosition(p1)
+                        transform.transformPosition(p1)
                         showDebugPoint(DebugPoint(p1, -1, 0f))
                     }
                 }
@@ -173,7 +172,6 @@ object BulletRendering {
         }
 
         JomlPools.aabbd.sub(1)
-        Stack.subTrans(1)
         Stack.subVec3d(2)
     }
 

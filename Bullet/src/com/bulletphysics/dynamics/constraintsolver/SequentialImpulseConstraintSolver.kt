@@ -198,12 +198,12 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
         normalImpulse = contactConstraint.appliedImpulse - oldNormalImpulse
 
-        val tmp = Stack.newVec3f()
-        contactConstraint.contactNormal.mul(body1.invMass, tmp)
-        body1.internalApplyImpulse(tmp, contactConstraint.angularComponentA, normalImpulse)
+        val impulse = Stack.newVec3f()
+        contactConstraint.contactNormal.mul(body1.invMass, impulse)
+        body1.internalApplyImpulse(impulse, contactConstraint.angularComponentA, normalImpulse)
 
-        contactConstraint.contactNormal.mul(body2.invMass, tmp)
-        body2.internalApplyImpulse(tmp, contactConstraint.angularComponentB, -normalImpulse)
+        contactConstraint.contactNormal.mul(body2.invMass, impulse)
+        body2.internalApplyImpulse(impulse, contactConstraint.angularComponentB, -normalImpulse)
         Stack.subVec3f(1)
     }
 
@@ -349,15 +349,15 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
     private fun defineSolverBody(colObj: CollisionObject): Int {
         if (colObj.islandTag >= 0) {
-            if (colObj.companionId >= 0) {
+            if (colObj.poolId >= 0) {
                 // body has already been converted
-                return colObj.companionId
+                return colObj.poolId
             } else {
                 val solverBodyId = tmpSolverBodyPool.size
                 val solverBody = bodiesPool.get()
                 tmpSolverBodyPool.add(solverBody)
                 initSolverBody(solverBody, colObj)
-                colObj.companionId = solverBodyId
+                colObj.poolId = solverBodyId
                 return solverBodyId
             }
         } else {
@@ -389,10 +389,6 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         solverConstraint: SolverConstraint,
         relaxation: Float
     ) {
-        //#ifdef COMPUTE_IMPULSE_DENOM
-        //btScalar denom0 = rb0->computeImpulseDenominator(pos1,cp.m_normalWorldOnB);
-        //btScalar denom1 = rb1->computeImpulseDenominator(pos2,cp.m_normalWorldOnB);
-        //#else
         val tmp = Stack.newVec3f()
         var denominator0 = 0f
         var denominator1 = 0f
@@ -405,7 +401,6 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             denominator1 = rb1.inverseMass + cp.normalWorldOnB.dot(tmp)
         }
 
-        //#endif //COMPUTE_IMPULSE_DENOM
         solverConstraint.jacDiagABInv = relaxation / (denominator0 + denominator1)
         Stack.subVec3f(1)
     }
@@ -651,29 +646,29 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             val constraint = constraints[constraintsOffset + k]
 
             // todo: use solver bodies, so we don't need to copy from/to btRigidBody
-            if ((constraint.rigidBodyA.islandTag >= 0) && (constraint.rigidBodyA.companionId >= 0)) {
-                tmpSolverBodyPool[constraint.rigidBodyA.companionId].writebackVelocity()
+            if ((constraint.rigidBodyA.islandTag >= 0) && (constraint.rigidBodyA.poolId >= 0)) {
+                tmpSolverBodyPool[constraint.rigidBodyA.poolId].writebackVelocity()
             }
-            if ((constraint.rigidBodyB.islandTag >= 0) && (constraint.rigidBodyB.companionId >= 0)) {
-                tmpSolverBodyPool[constraint.rigidBodyB.companionId].writebackVelocity()
+            if ((constraint.rigidBodyB.islandTag >= 0) && (constraint.rigidBodyB.poolId >= 0)) {
+                tmpSolverBodyPool[constraint.rigidBodyB.poolId].writebackVelocity()
             }
 
             pos = Stack.getPosition(pos)
             constraint.solveConstraint(infoGlobal.timeStep)
             Stack.checkSlack(pos, constraint.javaClass.simpleName)
 
-            if ((constraint.rigidBodyA.islandTag >= 0) && (constraint.rigidBodyA.companionId >= 0)) {
-                tmpSolverBodyPool[constraint.rigidBodyA.companionId].readVelocity()
+            if ((constraint.rigidBodyA.islandTag >= 0) && (constraint.rigidBodyA.poolId >= 0)) {
+                tmpSolverBodyPool[constraint.rigidBodyA.poolId].readVelocity()
             }
-            if ((constraint.rigidBodyB.islandTag >= 0) && (constraint.rigidBodyB.companionId >= 0)) {
-                tmpSolverBodyPool[constraint.rigidBodyB.companionId].readVelocity()
+            if ((constraint.rigidBodyB.islandTag >= 0) && (constraint.rigidBodyB.poolId >= 0)) {
+                tmpSolverBodyPool[constraint.rigidBodyB.poolId].readVelocity()
             }
         }
     }
 
     private fun solvePoolConstraints(infoGlobal: ContactSolverInfo) {
         for (k in 0 until tmpSolverConstraintPool.size) {
-            val solveManifold = tmpSolverConstraintPool[orderTmpConstraintPool.get(k)]
+            val solveManifold = tmpSolverConstraintPool[orderTmpConstraintPool[k]]
             resolveSingleCollisionCombinedCacheFriendly(
                 tmpSolverBodyPool[solveManifold.solverBodyIdA],
                 tmpSolverBodyPool[solveManifold.solverBodyIdB], solveManifold, infoGlobal
@@ -699,7 +694,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
     private fun splitImpulse(infoGlobal: ContactSolverInfo) {
         val numPoolConstraints = tmpSolverConstraintPool.size
         for (j in 0 until numPoolConstraints) {
-            val solveManifold = tmpSolverConstraintPool[orderTmpConstraintPool.get(j)]
+            val solveManifold = tmpSolverConstraintPool[orderTmpConstraintPool[j]]
             resolveSplitPenetrationImpulseCacheFriendly(
                 tmpSolverBodyPool[solveManifold.solverBodyIdA],
                 tmpSolverBodyPool[solveManifold.solverBodyIdB], solveManifold, infoGlobal

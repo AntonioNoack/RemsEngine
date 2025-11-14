@@ -23,12 +23,17 @@ import kotlin.math.sqrt
  */
 @Suppress("unused")
 class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private val vehicleRaycaster: VehicleRaycaster) :
-    TypedConstraint() {
+    TypedConstraint() { // why is this a constraint???
 
     val forwardWS = ArrayList<Vector3f>()
     val axle = ArrayList<Vector3f>()
     val forwardImpulse = FloatArrayList(8)
     val sideImpulse = FloatArrayList(8)
+
+    // not used, I think
+    override var breakingImpulse: Float
+        get() = Float.POSITIVE_INFINITY
+        set(value) {}
 
     private val tau = 0f
     private val damping = 0f

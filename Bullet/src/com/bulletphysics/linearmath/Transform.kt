@@ -15,7 +15,12 @@ import org.joml.Vector3f
  *
  * @author jezek2
  */
-class Transform {
+class Transform() {
+
+    constructor(position: Vector3d, rotation: Quaternionf) : this() {
+        origin.set(position)
+        basis.set(rotation)
+    }
 
     /**
      * Rotation matrix of this Transform.

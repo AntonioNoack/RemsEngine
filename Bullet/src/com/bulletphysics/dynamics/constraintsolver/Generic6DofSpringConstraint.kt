@@ -54,6 +54,12 @@ class Generic6DofSpringConstraint : TypedConstraint {
         }
     }
 
+    override var breakingImpulse: Float
+        get() = TODO("Not yet implemented")
+        set(value) {
+            throw NotImplementedError()
+        }
+
     val calculatedLinearDiff = Vector3f()
     val calculatedAngleDiff = Vector3f()
 

@@ -45,8 +45,8 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
     fun init(body0: CollisionObject, body1: CollisionObject) {
         this.body0 = body0
         this.body1 = body1
-        body0.getWorldTransform(this.rootTransA)
-        body1.getWorldTransform(this.rootTransB)
+        rootTransA.set(body0.worldTransform)
+        rootTransB.set(body1.worldTransform)
     }
 
     @get:Suppress("unused")

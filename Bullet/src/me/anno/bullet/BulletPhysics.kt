@@ -292,10 +292,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
             val otherBody = getRigidbody(otherEngineBody)?.external
             if (otherBody is RigidBody) {
                 // create constraint
-                val bulletConstraint = constraint.createConstraint(
-                    bulletBody, otherBody,
-                    constraint.getTA(), constraint.getTB()
-                )
+                val bulletConstraint = constraint.createConstraint(bulletBody, otherBody)
                 @Suppress("UNCHECKED_CAST")
                 (constraint as Constraint<TypedConstraint>).bulletInstance = bulletConstraint
                 world.addConstraint(bulletConstraint, constraint.disableCollisionsBetweenLinked)

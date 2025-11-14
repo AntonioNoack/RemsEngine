@@ -10,6 +10,8 @@ package com.bulletphysics.dynamics.constraintsolver
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
+import me.anno.bullet.constraints.ConstraintLimit
+import me.anno.bullet.constraints.SliderConstraint
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
@@ -19,27 +21,18 @@ import kotlin.math.atan2
  * JAVA NOTE: SliderConstraint from 2.71
  * @author jezek2
  */
-class SliderConstraint : TypedConstraint {
+class SliderConstraint(
+    val settings: SliderConstraint,
+    rbA: RigidBody,
+    rbB: RigidBody,
+    val frameOffsetA: Transform,
+    val frameOffsetB: Transform,
 
-    val frameOffsetA = Transform()
-    val frameOffsetB = Transform()
-
-    // use frameA fo define limits, if true
+    /**
+     * use frameA fo define limits, if true
+     * */
     var useLinearReferenceFrameA: Boolean
-
-    // linear limits
-    @JvmField
-    var lowerLinearLimit = 0f
-
-    @JvmField
-    var upperLinearLimit = 0f
-
-    // angular limits
-    @JvmField
-    var lowerAngularLimit = 0f
-
-    @JvmField
-    var upperAngularLimit = 0f
+) : TypedConstraint(rbA, rbB) {
 
     // softness, restitution and damping for different cases
     // DirLin - moving inside linear limits
@@ -47,30 +40,6 @@ class SliderConstraint : TypedConstraint {
     // DirAng - moving inside angular limits
     // LimAng - hitting angular limit
     // OrthoLin, OrthoAng - against constraint axis
-
-    var softnessDirLinear = 0f
-    var restitutionDirLinear = 0f
-    var dampingDirLinear = 0f
-
-    var softnessDirAngular = 0f
-    var restitutionDirAngular = 0f
-    var dampingDirAngular = 0f
-
-    var softnessLimitLinear = 0f
-    var restitutionLimitLinear = 0f
-    var dampingLimitLinear = 0f
-
-    var softnessLimitAngular = 0f
-    var restitutionLimitAngular = 0f
-    var dampingLimitAngular = 0f
-
-    var softnessOrthogonalLinear = 0f
-    var restitutionOrthogonalLinear = 0f
-    var dampingOrthogonalLinear = 0f
-
-    var softnessOrthogonalAngular = 0f
-    var restitutionOrthogonalAngular = 0f
-    var dampingOrthogonalAngular = 0f
 
     // for internal use
     private var solveLinLim = false
@@ -92,73 +61,18 @@ class SliderConstraint : TypedConstraint {
     private val relPosA = Vector3f()
     private val relPosB = Vector3f()
 
+    override var breakingImpulse: Float
+        get() = settings.breakingImpulse
+        set(value) {
+            settings.breakingImpulse = value
+        }
+
     var linearPosition = 0f
     var angularPosition = 0f
     private var kAngle = 0f
 
-    var poweredLinearMotor = false
-    var targetLinearMotorVelocity = 0f
-    var maxLinearMotorForce = 0f
     private var accumulatedLinearMotorImpulse = 0f
-
-    var poweredAngularMotor = false
-    var targetAngularMotorVelocity = 0f
-    var maxAngularMotorForce = 0f
     private var accumulatedAngMotorImpulse = 0f
-
-    constructor(
-        rbA: RigidBody,
-        rbB: RigidBody,
-        frameOffsetA: Transform,
-        frameOffsetB: Transform,
-        useLinearReferenceFrameA: Boolean
-    ) : super(rbA, rbB) {
-        this.frameOffsetA.set(frameOffsetA)
-        this.frameOffsetB.set(frameOffsetB)
-        this.useLinearReferenceFrameA = useLinearReferenceFrameA
-        initParams()
-    }
-
-    fun initParams() {
-        lowerLinearLimit = 1f
-        upperLinearLimit = -1f
-        lowerAngularLimit = 0f
-        upperAngularLimit = 0f
-
-        softnessDirLinear = SLIDER_CONSTRAINT_DEF_SOFTNESS
-        restitutionDirLinear = SLIDER_CONSTRAINT_DEF_RESTITUTION
-        dampingDirLinear = 0f
-
-        softnessDirAngular = SLIDER_CONSTRAINT_DEF_SOFTNESS
-        restitutionDirAngular = SLIDER_CONSTRAINT_DEF_RESTITUTION
-        dampingDirAngular = 0f
-
-        softnessOrthogonalLinear = SLIDER_CONSTRAINT_DEF_SOFTNESS
-        restitutionOrthogonalLinear = SLIDER_CONSTRAINT_DEF_RESTITUTION
-        dampingOrthogonalLinear = SLIDER_CONSTRAINT_DEF_DAMPING
-
-        softnessOrthogonalAngular = SLIDER_CONSTRAINT_DEF_SOFTNESS
-        restitutionOrthogonalAngular = SLIDER_CONSTRAINT_DEF_RESTITUTION
-        dampingOrthogonalAngular = SLIDER_CONSTRAINT_DEF_DAMPING
-
-        softnessLimitLinear = SLIDER_CONSTRAINT_DEF_SOFTNESS
-        restitutionLimitLinear = SLIDER_CONSTRAINT_DEF_RESTITUTION
-        dampingLimitLinear = SLIDER_CONSTRAINT_DEF_DAMPING
-
-        softnessLimitAngular = SLIDER_CONSTRAINT_DEF_SOFTNESS
-        restitutionLimitAngular = SLIDER_CONSTRAINT_DEF_RESTITUTION
-        dampingLimitAngular = SLIDER_CONSTRAINT_DEF_DAMPING
-
-        poweredLinearMotor = false
-        targetLinearMotorVelocity = 0f
-        maxLinearMotorForce = 0f
-        accumulatedLinearMotorImpulse = 0f
-
-        poweredAngularMotor = false
-        targetAngularMotorVelocity = 0f
-        maxAngularMotorForce = 0f
-        accumulatedAngMotorImpulse = 0f
-    }
 
     override fun buildJacobian() {
         if (useLinearReferenceFrameA) {
@@ -218,6 +132,12 @@ class SliderConstraint : TypedConstraint {
         Stack.subVec3f(1)
     }
 
+    private fun ConstraintLimit.getValue(i: Int): Float {
+        return if (i != 0) orthogonal
+        else if (solveLinLim) limit
+        else dir
+    }
+
     fun solveConstraintInt(rbA: RigidBody, rbB: RigidBody) {
         val tmp = Stack.newVec3f()
 
@@ -234,22 +154,13 @@ class SliderConstraint : TypedConstraint {
             // calculate positional error
             val depth = depth[i]
             // get parameters
-            val softness =
-                if (i != 0) softnessOrthogonalLinear
-                else if (solveLinLim) softnessLimitLinear
-                else softnessDirLinear
-            val restitution =
-                if (i != 0) restitutionOrthogonalLinear
-                else if (solveLinLim) restitutionLimitLinear
-                else restitutionDirLinear
-            val damping =
-                if (i != 0) dampingOrthogonalLinear
-                else if (solveLinLim) dampingLimitLinear
-                else dampingDirLinear
+            val softness = settings.linearSoftness.getValue(i)
+            val restitution = settings.linearRestitution.getValue(i)
+            val damping = settings.linearDamping.getValue(i)
 
             // calculate and apply impulse
             var normalImpulse = softness * (restitution * depth / timeStep - damping * relVel) * jacLinDiagABInv[i]
-            if (abs(normalImpulse) > breakingImpulseThreshold) {
+            if (abs(normalImpulse) > breakingImpulse) {
                 isBroken = true
                 break
             }
@@ -259,27 +170,25 @@ class SliderConstraint : TypedConstraint {
             impulseVector.negate(tmp)
             rbB.applyImpulse(tmp, relPosB)
 
-            if (poweredLinearMotor && i == 0) {
-                // apply linear motor
-                if (accumulatedLinearMotorImpulse < maxLinearMotorForce) {
-                    val desiredMotorVel = targetLinearMotorVelocity
-                    val motorRelVel = desiredMotorVel + relVel
-                    normalImpulse = -motorRelVel * jacLinDiagABInv[i]
-                    // clamp accumulated impulse
-                    var newAcc = accumulatedLinearMotorImpulse + abs(normalImpulse)
-                    if (newAcc > maxLinearMotorForce) {
-                        newAcc = maxLinearMotorForce
-                    }
-                    val del = newAcc - accumulatedLinearMotorImpulse
-                    normalImpulse = if (normalImpulse < 0.0) -del else del
-
-                    accumulatedLinearMotorImpulse = newAcc
-                    // apply clamped impulse
-                    normal.mul(normalImpulse, impulseVector)
-                    rbA.applyImpulse(impulseVector, relPosA)
-                    impulseVector.negate(tmp)
-                    rbB.applyImpulse(tmp, relPosB)
+            // apply linear motor
+            val motor = settings.linearMotor
+            if (i == 0 && accumulatedLinearMotorImpulse < motor.maxForce) {
+                val motorRelVel = motor.targetVelocity + relVel
+                normalImpulse = -motorRelVel * jacLinDiagABInv[i]
+                // clamp accumulated impulse
+                var newAcc = accumulatedLinearMotorImpulse + abs(normalImpulse)
+                if (newAcc > motor.maxForce) {
+                    newAcc = motor.maxForce
                 }
+                val del = newAcc - accumulatedLinearMotorImpulse
+                normalImpulse = if (normalImpulse < 0.0) -del else del
+
+                accumulatedLinearMotorImpulse = newAcc
+                // apply clamped impulse
+                normal.mul(normalImpulse, impulseVector)
+                rbA.applyImpulse(impulseVector, relPosA)
+                impulseVector.negate(tmp)
+                rbB.applyImpulse(tmp, relPosB)
             }
         }
 
@@ -312,7 +221,7 @@ class SliderConstraint : TypedConstraint {
             velRelOrthogonal.normalize(normal)
             val denominator = rbA.computeAngularImpulseDenominator(normal) +
                     rbB.computeAngularImpulseDenominator(normal)
-            velRelOrthogonal.mul((1f / denominator) * dampingOrthogonalAngular * softnessOrthogonalAngular)
+            velRelOrthogonal.mul((1f / denominator) * settings.angularDamping.orthogonal * settings.angularSoftness.orthogonal)
             Stack.subVec3f(1)
         }
 
@@ -326,7 +235,7 @@ class SliderConstraint : TypedConstraint {
             angularError.normalize(normal)
             val denominator = rbA.computeAngularImpulseDenominator(normal) +
                     rbB.computeAngularImpulseDenominator(normal)
-            angularError.mul((1f / denominator) * restitutionOrthogonalAngular * softnessOrthogonalAngular)
+            angularError.mul((1f / denominator) * settings.angularRestitution.orthogonal * settings.angularSoftness.orthogonal)
             Stack.subVec3f(1)
         }
 
@@ -342,14 +251,16 @@ class SliderConstraint : TypedConstraint {
         // solve angular limits
         angVelB.sub(angVelA, tmp)
         if (solveAngLim) {
-            impulseMag = tmp.dot(axisA) * dampingLimitAngular + angularPosition * restitutionLimitAngular / timeStep
-            impulseMag *= kAngle * softnessLimitAngular
+            impulseMag = tmp.dot(axisA) * settings.angularDamping.limit +
+                    angularPosition * settings.angularRestitution.limit / timeStep
+            impulseMag *= kAngle * settings.angularSoftness.limit
         } else {
-            impulseMag = tmp.dot(axisA) * dampingDirAngular + angularPosition * restitutionDirAngular / timeStep
-            impulseMag *= kAngle * softnessDirAngular
+            impulseMag = tmp.dot(axisA) * settings.angularDamping.dir +
+                    angularPosition * settings.angularRestitution.dir / timeStep
+            impulseMag *= kAngle * settings.angularSoftness.dir
         }
 
-        if (abs(impulseMag) > breakingImpulseThreshold) {
+        if (abs(impulseMag) > breakingImpulse) {
             isBroken = true
             impulseMag = 0f
         }
@@ -357,11 +268,8 @@ class SliderConstraint : TypedConstraint {
         applyTorqueImpulse(impulseMag, axisA, tmp, rbA, rbB)
 
         // apply angular motor
-        if (poweredAngularMotor && accumulatedAngMotorImpulse < maxAngularMotorForce) {
-            applyAngularMotor(
-                angVelAroundAxisA, angVelAroundAxisB,
-                axisA, tmp, rbA, rbB
-            )
+        if (accumulatedAngMotorImpulse < settings.angularMotor.maxForce) {
+            applyAngularMotor(angVelAroundAxisA, angVelAroundAxisB, axisA, tmp, rbA, rbB)
         }
 
         Stack.subVec3f(12)
@@ -386,23 +294,23 @@ class SliderConstraint : TypedConstraint {
         axisA: Vector3f, tmp: Vector3f,
         rbA: RigidBody, rbB: RigidBody
     ) {
+        val motor = settings.angularMotor
         val velRel = Stack.newVec3f()
         angVelAroundAxisA.sub(angVelAroundAxisB, velRel)
         val projRelVel = velRel.dot(axisA)
 
-        val desiredMotorVel = targetAngularMotorVelocity
-        val motorRelVel = desiredMotorVel - projRelVel
+        val motorRelVel = motor.targetVelocity - projRelVel
 
         var angImpulse = kAngle * motorRelVel
-        if (abs(angImpulse) > breakingImpulseThreshold) {
+        if (abs(angImpulse) > breakingImpulse) {
             isBroken = true
             angImpulse = 0f
         }
 
         // clamp accumulated impulse
         var newAcc = accumulatedAngMotorImpulse + abs(angImpulse)
-        if (newAcc > maxAngularMotorForce) {
-            newAcc = maxAngularMotorForce
+        if (newAcc > motor.maxForce) {
+            newAcc = motor.maxForce
         }
         val del = newAcc - accumulatedAngMotorImpulse
         angImpulse = if (angImpulse < 0f) -del else del
@@ -422,6 +330,8 @@ class SliderConstraint : TypedConstraint {
     fun testLinLimits() {
         solveLinLim = false
         linearPosition = depth.x
+        val lowerLinearLimit = settings.lowerLinearLimit
+        val upperLinearLimit = settings.upperLinearLimit
         if (lowerLinearLimit <= upperLinearLimit) {
             if (depth.x > upperLinearLimit) {
                 depth.x -= upperLinearLimit
@@ -440,6 +350,8 @@ class SliderConstraint : TypedConstraint {
     fun testAngLimits() {
         angularPosition = 0f
         solveAngLim = false
+        val lowerAngularLimit = settings.lowerAngleLimit
+        val upperAngularLimit = settings.upperAngleLimit
         if (lowerAngularLimit <= upperAngularLimit) {
             val axisAY = Stack.newVec3f()
             val axisAZ = Stack.newVec3f()

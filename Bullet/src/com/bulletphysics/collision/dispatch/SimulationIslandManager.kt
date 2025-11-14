@@ -38,7 +38,7 @@ class SimulationIslandManager {
         for (i in objects.indices) {
             val objI = objects[i]
             objI.islandTag = i
-            objI.companionId = -1
+            objI.poolId = -1
             objI.hitFraction = 1f
         }
 
@@ -53,10 +53,10 @@ class SimulationIslandManager {
             val instance = objects[i]
             if (!instance.isStaticOrKinematicObject) {
                 instance.islandTag = unionFind.findGroupId(i)
-                instance.companionId = -1
+                instance.poolId = -1
             } else {
                 instance.islandTag = -1
-                instance.companionId = -2
+                instance.poolId = -2
             }
         }
     }

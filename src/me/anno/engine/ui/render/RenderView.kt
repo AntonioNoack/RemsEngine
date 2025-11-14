@@ -441,7 +441,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             val clickedId = convertABGR2ARGB(clickedIdBGR).and(0xffffff)
             val clicked = if (clickedId == 0) null
             else pipeline.findDrawnSubject(clickedId, world)
-            if (true) {
+            if (false) {
                 LOGGER.info("Found: ${ids.joinToString { hex24(convertABGR2ARGB(it)) }} x ${depths.joinToString()} -> $clickedId -> $clicked")
                 val ids2 = world.listOfAll
                     .filterIsInstance<Component>()

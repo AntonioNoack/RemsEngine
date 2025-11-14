@@ -8,7 +8,6 @@ import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver
 import com.bulletphysics.dynamics.constraintsolver.ContactSolverInfo
 import com.bulletphysics.dynamics.constraintsolver.TypedConstraint
 import com.bulletphysics.dynamics.vehicle.RaycastVehicle
-import org.joml.Vector3d
 import org.joml.Vector3f
 
 /**

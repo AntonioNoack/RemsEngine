@@ -78,12 +78,12 @@ class CompoundCollisionAlgorithm : CollisionAlgorithm() {
 
             // backup
             colObj.getWorldTransform(orgTrans)
-            colObj.getInterpolationWorldTransform(orgInterpolationTrans)
+            orgInterpolationTrans.set(colObj.interpolationWorldTransform)
 
             val childTrans = child.transform
             newChildWorldTrans.setMul(orgTrans, childTrans)
-            colObj.setWorldTransform(newChildWorldTrans)
-            colObj.setInterpolationWorldTransform(newChildWorldTrans)
+            colObj.worldTransform.set(newChildWorldTrans)
+            colObj.interpolationWorldTransform.set(newChildWorldTrans)
 
             // the contact point is still projected back using the original inverted world transform
             val tmpShape = colObj.collisionShape
@@ -92,8 +92,8 @@ class CompoundCollisionAlgorithm : CollisionAlgorithm() {
 
             // revert back
             colObj.collisionShape = tmpShape
-            colObj.setWorldTransform(orgTrans)
-            colObj.setInterpolationWorldTransform(orgInterpolationTrans)
+            colObj.worldTransform.set(orgTrans)
+            colObj.interpolationWorldTransform.set(orgInterpolationTrans)
         }
 
         Stack.subTrans(3)

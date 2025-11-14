@@ -64,11 +64,13 @@ class StackOfBoxesTest {
         frameInB.setTranslation(sphereTransform.origin) // matches sphere start pos
 
         // You can also set frameInB.basis to rotate if you want motion along a different axis
-        val slider = SliderConstraint(sphereBody, staticRail, frameInA, frameInB, true)
-        slider.lowerLinearLimit = -10.0f
-        slider.upperLinearLimit = 10.0f
-        slider.lowerAngularLimit = 0.0f
-        slider.upperAngularLimit = 0.0f
+        val settings = me.anno.bullet.constraints.SliderConstraint()
+        settings.lowerLinearLimit = -10.0f
+        settings.upperLinearLimit = 10.0f
+        settings.lowerAngleLimit = 0.0f
+        settings.upperAngleLimit = 0.0f
+
+        val slider = SliderConstraint(settings, sphereBody, staticRail, frameInA, frameInB, true)
         world.addConstraint(slider)
 
         // Apply initial velocity to slide the sphere along X toward the tower

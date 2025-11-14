@@ -58,7 +58,7 @@ open class CollisionObject() {
     var islandTag: Int = -1
 
     @JvmField
-    var companionId: Int = -1
+    var poolId: Int = -1
 
     @JvmField
     var activationState = ActivationState.ACTIVE
@@ -145,15 +145,6 @@ open class CollisionObject() {
 
     fun setWorldTransform(worldTransform: Transform) {
         this.worldTransform.set(worldTransform)
-    }
-
-    fun getInterpolationWorldTransform(out: Transform): Transform {
-        out.set(interpolationWorldTransform)
-        return out
-    }
-
-    fun setInterpolationWorldTransform(interpolationWorldTransform: Transform) {
-        this.interpolationWorldTransform.set(interpolationWorldTransform)
     }
 
     @Suppress("unused")

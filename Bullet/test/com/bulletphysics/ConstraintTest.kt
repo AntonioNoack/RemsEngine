@@ -2,7 +2,6 @@ package com.bulletphysics
 
 import com.bulletphysics.collision.dispatch.ActivationState
 import com.bulletphysics.collision.shapes.BoxShape
-import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.dynamics.DynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.Generic6DofConstraint
@@ -145,7 +144,7 @@ class ConstraintTest {
             bodyA, bodyB,
             Vector3d(0.0, -0.5, 0.0), Vector3d(0.0, 0.5, 0.0)
         )
-        constraint.breakingImpulseThreshold = 5.0f // Very low threshold
+        constraint.breakingImpulse = 5.0f // Very low threshold
         world.addConstraint(constraint, true)
 
         // Apply strong impulse to break it

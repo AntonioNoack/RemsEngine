@@ -41,12 +41,6 @@ class SolverBody {
     @JvmField
     val turnVelocity = Vector3f()
 
-    fun getVelocityInLocalPoint(relPos: Vector3f, velocity: Vector3f) {
-        val tmp = Stack.borrowVec3f()
-        angularVelocity.cross(relPos, tmp)
-        linearVelocity.add(tmp, velocity)
-    }
-
     /**
      * Optimization for the iterative solver: avoid calculating constant terms involving inertia, normal, relative position.
      */
@@ -67,7 +61,6 @@ class SolverBody {
             val originalBody = originalBody ?: return
             originalBody.setLinearVelocity(linearVelocity)
             originalBody.setAngularVelocity(angularVelocity)
-            //m_originalBody->setCompanionId(-1);
         }
     }
 
@@ -83,7 +76,6 @@ class SolverBody {
             TransformUtil.integrateTransform(curTrans, pushVelocity, turnVelocity, timeStep, newTransform)
             originalBody.setWorldTransform(newTransform)
             Stack.subTrans(1)
-            //m_originalBody->setCompanionId(-1);
         }
     }
 

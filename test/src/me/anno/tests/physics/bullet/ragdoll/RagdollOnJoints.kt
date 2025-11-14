@@ -229,7 +229,7 @@ fun main() {
                 val delta = parentPos - bonePos
                 selfPosition.set(delta).mul(0.5)
                 otherPosition.set(delta).mul(-0.5)
-                breakingImpulseThreshold = 50f
+                breakingImpulse = 50f
             })
             // disableCollisionsBetweenLinked = false
             (constraint as? PointConstraint)?.apply {
@@ -270,7 +270,7 @@ fun main() {
                 other = root2
                 selfPosition.set(delta).mul(0.5)
                 otherPosition.set(delta).mul(-0.5)
-                breakingImpulseThreshold = 50f
+                breakingImpulse = 50f
                 // disableCollisionsBetweenLinked = false
                 damping = 0.5f
             })

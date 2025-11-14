@@ -6,6 +6,7 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.ScalarUtil.atan2Fast
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
+import me.anno.bullet.constraints.HingeConstraint
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
@@ -18,7 +19,10 @@ import kotlin.math.min
  *
  * @author jezek2
  */
-class HingeConstraint : TypedConstraint {
+class HingeConstraint(
+    private val settings: HingeConstraint,
+    rbA: RigidBody, rbB: RigidBody
+) : TypedConstraint(rbA, rbB) {
 
     /**
      * 3 orthogonal linear constraints
@@ -32,36 +36,30 @@ class HingeConstraint : TypedConstraint {
     private val rbAFrame = Transform()
     private val rbBFrame = Transform()
 
-    var motorTargetVelocity = 0f
     var maxMotorImpulse = 0f
 
-    var limitSoftness = 0f
-    var biasFactor = 0f
-    var relaxationFactor = 0f
-
-    var lowerLimit = 0f
-    var upperLimit = 0f
+    override var breakingImpulse: Float
+        get() = settings.breakingImpulse
+        set(value) {
+            settings.breakingImpulse = value
+        }
 
     private var kHinge = 0f
     private var limitSign = 0f
     private var correction = 0f
     private var accLimitImpulse = 0f
 
-    var angularOnly: Boolean = false
-    var enableAngularMotor: Boolean
-
-    private var solveLimit: Boolean = false
+    private var solveLimit = false
 
     constructor(
+        settings: HingeConstraint,
         rbA: RigidBody,
         rbB: RigidBody,
         pivotInA: Vector3d,
         pivotInB: Vector3d,
         axisInA: Vector3f,
         axisInB: Vector3f
-    ) : super(rbA, rbB) {
-        angularOnly = false
-        enableAngularMotor = false
+    ) : this(settings, rbA, rbB) {
 
         rbAFrame.setTranslation(pivotInA)
 
@@ -100,11 +98,6 @@ class HingeConstraint : TypedConstraint {
         rbBFrame.basis.setRow(2, rbAxisB1.z, rbAxisB2.z, -axisInB.z)
 
         // start with free
-        lowerLimit = 1e38f
-        upperLimit = -1e38f
-        biasFactor = 0.3f
-        relaxationFactor = 1f
-        limitSoftness = 0.9f
         solveLimit = false
 
         Stack.subVec3f(4)
@@ -112,11 +105,12 @@ class HingeConstraint : TypedConstraint {
         Stack.subTrans(1)
     }
 
-    constructor(rbA: RigidBody, rbB: RigidBody, rbAFrame: Transform, rbBFrame: Transform) : super(rbA, rbB) {
+    constructor(
+        settings: HingeConstraint,
+        rbA: RigidBody, rbB: RigidBody, rbAFrame: Transform, rbBFrame: Transform
+    ) : this(settings, rbA, rbB) {
         this.rbAFrame.set(rbAFrame)
         this.rbBFrame.set(rbBFrame)
-        angularOnly = false
-        enableAngularMotor = false
 
         // flip axis
         val rbB = rbBFrame.basis
@@ -125,11 +119,6 @@ class HingeConstraint : TypedConstraint {
         rbB.m22 = -rbB.m22
 
         // start with free
-        lowerLimit = 1e38f
-        upperLimit = -1e38f
-        biasFactor = 0.3f
-        relaxationFactor = 1f
-        limitSoftness = 0.9f
         solveLimit = false
     }
 
@@ -141,7 +130,7 @@ class HingeConstraint : TypedConstraint {
         val centerOfMassA = rigidBodyA.getCenterOfMassTransform(Stack.newTrans())
         val centerOfMassB = rigidBodyB.getCenterOfMassTransform(Stack.newTrans())
 
-        if (!angularOnly) {
+        if (!settings.angularOnly) {
             val pivotAInW = Stack.newVec3d(rbAFrame.origin)
             centerOfMassA.transformPosition(pivotAInW)
 
@@ -207,7 +196,10 @@ class HingeConstraint : TypedConstraint {
         solveLimit = false
         accLimitImpulse = 0f
 
+        val lowerLimit = settings.lowerLimit
+        val upperLimit = settings.upperLimit
         if (lowerLimit < upperLimit) {
+            val limitSoftness = settings.limitSoftness
             if (hingeAngle <= lowerLimit * limitSoftness) {
                 correction = (lowerLimit - hingeAngle)
                 limitSign = 1f
@@ -249,7 +241,7 @@ class HingeConstraint : TypedConstraint {
         val tau = 0.3f
 
         // linear part
-        if (!angularOnly) {
+        if (!settings.angularOnly) {
             val pos1 = Stack.getPosition(null)
             val relPos1 = Stack.newVec3f()
             pivotAInW.sub(rigidBodyA.worldTransform.origin, relPos1)
@@ -271,7 +263,7 @@ class HingeConstraint : TypedConstraint {
                 pivotAInW.sub(pivotBInW, tmp1)
                 val depth = -tmp1.dot(normal) // this is the error projected on the normal
                 val impulse = (depth * tau / timeStep - relVel) * jacDiagABInv
-                if (impulse > breakingImpulseThreshold) {
+                if (impulse > breakingImpulse) {
                     isBroken = true
                     break
                 }
@@ -326,7 +318,7 @@ class HingeConstraint : TypedConstraint {
             val denominator = rigidBodyA.computeAngularImpulseDenominator(normal) +
                     rigidBodyB.computeAngularImpulseDenominator(normal)
             // scale for mass and relaxation
-            velRelOrthogonal.mul(relaxationFactor / denominator)
+            velRelOrthogonal.mul(settings.relaxation / denominator)
             Stack.subVec3f(1)
         }
 
@@ -356,10 +348,10 @@ class HingeConstraint : TypedConstraint {
         if (solveLimit) {
             angVelB.sub(angVelA, tmp1)
             val amplitude =
-                ((tmp1).dot(axisA) * relaxationFactor + correction * (1f / timeStep) * biasFactor) * limitSign
+                ((tmp1).dot(axisA) * settings.relaxation + correction * (1f / timeStep) * settings.biasFactor) * limitSign
 
             var impulseMag = amplitude * kHinge
-            if (abs(impulseMag) > breakingImpulseThreshold) {
+            if (abs(impulseMag) > breakingImpulse) {
                 isBroken = true
             } else {
                 // Clamp the accumulated impulse
@@ -378,18 +370,18 @@ class HingeConstraint : TypedConstraint {
         }
 
         // apply motor
-        if (enableAngularMotor) {
+        if (settings.enableMotor) {
             // todo: add limits too
             val angularLimit = Stack.newVec3f().set(0.0)
             val velRel = Stack.newVec3f()
             angVelAroundHingeAxisA.sub(angVelAroundHingeAxisB, velRel)
             val projRelVel = velRel.dot(axisA)
 
-            val desiredMotorVel = motorTargetVelocity
+            val desiredMotorVel = settings.motorVelocity
             val motorRelVel = desiredMotorVel - projRelVel
 
             val unclippedMotorImpulse = kHinge * motorRelVel
-            if (unclippedMotorImpulse > breakingImpulseThreshold) {
+            if (unclippedMotorImpulse > breakingImpulse) {
                 isBroken = true
                 Stack.subVec3f(2) // angularLimit, velrel
             } else {

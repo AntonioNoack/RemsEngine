@@ -93,8 +93,8 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
         //const btVector3& from = convexbody->m_worldTransform.getOrigin();
         //btVector3 to = convexbody->m_interpolationWorldTransform.getOrigin();
         //todo: only do if the motion exceeds the 'radius'
-        val triInv = concaveBody.getWorldTransform(Stack.newTrans())
-        triInv.inverse()
+        val triInv = Stack.newTrans()
+        triInv.setInverse(concaveBody.worldTransform)
 
         val convexFromLocal = Stack.newTrans()
         convexFromLocal.setMul(triInv, convexBody.worldTransform)

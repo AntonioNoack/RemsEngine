@@ -136,7 +136,7 @@ class RotationalLimitMotor {
 
         // correction impulse
         val unclippedMotorImpulse = (1 + bounce) * motorRelativeVelocity * jacDiagABInv
-        if (abs(unclippedMotorImpulse) > constraint.breakingImpulseThreshold) {
+        if (abs(unclippedMotorImpulse) > constraint.breakingImpulse) {
             constraint.isBroken = true
             Stack.subVec3f(1)
             return 0f

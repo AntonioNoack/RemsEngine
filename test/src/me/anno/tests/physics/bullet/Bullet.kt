@@ -51,7 +51,7 @@ private fun libraryTest3d() {
     world.addRigidBody(boxBody)
 
     repeat(10) {
-        println(boxBody.getWorldTransform(Transform()).origin)
+        println(boxBody.worldTransform.origin)
         world.stepSimulation(1.0f, 10, 0.1f)
     }
 }
@@ -92,8 +92,8 @@ private fun engineTest3d() {
         ground.validateTransform()
         println(
             box.position.toString() + ", " +
-                    boxRB.nativeInstance?.getWorldTransform(Transform())?.origin + ", " +
-                    groundRB.nativeInstance?.getWorldTransform(Transform())?.origin
+                    boxRB.nativeInstance?.worldTransform?.origin + ", " +
+                    groundRB.nativeInstance?.worldTransform?.origin
         )
         for (j in 0 until 100) physics.step(Maths.MILLIS_TO_NANOS * 10, false)
     }

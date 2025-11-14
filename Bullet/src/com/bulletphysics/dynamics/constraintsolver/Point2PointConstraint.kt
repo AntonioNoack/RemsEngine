@@ -2,9 +2,9 @@ package com.bulletphysics.dynamics.constraintsolver
 
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
+import me.anno.bullet.constraints.PointConstraint
 import org.joml.Vector3d
 import kotlin.math.abs
-import kotlin.math.min
 
 /**
  * Point to point constraint between two rigid bodies each with a pivot point that
@@ -12,28 +12,23 @@ import kotlin.math.min
  *
  * @author jezek2
  */
-class Point2PointConstraint : TypedConstraint {
+class Point2PointConstraint(
+    private val settings: PointConstraint,
+    rbA: RigidBody, rbB: RigidBody,
+    private val pivotInA: Vector3d,
+    private val pivotInB: Vector3d
+) : TypedConstraint(rbA, rbB) {
+
+    override var breakingImpulse: Float
+        get() = settings.breakingImpulse
+        set(value) {
+            settings.breakingImpulse = value
+        }
 
     /**
      * 3 orthogonal linear constraints
      * */
     private val jacobianInvDiagonals = FloatArray(3)
-
-    private val pivotInA = Vector3d()
-    private val pivotInB = Vector3d()
-
-    var tau = 0.3f
-    var damping = 1f
-    var impulseClamp = 0f
-    var restLength = 0f
-
-    @Suppress("unused")
-    constructor() : super()
-
-    constructor(rbA: RigidBody, rbB: RigidBody, pivotInA: Vector3d, pivotInB: Vector3d) : super(rbA, rbB) {
-        this.pivotInA.set(pivotInA)
-        this.pivotInB.set(pivotInB)
-    }
 
     override fun buildJacobian() {
         val normal = Stack.newVec3f().set(0f)
@@ -98,12 +93,27 @@ class Point2PointConstraint : TypedConstraint {
         pivotAInW.sub(pivotBInW, diffPos)
 
         val distance = diffPos.length()
-        if (restLength > 0f && distance > 1e-20f) {
-            diffPos.mul(1f - restLength / distance)
+
+        // plastic deformation
+        val elasticRange = settings.elasticRange
+        val elasticity = distance - settings.restLength
+        if (elasticity !in elasticRange) {
+            val reference = if (elasticity > 0f) elasticRange.min else elasticRange.max
+            val excess = elasticity - reference
+            val delta = settings.plasticDeformationRate * excess
+            settings.restLength += delta
+            if (settings.restLength !in settings.plasticRange) {
+                isBroken = true
+            }
         }
 
-        val tau = tau / timeStep
-        for (i in 0..2) {
+        // rest-length adjustment
+        if (settings.restLength > 0f && distance > 1e-20f) {
+            diffPos.mul(1f - settings.restLength / distance)
+        }
+
+        val tau = settings.tau / timeStep
+        if (!isBroken) for (i in 0..2) {
             normal[i] = 1f
 
             val jacDiagABInv = jacobianInvDiagonals[i]
@@ -118,13 +128,13 @@ class Point2PointConstraint : TypedConstraint {
             // positional error (zeroth order error)
             val depth = -diffPos.dot(normal) // this is the error projected on the normal
 
-            var impulse = (depth * tau - damping * relativeVelocity) * jacDiagABInv
-            if (abs(impulse) > breakingImpulseThreshold) {
+            var impulse = (depth * tau - settings.damping * relativeVelocity) * jacDiagABInv
+            if (abs(impulse) > breakingImpulse) {
                 isBroken = true
                 break
             }
 
-            val impulseClamp = impulseClamp
+            val impulseClamp = settings.impulseClamp
             if (impulseClamp > 0f) {
                 if (impulse < -impulseClamp) {
                     impulse = -impulseClamp

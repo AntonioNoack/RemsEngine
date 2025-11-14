@@ -16,7 +16,12 @@ import kotlin.math.max
  * @author jezek2
  */
 @Suppress("unused")
-class ConeTwistConstraint : TypedConstraint {
+class ConeTwistConstraint(
+    val settings: me.anno.bullet.constraints.ConeTwistConstraint,
+    rbA: RigidBody, rbB: RigidBody,
+    val rbAFrame: Transform,
+    val rbBFrame: Transform
+) : TypedConstraint(rbA, rbB) {
 
     /**
      * 3 orthogonal linear constraints
@@ -24,26 +29,11 @@ class ConeTwistConstraint : TypedConstraint {
     private val jacNormals = Array(3) { Vector3f() }
     private val jacInvDiagonals = FloatArray(3)
 
-    private val rbAFrame = Transform()
-    private val rbBFrame = Transform()
-
-    var limitSoftness = 0f
-    var biasFactor = 0f
-    var relaxationFactor = 0f
-
-    var swingSpan1 = 0f
-    var swingSpan2 = 0f
-    var twistSpan = 0f
-
     private val swingAxis = Vector3f()
     private val twistAxis = Vector3f()
 
     private var kSwing = 0f
     private var kTwist = 0f
-
-    @get:Suppress("unused")
-    var twistLimitSign = 0f
-        private set
 
     private var swingCorrection = 0f
     private var twistCorrection = 0f
@@ -51,26 +41,14 @@ class ConeTwistConstraint : TypedConstraint {
     private var accSwingLimitImpulse = 0f
     private var accTwistLimitImpulse = 0f
 
-    var angularOnly = false
-
-    var solveTwistLimit: Boolean = false
-        private set
-
+    private var solveTwistLimit = false
     private var solveSwingLimit = false
 
-    constructor(rbA: RigidBody, rbB: RigidBody, rbAFrame: Transform, rbBFrame: Transform) : super(rbA, rbB) {
-        this.rbAFrame.set(rbAFrame)
-        this.rbBFrame.set(rbBFrame)
-
-        swingSpan1 = 1e38f
-        swingSpan2 = 1e38f
-        twistSpan = 1e38f
-        biasFactor = 0.3f
-        relaxationFactor = 1f
-
-        solveTwistLimit = false
-        solveSwingLimit = false
-    }
+    override var breakingImpulse: Float
+        get() = settings.breakingImpulse
+        set(value) {
+            settings.breakingImpulse = value
+        }
 
     override fun buildJacobian() {
         val tmp = Stack.newVec3f()
@@ -81,13 +59,12 @@ class ConeTwistConstraint : TypedConstraint {
 
         // set bias, sign, clear accumulator
         swingCorrection = 0f
-        twistLimitSign = 0f
         solveTwistLimit = false
         solveSwingLimit = false
         accTwistLimitImpulse = 0f
         accSwingLimitImpulse = 0f
 
-        if (!angularOnly) {
+        if (!settings.angularOnly) {
             val pivotAInW = Stack.newVec3d(rbAFrame.origin)
             rigidBodyA.worldTransform.transformPosition(pivotAInW)
 
@@ -143,7 +120,7 @@ class ConeTwistConstraint : TypedConstraint {
         var factor: Float
 
         // Get Frame into world space
-        if (swingSpan1 >= 0.05f) {
+        if (settings.angleX >= 0.05f) {
             rbAFrame.basis.getColumn(1, b1Axis2)
             rigidBodyA.getCenterOfMassTransform(tmpTrans).basis.transform(b1Axis2)
             //			swing1 = ScalarUtil.atan2Fast(b2Axis1.dot(b1Axis2), b2Axis1.dot(b1Axis1));
@@ -155,7 +132,7 @@ class ConeTwistConstraint : TypedConstraint {
             swing1 *= factor
         }
 
-        if (swingSpan2 >= 0.05f) {
+        if (settings.angleY >= 0.05f) {
             rbAFrame.basis.getColumn(2, b1Axis3)
             rigidBodyA.getCenterOfMassTransform(tmpTrans).basis.transform(b1Axis3)
             swx = b2Axis1.dot(b1Axis1)
@@ -166,8 +143,8 @@ class ConeTwistConstraint : TypedConstraint {
             swing2 *= factor
         }
 
-        val rMaxAngle1Sq = 1f / (swingSpan1 * swingSpan1)
-        val rMaxAngle2Sq = 1f / (swingSpan2 * swingSpan2)
+        val rMaxAngle1Sq = 1f / sq(settings.angleX)
+        val rMaxAngle2Sq = 1f / sq(settings.angleY)
         val ellipseAngle = abs(swing1 * swing1) * rMaxAngle1Sq + abs(swing2 * swing2) * rMaxAngle2Sq
 
         if (ellipseAngle > 1f) {
@@ -189,6 +166,7 @@ class ConeTwistConstraint : TypedConstraint {
         }
 
         // Twist limits
+        val twistSpan = settings.twist
         if (twistSpan >= 0.0) {
             rbBFrame.basis.getColumn(1, b2Axis2)
             rigidBodyB.getCenterOfMassTransform(tmpTrans).basis.transform(b2Axis2)
@@ -199,7 +177,7 @@ class ConeTwistConstraint : TypedConstraint {
             Stack.subQuat(1) // rotationArc
             Stack.subVec3f(1) // twistRef
 
-            val lockedFreeFactor = if (twistSpan > 0.05f) limitSoftness else 0f
+            val lockedFreeFactor = if (twistSpan > 0.05f) settings.softnessLimit else 0f
             if (twist <= -twistSpan * lockedFreeFactor) {
                 twistCorrection = -(twist + twistSpan)
                 solveTwistLimit = true
@@ -237,7 +215,7 @@ class ConeTwistConstraint : TypedConstraint {
         val tmp2 = Stack.newVec3f()
 
         // linear part
-        if (!angularOnly) {
+        if (!settings.angularOnly) {
             val relPos1 = Stack.newVec3f()
             pivotAInW.sub(rigidBodyA.worldTransform.origin, relPos1)
 
@@ -259,7 +237,7 @@ class ConeTwistConstraint : TypedConstraint {
                 pivotAInW.sub(pivotBInW, tmp1)
                 val depth = -tmp1.dot(normal) // this is the error projected on the normal
                 val impulse = (depth * tau / timeStep - relVel) * jacDiagABInv
-                if (impulse > breakingImpulseThreshold) {
+                if (impulse > breakingImpulse) {
                     isBroken = true
                     break
                 }
@@ -286,7 +264,7 @@ class ConeTwistConstraint : TypedConstraint {
             if (solveSwingLimit) {
                 angVelB.sub(angVelA, tmp1)
                 val amplitude =
-                    (tmp1.dot(swingAxis) * sq(relaxationFactor) + swingCorrection * (1f / timeStep) * biasFactor)
+                    (tmp1.dot(swingAxis) * sq(settings.relaxation) + swingCorrection * (1f / timeStep) * settings.biasFactor)
                 var impulseMag = amplitude * kSwing
 
                 // Clamp the accumulated impulse
@@ -294,7 +272,7 @@ class ConeTwistConstraint : TypedConstraint {
                 accSwingLimitImpulse = max(accSwingLimitImpulse + impulseMag, 0f)
                 impulseMag = accSwingLimitImpulse - temp
 
-                if (abs(impulseMag) > breakingImpulseThreshold) {
+                if (abs(impulseMag) > breakingImpulse) {
                     isBroken = true
                 } else {
                     swingAxis.mul(impulseMag, impulse)
@@ -309,7 +287,7 @@ class ConeTwistConstraint : TypedConstraint {
             if (solveTwistLimit) {
                 angVelB.sub(angVelA, tmp1)
                 val amplitude =
-                    (tmp1.dot(twistAxis) * relaxationFactor * relaxationFactor + twistCorrection * (1f / timeStep) * biasFactor)
+                    (tmp1.dot(twistAxis) * sq(settings.relaxation) + twistCorrection * (1f / timeStep) * settings.biasFactor)
                 var impulseMag = amplitude * kTwist
 
                 // Clamp the accumulated impulse
@@ -317,7 +295,7 @@ class ConeTwistConstraint : TypedConstraint {
                 accTwistLimitImpulse = max(accTwistLimitImpulse + impulseMag, 0f)
                 impulseMag = accTwistLimitImpulse - temp
 
-                if (abs(impulseMag) > breakingImpulseThreshold) {
+                if (abs(impulseMag) > breakingImpulse) {
                     isBroken = true
                 } else {
                     twistAxis.mul(impulseMag, impulse)

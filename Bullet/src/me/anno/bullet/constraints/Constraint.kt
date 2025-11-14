@@ -1,7 +1,6 @@
 package me.anno.bullet.constraints
 
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.linearmath.Transform
 import me.anno.bullet.bodies.PhysicalBody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -19,6 +18,7 @@ import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.ui.UIColors
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4x3
 import org.joml.Quaternionf
@@ -97,11 +97,7 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
     /**
      * When the impulse is this large, the constraint shall break (be removed, be it deleted or disabled)
      * */
-    var breakingImpulseThreshold: Float = 1e38f
-        set(value) {
-            field = value
-            bulletInstance?.breakingImpulseThreshold = value
-        }
+    var breakingImpulse: Float = 1e38f
 
     @DebugAction
     fun invalidateConstraint() {
@@ -109,34 +105,23 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
         other?.invalidatePhysics()
     }
 
-    fun getTA(): Transform {
-        val t = Transform()
-        t.origin.set(selfPosition)
-        t.basis.set(selfRotation)
-        return t
-    }
-
-    fun getTB(): Transform {
-        val t = Transform()
-        t.origin.set(otherPosition)
-        t.basis.set(otherRotation)
-        return t
-    }
-
     override fun onChangeStructure(entity: Entity) {
         entity.invalidatePhysics()
     }
 
-    abstract fun createConstraint(a: RigidBody, b: RigidBody, ta: Transform, tb: Transform): TypedConstraint
+    abstract fun createConstraint(a: RigidBody, b: RigidBody): TypedConstraint
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
-        val color = constraintColor
+        if (breakingImpulse < 0f) return // broken shall be hidden
+
+        val color0 = constraintColor.withAlpha(127)
         val sideLength = 0.02 * (selfPosition.distance(cameraPosition) + otherPosition.distance(cameraPosition))
-        LineShapes.drawPoint(entity, selfPosition, sideLength, color)
-        LineShapes.drawLine(entity, zero, selfPosition, color)
+        LineShapes.drawPoint(entity, selfPosition, sideLength, color0)
+        LineShapes.drawLine(entity, zero, selfPosition, color0)
+
         val other = other?.entity ?: entity
-        LineShapes.drawPoint(other, otherPosition, sideLength, color)
-        LineShapes.drawLine(other, zero, otherPosition, color)
+        LineShapes.drawPoint(other, otherPosition, sideLength, color0)
+        LineShapes.drawLine(other, zero, otherPosition, color0)
 
         // draw line from one to the other
         val selfGlobal = JomlPools.vec3d.create().set(selfPosition)
@@ -145,6 +130,7 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
         entity?.transform?.globalTransform?.transformPosition(selfGlobal)
         other?.transform?.globalTransform?.transformPosition(otherGlobal)
 
+        val color = constraintColor
         LineShapes.drawLine(null as Matrix4x3?, selfGlobal, otherGlobal, color)
 
         JomlPools.vec3d.sub(2)
@@ -160,7 +146,7 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
         dst.otherPosition.set(otherPosition)
         dst.otherRotation.set(otherRotation)
         dst.disableCollisionsBetweenLinked = disableCollisionsBetweenLinked
-        dst.breakingImpulseThreshold = breakingImpulseThreshold
+        dst.breakingImpulse = breakingImpulse
     }
 
     companion object {

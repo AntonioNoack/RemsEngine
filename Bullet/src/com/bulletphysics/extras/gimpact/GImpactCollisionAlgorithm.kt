@@ -316,8 +316,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
 
         // getting the trimesh AABB
         val gimpactInConcaveSpace = Stack.newTrans()
-
-        body1.getWorldTransform(gimpactInConcaveSpace)
+        gimpactInConcaveSpace.set(body1.worldTransform)
         gimpactInConcaveSpace.inverse()
         gimpactInConcaveSpace.mul(body0.worldTransform)
 

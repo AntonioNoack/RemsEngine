@@ -15,7 +15,6 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.Physics.Companion.hasValidComponents
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
-import org.joml.Vector3d
 import org.joml.Vector3f
 
 abstract class PhysicalBody : PhysicsBody<RigidBody>() {
