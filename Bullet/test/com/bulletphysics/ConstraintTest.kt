@@ -9,6 +9,8 @@ import com.bulletphysics.dynamics.constraintsolver.HingeConstraint
 import com.bulletphysics.dynamics.constraintsolver.Point2PointConstraint
 import com.bulletphysics.dynamics.constraintsolver.SliderConstraint
 import com.bulletphysics.linearmath.Transform
+import me.anno.bullet.constraints.GenericConstraint
+import me.anno.bullet.constraints.PointConstraint
 import me.anno.maths.Maths.PIf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -28,8 +30,9 @@ class ConstraintTest {
         world.addRigidBody(bodyB)
 
         // Link via ball joint
+        val settings = PointConstraint()
         val p2p = Point2PointConstraint(
-            bodyA, bodyB,
+            settings, bodyA, bodyB,
             Vector3d(0.5, 0.0, 0.0), Vector3d(-0.5, 0.0, 0.0)
         )
         world.addConstraint(p2p, true)
@@ -59,7 +62,8 @@ class ConstraintTest {
         pivotInB.setIdentity()
         pivotInB.setTranslation(0.0, 0.5, 0.0)
 
-        val hinge = HingeConstraint(base, bar, pivotInA, pivotInB)
+        val settings = me.anno.bullet.constraints.HingeConstraint()
+        val hinge = HingeConstraint(settings, base, bar, pivotInA, pivotInB)
         world.addConstraint(hinge, true)
 
         simulate(world, 240)
@@ -85,7 +89,8 @@ class ConstraintTest {
         frameInB.setIdentity()
         frameInB.setTranslation(0.0, 0.0, 0.0)
 
-        val sliderConstraint = SliderConstraint(base, slider, frameInA, frameInB, true)
+        val settings = me.anno.bullet.constraints.SliderConstraint()
+        val sliderConstraint = SliderConstraint(settings, base, slider, frameInA, frameInB, true)
         world.addConstraint(sliderConstraint, true)
 
         slider.activationState = ActivationState.ALWAYS_ACTIVE
@@ -113,7 +118,8 @@ class ConstraintTest {
         val frameInB = Transform()
         frameInB.setIdentity()
 
-        val dof = Generic6DofConstraint(base, body, frameInA, frameInB, true)
+        val settings = GenericConstraint()
+        val dof = Generic6DofConstraint(settings, base, body, frameInA, frameInB, true)
         dof.linearLimits.lowerLimit.set(-1.0, 0.0, 0.0)
         dof.linearLimits.upperLimit.set(1.0, 0.0, 0.0) // Only X axis movement allowed
         world.addConstraint(dof, true)
@@ -140,8 +146,9 @@ class ConstraintTest {
         world.addRigidBody(bodyB)
 
         // Attach with a point2point (ball-socket) constraint
+        val settings = PointConstraint()
         val constraint = Point2PointConstraint(
-            bodyA, bodyB,
+            settings, bodyA, bodyB,
             Vector3d(0.0, -0.5, 0.0), Vector3d(0.0, 0.5, 0.0)
         )
         constraint.breakingImpulse = 5.0f // Very low threshold
@@ -178,14 +185,14 @@ class ConstraintTest {
         pivotInB.setIdentity()
         pivotInB.setTranslation(-0.5, 0.0, 0.0)
 
-        val hinge = HingeConstraint(base, bar, pivotInA, pivotInB)
-        hinge.lowerLimit = -PIf / 4f // ±45°
-        hinge.upperLimit = PIf / 4f
-        hinge.limitSoftness = 0.9f
-        hinge.biasFactor = 0.3f
-        hinge.relaxationFactor = 1.0f
-        hinge.enableAngularMotor = true
-        hinge.motorTargetVelocity = 2.0f
+        val settings = me.anno.bullet.constraints.HingeConstraint()
+        val hinge = HingeConstraint(settings, base, bar, pivotInA, pivotInB)
+        settings.lowerLimit = -PIf / 4f // ±45°
+        settings.upperLimit = PIf / 4f
+        settings.limitSoftness = 0.9f
+        settings.biasFactor = 0.3f
+        settings.relaxation = 1.0f
+        settings.motorVelocity = 2.0f
         hinge.maxMotorImpulse = 0.1f
 
         world.addConstraint(hinge, true)
