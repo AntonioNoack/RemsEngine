@@ -78,13 +78,12 @@ class TranslationalLimitMotor {
         body2: RigidBody, pointInB: Vector3d, limitIndex: Int,
         axisNormalOnA: Vector3f, anchorPos: Vector3d
     ): Float {
-        val tmp = Stack.newVec3f()
 
         // find relative velocity
         val relPos1 = Stack.newVec3f()
-        anchorPos.sub(body1.worldTransform.origin, relPos1)
-
         val relPos2 = Stack.newVec3f()
+
+        anchorPos.sub(body1.worldTransform.origin, relPos1)
         anchorPos.sub(body2.worldTransform.origin, relPos2)
 
         val vel1 = body1.getVelocityInLocalPoint(relPos1, Stack.newVec3f())
@@ -97,8 +96,9 @@ class TranslationalLimitMotor {
         // apply displacement correction
 
         // positional error (zeroth order error)
-        pointInA.sub(pointInB, tmp)
-        var depth = -tmp.dot(axisNormalOnA).toFloat()
+        val diff = Stack.newVec3f()
+        pointInA.sub(pointInB, diff)
+        var depth = -diff.dot(axisNormalOnA)
         var lo = -1e38f
         var hi = 1e38f
 
@@ -115,6 +115,7 @@ class TranslationalLimitMotor {
                     depth -= minLimit
                     hi = 0f
                 } else {
+                    Stack.subVec3f(6)
                     return 0f
                 }
             }
@@ -130,9 +131,8 @@ class TranslationalLimitMotor {
         val impulseVector = Stack.newVec3f()
         axisNormalOnA.mul(normalImpulse, impulseVector)
         body1.applyImpulse(impulseVector, relPos1)
-
-        impulseVector.negate(tmp)
-        body2.applyImpulse(tmp, relPos2)
+        impulseVector.negate()
+        body2.applyImpulse(impulseVector, relPos2)
 
         Stack.subVec3f(7)
         return normalImpulse

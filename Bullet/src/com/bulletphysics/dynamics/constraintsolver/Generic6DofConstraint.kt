@@ -62,15 +62,15 @@ class Generic6DofConstraint(
     rbB: RigidBody
 ) : TypedConstraint(rbA, rbB) {
 
-    val frameInA = Transform() //!< the constraint space w.r.t body A
-    val frameInB = Transform() //!< the constraint space w.r.t body B
+    val frameInA = Transform() // the constraint space w.r.t body A
+    val frameInB = Transform() // the constraint space w.r.t body B
 
-    val jacLinearDiagonalInv = FloatArray(3) //!< 3 orthogonal linear constraints
-    val jacAngularDiagonalInv = FloatArray(3) //!< 3 orthogonal angular constraints
+    val jacLinearDiagonalInv = FloatArray(3) // 3 orthogonal linear constraints
+    val jacAngularDiagonalInv = FloatArray(3) // 3 orthogonal angular constraints
 
     val linearLimits = TranslationalLimitMotor()
 
-    val angularLimits /*[3]*/ =
+    val angularLimits =
         arrayOf(RotationalLimitMotor(), RotationalLimitMotor(), RotationalLimitMotor())
 
     val calculatedTransformA = Transform()
@@ -194,7 +194,6 @@ class Generic6DofConstraint(
     /**
      * Test angular limit.
      *
-     *
      * Calculates angular correction and returns true if limit needs to be corrected.
      * Generic6DofConstraint.buildJacobian must be called previously.
      */
@@ -216,15 +215,10 @@ class Generic6DofConstraint(
         // calculates transform
         calculateTransforms()
 
-        //  const btVector3& pivotAInW = m_calculatedTransformA.getOrigin();
-        //  const btVector3& pivotBInW = m_calculatedTransformB.getOrigin();
         calcAnchorPos()
         val pivotAInW = Stack.newVec3d(anchorPos)
         val pivotBInW = Stack.newVec3d(anchorPos)
 
-        // not used here
-        //    btVector3 rel_pos1 = pivotAInW - m_rbA.getCenterOfMassPosition();
-        //    btVector3 rel_pos2 = pivotBInW - m_rbB.getCenterOfMassPosition();
         val normalWorld = Stack.newVec3f()
         // linear part
         for (i in 0..2) {
@@ -235,7 +229,7 @@ class Generic6DofConstraint(
                     calculatedTransformB.basis.getColumn(i, normalWorld)
                 }
 
-                buildLinearJacobian( /*jacLinear[i]*/
+                buildLinearJacobian(
                     i, normalWorld,
                     pivotAInW, pivotBInW
                 )
@@ -248,7 +242,7 @@ class Generic6DofConstraint(
             if (testAngularLimitMotor(i)) {
                 normalWorld.set(calculatedAxis[i])
                 // Create angular atom
-                buildAngularJacobian( /*jacAng[i]*/i, normalWorld)
+                buildAngularJacobian(i, normalWorld)
             }
         }
 
@@ -257,24 +251,24 @@ class Generic6DofConstraint(
     }
 
     override fun solveConstraint(timeStep: Float) {
+        solveLinear(timeStep)
+        solveAngular(timeStep)
+    }
 
-        // linear
-        val pointInA = Stack.newVec3d(calculatedTransformA.origin)
-        val pointInB = Stack.newVec3d(calculatedTransformB.origin)
+    private fun solveLinear(timeStep: Float) {
 
-        var jacDiagABInv: Float
+        val pointInA = calculatedTransformA.origin
+        val pointInB = calculatedTransformB.origin
+
         val linearAxis = Stack.newVec3f()
-        //calculateTransforms();
         for (i in 0 until 3) {
             if (linearLimits.isLimited(i)) {
-                jacDiagABInv = jacLinearDiagonalInv[i]
-
+                val jacDiagABInv = jacLinearDiagonalInv[i]
                 if (useLinearReferenceFrameA) {
                     calculatedTransformA.basis.getColumn(i, linearAxis)
                 } else {
                     calculatedTransformB.basis.getColumn(i, linearAxis)
                 }
-
                 val impulse = linearLimits.solveLinearAxis(
                     timeStep, jacDiagABInv,
                     rigidBodyA, pointInA,
@@ -287,28 +281,27 @@ class Generic6DofConstraint(
                 }
             }
         }
+        Stack.subVec3f(1)
+    }
 
-        // angular
+    private fun solveAngular(timeStep: Float) {
         val angularAxis = Stack.newVec3f()
         for (i in 0 until 3) {
+            val pos = Stack.getPosition(null)
             if (angularLimits[i].needApplyTorques()) {
                 // get axis
                 angularAxis.set(calculatedAxis[i])
-
                 val angularJacDiagABInv = jacAngularDiagonalInv[i]
-
                 angularLimits[i].solveAngularLimits(
                     timeStep, angularAxis, angularJacDiagABInv,
                     rigidBodyA, rigidBodyB, this
                 )
                 if (isBroken) break
             }
+            Stack.checkSlack(pos)
         }
-
-        Stack.subVec3f(2)
-        Stack.subVec3d(2)
+        Stack.subVec3f(1)
     }
-
 
     fun updateRHS(timeStep: Float) {
     }
@@ -317,9 +310,7 @@ class Generic6DofConstraint(
      * Get the relative Euler angle.
      * Generic6DofConstraint.buildJacobian must be called previously.
      */
-    fun getAngle(axisIndex: Int): Float {
-        return calculatedAxisAngleDiff[axisIndex]
-    }
+    fun getAngle(axisIndex: Int): Float = calculatedAxisAngleDiff[axisIndex]
 
     /**
      * Retrieves the angular limit informacion.
@@ -342,7 +333,6 @@ class Generic6DofConstraint(
     /**
      * Test limit.
      *
-     *
      * - free means upper &lt; lower,<br></br>
      * - locked means upper == lower<br></br>
      * - limited means upper &gt; lower<br></br>
@@ -355,7 +345,6 @@ class Generic6DofConstraint(
         return angularLimits[limitIndex - 3].isLimited
     }
 
-    // overridable
     fun calcAnchorPos() {
         val imA = rigidBodyA.inverseMass
         val imB = rigidBodyB.inverseMass

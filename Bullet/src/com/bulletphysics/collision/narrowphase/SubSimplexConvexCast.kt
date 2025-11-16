@@ -45,7 +45,6 @@ class SubSimplexConvexCast(
             fromB: Transform, toB: Transform,
             result: CastResult
         ): Boolean {
-            val tmp = Stack.newVec3f()
 
             simplexSolver.reset()
 
@@ -63,6 +62,7 @@ class SubSimplexConvexCast(
             linVelA.sub(linVelB, relVelocity)
 
             val supportDir = Stack.newVec3f()
+            val tmp = Stack.newVec3f()
 
             relVelocity.negate(tmp)
             fromA.basis.transformTranspose(tmp)
@@ -97,7 +97,7 @@ class SubSimplexConvexCast(
                 supVertexA.sub(supVertexB, diff)
 
                 if (lambda > 1.0) {
-                    Stack.subVec3d(8)
+                    Stack.subVec3f(9)
                     Stack.subTrans(2)
                     return false
                 }
@@ -106,7 +106,7 @@ class SubSimplexConvexCast(
                 if (depth > 0.0) {
                     val alignment = supportDir.dot(relVelocity)
                     if (alignment >= -BulletGlobals.FLT_EPSILON_SQ) {
-                        Stack.subVec3d(8)
+                        Stack.subVec3f(9)
                         Stack.subTrans(2)
                         return false
                     } else {

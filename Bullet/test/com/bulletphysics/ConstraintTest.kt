@@ -114,9 +114,7 @@ class ConstraintTest {
         world.addRigidBody(body)
 
         val frameInA = Transform()
-        frameInA.setIdentity()
         val frameInB = Transform()
-        frameInB.setIdentity()
 
         val settings = GenericConstraint()
         val dof = Generic6DofConstraint(settings, base, body, frameInA, frameInB, true)
