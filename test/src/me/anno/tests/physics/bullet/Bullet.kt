@@ -2,7 +2,6 @@ package me.anno.tests.physics.bullet
 
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.linearmath.Transform
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
 import me.anno.bullet.bodies.StaticBody
@@ -10,7 +9,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.systems.Systems
 import me.anno.maths.Maths
-import org.joml.Vector3d
 import org.joml.Vector3f
 
 fun main() {

@@ -7,10 +7,12 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.Systems.registerSystem
 import me.anno.engine.DefaultAssets.icoSphere
 import me.anno.engine.DefaultAssets.plane
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.ui.UIColors
 
 /**
  * test rolling sphere
@@ -32,13 +34,13 @@ fun main() {
         .setScale(10f)
 
     Entity("Normal Sphere", scene)
-        .add(MeshComponent(icoSphere))
+        .add(MeshComponent(icoSphere, Material.diffuse(UIColors.greenYellow)))
         .add(SphereCollider())
         .add(DynamicBody())
         .setPosition(-1.5, 1.0, 0.0)
 
     Entity("Weird Sphere", scene)
-        .add(MeshComponent(icoSphere))
+        .add(MeshComponent(icoSphere, Material.diffuse(UIColors.fireBrick)))
         .add(SphereCollider())
         .add(DynamicBody().apply {
             centerOfMass.set(0.0, 0.25, 0.0)

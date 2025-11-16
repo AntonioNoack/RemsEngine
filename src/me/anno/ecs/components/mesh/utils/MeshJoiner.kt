@@ -29,8 +29,8 @@ abstract class MeshJoiner<V>(
 ) {
 
     abstract fun getMesh(element: V): Mesh
-    abstract fun getTransform(element: V, dst: Matrix4x3f)
 
+    open fun getTransform(element: V, dst: Matrix4x3f) {}
     open fun getVertexColor(element: V): Int = -1
     open fun getMaterials(element: V): List<FileReference> = emptyList()
     open fun getBoneIndex(element: V): Byte = 0

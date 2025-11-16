@@ -794,6 +794,9 @@ open class Vector3f(
 
     fun product(): Float = x * y * z
 
+    operator fun unaryPlus() = this
+    operator fun unaryMinus() = negate(Vector3f())
+
     companion object {
 
         @JvmStatic

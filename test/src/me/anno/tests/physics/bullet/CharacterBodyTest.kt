@@ -122,6 +122,7 @@ fun main() {
             }
         })
 
+    // todo keep camera on player???
     Entity("Player", scene)
         .add(PlayerController())
         .add(CharacterBody().apply { stepHeight = 0.7f; maxSlopeDegrees = 20.0f })
