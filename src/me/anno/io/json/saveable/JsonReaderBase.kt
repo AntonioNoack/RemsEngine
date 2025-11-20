@@ -44,7 +44,7 @@ import org.joml.Vector4i
 /**
  * reads a JSON-similar format from a text file
  * */
-abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
+abstract class JsonReaderBase(workspace: FileReference) : BaseReader(workspace) {
 
     var tmpChar = -1
     private var lineNumber = 1

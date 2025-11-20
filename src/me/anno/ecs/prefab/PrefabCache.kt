@@ -1,9 +1,9 @@
 package me.anno.ecs.prefab
 
-import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.cache.FileCacheSection.overrideFileEntry
+import me.anno.cache.Promise
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
@@ -33,6 +33,7 @@ import me.anno.utils.Logging.hash32
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
+import me.anno.utils.files.LocalFile
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
@@ -145,8 +146,9 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
                     if (saveable == null) LOGGER.warn("No Prefab found in $resource:${resource::class.simpleName}!")
                     if (saveable is Prefab) saveable.wasCreatedFromJson = true
                 }
+                val workspace = findWorkspace(resource)
                 JsonStringReader.readFirstOrNull(
-                    resource, EngineBase.workspace,
+                    resource, workspace,
                     Saveable::class, true, result
                 )
             }
@@ -169,18 +171,24 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
     private fun readJSONLike(file: FileReference, jsonLike: Any?, callback: Callback<Saveable>) {
         // todo implement a reader without to-string conversion
         val json = jsonLikeToJson(jsonLike)
-        val prefab = JsonStringReader.readFirstOrNull(json, EngineBase.workspace, Saveable::class)
+        val workspace = findWorkspace(file)
+        val prefab = JsonStringReader.readFirstOrNull(json, workspace, Saveable::class)
         onReadPrefab(file, prefab, callback)
     }
 
     private fun readFileEncoding(file: FileReference, encoding: FileEncoding, callback: Callback<Saveable>) {
         file.readBytes { bytes, err ->
             if (bytes != null) {
-                val saveable = encoding.decode(bytes, EngineBase.workspace, true).firstOrNull()
+                val workspace = findWorkspace(file)
+                val saveable = encoding.decode(bytes, workspace, true).firstOrNull()
                 if (saveable != null) callback.ok(saveable)
                 else callback.err(null)
             } else callback.err(err)
         }
+    }
+
+    private fun findWorkspace(file: FileReference): FileReference {
+        return LocalFile.findWorkspace(file, EngineBase.workspace)
     }
 
     private fun onReadPrefab(file: FileReference, prefab: Saveable?, callback: Callback<Saveable>) {
@@ -232,7 +240,8 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
             loadPrefabFromFolder(file, callback)
         } else file.inputStream { it, e ->
             if (it != null) {
-                val prefab = JsonStringReader.read(it, EngineBase.workspace, false).firstOrNull()
+                val workspace = findWorkspace(file)
+                val prefab = JsonStringReader.read(it, workspace, false).firstOrNull()
                 it.close()
                 onReadPrefab(file, prefab, callback)
             } else {

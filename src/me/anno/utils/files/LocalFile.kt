@@ -6,6 +6,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS
+import me.anno.utils.structures.maps.Maps.removeIf
 
 /**
  * Files are usually to be stored relatively to a standard path like Documents.
@@ -17,6 +18,41 @@ import me.anno.utils.OS
 object LocalFile {
 
     private val registeredFiles = HashMap<String, () -> FileReference>()
+    private val workspaceCache = HashMap<String, FileReference>()
+    private val projectFileName = "Project.json"
+
+    fun invalidateWorkspace(file: FileReference) {
+        synchronized(workspaceCache) {
+            val prefix = file.absolutePath
+            workspaceCache.removeIf { it.key.startsWith(prefix) }
+        }
+    }
+
+    fun findWorkspace(file: FileReference, fallback: FileReference): FileReference {
+        return synchronized(workspaceCache) {
+            workspaceCache.getOrPut(file.absolutePath) {
+                findWorkspaceImpl(file)
+            }
+        }.ifUndefined(fallback)
+    }
+
+    private fun findWorkspaceImpl(file: FileReference): FileReference {
+        var file = file
+        while (true) {
+            if (file.isDirectory) {
+                val marker = file.getChild(projectFileName)
+                if (marker.exists) return file
+            }
+
+            if (file.name == projectFileName) {
+                return file.getParent()
+            }
+
+            val parent = file.getParent()
+            if (parent == InvalidRef || parent == file) return InvalidRef
+            file = parent
+        }
+    }
 
     private fun String.unifySlashes(): String {
         return if ('\\' in this) replace('\\', '/') else this
@@ -82,6 +118,7 @@ object LocalFile {
     }
 
     init {
+        // registration for legacy
         register("\$CONFIG\$") { ConfigBasics.configFolder }
         register("\$CACHE\$") { ConfigBasics.cacheFolder }
         register("\$DOWNLOADS\$", OS.downloads)

@@ -1,6 +1,5 @@
 package me.anno.ui.debug
 
-import me.anno.Time.nanoTime
 import me.anno.audio.AudioPools
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.texture.CubemapTexture
@@ -9,7 +8,7 @@ import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
 import me.anno.language.translation.Dict
 import me.anno.ui.Style
-import me.anno.ui.base.text.TextPanel
+import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.debug.JSMemory.jsUsedMemory
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
@@ -17,25 +16,12 @@ import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.Pools
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
-import kotlin.math.abs
 
-class RuntimeInfoPanel(style: Style) : TextPanel(style) {
-
-    var updateInterval = 100_000_000
-    var lastUpdate = 0L
-
-    override fun onUpdate() {
-        super.onUpdate()
-        val time = nanoTime
-        if (abs(time - lastUpdate) > updateInterval) {
-            text = getDebugText()
-            lastUpdate = time
-        }
-    }
+class RuntimeInfoPanel(style: Style) : UpdatingTextPanel(100, style, ::getDebugText) {
 
     init {
-        text = getDebugText()
         textColor = textColor.withAlpha(127)
+        disableFocusColors()
     }
 
     override fun clone(): RuntimeInfoPanel {
@@ -45,6 +31,7 @@ class RuntimeInfoPanel(style: Style) : TextPanel(style) {
     }
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(RuntimeInfoPanel::class)
 
         // to do another slot may be interesting: how much ram is used by sub-processes

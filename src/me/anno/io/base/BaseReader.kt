@@ -1,5 +1,6 @@
 package me.anno.io.base
 
+import me.anno.io.files.FileReference
 import me.anno.io.saveable.ReaderImpl
 import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.UnknownSaveable
@@ -7,7 +8,7 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import speiger.primitivecollections.IntToObjectHashMap
 
-abstract class BaseReader : ReaderImpl {
+abstract class BaseReader(var workspace: FileReference) : ReaderImpl {
 
     private val byPointer = IntToObjectHashMap<Saveable>()
     override val allInstances = ArrayList<Saveable>()

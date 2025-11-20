@@ -6,6 +6,8 @@ import me.anno.fonts.Codepoints.forEachChar
 import me.anno.fonts.Font
 import me.anno.fonts.IEmojiCache
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
+import me.anno.io.binary.ByteArrayIO.getEncodedStringLength
+import me.anno.io.binary.ByteArrayIO.writeString
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonWriterBase
 import me.anno.maths.Maths.fract
@@ -804,5 +806,13 @@ object Strings {
         }
         result.add(substring(i0, i1))
         return result
+    }
+
+    @JvmStatic
+    fun CharSequence.encodeToByteArray(): ByteArray {
+        val length = getEncodedStringLength(this)
+        val bytes = ByteArray(length)
+        bytes.writeString(0, this)
+        return bytes
     }
 }

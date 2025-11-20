@@ -58,7 +58,7 @@ import java.io.InputStream
  * - similar speed
  * - similar length when compressed
  * */
-class BinaryReader(val input: InputStream) : BaseReader() {
+class BinaryReader(val input: InputStream, workspace: FileReference) : BaseReader(workspace) {
 
     private val knownNames = ArrayList<String>()
 
@@ -194,7 +194,7 @@ class BinaryReader(val input: InputStream) : BaseReader() {
     }
 
     private fun readFile(): FileReference =
-        readEfficientString()?.toGlobalFile() ?: InvalidRef
+        readEfficientString()?.toGlobalFile(workspace) ?: InvalidRef
 
     private fun readVector2f(): Vector2f =
         Vector2f(input.readBE32F(), input.readBE32F())

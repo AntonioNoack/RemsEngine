@@ -51,7 +51,7 @@ import kotlin.math.min
  * todo we need a corresponding writer, and then replace all our readers and writers with that implementation
  *  (we serialize rarely, and reducing code size would be nice)
  * */
-abstract class JsonLikeReader(val workspace: FileReference) : BaseReader() {
+abstract class JsonLikeReader(workspace: FileReference) : BaseReader(workspace) {
 
     private fun getUnusedPointer(): Int = -1
     override fun readObject(): Saveable {

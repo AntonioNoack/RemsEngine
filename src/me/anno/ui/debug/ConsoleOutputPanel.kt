@@ -38,6 +38,10 @@ open class ConsoleOutputPanel(style: Style) : TextPanel(style) {
 
     val textColor0 = textColor
 
+    init {
+        disableFocusColors()
+    }
+
     override fun onUpdate() {
         val text = lastConsoleLines.lastOrNull() ?: ""
         this.text = text

@@ -192,20 +192,28 @@ object Maths {
     }
 
     /**
-     * converts an angle from any radians into -pi to +pi
+     * converts an angle from any degrees into -180° to +180°
      * */
     @JvmStatic
-    fun angleDifference(v0: Float): Float {
-        return v0 - round(v0 / TAUf) * TAUf
-    }
+    fun angleDifferenceDegrees(x: Float): Float = angleDifference(x, 360f)
 
     /**
-     * converts an angle from any radians into -pi to +pi
+     * converts an angle from any degrees into -180° to +180°
      * */
     @JvmStatic
-    fun angleDifference(v0: Double): Double {
-        return v0 - round(v0 / TAU) * TAU
-    }
+    fun angleDifferenceDegrees(x: Double): Double = angleDifference(x, 360.0)
+
+    /**
+     * converts an angle into -period/2 to +period/2
+     * */
+    @JvmStatic
+    fun angleDifference(x: Float, period: Float = TAUf): Float = x - round(x, period)
+
+    /**
+     * converts an angle into -period/2 to +period/2
+     * */
+    @JvmStatic
+    fun angleDifference(x: Double, period: Double = TAU): Double = x - round(x, period)
 
     @JvmStatic
     fun length(dx: Float, dy: Float): Float = Vector2f.length(dx, dy)
@@ -230,6 +238,12 @@ object Maths {
 
     @JvmStatic
     fun distance(x0: Double, y0: Double, x1: Double, y1: Double) = length(x1 - x0, y1 - y0)
+
+    @JvmStatic
+    fun round(x: Float, period: Float): Float = round(x / period) * period
+
+    @JvmStatic
+    fun round(x: Double, period: Double): Double = round(x / period) * period
 
     @JvmStatic
     fun mix(a: Short, b: Short, f: Double): Double {
@@ -340,14 +354,22 @@ object Maths {
     }
 
     @JvmStatic
-    fun mixAngle(a: Float, b: Float, f: Float): Float {
-        val d = a - b
-        return when {
-            d > 181 -> mixAngle(a, b + 360, f)
-            d < -181 -> mixAngle(a, b - 360, f)
-            else -> mix(a, b, f)
-        }
+    fun mixAngle(a: Float, b: Float, f: Float, period: Float = TAUf): Float {
+        if (abs(a - b) <= period) return mix(a, b, f) // fast-path
+        return mix(a, b + round(a - b, period), f)
     }
+
+    @JvmStatic
+    fun mixAngle(a: Double, b: Double, f: Double, period: Double = TAU): Double {
+        if (abs(a - b) <= period) return mix(a, b, f) // fast-path
+        return mix(a, b + round(a - b, period), f)
+    }
+
+    @JvmStatic
+    fun mixAngleDegrees(a: Float, b: Float, f: Float): Float = mixAngle(a, b, f, 360f)
+
+    @JvmStatic
+    fun mixAngleDegrees(a: Double, b: Double, f: Double): Double = mixAngle(a, b, f, 360.0)
 
     @JvmStatic
     fun mix(a: Vector2f, b: Vector2f, f: Float) = Vector2f(

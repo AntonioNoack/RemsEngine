@@ -55,7 +55,7 @@ fun main() {
             println(asText.size)
         }
 
-        val reader = BinaryReader(asText.inputStream())
+        val reader = BinaryReader(asText.inputStream(), InvalidRef)
         clock.start()
 
         val asInts = reader.run {

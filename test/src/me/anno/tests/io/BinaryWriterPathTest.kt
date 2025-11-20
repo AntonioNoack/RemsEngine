@@ -77,7 +77,7 @@ class BinaryWriterPathTest {
                 }.replace("', '", "")
         )
         val bis = ByteArrayInputStream(bytes)
-        val reader = BinaryReader(bis)
+        val reader = BinaryReader(bis, InvalidRef)
         reader.readAllInList()
         val clone = reader.allInstances.firstInstance2(Y::class)
         assertEquals(xs, clone.xs)

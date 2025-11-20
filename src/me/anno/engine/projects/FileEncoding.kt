@@ -76,7 +76,7 @@ enum class FileEncoding(val id: Int) {
                 val str = bytes.inputStream()
                 str.consumeMagic(FileEncoding.BINARY_MAGIC)
                 val zis = InflaterInputStream(str)
-                val reader = BinaryReader(zis)
+                val reader = BinaryReader(zis, workspace)
                 reader.readAllInList()
                 return reader.allInstances
             }

@@ -3,6 +3,7 @@ package me.anno.io.saveable
 import me.anno.cache.Promise
 import me.anno.io.files.FileReference
 import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.files.LocalFile
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
@@ -19,8 +20,8 @@ interface StreamReader {
 
     fun createReader(data: InputStream, workspace: FileReference, sourceName: String): ReaderImpl
 
-    fun read(data: InputStream, workspace: FileReference, sourceName: String, safely: Boolean): List<Saveable> {
-        val reader = createReader(data, workspace, sourceName)
+    fun read(source: InputStream, workspace: FileReference, sourceName: String, safely: Boolean): List<Saveable> {
+        val reader = createReader(source, workspace, sourceName)
         if (safely) {
             try {
                 reader.readAllInList()
@@ -32,9 +33,10 @@ interface StreamReader {
         return reader.allInstances
     }
 
-    fun read(file: FileReference, workspace: FileReference, safely: Boolean, result: Promise<List<Saveable>>) {
-        file.inputStream(result.map { input ->
-            read(input, workspace, file.absolutePath, safely)
+    fun read(source: FileReference, workspace: FileReference, safely: Boolean, result: Promise<List<Saveable>>) {
+        source.inputStream(result.map { input ->
+            val workspace = LocalFile.findWorkspace(source, workspace)
+            read(input, workspace, source.absolutePath, safely)
         })
     }
 
@@ -43,12 +45,12 @@ interface StreamReader {
     }
 
     fun <Type : Saveable> readFirstOrNull(
-        data: FileReference, workspace: FileReference,
+        source: FileReference, workspace: FileReference,
         clazz: KClass<Type>, safely: Boolean,
         result: Promise<Type>
     ) {
         val tmp = Promise<List<Saveable>>()
-        read(data, workspace, safely, tmp)
+        read(source, workspace, safely, tmp)
         tmp.waitFor { result.value = it?.firstInstanceOrNull2(clazz) }
     }
 }

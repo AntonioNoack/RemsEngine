@@ -14,7 +14,7 @@ class Dbvt {
     var root: DbvtNode? = null
     var free: DbvtNode? = null
     var leaves: Int = 0
-    /*unsigned*/var oPath: Int = 0
+    var oPath: Int = 0
 
     fun clear() {
         if (root != null) {
@@ -46,7 +46,7 @@ class Dbvt {
                     bit = (bit + 1) and ( /*sizeof(unsigned)*/4 * 8 - 1)
                 }
                 update(node)
-                ++oPath
+                oPath++
             } while ((--passes) != 0)
         }
     }
@@ -272,7 +272,7 @@ class Dbvt {
             }
         }
 
-        private fun sort(n: DbvtNode, r: Array<DbvtNode?>): DbvtNode {
+        private fun sort(n: DbvtNode, rootRef: Array<DbvtNode?>): DbvtNode {
             val p = n.parent
             assert(n.isInternal)
             // JAVA TODO: fix this
@@ -286,7 +286,7 @@ class Dbvt {
                     if (indexOf(p) == 0) q.child0 = n
                     else q.child1 = n
                 } else {
-                    r[0] = n
+                    rootRef[0] = n
                 }
                 s.parent = n
                 p.parent = n

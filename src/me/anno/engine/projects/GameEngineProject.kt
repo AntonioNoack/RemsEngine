@@ -27,6 +27,7 @@ import me.anno.utils.algorithms.Recursion
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.async.promise
+import me.anno.utils.files.LocalFile
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.types.Floats.toLongOr
@@ -167,7 +168,9 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
             Events.addEvent {
                 if (!isValid) {
                     isValid = true
+                    val configFile = configFile
                     configFile.writeText(JsonStringWriter.toText(this, location))
+                    LocalFile.invalidateWorkspace(configFile)
                     LOGGER.info("Saved Project")
                 }
             }

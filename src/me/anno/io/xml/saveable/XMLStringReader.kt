@@ -7,12 +7,13 @@ import me.anno.io.saveable.ReaderImpl
 import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.StreamReader
 import me.anno.io.saveable.StringReader
+import me.anno.utils.types.Strings.encodeToByteArray
 import java.io.InputStream
 
 class XMLStringReader(val xmlStr: CharSequence, val workspace: FileReference) : ReaderImpl {
 
     override fun readAllInList() {
-        val bytes = xmlStr.toString().encodeToByteArray()
+        val bytes = xmlStr.encodeToByteArray()
         allInstances = FileEncoding.COMPACT_XML.decode(bytes, workspace, false)
     }
 

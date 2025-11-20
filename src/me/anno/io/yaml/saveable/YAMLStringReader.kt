@@ -7,12 +7,13 @@ import me.anno.io.saveable.ReaderImpl
 import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.StreamReader
 import me.anno.io.saveable.StringReader
+import me.anno.utils.types.Strings.encodeToByteArray
 import java.io.InputStream
 
 class YAMLStringReader(val yamlStr: CharSequence, val workspace: FileReference) : ReaderImpl {
 
     override fun readAllInList() {
-        val bytes = yamlStr.toString().encodeToByteArray()
+        val bytes = yamlStr.encodeToByteArray()
         allInstances = FileEncoding.YAML.decode(bytes, workspace, false)
     }
 

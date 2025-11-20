@@ -79,7 +79,7 @@ class GeneralFileEncodingTest {
             bos.toByteArray()
         }
 
-        val reader = BinaryReader(bytes.inputStream())
+        val reader = BinaryReader(bytes.inputStream(), InvalidRef)
         reader.readAllInList()
         assertEquals(
             listOf(srcPrefab).toString(),
