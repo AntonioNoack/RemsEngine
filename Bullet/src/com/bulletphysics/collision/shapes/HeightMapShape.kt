@@ -23,23 +23,32 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.toIntOr
 import org.joml.Vector3d
 import org.joml.Vector3f
+import java.nio.FloatBuffer
+import java.nio.IntBuffer
+import java.nio.ShortBuffer
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- *
- * */
 class HeightMapShape : ConcaveShape() {
 
     enum class TrianglePattern {
         NORMAL,
         FLIPPED,
         ZIGZAG,
-        DIAMOND
+        DIAMOND;
+
+        fun flipTriangle(x: Int, j: Int): Boolean {
+            return when (this) {
+                NORMAL -> false
+                FLIPPED -> true
+                ZIGZAG -> (j and 1) == 0
+                DIAMOND -> ((j + x) and 1) == 0
+            }
+        }
     }
 
-    var width = 2 // > 1
-    var length = 2 // > 1
+    var sizeI = 2 // > 1
+    var sizeJ = 2 // > 1
 
     // FloatArray|ShortArray
     lateinit var heightData: Any
@@ -48,6 +57,8 @@ class HeightMapShape : ConcaveShape() {
     var maxHeight = 1.0
 
     var heightScale = 1.0
+    var heightOffset = 0.0
+    var unsigned = false
 
     var upAxis = Axis.Y
 
@@ -61,19 +72,18 @@ class HeightMapShape : ConcaveShape() {
     val localOrigin = Vector3d()
 
     fun defineBounds() {
-        heightScale = (maxHeight - minHeight) / 65535.0
         when (upAxis) {
             Axis.X -> {
                 localAabbMin.set(minHeight, 0.0, 0.0)
-                localAabbMax.set(maxHeight, width.toDouble(), length.toDouble())
+                localAabbMax.set(maxHeight, sizeI.toDouble(), sizeJ.toDouble())
             }
             Axis.Y -> {
                 localAabbMin.set(0.0, minHeight, 0.0)
-                localAabbMax.set(width.toDouble(), maxHeight, length.toDouble())
+                localAabbMax.set(sizeI.toDouble(), maxHeight, sizeJ.toDouble())
             }
             Axis.Z -> {
                 localAabbMin.set(0.0, 0.0, minHeight)
-                localAabbMax.set(width.toDouble(), length.toDouble(), maxHeight)
+                localAabbMax.set(sizeI.toDouble(), sizeJ.toDouble(), maxHeight)
             }
         }
         localAabbMax.add(localAabbMin, localOrigin).mul(0.5)
@@ -100,28 +110,40 @@ class HeightMapShape : ConcaveShape() {
     }
 
     /**
-     * This returns the "raw" (user's initial) height, not the actual height.
-     * The actual height needs to be adjusted to be relative to the center of the heightfield's AABB.
+     * returns value without localScaling
      * */
-    fun getRawHeightFieldValue(x: Int, y: Int): Double {
-        // float wouldn't need heightScale
-        val index = y * width + x
+    fun getHeightFieldValue(x: Int, y: Int): Double {
+        val index = y * sizeI + x
         return when (val heightData = heightData) {
-            is FloatArray -> heightData[index].toDouble()
-            is ShortArray -> heightData[index].toInt().and(0xffff) * heightScale + minHeight
+            // floats don't need a scale
+            is FloatArray -> return heightData[index].toDouble()
+            is FloatBuffer -> return heightData[index].toDouble()
+            // integer types need it
+            is ShortArray -> shortToValue(heightData[index])
+            is ShortBuffer -> shortToValue(heightData[index])
+            is IntArray -> intToValue(heightData[index])
+            is IntBuffer -> intToValue(heightData[index])
             else -> throw NotImplementedError()
-        }
+        } * heightScale + heightOffset
+    }
+
+    private fun shortToValue(v: Short): Long {
+        return if (unsigned) v.toLong().and(0xffff) else v.toLong()
+    }
+
+    private fun intToValue(v: Int): Long {
+        return if (unsigned) v.toLong().and(0xffff) else v.toLong()
     }
 
     /**
      * returns the vertex in bullet-local coordinates
      * */
     private fun getVertex(x: Int, y: Int, dst: Vector3d) {
-        assertTrue(x in 0 until width)
-        assertTrue(y in 0 until length)
-        val xf = x - width * 0.5
-        val yf = y - length * 0.5
-        val hf = getRawHeightFieldValue(x, y)
+        assertTrue(x in 0 until sizeI)
+        assertTrue(y in 0 until sizeJ)
+        val xf = x - sizeI * 0.5
+        val yf = y - sizeJ * 0.5
+        val hf = getHeightFieldValue(x, y)
         when (upAxis) {
             Axis.X -> dst.set(hf, xf, yf)
             Axis.Y -> dst.set(xf, hf, yf)
@@ -146,73 +168,54 @@ class HeightMapShape : ConcaveShape() {
         localAabbMin.add(localOrigin)
         localAabbMax.add(localOrigin)
 
-        var startX = 0
-        var endX = width - 2 // -1 for max allowed index, -1 because of points vs quads
-        var startJ = 0
-        var endJ = length - 2
+        var minI = 0
+        var maxI = sizeI - 2 // -1 for max allowed index, -1 because of points vs quads
+        var minJ = 0
+        var maxJ = sizeJ - 2
 
         when (upAxis) {
             Axis.X -> {
-                startX = max(startX, localAabbMin.y.toIntOr())
-                endX = min(endX, localAabbMax.y.toIntOr())
-                startJ = max(startJ, localAabbMin.z.toIntOr())
-                endJ = min(endJ, localAabbMax.z.toIntOr())
+                minI = max(minI, localAabbMin.y.toIntOr())
+                maxI = min(maxI, localAabbMax.y.toIntOr())
+                minJ = max(minJ, localAabbMin.z.toIntOr())
+                maxJ = min(maxJ, localAabbMax.z.toIntOr())
             }
             Axis.Y -> {
-                startX = max(startX, localAabbMin.x.toIntOr())
-                endX = min(endX, localAabbMax.x.toIntOr())
-                startJ = max(startJ, localAabbMin.z.toIntOr())
-                endJ = min(endJ, localAabbMax.z.toIntOr())
+                minI = max(minI, localAabbMin.x.toIntOr())
+                maxI = min(maxI, localAabbMax.x.toIntOr())
+                minJ = max(minJ, localAabbMin.z.toIntOr())
+                maxJ = min(maxJ, localAabbMax.z.toIntOr())
             }
             Axis.Z -> {
-                startX = max(startX, localAabbMin.x.toIntOr())
-                endX = min(endX, localAabbMax.x.toIntOr())
-                startJ = max(startJ, localAabbMin.y.toIntOr())
-                endJ = min(endJ, localAabbMax.y.toIntOr())
+                minI = max(minI, localAabbMin.x.toIntOr())
+                maxI = min(maxI, localAabbMax.x.toIntOr())
+                minJ = max(minJ, localAabbMin.y.toIntOr())
+                maxJ = min(maxJ, localAabbMax.y.toIntOr())
             }
         }
 
         val a = Stack.newVec3d()
         val b = Stack.newVec3d()
         val c = Stack.newVec3d()
-        for (j in startJ..endJ) {
-            for (x in startX..endX) {
-                if (flipTriangle(x, j)) {
-                    // first triangle
-                    getVertex(x, j, a)
-                    getVertex(x + 1, j, b)
-                    getVertex(x + 1, j + 1, c)
-                    callback.processTriangle(a, b, c, x, j)
-                    // second triangle
-                    // getVertex(x, j, vertex0) // stays the same, thanks to Danny Chapman
-                    getVertex(x + 1, j + 1, b)
-                    getVertex(x, j + 1, c)
-                    callback.processTriangle(a, b, c, x, j)
+        val d = Stack.newVec3d()
+        val pattern = pattern
+        for (j in minJ..maxJ) {
+            for (i in minI..maxI) {
+                getVertex(i, j, a)
+                getVertex(i + 1, j, b)
+                getVertex(i + 1, j + 1, c)
+                getVertex(i, j + 1, d)
+                if (pattern.flipTriangle(i, j)) {
+                    callback.processTriangle(a, b, c, i, j)
+                    callback.processTriangle(a, c, d, i, j)
                 } else {
-                    // first triangle
-                    getVertex(x, j, a)
-                    getVertex(x, j + 1, b)
-                    getVertex(x + 1, j, c)
-                    callback.processTriangle(a, b, c, x, j)
-                    // second triangle
-                    getVertex(x + 1, j, a)
-                    // getVertex(x , j + 1, vertex1) // stays the same
-                    getVertex(x + 1, j + 1, c)
-                    callback.processTriangle(a, b, c, x, j)
+                    callback.processTriangle(b, c, d, i, j)
+                    callback.processTriangle(b, d, a, i, j)
                 }
             }
         }
 
         Stack.subVec3d(5)
-    }
-
-    private fun flipTriangle(x: Int, j: Int): Boolean {
-        return when (pattern) {
-            TrianglePattern.NORMAL -> false
-            TrianglePattern.FLIPPED -> true
-            TrianglePattern.ZIGZAG -> (j and 1) == 0
-            TrianglePattern.DIAMOND -> ((j + x) and 1) == 0
-        }
     }
 
     override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {

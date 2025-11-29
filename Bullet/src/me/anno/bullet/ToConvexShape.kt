@@ -78,9 +78,9 @@ object ToConvexShape {
                 val boundsMax = Vector3d()
                 shape.getBounds(Transform(), boundsMin, boundsMax)
                 shape.processAllTriangles({ a, b, c, _, _ ->
-                    dst.add(a)
-                    dst.add(b)
-                    dst.add(c)
+                    dst.add(Vector3d(a))
+                    dst.add(Vector3d(b))
+                    dst.add(Vector3d(c))
                 }, boundsMin, boundsMax)
             }
             is CompoundShape -> {

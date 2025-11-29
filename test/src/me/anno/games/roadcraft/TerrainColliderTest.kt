@@ -84,7 +84,12 @@ fun createTerrain(
     Entity("Terrain", parent)
         .add(MeshComponent(mesh))
         .add(StaticBody())
-        .add(TerrainCollider(width, length, perlin.min, perlin.max, heightData))
+        .add(
+            TerrainCollider(
+                width, length, perlin.min, perlin.max,
+                1f / heightScale, 0f, true, heightData
+            )
+        )
 
     return mesh
 }

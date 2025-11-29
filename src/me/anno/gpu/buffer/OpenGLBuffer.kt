@@ -91,7 +91,7 @@ abstract class OpenGLBuffer(
         locallyAllocated = allocate(locallyAllocated, 0L)
     }
 
-    private fun prepareUpload() {
+    fun prepareUpload() {
         checkSession()
 
         GFX.check()
@@ -99,7 +99,7 @@ abstract class OpenGLBuffer(
         if (!isPointerValid(pointer)) throw OutOfMemoryError("Could not generate OpenGL Buffer")
     }
 
-    private fun finishUpload() {
+    fun finishUpload() {
         isUpToDate = true
         if (Build.isDebug) {
             DebugGPUStorage.buffers.add(this)
@@ -107,7 +107,7 @@ abstract class OpenGLBuffer(
         }
     }
 
-    private fun keepBuffer(allowResize: Boolean, newLimit: Int, keepLarge: Boolean): Boolean {
+    fun keepBuffer(allowResize: Boolean, newLimit: Int, keepLarge: Boolean): Boolean {
         return allowResize && locallyAllocated > 0 && newLimit <= locallyAllocated && (keepLarge || (newLimit >= locallyAllocated / 2 - 65536))
     }
 
