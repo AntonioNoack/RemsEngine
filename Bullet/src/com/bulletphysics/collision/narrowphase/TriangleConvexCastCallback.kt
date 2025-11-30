@@ -14,13 +14,13 @@ import org.joml.Vector3f
 abstract class TriangleConvexCastCallback(
     var convexShape: ConvexShape,
     convexShapeFrom: Transform,
-    convexShapeTo: Transform,
+    convexShapeTo: Vector3d,
     triangleToWorld: Transform,
     var triangleCollisionMargin: Float
 ) : TriangleCallback {
 
     val convexShapeFrom = Transform()
-    val convexShapeTo = Transform()
+    val convexShapeTo = Vector3d()
     val triangleToWorld = Transform()
     var hitFraction = 1f
 
@@ -42,7 +42,7 @@ abstract class TriangleConvexCastCallback(
         if (SubSimplexConvexCast.calcTimeOfImpactImpl(
                 convexShape, triangleShape, simplexSolver,
                 convexShapeFrom, convexShapeTo,
-                triangleToWorld, triangleToWorld, castResult
+                triangleToWorld, triangleToWorld.origin, castResult
             )
         ) {
             // add hit

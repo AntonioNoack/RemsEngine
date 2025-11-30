@@ -5,6 +5,7 @@ import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.setInterpolate3
 import cz.advel.stack.Stack
+import org.joml.Vector3d
 
 /**
  * SubsimplexConvexCast implements Gino van den Bergens' paper
@@ -21,8 +22,8 @@ class SubSimplexConvexCast(
 ) : ConvexCast {
 
     override fun calcTimeOfImpact(
-        fromA: Transform, toA: Transform,
-        fromB: Transform, toB: Transform,
+        fromA: Transform, toA: Vector3d,
+        fromB: Transform, toB: Vector3d,
         result: CastResult
     ): Boolean = calcTimeOfImpactImpl(
         convexA, convexB, simplexSolver,
@@ -41,8 +42,8 @@ class SubSimplexConvexCast(
             convexB: ConvexShape,
             simplexSolver: SimplexSolverInterface,
 
-            fromA: Transform, toA: Transform,
-            fromB: Transform, toB: Transform,
+            fromA: Transform, toA: Vector3d,
+            fromB: Transform, toB: Vector3d,
             result: CastResult
         ): Boolean {
 
@@ -50,8 +51,8 @@ class SubSimplexConvexCast(
 
             val linVelA = Stack.newVec3f()
             val linVelB = Stack.newVec3f()
-            toA.origin.sub(fromA.origin, linVelA)
-            toB.origin.sub(fromB.origin, linVelB)
+            toA.sub(fromA.origin, linVelA)
+            toB.sub(fromB.origin, linVelB)
 
             var lambda = 0f
 
@@ -113,8 +114,8 @@ class SubSimplexConvexCast(
                         lambda -= depth / alignment
                         // interpolate to next lambda
                         //	x = s + lambda * r;
-                        setInterpolate3(interpolatedTransA.origin, fromA.origin, toA.origin, lambda.toDouble())
-                        setInterpolate3(interpolatedTransB.origin, fromB.origin, toB.origin, lambda.toDouble())
+                        setInterpolate3(interpolatedTransA.origin, fromA.origin, toA, lambda.toDouble())
+                        setInterpolate3(interpolatedTransB.origin, fromB.origin, toB, lambda.toDouble())
                         // check next line
                         supVertexA.sub(supVertexB, diff)
                         n.set(supportDir)

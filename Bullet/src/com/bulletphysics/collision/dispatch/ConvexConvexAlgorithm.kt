@@ -155,8 +155,8 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
         //ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,0);
         var resultFraction = resultFraction
         if (ccd1.calcTimeOfImpact(
-                body0.worldTransform, body0.interpolationWorldTransform,
-                body1.worldTransform, body1.interpolationWorldTransform, result
+                body0.worldTransform, body0.interpolationWorldTransform.origin,
+                body1.worldTransform, body1.interpolationWorldTransform.origin, result
             )
         ) {
             // store result.m_fraction in both bodies

@@ -6,6 +6,7 @@ import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.setInterpolate3
 import com.bulletphysics.util.ObjectPool
 import cz.advel.stack.Stack
+import org.joml.Vector3d
 
 /**
  * GjkConvexCast performs a raycast on a convex object using support mapping.
@@ -27,8 +28,8 @@ class GjkConvexCast : ConvexCast {
     }
 
     override fun calcTimeOfImpact(
-        fromA: Transform, toA: Transform,
-        fromB: Transform, toB: Transform,
+        fromA: Transform, toA: Vector3d,
+        fromB: Transform, toB: Vector3d,
         result: CastResult
     ): Boolean {
         simplexSolver.reset()
@@ -38,8 +39,8 @@ class GjkConvexCast : ConvexCast {
         val linVelA = Stack.newVec3d()
         val linVelB = Stack.newVec3d()
 
-        toA.origin.sub(fromA.origin, linVelA)
-        toB.origin.sub(fromB.origin, linVelB)
+        toA.sub(fromA.origin, linVelA)
+        toB.sub(fromB.origin, linVelB)
 
         val radius = 0.001
         var lambda = 0f
@@ -103,8 +104,8 @@ class GjkConvexCast : ConvexCast {
                     lastLambda = lambda
 
                     // interpolate to next lambda
-                    setInterpolate3(input.transformA.origin, fromA.origin, toA.origin, lambda.toDouble())
-                    setInterpolate3(input.transformB.origin, fromB.origin, toB.origin, lambda.toDouble())
+                    setInterpolate3(input.transformA.origin, fromA.origin, toA, lambda.toDouble())
+                    setInterpolate3(input.transformB.origin, fromB.origin, toB, lambda.toDouble())
 
                     gjk.getClosestPoints(input, pointCollector, null)
                     if (pointCollector.hasResult) {

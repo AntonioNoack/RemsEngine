@@ -64,17 +64,13 @@ open class GhostObject : CollisionObject() {
         rayFromTrans.setIdentity()
         rayFromTrans.setTranslation(rayFromWorld)
 
-        val rayToTrans = Stack.newTrans()
-        rayToTrans.setIdentity()
-        rayToTrans.setTranslation(rayToWorld)
-
         for (i in overlappingPairs.indices) {
             val collisionObject = overlappingPairs[i]
 
             // only perform raycast if filterMask matches
             if (resultCallback.needsCollision(collisionObject.broadphaseHandle!!)) {
                 CollisionWorld.rayTestSingle(
-                    rayFromTrans, rayToTrans, collisionObject,
+                    rayFromTrans, rayToWorld, collisionObject,
                     collisionObject.collisionShape!!,
                     collisionObject.worldTransform,
                     resultCallback
@@ -82,6 +78,6 @@ open class GhostObject : CollisionObject() {
             }
         }
 
-        Stack.subTrans(2)
+        Stack.subTrans(1)
     }
 }

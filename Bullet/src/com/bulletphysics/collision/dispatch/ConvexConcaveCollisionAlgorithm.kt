@@ -117,7 +117,7 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
 
             val curHitFraction = 1f // is this available?
             val raycastCallback = LocalTriangleSphereCastCallback(
-                convexFromLocal, convexToLocal,
+                convexFromLocal, convexToLocal.origin,
                 convexBody.ccdSweptSphereRadius, curHitFraction
             )
 
@@ -142,13 +142,12 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
 
     /** ///////////////////////////////////////////////////////////////////////// */
     private class LocalTriangleSphereCastCallback(
-        from: Transform,
-        to: Transform,
+        from: Transform, to: Vector3d,
         ccdSphereRadius: Float,
         hitFraction: Float
     ) : TriangleCallback {
-        val ccdSphereFromTrans: Transform = Transform()
-        val ccdSphereToTrans: Transform = Transform()
+        val ccdSphereFromTrans = Transform()
+        val ccdSphereToTrans = Vector3d()
 
         var ccdSphereRadius: Float
         var hitFraction: Float
@@ -180,7 +179,7 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
             //local space?
             if (SubSimplexConvexCast.calcTimeOfImpactImpl(
                     pointShape, triShape, simplexSolver,
-                    ccdSphereFromTrans, ccdSphereToTrans, identity, identity, castResult
+                    ccdSphereFromTrans, ccdSphereToTrans, identity, identity.origin, castResult
                 )
             ) {
                 if (hitFraction > castResult.fraction) {

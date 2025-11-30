@@ -1,6 +1,7 @@
 package com.bulletphysics.collision.narrowphase
 
 import com.bulletphysics.linearmath.Transform
+import org.joml.Vector3d
 
 /**
  * ConvexCast is an interface for casting.
@@ -13,8 +14,8 @@ interface ConvexCast {
      * Returns whether a collision has happened.
      */
     fun calcTimeOfImpact(
-        fromA: Transform, toA: Transform,
-        fromB: Transform, toB: Transform,
+        fromA: Transform, toA: Vector3d,
+        fromB: Transform, toB: Vector3d,
         result: CastResult
     ): Boolean
 }
