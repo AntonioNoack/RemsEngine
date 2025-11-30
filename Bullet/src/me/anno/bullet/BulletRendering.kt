@@ -17,7 +17,6 @@ import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.gpu.buffer.LineBuffer.addLine
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.ui.UIColors
-import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
@@ -136,7 +135,7 @@ object BulletRendering {
         val bounds = JomlPools.aabbd.create()
         for (i in collisionObjects.indices) {
 
-            val colObj = collisionObjects[i]
+            val colObj = collisionObjects.getOrNull(i) ?: break
             val color = when (colObj.activationState) {
                 ActivationState.ACTIVE -> 0xffffff
                 ActivationState.SLEEPING -> 0x333333
@@ -183,7 +182,8 @@ object BulletRendering {
         val colorY = UIColors.axisYColor
         val colorZ = UIColors.axisZColor
         for (i in bodies.indices) {
-            val transform = bodies[i].worldTransform
+            val body = bodies.getOrNull(i) ?: break
+            val transform = body.worldTransform
             val center = transform.origin
             val basis = transform.basis
             val scale = 0.1f * center.distance(cameraPosition).toFloat()
@@ -216,21 +216,21 @@ object BulletRendering {
             for (j in wheels.indices) {
 
                 val wheel = wheels[j]
-                val wheelColor = (if (wheel.raycastInfo.isInContact) 0x0000ff else 0xff0000) or black
+                val wheelColor = (if (wheel.isInContact) 0x0000ff else 0xff0000).withAlpha(255)
 
                 vehicle.getChassisWorldTransform(mat).inverse()
 
                 val wheelPosWS = wheel.worldTransform.origin
 
-                mat.transformDirection(wheel.wheelAxleCS, tmp)
+                mat.transformDirection(wheel.axleCS, tmp)
                 tmp.add(wheelPosWS)
                 addLine(wheelPosWS, tmp, wheelColor)
 
-                mat.transformDirection(wheel.wheelDirectionCS, tmp)
+                mat.transformDirection(wheel.directionCS, tmp)
                 tmp.add(wheelPosWS)
                 addLine(wheelPosWS, tmp, wheelColor)
 
-                val contact = wheel.raycastInfo.contactPointWS
+                val contact = wheel.contactPointWS
                 addLine(wheelPosWS, contact, wheelColor)
             }
         }
@@ -242,7 +242,7 @@ object BulletRendering {
     private fun BulletPhysics.drawActions() {
         val actions = bulletInstance.actions
         for (i in actions.indices) {
-            val action = actions[i] ?: break
+            val action = actions.getOrNull(i) ?: break
             action.debugDraw(BulletDebugDraw)
         }
     }

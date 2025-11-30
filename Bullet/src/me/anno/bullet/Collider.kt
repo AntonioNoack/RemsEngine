@@ -12,7 +12,6 @@ import com.bulletphysics.collision.shapes.StaticPlaneShape
 import com.bulletphysics.collision.shapes.TriangleIndexVertexArray
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
-import me.anno.bullet.BulletPhysics.Companion.mat4x3ToTransform
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.BoxCollider
@@ -26,6 +25,7 @@ import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.physics.CustomBulletCollider
+import me.anno.ecs.components.physics.Physics.Companion.convertEntityToPhysicsI
 import me.anno.maths.geometry.convexhull.ConvexHulls
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.pooling.JomlPools
@@ -247,20 +247,25 @@ fun createBulletCollider(
 
     val localScale = JomlPools.vec3f.create()
     val totalScale = JomlPools.vec3f.create()
-    val centerOfMass1 = JomlPools.vec3d.create()
+    val localCenterOfMass = JomlPools.vec3d.create()
 
     transform0.getScale(localScale)
     bodyScale.mul(localScale, totalScale)
 
-    centerOfMass.negate(centerOfMass1)
+    centerOfMass.negate(localCenterOfMass)
 
-    val transform = mat4x3ToTransform(
-        transform0, localScale,
-        centerOfMass1, Transform()
+    val transform = Transform()
+    val rot = JomlPools.quat4f.create()
+    convertEntityToPhysicsI(
+        transform0, transform.origin, rot,
+        localScale, localCenterOfMass,
     )
+    transform.basis.set(rot)
+
     val shape = createBulletShape(collider, totalScale)
     JomlPools.vec3f.sub(2)
     JomlPools.vec3d.sub(1)
+    JomlPools.quat4f.sub(1)
 
     // there may be extra scale hidden in there
     return transform to shape

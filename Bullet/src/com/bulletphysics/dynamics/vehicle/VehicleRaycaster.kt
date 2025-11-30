@@ -1,5 +1,6 @@
 package com.bulletphysics.dynamics.vehicle
 
+import com.bulletphysics.dynamics.RigidBody
 import org.joml.Vector3d
 
 /**
@@ -8,5 +9,5 @@ import org.joml.Vector3d
  * @author jezek2
  */
 abstract class VehicleRaycaster {
-    abstract fun castRay(from: Vector3d, to: Vector3d, result: VehicleRaycasterResult): Any?
+    abstract fun castRay(from: Vector3d, to: Vector3d, result: VehicleRaycasterResult): RigidBody?
 }

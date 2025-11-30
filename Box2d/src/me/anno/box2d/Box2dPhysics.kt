@@ -19,12 +19,11 @@ import org.jbox2d.dynamics.BodyType
 import org.jbox2d.dynamics.FixtureDef
 import org.jbox2d.dynamics.World
 import org.joml.Matrix4x3
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
 
 /**
  * docs: https://box2d.org/documentation/
@@ -144,9 +143,9 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
 
         val def = BodyDef()
         val transform = entity.transform
-        val global = transform.globalTransform
-        def.position.set(global.m30.toFloat(), global.m31.toFloat())
-        def.angle = -atan2(global.m10, global.m00) // not perfect, but good enough probably
+        val srcTransform = transform.globalTransform
+        def.position.set(srcTransform.m30.toFloat(), srcTransform.m31.toFloat())
+        def.angle = -atan2(srcTransform.m10, srcTransform.m00) // not perfect, but good enough probably
         def.type = when (rigidBody) {
             is DynamicBody2d -> BodyType.DYNAMIC
             is KinematicBody2d -> BodyType.KINEMATIC
@@ -190,7 +189,10 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
             body.createFixture(fixDef)
         }
 
-        return ScaledBody(rigidBody, body, Vector3f(1f), Vector3d())
+        return ScaledBody(
+            rigidBody, body, Vector3f(1f), Vector3d(),
+            timeNanos, srcTransform
+        )
     }
 
     override fun onCreateRigidbody(
@@ -220,27 +222,15 @@ object Box2dPhysics : Physics<PhysicsBody2d, Body>(PhysicsBody2d::class) {
 
     override fun isActive(scaledBody: ScaledBody<PhysicsBody2d, Body>): Boolean = scaledBody.external.isActive
 
-    override fun getMatrix(
-        rigidbody: Body, dstTransform: Matrix4x3,
-        scale: Vector3f, centerOfMass: Vector3d
-    ) {
-        val pos = rigidbody.position
-        val angle = rigidbody.angle
-        val c = cos(angle)
-        val s = sin(angle)
-        dstTransform.set(
-            +c, +s, 0f,
-            -s, +c, 0f,
-            0f, 0f, 1f,
-            pos.x.toDouble(), pos.y.toDouble(), 0.0
-        )
+    override fun convertPhysicsToEntityI(srcBody: Body, dstPosition: Vector3d, dstRotation: Quaternionf) {
+        val pos = srcBody.position
+        dstPosition.set(pos.x, pos.y, 0f)
+        dstRotation.rotationZ(srcBody.angle)
     }
 
-    override fun setMatrix(rigidbody: Body, srcTransform: Matrix4x3, scale: Vector3f, centerOfMass: Vector3d) {
-        // todo validate this teleports static objects correctly... do we even need this in 2D?
-        val global = srcTransform
-        rigidbody.position.set(global.m30.toFloat(), global.m31.toFloat())
-        rigidbody.m_sweep.a = -atan2(global.m10, global.m00) // mmh...
+    override fun convertEntityToPhysicsII(srcPosition: Vector3d, srcRotation: Quaternionf, dstBody: Body) {
+        dstBody.position.set(srcPosition.x.toFloat(),srcPosition.y.toFloat())
+        dstBody.m_sweep.a = srcRotation.getEulerAngleYXZvZ() // todo primary angle should be Z
     }
 
     private val LOGGER = LogManager.getLogger(Box2dPhysics::class)

@@ -64,15 +64,15 @@ fun main() {
         class CollisionListenerPhysics : BulletPhysics() {
             // make clack sound on every contact :3
             val contacts = KeyPairMap<Any, Any, Unit>()
-            override fun step(dt: Long, printSlack: Boolean) {
-                super.step(dt, printSlack)
+            override fun step(printSlack: Boolean) {
+                super.step(printSlack)
                 if (false) {
                     val dispatcher = bulletInstance.dispatcher
                     for (i in 0 until dispatcher.numManifolds) {
                         val contactManifold = dispatcher.getManifold(i)
                         if (contactManifold.numContacts < 1) continue
-                        val a = contactManifold.body0!!
-                        val b = contactManifold.body1!!
+                        val a = contactManifold.body0
+                        val b = contactManifold.body1
                         contacts.getOrPut(a, b) { _, _ ->
                             val audio = audios[(audioIndex++) % (audios.size - 1)]
                             audio.stop()
@@ -89,7 +89,7 @@ fun main() {
 
         Systems.registerSystem(CollisionListenerPhysics().apply {
             // updateInEditMode = true
-            fixedStep = 1.0 / 60.0
+            stepsPerSecond = 60f
             synchronousPhysics = false
             maxSubSteps = 2
             enableDebugRendering = true

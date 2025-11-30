@@ -1,6 +1,6 @@
 package me.anno.bullet.bodies
 
-import com.bulletphysics.dynamics.vehicle.WheelInfo
+import com.bulletphysics.dynamics.vehicle.WheelInstance
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
@@ -8,7 +8,6 @@ import me.anno.ecs.components.FillSpace
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.AABBd
@@ -17,105 +16,39 @@ import org.joml.Matrix4x3
 class VehicleWheel : Component(), OnDrawGUI, FillSpace {
 
     /*// raycast direction, e.g. down = -y axis
-    @SerializedProperty
+   
     var wheelDirection = org.joml.Vector3d(0.0, -1.0, 0.0)
 
     // turning direction, e.g. +/- x axis
-    @SerializedProperty
+   
     var wheelAxle = org.joml.Vector3d(-1.0, 0.0, 0.0)*/
 
     @NotSerializedProperty
-    val rotation: Double
-        get() = bulletInstance?.rotation ?: 0.0
+    var rotation: Double = 0.0
 
-    @SerializedProperty
-    var suspensionRestLength = 1f
-        set(value) {
-            field = value
-            bulletInstance?.suspensionRestLength = value
-        }
-
-    @SerializedProperty
     var radius = 1f
-        set(value) {
-            field = value
-            bulletInstance?.wheelRadius = value
-        }
 
-    @SerializedProperty
+    var suspensionRestLength = 1f
     var suspensionStiffness = 5.88f
-        set(value) {
-            field = value
-            bulletInstance?.suspensionStiffness = value
-        }
-
-    @SerializedProperty
     var suspensionDampingCompression = 0.83f
-        set(value) {
-            field = value
-            bulletInstance?.wheelDampingCompression = value
-        }
-
-    @SerializedProperty
     var suspensionDampingRelaxation = 0.88f
-        set(value) {
-            field = value
-            bulletInstance?.wheelDampingRelaxation = value
-        }
-
-    @SerializedProperty
     var maxSuspensionTravel = 5f
-        set(value) {
-            field = value
-            bulletInstance?.maxSuspensionTravel = value
-        }
 
-    @SerializedProperty
     var frictionSlip = 10.5f
-        set(value) {
-            field = value
-            bulletInstance?.frictionSlip = value
-        }
-
-    @SerializedProperty
-    var steering = 0f
-        set(value) {
-            field = value
-            bulletInstance?.steering = value
-        }
 
     @Docs("When a wheel controller is used, it should multiply its steering by this before applying it")
-    @SerializedProperty
     var steeringMultiplier = 1f
-
-    @SerializedProperty
-    var engineForce = 0f
-        set(value) {
-            field = value
-            bulletInstance?.engineForce = value
-        }
+    var steering = 0f
 
     @Docs("When a wheel controller is used, it should multiply its engine force by this before applying it")
-    @SerializedProperty
     var engineForceMultiplier = 1f
-
-    @SerializedProperty
-    var brakeForce = 0f
-        set(value) {
-            field = value
-            bulletInstance?.brake = value
-        }
+    var engineForce = 0f
 
     @Docs("When a wheel controller is used, it should multiply its brake force by this before applying it")
-    @SerializedProperty
     var brakeForceMultiplier = 1f
+    var brakeForce = 0f
 
-    @SerializedProperty
     var rollInfluence = 0.1f
-        set(value) {
-            field = value
-            bulletInstance?.rollInfluence = value
-        }
 
     /**
      * How much friction each wheel has. 1.0 = full friction, 0.0 = sliding.
@@ -134,7 +67,7 @@ class VehicleWheel : Component(), OnDrawGUI, FillSpace {
     }
 
     @NotSerializedProperty
-    var bulletInstance: WheelInfo? = null
+    var bulletInstance: WheelInstance? = null
 
     @NotSerializedProperty
     val lockedTransform = Matrix4x3()

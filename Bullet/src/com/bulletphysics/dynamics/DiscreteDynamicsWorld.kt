@@ -180,7 +180,6 @@ class DiscreteDynamicsWorld(
 
             //#endif //BT_NO_PROFILE
         }
-        BulletStats.stepSimulationTime = (System.nanoTime() - t0) / 1000000
         return numSimulationSubSteps
     }
 

@@ -206,7 +206,7 @@ open class Quaternionf(
         return set(0f, 0f, sin, cos)
     }
 
-    private fun setFromUnnormalized(
+    fun setFromUnnormalized(
         m00: Float, m01: Float, m02: Float,
         m10: Float, m11: Float, m12: Float,
         m20: Float, m21: Float, m22: Float
@@ -226,7 +226,7 @@ open class Quaternionf(
         return setFromNormalized(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
-    private fun setFromNormalized(
+    fun setFromNormalized(
         m00: Float, m01: Float, m02: Float,
         m10: Float, m11: Float, m12: Float,
         m20: Float, m21: Float, m22: Float
@@ -785,25 +785,25 @@ open class Quaternionf(
 
     @JvmOverloads
     fun slerp(target: Quaternionf, alpha: Float, dst: Quaternionf = this): Quaternionf {
-        val cosom = dot(target)
-        val absCosom = abs(cosom)
-        val scale0: Float
-        var scale1: Float
-        if (1f - absCosom > 1.0E-6f) {
-            val sinSqr = 1f - absCosom * absCosom
+        val dot = dot(target)
+        val absDot = abs(dot)
+        val self: Float
+        var other: Float
+        if (1f - absDot > 1e-6f) {
+            val sinSqr = 1f - absDot * absDot
             val sinom = JomlMath.invsqrt(sinSqr)
-            val omega = atan2(sinSqr * sinom, absCosom)
-            scale0 = (sin((1.0 - alpha.toDouble()) * omega.toDouble()) * sinom.toDouble()).toFloat()
-            scale1 = sin(alpha * omega) * sinom
+            val omega = atan2(sinSqr * sinom, absDot)
+            self = sin((1f - alpha) * omega) * sinom
+            other = sin(alpha * omega) * sinom
         } else {
-            scale0 = 1f - alpha
-            scale1 = alpha
+            self = 1f - alpha
+            other = alpha
         }
-        scale1 = if (cosom >= 0f) scale1 else -scale1
-        dst.x = scale0 * x + scale1 * target.x
-        dst.y = scale0 * y + scale1 * target.y
-        dst.z = scale0 * z + scale1 * target.z
-        dst.w = scale0 * w + scale1 * target.w
+        if (dot < 0f) other = -other
+        dst.x = self * x + other * target.x
+        dst.y = self * y + other * target.y
+        dst.z = self * z + other * target.z
+        dst.w = self * w + other * target.w
         return dst
     }
 

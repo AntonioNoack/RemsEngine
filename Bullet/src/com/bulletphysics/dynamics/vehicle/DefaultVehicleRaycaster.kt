@@ -12,7 +12,7 @@ import org.joml.Vector3d
  */
 @Suppress("unused")
 class DefaultVehicleRaycaster(var dynamicsWorld: DynamicsWorld) : VehicleRaycaster() {
-    override fun castRay(from: Vector3d, to: Vector3d, result: VehicleRaycasterResult): Any? {
+    override fun castRay(from: Vector3d, to: Vector3d, result: VehicleRaycasterResult): RigidBody? {
         val rayCallback = ClosestRayResultCallback(from, to)
         dynamicsWorld.rayTest(from, to, rayCallback)
 

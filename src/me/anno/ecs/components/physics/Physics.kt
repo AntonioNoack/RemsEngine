@@ -25,11 +25,13 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.maths.Maths.ceilDiv
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.black
 import me.anno.utils.Logging.hash32
 import me.anno.utils.Threads
 import me.anno.utils.algorithms.Recursion
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Collections.setContains
 import me.anno.utils.structures.sets.ParallelHashSet
 import me.anno.utils.types.Floats.f1
@@ -37,9 +39,12 @@ import me.anno.utils.types.Floats.toLongOr
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
 
@@ -81,6 +86,38 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                 entity.hasComponent(clazz, false)
             }
         }
+
+        fun convertPhysicsToEntityII(
+            srcPosition: Vector3d, srcRotation: Quaternionf,
+            dstMatrix: Matrix4x3,
+            scale: Vector3f, centerOfMass: Vector3d,
+        ) {
+            // bullet does not support scale -> we always need to correct it
+            // some little extra calculations, but also more accurate, because of float-double conversions
+            dstMatrix.set(srcRotation)
+                .scale(scale)
+                .translate(-centerOfMass.x / scale.x, -centerOfMass.y / scale.y, -centerOfMass.z / scale.z)
+                .translateLocal(srcPosition)
+        }
+
+        fun convertEntityToPhysicsI(
+            srcMatrix: Matrix4x3,
+            dstPosition: Vector3d, dstRotation: Quaternionf,
+            scale: Vector3f, centerOfMass: Vector3d,
+        ) {
+            // bullet does not support scale -> we always must correct it
+            val sx = 1f / scale.x
+            val sy = 1f / scale.y
+            val sz = 1f / scale.z
+            dstRotation.setFromNormalized( // = srcMatrix.getUnnormalizedRotation(dst), but without 3x sqrt
+                srcMatrix.m00 * sx, srcMatrix.m01 * sx, srcMatrix.m02 * sx,
+                srcMatrix.m10 * sy, srcMatrix.m11 * sy, srcMatrix.m12 * sy,
+                srcMatrix.m20 * sz, srcMatrix.m21 * sz, srcMatrix.m22 * sz,
+            )
+            centerOfMass
+                .rotate(dstRotation, dstPosition)
+                .add(srcMatrix.m30, srcMatrix.m31, srcMatrix.m32)
+        }
     }
 
     // entities outside these bounds will be killed
@@ -106,7 +143,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     val physicsUpdateListeners = HashSet<OnPhysicsUpdate>()
 
     @SerializedProperty
-    var targetUpdatesPerSecond = 30.0
+    var stepsPerSecond = 30f
 
     @DebugProperty
     @Group("Bodies")
@@ -255,13 +292,13 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         } else null
     }
 
-    private fun invokePhysicsUpdates(dt: Double) {
+    private fun callOnPhysicsUpdate(dt: Double) {
         for (component in physicsUpdateListeners) {
             component.onPhysicsUpdate(dt)
         }
     }
 
-    @Docs("If the game hang for that many milliseconds, the physics will stop being simulated, and be restarted on the next update")
+    @Docs("If the game hangs for that many milliseconds, the physics will stop being simulated, and be restarted on the next update")
     @SerializedProperty
     var simulationTimeoutMillis = 5000L
 
@@ -293,47 +330,44 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         RemsEngine.restoreSelected(selected)
     }
 
+    val timeStepNanos get() = max((1e9 / stepsPerSecond).toLongOr(), 1)
+
+    fun skipTimeIfNeeded() {
+        // the absolute worst case time
+        val targetTime = Time.gameTimeN
+        val targetStepNanos = timeStepNanos
+        val absMinimumTime = targetTime - targetStepNanos * 3
+        if (timeNanos < absMinimumTime) {
+            // report this value somehow...
+            // there may be lots and lots of warnings, if the calculations are too slow
+            val skippedTime = targetTime - timeNanos
+            timeNanos = targetTime
+            val warning = "Physics skipped ${(skippedTime * 1e-9).f1()}s"
+            lastWarning = warning
+            LOGGER.warn(warning)
+        }
+    }
+
     private fun startWorker() {
         workerThread = Threads.runWorkerThread(className) {
             try {
                 while (!Engine.shutdown) {
 
-                    val targetStep = 1.0 / targetUpdatesPerSecond
-                    val targetStepNanos = (targetStep * 1e9).toLongOr()
-
                     // stop if received updates for no more than 1-3s
-                    val targetTime = Time.nanoTime
-                    if (abs(targetTime - lastUpdate) > simulationTimeoutMillis * MILLIS_TO_NANOS) {
-                        LOGGER.debug(
-                            "Stopping work, {} > {}",
-                            (targetTime - lastUpdate) / 1e6,
-                            simulationTimeoutMillis
-                        )
+                    val diffToLastUpdate = abs(Time.nanoTime - lastUpdate)
+                    if (diffToLastUpdate > simulationTimeoutMillis * MILLIS_TO_NANOS) {
+                        LOGGER.debug("Stopping work, {} ms > {} ms", diffToLastUpdate / 1e6, simulationTimeoutMillis)
                         break
                     }
 
                     // the absolute worst case time
-                    val absMinimumTime = targetTime - targetStepNanos * 2
-                    if (timeNanos < absMinimumTime) {
-                        // report this value somehow...
-                        // there may be lots and lots of warnings, if the calculations are too slow
-                        val delta = absMinimumTime - timeNanos
-                        timeNanos = absMinimumTime
-                        val warning = "Physics skipped ${(delta * 1e-9).f1()}s"
-                        lastWarning = warning
-                        LOGGER.warn(warning)
-                    }
-
-                    if (timeNanos > targetTime) {
-                        // done :), sleep
-                        Thread.sleep((timeNanos - targetTime) / (2 * MILLIS_TO_NANOS))
-                    } else {
+                    skipTimeIfNeeded()
+                    if (numPhysicsSteps > 0) {
                         // there is still work to do
-                        val t0 = Time.nanoTime
-                        val debug = false //Engine.gameTime > 10e9 // wait 10s
-                        step(targetStepNanos, debug)
-                        val t1 = Time.nanoTime
-                        addEvent { FrameTimings.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }
+                        step(false)
+                    } else {
+                        // done, sleep a little
+                        Thread.sleep(1)
                     }
                 }
             } catch (_: InterruptedException) {
@@ -351,13 +385,25 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
     }
 
+    var maxStepsPerFrame = 10
+    val numPhysicsSteps: Int
+        get() = min(ceilDiv(Time.gameTimeN - timeNanos, timeStepNanos).toInt(), maxStepsPerFrame)
+
+    val shallExecute: Boolean
+        get() {
+            val playMode = RenderView.currentInstance?.playMode
+            return updateInEditMode || (playMode != PlayMode.EDITING && playMode != null)
+        }
+
     override fun onUpdate() {
         lastUpdate = Time.nanoTime
-        val playMode = RenderView.currentInstance?.playMode
-        val shallExecute = updateInEditMode || (playMode != PlayMode.EDITING && playMode != null)
         if (shallExecute) {
             if (synchronousPhysics) {
-                step((Time.deltaTime * 1e9).toLongOr(), false)
+                // todo share the same timing logic in sync and async
+                skipTimeIfNeeded()
+                repeat(numPhysicsSteps) {
+                    step(false)
+                }
             } else {
                 if (isEnabled) {
                     if (workerThread == null) {
@@ -365,6 +411,8 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                     }
                 } else stopWorker()
             }
+            updateDynamicEntities(Time.gameTimeN)
+            validateEntityTransforms()
         } else stopWorker()
     }
 
@@ -379,60 +427,66 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     abstract fun isActive(scaledBody: ScaledBody<InternalRigidBody, ExternalRigidBody>): Boolean
 
-    abstract fun getMatrix(
-        rigidbody: ExternalRigidBody, dstTransform: Matrix4x3,
-        scale: Vector3f, centerOfMass: Vector3d,
+    abstract fun convertPhysicsToEntityI(
+        srcBody: ExternalRigidBody,
+        dstPosition: Vector3d, dstRotation: Quaternionf,
     )
 
-    abstract fun setMatrix(
-        rigidbody: ExternalRigidBody, srcTransform: Matrix4x3,
-        scale: Vector3f, centerOfMass: Vector3d,
+    abstract fun convertEntityToPhysicsII(
+        srcPosition: Vector3d, srcRotation: Quaternionf,
+        dstBody: ExternalRigidBody,
     )
 
     @DebugAction
     fun manualStep() {
-        // dt = 1e9 / 60
-        step(16_666_667L, true)
+        step(true)
     }
 
-    open fun step(dtNanos: Long, printSlack: Boolean) {
-        validate()
+    open fun step(printSlack: Boolean) {
+        val t0 = Time.nanoTime
 
+        validate()
+        val dtNanos = timeStepNanos
         val dtSeconds = dtNanos * 1e-9
-        beforeUpdate(dtSeconds)
+        beforeUpdate(dtSeconds, timeNanos)
         worldStepSimulation(dtSeconds)
         timeNanos += dtNanos
-        afterUpdate(dtSeconds)
+        afterUpdate(dtSeconds, timeNanos)
+
+        val t1 = Time.nanoTime
+        addEvent { FrameTimings.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }
     }
 
-    open fun beforeUpdate(dt: Double) {
-        invokePhysicsUpdates(dt)
-        updateExternalTransforms()
+    open fun beforeUpdate(dt: Double, timeNanos: Long) {
+        callOnPhysicsUpdate(dt)
+        updateEntityControlledTransforms()
     }
 
-    open fun afterUpdate(dt: Double) {
-        updateInternalTransforms()
-        updateWheels()
-        validateEntityTransforms()
+    open fun afterUpdate(dt: Double, timeNanos: Long) {
+        updatePhysicsControlledTransforms(timeNanos)
+        updateWheels(timeNanos)
     }
 
-    fun updateExternalTransforms() {
+    fun updateEntityControlledTransforms() {
+        val pos = Vector3d()
+        val rot = Quaternionf()
         synchronized(rigidBodies) {
             for ((entity, scaledBody) in rigidBodies) {
                 if (scaledBody == null || isDynamic(scaledBody)) continue
-                val (_, rigidbody, scale, centerOfMass) = scaledBody
+                val (_, dstBody, scale, centerOfMass) = scaledBody
 
                 entity.validateTransform()
 
                 val srcTransform = entity.transform.globalTransform
-                setMatrix(rigidbody, srcTransform, scale, centerOfMass)
+                convertEntityToPhysicsI(srcTransform, pos, rot, scale, centerOfMass)
+                convertEntityToPhysicsII(pos, rot, dstBody)
             }
         }
     }
 
-    fun updateInternalTransforms() {
+    fun updatePhysicsControlledTransforms(timeNanos: Long) {
         val deadEntities = ArrayList<Entity>()
-        updateDynamicBodies(deadEntities)
+        updateDynamicBodies(deadEntities, timeNanos)
         for (i in deadEntities.indices) {
             remove(deadEntities[i], true)
         }
@@ -453,17 +507,40 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
     }
 
-    fun updateDynamicBodies(deadEntities: MutableList<Entity>) {
+    fun updateDynamicBodies(deadEntities: MutableList<Entity>, timeNanos: Long) {
         synchronized(rigidBodies) {
             for ((entity, scaledBody) in rigidBodies) {
                 if (scaledBody == null ||
                     !isActive(scaledBody) ||
                     !isDynamic(scaledBody)
                 ) continue
-                updateDynamicRigidBody(entity, scaledBody)
+                updateDynamicRigidBody(scaledBody, timeNanos)
                 checkOutOfBounds(entity, deadEntities)
             }
         }
+    }
+
+    open fun updateDynamicEntities(timeNanos: Long) {
+        val dstPosition = JomlPools.vec3d.create()
+        val dstRotation = JomlPools.quat4f.create()
+        synchronized(rigidBodies) {
+            val invDt = 1f / timeStepNanos
+            for ((entity, scaledBody) in rigidBodies) {
+                if (scaledBody == null || !isActive(scaledBody) || !isDynamic(scaledBody)) continue
+
+                val dst = entity.transform
+                synchronized(scaledBody) {
+                    scaledBody.interpolate(timeNanos, invDt, dstPosition, dstRotation)
+                }
+                convertPhysicsToEntityII(
+                    dstPosition, dstRotation, dst.globalTransform,
+                    scaledBody.scale, scaledBody.centerOfMass
+                )
+                dst.setStateAndUpdate(Transform.State.VALID_GLOBAL)
+            }
+        }
+        JomlPools.vec3d.sub(1)
+        JomlPools.quat4f.sub(1)
     }
 
     open fun checkOutOfBounds(entity: Entity, deadEntities: MutableList<Entity>) {
@@ -474,24 +551,21 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
     }
 
-    open fun updateDynamicRigidBody(
-        entity: Entity, rigidbodyScaled: ScaledBody<InternalRigidBody, ExternalRigidBody>
-    ) {
-        val (_, rigidbody, scale, centerOfMass) = rigidbodyScaled
-        val dst = entity.transform
-        val dstTransform = dst.globalTransform
-        getMatrix(rigidbody, dstTransform, scale, centerOfMass)
-        dst.setStateAndUpdate(Transform.State.VALID_GLOBAL)
+    open fun updateDynamicRigidBody(scaledBody: ScaledBody<InternalRigidBody, ExternalRigidBody>, timeNanos: Long) {
+        synchronized(scaledBody) {
+            scaledBody.push(timeNanos)
+            convertPhysicsToEntityI(scaledBody.external, scaledBody.position1, scaledBody.rotation1)
+        }
     }
 
-    open fun updateWheels() {
+    open fun updateWheels(timeNanos: Long) {
     }
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as Physics<*, *>
         dst.allowedSpace.set(allowedSpace)
-        dst.targetUpdatesPerSecond = targetUpdatesPerSecond
+        dst.stepsPerSecond = stepsPerSecond
         dst.timeNanos = timeNanos
         dst.synchronousPhysics = synchronousPhysics
         dst.gravity.set(gravity)

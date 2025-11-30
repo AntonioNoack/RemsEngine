@@ -15,9 +15,9 @@ import me.anno.ecs.systems.Systems
 import me.anno.ecs.systems.Systems.registerSystem
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.TAUf
 import me.anno.tests.FlakyTest
+import me.anno.tests.physics.testStep
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertSame
 import me.anno.utils.assertions.assertTrue
@@ -50,7 +50,8 @@ class Box2dTest {
         val world = Entity().add(sphere)
         Systems.world = world
 
-        val dt = 1f
+        physics.stepsPerSecond = 1f
+        val dt = 1f / physics.stepsPerSecond
         var expectedPosition = 0f
         var expectedVelocity = 0f
         repeat(20) {
@@ -60,7 +61,7 @@ class Box2dTest {
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
 
             expectedVelocity += gravity * dt
             expectedPosition += expectedVelocity * dt //  + (gravity * dt² * 0.5)
@@ -88,7 +89,8 @@ class Box2dTest {
         val world = Entity().add(sphere)
         Systems.world = world
 
-        val dt = 1.0
+        physics.stepsPerSecond = 1f
+        val dt = 1.0 / physics.stepsPerSecond
         val expectedPosition = Vector3d()
         val expectedVelocity = Vector2f()
         repeat(20) {
@@ -98,7 +100,7 @@ class Box2dTest {
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
 
             expectedVelocity.add(1f, 2f)
             expectedPosition.add(expectedVelocity.x * dt, expectedVelocity.y * dt, 0.0)
@@ -133,7 +135,7 @@ class Box2dTest {
         val world = Entity().add(sphere)
         Systems.world = world
 
-        val dt = 1.0
+        physics.stepsPerSecond = 1f
         var expectedRotation = 0f
         repeat(20) {
 
@@ -146,7 +148,7 @@ class Box2dTest {
             assertEquals(Vector2f(), actualVelocity, 1e-6)
             assertEquals(expectedRotation, actualRotation, 0.002f)
 
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
 
             expectedRotation += 0.5f * speed
         }
@@ -173,7 +175,8 @@ class Box2dTest {
         val world = Entity().add(sphere)
         Systems.world = world
 
-        val dt = 1f
+        physics.stepsPerSecond = 1f
+        val dt = 1f / physics.stepsPerSecond
         var expectedPosition = 0f
         var expectedVelocity = 0f
         val numFlags = 6
@@ -202,7 +205,7 @@ class Box2dTest {
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
 
             if (disabledMask == 0) {
                 expectedVelocity += gravity * dt
@@ -249,7 +252,8 @@ class Box2dTest {
         val world = Entity().add(sphere)
         Systems.world = world
 
-        val dt = 1f
+        physics.stepsPerSecond = 1f
+        val dt = 1f / physics.stepsPerSecond
         var expectedPosition = 0f
         var expectedVelocity = 0f
         repeat(20) {
@@ -259,7 +263,8 @@ class Box2dTest {
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
+            physics.updateDynamicEntities(physics.timeNanos)
 
             expectedVelocity += (gravity + extraAcceleration) * dt
             expectedPosition += expectedVelocity * dt // + gravity * 0.5 * dt²
@@ -307,8 +312,8 @@ class Box2dTest {
         assertEquals(Vector2f(0f, 0f), underTest.linearVelocity)
         assertEquals(1f, underTest.angularVelocity)
 
-        val dt = 1f / 8f
-        physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+        physics.stepsPerSecond = 8f
+        physics.testStep()
 
         // sphere falls down completely
         assertEquals(Vector3d(0.0, 1.0, 0.0), sphere.position, 0.01)
@@ -316,7 +321,7 @@ class Box2dTest {
         assertEquals(1f, underTest.angularVelocity)
 
         repeat(3) {
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
 
         if (floorFriction > 0f && circleFriction > 0f) {
@@ -367,9 +372,9 @@ class Box2dTest {
 
         Systems.world = world
 
-        val dt = 1f / 8f
+        physics.stepsPerSecond = 8f
         repeat(8) {
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
 
         assertEquals(Vector2f(-0.66f, -0.066f), underTest.linearVelocity, 0.01)
@@ -413,9 +418,9 @@ class Box2dTest {
 
         Systems.world = world
 
-        val dt = 1f / 8f
+        physics.stepsPerSecond = 8f
         repeat(8) {
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
             println("${sphere.position} += ${underTest.linearVelocity}/${underTest.angularVelocity}")
         }
     }
@@ -451,10 +456,10 @@ class Box2dTest {
         // todo we'd expect the impulse to be transferred perfectly from s0 to s1,
         //  but instead, they stick together
 
-        val dt = 1f / 8f
+        physics.stepsPerSecond = 8f
         repeat(20) {
             println("${s0.position.x} += ${b0.linearVelocity.x} | ${s1.position.x} += ${b1.linearVelocity.x}")
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
 
         assertTrue(s0.position.x > -2.5)
@@ -494,8 +499,9 @@ class Box2dTest {
 
         if (false) testSceneWithUI("Ghost", world)
 
+        physics.stepsPerSecond = 5f
         for (i in 0 until 10) {
-            physics.step((1.0 / 5.0 * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
             if (i == 0 || i == 9) assertTrue(ghost.overlappingBodies.isEmpty())
             if (i == 5) {
                 assertEquals(1, ghost.overlappingBodies.size)

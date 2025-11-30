@@ -1,8 +1,7 @@
 package me.anno.tests.physics.bullet
 
-import com.bulletphysics.linearmath.Transform
-import me.anno.bullet.BulletPhysics.Companion.mat4x3ToTransform
-import me.anno.bullet.BulletPhysics.Companion.transformToMat4x3
+import me.anno.ecs.components.physics.Physics.Companion.convertEntityToPhysicsI
+import me.anno.ecs.components.physics.Physics.Companion.convertPhysicsToEntityII
 import me.anno.utils.assertions.assertEquals
 import org.joml.Matrix4x3
 import org.joml.Quaternionf
@@ -23,12 +22,15 @@ class CenterOfMassTests {
         val position = Vector3d(-5.0, 3.0, 1.0)
         val centerOfMass = Vector3d(7.0, 2.0, 13.0)
 
-        val basis = Matrix4x3()
-            .translationRotateScale(position, rotation, Vector3f(scale))
+        val original = Matrix4x3()
+            .translationRotateScale(position, rotation, scale)
 
-        val asTransform = mat4x3ToTransform(basis, scale, centerOfMass, Transform())
-        val convertedBack = transformToMat4x3(asTransform, scale, centerOfMass, Matrix4x3())
+        val tmpPos = Vector3d()
+        val tmpRot = Quaternionf()
+        val convertedBack = Matrix4x3()
+        convertEntityToPhysicsI(original, tmpPos, tmpRot, scale, centerOfMass)
+        convertPhysicsToEntityII(tmpPos, tmpRot, convertedBack, scale, centerOfMass)
 
-        assertEquals(basis, convertedBack, 1e-6)
+        assertEquals(original, convertedBack, 1e-6)
     }
 }

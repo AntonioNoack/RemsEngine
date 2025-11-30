@@ -36,10 +36,6 @@ object BulletStats {
     @JvmField
     var numClampedCcdMotions: Int = 0
 
-    // JAVA NOTE: added for statistics in applet demo
-    @JvmField
-    var stepSimulationTime: Long = 0
-
     /**///////////////////////////////////////////////////////////////////////// */
     var isProfileEnabled: Boolean = false
 

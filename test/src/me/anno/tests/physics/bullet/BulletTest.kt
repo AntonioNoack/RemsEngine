@@ -29,6 +29,7 @@ import me.anno.maths.Maths.sq
 import me.anno.maths.optimization.GradientDescent.simplexAlgorithm
 import me.anno.tests.FlakyTest
 import me.anno.tests.physics.bullet.constraints.createBridgeMeshes
+import me.anno.tests.physics.testStep
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertNotSame
@@ -71,7 +72,8 @@ class BulletTest {
         val world = Entity().add(sphere)
         Systems.world = world
 
-        val dt = 1.0
+        physics.stepsPerSecond = 1f
+        val dt = 1.0 / physics.stepsPerSecond
         var expectedPosition = 0.0
         var expectedVelocity = 0.0
         repeat(200) {
@@ -81,7 +83,7 @@ class BulletTest {
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity.toDouble())
 
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
 
             expectedVelocity += gravity * dt
             expectedPosition += expectedVelocity * dt //  + (gravity * dt² * 0.5)
@@ -109,7 +111,8 @@ class BulletTest {
         val world = Entity().add(sphere)
         Systems.world = world
 
-        val dt = 1.0
+        physics.stepsPerSecond = 1f
+        val dt = 1.0 / physics.stepsPerSecond
         var expectedPosition = 0.0
         var expectedVelocity = 0.0
         val numFlags = 6
@@ -142,7 +145,7 @@ class BulletTest {
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity.toDouble())
 
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
 
             if (disabledMask == 0) {
                 expectedVelocity += gravity * dt
@@ -156,8 +159,6 @@ class BulletTest {
 
         physics.gravity = Vector3f(0f, gravity, 0f)
         physics.allowedSpace.all()
-
-        physics.fixedStep = 0.0
         physics.maxSubSteps = 0
     }
 
@@ -194,7 +195,8 @@ class BulletTest {
         val world = Entity().add(sphere)
         Systems.world = world
 
-        val dt = 1f
+        physics.stepsPerSecond = 1f
+        val dt = 1.0 / physics.stepsPerSecond
         var expectedPosition = 0.0
         var expectedVelocity = 0.0
         repeat(20) {
@@ -204,7 +206,7 @@ class BulletTest {
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity.toDouble())
 
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
 
             expectedVelocity += (gravity + extraAcceleration) * dt
             expectedPosition += expectedVelocity * dt // + gravity * 0.5 * dt²
@@ -259,8 +261,8 @@ class BulletTest {
         assertEquals(Vector3f(0f), underTest.globalLinearVelocity)
         assertEquals(Vector3f(0f, 0f, 1f), underTest.globalAngularVelocity)
 
-        val dt = 1f / 8f
-        physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+        physics.stepsPerSecond = 8f
+        physics.testStep()
 
         // sphere falls down completely
         assertEquals(Vector3d(0.0, 1.0, 0.0), sphere.position, 0.15)
@@ -268,7 +270,7 @@ class BulletTest {
         // assertEquals(Vector3d(0.0, 0.0, 1.0), underTest.angularVelocity)
 
         repeat(3) {
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
 
         if (floorFriction > 0f && circleFriction > 0f) {
@@ -332,9 +334,9 @@ class BulletTest {
 
         // testSceneWithUI("Rolling", world)
 
-        val dt = 1f / 8f
+        physics.stepsPerSecond = 8f
         repeat(8) {
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
 
         assertEquals(Vector3d(-0.86, 0.11, 0.0), underTest.globalLinearVelocity, 0.09)
@@ -382,9 +384,9 @@ class BulletTest {
 
         Systems.world = world
 
-        val dt = 1f / 8f
+        physics.stepsPerSecond = 8f
         repeat(8) {
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
             println("${sphere.position} += ${underTest.globalLinearVelocity}/${underTest.globalAngularVelocity}")
         }
 
@@ -448,9 +450,9 @@ class BulletTest {
 
             println("Checking ${shape1.className} vs ${shape2.className}")
 
-            val dt = 1f / 8f
+            physics.stepsPerSecond = 8f
             repeat(10) {
-                physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+                physics.testStep()
             }
 
             // check that all impulse has been transferred perfectly
@@ -526,9 +528,9 @@ class BulletTest {
 
                 // println("Checking ${shape1.toShortString()} vs ${shape2.toShortString()}")
 
-                val dt = 1f / 8f
+                physics.stepsPerSecond = 8f
                 repeat(20) {
-                    physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+                    physics.testStep()
                 }
 
                 try {
@@ -616,8 +618,9 @@ class BulletTest {
             return chain[i].transform!!.globalPosition.y
         }
 
+        physics.stepsPerSecond = 10f
         repeat(100) {
-            physics.step((0.1f * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
             if (debug) println(chain.indices.map { i -> getY(i).f3s() })
         }
 
@@ -723,8 +726,9 @@ class BulletTest {
 
         if (false) testSceneWithUI("PointConstraintBridge", world)
 
+        physics.stepsPerSecond = 10f
         repeat(1000) {
-            physics.step((0.1f * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
             // if (debug) println((chain.indices step 3).map { i -> getY(i).f3s() })
         }
 
@@ -784,9 +788,9 @@ class BulletTest {
         setupGravityTest(physics, -10f)
         Systems.world = scene
         // withstand a few iterations
+        physics.stepsPerSecond = 60f
         repeat(100) {
-            val dt = 1f / 60f
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
         // validate all positions
         for (i in meshes.indices) {
@@ -817,7 +821,8 @@ class BulletTest {
         setupGravityTest(physics, -10f)
         Systems.world = scene
         // ensure physics is initialized
-        physics.step(SECONDS_TO_NANOS, false)
+        physics.stepsPerSecond = 1f
+        physics.testStep()
         // check physics has dynamic objects
         assertEquals(3, physics.numBodies)
         assertEquals(2, physics.numDynamicBodies)
@@ -825,7 +830,8 @@ class BulletTest {
         val emptyScene = Entity()
         Systems.world = emptyScene
         // ensure physics is initialized
-        physics.step(SECONDS_TO_NANOS, false)
+        physics.stepsPerSecond = 1f
+        physics.testStep()
         assertEquals(0, physics.numBodies)
         assertEquals(0, physics.numDynamicBodies)
     }

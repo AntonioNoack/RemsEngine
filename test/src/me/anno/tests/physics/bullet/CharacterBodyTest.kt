@@ -224,7 +224,7 @@ class PlayerController : Component(), OnUpdate {
     override fun onUpdate() {
         val character = getComponent(CharacterBody::class) ?: return
         val physics = Systems.findSystem(BulletPhysics::class.java) ?: return
-        val dt = physics.fixedStep
+        val dt = 1.0 / physics.stepsPerSecond
         val dirX = Input.isKeyDown(Key.KEY_L) - Input.isKeyDown(Key.KEY_J)
         val dirZ = Input.isKeyDown(Key.KEY_K) - Input.isKeyDown(Key.KEY_I)
 

@@ -8,7 +8,7 @@ import me.anno.bullet.bodies.StaticBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.systems.Systems
-import me.anno.maths.Maths
+import me.anno.tests.physics.testStep
 import org.joml.Vector3f
 
 fun main() {
@@ -85,7 +85,7 @@ private fun engineTest3d() {
     groundRB.invalidatePhysics()
     boxRB.invalidatePhysics()
     world.onEnable()
-    for (i in 0 until 10) {
+    repeat(10) {
         box.validateTransform()
         ground.validateTransform()
         println(
@@ -93,6 +93,9 @@ private fun engineTest3d() {
                     boxRB.nativeInstance?.worldTransform?.origin + ", " +
                     groundRB.nativeInstance?.worldTransform?.origin
         )
-        for (j in 0 until 100) physics.step(Maths.MILLIS_TO_NANOS * 10, false)
+        physics.stepsPerSecond = 100f
+        repeat(100) {
+            physics.testStep()
+        }
     }
 }

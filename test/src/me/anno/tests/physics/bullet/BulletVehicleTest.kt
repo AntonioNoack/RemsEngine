@@ -16,9 +16,9 @@ import me.anno.engine.DefaultAssets
 import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.angleDifference
 import me.anno.maths.Maths.sq
+import me.anno.tests.physics.testStep
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.toRadians
@@ -35,7 +35,6 @@ class BulletVehicleTest {
     fun initPhysics(): BulletPhysics {
         val physics = BulletPhysics()
         physics.gravity = Vector3f(0.0, -10.0, 0.0)
-        physics.fixedStep = 0.0
         physics.maxSubSteps = 0
         Systems.registerSystem(physics)
         return physics
@@ -107,10 +106,10 @@ class BulletVehicleTest {
         world.add(floor)
         Systems.world = world
         // give time for suspension to relax
-        val dt = 1.0 / 16.0
-        for (i in 0 until 50) {
+        physics.stepsPerSecond = 16f
+        repeat(50) {
             // println("${vehicle.position}, ${vehicle.rotation}")
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
         // check that it is stationary
         assertEquals(Vector3d(0.0, 1.0, 0.0), vehicle.position, 0.1)
@@ -131,20 +130,20 @@ class BulletVehicleTest {
         world.add(floor)
         Systems.world = world
         // wait for suspension to relax
-        val dt = 1.0 / 16.0
-        for (i in 0 until 50) {
+        physics.stepsPerSecond = 16f
+        repeat(50) {
             // println("${vehicle.position}, ${vehicle.rotation}")
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
         assertEquals(Vector3d(0.0, 1.05, 0.0), vehicle.position, 0.05)
         assertEquals(Quaterniond(), vehicle.rotation, 0.01)
         // turn on motor
         vehicle.getComponent(Vehicle::class)!!.engineForce = 1000.0f
         // check that it accelerates
-        for (i in 0 until 50) {
+        repeat(50) { i ->
             assertEquals(Vector3d(0.0, 1.05, sq((i - 0.5) / 48.5) * 12.25), vehicle.position, 0.05)
             assertEquals(Quaternionf(), vehicle.rotation, 0.1)
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
     }
 
@@ -160,10 +159,10 @@ class BulletVehicleTest {
         world.add(floor)
         Systems.world = world
         // wait for suspension to relax
-        val dt = 1.0 / 16.0
-        for (i in 0 until 50) {
+        physics.stepsPerSecond = 16f
+        repeat(50) {
             // println("${vehicle.position}, ${vehicle.rotation}")
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
         assertEquals(Vector3d(0.0, 1.0, 0.0), vehicle.position, 0.1)
         assertEquals(Quaternionf(), vehicle.rotation, 0.01)
@@ -181,7 +180,7 @@ class BulletVehicleTest {
         for (i in 0 until 100) {
             val yxzRotation = vehicle.rotation.getEulerAnglesYXZ(Vector3f())
             assertEquals(Vector3d(0.0, yxzRotation.y.toDouble(), 0.0), yxzRotation, 0.2)
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
             lastAngle = yxzRotation.y.toDouble()
         }
 
@@ -193,8 +192,8 @@ class BulletVehicleTest {
             val angleDiff = angleDifference(yxzRotation.y - lastAngle)
             lastAngle = yxzRotation.y.toDouble()
             // println("[$i] $angleDiff")
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
-            assertTrue(angleDiff >= 0.03 && angleDiff < 0.06) { "$angleDiff" }
+            physics.testStep()
+            assertTrue(angleDiff in 0.03..<0.06) { "$angleDiff" }
         }
     }
 
@@ -221,7 +220,7 @@ class BulletVehicleTest {
         if (false) testSceneWithUI("TestVehicleRolling", world)
 
         // check that vehicle rolls down
-        val dt = 1.0 / 8.0
+        physics.stepsPerSecond = 8f
         for (i in 0..100) {
             val position = vehicle.position - Vector3d(0.0, y0, z0)
             val expectedY = -position.z * angle
@@ -231,7 +230,7 @@ class BulletVehicleTest {
             assertEquals(0.0, position.x, 1e-3)
             val expectedPosZ = 67.15 * sq(i / 99.0)
             assertEquals(expectedPosZ, position.z, 0.2)
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
     }
 
@@ -262,13 +261,13 @@ class BulletVehicleTest {
 
         // check that vehicle doesn't roll down
         // unfortunately, it slides down with a speed of ~0.16m/s
-        val dt = 1.0 / 8.0
-        for (i in 0..100) {
+        physics.stepsPerSecond = 8f
+        repeat(101) {
             val position = vehicle.position - Vector3d(0.0, y0, z0)
             assertEquals(0.0, position.x, 1e-6)
             assertEquals(0.0, position.y, 0.25)
             assertEquals(0.0, position.z, 0.25 / angle)
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.testStep()
         }
     }
 }

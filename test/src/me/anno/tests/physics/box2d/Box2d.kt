@@ -20,6 +20,7 @@ import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.angleDifference
+import me.anno.tests.physics.testStep
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.withAlpha
@@ -105,11 +106,12 @@ private fun engineTest2d() {
     scene.validateTransform()
     groundRB.invalidatePhysics()
     boxRB.invalidatePhysics()
+    physics.stepsPerSecond = 1f
     repeat(10) {
         box.validateTransform()
         ground.validateTransform()
         println(box.position.toString() + ", " + (box.rotation.getEulerAnglesYXZ(Vector3f()).z.toDegrees()) + "°")
-        physics.step(Maths.MILLIS_TO_NANOS * 1000, false)
+        physics.testStep()
     }
 }
 

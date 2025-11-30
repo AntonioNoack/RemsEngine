@@ -49,6 +49,10 @@ class Transform() {
         return dst
     }
 
+    fun transformPosition(src: Vector3f, dst: Vector3d): Vector3d {
+        return transformPosition(dst.set(src), dst)
+    }
+
     fun transformPosition(src: Vector3f, dst: Vector3f = src): Vector3f {
         src.mul(basis, dst)
         dst.add(origin.x.toFloat(), origin.y.toFloat(), origin.z.toFloat())

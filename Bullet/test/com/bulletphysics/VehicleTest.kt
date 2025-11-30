@@ -10,74 +10,59 @@ import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.vehicle.DefaultVehicleRaycaster
 import com.bulletphysics.dynamics.vehicle.RaycastVehicle
-import com.bulletphysics.dynamics.vehicle.VehicleTuning
 import cz.advel.stack.Stack.Companion.reset
+import me.anno.bullet.bodies.VehicleWheel
 import me.anno.utils.assertions.assertTrue
-import org.junit.jupiter.api.Test
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.junit.jupiter.api.Test
 import kotlin.math.abs
 
 class VehicleTest {
     private fun createVehicle(world: DiscreteDynamicsWorld, startPos: Vector3d): RaycastVehicle {
-        val chassisShape: CollisionShape = BoxShape(Vector3f(1.0, 0.5, 2.0)) // Simple box car
+        val chassisShape = BoxShape(Vector3f(1.0, 0.5, 2.0)) // Simple box car
 
-        val chassis: RigidBody = createRigidBody(800f, startPos, chassisShape) // Heavy for stability
+        val chassis = createRigidBody(800f, startPos, chassisShape) // Heavy for stability
         world.addRigidBody(chassis)
 
-        val tuning = VehicleTuning()
-        tuning.suspensionStiffness = 20.0f
-        tuning.suspensionDamping = 2.3f
-        tuning.suspensionCompression = 4.4f
-        tuning.frictionSlip = 1000.0f
-        tuning.maxSuspensionTravel = 5.0f
-
         val raycaster = DefaultVehicleRaycaster(world)
-        val vehicle = RaycastVehicle(tuning, chassis, raycaster)
+        val vehicle = RaycastVehicle(chassis, raycaster)
         chassis.setActivationStateMaybe(ActivationState.ALWAYS_ACTIVE)
+        vehicle.setCoordinateSystem(0, 2, 1)
 
         world.addVehicle(vehicle)
 
         // Add 4 wheels
-        val wheelDirection = Vector3d(0.0, -1.0, 0.0)
-        val wheelAxle = Vector3d(-1.0, 0.0, 0.0)
-        val suspensionRestLength = 0.6f
-        val wheelRadius = 0.5f
+        val wheelDirection = Vector3f(0.0, -1.0, 0.0)
+        val wheelAxle = Vector3f(-1.0, 0.0, 0.0)
+
+        fun tuning(): VehicleWheel {
+            val tuning = VehicleWheel()
+            tuning.suspensionStiffness = 20.0f
+            tuning.suspensionDampingRelaxation = 2.3f
+            tuning.suspensionDampingCompression = 4.4f
+            tuning.frictionSlip = 1000.0f
+            tuning.maxSuspensionTravel = 5.0f
+            return tuning
+        }
 
         // Positions relative to chassis
         vehicle.addWheel(
-            Vector3d(1.0, -0.5, 2.0),
-            wheelDirection,
-            wheelAxle,
-            suspensionRestLength,
-            wheelRadius,
-            tuning,
+            Vector3f(1.0, -0.5, 2.0),
+            wheelDirection, wheelAxle, tuning(), 0L,
         )
         vehicle.addWheel(
-            Vector3d(-1.0, -0.5, 2.0),
-            wheelDirection,
-            wheelAxle,
-            suspensionRestLength,
-            wheelRadius,
-            tuning,
+            Vector3f(-1.0, -0.5, 2.0),
+            wheelDirection, wheelAxle, tuning(), 0L,
         )
         vehicle.addWheel(
-            Vector3d(1.0, -0.5, -2.0),
-            wheelDirection,
-            wheelAxle,
-            suspensionRestLength,
-            wheelRadius,
-            tuning,
+            Vector3f(1.0, -0.5, -2.0),
+            wheelDirection, wheelAxle, tuning(), 0L,
         )
         vehicle.addWheel(
-            Vector3d(-1.0, -0.5, -2.0),
-            wheelDirection,
-            wheelAxle,
-            suspensionRestLength,
-            wheelRadius,
-            tuning,
+            Vector3f(-1.0, -0.5, -2.0),
+            wheelDirection, wheelAxle, tuning(), 0L,
         )
-
         return vehicle
     }
 
@@ -192,6 +177,18 @@ class VehicleTest {
         // Only front wheels
         vehicle.setSteeringValue(steering, 0)
         vehicle.setSteeringValue(steering, 1)
+    }
+
+    private fun RaycastVehicle.setSteeringValue(steering: Float, wheel: Int) {
+        wheels[wheel].config.steering = steering
+    }
+
+    private fun RaycastVehicle.applyEngineForce(force: Float, wheel: Int) {
+        wheels[wheel].config.engineForce = force
+    }
+
+    private fun RaycastVehicle.setBrake(brake: Float, wheelIndex: Int) {
+        wheels[wheelIndex].config.brakeForce = brake
     }
 
     private fun simulate(world: DiscreteDynamicsWorld, steps: Int) {

@@ -9,25 +9,8 @@ import me.anno.engine.serialization.SerializedProperty
 
 class Vehicle : DynamicBody() {
 
-    @SerializedProperty
-    var suspensionStiffness = 5.88f
-
-    @SerializedProperty
-    var suspensionCompression = 0.83f
-
-    @SerializedProperty
-    var suspensionDamping = 0.88f
-
-    @SerializedProperty
-    var maxSuspensionTravelCm = 500f
-
-    // todo test this: this should be the threshold for drifting
-    @SerializedProperty
-    var frictionSlip = 10.5f
-
     @DebugProperty
     val wheelCount get() = wheels.size
-
     val wheels get() = getComponentsInChildren(VehicleWheel::class)
 
     @DebugProperty
@@ -75,14 +58,4 @@ class Vehicle : DynamicBody() {
                 wheels[i].brakeForce = value
             }
         }
-
-    override fun copyInto(dst: PrefabSaveable) {
-        super.copyInto(dst)
-        if (dst !is Vehicle) return
-        dst.suspensionDamping = suspensionDamping
-        dst.suspensionStiffness = suspensionStiffness
-        dst.suspensionCompression = suspensionCompression
-        dst.maxSuspensionTravelCm = maxSuspensionTravelCm
-        dst.frictionSlip = frictionSlip
-    }
 }

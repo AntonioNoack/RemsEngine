@@ -183,7 +183,7 @@ open class Quaterniond(
         return setAngleAxis(angle, axis.x, axis.y, axis.z)
     }
 
-    private fun setFromUnnormalized(
+    fun setFromUnnormalized(
         m00: Double, m01: Double, m02: Double,
         m10: Double, m11: Double, m12: Double,
         m20: Double, m21: Double, m22: Double
@@ -198,7 +198,7 @@ open class Quaterniond(
         )
     }
 
-    private fun setFromNormalized(
+    fun setFromNormalized(
         m00: Double, m01: Double, m02: Double,
         m10: Double, m11: Double, m12: Double,
         m20: Double, m21: Double, m22: Double
@@ -600,21 +600,21 @@ open class Quaterniond(
 
     @JvmOverloads
     fun slerp(target: Quaterniond, alpha: Double, dst: Quaterniond = this): Quaterniond {
-        val cosom = dot(target)
-        val absCosom = abs(cosom)
+        val dot = dot(target)
+        val absDot = abs(dot)
         val scale0: Double
         var scale1: Double
-        if (1.0 - absCosom > 1.0E-6) {
-            val sinSqr = 1.0 - absCosom * absCosom
+        if (1.0 - absDot > 1e-6) {
+            val sinSqr = 1.0 - absDot * absDot
             val sinom = JomlMath.invsqrt(sinSqr)
-            val omega = atan2(sinSqr * sinom, absCosom)
+            val omega = atan2(sinSqr * sinom, absDot)
             scale0 = sin((1.0 - alpha) * omega) * sinom
             scale1 = sin(alpha * omega) * sinom
         } else {
             scale0 = 1.0 - alpha
             scale1 = alpha
         }
-        scale1 = if (cosom >= 0.0) scale1 else -scale1
+        if (dot < 0.0) scale1 = -scale1
         dst.x = scale0 * x + scale1 * target.x
         dst.y = scale0 * y + scale1 * target.y
         dst.z = scale0 * z + scale1 * target.z

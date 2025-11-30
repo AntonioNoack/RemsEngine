@@ -5,6 +5,7 @@ import me.anno.bullet.bodies.DynamicBody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.systems.Systems
+import me.anno.tests.physics.testStep
 
 fun main() {
 
@@ -35,7 +36,10 @@ fun main() {
     physics.addOrGet(sphere2)
 
     val steps = (duration * 60.0).toInt()
-    for (i in 0 until steps) physics.step((duration / steps * 1e9).toLong(), true)
+    physics.stepsPerSecond = (steps / duration).toFloat()
+    repeat(steps) {
+        physics.testStep()
+    }
 
     println(sphere.transform.globalTransform.m30)
     println(y0 - sphere.transform.globalTransform.m31)
