@@ -26,6 +26,8 @@ abstract class TriangleRaycastCallback(from: Vector3d, to: Vector3d) : TriangleC
         val distB = triangleNormal.dot(to) - dist
 
         if (distA * distB >= 0.0) {
+            Stack.subVec3f(1) // triangleNormal
+            Stack.subVec3d(1) // triangleNormal0
             return // same sign
         }
 

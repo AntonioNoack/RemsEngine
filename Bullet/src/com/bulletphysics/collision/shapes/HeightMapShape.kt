@@ -18,7 +18,6 @@ import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
-import me.anno.ecs.components.collider.Axis
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.toIntOr
 import org.joml.Vector3d
@@ -47,8 +46,8 @@ class HeightMapShape : ConcaveShape() {
         }
     }
 
-    var sizeI = 2 // > 1
-    var sizeJ = 2 // > 1
+    var sizeX = 2 // > 1
+    var sizeZ = 2 // > 1
 
     // FloatArray|ShortArray
     lateinit var heightData: Any
@@ -60,8 +59,6 @@ class HeightMapShape : ConcaveShape() {
     var heightOffset = 0.0
     var unsigned = false
 
-    var upAxis = Axis.Y
-
     // var hdt = 0.1 // height type aka Floats/Shorts/...
     var pattern = TrianglePattern.NORMAL
 
@@ -72,20 +69,8 @@ class HeightMapShape : ConcaveShape() {
     val localOrigin = Vector3d()
 
     fun defineBounds() {
-        when (upAxis) {
-            Axis.X -> {
-                localAabbMin.set(minHeight, 0.0, 0.0)
-                localAabbMax.set(maxHeight, sizeI.toDouble(), sizeJ.toDouble())
-            }
-            Axis.Y -> {
-                localAabbMin.set(0.0, minHeight, 0.0)
-                localAabbMax.set(sizeI.toDouble(), maxHeight, sizeJ.toDouble())
-            }
-            Axis.Z -> {
-                localAabbMin.set(0.0, 0.0, minHeight)
-                localAabbMax.set(sizeI.toDouble(), sizeJ.toDouble(), maxHeight)
-            }
-        }
+        localAabbMin.set(0.0, minHeight, 0.0)
+        localAabbMax.set(sizeX.toDouble(), maxHeight, sizeZ.toDouble())
         localAabbMax.add(localAabbMin, localOrigin).mul(0.5)
     }
 
@@ -112,8 +97,8 @@ class HeightMapShape : ConcaveShape() {
     /**
      * returns value without localScaling
      * */
-    fun getHeightFieldValue(x: Int, y: Int): Double {
-        val index = y * sizeI + x
+    fun getHeightFieldValue(x: Int, z: Int): Double {
+        val index = z * sizeX + x
         return when (val heightData = heightData) {
             // floats don't need a scale
             is FloatArray -> return heightData[index].toDouble()
@@ -138,18 +123,20 @@ class HeightMapShape : ConcaveShape() {
     /**
      * returns the vertex in bullet-local coordinates
      * */
-    private fun getVertex(x: Int, y: Int, dst: Vector3d) {
-        assertTrue(x in 0 until sizeI)
-        assertTrue(y in 0 until sizeJ)
-        val xf = x - sizeI * 0.5
-        val yf = y - sizeJ * 0.5
-        val hf = getHeightFieldValue(x, y)
-        when (upAxis) {
-            Axis.X -> dst.set(hf, xf, yf)
-            Axis.Y -> dst.set(xf, hf, yf)
-            Axis.Z -> dst.set(xf, yf, hf)
-        }
-        dst.mul(localScaling)
+    private fun getVertex(x: Int, hf: Double, z: Int, dst: Vector3d) {
+        assertTrue(x in 0 until sizeX)
+        assertTrue(z in 0 until sizeZ)
+        val xf = x - sizeX * 0.5
+        val yf = z - sizeZ * 0.5
+        dst.set(xf, hf, yf).mul(localScaling)
+    }
+
+    /**
+     * returns the vertex in bullet-local coordinates
+     * */
+    private fun getVertex(x: Int, z: Int, dst: Vector3d) {
+        val hf = getHeightFieldValue(x, z)
+        return getVertex(x, hf, z, dst)
     }
 
     /**
@@ -160,62 +147,42 @@ class HeightMapShape : ConcaveShape() {
      * - iterate over all triangles in that subset of the grid
      */
     override fun processAllTriangles(callback: TriangleCallback, aabbMin: Vector3d, aabbMax: Vector3d) {
-        // scale down the input aabb's so they are in local (non-scaled) coordinates
-        val localAabbMin = aabbMin.div(localScaling, Stack.newVec3d())
-        val localAabbMax = aabbMax.div(localScaling, Stack.newVec3d())
-
-        // account for local origin
-        localAabbMin.add(localOrigin)
-        localAabbMax.add(localOrigin)
-
-        var minI = 0
-        var maxI = sizeI - 2 // -1 for max allowed index, -1 because of points vs quads
-        var minJ = 0
-        var maxJ = sizeJ - 2
-
-        when (upAxis) {
-            Axis.X -> {
-                minI = max(minI, localAabbMin.y.toIntOr())
-                maxI = min(maxI, localAabbMax.y.toIntOr())
-                minJ = max(minJ, localAabbMin.z.toIntOr())
-                maxJ = min(maxJ, localAabbMax.z.toIntOr())
-            }
-            Axis.Y -> {
-                minI = max(minI, localAabbMin.x.toIntOr())
-                maxI = min(maxI, localAabbMax.x.toIntOr())
-                minJ = max(minJ, localAabbMin.z.toIntOr())
-                maxJ = min(maxJ, localAabbMax.z.toIntOr())
-            }
-            Axis.Z -> {
-                minI = max(minI, localAabbMin.x.toIntOr())
-                maxI = min(maxI, localAabbMax.x.toIntOr())
-                minJ = max(minJ, localAabbMin.y.toIntOr())
-                maxJ = min(maxJ, localAabbMax.y.toIntOr())
-            }
-        }
+        // -1 for max allowed index, -1 because of points vs quads
+        val minX = max((aabbMin.x / localScaling.x + localOrigin.x).toIntOr(), 0)
+        val maxX = min((aabbMax.x / localScaling.x + localOrigin.x).toIntOr(), sizeX - 2)
+        val minZ = max((aabbMin.z / localScaling.z + localOrigin.z).toIntOr(), 0)
+        val maxZ = min((aabbMax.z / localScaling.z + localOrigin.z).toIntOr(), sizeZ - 2)
+        if (minX > maxX || minZ > maxZ) return
 
         val a = Stack.newVec3d()
         val b = Stack.newVec3d()
         val c = Stack.newVec3d()
         val d = Stack.newVec3d()
+
         val pattern = pattern
-        for (j in minJ..maxJ) {
-            for (i in minI..maxI) {
-                getVertex(i, j, a)
-                getVertex(i + 1, j, b)
-                getVertex(i + 1, j + 1, c)
-                getVertex(i, j + 1, d)
-                if (pattern.flipTriangle(i, j)) {
-                    callback.processTriangle(a, b, c, i, j)
-                    callback.processTriangle(a, c, d, i, j)
+        for (z in minZ..maxZ) {
+            getVertex(minX, z, c)
+            getVertex(minX, z + 1, d)
+            for (x in minX..maxX) {
+                a.set(c); b.set(d)
+                getVertex(x + 1, z, c)
+                getVertex(x + 1, z + 1, d)
+
+                val minY = min(min(a.y, b.y), min(c.y, d.y))
+                val maxY = max(max(a.y, b.y), max(c.y, d.y))
+                if (minY > aabbMax.y || maxY < aabbMin.y) continue // skip quads that are outside the bounds
+
+                if (pattern.flipTriangle(x, z)) {
+                    callback.processTriangle(a, c, d, x, z)
+                    callback.processTriangle(a, d, b, x, z)
                 } else {
-                    callback.processTriangle(b, c, d, i, j)
-                    callback.processTriangle(b, d, a, i, j)
+                    callback.processTriangle(c, d, b, x, z)
+                    callback.processTriangle(c, b, a, x, z)
                 }
             }
         }
 
-        Stack.subVec3d(5)
+        Stack.subVec3d(4)
     }
 
     override fun calculateLocalInertia(mass: Float, inertia: Vector3f): Vector3f {

@@ -1,14 +1,13 @@
 package me.anno.games.roadcraft
 
 import com.bulletphysics.collision.shapes.HeightMapShape
-import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.engine.ui.LineShapes.getDrawMatrix
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.utils.assertions.assertGreaterThanEquals
 import me.anno.utils.pooling.JomlPools
-import org.joml.Vector3d
 import org.joml.Vector3f
 
 class TerrainCollider(
@@ -18,11 +17,15 @@ class TerrainCollider(
     val unsigned: Boolean, val heightData: ShortArray
 ) : Collider(), CustomBulletCollider {
 
+    init {
+        assertGreaterThanEquals(sizeX, 2)
+        assertGreaterThanEquals(sizeZ, 2)
+    }
+
     override fun createBulletCollider(scale: Vector3f): HeightMapShape {
         val shape = HeightMapShape()
-        shape.upAxis = Axis.Y
-        shape.sizeI = sizeX
-        shape.sizeJ = sizeZ
+        shape.sizeX = sizeX
+        shape.sizeZ = sizeZ
         shape.minHeight = minHeight.toDouble()
         shape.maxHeight = maxHeight.toDouble()
         shape.heightScale = heightScale.toDouble()

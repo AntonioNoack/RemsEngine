@@ -84,14 +84,14 @@ object ShaderLib {
             "}"
 
     const val dither2x2 = "" +
-            "bool dither2x2(float brightness, vec2 uvf, int sampleId) {\n" +
+            "bool dither2x2(float opacity, vec2 uvf, int sampleId) {\n" +
             "  ivec2 uvi = ivec2(floor(uvf)) & ivec2(1);\n" +
             "  int index = (uvi.x + uvi.y * 2 + sampleId) & 3;\n" +
             "  float limit = 0.20;\n" +
             "  if (index == 1) limit = 0.60;\n" +
             "  if (index == 2) limit = 0.80;\n" +
             "  if (index == 3) limit = 0.40;\n" +
-            "  return brightness < limit;\n" +
+            "  return opacity < limit;\n" +
             "}\n"
 
     val brightness = "" +

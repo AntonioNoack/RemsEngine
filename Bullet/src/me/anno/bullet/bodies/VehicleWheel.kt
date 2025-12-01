@@ -55,8 +55,7 @@ class VehicleWheel : Component(), OnDrawGUI, FillSpace {
      * */
     @DebugProperty
     @NotSerializedProperty
-    val skidInfo: Float
-        get() = bulletInstance?.skidInfo ?: 1f
+    var skidInfo: Float = 1f
 
     @DebugProperty
     val hasBulletInstance: Boolean get() = bulletInstance != null
