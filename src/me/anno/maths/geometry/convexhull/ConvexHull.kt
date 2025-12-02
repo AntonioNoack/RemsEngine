@@ -4,6 +4,7 @@ import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles.subCross
 import org.joml.Vector3d
+import kotlin.math.max
 
 /**
  * Contains resulting polygonal representation.
@@ -24,7 +25,7 @@ class ConvexHull(val vertices: ArrayList<Vector3d>, val triangles: IntArray) {
         val triangles = triangles
 
         val normal = JomlPools.vec3d.create()
-        val ap = JomlPools.vec3d.create()
+        val diff = JomlPools.vec3d.create()
 
         forLoopSafely(triangles.size, 3) { i ->
 
@@ -33,13 +34,13 @@ class ConvexHull(val vertices: ArrayList<Vector3d>, val triangles: IntArray) {
             val c = vertices[triangles[i + 2]]
 
             // Compute face normal
-            subCross(a, b, c, normal).safeNormalize()
+            subCross(a, b, c, normal)
 
             // Vector from a vertex of the triangle to the point
-            vertex.sub(a, ap)
+            vertex.sub(a, diff)
 
             // Signed distance from point to the triangle's plane
-            val distance = normal.dot(ap)
+            val distance = normal.dot(diff) / max(normal.length(), 1e-300)
             if (distance > margin) {
 
                 // Point is outside the convex hull

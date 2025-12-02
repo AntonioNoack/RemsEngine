@@ -1,10 +1,8 @@
 package com.bulletphysics.dynamics.vehicle
 
-import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.ContactConstraint
 import com.bulletphysics.dynamics.constraintsolver.TypedConstraint
-import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.bullet.bodies.VehicleWheel
 import me.anno.maths.Maths.TAU
@@ -12,6 +10,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.posMod
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -57,14 +56,8 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
         wheels.add(wheel)
 
         updateWheelTransformsWS(wheel)
-        updateWheelTransform(numWheels - 1)
+        updateWheelTransform(wheels.lastIndex)
         return wheel
-    }
-
-    fun getWheelTransformWS(wheelIndex: Int, out: Transform): Transform {
-        val wheel = wheels[wheelIndex]
-        out.set(wheel.worldTransform)
-        return out
     }
 
     fun updateWheelTransform(wheelIndex: Int) {
@@ -115,16 +108,13 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
     }
 
     fun clampSuspension(target: Float, wheel: WheelInstance): Float {
-        return clamp(
-            target,
-            wheel.suspensionLength - wheel.maxSuspensionTravel,
-            wheel.suspensionLength + wheel.maxSuspensionTravel
-        )
+        val center = wheel.suspensionRestLength
+        val min = center - wheel.maxSuspensionTravel
+        val max = center + wheel.maxSuspensionTravel
+        return clamp(target, min, max)
     }
 
     fun updateWheelTransformsWS(wheel: WheelInstance) {
-        wheel.isInContact = false
-
         val chassisTrans = rigidBody.worldTransform
         chassisTrans.transformPosition(wheel.connectionPointCS, wheel.connectionPointWS)
         chassisTrans.transformDirection(wheel.directionCS, wheel.directionWS)
@@ -251,6 +241,9 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
         Stack.subVec3f(4)
     }
 
+    /**
+     * returns length in meters
+     * */
     private fun getSuspensionDelta(wheel: WheelInstance): Float {
         return wheel.suspensionRestLength - wheel.suspensionLength
     }
@@ -259,7 +252,7 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
         return wheel.suspensionStiffness * getSuspensionDelta(wheel) * wheel.clippedInvContactDotSuspension
     }
 
-    private fun getSuspensionDamping(wheel: WheelInstance): Float {
+    private fun getSuspensionDampingForce(wheel: WheelInstance): Float {
         val suspensionVelocity = wheel.suspensionRelativeVelocity
         val suspensionDamping =
             if (suspensionVelocity < 0f) wheel.suspensionDampingCompression
@@ -268,26 +261,22 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
     }
 
     private fun updateSuspension(deltaTime: Float) {
-        val chassisMass = 1f / rigidBody.inverseMass
         for (i in wheels.indices) {
             val wheel = wheels[i]
             if (wheel.isInContact) {
                 // springy
                 val spring = getSuspensionForce(wheel)
-                val damper = getSuspensionDamping(wheel)
+                val damper = getSuspensionDampingForce(wheel)
                 val force = spring - damper
-                wheel.suspensionForce = force * chassisMass
-                if (wheel.suspensionForce < 0f) {
-                    wheel.suspensionForce = 0f
-                }
+                wheel.suspensionForce = max(force, 0f)
             } else {
                 // Apply spring & damping even when airborne
                 val spring = wheel.suspensionStiffness * getSuspensionDelta(wheel)
                 val damper = wheel.suspensionDampingRelaxation * wheel.suspensionRelativeVelocity
                 val force = spring - damper
 
-                // integrate suspension
-                val acceleration = force * chassisMass
+                // integrate suspension: acceleration = F / m  (use inverse mass)
+                val acceleration = force * rigidBody.inverseMass
                 wheel.suspensionRelativeVelocity += acceleration * deltaTime
                 val newSuspension = wheel.suspensionLength + wheel.suspensionRelativeVelocity * deltaTime
 
@@ -350,33 +339,27 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
             wheel.forwardImpulse = 0f
         }
 
-        run {
-            val wheelTrans = Stack.newTrans()
-            for (i in wheels.indices) {
-                val wheel = wheels[i]
-                val groundObject = wheel.groundObject
-                if (groundObject != null) {
-                    getWheelTransformWS(i, wheelTrans)
+        for (i in wheels.indices) {
+            val wheel = wheels[i]
+            val groundObject = wheel.groundObject
+            if (groundObject != null) {
+                wheel.worldTransform.basis.getColumn(rightAxis, wheel.axle)
 
-                    wheelTrans.basis.getColumn(rightAxis, wheel.axle)
+                val surfNormalWS = wheel.contactNormalWS
+                val proj = wheel.axle.dot(surfNormalWS)
+                surfNormalWS.mul(proj, tmp)
+                wheel.axle.sub(tmp).normalize()
 
-                    val surfNormalWS = wheel.contactNormalWS
-                    val proj = wheel.axle.dot(surfNormalWS)
-                    surfNormalWS.mul(proj, tmp)
-                    wheel.axle.sub(tmp).normalize()
+                surfNormalWS.cross(wheel.axle, wheel.forwardWS)
+                wheel.forwardWS.normalize()
 
-                    surfNormalWS.cross(wheel.axle, wheel.forwardWS)
-                    wheel.forwardWS.normalize()
-
-                    val impulse = ContactConstraint.resolveSingleBilateral(
-                        rigidBody, wheel.contactPointWS,
-                        groundObject, wheel.contactPointWS,
-                        wheel.axle
-                    )
-                    wheel.sideImpulse = impulse * SIDE_FRICTION_STIFFNESS2
-                }
+                val impulse = ContactConstraint.resolveSingleBilateral(
+                    rigidBody, wheel.contactPointWS,
+                    groundObject, wheel.contactPointWS,
+                    wheel.axle
+                )
+                wheel.sideImpulse = impulse
             }
-            Stack.subTrans(1)
         }
 
         val sideFactor = 1.0f
@@ -479,26 +462,9 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
         // not yet
     }
 
-    val numWheels: Int
-        get() = wheels.size
-
-    /**
-     * World space forward vector.
-     */
-    fun getForwardVector(out: Vector3f): Vector3f {
-        val chassisTrans = rigidBody.worldTransform
-        chassisTrans.basis.getColumn(forwardAxis, out)
-        return out
-    }
-
     fun setCoordinateSystem(rightIndex: Int, upIndex: Int, forwardIndex: Int) {
         this.rightAxis = rightIndex
         this.upAxis = upIndex
         this.forwardAxis = forwardIndex
-    }
-
-    companion object {
-        private val FIXED_OBJECT = RigidBody(0f, SphereShape(0f))
-        private const val SIDE_FRICTION_STIFFNESS2 = 1f
     }
 }

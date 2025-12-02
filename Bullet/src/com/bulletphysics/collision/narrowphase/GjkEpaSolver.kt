@@ -127,11 +127,11 @@ class GjkEpaSolver {
             rotation.transformTranspose(globalDir, dir)
 
             val shape = if (i == 0) shape0 else shape1
-            val out0 = JomlPools.vec3f.create()
+            val out0 = Stack.newVec3f()
             shape.localGetSupportingVertex(dir, out0)
             rotation.transform(out0)
             out.set(out0).add(transform.origin)
-            Stack.subVec3f(1)
+            Stack.subVec3f(2) // dir, out0
             return out
         }
 

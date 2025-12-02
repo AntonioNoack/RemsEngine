@@ -79,7 +79,7 @@ class VehicleTest {
         var vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
 
         simulate(world, 120)
-        val flatPos = Vector3d( vehicle.rigidBody.worldTransform.origin)
+        val flatPos = Vector3d(vehicle.rigidBody.worldTransform.origin)
         assertTrue(flatPos.y < 1.5f && flatPos.y > 0.5f, "Vehicle should rest on ground")
 
         // Step 2: Hill test (no engine force)
@@ -155,33 +155,21 @@ class VehicleTest {
     }
 
     private fun applyBrakes(vehicle: RaycastVehicle, brakeForce: Float) {
-        for (i in 0 until vehicle.numWheels) {
-            vehicle.setBrake(brakeForce, i)
+        for (wheel in vehicle.wheels) {
+            wheel.config.brakeForce = brakeForce
         }
     }
 
     private fun applyEngineForce(vehicle: RaycastVehicle, force: Float) {
-        for (i in 0 until vehicle.numWheels) {
-            vehicle.applyEngineForce(force, i)
+        for (wheel in vehicle.wheels) {
+            wheel.config.engineForce = force
         }
     }
 
     private fun applySteering(vehicle: RaycastVehicle, steering: Float) {
         // Only front wheels
-        vehicle.setSteeringValue(steering, 0)
-        vehicle.setSteeringValue(steering, 1)
-    }
-
-    private fun RaycastVehicle.setSteeringValue(steering: Float, wheel: Int) {
-        wheels[wheel].config.steering = steering
-    }
-
-    private fun RaycastVehicle.applyEngineForce(force: Float, wheel: Int) {
-        wheels[wheel].config.engineForce = force
-    }
-
-    private fun RaycastVehicle.setBrake(brake: Float, wheelIndex: Int) {
-        wheels[wheelIndex].config.brakeForce = brake
+        vehicle.wheels[0].config.steering = steering
+        vehicle.wheels[1].config.steering = steering
     }
 
     private fun simulate(world: DiscreteDynamicsWorld, steps: Int) {

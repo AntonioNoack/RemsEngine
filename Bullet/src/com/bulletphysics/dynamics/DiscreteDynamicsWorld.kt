@@ -115,7 +115,7 @@ class DiscreteDynamicsWorld(
         if (debugDrawer != null && (debugDrawer!!.debugMode and DebugDrawModes.DRAW_WIREFRAME) != 0) {
             for (i in vehicles.indices) {
                 val vehicle = vehicles[i]
-                for (v in 0 until vehicle.numWheels) {
+                for (v in vehicle.wheels.indices) {
                     stackPos = Stack.getPosition(stackPos)
                     // synchronize the wheels with the chassis worldtransform
                     vehicle.updateWheelTransform(v)

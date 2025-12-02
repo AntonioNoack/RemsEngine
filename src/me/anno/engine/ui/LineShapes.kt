@@ -21,7 +21,7 @@ object LineShapes {
 
     val NUM_CIRCLE_SEGMENTS = 16
 
-    private val tmpVec3f = createArrayList(16) { Vector3f() }
+    val tmpVec3f = createArrayList(16) { Vector3f() }
     val tmpVec3d = createArrayList(16) { Vector3d() }
     private val defaultColor = 0x77ffff or black
 

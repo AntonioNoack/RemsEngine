@@ -5,7 +5,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
-import me.anno.utils.pooling.JomlPools
 import org.jbox2d.collision.shapes.PolygonShape
 import org.joml.AABBd
 import org.joml.Matrix4x3
@@ -38,13 +37,12 @@ class RectCollider : Collider2d() {
         val halfExtents = halfExtents
         val x = halfExtents.x
         val y = halfExtents.y
-        val v3 = JomlPools.vec3f
-        val p0 = v3.create().set(+x, +y, 0f)
-        val p1 = v3.create().set(+x, -y, 0f)
-        val p2 = v3.create().set(-x, -y, 0f)
-        val p3 = v3.create().set(-x, +y, 0f)
+        val v3 = LineShapes.tmpVec3f
+        val p0 = v3[0].set(+x, +y, 0f)
+        val p1 = v3[1].set(+x, -y, 0f)
+        val p2 = v3[2].set(-x, -y, 0f)
+        val p3 = v3[3].set(-x, +y, 0f)
         LineShapes.drawRect(entity, p0, p1, p2, p3, colliderLineColor)
-        v3.sub(4)
     }
 
     override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {

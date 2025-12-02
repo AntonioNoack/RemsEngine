@@ -29,6 +29,10 @@ class VehicleWheel : Component(), OnDrawGUI, FillSpace {
     var radius = 1f
 
     var suspensionRestLength = 1f
+
+    /**
+     * unit: force / meter
+     * */
     var suspensionStiffness = 5.88f
     var suspensionDampingCompression = 0.83f
     var suspensionDampingRelaxation = 0.88f

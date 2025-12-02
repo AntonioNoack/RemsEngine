@@ -478,8 +478,8 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         }
 
         JomlPools.vec3f.sub(1) // scale
-        JomlPools.vec3d.sub(2) // centerOfMass
-        JomlPools.quat4f.sub(1)
+        JomlPools.vec3d.sub(2) // centerOfMass, pos
+        JomlPools.quat4f.sub(1) // rot
     }
 
     var enableDebugRendering = false
@@ -558,9 +558,9 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         convertEntityToPhysicsII(pos, rot, nativeInstance)
         nativeInstance.activate() // it was moved, so it must be reactivated
 
-        JomlPools.vec3f.sub(1)
-        JomlPools.vec3d.sub(1)
-        JomlPools.quat4f.sub(1)
+        JomlPools.vec3f.sub(1) // scale
+        JomlPools.vec3d.sub(1) // pos
+        JomlPools.quat4f.sub(1) // rot
     }
 
     private fun createBulletWorldWithGravity(): DiscreteDynamicsWorld {

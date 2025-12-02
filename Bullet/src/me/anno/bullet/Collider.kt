@@ -263,9 +263,9 @@ fun createBulletCollider(
     transform.basis.set(rot)
 
     val shape = createBulletShape(collider, totalScale)
-    JomlPools.vec3f.sub(2)
-    JomlPools.vec3d.sub(1)
-    JomlPools.quat4f.sub(1)
+    JomlPools.vec3f.sub(2) // totalScale, localScale
+    JomlPools.vec3d.sub(1) // center of mass
+    JomlPools.quat4f.sub(1) // rot
 
     // there may be extra scale hidden in there
     return transform to shape
