@@ -75,18 +75,18 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         val gimpactShape0: GImpactShapeInterface?
         val gimpactShape1: GImpactShapeInterface?
 
-        if (body0.collisionShape!!.shapeType == BroadphaseNativeType.CONCAVE_GIMPACT_TRIANGLE_MESH) {
+        if (body0.collisionShape.shapeType == BroadphaseNativeType.CONCAVE_GIMPACT_TRIANGLE_MESH) {
             gimpactShape0 = body0.collisionShape as GImpactShapeInterface?
 
-            if (body1.collisionShape!!.shapeType == BroadphaseNativeType.CONCAVE_GIMPACT_TRIANGLE_MESH) {
+            if (body1.collisionShape.shapeType == BroadphaseNativeType.CONCAVE_GIMPACT_TRIANGLE_MESH) {
                 gimpactShape1 = body1.collisionShape as GImpactShapeInterface?
                 gimpactVsGimpact(body0, body1, gimpactShape0!!, gimpactShape1!!)
             } else {
-                gimpactVsShape(body0, body1, gimpactShape0!!, body1.collisionShape!!, false)
+                gimpactVsShape(body0, body1, gimpactShape0!!, body1.collisionShape, false)
             }
-        } else if (body1.collisionShape!!.shapeType == BroadphaseNativeType.CONCAVE_GIMPACT_TRIANGLE_MESH) {
+        } else if (body1.collisionShape.shapeType == BroadphaseNativeType.CONCAVE_GIMPACT_TRIANGLE_MESH) {
             gimpactShape1 = body1.collisionShape as GImpactShapeInterface?
-            gimpactVsShape(body1, body0, gimpactShape1!!, body0.collisionShape!!, true)
+            gimpactVsShape(body1, body0, gimpactShape1!!, body0.collisionShape, true)
         }
     }
 
@@ -458,8 +458,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
     fun shapeVsShapeCollision(
         body0: CollisionObject,
         body1: CollisionObject,
-        shape0: CollisionShape?,
-        shape1: CollisionShape?
+        shape0: CollisionShape,
+        shape1: CollisionShape
     ) {
         val tmpShape0 = body0.collisionShape
         val tmpShape1 = body1.collisionShape
@@ -477,21 +477,21 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         //algor.destroy();
         dispatcher.freeCollisionAlgorithm(algor)
 
-        body0.collisionShape = (tmpShape0)
-        body1.collisionShape = (tmpShape1)
+        body0.collisionShape = tmpShape0
+        body1.collisionShape = tmpShape1
     }
 
     fun convexVsConvexCollision(
         body0: CollisionObject,
         body1: CollisionObject,
-        shape0: CollisionShape?,
-        shape1: CollisionShape?
+        shape0: CollisionShape,
+        shape1: CollisionShape
     ) {
         val tmpShape0 = body0.collisionShape
         val tmpShape1 = body1.collisionShape
 
-        body0.collisionShape = (shape0)
-        body1.collisionShape = (shape1)
+        body0.collisionShape = shape0
+        body1.collisionShape = shape1
 
         resultOut!!.setShapeIdentifiers(part0, this.face0, part1, this.face1)
 

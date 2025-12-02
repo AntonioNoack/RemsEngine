@@ -51,7 +51,7 @@ object BulletRendering {
             if (tag < 0) continue // no island available
             // get transformed bounds
             val transform = instance.worldTransform
-            instance.collisionShape!!.getBounds(transform, min, max)
+            instance.collisionShape.getBounds(transform, min, max)
             // add bounds to island
             boundsById.getOrPut(tag) { AABBd() }
                 .union(min.x, min.y, min.z, max.x, max.y, max.z)
@@ -148,7 +148,7 @@ object BulletRendering {
             // debugDrawObject(colObj.getWorldTransform(tmpTrans), colObj.collisionShape, color)
 
             try {
-                val shape = colObj.collisionShape!!
+                val shape = colObj.collisionShape
                 val transform = colObj.worldTransform
                 shape.getBounds(transform, minAabb, maxAabb)
                 if (shape is ConvexHullShape) {

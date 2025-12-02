@@ -4,6 +4,7 @@ import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.dispatch.CollisionWorld.ConvexResultCallback
 import com.bulletphysics.collision.dispatch.CollisionWorld.RayResultCallback
+import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
@@ -19,7 +20,7 @@ import org.joml.Vector3d
  *
  * @author tomrbryn
  */
-open class GhostObject : CollisionObject() {
+open class GhostObject(shape: CollisionShape) : CollisionObject(shape) {
 
     val overlappingPairs = ArrayList<CollisionObject>()
 
@@ -71,7 +72,7 @@ open class GhostObject : CollisionObject() {
             if (resultCallback.needsCollision(collisionObject.broadphaseHandle!!)) {
                 CollisionWorld.rayTestSingle(
                     rayFromTrans, rayToWorld, collisionObject,
-                    collisionObject.collisionShape!!,
+                    collisionObject.collisionShape,
                     collisionObject.worldTransform,
                     resultCallback
                 )

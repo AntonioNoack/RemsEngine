@@ -67,8 +67,8 @@ class CollisionDispatcher(collisionConfiguration: CollisionConfiguration) : Disp
         val ci = tmpCI
         ci.dispatcher1 = this
         ci.manifold = sharedManifold
-        val type0 = body0.collisionShape!!.shapeType
-        val type1 = body1.collisionShape!!.shapeType
+        val type0 = body0.collisionShape.shapeType
+        val type1 = body1.collisionShape.shapeType
         val createFunc = getCollisionCreateFunc(type0, type1)
         val algo = createFunc.createCollisionAlgorithm(ci, body0, body1)
         algo.internalSetCreateFunc(createFunc)

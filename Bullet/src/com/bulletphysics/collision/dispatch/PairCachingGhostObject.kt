@@ -3,11 +3,12 @@ package com.bulletphysics.collision.dispatch
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.broadphase.HashedOverlappingPairCache
+import com.bulletphysics.collision.shapes.CollisionShape
 
 /**
  * @author tomrbryn
  */
-class PairCachingGhostObject : GhostObject() {
+class PairCachingGhostObject(shape: CollisionShape) : GhostObject(shape) {
 
     val overlappingPairCache = HashedOverlappingPairCache()
 

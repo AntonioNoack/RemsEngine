@@ -87,7 +87,7 @@ open class DynamicBody : PhysicalBody(), OnDrawGUI {
                 val bi = nativeInstance
                 if (bi != null) {
                     val inertia = Vector3f()
-                    bi.collisionShape!!.calculateLocalInertia(value, inertia)
+                    bi.collisionShape.calculateLocalInertia(value, inertia)
                     bi.setMassProps(mass, inertia)
                 }
                 field = value

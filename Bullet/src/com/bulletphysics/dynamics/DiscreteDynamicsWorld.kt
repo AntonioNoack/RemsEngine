@@ -254,20 +254,18 @@ class DiscreteDynamicsWorld(
             body.setGravity(gravity)
         }
 
-        if (body.collisionShape != null) {
-            val isDynamic = !body.isStaticOrKinematicObject
-            val collisionFilterGroup = when {
-                isDynamic -> CollisionFilters.DEFAULT_GROUP_ID
-                body.isStaticObject -> CollisionFilters.STATIC_GROUP_ID
-                else -> CollisionFilters.KINEMATIC_GROUP_ID
-            }
-            val collisionFilterMask =
-                if (isDynamic) CollisionFilters.ALL_MASK // dynamic reacts to all
-                else CollisionFilters.ANY_DYNAMIC_MASK // static/kinematic doesn't react with itself
-
-            val filter = createFilter(collisionFilterGroup, collisionFilterMask)
-            addCollisionObject(body, filter)
+        val isDynamic = !body.isStaticOrKinematicObject
+        val collisionFilterGroup = when {
+            isDynamic -> CollisionFilters.DEFAULT_GROUP_ID
+            body.isStaticObject -> CollisionFilters.STATIC_GROUP_ID
+            else -> CollisionFilters.KINEMATIC_GROUP_ID
         }
+        val collisionFilterMask =
+            if (isDynamic) CollisionFilters.ALL_MASK // dynamic reacts to all
+            else CollisionFilters.ANY_DYNAMIC_MASK // static/kinematic doesn't react with itself
+
+        val filter = createFilter(collisionFilterGroup, collisionFilterMask)
+        addCollisionObject(body, filter)
     }
 
     @Suppress("unused")
@@ -276,9 +274,7 @@ class DiscreteDynamicsWorld(
             body.setGravity(gravity)
         }
 
-        if (body.collisionShape != null) {
-            addCollisionObject(body, filter)
-        }
+        addCollisionObject(body, filter)
     }
 
     fun updateActions(timeStep: Float) {

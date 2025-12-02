@@ -25,8 +25,7 @@ class GhostObjectTest {
 
         // Ghost object region (box shape)
         val ghostShape = BoxShape(Vector3f(1.0, 0.5, 1.0))
-        val ghost = GhostObject()
-        ghost.collisionShape = ghostShape
+        val ghost = GhostObject(ghostShape)
         val ghostTransform = ghost.worldTransform
         ghostTransform.setIdentity()
         ghostTransform.setTranslation(0.0, 3.0, 0.0) // floating trigger region

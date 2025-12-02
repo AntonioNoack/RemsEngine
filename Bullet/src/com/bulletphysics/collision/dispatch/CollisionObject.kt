@@ -15,7 +15,7 @@ import org.joml.Vector3f
  *
  * @author jezek2
  */
-open class CollisionObject() {
+open class CollisionObject(shape: CollisionShape) {
 
     @JvmField
     val worldTransform = Transform()
@@ -49,7 +49,7 @@ open class CollisionObject() {
     var broadphaseHandle: BroadphaseProxy? = null
 
     @JvmField
-    var collisionShape: CollisionShape? = null
+    var collisionShape: CollisionShape = shape
 
     @JvmField
     var collisionFlags: Int = CollisionFlags.STATIC_OBJECT

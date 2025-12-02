@@ -66,7 +66,7 @@ abstract class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadp
         collisionObjects.add(collisionObject)
 
         // calculate new AABB
-        val shape = collisionObject.collisionShape!!
+        val shape = collisionObject.collisionShape
         val minAabb = Stack.newVec3d()
         val maxAabb = Stack.newVec3d()
         shape.getBounds(collisionObject.worldTransform, minAabb, maxAabb)
@@ -113,7 +113,7 @@ abstract class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadp
         val minAabb = Stack.newVec3d()
         val maxAabb = Stack.newVec3d()
 
-        val shape = colObj.collisionShape!!
+        val shape = colObj.collisionShape
         shape.getBounds(colObj.worldTransform, minAabb, maxAabb)
 
         // need to increase the aabb for contact thresholds
@@ -201,7 +201,7 @@ abstract class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadp
             // only perform raycast if filterMask matches
             if (resultCallback.needsCollision(collisionObject.broadphaseHandle!!)) {
                 //RigidcollisionObject* collisionObject = ctrl->GetRigidcollisionObject();
-                collisionObject.collisionShape!!
+                collisionObject.collisionShape
                     .getBounds(collisionObject.worldTransform, collisionObjectAabbMin, collisionObjectAabbMax)
 
                 hitLambda[0] = resultCallback.closestHitFraction
@@ -214,7 +214,7 @@ abstract class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadp
                     rayTestSingle(
                         rayFromTrans, rayToWorld,
                         collisionObject,
-                        collisionObject.collisionShape!!,
+                        collisionObject.collisionShape,
                         collisionObject.worldTransform,
                         resultCallback
                     )
@@ -451,7 +451,7 @@ abstract class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadp
                 if (resultCallback.needsCollision(other.broadphaseHandle!!)) {
                     stackPos = Stack.getPosition(stackPos)
 
-                    val otherShape = other.collisionShape!!
+                    val otherShape = other.collisionShape
                     otherShape.getBounds(other.worldTransform, otherAabbMin, otherAabbMax)
                     AabbUtil.aabbExpand(otherAabbMin, otherAabbMax, selfAabbMin, selfAabbMax) // minkowski sum
                     hitLambda[0] = 1f // could use resultCallback.closestHitFraction, but needs testing
@@ -508,7 +508,7 @@ abstract class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadp
                 if (callback.needsCollision(other.broadphaseHandle!!)) {
                     stackPos = Stack.getPosition(stackPos)
 
-                    val otherShape = other.collisionShape!!
+                    val otherShape = other.collisionShape
                     otherShape.getBounds(other.worldTransform, otherAabbMin, otherAabbMax)
                     AabbUtil.aabbExpand(otherAabbMin, otherAabbMax, selfAabbMin, selfAabbMax) // minkowski sum
                     hitLambda[0] = 1f // could use resultCallback.closestHitFraction, but needs testing
@@ -628,7 +628,7 @@ abstract class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadp
                         childWorldTrans.setMul(collisionTransform, child.transform)
                         // replace collision shape so that callback can determine the triangle
                         val saveCollisionShape = collisionObject.collisionShape
-                        collisionObject.collisionShape = (childCollisionShape)
+                        collisionObject.collisionShape = childCollisionShape
                         rayTestSingle(
                             rayFromTrans, rayToTrans,
                             collisionObject,

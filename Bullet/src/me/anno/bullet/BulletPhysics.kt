@@ -116,9 +116,8 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         }
 
         val dstBody =
-            if (rigidBody is GhostBody) PairCachingGhostObject()
+            if (rigidBody is GhostBody) PairCachingGhostObject(collider)
             else RigidBody(mass, collider, inertia)
-        dstBody.collisionShape = collider
         dstBody.userData = rigidBody
 
         if (dstBody is RigidBody && rigidBody is DynamicBody) {
@@ -128,7 +127,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         if (rigidBody is CharacterBody) {
             val controller = KinematicCharacterController(
                 dstBody as PairCachingGhostObject,
-                convertToConvexShape(dstBody.collisionShape!!),
+                convertToConvexShape(dstBody.collisionShape),
                 rigidBody
             )
             rigidBody.nativeInstance2 = controller

@@ -38,7 +38,7 @@ import kotlin.math.pow
  *
  * @author jezek2
  */
-class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : CollisionObject() {
+class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : CollisionObject(shape) {
 
     constructor(mass: Float, shape: CollisionShape) : this(mass, shape, Vector3f())
 
@@ -81,7 +81,6 @@ class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : Co
     init {
         friction = 0.5f
         restitution = 0f
-        collisionShape = shape
         setMassProps(mass, localInertia)
     }
 
