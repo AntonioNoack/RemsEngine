@@ -56,7 +56,7 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
     var globalLinearVelocity: Vector3f = Vector3f()
         set(value) {
             field.set(value)
-            nativeInstance?.setLinearVelocity(value)
+            nativeInstance?.linearVelocity?.set(value)
         }
 
     @Group("Movement")
@@ -70,8 +70,7 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
             val bi = nativeInstance
             val tr = transform
             if (tr != null && bi != null) {
-                val global = tr.globalTransform.transformDirection(field, Vector3f())
-                bi.setLinearVelocity(global)
+                tr.globalTransform.transformDirection(value, bi.linearVelocity)
             }
         }
 
@@ -98,7 +97,7 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
     var globalAngularVelocity: Vector3f = Vector3f()
         set(value) {
             field.set(value)
-            nativeInstance?.setAngularVelocity(value)
+            nativeInstance?.angularVelocity?.set(value)
         }
 
     @Group("Movement")
@@ -112,8 +111,7 @@ abstract class PhysicalBody : PhysicsBody<RigidBody>() {
             val bi = nativeInstance
             val tr = transform
             if (tr != null && bi != null) {
-                val global = tr.globalTransform.transformDirection(field, Vector3f())
-                bi.setAngularVelocity(global)
+                tr.globalTransform.transformDirection(value, bi.angularVelocity)
             }
         }
 

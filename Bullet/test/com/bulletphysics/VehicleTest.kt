@@ -79,8 +79,7 @@ class VehicleTest {
         var vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
 
         simulate(world, 120)
-        val flatPos = Vector3d()
-        vehicle.rigidBody.getCenterOfMassPosition(flatPos)
+        val flatPos = Vector3d( vehicle.rigidBody.worldTransform.origin)
         assertTrue(flatPos.y < 1.5f && flatPos.y > 0.5f, "Vehicle should rest on ground")
 
         // Step 2: Hill test (no engine force)
@@ -89,8 +88,7 @@ class VehicleTest {
         vehicle = createVehicle(world, Vector3d(0f, 2f, 0f))
 
         simulate(world, 240) // 4 seconds
-        val slopePos = Vector3d()
-        vehicle.rigidBody.getCenterOfMassPosition(slopePos)
+        val slopePos = Vector3d(vehicle.rigidBody.worldTransform.origin)
         assertTrue(slopePos.z < -1f, "Vehicle should have rolled downhill")
 
         // Step 3: Driving test
@@ -100,8 +98,7 @@ class VehicleTest {
         applyEngineForce(vehicle, 800f) // Drive forward
 
         simulate(world, 240)
-        val drivePos = Vector3d()
-        vehicle.rigidBody.getCenterOfMassPosition(drivePos)
+        val drivePos = Vector3d(vehicle.rigidBody.worldTransform.origin)
         assertTrue(drivePos.z > 1f, "Vehicle should drive forward")
 
         // Step 4: Driving downhill
@@ -111,8 +108,7 @@ class VehicleTest {
         applyEngineForce(vehicle, 800f)
 
         simulate(world, 240)
-        val downPos = Vector3d()
-        vehicle.rigidBody.getCenterOfMassPosition(downPos)
+        val downPos = Vector3d(vehicle.rigidBody.worldTransform.origin)
         assertTrue(downPos.z > 2f, "Vehicle should drive faster downhill")
 
         // Step 5: Turning
@@ -123,8 +119,7 @@ class VehicleTest {
         applySteering(vehicle, 0.3f) // Turn wheels slightly
 
         simulate(world, 240)
-        val turnPos = Vector3d()
-        vehicle.rigidBody.getCenterOfMassPosition(turnPos)
+        val turnPos = Vector3d(vehicle.rigidBody.worldTransform.origin)
         assertTrue(abs(turnPos.x) > 0.5f, "Vehicle should have turned")
     }
 
@@ -141,8 +136,7 @@ class VehicleTest {
         // Phase 1: Drive downhill for 2 seconds
         applyEngineForce(vehicle, 800f)
         simulate(world, 120) // 2 seconds
-        val preBrakePos = Vector3d()
-        vehicle.rigidBody.getCenterOfMassPosition(preBrakePos)
+        val preBrakePos = Vector3d(vehicle.rigidBody.worldTransform.origin)
 
         println("Distance traveled during driving phase: deltaZ = " + preBrakePos.z)
 
@@ -150,8 +144,7 @@ class VehicleTest {
         applyEngineForce(vehicle, 0f)
         applyBrakes(vehicle, 200f) // Strong braking force
         simulate(world, 120) // 2 more seconds
-        val postBrakePos = Vector3d()
-        vehicle.rigidBody.getCenterOfMassPosition(postBrakePos)
+        val postBrakePos = Vector3d(vehicle.rigidBody.worldTransform.origin)
 
         val deltaZ = postBrakePos.z - preBrakePos.z
 

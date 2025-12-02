@@ -311,9 +311,8 @@ class DiscreteDynamicsWorld(
                                 body.setActivationStateMaybe(ActivationState.WANTS_DEACTIVATION)
                             }
                             if (body.activationState == ActivationState.SLEEPING) {
-                                val zero = Stack.borrowVec3f().set(0f)
-                                body.setAngularVelocity(zero)
-                                body.setLinearVelocity(zero)
+                                body.angularVelocity.set(0f)
+                                body.linearVelocity.set(0f)
                             }
                         }
                     } else {

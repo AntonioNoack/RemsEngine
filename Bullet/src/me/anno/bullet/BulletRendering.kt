@@ -208,7 +208,7 @@ object BulletRendering {
         val vehicles = world.vehicles
 
         val tmp = Stack.newVec3d()
-        val mat = Stack.newTrans()
+        val csToWorld = Stack.newTrans()
 
         for (i in vehicles.indices) {
             val vehicle = vehicles[i]
@@ -218,15 +218,16 @@ object BulletRendering {
                 val wheel = wheels[j]
                 val wheelColor = (if (wheel.isInContact) 0x0000ff else 0xff0000).withAlpha(255)
 
-                vehicle.getChassisWorldTransform(mat).inverse()
+                csToWorld.set(vehicle.rigidBody.worldTransform)
+                csToWorld.inverse()
 
                 val wheelPosWS = wheel.worldTransform.origin
 
-                mat.transformDirection(wheel.axleCS, tmp)
+                csToWorld.transformDirection(wheel.axleCS, tmp)
                 tmp.add(wheelPosWS)
                 addLine(wheelPosWS, tmp, wheelColor)
 
-                mat.transformDirection(wheel.directionCS, tmp)
+                csToWorld.transformDirection(wheel.directionCS, tmp)
                 tmp.add(wheelPosWS)
                 addLine(wheelPosWS, tmp, wheelColor)
 

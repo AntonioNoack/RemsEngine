@@ -152,9 +152,9 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
         dstBody.ccdMotionThreshold = 1e-7f
 
         dstBody.ccdSweptSphereRadius = collider.getBoundingSphere(null)
-        if (mass > 0.0 && rigidBody is DynamicBody && dstBody is RigidBody) { // else not supported
-            dstBody.setLinearVelocity(rigidBody.globalLinearVelocity)
-            dstBody.setAngularVelocity(rigidBody.globalAngularVelocity)
+        if (rigidBody is PhysicalBody && dstBody is RigidBody) { // else not supported
+            dstBody.linearVelocity.set(rigidBody.globalLinearVelocity)
+            dstBody.angularVelocity.set(rigidBody.globalAngularVelocity)
         }
 
         Stack.subVec3d(1)
@@ -429,7 +429,7 @@ open class BulletPhysics : Physics<PhysicsBody<*>, CollisionObject>(PhysicsBody:
     ) {
         super.updateDynamicRigidBody(scaledBody, timeNanos)
         val (dst, src) = scaledBody
-        if (dst !is DynamicBody || src !is RigidBody) return
+        if (dst !is PhysicalBody || src !is RigidBody) return
         dst.globalLinearVelocity.set(src.linearVelocity)
         dst.globalAngularVelocity.set(src.angularVelocity)
     }

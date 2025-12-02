@@ -93,12 +93,27 @@ open class CylinderShape(halfExtents: Vector3f, val upAxis: Axis) : BoxShape(hal
     override val shapeType: BroadphaseNativeType
         get() = BroadphaseNativeType.CYLINDER
 
-    val radius: Float
+    var radius: Float
         get() {
-            val tmp = Stack.newVec3f()
-            getHalfExtentsWithMargin(tmp)
+            val tmp = implicitShapeDimensions
             val r = if (upAxis != Axis.X) tmp.x else tmp.y
-            Stack.subVec3f(1)
-            return r
+            return r + margin
         }
+        set(value) {
+            val newValue = value - margin
+            val dst = implicitShapeDimensions
+            dst[upAxis.secondary] = newValue
+            dst[upAxis.tertiary] = newValue
+        }
+
+    var halfHeight: Float
+        get() {
+            val r = implicitShapeDimensions[upAxis.id]
+            return r + margin
+        }
+        set(value) {
+            val newValue = value - margin
+            implicitShapeDimensions[upAxis.id] = newValue
+        }
+
 }

@@ -67,7 +67,7 @@ class HingeConstraint(
         val rbAxisA1 = Stack.newVec3f()
         val rbAxisA2 = Stack.newVec3f()
 
-        val centerOfMassA = rbA.getCenterOfMassTransform(Stack.newTrans())
+        val centerOfMassA = rbA.worldTransform
         centerOfMassA.basis.getColumn(0, rbAxisA1)
         val projection = axisInA.dot(rbAxisA1)
 
@@ -102,7 +102,6 @@ class HingeConstraint(
 
         Stack.subVec3f(4)
         Stack.subQuat(1)
-        Stack.subTrans(1)
     }
 
     constructor(
@@ -127,8 +126,8 @@ class HingeConstraint(
         val tmp1 = Stack.newVec3f()
         val tmp2 = Stack.newVec3f()
 
-        val centerOfMassA = rigidBodyA.getCenterOfMassTransform(Stack.newTrans())
-        val centerOfMassB = rigidBodyB.getCenterOfMassTransform(Stack.newTrans())
+        val centerOfMassA = rigidBodyA.worldTransform
+        val centerOfMassB = rigidBodyB.worldTransform
 
         if (!settings.angularOnly) {
             val pivotAInW = Stack.newVec3d(rbAFrame.origin)
@@ -220,7 +219,6 @@ class HingeConstraint(
                 rigidBodyB.computeAngularImpulseDenominator(axisA))
 
         Stack.subVec3f(9)
-        Stack.subTrans(2)
     }
 
     override fun solveConstraint(timeStep: Float) {
@@ -229,8 +227,8 @@ class HingeConstraint(
         val tmp1 = Stack.newVec3f()
         val tmp2 = Stack.newVec3f()
 
-        val centerOfMassA = rigidBodyA.getCenterOfMassTransform(Stack.newTrans())
-        val centerOfMassB = rigidBodyB.getCenterOfMassTransform(Stack.newTrans())
+        val centerOfMassA = rigidBodyA.worldTransform
+        val centerOfMassB = rigidBodyB.worldTransform
 
         val pivotAInW = Stack.newVec3d(rbAFrame.origin)
         centerOfMassA.transformPosition(pivotAInW)
@@ -403,7 +401,6 @@ class HingeConstraint(
 
         Stack.subVec3f(10)
         Stack.subVec3d(2)
-        Stack.subTrans(2)
 
         Stack.checkSlack(pos)
     }

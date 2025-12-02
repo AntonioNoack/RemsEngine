@@ -59,16 +59,16 @@ class SolverBody {
     fun writebackVelocity() {
         if (invMass != 0f) {
             val originalBody = originalBody ?: return
-            originalBody.setLinearVelocity(linearVelocity)
-            originalBody.setAngularVelocity(angularVelocity)
+            originalBody.linearVelocity.set(linearVelocity)
+            originalBody.angularVelocity.set(angularVelocity)
         }
     }
 
     fun writebackVelocity(timeStep: Float) {
         if (invMass != 0f) {
             val originalBody = originalBody ?: return
-            originalBody.setLinearVelocity(linearVelocity)
-            originalBody.setAngularVelocity(angularVelocity)
+            originalBody.linearVelocity.set(linearVelocity)
+            originalBody.angularVelocity.set(angularVelocity)
 
             // correct the position/orientation based on push/turn recovery
             val newTransform = Stack.newTrans()

@@ -144,15 +144,13 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
 
         val rayResults = VehicleRaycasterResult()
         val hitObject = vehicleRaycaster.castRay(source, target, rayResults)
-
-        wheel.groundObject = null
+        wheel.groundObject = hitObject
+        wheel.isInContact = hitObject != null
 
         if (hitObject != null) {
             val distFraction = rayResults.distFraction
             val depth = rayLength * distFraction
             wheel.contactNormalWS.set(rayResults.hitNormalInWorld)
-            wheel.isInContact = true
-            wheel.groundObject = FIXED_OBJECT // todo for driving on dynamic/movable objects!;
 
             // clamp on max suspension travel
             wheel.suspensionLength = clampSuspension(depth - wheel.radius, wheel)
@@ -180,16 +178,11 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
             return depth
         } else {
             // put wheel info as in rest position
-            wheel.isInContact = false
             wheel.directionWS.negate(wheel.contactNormalWS)
             wheel.clippedInvContactDotSuspension = 1f
             Stack.subVec3f(1)
             return -1f
         }
-    }
-
-    fun getChassisWorldTransform(out: Transform): Transform {
-        return rigidBody.getCenterOfMassTransform(out)
     }
 
     fun updateVehicle(timeStep: Float) {
@@ -350,8 +343,7 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
         // collapse all those loops into one!
         for (i in wheels.indices) {
             val wheel = wheels[i]
-            val groundObject = wheel.groundObject
-            if (groundObject != null) {
+            if (wheel.groundObject != null) {
                 numWheelsOnGround++
             }
             wheel.sideImpulse = 0f
@@ -363,7 +355,6 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
             for (i in wheels.indices) {
                 val wheel = wheels[i]
                 val groundObject = wheel.groundObject
-
                 if (groundObject != null) {
                     getWheelTransformWS(i, wheelTrans)
 
@@ -457,7 +448,7 @@ class RaycastVehicle(val rigidBody: RigidBody, private val vehicleRaycaster: Veh
                     rigidBody.applyImpulse(tmp, relPos)
                 }
                 if (wheel.sideImpulse != 0f) {
-                    val groundObject = wheels[i].groundObject!!
+                    val groundObject = wheels[i].groundObject ?: continue
 
                     val relPos2 = Stack.newVec3f()
                     wheel.contactPointWS.sub(groundObject.worldTransform.origin, relPos2)

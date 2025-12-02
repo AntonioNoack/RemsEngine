@@ -155,10 +155,10 @@ class Generic6DofConstraint(
      * See also: Generic6DofConstraint.getCalculatedTransformA, Generic6DofConstraint.getCalculatedTransformB, Generic6DofConstraint.calculateAngleInfo
      */
     fun calculateTransforms() {
-        rigidBodyA.getCenterOfMassTransform(calculatedTransformA)
+        calculatedTransformA.set(rigidBodyA.worldTransform)
         calculatedTransformA.mul(frameInA)
 
-        rigidBodyB.getCenterOfMassTransform(calculatedTransformB)
+        calculatedTransformB.set(rigidBodyB.worldTransform)
         calculatedTransformB.mul(frameInB)
 
         calculateAngleInfo()

@@ -55,8 +55,6 @@ class ConeTwistConstraint(
         val tmp1 = Stack.newVec3f()
         val tmp2 = Stack.newVec3f()
 
-        val tmpTrans = Stack.newTrans()
-
         // set bias, sign, clear accumulator
         swingCorrection = 0f
         solveTwistLimit = false
@@ -106,10 +104,10 @@ class ConeTwistConstraint(
         val b2Axis2 = Stack.newVec3f()
 
         rbAFrame.basis.getColumn(0, b1Axis1)
-        rigidBodyA.getCenterOfMassTransform(tmpTrans).basis.transform(b1Axis1)
+        rigidBodyA.worldTransform.basis.transform(b1Axis1)
 
         rbBFrame.basis.getColumn(0, b2Axis1)
-        rigidBodyB.getCenterOfMassTransform(tmpTrans).basis.transform(b2Axis1)
+        rigidBodyB.worldTransform.basis.transform(b2Axis1)
 
         var swing1 = 0f
         var swing2 = 0f
@@ -122,7 +120,7 @@ class ConeTwistConstraint(
         // Get Frame into world space
         if (settings.angleX >= 0.05f) {
             rbAFrame.basis.getColumn(1, b1Axis2)
-            rigidBodyA.getCenterOfMassTransform(tmpTrans).basis.transform(b1Axis2)
+            rigidBodyA.worldTransform.basis.transform(b1Axis2)
             //			swing1 = ScalarUtil.atan2Fast(b2Axis1.dot(b1Axis2), b2Axis1.dot(b1Axis1));
             swx = b2Axis1.dot(b1Axis1)
             swy = b2Axis1.dot(b1Axis2)
@@ -134,7 +132,7 @@ class ConeTwistConstraint(
 
         if (settings.angleY >= 0.05f) {
             rbAFrame.basis.getColumn(2, b1Axis3)
-            rigidBodyA.getCenterOfMassTransform(tmpTrans).basis.transform(b1Axis3)
+            rigidBodyA.worldTransform.basis.transform(b1Axis3)
             swx = b2Axis1.dot(b1Axis1)
             swy = b2Axis1.dot(b1Axis3)
             swing2 = ScalarUtil.atan2Fast(swy, swx)
@@ -169,7 +167,7 @@ class ConeTwistConstraint(
         val twistSpan = settings.twist
         if (twistSpan >= 0.0) {
             rbBFrame.basis.getColumn(1, b2Axis2)
-            rigidBodyB.getCenterOfMassTransform(tmpTrans).basis.transform(b2Axis2)
+            rigidBodyB.worldTransform.basis.transform(b2Axis2)
 
             val rotationArc = Stack.newQuat().rotationTo(b2Axis1, b1Axis1)
             val twistRef = rotationArc.transform(b2Axis2, Stack.newVec3f())

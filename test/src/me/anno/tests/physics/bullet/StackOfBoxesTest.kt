@@ -74,7 +74,7 @@ class StackOfBoxesTest {
         world.addConstraint(slider)
 
         // Apply initial velocity to slide the sphere along X toward the tower
-        sphereBody.setLinearVelocity(Vector3f(10.0, 0.0, 0.0)) // Move right
+        sphereBody.linearVelocity.set(10.0, 0.0, 0.0) // Move right
 
         runSimulation(world)
     }

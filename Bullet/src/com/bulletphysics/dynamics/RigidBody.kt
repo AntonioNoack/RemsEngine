@@ -320,26 +320,6 @@ class RigidBody(mass: Float, shape: CollisionShape, localInertia: Vector3f) : Co
         Stack.subMat(2)
     }
 
-    fun getCenterOfMassPosition(out: Vector3d): Vector3d {
-        out.set(worldTransform.origin)
-        return out
-    }
-
-    fun getCenterOfMassTransform(out: Transform): Transform {
-        out.set(worldTransform)
-        return out
-    }
-
-    fun setLinearVelocity(linVel: Vector3f) {
-        assert(collisionFlags != CollisionFlags.STATIC_OBJECT)
-        linearVelocity.set(linVel)
-    }
-
-    fun setAngularVelocity(angVel: Vector3f) {
-        assert(collisionFlags != CollisionFlags.STATIC_OBJECT)
-        angularVelocity.set(angVel)
-    }
-
     fun getVelocityInLocalPoint(relPos: Vector3f, out: Vector3f): Vector3f {
         // we also calculate lin/ang velocity for kinematic objects
         angularVelocity.cross(relPos, out)

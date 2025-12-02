@@ -127,7 +127,7 @@ class ConstraintTest {
 
         simulate(world, 240)
 
-        val pos = body.getCenterOfMassPosition(Vector3d())
+        val pos = body.worldTransform.origin
         println("6DoF position: $pos")
         Assertions.assertTrue(abs(pos.z) < 0.1f, "Movement in Z should be restricted")
         Assertions.assertTrue(pos.x > 0.5f, "Movement in X should be allowed")
