@@ -18,7 +18,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.GLNames
 import me.anno.gpu.GPUTasks.addGPUTask
-import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
+import me.anno.gpu.buffer.GPUBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
