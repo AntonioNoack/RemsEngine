@@ -6,7 +6,7 @@ import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.shallRenderVR
 import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.vrRoutine
 import me.anno.gpu.GFX.resetFBStack
 import me.anno.gpu.GFX.windows
-import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.builder.ShaderPrinting
@@ -26,7 +26,7 @@ object RenderStep {
         GPUShader.invalidateBinding()
         Texture2D.invalidateBinding()
         Texture2D.destroyTextures()
-        OpenGLBuffer.invalidateBinding()
+        GPUBuffer.invalidateBinding()
         GFXContext.invalidateState()
         Pools.freeUnusedEntries()
         AudioStream.byteBufferPool.freeUnusedEntries()

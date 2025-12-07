@@ -13,7 +13,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.CompactAttributeLayout
 import me.anno.gpu.buffer.DrawMode
-import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
@@ -181,7 +181,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         if (umrIndexData != null) {
             val buffer = umrIndexData.buffer
             buffer.ensureBuffer()
-            OpenGLBuffer.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.pointer)
+            GPUBuffer.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.pointer)
         }
 
         val factor = max(verticesPerEntry, 1)

@@ -7,7 +7,7 @@ import me.anno.fonts.FontManager.textAtlasCache
 import me.anno.gpu.GPUTasks.gpuTasks
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.AttributeLayout
-import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.debug.TimeRecord
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -74,7 +74,7 @@ object GFXState {
         }
         GPUShader.invalidateBinding()
         Texture2D.invalidateBinding()
-        OpenGLBuffer.invalidateBinding()
+        GPUBuffer.invalidateBinding()
         GFXContext.invalidateState()
         val vao = glCreateVertexArrays()
         glBindVertexArray(vao)

@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GLNames
-import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
@@ -45,7 +45,7 @@ object DebugGPUStorage {
 
     val fbs = HashSet<Framebuffer>(256)
 
-    val buffers = HashSet<OpenGLBuffer>(256)
+    val buffers = HashSet<GPUBuffer>(256)
 
     val fontSize get() = monospaceFont.sizeInt
 

@@ -13,7 +13,7 @@ import me.anno.utils.types.Strings.titlecase
 object AttributeReadWrite {
 
     fun createAccessors(
-        given: OpenGLBuffer, wanted: List<Attribute>, name: String,
+        given: GPUBuffer, wanted: List<Attribute>, name: String,
         binding: Int, setters: Boolean
     ): String {
         return createAccessors(given.attributes, wanted, name, binding, setters)

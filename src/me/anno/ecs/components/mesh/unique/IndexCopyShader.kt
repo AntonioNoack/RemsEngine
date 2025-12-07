@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh.unique
 
-import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
@@ -26,7 +26,7 @@ object IndexCopyShader {
     )
 
     fun copyIndices(
-        srcOffset: Int, srcData: OpenGLBuffer, dstOffset: Int, dstData: OpenGLBuffer,
+        srcOffset: Int, srcData: GPUBuffer, dstOffset: Int, dstData: GPUBuffer,
         numElementsToCopy: Int, valueDelta: Int
     ) {
         val shader = shader

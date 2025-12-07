@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh.unique
 
-import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.types.Ranges.overlaps
 import me.anno.utils.types.Ranges.size
@@ -23,7 +23,7 @@ class UMRVertexData<Key, Mesh>(val self: UniqueMeshRenderer<Key, Mesh>) : UMRDat
         return toAdjustRanges
     }
 
-    private fun adjustIndexValues(indexBuffer: OpenGLBuffer, from: Int, to: IntRange) {
+    private fun adjustIndexValues(indexBuffer: GPUBuffer, from: Int, to: IntRange) {
         val valueDelta = to.start - from
         val fromRange = from until (from + to.size)
         object : UMRIterator<IntRange> {

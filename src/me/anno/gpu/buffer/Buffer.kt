@@ -22,7 +22,7 @@ import org.lwjgl.opengl.GL46C.glVertexAttribIPointer
 import org.lwjgl.opengl.GL46C.glVertexAttribPointer
 
 abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUsage) :
-    OpenGLBuffer(name, GL_ARRAY_BUFFER, attributes, usage), Drawable {
+    GPUBuffer(name, GL_ARRAY_BUFFER, attributes, usage), Drawable {
 
     constructor(name: String, attributes: List<Attribute>) :
             this(name, bind(attributes), BufferUsage.STATIC)

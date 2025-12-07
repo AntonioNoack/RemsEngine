@@ -6,7 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.INVALID_POINTER
 import me.anno.gpu.GFX.INVALID_SESSION
 import me.anno.gpu.GFXState
-import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.shader.builder.ShaderPrinting.bindPrintingBuffer
 import me.anno.gpu.shader.builder.Variable
 import me.anno.io.files.FileReference
@@ -860,7 +860,7 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
     operator fun get(name: String) = getUniformLocation(name)
     fun hasUniform(name: String) = getUniformLocation(name, false) >= 0
 
-    fun bindBuffer(slot: Int, buffer: OpenGLBuffer) {
+    fun bindBuffer(slot: Int, buffer: GPUBuffer) {
         buffer.ensureBuffer()
         GL46C.glBindBufferBase(GL46C.GL_SHADER_STORAGE_BUFFER, slot, buffer.pointer)
     }

@@ -43,7 +43,7 @@ object BufferFillShader {
                 """.trimIndent()
     )
 
-    fun fill(buffer: OpenGLBuffer, byteStart: Int, byteLength: Int, value: Int) {
+    fun fill(buffer: GPUBuffer, byteStart: Int, byteLength: Int, value: Int) {
         val start = byteStart shr 2
         val end = (byteStart + byteLength + 3) shr 2
         val shader = fillShader

@@ -7,7 +7,7 @@ import me.anno.gpu.GFX.INVALID_POINTER
 import me.anno.gpu.GFX.INVALID_SESSION
 import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
-import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
@@ -164,7 +164,7 @@ open class CubemapTexture(
     fun create(type: TargetType) {
         beforeUpload(0, 0)
         val size = size
-        OpenGLBuffer.bindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
+        GPUBuffer.bindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
         for (i in 0 until 6) {
             glTexImage2D(
                 getTarget(i), 0, type.internalFormat, size, size,

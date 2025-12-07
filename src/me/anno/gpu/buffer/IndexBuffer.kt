@@ -24,7 +24,7 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 
 class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: BufferUsage = BufferUsage.STATIC) :
-    OpenGLBuffer(name, GL_ELEMENT_ARRAY_BUFFER, int32Attrs, usage), Drawable {
+    GPUBuffer(name, GL_ELEMENT_ARRAY_BUFFER, int32Attrs, usage), Drawable {
 
     var indices = indices
         set(value) {

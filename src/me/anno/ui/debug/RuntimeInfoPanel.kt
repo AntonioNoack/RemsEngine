@@ -1,7 +1,7 @@
 package me.anno.ui.debug
 
 import me.anno.audio.AudioPools
-import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
@@ -68,7 +68,7 @@ class RuntimeInfoPanel(style: Style) : UpdatingTextPanel(100, style, ::getDebugT
                     Texture3D.allocated.get() +
                     Texture2DArray.allocated.get() +
                     CubemapTexture.allocated.get() +
-                    OpenGLBuffer.allocated.get()
+                    GPUBuffer.allocated.get()
         }
 
         private fun formatMiB(size: Long) = (size.toFloat() / (1 shl 20)).f1()
@@ -100,7 +100,7 @@ class RuntimeInfoPanel(style: Style) : UpdatingTextPanel(100, style, ::getDebugT
                         "  Texture3d:      ${formatMiB(Texture3D.allocated.get())} MiB\n" +
                         "  Texture2dArray: ${formatMiB(Texture2DArray.allocated.get())} MiB\n" +
                         "  TextureCubemap: ${formatMiB(CubemapTexture.allocated.get())} MiB\n" +
-                        "  Geometry:       ${formatMiB(OpenGLBuffer.allocated.get())} MiB\n" +
+                        "  Geometry:       ${formatMiB(GPUBuffer.allocated.get())} MiB\n" +
                         "  Total:          ${formatMiB(vramTotal)} MiB\n" +
                         "Native: ${formatMiB(native)} MiB\n" +
                         "Total:  ${formatMiB(native + vramTotal + jvmBufferTotal + jvmUsed)} MiB"

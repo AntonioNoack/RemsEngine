@@ -52,7 +52,7 @@ import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.max
 
-abstract class OpenGLBuffer(
+abstract class GPUBuffer(
     val name: String, var target: Int,
     var attributes: AttributeLayout,
     val usage: BufferUsage
@@ -194,7 +194,7 @@ abstract class OpenGLBuffer(
         finishUpload()
     }
 
-    fun copyElementsTo(toBuffer: OpenGLBuffer, from: Long, to: Long, size: Long) {
+    fun copyElementsTo(toBuffer: GPUBuffer, from: Long, to: Long, size: Long) {
         if (size == 0L) return
         val fromLayout = assertIs(CompactAttributeLayout::class, attributes)
         val toLayout = assertIs(CompactAttributeLayout::class, toBuffer.attributes)
@@ -291,7 +291,7 @@ abstract class OpenGLBuffer(
         GFX.check()
     }
 
-    fun copyBytesTo(toBuffer: OpenGLBuffer, from: Long, to: Long, size: Long) {
+    fun copyBytesTo(toBuffer: GPUBuffer, from: Long, to: Long, size: Long) {
 
         // initial checks
         if (size == 0L) return
@@ -410,15 +410,15 @@ abstract class OpenGLBuffer(
         return buffer
     }
 
-    fun put(v: Vector2f): OpenGLBuffer {
+    fun put(v: Vector2f): GPUBuffer {
         return put(v.x, v.y)
     }
 
-    fun put(v: FloatArray): OpenGLBuffer {
+    fun put(v: FloatArray): GPUBuffer {
         return put(v, 0, v.size)
     }
 
-    fun put(v: FloatArray, index: Int, length: Int): OpenGLBuffer {
+    fun put(v: FloatArray, index: Int, length: Int): GPUBuffer {
         val nio = getOrCreateNioBuffer()
         assertTrue(nio.remaining().shr(2) >= length)
         cpuSideChanged()
@@ -428,43 +428,43 @@ abstract class OpenGLBuffer(
         return this
     }
 
-    fun put(v: Vector3f): OpenGLBuffer {
+    fun put(v: Vector3f): GPUBuffer {
         return put(v.x, v.y, v.z)
     }
 
-    fun put(v: Vector4f): OpenGLBuffer {
+    fun put(v: Vector4f): GPUBuffer {
         return put(v.x, v.y, v.z, v.w)
     }
 
-    fun put(x: Float, y: Float, z: Float, w: Float, a: Float): OpenGLBuffer {
+    fun put(x: Float, y: Float, z: Float, w: Float, a: Float): GPUBuffer {
         return put(x).put(y).put(z).put(w).put(a)
     }
 
-    fun put(x: Float, y: Float, z: Float, w: Float): OpenGLBuffer {
+    fun put(x: Float, y: Float, z: Float, w: Float): GPUBuffer {
         return put(x).put(y).put(z).put(w)
     }
 
-    fun put(x: Float, y: Float, z: Float): OpenGLBuffer {
+    fun put(x: Float, y: Float, z: Float): GPUBuffer {
         return put(x).put(y).put(z)
     }
 
-    fun put(x: Float, y: Float): OpenGLBuffer {
+    fun put(x: Float, y: Float): GPUBuffer {
         return put(x).put(y)
     }
 
-    fun put(f: Float): OpenGLBuffer {
+    fun put(f: Float): GPUBuffer {
         getOrCreateNioBuffer().putFloat(f)
         cpuSideChanged()
         return this
     }
 
-    fun putByte(b: Byte): OpenGLBuffer {
+    fun putByte(b: Byte): GPUBuffer {
         getOrCreateNioBuffer().put(b)
         cpuSideChanged()
         return this
     }
 
-    fun putRGBA(c: Int): OpenGLBuffer {
+    fun putRGBA(c: Int): GPUBuffer {
         getOrCreateNioBuffer()
             .put(c.r().toByte())
             .put(c.g().toByte())
@@ -474,18 +474,18 @@ abstract class OpenGLBuffer(
         return this
     }
 
-    fun putByte(f: Float): OpenGLBuffer {
+    fun putByte(f: Float): GPUBuffer {
         val asInt = Maths.clamp(f * 127f, -127f, +127f).roundToIntOr()
         return putByte(asInt.toByte())
     }
 
-    fun putShort(b: Short): OpenGLBuffer {
+    fun putShort(b: Short): GPUBuffer {
         getOrCreateNioBuffer().putShort(b)
         cpuSideChanged()
         return this
     }
 
-    fun putInt(b: Int): OpenGLBuffer {
+    fun putInt(b: Int): GPUBuffer {
         getOrCreateNioBuffer().putInt(b)
         cpuSideChanged()
         return this
@@ -578,7 +578,7 @@ abstract class OpenGLBuffer(
     @Suppress("unused")
     fun readElementsAsync(
         startIndex: Long, length: Long, destroyTmpBuffer: Boolean,
-        callback: (tmpBuffer: OpenGLBuffer) -> Unit
+        callback: (tmpBuffer: GPUBuffer) -> Unit
     ) = readBytesAsync(startIndex * stride, length * stride, destroyTmpBuffer, callback)
 
     /**
@@ -589,7 +589,7 @@ abstract class OpenGLBuffer(
      * */
     fun readBytesAsync(
         startIndex: Long, length: Long, destroyTmpBuffer: Boolean,
-        callback: (tmpBuffer: OpenGLBuffer) -> Unit
+        callback: (tmpBuffer: GPUBuffer) -> Unit
     ) {
         val tmpBuffer = StaticBuffer("asyncCopy", attributes, 0, BufferUsage.STREAM)
         tmpBuffer.uploadEmpty(length)
@@ -607,7 +607,7 @@ abstract class OpenGLBuffer(
     }
 
     companion object {
-        private val LOGGER = LogManager.getLogger(OpenGLBuffer::class)
+        private val LOGGER = LogManager.getLogger(GPUBuffer::class)
 
         // element buffer is stored in VAO -> cannot cache it here
         // (at least https://www.khronos.org/opengl/wiki/Vertex_Specification says so)
