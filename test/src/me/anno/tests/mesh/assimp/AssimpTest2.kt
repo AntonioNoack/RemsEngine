@@ -6,7 +6,7 @@ import me.anno.ecs.components.anim.Skeleton
 import me.anno.engine.OfficialExtensions
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
-import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
+import me.anno.gpu.buffer.GPUBuffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey

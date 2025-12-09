@@ -152,7 +152,7 @@ abstract class GPUBuffer(
         }
 
         val dst = glMapBuffer(target, pointer, newLimit.toLong(), nio)!!
-        val name = "OpenGLBuffer.uploadAsync('$name', $newLimit)"
+        val name = "GPUBuffer.uploadAsync('$name', $newLimit)"
         Threads.runTaskThread(name) {
             // copy all data
             if (dst !== nio) {
@@ -495,7 +495,7 @@ abstract class GPUBuffer(
         if (Build.isDebug) DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
         if (buffer > -1) {
-            addGPUTask("OpenGLBuffer.destroy()", 1) {
+            addGPUTask("GPUBuffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
                 glDeleteBuffers(buffer)
                 locallyAllocated = allocate(locallyAllocated, 0L)
