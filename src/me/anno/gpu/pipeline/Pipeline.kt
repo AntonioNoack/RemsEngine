@@ -161,7 +161,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         val superMaterial = superMaterial
         for (index in 0 until mesh.numMaterials) {
             val material = getMaterial(superMaterial, materialOverrides, materials, index)
-            println("material[$index]: $material by override: $materialOverrides, default: $materials")
             val stage = findStage(material)
             stage.add(renderer, mesh, transform, material, index)
         }
