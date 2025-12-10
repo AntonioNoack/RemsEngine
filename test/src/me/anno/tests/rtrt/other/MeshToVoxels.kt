@@ -117,7 +117,7 @@ fun meshToSeparatedVoxels(
     fun drawMesh() {
         for (i in 0 until mesh.numMaterials) {
             // find shader
-            val material = Materials.getMaterial(mesh.cachedMaterials, i)
+            val material = Materials.getMaterial(mesh.materials, i)
             val shader = (material.shader ?: pbrModelShader).value
             shader.use()
             // bind & prepare shader

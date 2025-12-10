@@ -167,17 +167,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     @SerializedProperty
     @Type("List<Material/Reference>")
-    override var materials: List<FileReference>
-        get() = cachedMaterials
-        set(value) {
-            if (cachedMaterials != value) {
-                cachedMaterials = FileCacheList(value, MaterialCache::getEntry)
-            }
-        }
-
-    @InternalAPI
-    @NotSerializedProperty
-    override var cachedMaterials = FileCacheList.empty<Material>()
+    override var materials: List<FileReference> = emptyList()
 
     /**
      * one index per triangle;

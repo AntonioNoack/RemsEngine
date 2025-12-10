@@ -696,12 +696,18 @@ class PipelineStageImpl(
     }
 
     fun getShader(material: Material): Shader {
-        val shader0 = material.shader
-        if (shader0 != null) return shader0.value
-        val shader1 = if (defaultShader == pbrModelShader && material.canUseLightShader()) {
-            pbrModelShaderLight
-        } else defaultShader
-        return shader1.value
+        val customShader = material.shader
+        if (customShader != null) return customShader.value
+        // no shader defined -> use the default shader
+        return getDefaultShader(material)
+    }
+
+    fun getDefaultShader(material: Material): Shader {
+        return (if (canUseLightShader(material)) pbrModelShaderLight else defaultShader).value
+    }
+
+    fun canUseLightShader(material: Material): Boolean {
+        return defaultShader == pbrModelShader && material.canUseLightShader()
     }
 
     fun clone() =

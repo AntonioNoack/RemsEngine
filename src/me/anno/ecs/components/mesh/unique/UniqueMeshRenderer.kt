@@ -50,7 +50,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
      * Return transform and material for that specific mesh for traditional methods.
      * Rendering must handle transform and material without this function:
      * - transform must be encoded in the buffer somehow
-     * - material is taken from UniqueMeshRender.cachedMaterials
+     * - material is taken from UniqueMeshRender.materials
      * */
     open fun getTransformAndMaterial(key: Key, transform: Transform): Material? = null
 
@@ -173,6 +173,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
             LOGGER.warn("Buffer ${hash32(buffer)} isn't ready")
             return
         }
+
         GFXState.bind()
         // doesn't matter as long as it's greater than zero; make it the actual value for debugging using DebugGPUStorage
         buffer.drawLength = max(min(totalNumPrimitives, Int.MAX_VALUE.toLong()).toInt(), 1)

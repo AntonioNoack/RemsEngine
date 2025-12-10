@@ -118,6 +118,6 @@ fun createBushMesh(n: Int, scale: Vector3f, seed: Long): Mesh {
             )
         }
     }.join(List(n) {})
-    mesh.cachedMaterials = bushMaterialList
+    mesh.materials = bushMaterialList
     return mesh
 }

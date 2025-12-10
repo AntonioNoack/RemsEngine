@@ -55,20 +55,10 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @Docs("Abstract function for you to define your mesh; you may return null, if you're not yet ready")
     abstract fun getMeshOrNull(): IMesh?
 
-    @Docs("Overrides the mesh materials")
+    @Docs("Overrides the mesh materials; InvalidRef/OutOfBounds will be ignored")
     @Type("List<Material/Reference>")
     @SerializedProperty
-    var materials: List<FileReference>
-        get() = cachedMaterials
-        set(value) {
-            if (cachedMaterials != value) {
-                cachedMaterials = FileCacheList(value, MaterialCache::getEntry)
-            }
-        }
-
-    @InternalAPI
-    @NotSerializedProperty
-    var cachedMaterials = FileCacheList.empty<Material>()
+    var materials: List<FileReference> = emptyList()
 
     @Docs("For displaying random triangle colors")
     @NotSerializedProperty
@@ -192,7 +182,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is MeshComponentBase) return
-        dst.cachedMaterials = cachedMaterials
+        dst.materials = materials
         dst.castShadows = castShadows
         dst.receiveShadows = receiveShadows
         dst.isInstanced = isInstanced

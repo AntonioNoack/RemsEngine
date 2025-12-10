@@ -183,7 +183,7 @@ class SpriteLayer :
             }
         }
 
-    override val cachedMaterials: FileCacheList<Material> =
+    override val materials: FileCacheList<Material> =
         FileCacheList.of(material)
 
     // todo define clusters:

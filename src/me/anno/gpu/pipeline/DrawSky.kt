@@ -83,7 +83,7 @@ object DrawSky {
         else 2f * max(RenderState.fovXRadians, RenderState.fovYRadians)
         allAABB.all()
         for (i in 0 until mesh.numMaterials) {
-            val material = getMaterial(sky.materials, mesh.cachedMaterials, i)
+            val material = getMaterial(sky.materials, mesh.materials, i)
             val shader = (material.shader ?: pbrModelShader).value
             shader.use()
             bindCameraUniforms(shader, pipeline.applyToneMapping)

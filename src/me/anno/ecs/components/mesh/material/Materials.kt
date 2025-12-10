@@ -17,91 +17,48 @@ object Materials {
         jitterInPixels.set(0f)
     }
 
-    @Deprecated("Please use cacheMaterials instead of materials")
     fun getMaterial(
         materialOverrides: List<FileReference>?,
         materials: List<FileReference>, index: Int
     ): Material = getMaterialOrNull(materialOverrides, materials, index) ?: defaultMaterial
 
-    @Deprecated("Please use cacheMaterials instead of materials")
+    fun getMaterial(
+        materials: List<FileReference>, index: Int
+    ): Material = getMaterialOrNull(materials, index) ?: defaultMaterial
+
     fun getMaterialOrNull(
         materialOverrides: List<FileReference>?,
         materials: List<FileReference>, index: Int
     ): Material? {
-        val ref = getMaterialRef(materialOverrides, materials, index)
-        return if (FinalRendering.isFinalRendering) {
-            MaterialCache.getEntry(ref).waitFor()
-        } else {
-            MaterialCache[ref]
+        return getMaterialOrNull(materialOverrides, index)
+            ?: getMaterialOrNull(materials, index)
+    }
+
+    fun getMaterialOrNull(materials: List<FileReference>?, index: Int): Material? {
+        val ref = materials?.getOrNull(index) ?: return null
+        return when {
+            index !in materials.indices -> null
+            materials is FileCacheList<*> -> materials.getValue(index) as? Material
+            FinalRendering.isFinalRendering -> MaterialCache.getEntry(ref).waitFor()
+            else -> MaterialCache[ref]
         }
     }
 
-    @Deprecated("Please use cacheMaterials instead of materials")
     fun getMaterial(
-        materialOverride: Material?,
+        superMaterialIfShaderNull: Material?,
         materialOverrides: List<FileReference>?,
         materials: List<FileReference>,
         index: Int
     ): Material {
         val mat1 = getMaterial(materialOverrides, materials, index)
-        return getMaterial(materialOverride, mat1)
+        return getMaterial(superMaterialIfShaderNull, mat1)
     }
 
     fun getMaterial(
-        materialOverrides: FileCacheList<Material>?,
-        materials: FileCacheList<Material>, index: Int
-    ): Material = getMaterialOrNull(materialOverrides, materials, index) ?: defaultMaterial
-
-    fun getMaterialOrNull(
-        materialOverrides: FileCacheList<Material>?,
-        materials: FileCacheList<Material>, index: Int
-    ): Material? {
-        return when {
-            FinalRendering.isFinalRendering -> {
-                val ref = getMaterialRef(materialOverrides, materials, index)
-                MaterialCache.getEntry(ref).waitFor()
-            }
-            materialOverrides != null && index in materialOverrides.indices -> {
-                materialOverrides.getValue(index)
-            }
-            index in materials.indices -> {
-                materials.getValue(index)
-            }
-            else -> null
-        }
-    }
-
-    fun getMaterial(materials: FileCacheList<Material>, index: Int): Material =
-        getMaterialOrNull(materials, index) ?: defaultMaterial
-
-    fun getMaterialOrNull(materials: FileCacheList<Material>, index: Int): Material? {
-        return when {
-            FinalRendering.isFinalRendering -> {
-                val ref = getMaterialRef(materials, index)
-                MaterialCache.getEntry(ref).waitFor()
-            }
-            index in materials.indices -> {
-                materials.getValue(index)
-            }
-            else -> null
-        }
-    }
-
-    fun getMaterial(
-        materialOverride: Material?,
-        materialOverrides: FileCacheList<Material>?,
-        materials: FileCacheList<Material>,
-        index: Int
-    ): Material {
-        val mat1 = getMaterial(materialOverrides, materials, index)
-        return getMaterial(materialOverride, mat1)
-    }
-
-    fun getMaterial(
-        materialOverride: Material?,
+        superMaterialIfShaderNull: Material?,
         material: Material,
     ): Material {
-        return if (materialOverride != null && material.shader == null) materialOverride
+        return if (superMaterialIfShaderNull != null && material.shader == null) superMaterialIfShaderNull
         else material
     }
 
@@ -110,11 +67,11 @@ object Materials {
         materials: List<FileReference>,
         index: Int
     ): FileReference {
-        val m0 = materialOverrides?.getOrNull(index)?.nullIfUndefined()
-        return m0 ?: getMaterialRef(materials, index)
+        return getMaterialRef(materialOverrides, index).nullIfUndefined()
+            ?: getMaterialRef(materials, index)
     }
 
-    fun getMaterialRef(materials: List<FileReference>, index: Int): FileReference {
-        return materials.getOrNull(index)?.nullIfUndefined() ?: InvalidRef
+    fun getMaterialRef(materials: List<FileReference>?, index: Int): FileReference {
+        return materials?.getOrNull(index)?.nullIfUndefined() ?: InvalidRef
     }
 }

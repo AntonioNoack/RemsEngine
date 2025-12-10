@@ -42,8 +42,8 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
         if (ref == null || ref == InvalidRef) return null
         // avoid the CacheSection, so our values don't get destroyed
         if (ref is InnerTmpPrefabFile) {
-            val safeCast = clazz.safeCast(ref.prefab._sampleInstance)
-            if (safeCast != null) return safeCast
+            val safeInstance = clazz.safeCast(ref.prefab._sampleInstance)
+            if (safeInstance != null) return safeInstance
         }
         return getFileEntry(ref, allowDirectories, timeoutMillis, generator).value
     }
@@ -52,8 +52,10 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
         if (ref == null || ref == InvalidRef) return Promise.empty()
         if (ref is InnerTmpPrefabFile) {
             // avoid the CacheSection, so our values don't get destroyed
-            val safeCast = clazz.safeCast(ref.prefab.getSampleInstance())
-            if (safeCast != null) return Promise(safeCast)
+            val safeInstance = clazz.safeCast(ref.prefab.getSampleInstance())
+            if (safeInstance != null) {
+                return Promise(safeInstance)
+            }
         }
         return getFileEntry(ref, allowDirectories, timeoutMillis, generator)
     }

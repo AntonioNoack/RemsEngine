@@ -100,7 +100,7 @@ class StaticMeshManager : System(), Renderable, OnUpdate {
 
     private fun register(comp: MeshComponentBase, mesh: Mesh) {
         for (i in 0 until mesh.numMaterials) {
-            val material = getMaterial(comp.cachedMaterials, mesh.cachedMaterials, i)
+            val material = getMaterial(comp.materials, mesh.materials, i)
             val umr = managers.getOrPut(material) { SMMMeshRenderer(material) }
             val key = SMMKey(comp, mesh, i)
             val buffer = umr.createBuffer(key, mesh)
@@ -131,7 +131,7 @@ class StaticMeshManager : System(), Renderable, OnUpdate {
             val mesh = comp.getMesh()
             if (mesh is Mesh) {
                 for (i in 0 until mesh.numMaterials) {
-                    val material = getMaterial(comp.cachedMaterials, mesh.cachedMaterials, i)
+                    val material = getMaterial(comp.materials, mesh.materials, i)
                     managers[material]?.remove(SMMKey(comp, mesh, i), true)
                 }
             }

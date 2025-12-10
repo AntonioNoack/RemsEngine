@@ -62,7 +62,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             transform.validate()
 
             for (matIndex in 0 until mesh.numMaterials) {
-                val material0 = materialOverride ?: Materials.getMaterial(mesh.cachedMaterials, matIndex)
+                val material0 = materialOverride ?: Materials.getMaterial(mesh.materials, matIndex)
                 val material = Materials.getMaterial(pipeline.superMaterial, material0)
                 val stage = pipeline.findStage(material)
                 if (mesh.proceduralLength <= 0) {
