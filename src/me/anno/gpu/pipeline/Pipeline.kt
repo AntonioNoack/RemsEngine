@@ -9,8 +9,8 @@ import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.mesh.IMesh
+import me.anno.ecs.components.mesh.material.MaterialOverride
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Materials.getMaterial
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
@@ -151,12 +151,17 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun addMesh(mesh: IMesh, renderer: Component, transform: Transform) {
-        val materialOverrides = (renderer as? MeshComponentBase)?.materials
+        val materialOverrides = (renderer as? MaterialOverride)?.materials
         addMesh(mesh, renderer, materialOverrides, transform)
     }
 
-    fun addMesh(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, transform: Transform) {
+    private fun validate(mesh: IMesh, transform: Transform) {
+        transform.validate()
         mesh.ensureBuffer()
+    }
+
+    fun addMesh(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, transform: Transform) {
+        validate(mesh, transform)
         val materials = mesh.materials
         val superMaterial = superMaterial
         for (index in 0 until mesh.numMaterials) {
@@ -167,7 +172,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun addMeshInstanced(mesh: IMesh, renderer: Component, transform: Transform) {
-        val materialOverrides = (renderer as? MeshComponentBase)?.materials
+        val materialOverrides = (renderer as? MaterialOverride)?.materials
         addMeshInstanced(mesh, renderer, materialOverrides, transform)
     }
 
@@ -177,7 +182,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         materialOverrides: List<FileReference>?,
         transform: Transform
     ) {
-        mesh.ensureBuffer()
+        validate(mesh, transform)
         val materials = mesh.materials
         val superMaterial = superMaterial
         for (index in 0 until mesh.numMaterials) {
@@ -192,6 +197,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun addLight(light: LightComponent, transform: Transform) {
+        transform.validate()
         // for debugging of the light shapes
         // addMesh(light.getLightPrimitive(), MeshRenderer(), entity, 0)
         val stage = lightStage

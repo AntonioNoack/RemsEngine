@@ -1,14 +1,12 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.cache.FileCacheList
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponent
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.MaterialCache
+import me.anno.ecs.components.mesh.material.MaterialOverride
 import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
@@ -23,12 +21,11 @@ import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
-import me.anno.utils.InternalAPI
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Matrix4x3d
 
-abstract class MeshComponentBase : CollidingComponent(), Renderable {
+abstract class MeshComponentBase : CollidingComponent(), Renderable, MaterialOverride {
 
     /**
      * whether an object will receive shadows from shadow-mapped lights;
@@ -58,7 +55,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @Docs("Overrides the mesh materials; InvalidRef/OutOfBounds will be ignored")
     @Type("List<Material/Reference>")
     @SerializedProperty
-    var materials: List<FileReference> = emptyList()
+    override var materials: List<FileReference> = emptyList()
 
     @Docs("For displaying random triangle colors")
     @NotSerializedProperty

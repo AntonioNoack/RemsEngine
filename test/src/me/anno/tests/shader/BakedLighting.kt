@@ -6,6 +6,7 @@ import me.anno.ecs.EntityQuery.getComponentInChildren
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.light.sky.SkyboxBase
+import me.anno.ecs.components.mesh.material.MaterialOverride
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshIterators.forEachPointIndex
@@ -59,10 +60,10 @@ import me.anno.image.raw.IntImage
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
-import me.anno.maths.MinMax.max
-import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
+import me.anno.maths.MinMax.max
+import me.anno.maths.MinMax.min
 import me.anno.maths.bvh.BLASNode
 import me.anno.maths.bvh.BLASTexture.createBLASTexture
 import me.anno.maths.bvh.BVHBuilder
@@ -744,7 +745,7 @@ fun bakeIllumination(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase) 
     val blasNodes = createBLASTexture(meshes, 2 * 3)
     val tlasNodes = createTLASTexture(bvh, 9) { node, data ->
         val bakedRect = if (node is TLASLeaf) {
-            val materialRef = (node.component as? MeshComponent)?.materials?.getOrNull(0)
+            val materialRef = (node.component as? MaterialOverride)?.materials?.getOrNull(0)
             val material = MaterialCache.getEntry(materialRef ?: InvalidRef).waitFor()
             material?.shaderOverrides?.get("bakedRect")?.value as? Vector4f
         } else null
