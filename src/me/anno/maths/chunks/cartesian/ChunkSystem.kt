@@ -1,7 +1,7 @@
 package me.anno.maths.chunks.cartesian
 
-import me.anno.cache.Promise
 import me.anno.cache.CacheSection
+import me.anno.cache.Promise
 import me.anno.ecs.Component
 import me.anno.maths.chunks.PlayerLocation
 import me.anno.mesh.vox.meshing.BlockSide
@@ -9,7 +9,6 @@ import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
 import org.joml.Vector3d.Companion.lengthSquared
 import org.joml.Vector3i
-import kotlin.collections.set
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -81,9 +80,7 @@ abstract class ChunkSystem<Chunk : Any, Element>(
     }
 
     open fun getChunkAt(
-        globalX: Double,
-        globalY: Double,
-        globalZ: Double,
+        globalX: Double, globalY: Double, globalZ: Double,
         generateIfMissing: Boolean
     ): Promise<Chunk>? {
         val cx = floor(globalX).toInt() shr bitsX
@@ -92,14 +89,20 @@ abstract class ChunkSystem<Chunk : Any, Element>(
         return getChunk(cx, cy, cz, generateIfMissing)
     }
 
-    open fun getChunkAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): Promise<Chunk>? {
+    open fun getChunkAt(
+        globalX: Int, globalY: Int, globalZ: Int,
+        generateIfMissing: Boolean
+    ): Promise<Chunk>? {
         val cx = globalX shr bitsX
         val cy = globalY shr bitsY
         val cz = globalZ shr bitsZ
         return getChunk(cx, cy, cz, generateIfMissing)
     }
 
-    open fun getElementAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): Element? {
+    open fun getElementAt(
+        globalX: Int, globalY: Int, globalZ: Int,
+        generateIfMissing: Boolean
+    ): Element? {
         val chunk = getChunkAt(globalX, globalY, globalZ, generateIfMissing)
             ?.waitFor(!generateIfMissing) ?: return null
         val lx = globalX and maskX
@@ -142,7 +145,15 @@ abstract class ChunkSystem<Chunk : Any, Element>(
         )
     }
 
-    open fun getIndex(localX: Int, localY: Int, localZ: Int): Int {
+    fun getIndex(localX: Int, localY: Int, localZ: Int): Int {
+        return getUnsafeIndex(
+            localX and maskX,
+            localY and maskY,
+            localZ and maskZ
+        )
+    }
+
+    open fun getUnsafeIndex(localX: Int, localY: Int, localZ: Int): Int {
         return localX + (localZ + localY.shl(bitsZ)).shl(bitsX)
     }
 

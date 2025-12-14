@@ -21,7 +21,7 @@ class TerrainChunkSystem(val childrenContainer: Entity) :
         result.value = TerrainChunk(chunkX, chunkZ)
     }
 
-    override fun getIndex(localX: Int, localY: Int, localZ: Int): Int {
+    override fun getUnsafeIndex(localX: Int, localY: Int, localZ: Int): Int {
         return localX + localZ * (sz + 1)
     }
 
