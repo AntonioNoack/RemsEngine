@@ -9,6 +9,7 @@ import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
 import org.joml.Vector3d.Companion.lengthSquared
 import org.joml.Vector3i
+import kotlin.collections.set
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min

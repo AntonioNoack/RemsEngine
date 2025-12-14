@@ -4,9 +4,11 @@ import me.anno.Build
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.fonts.FontManager.textAtlasCache
+import me.anno.gpu.GFX.INVALID_POINTER
 import me.anno.gpu.GPUTasks.gpuTasks
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.AttributeLayout
+import me.anno.gpu.buffer.BufferState
 import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.debug.TimeRecord
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -76,11 +78,18 @@ object GFXState {
         Texture2D.invalidateBinding()
         GPUBuffer.invalidateBinding()
         GFXContext.invalidateState()
-        val vao = glCreateVertexArrays()
-        glBindVertexArray(vao)
+        BufferState.invalidateBinding()
+        vao = glCreateVertexArrays()
+        bindVAO()
         if (session != 1) {
             clearGPUCaches()
         }
+    }
+
+    private var vao = INVALID_POINTER
+
+    fun bindVAO() {
+        glBindVertexArray(vao)
     }
 
     fun bind() {

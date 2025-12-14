@@ -6,8 +6,8 @@ import me.anno.gpu.GFX.INVALID_POINTER
 import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
-import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.Buffer.Companion.findClickIdAttr
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
@@ -135,10 +135,14 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         createVAO(shader, instanceData)
     }
 
-    fun bind(shader: Shader) {
+    fun ensureExists(): Boolean {
         checkSession()
         if (!base.isUpToDate) base.upload()
-        if (base.drawLength > 0) {
+        return base.drawLength > 0
+    }
+
+    fun bind(shader: Shader) {
+        if (ensureExists()) {
             bindBufferAttributes(shader)
             // it would be nice if we could remove debugging-related code from shipped builds...
             shader.v1b("isIndexed", true)
@@ -146,9 +150,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
     }
 
     fun bindInstanced(shader: Shader, instanceData: Buffer?) {
-        checkSession()
-        if (!base.isUpToDate) base.upload()
-        if (base.drawLength > 0) {
+        if (ensureExists()) {
             bindBufferAttributesInstanced(shader, instanceData)
             shader.v1b("isIndexed", true)
         }

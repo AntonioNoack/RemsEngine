@@ -6,6 +6,7 @@ import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.shallRenderVR
 import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.vrRoutine
 import me.anno.gpu.GFX.resetFBStack
 import me.anno.gpu.GFX.windows
+import me.anno.gpu.buffer.BufferState
 import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
 import me.anno.gpu.shader.GPUShader
@@ -23,11 +24,13 @@ object RenderStep {
 
     @JvmStatic
     private fun clearState() {
+        GFXState.bindVAO() // just in case
         GPUShader.invalidateBinding()
         Texture2D.invalidateBinding()
         Texture2D.destroyTextures()
         GPUBuffer.invalidateBinding()
         GFXContext.invalidateState()
+        BufferState.invalidateBinding()
         Pools.freeUnusedEntries()
         AudioStream.byteBufferPool.freeUnusedEntries()
         Stack.resetAll()

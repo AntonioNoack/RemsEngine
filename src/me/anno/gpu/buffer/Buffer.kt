@@ -8,18 +8,11 @@ import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.utils.InternalAPI
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.types.Booleans.hasFlag
-import me.anno.utils.types.Booleans.withFlag
-import me.anno.utils.types.Booleans.withoutFlag
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_ARRAY_BUFFER
-import org.lwjgl.opengl.GL46C.glVertexAttribDivisor
-import org.lwjgl.opengl.GL46C.glVertexAttribIPointer
-import org.lwjgl.opengl.GL46C.glVertexAttribPointer
 
 abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUsage) :
     GPUBuffer(name, GL_ARRAY_BUFFER, attributes, usage), Drawable {
@@ -34,44 +27,21 @@ abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUs
             elementCount = value
         }
 
-    private fun forceBind() {
-        ensureBuffer()
-        bindBuffer(target, pointer, true)
-    }
-
     open fun createVAO(shader: Shader, instanceData: Buffer? = null) {
+        BufferState.unbindAll()
         bindAttributes(shader, false)
         instanceData?.bindAttributes(shader, true)
-        unbindAttributes(shader, attributes, instanceData?.attributes)
-    }
-
-    @InternalAPI
-    private fun unbindAttributes(
-        shader: Shader, instancedAttributes: AttributeLayout,
-        nonInstancedAttributes: AttributeLayout?
-    ) {
-        GFX.check()
-        val declaredAttributes = shader.attributes
-        for (i in declaredAttributes.indices) {
-            val attr = declaredAttributes[i]
-            // check if name is bound in attr1/attr2
-            val attrName = attr.name
-            if ((nonInstancedAttributes == null || nonInstancedAttributes.indexOf(attrName) < 0) &&
-                instancedAttributes.indexOf(attrName) < 0
-            ) {
-                // disable attribute
-                unbindAttribute(shader, attrName)
-            }
-        }
-        GFX.check()
+        BufferState.bindSetState(shader)
     }
 
     @InternalAPI
     fun bindAttributes(shader: Shader, instanced: Boolean) {
-        forceBind()
+        ensureBuffer()
         val attrs = attributes
+        val divisor = if (instanced) 1 else 0
         for (i in 0 until attrs.size) {
-            bindAttribute(shader, attrs, i, instanced)
+            val shaderId = shader.getAttributeLocation(attrs.name(i))
+            if (shaderId >= 0) BufferState.bind(this, shaderId, divisor, attrs, i)
         }
     }
 
@@ -95,12 +65,12 @@ abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUs
     }
 
     open fun unbind(shader: Shader) {
-        bindBuffer(GL_ARRAY_BUFFER, 0)
+        /*bindBuffer(GL_ARRAY_BUFFER, 0)
         val attributes = attributes
         for (i in 0 until attributes.size) {
             val attr = attributes
-            unbindAttribute(shader, attr.name(i))
-        }
+            disableMissingAttribute(shader, attr.name(i))
+        }*/
     }
 
     override fun drawInstanced(shader: Shader, instanceData: Buffer) {
@@ -130,20 +100,21 @@ abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUs
         unbind(shader)
     }
 
-    fun bind(shader: Shader) {
+    fun ensureExists(): Boolean {
         checkSession()
         if (!isUpToDate) upload()
-        if (drawLength > 0) {
+        return drawLength > 0
+    }
+
+    fun bind(shader: Shader) {
+        if (ensureExists()) {
             bindBufferAttributes(shader)
             shader.v1b("isIndexed", false)
         }
     }
 
     fun bindInstanced(shader: Shader, instanceData: Buffer?) {
-        checkSession()
-        if (!isUpToDate) upload()
-        // else if (drawLength > 0) bindBuffer(GL_ARRAY_BUFFER, buffer)
-        if (drawLength > 0) {
+        if (ensureExists()) {
             bindBufferAttributesInstanced(shader, instanceData)
             shader.v1b("isIndexed", false)
         }
@@ -180,69 +151,9 @@ abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUs
     }
 
     companion object {
-
-        private var enabledAttributes = 0
-
         // todo this doesn't really belong here, move it somewhere else
         fun findClickIdAttr(instanceData: Buffer): Int {
             return instanceData.attributes.indexOf("instanceFinalId")
-        }
-
-        @JvmStatic
-        fun bindAttribute(shader: Shader, layout: AttributeLayout, i: Int, instanced: Boolean): Boolean {
-            val instanceDivisor = if (instanced) 1 else 0
-            val index = shader.getAttributeLocation(layout.name(i))
-            return if (index in 0 until GFX.maxAttributes) {
-                val type = layout.type(i)
-                val numComponents = layout.components(i)
-                val stride = layout.stride(i)
-                val offset = layout.offset(i).toLong() and 0xffffffffL
-                val typeId = type.glslId
-                if (shader.isAttributeNative(index)) {
-                    // defined as integer and to be used as integer
-                    glVertexAttribIPointer(
-                        index, numComponents, typeId,
-                        stride, offset
-                    )
-                } else {
-                    glVertexAttribPointer(
-                        index, numComponents, typeId,
-                        type.normalized, stride, offset
-                    )
-                }
-                glVertexAttribDivisor(index, instanceDivisor)
-                enable(index)
-                true
-            } else false
-        }
-
-        private fun enable(index: Int) {
-            val flag = 1 shl index
-            if (!enabledAttributes.hasFlag(flag)) {
-                GL46C.glEnableVertexAttribArray(index)
-                enabledAttributes = enabledAttributes.withFlag(flag)
-            }
-        }
-
-        private fun disable(index: Int) {
-            val flag = 1 shl index
-            if (enabledAttributes.hasFlag(flag)) {
-                GL46C.glDisableVertexAttribArray(index)
-                enabledAttributes = enabledAttributes.withoutFlag(flag)
-            }
-        }
-
-        @JvmStatic
-        fun unbindAttribute(shader: Shader, attr: String) {
-            val index = shader.getAttributeLocation(attr)
-            if (index in 0 until GFX.maxAttributes) {
-                disable(index)
-                when (shader.attributes[index].type) {
-                    GLSLType.V1B, GLSLType.V2B, GLSLType.V3B, GLSLType.V4B,
-                    GLSLType.V1I, GLSLType.V2I, GLSLType.V3I, GLSLType.V4I -> GL46C.glVertexAttribI1i(index, 0)
-                    else -> GL46C.glVertexAttrib1f(index, 0f)
-                }
-            }
         }
     }
 }
