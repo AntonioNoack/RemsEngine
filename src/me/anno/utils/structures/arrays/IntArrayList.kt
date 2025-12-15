@@ -1,6 +1,8 @@
 package me.anno.utils.structures.arrays
 
 import me.anno.cache.ICacheData
+import me.anno.utils.assertions.assertGreaterThanEquals
+import me.anno.utils.assertions.assertLessThanEquals
 import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.search.BinarySearch
 
@@ -80,6 +82,10 @@ open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) 
         add(values.values, srcStartIndex, length)
     }
 
+    /**
+     * removes an element, but keeps all other elements in order
+     * if the element is not at the end, this operation can be very slow if called repeatedly!
+     * */
     fun removeAt(index: Int): Int {
         val array = values
         val value = array[index]
@@ -87,10 +93,24 @@ open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) 
         return value
     }
 
+    /**
+     * quickly removes an element by swapping it with the last element,
+     * and then just decreasing the size by 1
+     * */
+    fun swapRemoveAt(index: Int): Int {
+        val array = values
+        val value = array[index]
+        val newSize = --size
+        array[index] = array[newSize]
+        return value
+    }
+
     fun removeBetween(index0: Int, index1: Int) {
-        val length = index1 - index0
+        assertLessThanEquals(index1, size)
+        assertGreaterThanEquals(index0, 0)
+        assertLessThanEquals(index0, index1)
         values.copyInto(values, index0, index1, size)
-        size -= length
+        size -= index1 - index0
     }
 
     operator fun set(index: Int, value: Int) {
