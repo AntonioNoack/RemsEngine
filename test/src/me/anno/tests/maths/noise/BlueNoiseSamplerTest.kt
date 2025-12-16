@@ -37,8 +37,6 @@ class BlueNoiseSamplerTest {
     fun allPointsInsideBounds2f() {
         val size = Vector2f(100f, 80f)
         val points = sampleBlueNoise2f(size, 4f, 2L)
-
-
         for (p in points) {
             assertTrue(p.x >= 0f && p.x < size.x)
             assertTrue(p.y >= 0f && p.y < size.y)
@@ -49,8 +47,6 @@ class BlueNoiseSamplerTest {
     fun allPointsInsideBounds3f() {
         val size = Vector3f(30f, 40f, 50f)
         val points = sampleBlueNoise3f(size, 5f, 2L)
-
-
         for (p in points) {
             assertTrue(p.x >= 0f && p.x < size.x)
             assertTrue(p.y >= 0f && p.y < size.y)
@@ -65,7 +61,6 @@ class BlueNoiseSamplerTest {
             Vector2f(120f), minDist,
             3L
         )
-
         val r2 = minDist * minDist
         for (i in points.indices) {
             for (j in i + 1 until points.size) {
@@ -81,7 +76,6 @@ class BlueNoiseSamplerTest {
             Vector3f(60f), minDist,
             3L
         )
-
         val r2 = minDist * minDist
         for (i in points.indices) {
             for (j in i + 1 until points.size) {
@@ -126,7 +120,6 @@ class BlueNoiseSamplerTest {
         val minDist = 5f
 
         val points = sampleBlueNoise2f(size, minDist, 5L)
-
         val area = size.x * size.y
         val theoreticalMax = area / (minDist * minDist)
 
@@ -140,7 +133,6 @@ class BlueNoiseSamplerTest {
         val minDist = 10f
 
         val points = sampleBlueNoise3f(size, minDist, 5L)
-
         val area = size.x * size.y * size.z
         val theoreticalMax = area / (minDist * minDist * minDist)
 
