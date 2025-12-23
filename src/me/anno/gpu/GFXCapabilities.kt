@@ -42,7 +42,7 @@ enum class GFXCapabilities {
      *
      * Implementations: none
      * */
-    VULCAN,
+    VULKAN,
 
     /**
      * Between Vulcan and WebGL for the web... supports compute shaders.

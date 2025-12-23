@@ -29,13 +29,11 @@ data class WorleyCell(
         distance = other.distance
     }
 
-
     fun set(oxi: Int, ocx: Float, odis: Float) {
         xi = oxi
         cellX = ocx
         distance = odis
     }
-
 
     fun set(oxi: Int, ocx: Float, oyi: Int, ocy: Float, odis: Float) {
         xi = oxi
@@ -46,7 +44,6 @@ data class WorleyCell(
 
         distance = odis
     }
-
 
     fun set(oxi: Int, ocx: Float, oyi: Int, ocy: Float, ozi: Int, ocz: Float, odis: Float) {
         xi = oxi

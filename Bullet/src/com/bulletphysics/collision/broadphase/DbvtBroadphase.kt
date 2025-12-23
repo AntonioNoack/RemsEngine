@@ -10,7 +10,7 @@ import org.joml.Vector3d
  * Detect potential collisions between dynamic-dynamic and dynamic-static objects based on their moving bounding boxes.
  * @author jezek2
  */
-class DbvtBroadphase() : BroadphaseInterface() {
+class DbvtBroadphase : BroadphaseInterface() {
 
     val dynamicSet = Dbvt()
     val staticSet = Dbvt()

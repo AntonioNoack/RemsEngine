@@ -63,7 +63,7 @@ object Smoothstep {
     fun smoothstep(edgeA: Float, edgeB: Float, x: Float): Float {
         return if (edgeA < edgeB) {
             val f = unmix(edgeA, edgeB, x)
-            return smoothstepFactor(f)
+             smoothstepFactor(f)
         } else 0f
     }
 
@@ -71,7 +71,7 @@ object Smoothstep {
     fun smoothstep(edgeA: Double, edgeB: Double, x: Double): Double {
         return if (edgeA < edgeB) {
             val f = unmix(edgeA, edgeB, x)
-            return smoothstepFactor(f)
+            smoothstepFactor(f)
         } else 0.0
     }
 }
