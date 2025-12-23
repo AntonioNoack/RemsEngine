@@ -1,8 +1,12 @@
 package me.anno.gpu.buffer
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Packing.pack64
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
+import me.anno.utils.assertions.assertGreaterThanEquals
+import me.anno.utils.callbacks.I3Z
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Booleans.hasFlag
 import speiger.primitivecollections.LongToIntHashMap
 
 object TriangleIndices {
@@ -113,5 +117,200 @@ object TriangleIndices {
         edgeToTriangle.remove(pack64(ai, bi))
         edgeToTriangle.remove(pack64(bi, ci))
         edgeToTriangle.remove(pack64(ci, ai))
+    }
+
+    private fun Mesh.filterTrianglesIndexedSimple(indices: IntArray, filter: I3Z) {
+        var readIndex = 0
+        var numTriangles = indices.size / 3
+        while (readIndex < numTriangles) {
+
+            val ri3 = readIndex * 3
+            val ai = indices[ri3]
+            val bi = indices[ri3 + 1]
+            val ci = indices[ri3 + 2]
+            if (!filter.call(ai, bi, ci)) {
+                // copy last triangle here
+                val li3 = (numTriangles - 1) * 3
+                indices[ri3] = indices[li3]
+                indices[ri3 + 1] = indices[li3 + 1]
+                indices[ri3 + 2] = indices[li3 + 2]
+                numTriangles--
+            } else {
+                readIndex++
+            }
+        }
+
+        if (numTriangles * 3 < indices.size) {
+            this.indices = indices.copyOf(numTriangles * 3)
+            invalidateGeometry()
+        }
+    }
+
+    /**
+     * Removes all triangles, where the predicate returns false;
+     * only supported for indexed meshes at the moment;
+     *
+     * For triangle-strips, vertices are ONLY removed if there is enough space.
+     * */
+    fun Mesh.optimizeFilterTriangles(filter: I3Z) {
+        val indices = indices
+        if (indices != null) {
+            if (indices.size < 3) return
+            when (drawMode) {
+                DrawMode.TRIANGLES -> filterTrianglesIndexedSimple(indices, filter)
+                DrawMode.TRIANGLE_STRIP -> {
+
+                    var writeIndex = 0
+                    var gap = 0
+                    var first = true
+
+                    var ai = indices[0]
+                    var bi = indices[1]
+                    for (t in 2 until indices.size) {
+
+                        assertGreaterThanEquals(t, writeIndex)
+                        val ci = indices[t]
+
+                        val degenerate = isDegenerate(ai, bi, ci)
+                        val keep = !degenerate && filter.call(ai, bi, ci)
+
+                        if (keep) {
+                            if (first) {
+                                // start first strip
+                                indices[writeIndex++] = ai
+                                indices[writeIndex++] = bi
+                                first = false
+                            } else {
+                                if (gap > 0) {
+                                    // before we can "fix" the gap, we need to check whether
+                                    //  there is enough space for our stitching operation
+                                    // todo this is not correct yet: some backsides,
+                                    //  that shouldn't be visible are in fact visible
+                                    val needsFlip = (t + writeIndex + gap).hasFlag(1)
+                                    val neededSpace = if (needsFlip) 5 else 4
+                                    if (t + gap - writeIndex >= neededSpace) {
+                                        writeIndex -= gap
+                                        val last = indices[writeIndex - 1]
+                                        // insert degenerate stitching
+                                        indices[writeIndex++] = last
+                                        if (needsFlip) {
+                                            // flip winding
+                                            indices[writeIndex++] = bi
+                                            indices[writeIndex++] = bi
+                                            indices[writeIndex++] = bi
+                                            indices[writeIndex++] = ai
+                                        } else {
+                                            indices[writeIndex++] = ai
+                                            indices[writeIndex++] = ai
+                                            indices[writeIndex++] = bi
+                                        }
+                                    }
+                                    gap = 0
+                                }
+                            }
+                        } else gap++
+
+                        // normal continuation
+                        indices[writeIndex++] = ci
+
+                        ai = bi
+                        bi = ci
+                    }
+
+                    // undo adding the last <gap> indices
+                    writeIndex -= gap
+
+                    if (writeIndex < indices.size) {
+                        this.indices = indices.copyOf(writeIndex)
+                        invalidateGeometry()
+                    }
+                }
+                else -> { /* no triangles -> nothing to filter here */
+                }
+            }
+        } else {
+            // todo implement... we need to respect all properties:
+            //  positions, uvs, colors, ...
+        }
+    }
+
+    /**
+     * Removes all triangles, where the predicate returns false;
+     * only supported for indexed meshes at the moment;
+     * */
+    fun Mesh.filterTriangles(filter: I3Z) {
+        val indices = indices
+        if (indices != null) {
+            if (indices.size < 3) return
+            when (drawMode) {
+                DrawMode.TRIANGLES -> filterTrianglesIndexedSimple(indices, filter)
+                DrawMode.TRIANGLE_STRIP -> {
+
+                    // todo this is not quite correct yet
+
+                    var gap = 0
+                    var first = true
+
+                    val dst = IntArrayList(indices.size)
+
+                    var ai = indices[0]
+                    var bi = indices[1]
+                    for (t in 2 until indices.size) {
+
+                        val ci = indices[t]
+
+                        val degenerate = isDegenerate(ai, bi, ci)
+                        val keep = !degenerate && filter.call(ai, bi, ci)
+
+                        if (keep) {
+                            if (first) {
+                                // start first strip
+                                dst.clear()
+                                dst.add(ai)
+                                dst.add(bi)
+                                first = false
+                            } else {
+                                if (gap > 0) {
+                                    // before we can "fix" the gap, we need to check whether
+                                    //  there is enough space for our stitching operation
+                                    dst.size -= gap
+                                    val needsFlip = (t + dst.size).hasFlag(1)
+                                    // insert degenerate stitching
+                                    dst.add(dst.last())
+                                    if (needsFlip) {
+                                        dst.add(bi) // flip winding
+                                        dst.add(bi, bi, ai)
+                                    } else {
+                                        dst.add(ai, bi, bi)
+                                    }
+                                }
+                            }
+                            gap = 0
+                        } else gap++
+
+                        // normal continuation
+                        dst.add(ci)
+
+                        ai = bi
+                        bi = ci
+                    }
+
+                    // undo adding the last <gap> indices
+                    dst.size -= gap
+
+                    this.indices = dst.toIntArray()
+                    invalidateGeometry()
+                }
+                else -> { /* no triangles -> nothing to filter here */
+                }
+            }
+        } else {
+            // todo implement... we need to respect all properties:
+            //  positions, uvs, colors, ...
+        }
+    }
+
+    private fun isDegenerate(a: Int, b: Int, c: Int): Boolean {
+        return a == b || b == c || a == c
     }
 }
