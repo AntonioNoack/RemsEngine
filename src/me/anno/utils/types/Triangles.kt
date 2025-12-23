@@ -14,7 +14,6 @@ import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sign
 
 object Triangles {
 

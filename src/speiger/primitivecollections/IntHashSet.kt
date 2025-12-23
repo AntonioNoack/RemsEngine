@@ -48,6 +48,8 @@ class IntHashSet(
         }
     }
 
+    fun first(ifEmpty: Int): Int = content.firstKey(ifEmpty.toLong()).toInt()
+
     fun removeIf(predicate: IntPredicate) =
         content.removeIf { predicate.test(it.toInt()) }
 

@@ -68,6 +68,7 @@ class LongToIntHashMap(
 
     fun keysToHashSet() = content.keysToHashSet()
     fun forEachKey(callback: LongCallback) = content.forEachKey(callback)
+    fun firstKey(ifEmpty: Long): Long = content.firstKey(ifEmpty)
     fun removeIf(predicate: LongIntPredicate): Int =
         content.removeIf { key, value -> predicate.test(key, value.toInt()) }
 

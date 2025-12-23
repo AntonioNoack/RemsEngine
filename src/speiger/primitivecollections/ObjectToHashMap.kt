@@ -165,6 +165,17 @@ abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
         }
     }
 
+    fun firstKey(): K? {
+        for (i in nullIndex - 1 downTo 0) {
+            val key = keys[i]
+            @Suppress("UNCHECKED_CAST")
+            if (key != null) return key as K?
+        }
+        // whether not found, or null-key is contained,
+        // we can handle both the same way: return null
+        return null
+    }
+
     fun keysToHashSet(): ObjectHashSet<K> {
         val dst = ObjectHashSet<K>(0, loadFactor)
         dst.keys = keys.copyOf()

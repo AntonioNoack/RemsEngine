@@ -6,7 +6,6 @@ import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
-import kotlin.math.max
 
 object RectangleTerrainModel {
 
@@ -66,33 +65,17 @@ object RectangleTerrainModel {
     }
 
     fun generateQuadIndices(numPointsX: Int, numPointsZ: Int, flipY: Boolean, mesh: Mesh) {
-        var k = 0
-        val indexCount = max(0, numPointsX - 1) * max(0, numPointsZ - 1) * 6
-        val indices = mesh.indices.resize(indexCount)
-        mesh.indices = indices
+        val builder = QuadIndexBuilder(numPointsX, numPointsZ, flipY, mesh)
         for (zi in 0 until numPointsZ - 1) {
             var i00 = zi * numPointsX
-            for (xi in 0 until numPointsX - 1) {
-
-                val i01 = i00 + 1
-                val i10 = i00 + numPointsX
-                val i11 = i01 + numPointsX
-
-                indices[k++] = i00
-                if (flipY) {
-                    indices[k++] = i11
-                    indices[k++] = i10
-                    indices[k++] = i01
-                    indices[k++] = i11
-                } else {
-                    indices[k++] = i10
-                    indices[k++] = i11
-                    indices[k++] = i11
-                    indices[k++] = i01
-                }
-                indices[k++] = i00
+            repeat(numPointsX - 1) {
+                val i10 = i00 + 1
+                val i01 = i00 + numPointsX
+                val i11 = i10 + numPointsX
+                builder.addQuad(i00, i01, i10, i11)
                 i00++
             }
+            builder.finishRow()
         }
     }
 
@@ -102,44 +85,27 @@ object RectangleTerrainModel {
         sparseMesh: Mesh
     ) {
 
-        val sparseSize = sparseNumPointsX * sparseNumPointsZ
-        val indices = sparseMesh.indices.resize(sparseSize * 6)
+        val xs = IntArray(sparseNumPointsX) {
+            WorkSplitter.partition(it, originalNumPointsX, sparseNumPointsX)
+        }
 
-        val xs = IntArray(sparseNumPointsX) { WorkSplitter.partition(it, originalNumPointsX, sparseNumPointsX) }
-
-        var k = 0
+        val builder = QuadIndexBuilder(sparseNumPointsX, sparseNumPointsZ, flipY, sparseMesh)
         for (y in 0 until sparseNumPointsZ - 1) {
             val y0 = WorkSplitter.partition(y, originalNumPointsZ, sparseNumPointsZ)
             val y1 = WorkSplitter.partition(y + 1, originalNumPointsZ, sparseNumPointsZ)
             for (x in 0 until sparseNumPointsX - 1) {
-
                 val x0 = xs[x]
                 val x1 = xs[x + 1]
 
                 val i00 = y0 * originalNumPointsX + x0
-                val i01 = y0 * originalNumPointsX + x1
-                val i10 = y1 * originalNumPointsX + x0
+                val i01 = y1 * originalNumPointsX + x0
+                val i10 = y0 * originalNumPointsX + x1
                 val i11 = y1 * originalNumPointsX + x1
-
-                indices[k++] = i00
-                if (flipY) {
-                    indices[k++] = i11
-                    indices[k++] = i10
-                    indices[k++] = i01
-                    indices[k++] = i11
-                } else {
-                    indices[k++] = i10
-                    indices[k++] = i11
-                    indices[k++] = i11
-                    indices[k++] = i01
-                }
-                indices[k++] = i00
+                builder.addQuad(i00, i01, i10, i11)
             }
+            builder.finishRow()
         }
-
-        sparseMesh.indices = indices
     }
-
 
     fun generateRegularQuadHeightMesh(
         numPointsX: Int,

@@ -167,6 +167,15 @@ abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
         }
     }
 
+    fun firstKey(ifEmpty: Long = -1): Long {
+        if (containsNull) return 0L
+        for (i in nullIndex - 1 downTo 0) {
+            val key = keys[i]
+            if (key != 0L) return key
+        }
+        return ifEmpty
+    }
+
     fun keysToHashSet(): LongHashSet {
         val dst = LongHashSet(0, loadFactor)
         dst.keys = keys.copyOf()

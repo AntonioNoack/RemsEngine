@@ -27,7 +27,8 @@ object LWJGLDebugCallback {
         "will use VIDEO memory as the source for buffer object operations",
         "Pixel-path performance warning: Pixel transfer is synchronized with 3D rendering.",
         "is being recompiled based on GL state",
-        "Buffer detailed info: Based on the usage hint and actual usage, buffer object"
+        "Buffer detailed info: Based on the usage hint and actual usage, buffer object",
+        "Shader Stats: SGPRS:"
     ).map { it.encodeToByteArray() }
 
     private val LOGGER = LogManager.getLogger(LWJGLDebugCallback::class)
