@@ -6,11 +6,15 @@ import me.anno.utils.assertions.assertLessThanEquals
 import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.search.BinarySearch
 
-open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) :
-    NativeArrayList, ICacheData {
+open class IntArrayList(
+    initCapacity: Int = 16,
+    initialValue: IntArray? = null,
+    val pool: IntArrayPool? = null
+) : NativeArrayList, ICacheData {
 
-    constructor(values: IntArray) : this(values.size) {
-        add(values)
+    constructor(values: IntArray, size: Int = values.size) :
+            this(size, values) {
+        this.size = size
     }
 
     override var size = 0
@@ -19,7 +23,7 @@ open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) 
             ensureCapacity(value)
         }
 
-    var values = alloc(initCapacity)
+    var values = initialValue ?: alloc(initCapacity)
     override val capacity: Int get() = values.size
 
     fun alloc(size: Int): IntArray {

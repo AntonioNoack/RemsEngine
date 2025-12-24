@@ -6,7 +6,6 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.TriangleIndices
 import me.anno.gpu.buffer.TriangleIndices.filterTriangles
-import me.anno.gpu.buffer.TriangleIndices.optimizeFilterTriangles
 import me.anno.maths.Maths
 import me.anno.utils.assertions.assertEquals
 
