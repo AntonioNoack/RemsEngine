@@ -6,6 +6,7 @@ import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.LongCallback
 import speiger.primitivecollections.callbacks.LongIntCallback
 import speiger.primitivecollections.callbacks.LongIntPredicate
+import java.util.Random
 
 /**
  * Wrapper around LongToLongHashMap
@@ -69,6 +70,7 @@ class LongToIntHashMap(
     fun keysToHashSet() = content.keysToHashSet()
     fun forEachKey(callback: LongCallback) = content.forEachKey(callback)
     fun firstKey(ifEmpty: Long): Long = content.firstKey(ifEmpty)
+    fun randomKey(random: Random, ifEmpty: Long): Long = content.randomKey(random, ifEmpty)
     fun removeIf(predicate: LongIntPredicate): Int =
         content.removeIf { key, value -> predicate.test(key, value.toInt()) }
 

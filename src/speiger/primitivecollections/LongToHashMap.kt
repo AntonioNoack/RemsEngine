@@ -7,6 +7,7 @@ import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.HashUtil.getMaxFill
 import speiger.primitivecollections.HashUtil.sizeToPower2Capacity
 import speiger.primitivecollections.callbacks.LongCallback
+import java.util.Random
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -161,7 +162,7 @@ abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
 
     fun forEachKey(callback: LongCallback) {
         if (containsNull) callback.call(0L)
-        for (i in nullIndex - 1 downTo 0) {
+        for (i in 0 until nullIndex) {
             val key = keys[i]
             if (key != 0L) callback.call(key)
         }
@@ -169,7 +170,24 @@ abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
 
     fun firstKey(ifEmpty: Long = -1): Long {
         if (containsNull) return 0L
-        for (i in nullIndex - 1 downTo 0) {
+        for (i in 0 until nullIndex) {
+            val key = keys[i]
+            if (key != 0L) return key
+        }
+        return ifEmpty
+    }
+
+    /**
+     * Query a random key to avoid running into any O(n²) trouble.
+     * */
+    fun randomKey(random: Random, ifEmpty: Long): Long {
+        val index0 = random.nextInt(nullIndex)
+        for (i in index0 until nullIndex) {
+            val key = keys[i]
+            if (key != 0L) return key
+        }
+        if (containsNull) return 0L
+        for (i in 0 until index0) {
             val key = keys[i]
             if (key != 0L) return key
         }

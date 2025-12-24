@@ -6,6 +6,7 @@ import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.HashUtil.getMaxFill
 import speiger.primitivecollections.HashUtil.sizeToPower2Capacity
+import java.util.Random
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -173,6 +174,25 @@ abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
         }
         // whether not found, or null-key is contained,
         // we can handle both the same way: return null
+        return null
+    }
+
+    /**
+     * Query a random key to avoid running into any O(n²) trouble.
+     * */
+    fun randomKey(random: Random): K? {
+        val index0 = random.nextInt(nullIndex)
+        for (i in index0 until nullIndex) {
+            val key = keys[i]
+            @Suppress("UNCHECKED_CAST")
+            if (key != null) return key as K
+        }
+        if (containsNull) return null
+        for (i in 0 until index0) {
+            val key = keys[i]
+            @Suppress("UNCHECKED_CAST")
+            if (key != null) return key as K
+        }
         return null
     }
 

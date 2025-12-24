@@ -1,12 +1,11 @@
 package me.anno.gpu.buffer
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.maths.Packing.pack64
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.callbacks.I3Z
 import me.anno.utils.structures.arrays.IntArrayList
-import me.anno.utils.types.Booleans.hasFlag
-import speiger.primitivecollections.LongToIntHashMap
 
 object TriangleIndices {
     /**
@@ -19,25 +18,26 @@ object TriangleIndices {
     /**
      * Converts a triangle list into a triangle strip list
      * (for more efficient GPU rendering)
+     * todo a small number of triangles seems to be incorrectly flipped... why???
      * */
     fun trianglesToTriangleStrip(indices: IntArray, indicesSize: Int = indices.size): IntArrayList {
         // create a lookup from (oriented) edges to triangles
-        val edgeToTriangle = LongToIntHashMap(-1, indicesSize)
+        // todo LongToIntHashMap is horribly slow for this task.. why???
+        val edgeToTriangle = HashMap<Long, Int>(indicesSize)
         forLoopSafely(indicesSize, 3) { i ->
             val ai = indices[i + 1]
             val bi = indices[i]
             val ci = indices[i + 2]
-            edgeToTriangle.put(pack64(ai, bi), i)
-            edgeToTriangle.put(pack64(bi, ci), i)
-            edgeToTriangle.put(pack64(ci, ai), i)
+            edgeToTriangle[pack64(ai, bi)] = i
+            edgeToTriangle[pack64(bi, ci)] = i
+            edgeToTriangle[pack64(ci, ai)] = i
         }
 
         val result = IntArrayList(indices.size)
 
         var flip = false
-        while (edgeToTriangle.isNotEmpty()) {
-            val edge = edgeToTriangle.firstKey(-1)
-            val i = edgeToTriangle[edge]
+        while (true) {
+            val i = edgeToTriangle.values.firstOrNull() ?: break
 
             var ai = indices[i + 1]
             var bi = indices[i]
@@ -81,8 +81,7 @@ object TriangleIndices {
                 val i = edgeToTriangle.remove(
                     if (flip) pack64(bi, ci)
                     else pack64(ci, bi)
-                )
-                if (i < 0) break
+                ) ?: break
 
                 // load the next triangle in the strip
                 val ai2 = indices[i + 1]
@@ -112,7 +111,7 @@ object TriangleIndices {
     /**
      * remove our triangle, so we can terminate
      * */
-    private fun removeTriangle(edgeToTriangle: LongToIntHashMap, ai: Int, bi: Int, ci: Int) {
+    private fun removeTriangle(edgeToTriangle: HashMap<Long, Int>, ai: Int, bi: Int, ci: Int) {
         edgeToTriangle.remove(pack64(ai, bi))
         edgeToTriangle.remove(pack64(bi, ci))
         edgeToTriangle.remove(pack64(ci, ai))
@@ -163,34 +162,15 @@ object TriangleIndices {
         return IntArrayList(indices, numTriangles * 3)
     }
 
-    // todo a small number of triangles seems to be incorrectly flipped... why???
-    private fun filterStripTriangles(indices: IntArray, filter: I3Z): IntArrayList {
+    private fun Mesh.filterStripTriangles(indices: IntArray, filter: I3Z): IntArrayList {
         val dst = IntArrayList(indices.size)
-        var ai = indices[0]
-        var bi = indices[1]
-        for (i in 2 until indices.size) {
-            val ci = indices[i]
-            if (!isTriangleDegenerate(ai, bi, ci)) {
-                if (i.hasFlag(1)) {
-                    if (filter.call(ai, ci, bi)) {
-                        dst.add(ai, ci, bi)
-                    }
-                } else {
-                    if (filter.call(ai, bi, ci)) {
-                        dst.add(ai, bi, ci)
-                    }
-                }
+        forEachTriangleIndex { ai, bi, ci ->
+            if (filter.call(ai, bi, ci)) {
+                dst.add(ai, bi, ci)
             }
-
-            // continue one further & flip ai and bi
-            ai = bi
-            bi = ci
+            false
         }
         // convert list back to strip triangles
         return trianglesToTriangleStrip(dst)
-    }
-
-    fun isTriangleDegenerate(a: Int, b: Int, c: Int): Boolean {
-        return a == b || b == c || a == c
     }
 }
