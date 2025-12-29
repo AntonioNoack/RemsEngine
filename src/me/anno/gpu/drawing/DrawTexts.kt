@@ -1,6 +1,7 @@
 package me.anno.gpu.drawing
 
 import me.anno.fonts.Font
+import me.anno.fonts.FontImpl.Companion.heightLimitToMaxNumLines
 import me.anno.fonts.FontManager
 import me.anno.fonts.IGlyphLayout
 import me.anno.fonts.keys.CharCacheKey
@@ -23,7 +24,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.maths.Maths.roundDiv
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
@@ -131,7 +131,9 @@ object DrawTexts {
         val sizeHelper = sizeLayoutHelper
         val fontImpl = FontManager.getFontImpl()
         val relativeWidthLimit = widthLimit / font.size
-        val maxNumLines = if (heightLimit < 0) Int.MAX_VALUE else roundDiv(heightLimit, font.lineHeightI)
+        val maxNumLines =
+            if (heightLimit < 0) Int.MAX_VALUE
+            else heightLimitToMaxNumLines(heightLimit, font.size, font.relativeLineSpacing)
 
         fontImpl.fillGlyphLayout(font, text, sizeHelper, relativeWidthLimit, maxNumLines)
 
@@ -143,7 +145,7 @@ object DrawTexts {
         val drawHelper = DrawLayoutHelper
         drawHelper.font = font
         drawHelper.shader = shader
-        drawHelper.lineHeight = font.lineHeightI
+        drawHelper.lineHeight = font.lineSpacingI
         drawHelper.x = x + getOffset(totalWidth, alignX)
         drawHelper.y = y + getOffset(totalHeight, alignY)
 

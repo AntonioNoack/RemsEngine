@@ -130,27 +130,30 @@ object DrawTextBatched {
 
     fun getTextSizeCharByChar(font: Font, text: CharSequence, equalSpaced: Boolean): Int {
 
+        val lineOffset = font.lineSpacingI
+        val extra = max(lineOffset - font.lineHeightI, 0)
+
         if ('\n' in text) {
             var sizeX = 0
-            val split = text.splitLines()
-            val lineOffset = font.lineHeightI
-            for (index in split.indices) {
-                val size = getTextSizeCharByChar(font, split[index], equalSpaced)
+            val lines = text.splitLines()
+            for (index in lines.indices) {
+                val size = getTextSizeCharByChar(font, lines[index], equalSpaced)
                 sizeX = max(getSizeX(size), sizeX)
             }
-            return getSize(sizeX, (split.size - 1) * lineOffset + font.lineHeightI)
+            return getSize(sizeX, lines.size * lineOffset - extra)
         }
 
-        if (text.isEmpty())
+        if (text.isEmpty()) {
             return font.emptySize
+        }
 
         return if (equalSpaced) {
             val charWidth = font.sampleWidth
             val textWidth = charWidth * text.length
-            getSize(textWidth, font.lineHeightI)
+            getSize(textWidth, lineOffset - extra)
         } else {
             val parts = GlyphLayout(font, text, 0f, Int.MAX_VALUE)
-            getSize(parts.width, font.lineHeightI)
+            getSize(parts.width, lineOffset - extra)
         }
     }
 
