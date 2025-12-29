@@ -28,7 +28,7 @@ fun main() {
             "Verdana", fs,
             false, false,
             4f, 0f,
-            false
+            false, 1.5f
         )
     ).awtFont
 

@@ -711,7 +711,7 @@ object RecastContour {
 
         // Store region->contour remap info.
         // Create contour.
-        LOGGER.info("Simplified: ${simplified.size} from ${vertices.size} vertices")
+        // LOGGER.info("Simplified: ${simplified.size} from ${vertices.size} vertices")
         if (simplified.size.shr(2) >= 3) {
             cset.contours.add(createContour(simplified, vertices, borderSize, reg, area))
         }

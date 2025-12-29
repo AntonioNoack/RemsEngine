@@ -60,9 +60,10 @@ abstract class FontImpl<FallbackFonts> {
             } else 0f
         }
 
-        fun heightLimitToMaxNumLines(heightLimit: Int, fontSize: Float): Int {
+        fun heightLimitToMaxNumLines(heightLimit: Int, fontSize: Float, relativeLineSpacing: Float): Int {
             if (heightLimit <= 0) return Int.MAX_VALUE
-            return (heightLimit / (fontSize + FontManager.spaceBetweenLines(fontSize))).roundToIntOr()
+            val effectiveLineHeight = fontSize * relativeLineSpacing
+            return 1 + ((heightLimit - fontSize) / effectiveLineHeight).roundToIntOr()
         }
     }
 
@@ -111,7 +112,7 @@ abstract class FontImpl<FallbackFonts> {
         val layout = GlyphLayout(
             font, text,
             widthLimitToRelative(widthLimit, fontSize),
-            heightLimitToMaxNumLines(heightLimit, fontSize)
+            heightLimitToMaxNumLines(heightLimit, fontSize, font.relativeLineSpacing)
         )
 
         val width = min(layout.width, widthLimit)
@@ -234,7 +235,10 @@ abstract class FontImpl<FallbackFonts> {
         fillGlyphLayout(
             font, text, helper,
             widthLimitToRelative(widthLimit, font.size),
-            heightLimitToMaxNumLines(heightLimit, font.size)
+            heightLimitToMaxNumLines(
+                heightLimit, font.size,
+                font.relativeLineSpacing
+            )
         )
         return getSize(helper.width, helper.height)
     }
@@ -268,7 +272,6 @@ abstract class FontImpl<FallbackFonts> {
             val lineWidth = max(0, currentX - charSpacing)
             result.width = max(result.width, lineWidth)
             result.finishLine(startOfLine, result.size, lineWidth)
-            @Suppress("AssignedValueIsNeverRead") // Intellij is broken
             startOfLine = result.size
         }
 
@@ -406,7 +409,9 @@ abstract class FontImpl<FallbackFonts> {
         // adding padding
         result.move(1, 2)
         result.width += 2
-        result.height = result.numLines * font.lineHeightI + 1
+
+        val baseSpacing = max(font.lineSpacingI - font.lineHeightI, 0)
+        result.height = result.numLines * font.lineSpacingI - baseSpacing + 1 /* padding */
     }
 
     private fun getSupportLevelEx(fonts: FallbackFonts, codepoint: Int, lastSupportLevel: Int): Int {

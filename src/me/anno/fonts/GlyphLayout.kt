@@ -9,7 +9,6 @@ open class GlyphLayout(
     val relativeWidthLimit: Float, val maxNumLines: Int
 ) : GlyphList(text.length), ICacheData {
 
-
     val actualFontSize: Float
 
     /**

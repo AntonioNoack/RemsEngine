@@ -1,8 +1,6 @@
 package me.anno.ui.base.menu
 
-import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Style

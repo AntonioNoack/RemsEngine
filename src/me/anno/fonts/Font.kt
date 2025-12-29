@@ -12,18 +12,28 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
 import kotlin.math.ceil
 
+/**
+ * Rem's Engine's standard font class,
+ * has the standard bold/italic,
+ * but it also has relative tab size, char spacing, a mono-flag, and line spacing options.
+ *
+ * Each instance should be handled as immutable.
+ * (It is mutable only for deserialization)
+ * */
 class Font(
     name: String, size: Float,
     isBold: Boolean, isItalic: Boolean,
     relativeTabSize: Float, relativeCharSpacing: Float,
-    isEqualSpaced: Boolean
+    isEqualSpaced: Boolean, relativeLineSpacing: Float,
 ) : Saveable() {
 
     constructor() : this("Verdana", 24, false, false)
     constructor(name: String, size: Int) : this(name, size, isBold = false, isItalic = false)
     constructor(name: String, size: Float) : this(name, size, isBold = false, isItalic = false)
-    constructor(name: String, size: Float, isBold: Boolean, isItalic: Boolean) :
-            this(name, size, isBold, isItalic, 4f, 0f, false)
+    constructor(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : this(
+        name, size, isBold, isItalic, 4f, 0f,
+        false, 1.5f
+    )
 
     constructor(source: FileReference, size: Int) : this(source.absolutePath, size)
     constructor(source: FileReference, size: Float) : this(source.absolutePath, size)
@@ -77,6 +87,14 @@ class Font(
             }
         }
 
+    var relativeLineSpacing = relativeLineSpacing
+        private set(value) {
+            if (field != value) {
+                field = value
+                invalidate()
+            }
+        }
+
     // no influence on sample
     /**
      * How many spaces each tab shall be, typically 2, 4 or 8.
@@ -117,6 +135,12 @@ class Font(
      * */
     val lineHeightI by lazy { ceil(FontManager.getLineHeight(this)).toIntOr() + 1 }
 
+    /**
+     * How much bigger each line shall be in pixels.
+     * */
+    val lineSpacingI: Int
+        get() = (size * relativeLineSpacing).toIntOr()
+
     val emptySize: Int get() = getSize(emptyWidth, lineHeightI)
 
     @Suppress("unused")
@@ -126,20 +150,22 @@ class Font(
         sample = lazy { SampleSize(this) }
     }
 
-    fun withBold(bold: Boolean) =
-        if (bold == isBold) this
+    fun withBold(isBold: Boolean) =
+        if (isBold == this.isBold) this
         else Font(
-            name, size, bold, isItalic,
+            name, size, isBold, isItalic,
             relativeTabSize, relativeCharSpacing,
-            this@Font.isEqualSpaced
+            isEqualSpaced,
+            relativeLineSpacing,
         )
 
-    fun withItalic(italic: Boolean) =
-        if (italic == isItalic) this
+    fun withItalic(isItalic: Boolean) =
+        if (isItalic == this.isItalic) this
         else Font(
-            name, size, isBold, italic,
+            name, size, isBold, isItalic,
             relativeTabSize, relativeCharSpacing,
-            this@Font.isEqualSpaced
+            isEqualSpaced,
+            relativeLineSpacing,
         )
 
     fun withName(name: String) =
@@ -147,7 +173,8 @@ class Font(
         else Font(
             name, size, isBold, isItalic,
             relativeTabSize, relativeCharSpacing,
-            this@Font.isEqualSpaced
+            isEqualSpaced,
+            relativeLineSpacing,
         )
 
     fun withSize(size: Float) =
@@ -155,31 +182,48 @@ class Font(
         else Font(
             name, size, isBold, isItalic,
             relativeTabSize, relativeCharSpacing,
-            this@Font.isEqualSpaced
+            isEqualSpaced,
+            relativeLineSpacing,
         )
 
+    @Suppress("unused")
     fun withRelativeTabSize(relativeTabSize: Float) =
         if (relativeTabSize == this.relativeTabSize) this
         else Font(
             name, size, isBold, isItalic,
             relativeTabSize, relativeCharSpacing,
-            this@Font.isEqualSpaced
+            isEqualSpaced,
+            relativeLineSpacing,
         )
 
+    @Suppress("unused")
     fun withRelativeCharSpacing(relativeCharSpacing: Float) =
         if (relativeCharSpacing == this.relativeCharSpacing) this
         else Font(
             name, size, isBold, isItalic,
             relativeTabSize, relativeCharSpacing,
-            this@Font.isEqualSpaced
+            isEqualSpaced,
+            relativeLineSpacing,
         )
 
+    @Suppress("unused")
     fun withEqualSpaced(equalSpaced: Boolean) =
         if (equalSpaced == this.isEqualSpaced) this
         else Font(
             name, size, isBold, isItalic,
             relativeTabSize, relativeCharSpacing,
-            equalSpaced
+            equalSpaced,
+            relativeLineSpacing,
+        )
+
+    @Suppress("unused")
+    fun withRelativeLineSpacing(relativeLineSpacing: Float) =
+        if (relativeLineSpacing == this.relativeLineSpacing) this
+        else Font(
+            name, size, isBold, isItalic,
+            relativeTabSize, relativeCharSpacing,
+            isEqualSpaced,
+            relativeLineSpacing,
         )
 
     override fun equals(other: Any?): Boolean {
@@ -194,13 +238,15 @@ class Font(
         result = 31 * result + isItalic.hashCode()
         result = 31 * result + relativeTabSize.hashCode()
         result = 31 * result + relativeCharSpacing.hashCode()
-        result = 31 * result + this@Font.isEqualSpaced.hashCode()
+        result = 31 * result + isEqualSpaced.hashCode()
+        result = 31 * result + relativeLineSpacing.hashCode()
         return result
     }
 
-    override fun toString() =
-        "$name $size${if (isBold) if (isItalic) " bold italic" else " bold" else if (isItalic) " italic" else ""}" +
-                (", $relativeTabSize tabs, $relativeCharSpacing sp")
+    override fun toString(): String {
+        val flags = if (isBold) if (isItalic) " bold italic" else " bold" else if (isItalic) " italic" else ""
+        return "$name $size$flags, $relativeTabSize tabs, $relativeCharSpacing rcs, $relativeLineSpacing rls"
+    }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -210,7 +256,8 @@ class Font(
         writer.writeBoolean("isItalic", isItalic)
         writer.writeFloat("charSpacing", relativeCharSpacing)
         writer.writeFloat("tabSize", relativeTabSize)
-        writer.writeBoolean("equalSpaced", this@Font.isEqualSpaced)
+        writer.writeBoolean("equalSpaced", isEqualSpaced)
+        writer.writeFloat("lineSpacing", relativeLineSpacing)
     }
 
     override fun setProperty(name: String, value: Any?) {
@@ -221,7 +268,8 @@ class Font(
             "isItalic" -> isItalic = getBool(value)
             "charSpacing" -> relativeCharSpacing = getFloat(value)
             "tabSize" -> relativeTabSize = getFloat(value)
-            "equalSpaced" -> this@Font.isEqualSpaced = getBool(value)
+            "equalSpaced" -> isEqualSpaced = getBool(value)
+            "lineSpacing" -> relativeLineSpacing = getFloat(value)
             else -> super.setProperty(name, value)
         }
     }

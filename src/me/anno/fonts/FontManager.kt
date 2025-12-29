@@ -133,6 +133,4 @@ object FontManager {
     }
 
     fun getFontImpl(): FontImpl<*> = FontStats.getFontImpl()
-
-    fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToIntOr()
 }

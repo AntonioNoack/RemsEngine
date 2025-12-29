@@ -182,7 +182,6 @@ class InnerZipFileV2(
         val child =
             if (!exists || isDirectory) getChildByName(name)
             else super.getChildImpl(name)
-        println("$this[$name] -> $child")
         return child
     }
 

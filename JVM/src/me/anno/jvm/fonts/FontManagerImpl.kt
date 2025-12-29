@@ -79,7 +79,7 @@ object FontManagerImpl {
         val key = me.anno.fonts.Font(
             name, 12f, isBold = false, isItalic = false,
             4f, 0f,
-            isEqualSpaced = "mono" in name
+            isEqualSpaced = "mono" in name, 1.5f
         )
         val cached = awtFonts[key]
         if (cached != null) return cached
