@@ -19,6 +19,7 @@ import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes.flatCube
+import me.anno.mesh.blender.BlenderDebugging.debugPrint
 import me.anno.mesh.blender.BlenderMeshConverter.convertBMesh
 import me.anno.mesh.blender.impl.BAction
 import me.anno.mesh.blender.impl.BArmature
@@ -374,6 +375,25 @@ object BlenderReader {
         return dstBoneIndices
     }
 
+    private fun setTranslation(prefab: Prefab, path: Path, translation: Vector3d) {
+        if (translation.x != 0.0 || translation.y != 0.0 || translation.z != 0.0) {
+            prefab.setUnsafe(path, "position", translation)
+        }
+    }
+
+    private fun setRotation(prefab: Prefab, path: Path, rotation: Quaternionf, isRoot: Boolean) {
+        if (isRoot) rotation.rotateLocalX(-PIf * 0.5f)
+        if (rotation.w != 1f) {
+            prefab.setUnsafe(path, "rotation", rotation)
+        }
+    }
+
+    private fun setScale(prefab: Prefab, path: Path, scale: Vector3f) {
+        if (scale.x != 1f || scale.y != 1f || scale.z != 1f) {
+            prefab.setUnsafe(path, "scale", scale)
+        }
+    }
+
     fun createObject(prefab: Prefab, obj: BObject, path: Path, isRoot: Boolean, fps: Float) {
         if (path != Path.ROOT_PATH) {
             prefab.add(
@@ -381,22 +401,42 @@ object BlenderReader {
                 path.type, "Entity", path.nameId
             )
         }
+
         // add position relative to parent
         // par * self = ws
         // -> (par)-1 * (par * self) = self
-        val parentMatrix = obj.parent?.finalWSMatrix ?: Matrix4f()
-        val localMatrix = Matrix4f(parentMatrix).invert().mul(obj.finalWSMatrix)
-        // if(path == Path.ROOT_PATH) localMatrix.rotateX(-PI.toFloat() * 0.5f)
-        val translation = localMatrix.getTranslation(Vector3d())
-        if (translation.x != 0.0 || translation.y != 0.0 || translation.z != 0.0)
-            prefab.setUnsafe(path, "position", translation)
-        val rotation = localMatrix.getUnnormalizedRotation(Quaternionf())
-        if (isRoot) rotation.rotateLocalX(-PIf * 0.5f)
-        if (rotation.w != 1f)
-            prefab.setUnsafe(path, "rotation", Quaterniond(rotation))
-        val scale = localMatrix.getScale(Vector3d())
-        if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0)
-            prefab.setUnsafe(path, "scale", scale)
+        val parentMatrix = obj.parent?.finalWSMatrix
+        val objFinalMatrix = obj.finalWSMatrix
+        if (objFinalMatrix != null) {
+
+            val localMatrix = if (parentMatrix != null) {
+                Matrix4f(parentMatrix).invert().mul(objFinalMatrix)
+            } else objFinalMatrix
+
+            // if(path == Path.ROOT_PATH) localMatrix.rotateX(-PI.toFloat() * 0.5f)
+            val translation = localMatrix.getTranslation(Vector3d())
+            setTranslation(prefab, path, translation)
+
+            val rotation = localMatrix.getUnnormalizedRotation(Quaternionf())
+            setRotation(prefab, path, rotation, isRoot)
+
+            val scale = localMatrix.getScale(Vector3f())
+            setScale(prefab, path, scale)
+
+        } else {
+
+            // for Blender 5.0+ files, transform is no longer defined, calculate it manually
+            val translation = Vector3d(obj.loc)
+            setTranslation(prefab, path, translation)
+
+            val rotation = obj.rotationMode?.getRotation(obj)
+            if (rotation != null) setRotation(prefab, path, rotation, isRoot)
+
+            val scale = Vector3f(obj.scale)
+            setScale(prefab, path, scale)
+
+        }
+
         val typeId = obj.type.toInt()
         when (BObjectType.entries.firstOrNull { it.id == typeId }) {
             BObjectType.OB_EMPTY -> { // done

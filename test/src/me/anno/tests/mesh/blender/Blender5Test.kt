@@ -3,11 +3,13 @@ package me.anno.tests.mesh.blender
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.OfficialExtensions
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS.documents
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 
 fun main() {
+    // todo bug: our reader is using the vertices of Mesh 1 for Mesh 2, too, why/how???
     LogManager.disableLoggers("Saveable,ExtensionManager")
     LogManager.define("BlenderMeshConverter", Level.DEBUG)
     OfficialExtensions.initForTests()
@@ -17,5 +19,5 @@ fun main() {
     println("Mesh: ${mesh.numPrimitives} tris, ${mesh.positions?.size} pos, ${mesh.indices?.size} indices")
     println("Bounds: ${mesh.getBounds()}")
     println("Positions: ${mesh.positions?.toList()}")
-    // testSceneWithUI("Blender5", mesh)
+    testSceneWithUI("Blender5", mesh)
 }

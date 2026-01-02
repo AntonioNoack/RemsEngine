@@ -5,7 +5,8 @@ import me.anno.gpu.CullMode
 import me.anno.io.files.InvalidRef
 import me.anno.maths.MinMax.max
 import me.anno.mesh.Triangulation
-import me.anno.mesh.blender.BlenderDebugging.printStructure
+import me.anno.mesh.blender.BlenderDebugging.debugPrint
+import me.anno.mesh.blender.impl.BCustomDataLayer
 import me.anno.mesh.blender.impl.BCustomLayerType
 import me.anno.mesh.blender.impl.BInstantList
 import me.anno.mesh.blender.impl.BMaterial
@@ -54,9 +55,6 @@ object BlenderMeshConverter {
         LOGGER.debug("vdata: {}", src.vData)
         LOGGER.debug("pdata: {}", src.pData)
         LOGGER.debug("ldata: {}", src.lData)
-
-        printStructure(src)
-        printStructure(src.fData)
     }
 
     private fun loadVerticesV2(src: BMesh): BInstantList<BVector3f>? {
@@ -148,14 +146,16 @@ object BlenderMeshConverter {
         val loopUvs = src.loopUVs
         if (loopUvs != null) return loopUvs
 
+        val lData = src.lData
+
         @Suppress("UNCHECKED_CAST")
-        val newUVs0 = src.lData.layers
+        val newUVs0 = lData.layers
             .firstOrNull { it.data.firstOrNull() is MLoopUV }
             ?.data as? BInstantList<MLoopUV>
         if (newUVs0 != null) return newUVs0
 
         @Suppress("UNCHECKED_CAST")
-        val newUVs1 = src.lData.layers
+        val newUVs1 = lData.layers
             .firstOrNull { it.name == "UVMap" && it.data.firstOrNull() is BVector2f }
             ?.data as? BInstantList<BVector2f>
         if (newUVs1 != null) return newUVs1
@@ -167,31 +167,32 @@ object BlenderMeshConverter {
     }
 
     private fun loadLoopData(src: BMesh, attributes: AttributeStorage?): List<LoopLike> {
-        var loopData: List<LoopLike>? = src.loops
-        if (loopData == null) {
-            val lData = src.lData
+        val loopsV1 = src.loops
+        if (loopsV1 != null) return loopsV1
 
-            @Suppress("UNCHECKED_CAST")
-            val vs = lData.layers.firstOrNull { it.name == ".corner_vert" && it.type == BCustomLayerType.PROP_INT.id }
-                ?.data as? BInstantList<BVector1i>
+        // loops V2
+        val lData = src.lData
+        val vs = lData.layers.findV1i(".corner_vert")
+        val es = lData.layers.findV1i(".corner_edge")
+        if (vs != null && es != null) return VEJoinList(vs, es)
 
-            @Suppress("UNCHECKED_CAST")
-            val es = lData.layers.firstOrNull { it.name == ".corner_edge" && it.type == BCustomLayerType.PROP_INT.id }
-                ?.data as? BInstantList<BVector1i>
-
-            if (vs != null && es != null) {
-                loopData = VEJoinList(vs, es)
-            }
-        }
-        if (loopData == null && attributes != null) {
+        // loops V3
+        if (attributes != null) {
             val vs = attributes.loadVector1iArray(".corner_vert")
             val es = attributes.loadVector1iArray(".corner_edge")
             if (vs != null && es != null) {
                 println("Got V&Es from attributes: $vs, $es")
-                loopData = VEJoinList(vs, es)
+                return VEJoinList(vs, es)
             }
         }
-        return loopData ?: emptyList()
+
+        return emptyList()
+    }
+
+    private fun List<BCustomDataLayer>.findV1i(name: String): BInstantList<BVector1i>? {
+        @Suppress("UNCHECKED_CAST")
+        return firstOrNull { it.name == name && it.type == BCustomLayerType.PROP_INT.id }
+            ?.data as? BInstantList<BVector1i>
     }
 
     private fun loadPositionsAndNormals(
@@ -467,26 +468,33 @@ object BlenderMeshConverter {
         // indexed, simple
         val indices = IntArrayList(polygons.size * 3)
         var matIndex = 0
+        println("loopData[${loopData.size}]: ${loopData.map { it.v }}")
         for (i in polygons.indices) {
             val polygon = polygons[i]
             val loopStart = polygon.loopStart
             val materialIndex = polygon.materialIndex
+
+            if (polygon.loopStart + polygon.loopSize > loopData.size) {
+                LOGGER.warn("OOB Polygon: ${polygon.loopStart} + ${polygon.loopSize} > ${loopData.size}")
+                continue
+            }
+
+            println(
+                "loop[$i]: $loopStart += ${polygon.loopSize}, " +
+                        "indices: ${List(polygon.loopSize) { loopData[loopStart + it].v }}"
+            )
+
             when (val loopSize = polygon.loopSize) {
-                0 -> {
-                }
+                0 -> Unit
                 1 -> {// point
                     val v = loopData[loopStart].v
-                    indices.add(v)
-                    indices.add(v)
-                    indices.add(v)
+                    indices.add(v, v, v)
                     materialIndices?.set(matIndex++, materialIndex)
                 }
                 2 -> {// line
                     val v0 = loopData[loopStart].v
                     val v1 = loopData[loopStart + 1].v
-                    indices.add(v0)
-                    indices.add(v1)
-                    indices.add(v1)
+                    indices.add(v0, v1, v1)
                     materialIndices?.set(matIndex++, materialIndex)
                 }
                 3 -> {// triangle
@@ -500,12 +508,8 @@ object BlenderMeshConverter {
                     val v1 = loopData[loopStart + 1].v
                     val v2 = loopData[loopStart + 2].v
                     val v3 = loopData[loopStart + 3].v
-                    indices.add(v0)
-                    indices.add(v1)
-                    indices.add(v2)
-                    indices.add(v2)
-                    indices.add(v3)
-                    indices.add(v0)
+                    indices.add(v0, v1, v2)
+                    indices.add(v2, v3, v0)
                     materialIndices?.set(matIndex++, materialIndex)
                     materialIndices?.set(matIndex++, materialIndex)
                 }

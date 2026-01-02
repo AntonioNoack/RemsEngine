@@ -48,6 +48,14 @@ class BObject(ptr: ConstructorData) : BlendData(ptr) {
 
     val animData get() = getPointer("*adt") as? BAnimData
 
+    val loc get() = f32s("loc[3]", 3)
+    val scale get() = f32s("size[3]", 3, 1f)
+    val rotEuler get() = f32s("rot[3]", 3)
+    val rotAxis get() = f32s("rotAxis[3]", 3)
+    val rotAngle get() = f32("rotAngle")
+    val quat get() = f32s("quat[4]", 4)
+    val rotationMode get() = RotationMode.byId(i16("rotmode").toInt())
+
     override fun toString(): String {
         return "BObject { $id, data: $data }"
     }

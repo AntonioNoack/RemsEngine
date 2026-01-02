@@ -29,9 +29,9 @@ open class BlendData(val ptr: ConstructorData) {
     fun f32(offset: Int) = if (offset < 0) 0f else f32Unsafe(offset)
     fun f32Unsafe(offset: Int) = buffer.getFloat(position + offset)
 
-    fun f32s(name: String, size: Int): FloatArray = f32s(getOffset(name), size)
-    fun f32s(offset: Int, size: Int): FloatArray {
-        check(offset >= 0)
+    fun f32s(name: String, size: Int, default: Float = 0f): FloatArray = f32s(getOffset(name), size, default)
+    fun f32s(offset: Int, size: Int, default: Float = 0f): FloatArray {
+        if (offset < 0) return FloatArray(size) { default }
         return FloatArray(size) { index ->
             f32Unsafe(offset + index.shl(2))
         }
@@ -60,7 +60,8 @@ open class BlendData(val ptr: ConstructorData) {
         }
     }
 
-    fun mat4x4(offset: Int): Matrix4f {
+    fun mat4x4(offset: Int): Matrix4f? {
+        if (offset < 0) return null
         // +x, +z, -y
         return Matrix4f(
             f32(offset + 0), f32(offset + 4), f32(offset + 8), f32(offset + 12),
@@ -70,7 +71,7 @@ open class BlendData(val ptr: ConstructorData) {
         )
     }
 
-    fun mat4x4(name: String): Matrix4f = mat4x4(getOffset(name))
+    fun mat4x4(name: String): Matrix4f? = mat4x4(getOffset(name))
 
     fun getField(name: String): DNAField? {
         var byName = dnaStruct.byName[name]

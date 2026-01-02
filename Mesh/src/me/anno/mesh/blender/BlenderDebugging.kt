@@ -5,14 +5,14 @@ import me.anno.mesh.blender.impl.primitives.BVector1i
 
 object BlenderDebugging {
 
-    fun printStructure(data: BlendData) {
-        println("${data.dnaStruct.type} @${data.address}")
+    fun BlendData.debugPrint() {
+        println("${dnaStruct.type} @${address}")
         var prevField: DNAField? = null
-        for ((name, field) in data.dnaStruct.byName) {
+        for ((name, field) in dnaStruct.byName) {
             if (field === prevField) continue
             prevField = field
 
-            val value = data.getDebugValue(name, field)
+            val value = getDebugValue(name, field)
             if (value != Unit) {
                 println("  ${field.type.name} $name = $value")
             } else {
