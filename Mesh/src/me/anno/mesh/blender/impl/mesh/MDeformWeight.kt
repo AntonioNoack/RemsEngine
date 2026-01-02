@@ -22,6 +22,6 @@ class MDeformWeight(ptr: ConstructorData) : BlendData(ptr) {
     val weight get() = f32(weightOffset)
 
     override fun toString(): String {
-        return "[$vertexGroupIndex=$weight @$position]"
+        return "[$vertexGroupIndex=$weight @$positionInFile]"
     }
 }

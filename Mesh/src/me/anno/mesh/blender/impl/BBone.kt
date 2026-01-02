@@ -12,7 +12,7 @@ class BBone(ptr: ConstructorData) : BLink<BBone>(ptr) {
     val name = string("name[64]", 64)
     val parent = getPointer("*parent") as? BBone
 
-    val children = inside("childbase") as BListBase<BBone>
+    val children = getPartStruct("childbase") as BListBase<BBone>
 
     val roll = f32("roll")
     val head = f32s("head[3]", 3)

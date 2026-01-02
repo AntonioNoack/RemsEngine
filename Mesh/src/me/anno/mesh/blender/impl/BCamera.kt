@@ -5,7 +5,7 @@ import me.anno.mesh.blender.ConstructorData
 @Suppress("SpellCheckingInspection", "unused")
 class BCamera(ptr: ConstructorData) : BlendData(ptr) {
 
-    val id = inside("id") as? BID
+    val id = getPartStruct("id") as? BID
 
     val near = f32("clipsta")
     val far = f32("clipend")

@@ -14,7 +14,7 @@ class MDeformVert(ptr: ConstructorData) : BlendData(ptr) {
     val numWeights get() = i32("totweight")
 
     override fun toString(): String {
-        return "MDeformVert@$position($weights)"
+        return "MDeformVert@$positionInFile($weights)"
     }
 
 }

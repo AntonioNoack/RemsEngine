@@ -73,7 +73,7 @@ fun inspect(structure: BlendData, indent: Int, depth: Int) {
                     } else {
                         var err: String? = null
                         val value = try {
-                            structure.inside(field)
+                            structure.getPartStruct(field)
                         } catch (e: IllegalStateException) {
                             LOGGER.warn(e.message)
                             err = e.message

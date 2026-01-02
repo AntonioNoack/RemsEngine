@@ -28,7 +28,7 @@ class BObject(ptr: ConstructorData) : BlendData(ptr) {
     * runtime: Object_Runtime
     */
 
-    val id = inside("id") as BID
+    val id = getPartStruct("id") as BID
     val materials get() = getStructArray("**mat")
     val type = i16("type")
     val parType = i16("partype")
@@ -44,7 +44,7 @@ class BObject(ptr: ConstructorData) : BlendData(ptr) {
     val pose get() = getPointer("*pose") as? BPose // current pose set in armature
     val action get() = getPointer("*action") as? BAction // currently set action (=currently playing animation)
 
-    val modifiers = inside("modifiers") as BListBase<*>
+    val modifiers = getPartStruct("modifiers") as BListBase<*>
 
     val animData get() = getPointer("*adt") as? BAnimData
 

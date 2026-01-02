@@ -14,7 +14,7 @@ class BPose(ptr: ConstructorData) : BlendData(ptr) {
     // *ikdata: void, *ikparam: void, avs: bAnimVizSettings
 
     val time = f32("ctime")
-    val channels = inside("chanbase") as BListBase<BPoseChannel>
+    val channels = getPartStruct("chanbase") as BListBase<BPoseChannel>
 
     override fun toString(): String {
         return "bPose { time: $time, channels: [${channels.joinToString { "\n  $it" }}\n] }"

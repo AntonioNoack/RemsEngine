@@ -8,7 +8,7 @@ import me.anno.mesh.blender.ConstructorData
 @Suppress("UNCHECKED_CAST", "SpellCheckingInspection")
 class BImage(ptr: ConstructorData) : BlendData(ptr) {
 
-    val id = inside("id") as BID
+    val id = getPartStruct("id") as BID
     val name = string("name[1024]", 1024)?.replace('\\', '/') ?: ""
 
     //val views = inside("views") as BListBase<BImageView>
@@ -41,7 +41,7 @@ class BImage(ptr: ConstructorData) : BlendData(ptr) {
      * */
     val type = i16("type")
 
-    val packedFiles = inside("packedfiles") as? BListBase<BImagePackedFile>
+    val packedFiles = getPartStruct("packedfiles") as? BListBase<BImagePackedFile>
 
     /**
      * {id=ID(192)@0, name[1024]=char(1)@192, *cache=MovieCache(0)@1216, *gputexture[3][2]=GPUTexture(0)@1224,
@@ -61,7 +61,7 @@ class BImage(ptr: ConstructorData) : BlendData(ptr) {
      * */
 
     override fun toString(): String {
-        return "Image@${position.toString(16)} { $id, $name, $genX x $genY, " +
+        return "Image@${positionInFile.toString(16)} { $id, $name, $genX x $genY, " +
                 "source: $source, type: $type, packed: $packedFiles }"
     }
 }

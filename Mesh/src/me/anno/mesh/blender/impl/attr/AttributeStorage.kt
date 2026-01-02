@@ -1,6 +1,7 @@
 package me.anno.mesh.blender.impl.attr
 
 import com.sun.org.slf4j.internal.LoggerFactory
+import me.anno.mesh.blender.BlenderDebugging.toStringImpl
 import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.DNAField
 import me.anno.mesh.blender.DNAStruct
@@ -52,7 +53,7 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
     val attributes: List<Attribute>
         get() = getStructArray("*dna_attributes")?.toList() as? List<Attribute> ?: emptyList()
 
-    override fun toString(): String = attributes.toString()
+    override fun toString(): String = toStringImpl()
 
     fun findAttribute(
         name: String,
@@ -71,6 +72,7 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
             return null
         }
 
+        println("attribute: ${attribute.toStringImpl()}")
         val data = attribute.data as? AttributeArray
         if (data == null) {
             LOGGER.warn("Expected positions.data to be AttributeArray")
@@ -85,7 +87,7 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
             ?: return null
 
         val type = data.file.structByName["vec1i"] ?: vec1iType.value
-        return createArray(data, type, ::BVector1i)
+        return createInstantList(data, type, ::BVector1i)
     }
 
     fun loadVector2fArray(name: String): BInstantList<BVector2f>? {
@@ -93,7 +95,7 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
             ?: return null
 
         val type = data.file.structByName["vec2f"] ?: vec2fType.value
-        return createArray(data, type, ::BVector2f)
+        return createInstantList(data, type, ::BVector2f)
     }
 
     fun loadVector3fArray(name: String): BInstantList<BVector3f>? {
@@ -101,10 +103,10 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
             ?: return null
 
         val type = data.file.structByName["vec3f"] ?: vec3fType.value
-        return createArray(data, type, ::BVector3f)
+        return createInstantList(data, type, ::BVector3f)
     }
 
-    private fun <V : BlendData> createArray(
+    private fun <V : BlendData> createInstantList(
         data: AttributeArray, type: DNAStruct,
         createInstance: (ConstructorData) -> V
     ): BInstantList<V>? {
