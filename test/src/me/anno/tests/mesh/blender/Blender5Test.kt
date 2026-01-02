@@ -8,8 +8,10 @@ import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 
 fun main() {
-    OfficialExtensions.initForTests()
+    LogManager.disableLoggers("Saveable,ExtensionManager")
     LogManager.define("BlenderMeshConverter", Level.DEBUG)
+    OfficialExtensions.initForTests()
+
     val file = documents.getChild("Blender/CompressionTest.blend")
     val mesh = MeshCache.getEntry(file).waitFor() as Mesh
     println("Mesh: ${mesh.numPrimitives} tris, ${mesh.positions?.size} pos, ${mesh.indices?.size} indices")

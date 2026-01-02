@@ -38,7 +38,7 @@ class DNAStruct(val index: Int, val type: DNAType, val fields: Array<DNAField>, 
         return size * sum
     }
 
-    val byName = HashMap<String, DNAField>()
+    val byName = LinkedHashMap<String, DNAField>()
 
     init {
         for (fi in fields) {

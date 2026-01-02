@@ -7,7 +7,6 @@ import java.io.IOException
 class BlockTable(val file: BlenderFile, val blocks: List<Block>?, offHeapStructs: IntArray?) {
 
     companion object {
-        private const val HEAP_BASE = 4096L
         private val LOGGER = LogManager.getLogger(BlockTable::class)
     }
 
@@ -40,11 +39,6 @@ class BlockTable(val file: BlenderFile, val blocks: List<Block>?, offHeapStructs
             }
             // checkBlockOverlaps()
         }
-        // LOGGER.info("Block Addresses: ${sorted.map { it.address }}, heapBase: $HEAP_BASE, offHeapStructs: ${offHeapStructs?.toList()}")
-        /*if (sorted.isNotEmpty()) {
-            val first = sorted.first()
-            if (first.address <= HEAP_BASE) throw IllegalStateException()
-        }*/
     }
 
     fun binarySearch(address: Long): Int {

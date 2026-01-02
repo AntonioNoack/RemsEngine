@@ -3,6 +3,7 @@ package me.anno.mesh.blender.impl
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.mesh.blender.ConstructorData
+import me.anno.mesh.blender.impl.attr.AttributeStorage
 import me.anno.mesh.blender.impl.mesh.MDeformVert
 import me.anno.mesh.blender.impl.mesh.MEdge
 import me.anno.mesh.blender.impl.mesh.MLoop
@@ -78,4 +79,11 @@ class BMesh(ptr: ConstructorData) : BlendData(ptr) {
             } else null
         } else null
     }
+
+    /**
+     * stores vertex and face data for Blender 5
+     * */
+    val attributes: AttributeStorage?
+        get() = inside("attribute_storage") as? AttributeStorage
+
 }

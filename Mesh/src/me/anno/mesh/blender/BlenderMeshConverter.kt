@@ -5,11 +5,13 @@ import me.anno.gpu.CullMode
 import me.anno.io.files.InvalidRef
 import me.anno.maths.MinMax.max
 import me.anno.mesh.Triangulation
+import me.anno.mesh.blender.BlenderDebugging.printStructure
 import me.anno.mesh.blender.impl.BCustomLayerType
 import me.anno.mesh.blender.impl.BInstantList
 import me.anno.mesh.blender.impl.BMaterial
 import me.anno.mesh.blender.impl.BMesh
 import me.anno.mesh.blender.impl.BlendData
+import me.anno.mesh.blender.impl.attr.AttributeStorage
 import me.anno.mesh.blender.impl.helper.IAPolyList
 import me.anno.mesh.blender.impl.helper.VEJoinList
 import me.anno.mesh.blender.impl.interfaces.LoopLike
@@ -52,9 +54,12 @@ object BlenderMeshConverter {
         LOGGER.debug("vdata: {}", src.vData)
         LOGGER.debug("pdata: {}", src.pData)
         LOGGER.debug("ldata: {}", src.lData)
+
+        printStructure(src)
+        printStructure(src.fData)
     }
 
-    private fun loadNewVertices(src: BMesh): BInstantList<BVector3f>? {
+    private fun loadVerticesV2(src: BMesh): BInstantList<BVector3f>? {
         @Suppress("UNCHECKED_CAST")
         return src.vData.layers
             .firstOrNull { it.name == "position" }
@@ -67,28 +72,35 @@ object BlenderMeshConverter {
             showDebugProperties(src)
         }
 
-        val vertices = src.vertices
-        val newVertices = if (vertices == null) loadNewVertices(src) else null
-        if (vertices == null && newVertices == null) {
+        val attributes = src.attributes
+        LOGGER.info("Attributes: {}", attributes?.attributes?.map { it.name })
+
+        val verticesV1 = src.vertices
+        val verticesV2 = if (verticesV1 == null) {
+            loadVerticesV2(src)
+                ?: attributes?.loadVector3fArray("position")
+        } else null
+
+        if (verticesV1 == null && verticesV2 == null) {
             LOGGER.warn("Mesh '${src.id.realName}' has no vertices")
             // how can there be meshes without vertices?
             // because newer versions save the data in different places
             return null
         }
 
-        val numVertices = vertices?.size ?: newVertices!!.size
+        val numVertices = verticesV1?.size ?: verticesV2!!.size
         val positions = FloatArray(numVertices * 3)
         val materials: List<BlendData?> = src.materials ?: emptyList()
         val polygons: List<PolyLike> = src.polygons ?: getNewPolygons(src)
 
-        val loopData = loadLoopData(src)
+        val loopData = loadLoopData(src, attributes)
 
         val prefab = Prefab("Mesh")
         prefab["materials"] = materials.map { (it as? BMaterial)?.fileRef ?: InvalidRef }
         prefab["cullMode"] = CullMode.BOTH
 
-        val normals = loadPositionsAndNormals(vertices, numVertices, positions, newVertices)
-        val uvs = loadUVs(src)
+        val normals = loadPositionsAndNormals(verticesV1, numVertices, positions, verticesV2)
+        val uvs = loadUVs(src, attributes)
 
         // todo vertex colors
         val hasUVs = uvs.any2 { it.u != 0f || it.v != 0f }
@@ -100,7 +112,7 @@ object BlenderMeshConverter {
             }.toLong()
         }
 
-        if (triCount0 < 0 || triCount0 > maxNumTriangles) {
+        if (triCount0 !in 0..maxNumTriangles) {
             LOGGER.warn("Invalid number of triangles in ${src.id.realName}: $triCount0")
             return null
         }
@@ -132,21 +144,29 @@ object BlenderMeshConverter {
         return prefab
     }
 
-    private fun loadUVs(src: BMesh): List<UVLike> {
+    private fun loadUVs(src: BMesh, attributes: AttributeStorage?): List<UVLike> {
+        val loopUvs = src.loopUVs
+        if (loopUvs != null) return loopUvs
+
         @Suppress("UNCHECKED_CAST")
         val newUVs0 = src.lData.layers
             .firstOrNull { it.data.firstOrNull() is MLoopUV }
             ?.data as? BInstantList<MLoopUV>
+        if (newUVs0 != null) return newUVs0
 
         @Suppress("UNCHECKED_CAST")
         val newUVs1 = src.lData.layers
             .firstOrNull { it.name == "UVMap" && it.data.firstOrNull() is BVector2f }
             ?.data as? BInstantList<BVector2f>
+        if (newUVs1 != null) return newUVs1
 
-        return src.loopUVs ?: newUVs0 ?: newUVs1 ?: emptyList()
+        val newUVs2 = attributes?.loadVector2fArray("uvs")
+        if (newUVs2 != null) return newUVs2
+
+        return emptyList()
     }
 
-    private fun loadLoopData(src: BMesh): List<LoopLike> {
+    private fun loadLoopData(src: BMesh, attributes: AttributeStorage?): List<LoopLike> {
         var loopData: List<LoopLike>? = src.loops
         if (loopData == null) {
             val lData = src.lData
@@ -158,11 +178,20 @@ object BlenderMeshConverter {
             @Suppress("UNCHECKED_CAST")
             val es = lData.layers.firstOrNull { it.name == ".corner_edge" && it.type == BCustomLayerType.PROP_INT.id }
                 ?.data as? BInstantList<BVector1i>
-            loopData = if (vs != null && es != null) {
-                VEJoinList(vs, es)
-            } else emptyList()
+
+            if (vs != null && es != null) {
+                loopData = VEJoinList(vs, es)
+            }
         }
-        return loopData
+        if (loopData == null && attributes != null) {
+            val vs = attributes.loadVector1iArray(".corner_vert")
+            val es = attributes.loadVector1iArray(".corner_edge")
+            if (vs != null && es != null) {
+                println("Got V&Es from attributes: $vs, $es")
+                loopData = VEJoinList(vs, es)
+            }
+        }
+        return loopData ?: emptyList()
     }
 
     private fun loadPositionsAndNormals(
@@ -171,12 +200,12 @@ object BlenderMeshConverter {
     ): FloatArray? {
 
         // todo find normals for newer files; no[3] is extinct
-        val hasNormals = vertices != null && vertices.isNotEmpty() && vertices[0].noOffset >= 0
+        val hasNormals = !vertices.isNullOrEmpty() && vertices[0].noOffset >= 0
 
         var normals: FloatArray? = null
         if (hasNormals) {
             normals = FloatArray(numVertices * 3)
-            for (i in 0 until numVertices) {
+            repeat(numVertices) { i ->
                 val v = vertices[i]
                 val i3 = i * 3
                 positions[i3] = v.x
@@ -187,7 +216,7 @@ object BlenderMeshConverter {
                 normals[i3 + 2] = v.nz
             }
         } else if (vertices != null) {
-            for (i in 0 until numVertices) {
+            repeat(numVertices) { i ->
                 val v = vertices[i]
                 val i3 = i * 3
                 positions[i3] = v.x
@@ -196,7 +225,7 @@ object BlenderMeshConverter {
             }
         } else {
             newVertices!! // memcpy would work here, too
-            for (i in 0 until numVertices) {
+            repeat(numVertices) { i ->
                 val v = newVertices[i]
                 val i3 = i * 3
                 positions[i3] = v.x

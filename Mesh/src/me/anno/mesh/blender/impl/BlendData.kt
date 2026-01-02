@@ -4,32 +4,36 @@ import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.DNAField
 import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.blocks.Block
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import java.nio.ByteBuffer
 import kotlin.math.min
 
 @Suppress("unused")
-open class BlendData(ptr: ConstructorData) {
+open class BlendData(val ptr: ConstructorData) {
 
-    val file: BlenderFile = ptr.file
-    val dnaStruct: DNAStruct = ptr.type
-    val buffer: ByteBuffer = ptr.buffer
+    val file: BlenderFile get() = ptr.file
+    val dnaStruct: DNAStruct get() = ptr.type
+    val buffer: ByteBuffer = ptr.file.file.data // sooo many accesses -> let's be direct in this one case
     var position: Int = ptr.position
+    val block: Block get() = file.blockTable.getBlockAt(position)
 
     val address get() = file.blockTable.getAddressAt(position)
 
-    fun i8(offset: Int) = buffer.get(position + offset)
-    fun i16(offset: Int) = buffer.getShort(position + offset)
-    fun u16(offset: Int) = buffer.getShort(position + offset).toInt().and(0xffff)
-    fun i32(offset: Int) = buffer.getInt(position + offset)
-    fun i64(offset: Int) = buffer.getLong(position + offset)
-    fun f32(offset: Int) = buffer.getFloat(position + offset)
+    fun i8(offset: Int) = if (offset < 0) 0 else buffer.get(position + offset)
+    fun i16(offset: Int) = if (offset < 0) 0 else buffer.getShort(position + offset)
+    fun u16(offset: Int) = if (offset < 0) 0 else buffer.getShort(position + offset).toInt().and(0xffff)
+    fun i32(offset: Int) = if (offset < 0) 0 else buffer.getInt(position + offset)
+    fun i64(offset: Int) = if (offset < 0) 0 else buffer.getLong(position + offset)
+    fun f32(offset: Int) = if (offset < 0) 0f else f32Unsafe(offset)
+    fun f32Unsafe(offset: Int) = buffer.getFloat(position + offset)
 
     fun f32s(name: String, size: Int): FloatArray = f32s(getOffset(name), size)
     fun f32s(offset: Int, size: Int): FloatArray {
+        check(offset >= 0)
         return FloatArray(size) { index ->
-            f32(offset + index.shl(2))
+            f32Unsafe(offset + index.shl(2))
         }
     }
 
@@ -50,7 +54,9 @@ open class BlendData(ptr: ConstructorData) {
             val posInFile = positionInFile + it * file.pointerSize
             val ptr = if (file.file.is64Bit) data.getLong(posInFile)
             else data.getInt(posInFile).toLong()
-            file.getOrCreate(file.structByName[field.type.name]!!, field.type.name, block, ptr)
+            val struct = file.structByName[field.type.name]
+                ?: throw IllegalStateException("Missing struct array of type ${field.type}")
+            file.getOrCreate(struct, field.type.name, block, ptr)
         }
     }
 
@@ -79,10 +85,12 @@ open class BlendData(ptr: ConstructorData) {
 
     fun getOffset(name: String): Int {
         val byName = getField(name)
-        if (byName != null) return byName.offset
-        if (name != "no[3]") {
-            LOGGER.warn("field $name is unknown")
-        }// else no[3] is expected to be missing from newer Blender files
+        if (byName != null) {
+            return byName.offset
+        }
+        if (name != "no[3]" && name != "obmat[4][4]") {
+            LOGGER.warn("Field ${dnaStruct.type}.'$name' is unknown")
+        }// else known to be missing from newer Blender files
         return -1
     }
 
@@ -90,7 +98,9 @@ open class BlendData(ptr: ConstructorData) {
 
     fun i8(name: String): Byte = i8(getOffset(name))
     fun i16(name: String): Short = i16(getOffset(name))
+    fun u16(name: String): Int = u16(getOffset(name))
     fun i32(name: String): Int = i32(getOffset(name))
+    fun i64(name: String): Long = i64(getOffset(name))
     fun f32(name: String): Float = f32(getOffset(name))
     fun f32(name: String, defaultValue: Float): Float {
         val field = getField(name)
@@ -156,14 +166,18 @@ open class BlendData(ptr: ConstructorData) {
         return IntArray(length) { buffer.getInt(position + it * 4) }
     }
 
-    fun pointer(offset: Int) = if (file.pointerSize == 4) i32(offset).toLong() else i64(offset)
+    fun pointer(offset: Int): Long {
+        return if (offset < 0) 0L else
+            if (file.pointerSize == 4) i32(offset).toLong()
+            else i64(offset)
+    }
 
     fun inside(name: String) = inside(dnaStruct.byName[name])
     fun inside(field: DNAField?): BlendData? {
         field ?: return null
 
         // in-side object struct, e.g. ID
-        val block = file.blockTable.getBlockAt(position)
+        val block = block
         val address = block.address + (position - block.positionInFile) + field.offset
         if (address >= block.address + block.sizeInBytes) {
             LOGGER.warn("Expected same block for ${block.address}+($position-${block.positionInFile})+${field.offset}, size: ${block.sizeInBytes}")
@@ -183,13 +197,17 @@ open class BlendData(ptr: ConstructorData) {
         return file.getOrCreate(struct, className, block, address)
     }
 
-    fun getStructArray(name: String): List<BlendData?>? = getStructArray(dnaStruct.byName[name])
-    fun getStructArray(field: DNAField?): List<BlendData?>? {
+    fun getStructArray(name: String): List<BlendData>? = getStructArray(dnaStruct.byName[name])
+    fun getStructArray(field: DNAField?): List<BlendData>? {
         field ?: return null
         return if (field.decoratedName.startsWith("*")) {
             val address = pointer(field.offset)
             if (address == 0L) return null
-            val block = file.blockTable.findBlock(file, address) ?: return null
+            val block = file.blockTable.findBlock(file, address)
+            if (block == null) {
+                LOGGER.warn("Missing block for $field @ $address")
+                return block
+            }
             var className = field.type.name
             val type = file.dnaTypeByName[className]!!
             var typeSize = type.size
@@ -205,13 +223,20 @@ open class BlendData(ptr: ConstructorData) {
             val remainingSize = block.sizeInBytes - addressInBlock
             val length = remainingSize / typeSize
             if (length > 1000) LOGGER.warn("Instantiating $length ${struct.type.name} instances, use the BInstantList, if possible")
-            file.getOrCreate(struct, className, block, address)
-                ?: return null // if no instance can be created, just return null
+            val canCreateInstance = file.getOrCreate(struct, className, block, address) != null
+            if (!canCreateInstance) {
+                // if no instance can be created, just return null
+                return null
+            }
             List(length.toInt()) {
                 val addressI = address + it * typeSize
-                file.getOrCreate(struct, className, block, addressI)
+                file.getOrCreate(struct, className, block, addressI)!!
             }
-        } else listOf(inside(field))
+        } else {
+            val instance = inside(field)
+            if (instance != null) listOf(instance)
+            else emptyList()
+        }
     }
 
     fun <V : BlendData> getInstantList(name: String, maxSize: Int = Int.MAX_VALUE): BInstantList<V>? {

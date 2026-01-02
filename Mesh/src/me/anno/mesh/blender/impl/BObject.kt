@@ -34,7 +34,10 @@ class BObject(ptr: ConstructorData) : BlendData(ptr) {
     val parType = i16("partype")
     val parent get() = getPointer("*parent") as? BObject
 
-    // Final worldspace matrix with constraints & animsys applied.
+    /**
+     * Final worldspace matrix with constraints & animsys applied.
+     * No longer available in Blender 5+.
+     * */
     val finalWSMatrix get() = mat4x4("obmat[4][4]")
 
     val data get() = getPointer("*data") // type specific

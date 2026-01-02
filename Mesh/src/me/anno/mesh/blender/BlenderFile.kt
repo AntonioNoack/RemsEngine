@@ -3,6 +3,9 @@ package me.anno.mesh.blender
 import me.anno.io.files.FileReference
 import me.anno.mesh.blender.blocks.Block
 import me.anno.mesh.blender.blocks.BlockTable
+import me.anno.mesh.blender.impl.attr.Attribute
+import me.anno.mesh.blender.impl.attr.AttributeArray
+import me.anno.mesh.blender.impl.attr.AttributeStorage
 import me.anno.mesh.blender.impl.BAction
 import me.anno.mesh.blender.impl.BActionChannel
 import me.anno.mesh.blender.impl.BActionGroup
@@ -34,6 +37,7 @@ import me.anno.mesh.blender.impl.BezTriple
 import me.anno.mesh.blender.impl.BlendData
 import me.anno.mesh.blender.impl.DrawDataList
 import me.anno.mesh.blender.impl.FCurve
+import me.anno.mesh.blender.impl.RawData
 import me.anno.mesh.blender.impl.mesh.FPoint
 import me.anno.mesh.blender.impl.mesh.MDeformVert
 import me.anno.mesh.blender.impl.mesh.MDeformWeight
@@ -221,7 +225,8 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         DNAStruct(i, type, fields, pointerSize)
     }
 
-    val structByName = structs.associateBy { it.type.name }
+    val structByName = structs.associateBy { it.type.name } +
+            DefaultStructs(pointerSize).byName
 
     init {
         if (LOGGER.isDebugEnabled()) {
@@ -242,7 +247,6 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     val blockTable: BlockTable
 
     init {
-
         val offHeapAreas = if (version < 276) listOf("FileGlobal") else listOf("FileGlobal", "TreeStoreElem")
         var indices = IntArray(offHeapAreas.size)
         var length = 0
@@ -252,7 +256,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             else indices[length++] = struct.index
         }
         // shorten the array, if needed
-        if (length < offHeapAreas.size) indices = IntArray(length) { indices[it] }
+        if (length < offHeapAreas.size) indices = indices.copyOf(length)
         blockTable = BlockTable(this, blocks, indices)
     }
 
@@ -322,8 +326,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     fun create(struct: DNAStruct, clazz: String, block: Block, address: Long): BlendData? {
         if (address == 0L) return null
         val position = (address + block.dataOffset).toInt()
-        val data = file.data
-        val ptr = ConstructorData(this, struct, data, position)
+        val ptr = ConstructorData(this, struct, position)
         return when (clazz) {
             // unused classes have been commented out
             "Mesh" -> BMesh(ptr)
@@ -383,8 +386,12 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             "vec2f" -> BVector2f(ptr)
             "vec3f" -> BVector3f(ptr)
             "vec2i" -> BVector2i(ptr)
-            "MIntProperty" -> BVector1i(ptr)
+            "int", "MIntProperty" -> BVector1i(ptr)
             "DrawDataList" -> DrawDataList(ptr)
+            "AttributeStorage" -> AttributeStorage(ptr)
+            "AttributeArray" -> AttributeArray(ptr)
+            "Attribute" -> Attribute(ptr)
+            "raw_data" -> RawData(ptr)
             else -> {
                 LOGGER.warn("Skipping instance of class $clazz")
                 null
