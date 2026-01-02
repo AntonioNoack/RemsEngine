@@ -25,6 +25,7 @@ class MeshLoaderPlugin : Plugin() {
         InnerFolderCache.registerSignatures("gltf,json", GLTFReader::readAsFolder)
         InnerFolderCache.registerSignatures("fbx,dae,draco,md2,md5mesh,ply", AnimatedMeshesLoader::readAsFolder)
         InnerFolderCache.registerSignatures("blend", BlenderReader::readAsFolder)
+        InnerFolderCache.registerSignatures("blend-zstd", BlenderReader::readZstdAsFolder)
         InnerFolderCache.registerSignatures("obj", OBJReader::readAsFolder)
 
         // their signatures are xml and json
@@ -38,7 +39,7 @@ class MeshLoaderPlugin : Plugin() {
 
         // thumbnails
         ThumbnailCache.registerSignatures(
-            "blend,mitsuba-scene,mitsuba-meshes,maya,obj,fbx,gltf,json,glb,dae,ply,md2,md5mesh",
+            "blend,blend-zstd,mitsuba-scene,mitsuba-meshes,maya,obj,fbx,gltf,json,glb,dae,ply,md2,md5mesh",
             AssetThumbnails::generateAssetFrame
         )
         ThumbnailCache.registerFileExtensions("mtl", ::generateMTLThumbnail)

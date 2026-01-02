@@ -13,5 +13,6 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="LWJGL-323" level="project" />
     <orderEntry type="library" name="LWJGL-323-Assimp" level="project" />
+    <orderEntry type="library" name="ZstdJNI" level="project" />
   </component>
 </module>

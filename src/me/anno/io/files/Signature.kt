@@ -246,6 +246,7 @@ class Signature(
             Signature("mtl", MESH, -1, "newmtl "),
             Signature("mtl", MESH, 0, "# Blender MTL"), // ^^
             Signature("blend", MESH, 0, "BLENDER"),
+            Signature("blend-zstd", MESH, 0, 0x28 /* ( */, 0xb5, 0x2f /* / */, 0xfd), // Zstd compressed-file
             Signature("gltf", MESH, 0, "glTF"),
             Signature("gltf", MESH, -1, "\"scenes\""),
             Signature("mesh-draco", MESH, 0, "DRACO"),

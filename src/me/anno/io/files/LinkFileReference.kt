@@ -57,8 +57,8 @@ class LinkFileReference(absolutePath: String) : FileReference(absolutePath) {
     override fun readBytes(callback: Callback<ByteArray>) =
         original.readBytes(callback)
 
-    override fun readByteBuffer(native: Boolean, callback: Callback<ByteBuffer>) =
-        original.readByteBuffer(native, callback)
+    override fun readByteBuffer(mustBeNative: Boolean, callback: Callback<ByteBuffer>) =
+        original.readByteBuffer(mustBeNative, callback)
 
     override val isDirectory: Boolean
         get() = original.isDirectory

@@ -46,6 +46,7 @@
       <element id="module-output" name="SDF" />
       <element id="module-output" name="Unpack" />
       <element id="module-output" name="Video" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/ZstdJNI.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

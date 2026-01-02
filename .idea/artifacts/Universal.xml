@@ -95,6 +95,7 @@
       <element id="module-output" name="OpenXR" />
       <element id="module-output" name="Network" />
       <element id="module-output" name="JVMEmojis" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/ZstdJNI.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

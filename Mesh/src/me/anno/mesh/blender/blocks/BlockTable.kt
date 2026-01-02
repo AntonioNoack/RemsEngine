@@ -40,10 +40,11 @@ class BlockTable(val file: BlenderFile, val blocks: List<Block>?, offHeapStructs
             }
             // checkBlockOverlaps()
         }
-        if (sorted.isNotEmpty()) {
+        // LOGGER.info("Block Addresses: ${sorted.map { it.address }}, heapBase: $HEAP_BASE, offHeapStructs: ${offHeapStructs?.toList()}")
+        /*if (sorted.isNotEmpty()) {
             val first = sorted.first()
             if (first.address <= HEAP_BASE) throw IllegalStateException()
-        }
+        }*/
     }
 
     fun binarySearch(address: Long): Int {
@@ -85,13 +86,13 @@ class BlockTable(val file: BlenderFile, val blocks: List<Block>?, offHeapStructs
             i = -i - 2
             if (i >= 0) {
                 val b = sorted[i]
-                val endAddress = b.address + b.size
+                val endAddress = b.address + b.sizeInBytes
                 if (address < endAddress) {
                     // block found
                     return b
                 } else {
                     LOGGER.debug(
-                        "Block out of bounds: $address >= ${b.address} + ${b.size} " +
+                        "Block out of bounds: $address >= ${b.address} + ${b.sizeInBytes} " +
                                 "(type: ${file.structs[b.sdnaIndex].type.name}), " +
                                 "next block: ${sorted.getOrNull(i + 1)?.address}"
                     )

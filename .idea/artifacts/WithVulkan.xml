@@ -9,9 +9,7 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-linux-arm32.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-linux-arm64.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-linux.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-macos-arm64.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-macos.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-windows-arm64.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-windows-x86.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-windows.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp.jar" path-in-jar="/" />
@@ -91,6 +89,7 @@
       <element id="module-output" name="Unpack" />
       <element id="module-output" name="Video" />
       <element id="module-output" name="JVM" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/ZstdJNI.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

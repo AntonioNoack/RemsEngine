@@ -1,5 +1,6 @@
 package me.anno.mesh.blender
 
+import com.github.luben.zstd.Zstd
 import me.anno.animation.LoopingState
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.AnimationState
@@ -68,6 +69,16 @@ object BlenderReader {
         ref.readByteBuffer(false) { it, exc ->
             if (it != null) {
                 callback.ok(readAsFolder(ref, it))
+            } else callback.err(exc)
+        }
+    }
+
+    fun readZstdAsFolder(ref: FileReference, callback: InnerFolderCallback) {
+        ref.readBytes { compressed, exc ->
+            if (compressed != null) {
+                val decompressed = Zstd.decompress(compressed)
+                val buffer = ByteBuffer.wrap(decompressed)
+                callback.ok(readAsFolder(ref, buffer))
             } else callback.err(exc)
         }
     }

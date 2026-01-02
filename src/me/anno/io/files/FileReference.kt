@@ -218,9 +218,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
-    open fun readByteBuffer(native: Boolean, callback: Callback<ByteBuffer>) {
+    open fun readByteBuffer(mustBeNative: Boolean, callback: Callback<ByteBuffer>) {
         readBytes(callback.map { bytes ->
-            if (native) {
+            if (mustBeNative) {
                 val buffer = ByteBufferPool.allocateDirect(bytes.size)
                 buffer.put(bytes).flip()
                 buffer

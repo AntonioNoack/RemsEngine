@@ -12,6 +12,7 @@
       <w>twemoji</w>
       <w>verlet</w>
       <w>webgpu</w>
+      <w>zstd</w>
     </words>
   </dictionary>
 </component>

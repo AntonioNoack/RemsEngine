@@ -30,7 +30,6 @@ import me.anno.mesh.blender.impl.BPose
 import me.anno.mesh.blender.impl.BPoseChannel
 import me.anno.mesh.blender.impl.BRenderData
 import me.anno.mesh.blender.impl.BScene
-import me.anno.mesh.blender.impl.primitives.BVector2s
 import me.anno.mesh.blender.impl.BezTriple
 import me.anno.mesh.blender.impl.BlendData
 import me.anno.mesh.blender.impl.DrawDataList
@@ -51,10 +50,11 @@ import me.anno.mesh.blender.impl.nodes.BNodeTexBase
 import me.anno.mesh.blender.impl.nodes.BNodeTexImage
 import me.anno.mesh.blender.impl.nodes.BNodeTree
 import me.anno.mesh.blender.impl.nodes.BTexMapping
+import me.anno.mesh.blender.impl.primitives.BVector1i
 import me.anno.mesh.blender.impl.primitives.BVector2f
 import me.anno.mesh.blender.impl.primitives.BVector2i
+import me.anno.mesh.blender.impl.primitives.BVector2s
 import me.anno.mesh.blender.impl.primitives.BVector3f
-import me.anno.mesh.blender.impl.primitives.BVector1i
 import me.anno.mesh.blender.impl.values.BNSVBoolean
 import me.anno.mesh.blender.impl.values.BNSVFloat
 import me.anno.mesh.blender.impl.values.BNSVInt
@@ -81,39 +81,94 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     var pointerSize = 0
 
     init {
+        consumeMagic()
+        when (val high = file.char()) {
+            '_', '-' -> readLegacyHeader(high)
+            else -> readNewHeader(high)
+        }
+    }
+
+    private fun consumeMagic() {
         val magic = "BLENDER"
         for (i in magic.indices) {
             val char = file.char()
-            if (char != magic[i]) throw IOException("Identifier is not matching $magic, got $char at $i")
+            if (char != magic[i]) throw IOException("Magic is not matching $magic, got $char at $i")
         }
-        file.is64Bit = when (file.char()) {
+    }
+
+    private fun readNewHeader(high: Char) {
+        // https://github.com/blender/blender/blob/71faed1305b6896f6179ca18d4a716491689747c/scripts/modules/_blendfile_header.py#L65
+        file.isLegacyFile = false
+        file.headerSize = 17
+        val low = file.char()
+        check(high == '1' && low == '7') // header size, must be 17
+        readIs64Bit(file.char()) // '_'/'-', hardcoded to true
+        val fileFormatVersion = readStringInt(2) // 01 in my case
+        readByteOrder() // 'v'/'V', hardcoded to little endian
+        version = readStringInt(4)
+        LOGGER.info("Blender ${version.formatVersion()} file has format version $fileFormatVersion, ByteOrder: ${file.data.order()}, 64Bit: ${file.is64Bit}")
+    }
+
+    private fun Int.formatVersion(): String {
+        val hundreds = this / 100
+        val tens = (this / 10) % 10
+        val ones = this % 10
+        return "$hundreds.$tens$ones"
+    }
+
+    private fun readStringInt(length: Int): Int {
+        var result = 0
+        repeat(length) {
+            val digit = file.char()
+            check(digit in '0'..'9') { "Invalid digit '$digit'" }
+            result = result * 10 + (digit - '0')
+        }
+        return result
+    }
+
+    private fun readLegacyHeader(high: Char) {
+        file.isLegacyFile = true
+        file.headerSize = 12
+        readIs64Bit(high)
+        readByteOrder()
+        // next 3 chars are the version: read them quickly
+        version = readStringInt(3)
+        LOGGER.info("Legacy Blender ${version.formatVersion()} file, ByteOrder: ${file.data.order()}, 64Bit: ${file.is64Bit}")
+    }
+
+    private fun readByteOrder() {
+        val order = when (file.char()) {
+            'v' -> ByteOrder.LITTLE_ENDIAN
+            'V' -> ByteOrder.BIG_ENDIAN
+            else -> throw IOException("Unknown endianness")
+        }
+        file.data.order(order)
+    }
+
+    private fun readIs64Bit(high: Char) {
+        file.is64Bit = when (high) {
             '_' -> false
             '-' -> true
             else -> throw IOException("Expected _ or - after magic")
         }
         pointerSize = if (file.is64Bit) 8 else 4
-        file.data.order(
-            when (file.char()) {
-                'v' -> ByteOrder.LITTLE_ENDIAN
-                'V' -> ByteOrder.BIG_ENDIAN
-                else -> throw IOException("Unknown endianness")
-            }
-        )
-        // next 3 chars are the version: read them quickly
-        version = (file.read() * 100 + file.read() * 10 + file.read()) - (48 + 480 + 4800)
     }
-
-    private val firstBlockOffset = file.offset()
 
     // read blocks
     val blocks = ArrayList<Block>()
 
     init {
+        val firstBlockOffset = file.getOffset() // = file.headerSize
+        check(firstBlockOffset == file.headerSize)
+        // LOGGER.info("Reading blocks from $firstBlockOffset")
         file.offset(firstBlockOffset)
         while (true) {
             val block = Block(file)
+            // LOGGER.info("Found block $block")
             if (block.code == ENDB) break
-            file.skip(block.size)
+            val skipSize = block.sizeInBytes
+            check(skipSize <= Int.MAX_VALUE)
+            file.index += skipSize.toInt()
             blocks.add(block)
         }
 
@@ -130,8 +185,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     }
 
     init {
-        file.padding(4)
-        file.consumeIdentifier('T', 'Y', 'P', 'E')
+        file.consumeIdentifierWithPadding('T', 'Y', 'P', 'E')
     }
 
     private val typeNames = Array(file.readInt()) {
@@ -139,8 +193,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     }
 
     init {
-        file.padding(4)
-        file.consumeIdentifier('T', 'L', 'E', 'N')
+        file.consumeIdentifierWithPadding('T', 'L', 'E', 'N')
     }
 
     val types = Array(typeNames.size) { i ->
@@ -151,8 +204,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     val dnaTypeByName = types.associateBy { it.name }
 
     init {
-        file.padding(4)
-        file.consumeIdentifier('S', 'T', 'R', 'C')
+        file.consumeIdentifierWithPadding('S', 'T', 'R', 'C')
     }
 
     private val structsWithIndices = List(file.readInt()) { Struct(file) }
@@ -262,6 +314,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
 
     fun getOrCreate(struct: DNAStruct, clazz: String, block: Block, address: Long): BlendData? {
         return objectCache.getOrPut(clazz, ::LongToObjectHashMap).getOrPut(address) {
+            // LOGGER.debug("Creating object for $clazz($struct)@$address in $block")
             create(struct, clazz, block, address)
         }
     }

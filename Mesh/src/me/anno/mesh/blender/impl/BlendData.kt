@@ -4,7 +4,6 @@ import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.DNAField
 import me.anno.mesh.blender.DNAStruct
-import me.anno.utils.assertions.assertEquals
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import java.nio.ByteBuffer
@@ -42,7 +41,7 @@ open class BlendData(ptr: ConstructorData) {
         if (pointer == 0L) return null
         val block = file.blockTable.findBlock(file, pointer) ?: return null
         // all elements will be pointers to material
-        val remainingSize = block.size - (pointer - block.address)
+        val remainingSize = block.sizeInBytes - (pointer - block.address)
         val length = (remainingSize / file.pointerSize).toInt()
         if (length == 0) return null
         val positionInFile = block.positionInFile
@@ -131,7 +130,7 @@ open class BlendData(ptr: ConstructorData) {
         if (address == 0L) return null
         val block = file.blockTable.findBlock(file, address) ?: return null
         val addressInBlock = address - block.address
-        val remainingSize = (block.size - addressInBlock).toInt()
+        val remainingSize = (block.sizeInBytes - addressInBlock).toInt()
         val position = (address + block.dataOffset).toInt()
         for (i in 0 until remainingSize) {
             if (buffer.get(position + i) == 0.toByte()) {
@@ -162,11 +161,15 @@ open class BlendData(ptr: ConstructorData) {
     fun inside(name: String) = inside(dnaStruct.byName[name])
     fun inside(field: DNAField?): BlendData? {
         field ?: return null
+
         // in-side object struct, e.g. ID
         val block = file.blockTable.getBlockAt(position)
         val address = block.address + (position - block.positionInFile) + field.offset
-        val sameBlock = file.blockTable.findBlock(file, address)
-        assertEquals(sameBlock, block) { "$position -> $address -> other" }
+        if (address >= block.address + block.sizeInBytes) {
+            LOGGER.warn("Expected same block for ${block.address}+($position-${block.positionInFile})+${field.offset}, size: ${block.sizeInBytes}")
+            return null
+        }
+
         var className = field.type.name
         val type = file.dnaTypeByName[className]!!
         val struct: DNAStruct
@@ -199,7 +202,7 @@ open class BlendData(ptr: ConstructorData) {
                 struct = file.structByName[className]!!
             }
             val addressInBlock = address - block.address
-            val remainingSize = block.size - addressInBlock
+            val remainingSize = block.sizeInBytes - addressInBlock
             val length = remainingSize / typeSize
             if (length > 1000) LOGGER.warn("Instantiating $length ${struct.type.name} instances, use the BInstantList, if possible")
             file.getOrCreate(struct, className, block, address)
@@ -237,7 +240,7 @@ open class BlendData(ptr: ConstructorData) {
                 // println("typeSize by $type")
             }
             val addressInBlock = address - block.address
-            val remainingSize = block.size - addressInBlock
+            val remainingSize = block.sizeInBytes - addressInBlock
             // println("Length: min($remainingSize/$typeSize, $maxSize)")
             val length = min((remainingSize / typeSize).toInt(), maxSize)
 
@@ -267,7 +270,7 @@ open class BlendData(ptr: ConstructorData) {
                 struct = file.structByName[className]!!
             }
             val addressInBlock = address - block.address
-            val remainingSize = block.size - addressInBlock
+            val remainingSize = block.sizeInBytes - addressInBlock
             remainingSize / typeSize
             file.getOrCreate(struct, className, block, address)
         } else {

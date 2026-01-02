@@ -32,7 +32,7 @@ class InnerLinkFile(
 
     override fun readText(callback: Callback<String>) = link.readText(callback)
     override fun readBytes(callback: Callback<ByteArray>) = link.readBytes(callback)
-    override fun readByteBuffer(native: Boolean, callback: Callback<ByteBuffer>) = link.readByteBuffer(native, callback)
+    override fun readByteBuffer(mustBeNative: Boolean, callback: Callback<ByteBuffer>) = link.readByteBuffer(mustBeNative, callback)
     override fun listChildren(callback: Callback<List<FileReference>>) = link.listChildren(callback)
     override fun length() = link.length()
     override val isDirectory: Boolean get() = link.isDirectory

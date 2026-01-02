@@ -70,7 +70,7 @@ object BlenderMeshConverter {
         val vertices = src.vertices
         val newVertices = if (vertices == null) loadNewVertices(src) else null
         if (vertices == null && newVertices == null) {
-            LOGGER.warn("${src.id.realName} has no vertices")
+            LOGGER.warn("Mesh '${src.id.realName}' has no vertices")
             // how can there be meshes without vertices?
             // because newer versions save the data in different places
             return null
