@@ -1,17 +1,13 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.maths.chunks.spherical.Hexagon
-import me.anno.maths.chunks.spherical.HexagonSphere.Companion.PENTAGON_COUNT
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.NormalCalculator.makeFlatShaded
 import me.anno.ecs.systems.Systems
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.buffer.DrawMode
@@ -22,12 +18,15 @@ import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
+import me.anno.maths.Maths.mix
 import me.anno.maths.MinMax.max
 import me.anno.maths.MinMax.min
-import me.anno.maths.Maths.mix
+import me.anno.maths.chunks.spherical.Hexagon
+import me.anno.maths.chunks.spherical.HexagonSphere.Companion.PENTAGON_COUNT
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.TestEngine.Companion.testUI2
 import me.anno.ui.input.IntInput
+import me.anno.ui.input.NumberType
 import me.anno.utils.Color.r01
 import me.anno.utils.OS.downloads
 import me.anno.utils.Threads
@@ -125,7 +124,7 @@ fun createNiceMesh0(
             colors[ci++] = colors1[hex.neighbors[j]!!.index.toInt()]
         }
         // base faces
-        for (i in 2 until size) {
+        repeat(size - 2) {
             indices[li++] = p0
             indices[li++] = p1++
             indices[li++] = p1
@@ -133,7 +132,7 @@ fun createNiceMesh0(
         // edge faces
         p1 = p0
         var p2 = p1 + size - 1
-        for (i in 0 until size) {
+        repeat(size) {
             indices[li++] = p1
             indices[li++] = p2
             indices[li++] = p2 + size

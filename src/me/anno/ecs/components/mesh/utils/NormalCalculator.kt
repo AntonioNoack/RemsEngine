@@ -291,7 +291,7 @@ object NormalCalculator {
 
     @JvmStatic
     fun Mesh.makeFlatShaded(calculateNormals: Boolean = true) {
-        if (indices != null) removeIndices()
+        removeIndices()
         if (calculateNormals) calculateNormals(false)
     }
 }

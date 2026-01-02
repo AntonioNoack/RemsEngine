@@ -1,6 +1,5 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.cache.FileCacheList
 import me.anno.cache.ICacheData
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
@@ -23,8 +22,6 @@ import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import me.anno.ecs.components.mesh.TransformMesh.rotateX90DegreesImpl
 import me.anno.ecs.components.mesh.TransformMesh.rotateY90DegreesImpl
 import me.anno.ecs.components.mesh.TransformMesh.scale
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.utils.IndexGenerator.generateIndices
 import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.components.mesh.utils.NormalCalculator
@@ -298,8 +295,9 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     fun calculateNormals(smooth: Boolean) {
         if (smooth && indices == null) generateIndices()
         val positions = positions ?: return
-        val normals = normals.resize(positions.size)
-        normals.fill(0f)
+        var normals = normals.resize(positions.size)
+        if (normals === positions) normals = FloatArray(positions.size)
+        else normals.fill(0f)
         NormalCalculator.checkNormals(this, positions, normals, indices, drawMode)
         this.normals = normals
     }
