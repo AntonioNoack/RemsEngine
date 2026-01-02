@@ -18,27 +18,27 @@ import me.anno.mesh.blender.impl.mesh.MVert
 @Suppress("SpellCheckingInspection", "unused", "UNCHECKED_CAST")
 class BMesh(ptr: ConstructorData) : BlendData(ptr) {
 
-    val id get() = getPartStruct("id") as BID
+    val id = inside("id") as BID
 
     val materials get() = getPointerArray("**mat")
 
-    val numFacesOld get() = i32("totface")
-    val numVertices get() = i32("totvert")
-    val numEdges get() = i32("totedge")
-    val numPolygons get() = i32("totpoly") // = num_faces
-    val numLoops get() = i32("totloop")
-    val numColors get() = i32("totcol")
+    val numFacesOld = i32("totface")
+    val numVertices = i32("totvert")
+    val numEdges = i32("totedge")
+    val numPolygons = i32("totpoly") // = num_faces
+    val numLoops = i32("totloop")
+    val numColors = i32("totcol")
 
     // dvert = deform group vertices
 
-    val vertices get() = getInstantList<MVert>("*mvert", numVertices)
-    val polygons get() = getInstantList<MPoly>("*mpoly", numPolygons)
-    val loops get() = getInstantList<MLoop>("*mloop", numLoops)
+    val vertices = getInstantList<MVert>("*mvert", numVertices)
+    val polygons = getInstantList<MPoly>("*mpoly", numPolygons)
+    val loops = getInstantList<MLoop>("*mloop", numLoops)
 
     // in newer Blender versions, this apparently has become a custom data layer,
     //  however we find those; src: https://projects.blender.org/blender/blender/commit/6c774feba2c9a1eb5834646f597a0f2c63177914
     // -> in my sample mesh, I found it in lData with name 'UVMap' as MLoopUV, too :)
-    val loopUVs get() = getInstantList<MLoopUV>("*mloopuv")
+    val loopUVs = getInstantList<MLoopUV>("*mloopuv")
     val loopColor get() = getInstantList<MLoopCol>("*mloopcol")
 
     // old
@@ -52,18 +52,18 @@ class BMesh(ptr: ConstructorData) : BlendData(ptr) {
     // val location get() = vec3f("loc[3]")
     // val size get() = vec3f("size[3]")
 
-    val vData get() = getPartStruct("vdata") as BCustomData
-    val eData get() = getPartStruct("edata") as BCustomData
-    val fData get() = getPartStruct("fdata") as BCustomData
-    val pData get() = getPartStruct("pdata") as BCustomData
-    val lData get() = getPartStruct("ldata") as BCustomData
+    val vData get() = inside("vdata") as BCustomData
+    val eData get() = inside("edata") as BCustomData
+    val fData get() = inside("fdata") as BCustomData
+    val pData get() = inside("pdata") as BCustomData
+    val lData get() = inside("ldata") as BCustomData
 
     var fileRef: FileReference = InvalidRef
 
     // vertex groups:
     // in old files in MDeformVert
-    val vertexGroupNames = getPartStruct("vertex_group_names") as? BListBase<BDeformGroup>
-    val vertexGroups get() = getInstantList<MDeformVert>("*dvert")
+    val vertexGroupNames = inside("vertex_group_names") as? BListBase<BDeformGroup>
+    val vertexGroups = getInstantList<MDeformVert>("*dvert")
 
     val editMesh get() = getPointer("*edit_mesh")
 
@@ -84,10 +84,6 @@ class BMesh(ptr: ConstructorData) : BlendData(ptr) {
      * stores vertex and face data for Blender 5
      * */
     val attributes: AttributeStorage?
-        get() {
-           val value = getPartStruct("attribute_storage") as? AttributeStorage
-            println("Got AttributeStorage@$positionInFile for Mesh@${value?.positionInFile}")
-            return value
-        }
+        get() = inside("attribute_storage") as? AttributeStorage
 
 }

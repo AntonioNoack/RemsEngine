@@ -20,8 +20,8 @@ class BNode(ptr: ConstructorData) : BLink<BNode>(ptr) {
     val editorWidth = f32("width")
     val editorHeigth = f32("height")
 
-    val inputs = (getPartStruct("inputs") as BListBase<BNodeSocket>).toList()
-    val outputs = (getPartStruct("outputs") as BListBase<BNodeSocket>).toList()
+    val inputs = (inside("inputs") as BListBase<BNodeSocket>).toList()
+    val outputs = (inside("outputs") as BListBase<BNodeSocket>).toList()
 
     // texture settings for ShaderNodeTexImage
     // val storage = getPointer("*storage")
@@ -35,7 +35,7 @@ class BNode(ptr: ConstructorData) : BLink<BNode>(ptr) {
     }
 
     override fun toString(): String {
-        return "bNode@${positionInFile.toString(16)} { $id, '$name', $type, " +
+        return "bNode@${position.toString(16)} { $id, '$name', $type, " +
                 "size: $editorX,$editorY+=${editorWidth}x${editorHeigth}, " +
                 "inputs: $inputs, outputs: $outputs }"
     }

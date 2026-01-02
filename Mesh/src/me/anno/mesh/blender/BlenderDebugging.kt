@@ -6,7 +6,7 @@ import me.anno.mesh.blender.impl.primitives.BVector1i
 object BlenderDebugging {
 
     fun BlendData.debugPrint() {
-        println("${dnaStruct.type} @$positionInFile")
+        println("${dnaStruct.type} @${address}")
         var prevField: DNAField? = null
         for ((name, field) in dnaStruct.byName) {
             if (field === prevField) continue
@@ -67,14 +67,14 @@ object BlenderDebugging {
                 "ID",
                 "CustomData",
                 "ListBase",
-                "AttributeStorage" -> data.getPartStruct(field)
+                "AttributeStorage" -> data.inside(field)
                 else -> Unit
             }
         }
     }
 
     fun BlendData.toStringImpl(): String {
-        return "${dnaStruct.type}@$positionInFile { ${
+        return "${dnaStruct.type}@$address { ${
             dnaStruct.byName.map { (name, field) ->
                 val value = getDebugValue(name, field)
                 if (value == Unit) "${field.type} $name"

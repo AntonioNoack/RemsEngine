@@ -10,8 +10,8 @@ import me.anno.mesh.blender.impl.BlendData
 @Suppress("unused", "SpellCheckingInspection", "UNCHECKED_CAST")
 class BNodeTree(ptr: ConstructorData) : BlendData(ptr) {
 
-    val nodes = getPartStruct("nodes") as BListBase<BNode>
-    val links = getPartStruct("links") as BListBase<BNodeLink>
+    val nodes = inside("nodes") as BListBase<BNode>
+    val links = inside("links") as BListBase<BNodeLink>
 
     // inputs and ouputs are deprecated; find them by type
 

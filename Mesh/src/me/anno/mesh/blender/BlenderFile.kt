@@ -281,7 +281,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
                         val instance = getOrCreate(struct, struct.type.name, block, address)
                         if (instance != null) {
                             instances.getOrPut(name, ::ArrayList).add(instance)
-                        } else break
+                        }
                     }
                 }
             }
@@ -325,8 +325,8 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
 
     fun create(struct: DNAStruct, clazz: String, block: Block, address: Long): BlendData? {
         if (address == 0L) return null
-        val positionInFile = (address + block.dataOffset).toInt()
-        val ptr = ConstructorData(this, struct, positionInFile)
+        val position = (address + block.dataOffset).toInt()
+        val ptr = ConstructorData(this, struct, position)
         return when (clazz) {
             // unused classes have been commented out
             "Mesh" -> BMesh(ptr)

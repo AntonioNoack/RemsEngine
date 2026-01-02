@@ -23,7 +23,7 @@ class Attribute(ptr: ConstructorData) : BlendData(ptr) {
     val storageType get() = i8("storage_type")
     val isArray get() = storageType == 0.toByte()
 
-    // AttributeArray or single
+    // AttributeArray or single (however that works -> directly RawData?)
     val data get() = getPointer("*data")
 
     override fun toString(): String = "($name[$dataTypeEnum,$domainEnum,${if (isArray) "Array" else "Single"}]=$data)"

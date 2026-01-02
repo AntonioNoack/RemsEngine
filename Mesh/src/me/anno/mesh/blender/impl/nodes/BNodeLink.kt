@@ -15,7 +15,7 @@ class BNodeLink(ptr: ConstructorData) : BLink<BNodeLink>(ptr) {
 
     override fun toString(): String {
         return "bNodeLink { " +
-                "from: ${fromNode.type}@${fromNode.positionInFile.toString(16)}/'${fromSocket.name}', " +
-                "to: ${toNode.type}@${fromNode.positionInFile.toString(16)}/'${toSocket.name}' }"
+                "from: ${fromNode.type}@${fromNode.position.toString(16)}/'${fromSocket.name}', " +
+                "to: ${toNode.type}@${fromNode.position.toString(16)}/'${toSocket.name}' }"
     }
 }

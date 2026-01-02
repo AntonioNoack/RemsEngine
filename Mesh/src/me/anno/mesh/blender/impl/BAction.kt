@@ -8,15 +8,15 @@ import me.anno.mesh.blender.ConstructorData
 @Suppress("SpellCheckingInspection", "UNCHECKED_CAST")
 class BAction(ptr: ConstructorData) : BlendData(ptr) {
 
-    val id = getPartStruct("id") as BID
+    val id = inside("id") as BID
 
     // markers could be very interesting for procedural things :)
     //  id: ID, curves: ListBase, chanbase: ListBase, groups: ListBase, markers: ListBase, flag: int, active_marker: int,
     //  idroot: int, frame_start: float, frame_end: float, *preview: PreviewImage
 
-    val groups = getPartStruct("groups") as BListBase<BActionGroup>
-    val curves = getPartStruct("curves") as BListBase<FCurve>
-    val channels = getPartStruct("chanbase") as BListBase<BActionChannel>
+    val groups = inside("groups") as BListBase<BActionGroup>
+    val curves = inside("curves") as BListBase<FCurve>
+    val channels = inside("chanbase") as BListBase<BActionChannel>
 
     override fun toString(): String {
         return "bAction { $id, channels: $channels, groups: $groups, curves: [${curves.joinToString { "\n  $it" }}\n] }"

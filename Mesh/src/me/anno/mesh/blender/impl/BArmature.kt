@@ -17,8 +17,8 @@ class BArmature(ptr: ConstructorData) : BlendData(ptr) {
     // flag: int, drawtype: int, deformflag: short, pathflag: short,
     // layer_used: int, layer: int, layer_protected: int, axes_position: float
 
-    val id = getPartStruct("id") as BID
-    val bones = getPartStruct("bonebase") as BListBase<BBone>
+    val id = inside("id") as BID
+    val bones = inside("bonebase") as BListBase<BBone>
     val adt = getPointer("*adt")
 
     override fun toString(): String {

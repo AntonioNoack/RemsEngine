@@ -4,11 +4,11 @@ import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.DNAField
 import me.anno.mesh.blender.DNAStruct
-import me.anno.mesh.blender.DNAType
 import me.anno.mesh.blender.blocks.Block
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import java.nio.ByteBuffer
+import kotlin.math.min
 
 @Suppress("unused")
 open class BlendData(val ptr: ConstructorData) {
@@ -16,18 +16,18 @@ open class BlendData(val ptr: ConstructorData) {
     val file: BlenderFile get() = ptr.file
     val dnaStruct: DNAStruct get() = ptr.type
     val buffer: ByteBuffer = ptr.file.file.data // sooo many accesses -> let's be direct in this one case
-    var positionInFile: Int = ptr.position
-    val block: Block get() = file.blockTable.getBlockAt(positionInFile)
+    var position: Int = ptr.position
+    val block: Block get() = file.blockTable.getBlockAt(position)
 
-    val address get() = file.blockTable.getAddressAt(positionInFile)
+    val address get() = file.blockTable.getAddressAt(position)
 
-    fun i8(offset: Int) = if (offset < 0) 0 else buffer.get(positionInFile + offset)
-    fun i16(offset: Int) = if (offset < 0) 0 else buffer.getShort(positionInFile + offset)
-    fun u16(offset: Int) = if (offset < 0) 0 else buffer.getShort(positionInFile + offset).toInt().and(0xffff)
-    fun i32(offset: Int) = if (offset < 0) 0 else buffer.getInt(positionInFile + offset)
-    fun i64(offset: Int) = if (offset < 0) 0 else buffer.getLong(positionInFile + offset)
+    fun i8(offset: Int) = if (offset < 0) 0 else buffer.get(position + offset)
+    fun i16(offset: Int) = if (offset < 0) 0 else buffer.getShort(position + offset)
+    fun u16(offset: Int) = if (offset < 0) 0 else buffer.getShort(position + offset).toInt().and(0xffff)
+    fun i32(offset: Int) = if (offset < 0) 0 else buffer.getInt(position + offset)
+    fun i64(offset: Int) = if (offset < 0) 0 else buffer.getLong(position + offset)
     fun f32(offset: Int) = if (offset < 0) 0f else f32Unsafe(offset)
-    fun f32Unsafe(offset: Int) = buffer.getFloat(positionInFile + offset)
+    fun f32Unsafe(offset: Int) = buffer.getFloat(position + offset)
 
     fun f32s(name: String, size: Int, default: Float = 0f): FloatArray = f32s(getOffset(name), size, default)
     fun f32s(offset: Int, size: Int, default: Float = 0f): FloatArray {
@@ -47,7 +47,6 @@ open class BlendData(val ptr: ConstructorData) {
         // all elements will be pointers to material
         val remainingSize = block.sizeInBytes - (pointer - block.address)
         val length = (remainingSize / file.pointerSize).toInt()
-        println("array length: $length")
         if (length == 0) return null
         val positionInFile = block.positionInFile
         val data = file.file.data
@@ -121,7 +120,7 @@ open class BlendData(val ptr: ConstructorData) {
     fun string(name: String, limit: Int): String? = string(getOffset(name), limit)
     fun string(offset: Int, limit: Int): String? {
         if (offset < 0) return null
-        val position = positionInFile + offset
+        val position = position + offset
         for (len in 0 until limit) {
             val char = buffer.get(position + len)
             if (char.toInt() == 0) {
@@ -174,32 +173,22 @@ open class BlendData(val ptr: ConstructorData) {
             else i64(offset)
     }
 
-    data class ResolvedPointer(
-        val struct: DNAStruct,
-        val className: String,
-        val block: Block,
-        val stride: Int,
-        val length: Int,
-    )
-
-    private fun isPointerType(type: DNAType): Boolean = type.size == 0 || type.name == "void"
-
-    fun getPartStruct(name: String) = getPartStruct(dnaStruct.byName[name])
-    fun getPartStruct(field: DNAField?): BlendData? {
+    fun inside(name: String) = inside(dnaStruct.byName[name])
+    fun inside(field: DNAField?): BlendData? {
         field ?: return null
 
         // in-side object struct, e.g. ID
         val block = block
-        val address = block.address + (positionInFile - block.positionInFile) + field.offset
+        val address = block.address + (position - block.positionInFile) + field.offset
         if (address >= block.address + block.sizeInBytes) {
-            LOGGER.warn("Expected same block for ${block.address}+($positionInFile-${block.positionInFile})+${field.offset}, size: ${block.sizeInBytes}")
+            LOGGER.warn("Expected same block for ${block.address}+($position-${block.positionInFile})+${field.offset}, size: ${block.sizeInBytes}")
             return null
         }
 
         var className = field.type.name
         val type = file.dnaTypeByName[className]!!
         val struct: DNAStruct
-        if (isPointerType(type)) {
+        if (type.size == 0 || type.name == "void") {
             struct = file.structs[block.sdnaIndex]
             className = struct.type.name
         } else {
@@ -209,70 +198,83 @@ open class BlendData(val ptr: ConstructorData) {
         return file.getOrCreate(struct, className, block, address)
     }
 
-    private fun resolvePointer(field: DNAField, address: Long): ResolvedPointer? {
-        // println("reading instance list for $field")
-        if (address == 0L) return null
-        val block = file.blockTable.findBlock(file, address) ?: return null
-        var className = field.type.name
-        val type = file.dnaTypeByName[className]!!
-        var stride = type.size
-        val struct: DNAStruct
-        if (isPointerType(type)) {
-            struct = file.structs[block.sdnaIndex]
-            className = struct.type.name
-            stride = file.pointerSize
-            // println("typeSize by pointer, ${type.size}/${type.name} | $struct")
-        } else {
-            struct = file.structByName[className]!!
-            // println("typeSize by $type")
-        }
-        val addressInBlock = address - block.address
-        val remainingSize = block.sizeInBytes - addressInBlock
-        // println("Length: min($remainingSize/$typeSize, $maxSize)")
-        val length = (remainingSize / stride).toInt()
-        return ResolvedPointer(struct, className, block, stride, length)
-    }
-
     fun getStructArray(name: String): List<BlendData>? = getStructArray(dnaStruct.byName[name])
     fun getStructArray(field: DNAField?): List<BlendData>? {
         field ?: return null
         return if (field.decoratedName.startsWith("*")) {
             val address = pointer(field.offset)
-            val (struct, className, block, stride, length) = resolvePointer(field, address) ?: return null
-
+            if (address == 0L) return null
+            val block = file.blockTable.findBlock(file, address)
+            if (block == null) {
+                LOGGER.warn("Missing block for $field @ $address")
+                return block
+            }
+            var className = field.type.name
+            val type = file.dnaTypeByName[className]!!
+            var typeSize = type.size
+            val struct: DNAStruct
+            if (type.size == 0 || type.name == "void") {
+                struct = file.structs[block.sdnaIndex]
+                className = struct.type.name
+                typeSize = file.pointerSize
+            } else {
+                struct = file.structByName[className]!!
+            }
+            val addressInBlock = address - block.address
+            val remainingSize = block.sizeInBytes - addressInBlock
+            val length = remainingSize / typeSize
             if (length > 1000) LOGGER.warn("Instantiating $length ${struct.type.name} instances, use the BInstantList, if possible")
-            val canCreateInstance = file.getOrCreate(struct, className, block, address)
-                ?: return null// if no instance can be created, just return null
-
-            println("Reading list of $className from $address (by ${this.address}), x$length, stride: $stride")
-
-            List(length) { instanceIndex ->
-                if (instanceIndex == 0) {
-                    canCreateInstance
-                } else {
-                    val addressI = address + instanceIndex * stride
-                    file.getOrCreate(struct, className, block, addressI)!!
-                }
+            val canCreateInstance = file.getOrCreate(struct, className, block, address) != null
+            if (!canCreateInstance) {
+                // if no instance can be created, just return null
+                return null
+            }
+            List(length.toInt()) {
+                val addressI = address + it * typeSize
+                file.getOrCreate(struct, className, block, addressI)!!
             }
         } else {
-            val instance = getPartStruct(field)
+            val instance = inside(field)
             if (instance != null) listOf(instance)
             else emptyList()
         }
     }
 
     fun <V : BlendData> getInstantList(name: String, maxSize: Int = Int.MAX_VALUE): BInstantList<V>? {
+        // println("reading instance list for $name")
         return getInstantList(dnaStruct.byName[name], maxSize)
     }
 
     fun <V : BlendData> getInstantList(field: DNAField?, maxSize: Int): BInstantList<V>? {
         field ?: return null
         if (field.decoratedName.startsWith("*")) {
-            val (struct, className, block, _, length) = resolvePointer(field, address) ?: return null
-            val instance = file.create(struct, className, block, address) ?: return null
+            // println("reading instance list for $field")
+            val address = pointer(field.offset)
+            if (address == 0L) return null
+            val block = file.blockTable.findBlock(file, address) ?: return null
+            var className = field.type.name
+            val type = file.dnaTypeByName[className]!!
+            var typeSize = type.size
+            val struct: DNAStruct
+            if (typeSize == 0 || type.name == "void") {
+                struct = file.structs[block.sdnaIndex]
+                className = struct.type.name
+                typeSize = struct.type.size
+                // println("typeSize by pointer, ${type.size}/${type.name} | $struct")
+            } else {
+                struct = file.structByName[className]!!
+                // println("typeSize by $type")
+            }
+            val addressInBlock = address - block.address
+            val remainingSize = block.sizeInBytes - addressInBlock
+            // println("Length: min($remainingSize/$typeSize, $maxSize)")
+            val length = min((remainingSize / typeSize).toInt(), maxSize)
+
+            // todo getOrCreate() isn't working... why?
             @Suppress("unchecked_cast")
-            return BInstantList(length, instance as? V)
-        } else throw IllegalArgumentException("Expected pointer field")
+            val instance = file.create(struct, className, block, address) as? V ?: return null
+            return BInstantList(length, instance)
+        } else throw RuntimeException()
     }
 
     fun getPointer(name: String): BlendData? = getPointer(dnaStruct.byName[name])
@@ -280,10 +282,25 @@ open class BlendData(val ptr: ConstructorData) {
         field ?: return null
         return if (field.decoratedName.startsWith("*")) {
             val address = pointer(field.offset)
-            val (struct, className, block, _, _) = resolvePointer(field, address) ?: return null
+            if (address == 0L) return null
+            val block = file.blockTable.findBlock(file, address) ?: return null
+            var className = field.type.name
+            val type = file.dnaTypeByName[className]!!
+            var typeSize = type.size
+            val struct: DNAStruct
+            if (type.size == 0 || type.name == "void") {
+                struct = file.structs[block.sdnaIndex]
+                className = struct.type.name
+                typeSize = file.pointerSize
+            } else {
+                struct = file.structByName[className]!!
+            }
+            val addressInBlock = address - block.address
+            val remainingSize = block.sizeInBytes - addressInBlock
+            remainingSize / typeSize
             file.getOrCreate(struct, className, block, address)
         } else {
-            getPartStruct(field)
+            inside(field)
         }
     }
 

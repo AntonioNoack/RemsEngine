@@ -10,16 +10,16 @@ import me.anno.utils.structures.lists.SimpleList
  * */
 class BInstantList<V : BlendData>(override val size: Int, val instance: V?) : SimpleList<V>() {
 
-    val positionInFile0: Int
-    val stride: Int
+    private val position0: Int
+    private val typeSize: Int
 
     init {
         if (instance == null) {
-            positionInFile0 = 0
-            stride = 0
+            position0 = 0
+            typeSize = 0
         } else {
-            positionInFile0 = instance.positionInFile
-            stride = instance.dnaStruct.type.size
+            position0 = instance.position
+            typeSize = instance.dnaStruct.type.size
         }
     }
 
@@ -34,13 +34,11 @@ class BInstantList<V : BlendData>(override val size: Int, val instance: V?) : Si
             throw IndexOutOfBoundsException("$index !in 0 until $size")
         }
         val instance = instance!!
-        instance.positionInFile = positionInFile0 + stride * index
+        instance.position = position0 + typeSize * index
         return instance
     }
 
     companion object {
-        private val emptyListInstance = BInstantList(0, null)
-        @Suppress("UNCHECKED_CAST")
-        fun <V : BlendData> emptyList() = emptyListInstance as BInstantList<V>
+        fun <V : BlendData> emptyList() = BInstantList<V>(0, null)
     }
 }

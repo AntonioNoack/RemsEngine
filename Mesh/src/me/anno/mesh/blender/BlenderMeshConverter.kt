@@ -5,13 +5,14 @@ import me.anno.gpu.CullMode
 import me.anno.io.files.InvalidRef
 import me.anno.maths.MinMax.max
 import me.anno.mesh.Triangulation
-import me.anno.mesh.blender.BlenderDebugging.toStringImpl
+import me.anno.mesh.blender.BlenderDebugging.debugPrint
 import me.anno.mesh.blender.impl.BCustomDataLayer
 import me.anno.mesh.blender.impl.BCustomLayerType
 import me.anno.mesh.blender.impl.BInstantList
 import me.anno.mesh.blender.impl.BMaterial
 import me.anno.mesh.blender.impl.BMesh
 import me.anno.mesh.blender.impl.BlendData
+import me.anno.mesh.blender.impl.attr.AttributeStorage
 import me.anno.mesh.blender.impl.helper.IAPolyList
 import me.anno.mesh.blender.impl.helper.VEJoinList
 import me.anno.mesh.blender.impl.interfaces.LoopLike
@@ -69,10 +70,8 @@ object BlenderMeshConverter {
             showDebugProperties(src)
         }
 
-        LOGGER.info("Loading Mesh @${src.address}")
-
         val attributes = src.attributes
-        LOGGER.info("Attributes: ${attributes?.toStringImpl()} @${attributes?.address}")
+        LOGGER.info("Attributes: {}", attributes?.attributes?.map { it.name })
 
         val verticesV1 = src.vertices
         val verticesV2 = if (verticesV1 == null) {
@@ -92,14 +91,14 @@ object BlenderMeshConverter {
         val materials: List<BlendData?> = src.materials ?: emptyList()
         val polygons: List<PolyLike> = src.polygons ?: getNewPolygons(src)
 
-        val loopData = loadLoopData(src)
+        val loopData = loadLoopData(src, attributes)
 
         val prefab = Prefab("Mesh")
         prefab["materials"] = materials.map { (it as? BMaterial)?.fileRef ?: InvalidRef }
         prefab["cullMode"] = CullMode.BOTH
 
         val normals = loadPositionsAndNormals(verticesV1, numVertices, positions, verticesV2)
-        val uvs = loadUVs(src)
+        val uvs = loadUVs(src, attributes)
 
         // todo vertex colors
         val hasUVs = uvs.any2 { it.u != 0f || it.v != 0f }
@@ -112,7 +111,7 @@ object BlenderMeshConverter {
         }
 
         if (triCount0 !in 0..maxNumTriangles) {
-            LOGGER.warn("Invalid number of triangles in ${src.fileRef.name}/${src.id.realName}: $triCount0")
+            LOGGER.warn("Invalid number of triangles in ${src.id.realName}: $triCount0")
             return null
         }
 
@@ -143,7 +142,7 @@ object BlenderMeshConverter {
         return prefab
     }
 
-    private fun loadUVs(src: BMesh): List<UVLike> {
+    private fun loadUVs(src: BMesh, attributes: AttributeStorage?): List<UVLike> {
         val loopUvs = src.loopUVs
         if (loopUvs != null) return loopUvs
 
@@ -161,13 +160,13 @@ object BlenderMeshConverter {
             ?.data as? BInstantList<BVector2f>
         if (newUVs1 != null) return newUVs1
 
-        val newUVs2 = src.attributes?.loadVector2fArray("uvs")
+        val newUVs2 = attributes?.loadVector2fArray("uvs")
         if (newUVs2 != null) return newUVs2
 
         return emptyList()
     }
 
-    private fun loadLoopData(src: BMesh): List<LoopLike> {
+    private fun loadLoopData(src: BMesh, attributes: AttributeStorage?): List<LoopLike> {
         val loopsV1 = src.loops
         if (loopsV1 != null) return loopsV1
 
@@ -178,12 +177,11 @@ object BlenderMeshConverter {
         if (vs != null && es != null) return VEJoinList(vs, es)
 
         // loops V3
-        val attributes = src.attributes
         if (attributes != null) {
             val vs = attributes.loadVector1iArray(".corner_vert")
             val es = attributes.loadVector1iArray(".corner_edge")
             if (vs != null && es != null) {
-                println("Got V&Es from attributes: $vs, $es, ${vs.positionInFile0}, ${es.positionInFile0}")
+                println("Got V&Es from attributes: $vs, $es")
                 return VEJoinList(vs, es)
             }
         }
@@ -470,7 +468,7 @@ object BlenderMeshConverter {
         // indexed, simple
         val indices = IntArrayList(polygons.size * 3)
         var matIndex = 0
-        println("loopData[${loopData.size}]: ${loopData.map { it.v }}, polygons: ${polygons.size}")
+        println("loopData[${loopData.size}]: ${loopData.map { it.v }}")
         for (i in polygons.indices) {
             val polygon = polygons[i]
             val loopStart = polygon.loopStart

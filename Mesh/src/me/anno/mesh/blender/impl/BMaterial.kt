@@ -8,7 +8,7 @@ import me.anno.mesh.blender.impl.nodes.BNodeTree
 @Suppress("unused")
 class BMaterial(ptr: ConstructorData) : BlendData(ptr) {
 
-    val id = getPartStruct("id") as BID
+    val id = inside("id") as BID
 
     val r = f32("r", 1f)
     val g = f32("g", 1f)
