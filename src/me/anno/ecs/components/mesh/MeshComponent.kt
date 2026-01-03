@@ -4,21 +4,13 @@ import me.anno.cache.FileCacheValue
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 
-open class MeshComponent() : MeshComponentBase() {
+open class MeshComponent(meshFile: FileReference) : MeshComponentBase() {
 
-    companion object {
-        // using the flat cube as a default mesh seems a good choice :)
-        private val defaultMeshRef = flatCube.ref
-    }
-
-    constructor(mesh: FileReference) : this() {
-        this.name = mesh.nameWithoutExtension
-        this.meshFile = mesh
-    }
+    constructor() : this(InvalidRef)
 
     constructor(mesh: FileReference, material: Material) : this(mesh, material.ref)
     constructor(mesh: FileReference, material: FileReference) : this(mesh) {
@@ -41,7 +33,7 @@ open class MeshComponent() : MeshComponentBase() {
             }
         }
 
-    private val cachedMesh = FileCacheValue(defaultMeshRef, MeshCache::getEntry)
+    private val cachedMesh = FileCacheValue(meshFile, MeshCache::getEntry)
 
     override fun getMeshOrNull(): IMesh? = cachedMesh.value
     override fun getMesh(): IMesh? = cachedMesh.waitFor().waitFor()

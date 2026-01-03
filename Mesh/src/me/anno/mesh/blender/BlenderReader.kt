@@ -6,7 +6,6 @@ import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.BoneByBoneAnimation
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
@@ -18,8 +17,6 @@ import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.sq
-import me.anno.mesh.Shapes.flatCube
-import me.anno.mesh.blender.BlenderDebugging.debugPrint
 import me.anno.mesh.blender.BlenderMeshConverter.convertBMesh
 import me.anno.mesh.blender.impl.BAction
 import me.anno.mesh.blender.impl.BArmature
@@ -128,20 +125,13 @@ object BlenderReader {
         clock.stop("read ${file.instances["Material"]?.size} materials")
     }
 
-    private val missingMeshPrefab: Mesh
-        get() {
-            val mesh = flatCube.front
-            mesh.ref // ensure prefab
-            return mesh
-        }
-
     private fun readMeshes(file: BlenderFile, folder: InnerFolder, clock: Clock): InnerFolder {
         val meshFolder = folder.createChild("meshes", null) as InnerFolder
         val instances = file.instances["Mesh"] ?: emptyList()
         for (i in instances.indices) {
             val mesh = instances[i] as BMesh
             val name = mesh.id.realName
-            val prefab = convertBMesh(mesh) ?: missingMeshPrefab.prefab!!
+            val prefab = convertBMesh(mesh) ?: continue
             mesh.fileRef = meshFolder.createPrefabChild("$name.json", prefab)
         }
         clock.stop("read ${instances.size} meshes")

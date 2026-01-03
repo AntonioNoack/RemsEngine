@@ -20,7 +20,7 @@ class BMesh(ptr: ConstructorData) : BlendData(ptr) {
 
     val id = inside("id") as BID
 
-    val materials get() = getPointerArray("**mat")
+    val materials get() = getPointerArray<BMaterial>("**mat")?.filterNotNull()
 
     val numFacesOld = i32("totface")
     val numVertices = i32("totvert")

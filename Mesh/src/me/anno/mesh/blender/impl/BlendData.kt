@@ -36,8 +36,8 @@ open class BlendData(val ptr: ConstructorData) {
     }
 
     // fields starting with **
-    fun getPointerArray(name: String) = getPointerArray(getField(name))
-    fun getPointerArray(field: DNAField?): List<BlendData?>? {
+    fun <V: BlendData> getPointerArray(name: String) = getPointerArray<V>(getField(name))
+    fun <V: BlendData> getPointerArray(field: DNAField?): List<V?>? {
         field ?: return null
         val pointer = pointer(field.offset)
         if (pointer == 0L) return null
@@ -57,7 +57,8 @@ open class BlendData(val ptr: ConstructorData) {
             val struct = file.structByName[field.type.name]
                 ?: throw IllegalStateException("Missing struct array of type ${field.type}")
             // todo I don't get it, how is ptr valid with that given block???
-            file.getOrCreate(struct, field.type.name, block, ptr)
+            @Suppress("UNCHECKED_CAST")
+            file.getOrCreate(struct, field.type.name, block, ptr) as? V
         }
     }
 
@@ -187,7 +188,7 @@ open class BlendData(val ptr: ConstructorData) {
         var className = field.type.name
         val type = file.dnaTypeByName[className]!!
         val struct: DNAStruct
-        if (type.size == 0 || type.name == "void") {
+        if (type.sizeInBytes == 0 || type.name == "void") {
             struct = file.structs[block.sdnaIndex]
             className = struct.type.name
         } else {
@@ -204,6 +205,7 @@ open class BlendData(val ptr: ConstructorData) {
         field ?: return null
         return if (field.isPointer()) {
             val (address, block, className, struct, stride, length) = createStructInfo(field) ?: return null
+            println("Loading $field from ${dnaStruct.type.name} @$address, block[${block.address}]: ${block.positionInFile} += ${block.sizeInBytes}")
             if (length > 1000) LOGGER.warn("Instantiating $length ${struct.type.name} instances, use the BInstantList, if possible")
             // if no instance can be created, just return null
             file.getOrCreate(struct, className, block, address) ?: return null
@@ -251,9 +253,9 @@ open class BlendData(val ptr: ConstructorData) {
         val block = file.blockTable.findBlock(file, address) ?: return null
         var className = field.type.name
         val type = file.dnaTypeByName[className]!!
-        var stride = type.size
+        var stride = type.sizeInBytes
         val struct: DNAStruct
-        if (type.size == 0 || type.name == "void") {
+        if (type.sizeInBytes == 0 || type.name == "void") {
             struct = file.structs[block.sdnaIndex]
             className = struct.type.name
             stride = file.pointerSize
@@ -263,6 +265,7 @@ open class BlendData(val ptr: ConstructorData) {
         val addressInBlock = address - block.address
         val remainingSize = block.sizeInBytes - addressInBlock
         val length = min(remainingSize / stride, Int.MAX_VALUE.toLong()).toInt()
+        println("Read pointer $address from field $field ($positionInFile + ${field.offset}), length: $length")
         return StructInfo(address, block, className, struct, stride, length)
     }
 

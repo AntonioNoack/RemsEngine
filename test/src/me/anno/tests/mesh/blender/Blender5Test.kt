@@ -16,8 +16,5 @@ fun main() {
 
     val file = documents.getChild("Blender/CompressionTest.blend")
     val mesh = MeshCache.getEntry(file).waitFor() as Mesh
-    println("Mesh: ${mesh.numPrimitives} tris, ${mesh.positions?.size} pos, ${mesh.indices?.size} indices")
-    println("Bounds: ${mesh.getBounds()}")
-    println("Positions: ${mesh.positions?.toList()}")
     testSceneWithUI("Blender5", mesh)
 }

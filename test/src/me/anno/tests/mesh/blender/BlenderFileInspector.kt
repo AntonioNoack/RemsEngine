@@ -32,7 +32,7 @@ fun main() {
 }
 
 fun inspect(structure: BlendData, indent: Int, depth: Int) {
-    println("${spaces(2 * indent)}${structure.javaClass.simpleName}[${structure.dnaStruct.type.size}]:")
+    println("${spaces(2 * indent)}${structure.javaClass.simpleName}[${structure.dnaStruct.type.sizeInBytes}]:")
     if (structure is BMesh) {
         println("  *polyOffsetIndices: ${structure.polyOffsetIndices?.toList()}")
     }
@@ -57,7 +57,7 @@ fun inspect(structure: BlendData, indent: Int, depth: Int) {
                     if (name.startsWith("*")) {
                         var err: String? = null
                         val values = try {
-                            structure.getStructArray(field)
+                            structure.getStructArray<BlendData>(field)
                         } catch (e: IllegalStateException) {
                             LOGGER.warn(e.message)
                             err = e.message
@@ -67,7 +67,7 @@ fun inspect(structure: BlendData, indent: Int, depth: Int) {
                         if (values != null) {
                             println("$pre$name: ${values.size}x")
                             for (value in values) {
-                                inspect(value!!, indent + 2, depth - 1)
+                                inspect(value, indent + 2, depth - 1)
                             }
                         } else println("$pre$name: $err")
                     } else {

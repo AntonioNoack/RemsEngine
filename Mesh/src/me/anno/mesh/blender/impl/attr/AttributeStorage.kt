@@ -48,7 +48,7 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
 
     }
 
-    val attributes: List<Attribute> = getStructArray("*dna_attributes") ?: emptyList()
+    val attributes = getStructArray<Attribute>("*dna_attributes") ?: emptyList()
 
     override fun toString(): String = attributes.toString()
 
@@ -110,7 +110,7 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
         val block = file.blockTable.findBlock(file, address) ?: return null
         val position = (address + block.dataOffset).toInt()
         val instance = createInstance(ConstructorData(file, type, position))
-        return BInstantList(data.size.toInt(), type.type.size, instance)
+        return BInstantList(data.size.toInt(), type.type.sizeInBytes, instance)
     }
 
 }

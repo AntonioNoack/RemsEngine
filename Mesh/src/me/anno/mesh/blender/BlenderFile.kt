@@ -233,7 +233,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             for (name in structByName.keys.sorted()) {
                 val struct = structByName[name]!!
                 LOGGER.debug(
-                    "Struct {}({}): { {} }", name, struct.type.size,
+                    "Struct {}({}): { {} }", name, struct.type.sizeInBytes,
                     struct.byName.entries
                         .filter {
                             !it.key.startsWith("_pad") &&
@@ -277,7 +277,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
                     // maybe we should create multiple instances, if there are multiples
                     val name = struct.type.name
                     for (i in 0 until block.count) {
-                        val address = block.address + struct.type.size * i
+                        val address = block.address + struct.type.sizeInBytes * i
                         val instance = getOrCreate(struct, struct.type.name, block, address)
                         if (instance != null) {
                             instances.getOrPut(name, ::ArrayList).add(instance)
@@ -420,8 +420,8 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
                     val typeName = block.getTypeName(this)
                     val struct = block.getType(this)
                     val localAddress = searchPosition - block.positionInFile
-                    val localIndex = localAddress / struct.type.size
-                    val localOffset = localAddress % struct.type.size
+                    val localIndex = localAddress / struct.type.sizeInBytes
+                    val localOffset = localAddress % struct.type.sizeInBytes
                     val field = struct.fields.firstOrNull { it.offset >= localOffset }
                     if (field != null && field.isPointer) {
                         val structPosition = searchPosition - localOffset

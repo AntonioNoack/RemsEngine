@@ -38,20 +38,22 @@ class LineMesh(var meshFile: FileReference) : PrefabSaveable(), IMesh {
     @NotSerializedProperty
     var cachedMaterialOverrides = FileCacheList.empty<Material>()
 
-    val mesh get() = MeshCache.getEntry(meshFile).waitFor() ?: DefaultAssets.flatCube
+    val mesh: IMesh?
+        get() = MeshCache.getEntry(meshFile).waitFor()
 
     override val numPrimitives: Long
-        get() = mesh.numPrimitives // actual number is a little more complicated...
+        get() = mesh?.numPrimitives ?: 0L // actual number is a little more complicated...
 
     override fun ensureBuffer() {
-        mesh.ensureBuffer()
+        mesh?.ensureBuffer()
     }
 
     override fun getBounds(): AABBf {
-        return mesh.getBounds()
+        return mesh?.getBounds() ?: AABBf()
     }
 
     override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {
+        val mesh = mesh ?: return
         GFXState.drawLines.use(true) {
             mesh.draw(pipeline, shader, materialIndex, true)
         }
@@ -61,6 +63,7 @@ class LineMesh(var meshFile: FileReference) : PrefabSaveable(), IMesh {
         pipeline: Pipeline, shader: Shader, materialIndex: Int,
         instanceData: Buffer, drawLines: Boolean
     ) {
+        val mesh = mesh ?: return
         GFXState.drawLines.use(true) {
             mesh.draw(pipeline, shader, materialIndex, true)
         }
