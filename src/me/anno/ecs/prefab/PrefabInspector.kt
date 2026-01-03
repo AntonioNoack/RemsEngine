@@ -195,6 +195,7 @@ class PrefabInspector(var prefabSource: FileReference) {
         }
 
         if (prefabSource is InnerTmpFile) {
+            // todo button to actually do that
             list += TextPanel("Temporary file!", style.getChild("error"))
                 .setTooltip(
                     "This file was created at runtime, so you cannot save references to it and load them next time. " +
@@ -203,6 +204,7 @@ class PrefabInspector(var prefabSource: FileReference) {
         }
 
         if (!prefab.isWritable) {
+            // todo buttons to actually do that
             list += TextPanel("Imported file (read-only)!", style.getChild("warning"))
                 .setTooltip("Create a prefab from it or import it to make any changes")
         }
