@@ -5,15 +5,15 @@ import me.anno.mesh.blender.ConstructorData
 @Suppress("SpellCheckingInspection", "unused")
 class BCustomData(ptr: ConstructorData) : BlendData(ptr) {
 
-    val external get() = getStructArray("*external")
+    val external: List<BlendData>?
+        get() = getStructArray("*external")
 
     // val size = int("totsize") // idk what this is
-    val numLayers get() = i32("totlayer")
-    val maxLayer get() = i32("maxlayer")
+    val numLayers = i32("totlayer")
+    val maxLayer = i32("maxlayer")
 
-    @Suppress("UNCHECKED_CAST")
     val layers: List<BCustomDataLayer>
-        get() = getStructArray("*layers")?.toList() as? List<BCustomDataLayer> ?: emptyList()
+        get() = getStructArray("*layers") ?: emptyList()
 
     val pool get() = getPointer("*pool")
 

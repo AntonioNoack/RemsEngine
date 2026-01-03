@@ -8,5 +8,5 @@ import me.anno.mesh.blender.ConstructorData
  * */
 @Suppress("unused")
 class BLinkData(ptr: ConstructorData) : BLink<BLinkData>(ptr) {
-    val data get() = getStructArray("*data")
+    val data get() = getStructArray<BlendData>("*data")
 }

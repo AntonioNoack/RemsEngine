@@ -5,7 +5,6 @@ import me.anno.gpu.CullMode
 import me.anno.io.files.InvalidRef
 import me.anno.maths.MinMax.max
 import me.anno.mesh.Triangulation
-import me.anno.mesh.blender.BlenderDebugging.debugPrint
 import me.anno.mesh.blender.impl.BCustomDataLayer
 import me.anno.mesh.blender.impl.BCustomLayerType
 import me.anno.mesh.blender.impl.BInstantList
@@ -57,11 +56,11 @@ object BlenderMeshConverter {
         LOGGER.debug("ldata: {}", src.lData)
     }
 
-    private fun loadVerticesV2(src: BMesh): BInstantList<BVector3f>? {
+    private fun loadVerticesV2(src: BMesh): List<BVector3f>? {
         @Suppress("UNCHECKED_CAST")
         return src.vData.layers
             .firstOrNull { it.name == "position" }
-            ?.data as? BInstantList<BVector3f>
+            ?.data as? List<BVector3f>
     }
 
     fun convertBMesh(src: BMesh): Prefab? {
@@ -71,7 +70,9 @@ object BlenderMeshConverter {
         }
 
         val attributes = src.attributes
-        LOGGER.info("Attributes: {}", attributes?.attributes?.map { it.name })
+        val meshPos = src.positionInFile
+        val attrPos = attributes?.positionInFile
+        LOGGER.info("Attributes: ${attributes?.attributes?.map { it.name }} @${attributes?.positionInFile} by ${src.positionInFile}")
 
         val verticesV1 = src.vertices
         val verticesV2 = if (verticesV1 == null) {
@@ -139,6 +140,10 @@ object BlenderMeshConverter {
         }
         prefab["materialIds"] = materialIndices
         prefab.sealFromModifications()
+
+        check(meshPos == src.positionInFile)
+        check(attrPos == attributes?.positionInFile)
+
         return prefab
     }
 
@@ -151,13 +156,13 @@ object BlenderMeshConverter {
         @Suppress("UNCHECKED_CAST")
         val newUVs0 = lData.layers
             .firstOrNull { it.data.firstOrNull() is MLoopUV }
-            ?.data as? BInstantList<MLoopUV>
+            ?.data as? List<MLoopUV>
         if (newUVs0 != null) return newUVs0
 
         @Suppress("UNCHECKED_CAST")
         val newUVs1 = lData.layers
             .firstOrNull { it.name == "UVMap" && it.data.firstOrNull() is BVector2f }
-            ?.data as? BInstantList<BVector2f>
+            ?.data as? List<BVector2f>
         if (newUVs1 != null) return newUVs1
 
         val newUVs2 = attributes?.loadVector2fArray("uvs")
@@ -181,7 +186,9 @@ object BlenderMeshConverter {
             val vs = attributes.loadVector1iArray(".corner_vert")
             val es = attributes.loadVector1iArray(".corner_edge")
             if (vs != null && es != null) {
-                println("Got V&Es from attributes: $vs, $es")
+                vs as BInstantList<*>
+                es as BInstantList<*>
+                println("Got V&Es from attributes: x${vs.size} @${vs.positionInFile}, x${es.size} @${es.positionInFile}")
                 return VEJoinList(vs, es)
             }
         }
@@ -189,10 +196,10 @@ object BlenderMeshConverter {
         return emptyList()
     }
 
-    private fun List<BCustomDataLayer>.findV1i(name: String): BInstantList<BVector1i>? {
+    private fun List<BCustomDataLayer>.findV1i(name: String): List<BVector1i>? {
         @Suppress("UNCHECKED_CAST")
         return firstOrNull { it.name == name && it.type == BCustomLayerType.PROP_INT.id }
-            ?.data as? BInstantList<BVector1i>
+            ?.data as? List<BVector1i>
     }
 
     private fun loadPositionsAndNormals(
@@ -469,20 +476,18 @@ object BlenderMeshConverter {
         val indices = IntArrayList(polygons.size * 3)
         var matIndex = 0
         println("loopData[${loopData.size}]: ${loopData.map { it.v }}")
+
+        val maxPolygonIndex = polygons.maxOf { it.loopStart + it.loopSize }
+        if (maxPolygonIndex > loopData.size) {
+            LOGGER.warn("OOB Polygons: $maxPolygonIndex > ${loopData.size}")
+        }
+
         for (i in polygons.indices) {
             val polygon = polygons[i]
             val loopStart = polygon.loopStart
             val materialIndex = polygon.materialIndex
 
-            if (polygon.loopStart + polygon.loopSize > loopData.size) {
-                LOGGER.warn("OOB Polygon: ${polygon.loopStart} + ${polygon.loopSize} > ${loopData.size}")
-                continue
-            }
-
-            println(
-                "loop[$i]: $loopStart += ${polygon.loopSize}, " +
-                        "indices: ${List(polygon.loopSize) { loopData[loopStart + it].v }}"
-            )
+            if (polygon.loopStart + polygon.loopSize > loopData.size) continue
 
             when (val loopSize = polygon.loopSize) {
                 0 -> Unit

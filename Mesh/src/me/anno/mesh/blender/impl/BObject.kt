@@ -29,7 +29,9 @@ class BObject(ptr: ConstructorData) : BlendData(ptr) {
     */
 
     val id = inside("id") as BID
-    val materials get() = getStructArray("**mat")
+    val materials: List<BMaterial>
+        get() = getStructArray("**mat") ?: emptyList()
+
     val type = i16("type")
     val parType = i16("partype")
     val parent get() = getPointer("*parent") as? BObject

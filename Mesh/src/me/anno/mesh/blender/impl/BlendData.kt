@@ -170,6 +170,8 @@ open class BlendData(val ptr: ConstructorData) {
             else i64(offset)
     }
 
+    private fun DNAField.isPointer(): Boolean = decoratedName.startsWith("*")
+
     fun inside(name: String) = inside(dnaStruct.byName[name])
     fun inside(field: DNAField?): BlendData? {
         field ?: return null
@@ -195,22 +197,25 @@ open class BlendData(val ptr: ConstructorData) {
         return file.getOrCreate(struct, className, block, address)
     }
 
-    fun getStructArray(name: String): List<BlendData>? = getStructArray(dnaStruct.byName[name])
-    fun getStructArray(field: DNAField?): List<BlendData>? {
+    fun <V: BlendData> getStructArray(name: String, maxSize: Int = Int.MAX_VALUE): List<V>? =
+        getStructArray(dnaStruct.byName[name], maxSize)
+
+    fun <V: BlendData> getStructArray(field: DNAField?, maxSize: Int = Int.MAX_VALUE): List<V>? {
         field ?: return null
-        return if (field.decoratedName.startsWith("*")) {
+        return if (field.isPointer()) {
             val (address, block, className, struct, stride, length) = createStructInfo(field) ?: return null
             if (length > 1000) LOGGER.warn("Instantiating $length ${struct.type.name} instances, use the BInstantList, if possible")
             // if no instance can be created, just return null
             file.getOrCreate(struct, className, block, address) ?: return null
-            List(length) { index ->
+            List(min(length, maxSize)) { index ->
                 val addressI = address + index * stride
-                file.getOrCreate(struct, className, block, addressI)!!
+                @Suppress("UNCHECKED_CAST")
+                file.getOrCreate(struct, className, block, addressI) as V
             }
         } else {
             val instance = inside(field)
-            if (instance != null) listOf(instance)
-            else emptyList()
+            @Suppress("UNCHECKED_CAST")
+            if (instance != null) listOf(instance as V) else emptyList()
         }
     }
 
@@ -221,18 +226,18 @@ open class BlendData(val ptr: ConstructorData) {
 
     fun <V : BlendData> getInstantList(field: DNAField?, maxSize: Int): List<V>? {
         field ?: return null
-        if (field.decoratedName.startsWith("*")) {
+        if (field.isPointer()) {
             val (address, block, className, struct, stride, length) = createStructInfo(field) ?: return null
             val instance = file.create(struct, className, block, address) ?: return null
             @Suppress("unchecked_cast")
             return BInstantList(length, stride, instance as? V)
-        } else throw RuntimeException()
+        } else throw IllegalStateException("Expected pointer type for InstantList")
     }
 
     fun getPointer(name: String): BlendData? = getPointer(dnaStruct.byName[name])
     fun getPointer(field: DNAField?): BlendData? {
         field ?: return null
-        return if (field.decoratedName.startsWith("*")) {
+        return if (field.isPointer()) {
             val (address, block, className, struct) = createStructInfo(field) ?: return null
             file.getOrCreate(struct, className, block, address)
         } else {

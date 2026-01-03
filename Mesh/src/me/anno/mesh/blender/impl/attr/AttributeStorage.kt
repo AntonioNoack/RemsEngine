@@ -48,9 +48,7 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
 
     }
 
-    @Suppress("UNCHECKED_CAST")
-    val attributes: List<Attribute>
-        get() = getStructArray("*dna_attributes")?.toList() as? List<Attribute> ?: emptyList()
+    val attributes: List<Attribute> = getStructArray("*dna_attributes") ?: emptyList()
 
     override fun toString(): String = attributes.toString()
 

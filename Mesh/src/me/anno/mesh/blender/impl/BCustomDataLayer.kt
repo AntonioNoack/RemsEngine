@@ -3,7 +3,6 @@ package me.anno.mesh.blender.impl
 import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.impl.BCustomLayerType.Companion.idToValue
 
-@Suppress("unused")
 class BCustomDataLayer(ptr: ConstructorData) : BlendData(ptr) {
 
     val type = i32("type")
@@ -12,15 +11,16 @@ class BCustomDataLayer(ptr: ConstructorData) : BlendData(ptr) {
     // val active = int("active")
     // val uid = int("uid")
     val name get() = string("name[64]", 64)
-    val data = getInstantList<BlendData>("*data") ?: BInstantList.emptyList()
+    val data = getInstantList<BlendData>("*data") ?: emptyList()
 
     override fun toString(): String {
-        return "BCustomDataLayer { '$name', type: ${
-            run {
-                val data = data as? BInstantList<*>
-                if (data?.instance == null) "#$type"
-                else data.instance::class.simpleName
-            }
-        }, type#2: ${idToValue[type]}, data: ${data.size}x, sample: ${data.firstOrNull()} }"
+        return "BCustomDataLayer { '$name', type: ${getTypeName()}, " +
+                "type#2: ${idToValue[type]}, data: ${data.size}x, sample: ${data.firstOrNull()} }"
+    }
+
+    private fun getTypeName(): String {
+        val data = data as? BInstantList<*>
+        return if (data?.instance == null) "#$type"
+        else data.instance::class.simpleName ?: "?"
     }
 }
