@@ -72,7 +72,13 @@ object BlenderMeshConverter {
         val attributes = src.attributes
         val meshPos = src.positionInFile
         val attrPos = attributes?.positionInFile
-        LOGGER.info("Attributes: ${attributes?.attributes?.map { it.positionInFile }} @${attributes?.positionInFile} by ${src.positionInFile}")
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(
+                "Attributes: {} @{} by {}",
+                attributes?.attributes?.map { it.positionInFile },
+                attributes?.positionInFile, src.positionInFile
+            )
+        }
 
         val verticesV1 = src.vertices
         val verticesV2 = if (verticesV1 == null) {

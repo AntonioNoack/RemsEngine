@@ -35,7 +35,7 @@ class BNode(ptr: ConstructorData) : BLink<BNode>(ptr) {
     }
 
     override fun toString(): String {
-        return "bNode@${positionInFile.toString(16)} { $id, '$name', $type, " +
+        return "bNode@${positionInFile.toString(16)} { $id, '$name', type=$type, " +
                 "size: $editorX,$editorY+=${editorWidth}x${editorHeigth}, " +
                 "inputs: $inputs, outputs: $outputs }"
     }

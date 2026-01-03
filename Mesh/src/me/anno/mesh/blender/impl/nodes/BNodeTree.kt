@@ -18,9 +18,9 @@ class BNodeTree(ptr: ConstructorData) : BlendData(ptr) {
     val type = string("idname[64]", 64)
 
     override fun toString(): String {
-        return "bNodeTree { $type, nodes: [\n${
+        return "bNodeTree { $type, nodes: ${nodes.size}x [\n${
             nodes.joinToString("") { "  $it\n" }
-        }], links: [\n${
+        }], links: ${links.size} [\n${
             links.joinToString("") { "  $it\n" }
         }] }"
     }

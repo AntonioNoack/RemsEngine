@@ -283,6 +283,16 @@ open class BlendData(val ptr: ConstructorData) {
         val stride: Int, val length: Int
     )
 
+    override fun equals(other: Any?): Boolean {
+        return other is BlendData &&
+                other.javaClass == this.javaClass &&
+                other.positionInFile == positionInFile
+    }
+
+    override fun hashCode(): Int {
+        return positionInFile.hashCode()
+    }
+
     companion object {
         private val LOGGER = LogManager.getLogger(BlendData::class)
     }

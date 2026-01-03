@@ -10,8 +10,8 @@ import me.anno.mesh.blender.impl.values.BNSValue
 @Suppress("unused", "SpellCheckingInspection")
 class BNodeSocket(ptr: ConstructorData) : BLink<BNodeSocket>(ptr) {
 
-    val name = string("name[64]", 64)
-    val type = string("idname[64]", 64) // e.g. NodeSocketShader, NodeSocketVector, NodeSocketFloat
+    val name = string("name", 64)
+    val type = string("idname", 64) // e.g. NodeSocketShader, NodeSocketVector, NodeSocketFloat
 
     // used, when nothing is connected
     val defaultValue = getPointer("*default_value") as? BNSValue

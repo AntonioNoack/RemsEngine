@@ -33,13 +33,12 @@ object BlenderDebugging {
                 }
                 "MEdge", "MLoop", "MVert", "MDeformVert",
                 "MCol", "MFace", "MPoly", "MTFace", "MSelect",
-                "TFace", "Attribute" -> data.getStructArray(field)
+                "TFace", "Attribute" -> data.getStructArray<BlendData>(field)
                 "Mesh",
                 "MeshRuntimeHandle",
                 "BLI_mempool",
                 "CustomDataExternal",
-                "Key", "AnimData",
-                    -> data.getPointer(field)
+                "Key", "AnimData" -> data.getPointer(field)
                 else -> Unit
             }
         } else {

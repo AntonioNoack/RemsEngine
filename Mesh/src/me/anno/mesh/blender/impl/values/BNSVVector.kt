@@ -10,9 +10,17 @@ class BNSVVector(ptr: ConstructorData) : BNSValue(ptr) {
 
     val min = f32("min")
     val max = f32("max")
-    val value = f32s("value[4]", 4)
+    val value =
+        if (getField("value[4]") != null) f32s("value[4]", 4) // Blender 5
+        else f32s("value[3]", 3) // older Blender
 
     override fun toString(): String {
-        return "Vector { $value, [$min, $max] }"
+        if (value.size == 3) {
+            val (x, y, z) = value
+            return "Vector { ($x, $y, $z), [$min, $max] }"
+        } else {
+            val (x, y, z, w) = value
+            return "Vector { ($x, $y, $z, $w), [$min, $max] }"
+        }
     }
 }

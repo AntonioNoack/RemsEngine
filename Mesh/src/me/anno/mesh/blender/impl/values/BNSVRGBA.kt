@@ -11,6 +11,7 @@ class BNSVRGBA(ptr: ConstructorData) : BNSValue(ptr) {
     val value = f32s("value[4]", 4)
 
     override fun toString(): String {
-        return "RGBA { $value }"
+        val (r, g, b, a) = value
+        return "RGBA($r, $g, $b, $a)"
     }
 }
