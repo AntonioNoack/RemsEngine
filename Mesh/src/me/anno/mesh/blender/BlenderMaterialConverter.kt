@@ -62,10 +62,10 @@ object BlenderMaterialConverter {
 
             fun getDefault(default: BNSValue?): Pair<Vector4f, FileReference>? {
                 return when (default) {
-                    is BNSVVector -> Vector4f(default.value, 1f)
+                    is BNSVVector -> Vector4f(default.value)
                     is BNSVFloat -> Vector4f(default.value)
                     is BNSVInt -> Vector4f(default.value.toFloat())
-                    is BNSVRGBA -> default.value
+                    is BNSVRGBA -> Vector4f(default.value)
                     is BNSVBoolean -> Vector4f(if (default.value) 1f else 0f)
                     null -> return null
                     else -> {

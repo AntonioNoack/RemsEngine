@@ -80,7 +80,7 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
         return data
     }
 
-    fun loadVector1iArray(name: String): BInstantList<BVector1i>? {
+    fun loadVector1iArray(name: String): List<BVector1i>? {
         val data = findAttribute(name, AttributeType.Int32)
             ?: return null
 
@@ -88,7 +88,7 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
         return createArray(data, type, ::BVector1i)
     }
 
-    fun loadVector2fArray(name: String): BInstantList<BVector2f>? {
+    fun loadVector2fArray(name: String): List<BVector2f>? {
         val data = findAttribute(name, AttributeType.Float2)
             ?: return null
 
@@ -96,7 +96,7 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
         return createArray(data, type, ::BVector2f)
     }
 
-    fun loadVector3fArray(name: String): BInstantList<BVector3f>? {
+    fun loadVector3fArray(name: String): List<BVector3f>? {
         val data = findAttribute(name, AttributeType.Float3)
             ?: return null
 
@@ -107,12 +107,12 @@ class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
     private fun <V : BlendData> createArray(
         data: AttributeArray, type: DNAStruct,
         createInstance: (ConstructorData) -> V
-    ): BInstantList<V>? {
+    ): List<V>? {
         val address = data.dataPtr
         val block = file.blockTable.findBlock(file, address) ?: return null
         val position = (address + block.dataOffset).toInt()
         val instance = createInstance(ConstructorData(file, type, position))
-        return BInstantList(data.size.toInt(), instance)
+        return BInstantList(data.size.toInt(), type.type.size, instance)
     }
 
 }

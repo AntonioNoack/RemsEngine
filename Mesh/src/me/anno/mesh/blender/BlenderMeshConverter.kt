@@ -196,8 +196,8 @@ object BlenderMeshConverter {
     }
 
     private fun loadPositionsAndNormals(
-        vertices: BInstantList<MVert>?, numVertices: Int, positions: FloatArray,
-        newVertices: BInstantList<BVector3f>?
+        vertices: List<MVert>?, numVertices: Int, positions: FloatArray,
+        newVertices: List<BVector3f>?
     ): FloatArray? {
 
         // todo find normals for newer files; no[3] is extinct
@@ -254,7 +254,7 @@ object BlenderMeshConverter {
     }
 
     private fun addBoneWeights(
-        boneWeights: BInstantList<MDeformVert>, vi: Int,
+        boneWeights: List<MDeformVert>, vi: Int,
         bestBones: IntArray, bestWeights: FloatArray,
         numVertexGroups: Int
     ) {
@@ -268,7 +268,7 @@ object BlenderMeshConverter {
     }
 
     private fun fillInBones(
-        boneWeights: BInstantList<MDeformVert>, vi: Int,
+        boneWeights: List<MDeformVert>, vi: Int,
         bestBones: IntArray, bestWeights: FloatArray,
         boneIndices2: IntArrayList,
         boneWeights2: FloatArrayList,
@@ -294,7 +294,7 @@ object BlenderMeshConverter {
         polygons: List<PolyLike>,
         loopData: List<LoopLike>,
         uvs: List<UVLike>,
-        boneWeights: BInstantList<MDeformVert>?,
+        boneWeights: List<MDeformVert>?,
         numVertexGroups: Int,
         materialIndices: IntArray?,
         prefab: Prefab,
@@ -460,7 +460,7 @@ object BlenderMeshConverter {
         normals: FloatArray?,
         polygons: List<PolyLike>,
         loopData: List<LoopLike>,
-        boneWeights: BInstantList<MDeformVert>?,
+        boneWeights: List<MDeformVert>?,
         numVertexGroups: Int,
         materialIndices: IntArray?,
         prefab: Prefab

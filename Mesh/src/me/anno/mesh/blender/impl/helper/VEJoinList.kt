@@ -1,6 +1,5 @@
 package me.anno.mesh.blender.impl.helper
 
-import me.anno.mesh.blender.impl.BInstantList
 import me.anno.mesh.blender.impl.interfaces.LoopLike
 import me.anno.mesh.blender.impl.primitives.BVector1i
 import me.anno.utils.structures.lists.SimpleList
@@ -10,8 +9,8 @@ import kotlin.math.min
  * helper class to join two lists into one
  * */
 class VEJoinList(
-    val vs: BInstantList<BVector1i>,
-    val es: BInstantList<BVector1i>
+    val vs: List<BVector1i>,
+    val es: List<BVector1i>
 ) : SimpleList<LoopLike>() {
     var currentIndex = 0
     val tmpInstance = object : LoopLike {

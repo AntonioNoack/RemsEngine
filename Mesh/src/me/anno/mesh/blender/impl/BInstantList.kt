@@ -8,20 +8,9 @@ import me.anno.utils.structures.lists.SimpleList
  *
  * called "InstantList", because its elements only contain valid data for the instant
  * */
-class BInstantList<V : BlendData>(override val size: Int, val instance: V?) : SimpleList<V>() {
+class BInstantList<V : BlendData>(override val size: Int, val stride: Int, val instance: V?) : SimpleList<V>() {
 
-    private val position0: Int
-    private val typeSize: Int
-
-    init {
-        if (instance == null) {
-            position0 = 0
-            typeSize = 0
-        } else {
-            position0 = instance.position
-            typeSize = instance.dnaStruct.type.size
-        }
-    }
+    private val position0: Int = instance?.positionInFile ?: 0
 
     /**
      * Gets a temporary instance to that value at that index.
@@ -34,11 +23,11 @@ class BInstantList<V : BlendData>(override val size: Int, val instance: V?) : Si
             throw IndexOutOfBoundsException("$index !in 0 until $size")
         }
         val instance = instance!!
-        instance.position = position0 + typeSize * index
+        instance.positionInFile = position0 + stride * index
         return instance
     }
 
     companion object {
-        fun <V : BlendData> emptyList() = BInstantList<V>(0, null)
+        fun <V : BlendData> emptyList() = BInstantList<V>(0, 0, null)
     }
 }

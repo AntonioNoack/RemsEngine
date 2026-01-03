@@ -10,7 +10,7 @@ class BNSVInt(ptr: ConstructorData) : BNSValue(ptr) {
 
     val min = i32("min")
     val max = i32("max")
-    val value = getOffset("value")
+    val value = i32("value")
 
     override fun toString(): String {
         return "Int { $value, [$min, $max] }"

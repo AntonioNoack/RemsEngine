@@ -16,8 +16,11 @@ class BCustomDataLayer(ptr: ConstructorData) : BlendData(ptr) {
 
     override fun toString(): String {
         return "BCustomDataLayer { '$name', type: ${
-            if (data.instance == null) "#$type"
-            else data.instance::class.simpleName
+            run {
+                val data = data as? BInstantList<*>
+                if (data?.instance == null) "#$type"
+                else data.instance::class.simpleName
+            }
         }, type#2: ${idToValue[type]}, data: ${data.size}x, sample: ${data.firstOrNull()} }"
     }
 }

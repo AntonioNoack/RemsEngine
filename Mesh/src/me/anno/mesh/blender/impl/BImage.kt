@@ -61,7 +61,7 @@ class BImage(ptr: ConstructorData) : BlendData(ptr) {
      * */
 
     override fun toString(): String {
-        return "Image@${position.toString(16)} { $id, $name, $genX x $genY, " +
+        return "Image@${positionInFile.toString(16)} { $id, $name, $genX x $genY, " +
                 "source: $source, type: $type, packed: $packedFiles }"
     }
 }
