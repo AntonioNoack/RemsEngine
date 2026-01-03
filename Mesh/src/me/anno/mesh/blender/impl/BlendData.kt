@@ -10,6 +10,10 @@ import org.joml.Matrix4f
 import java.nio.ByteBuffer
 import kotlin.math.min
 
+/**
+ * Base class for any Blender structure.
+ * Has many useful helper methods for reading properties.
+ * */
 @Suppress("unused")
 open class BlendData(val ptr: ConstructorData) {
 
@@ -36,8 +40,8 @@ open class BlendData(val ptr: ConstructorData) {
     }
 
     // fields starting with **
-    fun <V: BlendData> getPointerArray(name: String) = getPointerArray<V>(getField(name))
-    fun <V: BlendData> getPointerArray(field: DNAField?): List<V?>? {
+    fun <V : BlendData> getPointerArray(name: String) = getPointerArray<V>(getField(name))
+    fun <V : BlendData> getPointerArray(field: DNAField?): List<V?>? {
         field ?: return null
         val pointer = pointer(field.offset)
         if (pointer == 0L) return null
@@ -48,14 +52,18 @@ open class BlendData(val ptr: ConstructorData) {
         val length = min(remainingSize / file.pointerSize, Int.MAX_VALUE.toLong()).toInt()
         if (length <= 0) return null
 
+        val struct = file.structByName[field.type.name]
+        if (struct == null) {
+            LOGGER.warn("Missing struct array of type ${field.type}")
+            return null
+        }
+
         val positionInFile = block.positionInFile
         val data = file.file.data
         return List(length) {
             val posInFile = positionInFile + it * file.pointerSize
             val ptr = if (file.file.is64Bit) data.getLong(posInFile)
             else data.getInt(posInFile).toLong()
-            val struct = file.structByName[field.type.name]
-                ?: throw IllegalStateException("Missing struct array of type ${field.type}")
             // todo I don't get it, how is ptr valid with that given block???
             @Suppress("UNCHECKED_CAST")
             file.getOrCreate(struct, field.type.name, block, ptr) as? V
@@ -198,14 +206,14 @@ open class BlendData(val ptr: ConstructorData) {
         return file.getOrCreate(struct, className, block, address)
     }
 
-    fun <V: BlendData> getStructArray(name: String, maxSize: Int = Int.MAX_VALUE): List<V>? =
+    fun <V : BlendData> getStructArray(name: String, maxSize: Int = Int.MAX_VALUE): List<V>? =
         getStructArray(dnaStruct.byName[name], maxSize)
 
-    fun <V: BlendData> getStructArray(field: DNAField?, maxSize: Int = Int.MAX_VALUE): List<V>? {
+    fun <V : BlendData> getStructArray(field: DNAField?, maxSize: Int = Int.MAX_VALUE): List<V>? {
         field ?: return null
         return if (field.isPointer()) {
             val (address, block, className, struct, stride, length) = createStructInfo(field) ?: return null
-            println("Loading $field from ${dnaStruct.type.name} @$address, block[${block.address}]: ${block.positionInFile} += ${block.sizeInBytes}")
+            // println("Loading $field from ${dnaStruct.type.name} @$address, block[${block.address}]: ${block.positionInFile} += ${block.sizeInBytes}")
             if (length > 1000) LOGGER.warn("Instantiating $length ${struct.type.name} instances, use the BInstantList, if possible")
             // if no instance can be created, just return null
             file.getOrCreate(struct, className, block, address) ?: return null
@@ -265,11 +273,11 @@ open class BlendData(val ptr: ConstructorData) {
         val addressInBlock = address - block.address
         val remainingSize = block.sizeInBytes - addressInBlock
         val length = min(remainingSize / stride, Int.MAX_VALUE.toLong()).toInt()
-        println("Read pointer $address from field $field ($positionInFile + ${field.offset}), length: $length")
+        // println("Read pointer $address from field $field ($positionInFile + ${field.offset}), length: $length")
         return StructInfo(address, block, className, struct, stride, length)
     }
 
-    data class StructInfo(
+    private data class StructInfo(
         val address: Long, val block: Block,
         val className: String, val struct: DNAStruct,
         val stride: Int, val length: Int

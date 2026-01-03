@@ -185,9 +185,9 @@ object BlenderMeshConverter {
             val vs = attributes.loadVector1iArray(".corner_vert")
             val es = attributes.loadVector1iArray(".corner_edge")
             if (vs != null && es != null) {
-                vs as BInstantList<*>
-                es as BInstantList<*>
-                println("Got V&Es from attributes: x${vs.size} @${vs.positionInFile}, x${es.size} @${es.positionInFile}")
+                if (LOGGER.isDebugEnabled() && vs is BInstantList<*> && es is BInstantList<*>) {
+                    LOGGER.debug("Got V&Es from attributes: x${vs.size} @${vs.positionInFile}, x${es.size} @${es.positionInFile}")
+                }
                 return VEJoinList(vs, es)
             }
         }
@@ -474,7 +474,10 @@ object BlenderMeshConverter {
         // indexed, simple
         val indices = IntArrayList(polygons.size * 3)
         var matIndex = 0
-        println("loopData[${loopData.size}]: ${loopData.map { it.v }}")
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("loopData[{}]: {}", loopData.size, loopData.map { it.v })
+        }
 
         val maxPolygonIndex = polygons.maxOf { it.loopStart + it.loopSize }
         if (maxPolygonIndex > loopData.size) {
