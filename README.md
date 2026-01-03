@@ -112,6 +112,10 @@ The engine can also load most files from compressed folders (recursively as well
 Files have been abstracted into a class called FileReference, for storage files, web files, files inside zips, in-memory-files, pseudo-files, ...,
 so you can handle and reference them all the same way.
 
+Blender files are only partially supported:
+Blender supports incredibly complex shaders, animations, physics, fluid sims and much more, and Rem's Engine only supports the very basics.
+Blender 5.0 don't work yet unless there is only a single mesh.
+
 ### Graphics
 
 Instead of relying on pre-defined text files that are compiled shaders, Rem's Engine goes the route of runtime-compilation.
@@ -341,12 +345,13 @@ If you want an up-to-date build, just write me, e.g., via Discord, and I'll crea
 * [jUnRAR](https://github.com/edmund-wagner/junrar), [Apache VFS](https://search.maven.org/artifact/org.apache.commons/commons-vfs2/2.8.0/jar) (
   Reading RAR files)
 * [Image4j](https://github.com/imcdonagh/image4j) (Reading ICO images)
-* [Bullet](http://jbullet.advel.cz/) (3d Physics, adjusted to be FP64 instead of FP32)
+* [Bullet](http://jbullet.advel.cz/) (3d Physics, adjusted to be FP64 instead of FP32 for positions)
 * [Box2d](https://github.com/jbox2d/jbox2d) (2d Physics, still FP32)
 * [LuaJ](https://github.com/luaj/luaj) (Lua scripting)
 * [QOI-Java](https://github.com/saharNooby/qoi-java) (QOI image format)
 * [Recast4j](./Recast/src/me/anno/recast/RecastPlugin.kt) (NavMesh generation; converted to Kotlin and adjusted for JOML;
   partially integrated)
 * [Twemoji](https://github.com/twitter/twemoji) (Emojis for all platforms)
+* [Zstd-JNI](https://github.com/luben/zstd-jni) (Uncompressing Blender 5 files)
 
 If I forgot something, just write me a message 😄.
