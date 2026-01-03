@@ -45,7 +45,6 @@ import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.input.TextInput
-import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
 import me.anno.utils.Logging.hash32
 import me.anno.utils.process.DelayedTask
@@ -65,7 +64,8 @@ class PrefabInspector(var prefabSource: FileReference) {
     val prefab: Prefab
         get() {
             val prefab = PrefabCache[prefabSource]
-                .waitFor()?.prefab ?: throw NullPointerException("Missing prefab of $prefabSource, ${prefabSource::class.simpleName}")
+                .waitFor()?.prefab
+                ?: throw NullPointerException("Missing prefab of $prefabSource, ${prefabSource::class.simpleName}")
             val history = prefab.history ?: ChangeHistory()
             if (history.currentState.isEmpty()) {
                 history.put(serialize(prefab))
@@ -196,10 +196,15 @@ class PrefabInspector(var prefabSource: FileReference) {
 
         if (prefabSource is InnerTmpFile) {
             list += TextPanel("Temporary file!", style.getChild("error"))
+                .setTooltip(
+                    "This file was created at runtime, so you cannot save references to it and load them next time. " +
+                            "Save this file at a permanent location, and then reference that instead."
+                )
         }
 
         if (!prefab.isWritable) {
-            list += TextPanel("Unwritable file!", style.getChild("warning"))
+            list += TextPanel("Imported file (read-only)!", style.getChild("warning"))
+                .setTooltip("Create a prefab from it or import it to make any changes")
         }
 
         val pathInformation = instances.indices
