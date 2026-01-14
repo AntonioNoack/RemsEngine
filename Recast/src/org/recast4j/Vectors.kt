@@ -22,6 +22,7 @@ import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.utils.structures.tuples.FloatPair
 import org.joml.AABBi
+import org.joml.Planef
 import org.joml.Vector3f
 import org.recast4j.detour.BVNode
 import kotlin.math.abs
@@ -65,6 +66,14 @@ object Vectors {
 
     fun dot(v1: FloatArray, v2: FloatArray): Float {
         return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
+    }
+
+    fun dot(v1: Planef, v2: Vector3f): Float {
+        return v2.dot(v1.dirX, v1.dirY, v1.dirZ)
+    }
+
+    fun dot(v1: FloatArray, v2: Vector3f): Float {
+        return v2.dot(v1[0], v1[1], v1[2])
     }
 
     var EPS = 1e-4f

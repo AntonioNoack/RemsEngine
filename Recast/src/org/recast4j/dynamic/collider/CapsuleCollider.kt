@@ -20,7 +20,7 @@ package org.recast4j.dynamic.collider
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.recast4j.recast.Heightfield
-import org.recast4j.recast.RecastFilledVolumeRasterization.rasterizeCapsule
+import org.recast4j.recast.RasterizeCylinderCapsule.rasterizeCapsule
 import org.recast4j.recast.Telemetry
 import kotlin.math.floor
 

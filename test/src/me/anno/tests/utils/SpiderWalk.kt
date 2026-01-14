@@ -324,21 +324,6 @@ fun main() {
     val navMeshData = builder.buildData(scene)!!
     scene.add(NavMeshDebugComponent(navMeshData))
 
-    if (false) scene.add(MeshComponent(toMesh(navMeshData.meshData)!!.apply {
-        makeLineMesh(true)
-        materials = Material().apply {
-            cullMode = CullMode.BOTH
-            diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)
-        }.ref.wrap()
-        positions!!.apply {
-            for (i in this.indices step 3) {
-                this[i + 1] += 0.03f
-            }
-        }
-    }.ref)).apply {
-        collisionBits = 0
-    }
-
     val spider = createSpider(scene, Double.NaN)
     val spiderComp = spider.getComponent(SpiderPrediction::class)!!
     val futureTransform = spiderComp.futureTransform
