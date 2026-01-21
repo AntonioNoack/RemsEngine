@@ -48,8 +48,7 @@ open class JsonReader(val data: Reader) : GenericReader {
     var index = 0
     var tmpChar = 0.toChar()
 
-    /** allow names without quotes */
-    var allowDirtyNames = false
+    var allowNamesWithoutQuotes = false
 
     fun close() {
         data.close()
@@ -153,7 +152,7 @@ open class JsonReader(val data: Reader) : GenericReader {
     /**
      * sometimes, a name is not in quotes
      * */
-    fun readDirtyName(): ComparableStringBuilder {
+    fun readNameWithoutQuotes(): ComparableStringBuilder {
         val builder = type0
         builder.clear()
         while (true) {
@@ -249,9 +248,9 @@ open class JsonReader(val data: Reader) : GenericReader {
                         next = skipSpace()
                     }
                     ',' -> next = skipSpace()
-                    else -> if (allowDirtyNames && next.isLetter()) {
+                    else -> if (allowNamesWithoutQuotes && next.isLetter()) {
                         putBack(next)
-                        val name = readDirtyName().toString()
+                        val name = readNameWithoutQuotes().toString()
                         readObjectProperty(writer, name)
                         next = skipSpace()
                     } else {
