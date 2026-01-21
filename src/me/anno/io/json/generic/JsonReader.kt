@@ -48,6 +48,9 @@ open class JsonReader(val data: Reader) : GenericReader {
     var index = 0
     var tmpChar = 0.toChar()
 
+    /** allow names without quotes */
+    var allowDirtyNames = false
+
     fun close() {
         data.close()
     }
@@ -147,6 +150,23 @@ open class JsonReader(val data: Reader) : GenericReader {
         }
     }
 
+    /**
+     * sometimes, a name is not in quotes
+     * */
+    fun readDirtyName(): ComparableStringBuilder {
+        val builder = type0
+        builder.clear()
+        while (true) {
+            when (val c = next()) {
+                ':', ']', '}', ',' -> {
+                    putBack(c)
+                    return builder
+                }
+                else -> builder.append(c)
+            }
+        }
+    }
+
     fun skipString() {
         while (true) {
             when (next()) {
@@ -225,23 +245,34 @@ open class JsonReader(val data: Reader) : GenericReader {
                     '}' -> break@loop
                     '"' -> {
                         val name = readString(false)
-                        assertEquals(skipSpace(), ':')
-                        if (writer.attr(name)) {
-                            readValue(skipSpace(), writer)
-                        } else {
-                            writer.write(null)
-                            skipValue()
-                        }
+                        readObjectProperty(writer, name)
                         next = skipSpace()
                     }
                     ',' -> next = skipSpace()
-                    else -> assert(next, '}', '"')
+                    else -> if (allowDirtyNames && next.isLetter()) {
+                        putBack(next)
+                        val name = readDirtyName().toString()
+                        readObjectProperty(writer, name)
+                        next = skipSpace()
+                    } else {
+                        assert(next, '}', '"')
+                    }
                 }
             }
         } else {
             skipObject(readOpeningBracket)
         }
         writer.endObject()
+    }
+
+    private fun readObjectProperty(writer: GenericWriter, name: String) {
+        assertEquals(skipSpace(), ':')
+        if (writer.attr(name)) {
+            readValue(skipSpace(), writer)
+        } else {
+            writer.write(null)
+            skipValue()
+        }
     }
 
     private class FilteredObjectReader(val filter: ((CharSequence) -> Boolean)?) : ObjectReader() {

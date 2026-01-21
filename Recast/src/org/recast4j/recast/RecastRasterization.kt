@@ -230,8 +230,7 @@ object RecastRasterization {
 
                 // Snap the span to the heightfield height grid.
                 val ismin = clamp(floor((smin * ich)).toInt(), 0, RecastConstants.SPAN_MAX_HEIGHT)
-                val ismax =
-                    clamp(ceil((smax * ich)).toInt(), ismin + 1, RecastConstants.SPAN_MAX_HEIGHT)
+                val ismax = clamp(ceil((smax * ich)).toInt(), ismin + 1, RecastConstants.SPAN_MAX_HEIGHT)
                 addSpan(hf, x, y, ismin, ismax, area, flagMergeThr)
             }
         }
@@ -259,14 +258,14 @@ object RecastRasterization {
      * @see Heightfield
      */
     fun rasterizeTriangles(
-        solid: Heightfield, vertices: FloatArray, tris: IntArray, areas: IntArray, nt: Int, flagMergeThr: Int,
+        solid: Heightfield, vertices: FloatArray, tris: IntArray, areas: IntArray, numTriangles: Int, flagMergeThr: Int,
         ctx: Telemetry?
     ) {
         ctx?.startTimer(TelemetryType.RASTERIZE_TRIANGLES)
         val ics = 1f / solid.cellSize
         val ich = 1f / solid.cellHeight
         // Rasterize triangles.
-        for (i in 0 until nt) {
+        for (i in 0 until numTriangles) {
             val v0 = tris[i * 3]
             val v1 = tris[i * 3 + 1]
             val v2 = tris[i * 3 + 2]
@@ -286,14 +285,14 @@ object RecastRasterization {
      * @see Heightfield
      */
     fun rasterizeTriangles(
-        solid: Heightfield, vertices: FloatArray, areas: IntArray, nt: Int, flagMergeThr: Int,
+        solid: Heightfield, vertices: FloatArray, areas: IntArray, numTriangles: Int, flagMergeThr: Int,
         ctx: Telemetry?
     ) {
         ctx?.startTimer(TelemetryType.RASTERIZE_TRIANGLES)
         val ics = 1f / solid.cellSize
         val ich = 1f / solid.cellHeight
         // Rasterize triangles.
-        for (i in 0 until nt) {
+        for (i in 0 until numTriangles) {
             val v0 = i * 3
             val v1 = i * 3 + 1
             val v2 = i * 3 + 2
