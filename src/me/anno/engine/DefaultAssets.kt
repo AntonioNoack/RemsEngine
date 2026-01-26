@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.material.Material.Companion.noVertexColors
+import me.anno.ecs.components.mesh.shapes.CircleModel
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.shapes.PlaneModel
@@ -39,6 +40,7 @@ object DefaultAssets {
     val uvSphere = UVSphereModel.createUVSphere(40, 20)
     val icoSphere = IcosahedronModel.createIcosphere(3)
     val plane = PlaneModel.createPlaneXZ(2, 2, Vector2f(1f))
+    val circle = CircleModel.createCircle(32, Mesh())
 
     // textures
     val uvCheckerTexture = res.getChild("textures/UVChecker.png")
@@ -73,6 +75,7 @@ object DefaultAssets {
         register("meshes/UVSphere.json", "Mesh", uvSphere)
         register("meshes/IcoSphere.json", "Mesh", icoSphere)
         register("meshes/PlaneY.json", "Mesh", plane)
+        register("meshes/CircleY.json", "Mesh", circle)
     }
 
     private fun registerMaterials() {

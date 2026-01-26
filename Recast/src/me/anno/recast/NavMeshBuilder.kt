@@ -1,8 +1,11 @@
 package me.anno.recast
 
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponentsInChildren
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Docs
 import me.anno.engine.serialization.SerializedProperty
+import org.joml.Vector3d
 import org.recast4j.detour.DefaultQueryFilter
 import org.recast4j.detour.MeshData
 import org.recast4j.detour.NavMesh
@@ -52,9 +55,9 @@ class NavMeshBuilder {
     @SerializedProperty
     var collisionMask: Int = 1
 
-    fun buildMesh(world: Entity): MeshData? {
+    fun buildMesh(scene: Entity): MeshData? {
 
-        val geometry = GeoProvider(world, collisionMask)
+        val geometry = GeoProvider(scene, collisionMask)
 
         val config = RecastConfig(
             partitionType,
@@ -80,30 +83,15 @@ class NavMeshBuilder {
         for (i in 0 until mesh.numPolygons) {
             mesh.flags[i] = 1
         }
-        val md = built.meshDetail
+
         val p = NavMeshDataCreateParams()
-        p.vertices = mesh.vertices
-        p.vertCount = mesh.numVertices
-        p.polys = mesh.polygons
-        p.polyFlags = mesh.flags
-        p.polyAreas = mesh.areaIds
-        p.polyCount = mesh.numPolygons
-        p.maxVerticesPerPolygon = mesh.maxVerticesPerPolygon
-        if (md != null) {
-            p.detailVertices = md.vertices
-            p.detailVerticesCount = md.numVertices
-            p.detailTris = md.triangles
-            p.detailTriCount = md.numTriangles
-        }
-        // todo properly set these values, these are just bogus values
-        p.offMeshConVertices = floatArrayOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f)
-        p.offMeshConRad = floatArrayOf(0.1f)
-        p.offMeshConFlags = intArrayOf(12)
-        p.offMeshConAreas = intArrayOf(2)
-        p.offMeshConDir = intArrayOf(1)
-        p.offMeshConUserID = intArrayOf(0x4567)
-        p.offMeshConCount = 1
-        p.bounds = mesh.bounds
+        p.setFromMesh(mesh)
+
+        val md = built.meshDetail
+        if (md != null) p.setFromMeshDetails(md)
+
+        setOffMeshConnections(p, scene)
+
         p.walkableHeight = agentType.height
         p.walkableRadius = agentType.radius
         p.walkableClimb = agentType.maxStepHeight
@@ -111,6 +99,31 @@ class NavMeshBuilder {
         p.cellHeight = cellHeight
         p.buildBvTree = true
         return NavMeshBuilder.createNavMeshData(p)
+    }
+
+    fun setOffMeshConnections(dst: NavMeshDataCreateParams, scene: Entity) {
+        val srcConnections = scene.getComponentsInChildren(OffMeshConnection::class)
+        val dst = dst.offMeshConnections
+        dst.resize(srcConnections.size)
+        val tmp = Vector3d()
+        fun setPos(i: Int, from: Vector3d, transform: Transform) {
+            transform.globalTransform.transformPosition(from, tmp)
+            dst.fromTo[i] = tmp.x.toFloat()
+            dst.fromTo[i + 1] = tmp.y.toFloat()
+            dst.fromTo[i + 2] = tmp.z.toFloat()
+        }
+        for (i in srcConnections.indices) {
+            val src = srcConnections[i]
+            dst.userIds[i] = i // not really used
+            dst.radius[i] = src.radius
+            dst.flags[i] = src.connectionFlags
+            dst.areaIds[i] = src.areaId
+            dst.isBidirectional[i] = src.isBidirectional
+            val transform = src.transform ?: scene.transform
+            setPos(i * 6, src.from, transform)
+            setPos(i * 6 + 3, src.to, transform)
+        }
+        dst.size = srcConnections.size
     }
 
     fun buildData(scene: Entity): NavMeshData? {

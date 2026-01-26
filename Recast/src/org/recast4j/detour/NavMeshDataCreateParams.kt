@@ -21,7 +21,8 @@ package org.recast4j.detour
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.annotations.Nullable
 import org.joml.AABBf
-import org.joml.Vector3f
+import org.recast4j.recast.PolyMesh
+import org.recast4j.recast.PolyMeshDetail
 
 /**
  * Represents the source data used to build a navigation mesh tile.
@@ -31,6 +32,7 @@ class NavMeshDataCreateParams {
     companion object {
         val i0 = IntArray(0)
         val f0 = FloatArray(0)
+        val b0 = BooleanArray(0)
     }
 
     /**
@@ -65,7 +67,7 @@ class NavMeshDataCreateParams {
     /**
      * Number of polygons in the mesh. [Limit: >= 1]
      */
-    var polyCount = 0
+    var numPolygons = 0
 
     /**
      * Number maximum number of vertices per polygon. [Limit: >= 3]
@@ -104,50 +106,7 @@ class NavMeshDataCreateParams {
      */
     var detailTriCount = 0
 
-    /**
-     * @name Off-Mesh Connections Attributes (Optional)
-     * Used to define a custom point-to-point edge within the navigation graph, an
-     * off-mesh connection is a user defined traversable connection made up to two vertices,
-     * at least one of which resides within a navigation mesh polygon.
-     * */
-
-    /**
-     * Off-mesh connection vertices. [(ax, ay, az, bx, by, bz) * #offMeshConCount]
-     */
-    @NotNull
-    var offMeshConVertices: FloatArray = f0
-
-    /**
-     * Off-mesh connection radii. [Size: #offMeshConCount]
-     */
-    @NotNull
-    var offMeshConRad: FloatArray = f0
-
-    /**
-     * User defined flags assigned to the off-mesh connections. [Size: #offMeshConCount]
-     */
-    @NotNull
-    var offMeshConFlags: IntArray = i0
-
-    /**
-     * User defined area ids assigned to the off-mesh connections. [Size: #offMeshConCount]
-     */
-    @NotNull
-    var offMeshConAreas: IntArray = i0
-
-    /**
-     * The permitted travel direction of the off-mesh connections. [Size: #offMeshConCount]
-     * 0 = Travel only from endpoint A to endpoint B. Bidirectional travel.
-     * */
-    @NotNull
-    var offMeshConDir: IntArray = i0
-
-    /** The user defined ids of the off-mesh connection. [Size: #offMeshConCount] */
-    @NotNull
-    var offMeshConUserID: IntArray = i0
-
-    /** The number of off-mesh connections. [Limit: >= 0] */
-    var offMeshConCount = 0
+    val offMeshConnections = OffMeshConnections()
 
     /** @name Tile Attributes
      * @note The tile grid/layer data can be left at zero if the destination is a single tile mesh.
@@ -210,5 +169,27 @@ class NavMeshDataCreateParams {
      * @note The BVTree is not normally needed for layered navigation meshes.
      */
     var buildBvTree = false
+
+    fun setFromMesh(mesh: PolyMesh) {
+        vertices = mesh.vertices
+        vertCount = mesh.numVertices
+        polys = mesh.polygons
+        polyFlags = mesh.flags
+        polyAreas = mesh.areaIds
+        numPolygons = mesh.numPolygons
+        maxVerticesPerPolygon = mesh.maxVerticesPerPolygon
+
+        bounds = mesh.bounds
+        cellSize = mesh.cellSize
+        cellHeight = mesh.cellHeight
+    }
+
+    fun setFromMeshDetails(meshDetail: PolyMeshDetail){
+        detailMeshes = meshDetail.subMeshes
+        detailVertices = meshDetail.vertices
+        detailVerticesCount = meshDetail.numVertices
+        detailTris = meshDetail.triangles
+        detailTriCount = meshDetail.numTriangles
+    }
 
 }

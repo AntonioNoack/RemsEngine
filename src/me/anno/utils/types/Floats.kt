@@ -107,9 +107,15 @@ object Floats {
     @JvmStatic
     fun formatPercent(progress: Long, total: Long): String = (progress.toDouble() / total.toDouble()).formatPercent()
 
+    /**
+     * Input: [0,1], output: 0.0% .. 100.0%, clamps
+     * */
     @JvmStatic
     fun Float.formatPercent(): String = toDouble().formatPercent()
 
+    /**
+     * Input: [0,1], output: 0.0% .. 100.0%, clamps
+     * */
     @JvmStatic
     fun Double.formatPercent(): String = Maths.clamp(this * 100.0, 0.0, 100.0).f1()
 

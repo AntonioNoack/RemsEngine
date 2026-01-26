@@ -49,13 +49,13 @@ object Recast {
      * See the rcConfig documentation for more information on the configuration parameters.
      */
     fun markWalkableTriangles(
-        walkableSlopeAngle: Float, vertices: FloatArray, tris: IntArray, nt: Int,
+        walkableSlopeAngle: Float, vertices: FloatArray, tris: IntArray, numTris: Int,
         areaMod: AreaModification
     ): IntArray {
-        val areas = IntArray(nt)
+        val areas = IntArray(numTris)
         val walkableThr = cos(walkableSlopeAngle / 180f * Math.PI).toFloat()
         val norm = Vector3f()
-        for (i in 0 until nt) {
+        for (i in 0 until numTris) {
             val tri = i * 3
             calcTriNormal(vertices, tris[tri], tris[tri + 1], tris[tri + 2], norm)
             // Check if the face is walkable.

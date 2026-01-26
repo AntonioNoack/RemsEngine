@@ -1,6 +1,7 @@
 package me.anno.mesh
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshIndices.getFlatShadedPositions
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
@@ -31,23 +32,6 @@ object Shapes {
             dst[i + 2] = src[i + 2] * scale.z + offset.z
         }
         return dst
-    }
-
-    /**
-     * creates a flat shaded positions array from an indexed mesh
-     * */
-    fun unpack(base: Mesh): FloatArray {
-        val pos = base.positions!!
-        val idx = base.indices ?: return pos
-        val ret = FloatArray(idx.size * 3)
-        var i = 0
-        for (index in idx) {
-            var i3 = index * 3
-            ret[i++] = pos[i3++]
-            ret[i++] = pos[i3++]
-            ret[i++] = pos[i3]
-        }
-        return ret
     }
 
     /**
@@ -165,7 +149,7 @@ object Shapes {
         )
     )
 
-    val flatCube = FBBMesh("flatCube", unpack(smoothCube.front), null)
+    val flatCube = FBBMesh("flatCube", getFlatShadedPositions(smoothCube.front), null)
 
     /**
      * cube with half extents 1, full extents 2; front only

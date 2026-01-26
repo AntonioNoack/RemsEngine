@@ -470,7 +470,7 @@ class TileCache(
         params.polys = polyMesh.polys
         params.polyAreas = polyMesh.areas
         params.polyFlags = polyMesh.flags
-        params.polyCount = polyMesh.numPolygons
+        params.numPolygons = polyMesh.numPolygons
         params.maxVerticesPerPolygon = navMesh.maxVerticesPerPoly
         params.walkableHeight = this.params.walkableHeight
         params.walkableRadius = this.params.walkableRadius

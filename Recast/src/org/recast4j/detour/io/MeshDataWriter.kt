@@ -72,7 +72,7 @@ object MeshDataWriter : DetourWriter() {
                 writeI16(stream, polygon.neighborData[j].toShort(), order)
             }
             writeI16(stream, polygon.flags.toShort(), order)
-            stream.write(polygon.vertCount)
+            stream.write(polygon.numVertices)
             stream.write(polygon.areaAndType)
         }
     }
@@ -119,7 +119,7 @@ object MeshDataWriter : DetourWriter() {
     private fun writeOffMeshCon(stream: OutputStream, con: OffMeshConnection, order: ByteOrder) {
         write(stream, con.posA, order)
         write(stream, con.posB, order)
-        writeF32(stream, con.rad, order)
+        writeF32(stream, con.radius, order)
         writeI16(stream, con.poly.toShort(), order)
         stream.write(con.flags)
         stream.write(con.side.toInt())

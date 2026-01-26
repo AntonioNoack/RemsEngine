@@ -25,6 +25,7 @@ import org.joml.Vector3f
  * traversable connection made up to two vertices.
  */
 class OffMeshConnection {
+
     /**
      * The endpoints of the connection.
      */
@@ -34,7 +35,7 @@ class OffMeshConnection {
     /**
      * The radius of the endpoints. [Limit: >= 0]
      */
-    var rad = 0f
+    var radius = 0f
 
     /**
      * The polygon reference of the connection within the tile.

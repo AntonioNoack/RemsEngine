@@ -92,7 +92,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
 
             // Calc area of the polygon.
             var polyArea = 0f
-            for (j in 2 until p.vertCount) {
+            for (j in 2 until p.numVertices) {
                 val va = p.vertices[0] * 3
                 val vb = p.vertices[j - 1] * 3
                 val vc = p.vertices[j] * 3
@@ -113,13 +113,13 @@ open class NavMeshQuery(val nav1: NavMesh) {
         val vertices = FloatArray(3 * nav1.maxVerticesPerPoly)
         val areas = FloatArray(nav1.maxVerticesPerPoly)
         val srcVertices = tile.data.vertices
-        for (j in 0 until poly.vertCount) {
+        for (j in 0 until poly.numVertices) {
             val srcI = poly.vertices[j] * 3
             srcVertices.copyInto(vertices, j * 3, srcI, srcI + 3)
         }
         val s = random.nextFloat()
         val t = random.nextFloat()
-        val pt = Vectors.randomPointInConvexPoly(vertices, poly.vertCount, areas, s, t)
+        val pt = Vectors.randomPointInConvexPoly(vertices, poly.numVertices, areas, s, t)
         val y = getPolyHeight(polyRef, pt)
         if (!y.isFinite()) return null
         pt.y = y
@@ -220,7 +220,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 val src = bestTile.data.vertices
                 val dst = polyVertices.data
                 val srcIndices = bestPoly.vertices
-                val vertCount = min(bestPoly.vertCount, maxPolyVertices)
+                val vertCount = min(bestPoly.numVertices, maxPolyVertices)
                 for (i in 0 until vertCount) {
                     val srcI = srcIndices[i] * 3
                     src.copyInto(dst, i * 3, srcI, srcI + 3)
@@ -331,7 +331,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
         val src = randomTile!!.data.vertices
         val dst = polyVertices.data
         val srcIndices = randomPoly.vertices
-        val vertCount = min(randomPoly.vertCount, maxPolyVertices)
+        val vertCount = min(randomPoly.numVertices, maxPolyVertices)
         for (i in 0 until vertCount) {
             System.arraycopy(src, srcIndices[i] * 3, dst, i * 3, 3)
         }
@@ -377,7 +377,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
         val tile = nav1.getTileByRef(ref) ?: return null
         val poly = nav1.getPolyByRef(ref, tile) ?: return null
         // Collect vertices.
-        val nv = poly.vertCount
+        val nv = poly.numVertices
         val srcVertices = tile.data.vertices
         for (i in 0 until nv) {
             val srcI = poly.vertices[i] * 3
@@ -525,7 +525,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 }
                 // Calc polygon bounds.
                 meshBounds.clear()
-                for (j in 0 until p.vertCount) {
+                for (j in 0 until p.numVertices) {
                     meshBounds.union(data.vertices, p.vertices[j] * 3)
                 }
                 if (bounds.testAABB(meshBounds)) {
@@ -566,7 +566,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 }
                 // Calc polygon bounds.
                 meshBounds.clear()
-                for (j in 0 until p.vertCount) {
+                for (j in 0 until p.numVertices) {
                     meshBounds.union(data.vertices, p.vertices[j] * 3)
                 }
                 query.process(tile, p, ref)
@@ -1619,7 +1619,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             val curPoly = nav1.getPolyByRefUnsafe(curRef, curTile)
 
             // Collect vertices.
-            val nvertices = curPoly.vertCount
+            val nvertices = curPoly.numVertices
             val srcVertices = curTile.data.vertices
             for (i in 0 until nvertices) {
                 val srcI = curPoly.vertices[i] * 3
@@ -1635,8 +1635,8 @@ open class NavMeshQuery(val nav1: NavMesh) {
 
             // Find wall edges and find the nearest point inside the walls.
             var i = 0
-            var j = curPoly.vertCount - 1
-            while (i < curPoly.vertCount) {
+            var j = curPoly.numVertices - 1
+            while (i < curPoly.numVertices) {
 
                 // Find links to neighbours.
                 var nneis = 0
@@ -1795,7 +1795,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
 
         // Find portal vertices.
         val v0 = fromPoly.vertices[link.indexOfPolyEdge]
-        val v1 = fromPoly.vertices[(link.indexOfPolyEdge + 1) % fromPoly.vertCount]
+        val v1 = fromPoly.vertices[(link.indexOfPolyEdge + 1) % fromPoly.numVertices]
         left.set(fromTile.data.vertices, v0 * 3)
         right.set(fromTile.data.vertices, v1 * 3)
 
@@ -1931,7 +1931,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
 
             // Collect vertices.
             var nv = 0
-            for (i in 0 until poly.vertCount) {
+            for (i in 0 until poly.numVertices) {
                 System.arraycopy(tile!!.data.vertices, poly.vertices[i] * 3, vertices, nv * 3, 3)
                 nv++
             }
@@ -2007,7 +2007,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
 
                 // Check for partial edge links.
                 val v0 = poly.vertices[link.indexOfPolyEdge]
-                val v1 = poly.vertices[(link.indexOfPolyEdge + 1) % poly.vertCount]
+                val v1 = poly.vertices[(link.indexOfPolyEdge + 1) % poly.numVertices]
                 val left = v0 * 3
                 val right = v1 * 3
 
@@ -2535,7 +2535,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 // Check, that the polygon does not collide with existing polygons.
 
                 // Collect vertices of the neighbour poly.
-                val npa = neighbourPoly.vertCount
+                val npa = neighbourPoly.numVertices
                 for (k in 0 until npa) {
                     System.arraycopy(neighbourTile.data.vertices, neighbourPoly.vertices[k] * 3, pa, k * 3, 3)
                 }
@@ -2566,7 +2566,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                     val pastPoly = nav1.getPolyByRefUnsafe(pastRef, pastTile)
 
                     // Get vertices and test overlap
-                    val npb = pastPoly.vertCount
+                    val npb = pastPoly.numVertices
                     for (l in 0 until npb) {
                         System.arraycopy(pastTile.data.vertices, pastPoly.vertices[l] * 3, pb, l * 3, 3)
                     }
@@ -2636,8 +2636,8 @@ open class NavMeshQuery(val nav1: NavMesh) {
         val poly = nav1.getPolyByRef(ref, tile) ?: return null
         val vs = tile.data.vertices
         var i = 0
-        var j = poly.vertCount - 1
-        while (i < poly.vertCount) {
+        var j = poly.numVertices - 1
+        while (i < poly.numVertices) {
 
             // Skip non-solid edges.
             ints.clear()
@@ -2783,8 +2783,8 @@ open class NavMeshQuery(val nav1: NavMesh) {
 
             // Hit test walls.
             var i = 0
-            var j = bestPoly.vertCount - 1
-            while (i < bestPoly.vertCount) {
+            var j = bestPoly.numVertices - 1
+            while (i < bestPoly.numVertices) {
 
                 // Skip non-solid edges.
                 if (bestPoly.neighborData[j] and NavMesh.DT_EXT_LINK != 0) {
@@ -2866,7 +2866,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
 
                 // Calc distance to the edge.
                 val va = bestPoly.vertices[link.indexOfPolyEdge] * 3
-                val vb = bestPoly.vertices[(link.indexOfPolyEdge + 1) % bestPoly.vertCount] * 3
+                val vb = bestPoly.vertices[(link.indexOfPolyEdge + 1) % bestPoly.numVertices] * 3
                 val distSqr = Vectors.distancePtSegSqr2DFirst(centerPos, bestTile.data.vertices, va, vb)
                 // If the circle is not touching the next polygon, skip it.
                 if (distSqr > radiusSqr) {

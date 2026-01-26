@@ -217,7 +217,7 @@ class NavMesh(
                 }
                 // Calc polygon bounds.
                 meshBounds.clear()
-                for (j in 0 until p.vertCount) {
+                for (j in 0 until p.numVertices) {
                     meshBounds.union(vertices, p.vertices[j] * 3)
                 }
                 if (queryBounds.testAABB(meshBounds)) {
@@ -431,7 +431,7 @@ class NavMesh(
 
             // Build edge links backwards so that the links will be
             // in the linked list from the lowest index to the highest.
-            for (j in poly.vertCount - 1 downTo 0) {
+            for (j in poly.numVertices - 1 downTo 0) {
                 // Skip hard and non-internal edges.
                 if (poly.neighborData[j] == 0 || poly.neighborData[j] and DT_EXT_LINK != 0) {
                     continue
@@ -492,7 +492,7 @@ class NavMesh(
 
             // Create new links.
             // short m = DT_EXT_LINK | (short)side;
-            val nv = poly.vertCount
+            val nv = poly.numVertices
             for (j in 0 until nv) {
                 // Skip non-portal edges.
                 if (poly.neighborData[j] and DT_EXT_LINK == 0) {
@@ -571,7 +571,7 @@ class NavMesh(
             if (target.polyLinks[targetPoly.index] == HAS_NO_LINKS) {
                 continue
             }
-            val ext = Vector3f(targetCon.rad, data2.walkableClimb, targetCon.rad)
+            val ext = Vector3f(targetCon.radius, data2.walkableClimb, targetCon.radius)
 
             // Find polygon to connect to.
             val p = Vector3f(targetCon.posB)
@@ -579,11 +579,11 @@ class NavMesh(
             val ref = nearest.nearestRef
             if (ref == 0L) continue
             val nearestPt = nearest.nearestPos ?: continue
-            // findNearestPoly may return too optimistic results, further check
-            // to make sure.
-            if (sq(nearestPt.x - p.x) + sq(nearestPt.z - p.z) > targetCon.rad * targetCon.rad) {
+            // findNearestPoly may return too optimistic results, further check to make sure.
+            if (sq(nearestPt.x - p.x) + sq(nearestPt.z - p.z) > sq(targetCon.radius)) {
                 continue
             }
+
             // Make sure the location is on current mesh.
             data2.vertices[targetPoly.vertices[1] * 3] = nearestPt.x
             data2.vertices[targetPoly.vertices[1] * 3 + 1] = nearestPt.y
@@ -638,7 +638,7 @@ class NavMesh(
         val data = tile.data
         for (i in 0 until data.polyCount) {
             val poly = data.polygons[i]
-            val nv = poly.vertCount
+            val nv = poly.numVertices
             for (j in 0 until nv) {
                 // Skip edges which do not point to the right side.
                 if (poly.neighborData[j] != m) {
@@ -715,7 +715,7 @@ class NavMesh(
         for (i in 0 until data.offMeshConCount) {
             val con = data.offMeshCons[i]
             val poly = data.polygons[con.poly]
-            val ext = Vector3f(con.rad, data.walkableClimb, con.rad)
+            val ext = Vector3f(con.radius, data.walkableClimb, con.radius)
 
             // Find polygon to connect to.
             val nearestPoly = findNearestPolyInTile(tile, con.posA, ext)
@@ -724,7 +724,7 @@ class NavMesh(
             val p = con.posA // First vertex
             val nearestPt = nearestPoly.nearestPos ?: continue
             // findNearestPoly may return too optimistic results, further check to make sure.
-            if (sq(nearestPt.x - p.x) + sq(nearestPt.z - p.z) > sq(con.rad)) {
+            if (sq(nearestPt.x - p.x) + sq(nearestPt.z - p.z) > sq(con.radius)) {
                 continue
             }
             // Make sure the location is on current mesh.
@@ -805,11 +805,11 @@ class NavMesh(
                 }
             }
         } else {
-            if (poly.vertCount <= 0) return Vector3f() // invalid/empty
+            if (poly.numVertices <= 0) return Vector3f() // invalid/empty
             val (v0, v1) = tripletVec3f.get()
             val vertices = tileData.vertices
-            for (j in 0 until poly.vertCount) {
-                val k = (j + 1) % poly.vertCount
+            for (j in 0 until poly.numVertices) {
+                val k = (j + 1) % poly.numVertices
                 v0.set(vertices, poly.vertices[j] * 3)
                 v1.set(vertices, poly.vertices[k] * 3)
                 val (d, t) = Vectors.distancePtSegSqr2D(pos, v0, v1)
@@ -869,8 +869,8 @@ class NavMesh(
             val (v0, v1) = tripletVec3f.get()
             val vs = tile.data.vertices
             val ix = poly.vertices
-            for (j in 0 until poly.vertCount) {
-                val k = (j + 1) % poly.vertCount
+            for (j in 0 until poly.numVertices) {
+                val k = (j + 1) % poly.numVertices
                 v0.set(vs, ix[j] * 3)
                 v1.set(vs, ix[k] * 3)
                 val d = Vectors.distancePtSegSqr2DFirst(pos, v0, v1)
@@ -886,11 +886,11 @@ class NavMesh(
     private fun fill(tileData: MeshData, tk: Int, poly: Poly, vk: Vector3f, pd: PolyDetail) {
         val index: Int
         val data: FloatArray
-        if (tileData.detailTriangles[tk].toInt().and(0xff) < poly.vertCount) {
+        if (tileData.detailTriangles[tk].toInt().and(0xff) < poly.numVertices) {
             index = poly.vertices[tileData.detailTriangles[tk].toInt().and(0xff)]
             data = tileData.vertices
         } else {
-            index = (pd.vertBase + (tileData.detailTriangles[tk].toInt().and(0xff) - poly.vertCount))
+            index = (pd.vertBase + (tileData.detailTriangles[tk].toInt().and(0xff) - poly.numVertices))
             data = tileData.detailVertices
         }
         vk.set(data, index * 3)
@@ -900,11 +900,11 @@ class NavMesh(
         // Off-mesh connections do not have detail polys and getting height
         // over them does not make sense.
         if (poly.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) return Float.NaN
-        if (tile == null || poly.vertCount <= 0) return Float.NaN
+        if (tile == null || poly.numVertices <= 0) return Float.NaN
         val ip = poly.index
         val tileData = tile.data
         val vertices = tmpVertices.get()
-        val nv = poly.vertCount
+        val nv = poly.numVertices
         for (i in 0 until nv) {
             val srcI = poly.vertices[i] * 3
             tileData.vertices.copyInto(vertices, i * 3, srcI, srcI + 3)
@@ -930,7 +930,7 @@ class NavMesh(
             val vs = tileData.vertices
             val ix = poly.vertices
             v0.set(vs, ix[0] * 3)
-            for (j in 1 until poly.vertCount - 1) {
+            for (j in 1 until poly.numVertices - 1) {
                 v1.set(vs, ix[j + 1] * 3)
                 v2.set(vs, ix[j + 2] * 3)
                 val h = Vectors.closestHeightPointTriangle(pos, v0, v1, v2)

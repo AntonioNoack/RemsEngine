@@ -83,8 +83,8 @@ object NavMeshBuilder {
     private fun createBVTree(params: NavMeshDataCreateParams, BVNodes: Array<BVNode>): Int {
         // Build tree
         val quantFactor = 1 / params.cellSize
-        val items = Array(params.polyCount) { BVNode() }
-        for (i in 0 until params.polyCount) {
+        val items = Array(params.numPolygons) { BVNode() }
+        for (i in 0 until params.numPolygons) {
             val node = items[i]
             node.index = i
             // Calc polygon bounds. Use detail meshes if available.
@@ -95,7 +95,7 @@ object NavMeshBuilder {
                 calculatePolygonBounds(params, i, quantFactor, node)
             }
         }
-        return subdivide(items, 0, params.polyCount, 0, BVNodes)
+        return subdivide(items, 0, params.numPolygons, 0, BVNodes)
     }
 
     private fun calculatePolygonBounds(
@@ -182,8 +182,8 @@ object NavMeshBuilder {
             return null
         }
 
-        if (params.polyCount == 0 || params.polys == null) {
-            LOGGER.warn("Missing polygons: min(${params.polyCount},${params.polys?.size})")
+        if (params.numPolygons == 0 || params.polys == null) {
+            LOGGER.warn("Missing polygons: min(${params.numPolygons},${params.polys?.size})")
             return null
         }
 
@@ -194,15 +194,16 @@ object NavMeshBuilder {
         var offMeshConClass: ByteArray? = null
         var storedOffMeshConCount = 0
         var offMeshConLinkCount = 0
-        if (params.offMeshConCount > 0) {
-            offMeshConClass = ByteArray(params.offMeshConCount * 2)
+        val offMeshConnections = params.offMeshConnections
+        if (offMeshConnections.size > 0) {
+            offMeshConClass = ByteArray(offMeshConnections.size * 2)
             val counts = findTightHeightBounds(params, offMeshConClass, offMeshConLinkCount, storedOffMeshConCount)
             offMeshConLinkCount = counts.first
             storedOffMeshConCount = counts.second
         }
 
         // Off-mesh connections are stored as polygons, adjust values.
-        val totPolyCount = params.polyCount + storedOffMeshConCount
+        val totPolyCount = params.numPolygons + storedOffMeshConCount
         val totVertCount = params.vertCount + storedOffMeshConCount * 2
 
         // Find portal edges, which are at tile borders.
@@ -224,11 +225,11 @@ object NavMeshBuilder {
             uniqueDetailVertCount = 0
         }
 
-        val bvTreeSize = if (params.buildBvTree) params.polyCount * 2 else 0
+        val bvTreeSize = if (params.buildBvTree) params.numPolygons * 2 else 0
         val header = MeshData()
         val navVertices = FloatArray(3 * totVertCount)
         val navPolys = Array(totPolyCount) { Poly(it, nvp) }
-        val navDMeshes = Array(params.polyCount) { PolyDetail() }
+        val navDMeshes = Array(params.numPolygons) { PolyDetail() }
         val navDVertices = FloatArray(3 * uniqueDetailVertCount)
         val navDTris = ByteArray(4 * detailTriCount)
         val navBVTree = Array(bvTreeSize) { BVNode() }
@@ -241,7 +242,7 @@ object NavMeshBuilder {
         )
 
         val offMeshVerticesBase = params.vertCount
-        val offMeshPolyBase = params.polyCount
+        val offMeshPolyBase = params.numPolygons
         storeMeshVertices(params, navVertices)
         createOffMeshLinkVertices(params, offMeshConClass, offMeshVerticesBase, navVertices)
 
@@ -294,11 +295,11 @@ object NavMeshBuilder {
         header.vertCount = totVertCount
         header.maxLinkCount = maxLinkCount
         header.bounds.set(params.bounds)
-        header.detailMeshCount = params.polyCount
+        header.detailMeshCount = params.numPolygons
         header.detailVertCount = uniqueDetailVertCount
         header.detailTriCount = detailTriCount
         header.bvQuantizationFactor = 1f / params.cellSize
-        header.offMeshBase = params.polyCount
+        header.offMeshBase = params.numPolygons
         header.walkableHeight = params.walkableHeight
         header.walkableRadius = params.walkableRadius
         header.walkableClimb = params.walkableClimb
@@ -311,7 +312,7 @@ object NavMeshBuilder {
         pm: IntArray, pp: IntArray
     ): Int {
         var uniqueDetailVertCount = 0
-        for (i in 0 until params.polyCount) {
+        for (i in 0 until params.numPolygons) {
             val p = i * nvp * 2
             var ndv = pm[i * 4 + 1]
             var nv = 0
@@ -327,7 +328,7 @@ object NavMeshBuilder {
 
     private fun countDetailTriCount(params: NavMeshDataCreateParams, nvp: Int, pp: IntArray): Int {
         var detailTriCount = 0
-        for (i in 0 until params.polyCount) {
+        for (i in 0 until params.numPolygons) {
             val p = i * nvp * 2
             var nv = 0
             for (j in 0 until nvp) {
@@ -374,8 +375,9 @@ object NavMeshBuilder {
         val bounds = getTightBounds(params)
         var offMeshConLinkCount = offMeshConLinkCount0
         var storedOffMeshConCount = storedOffMeshConCount0
-        val offMeshConVertices = params.offMeshConVertices
-        for (i in 0 until params.offMeshConCount) {
+        val data = params.offMeshConnections
+        val offMeshConVertices = data.fromTo
+        for (i in 0 until data.size) {
             val p0 = i * 2 * 3
             val p1 = p0 + 3
             offMeshConClass[i * 2] = classifyOffMeshPoint(offMeshConVertices, p0, bounds)
@@ -407,7 +409,7 @@ object NavMeshBuilder {
     ): Int {
         var edgeCount = 0
         var portalCount = 0
-        for (i in 0 until params.polyCount) {
+        for (i in 0 until params.numPolygons) {
             val p = i * 2 * nvp
             for (j in 0 until nvp) {
                 if (pp[p + j] == MESH_NULL_IDX) break
@@ -439,12 +441,13 @@ object NavMeshBuilder {
     ) {
         if (offMeshConClass == null) return
         var n = 0
-        for (i in 0 until params.offMeshConCount) {
+        val data = params.offMeshConnections
+        for (i in 0 until data.size) {
             // Only store connections which start from this tile.
             if (offMeshConClass[i * 2] == OffMeshConnection.FROM_THIS_TILE) {
-                val linkv = i * 2 * 3
+                val linkV = i * 2 * 3
                 val v = (offMeshVerticesBase + n * 2) * 3
-                System.arraycopy(params.offMeshConVertices, linkv, navVertices, v, 6)
+                System.arraycopy(data.fromTo, linkV, navVertices, v, 6)
                 n++
             }
         }
@@ -455,9 +458,9 @@ object NavMeshBuilder {
         navPolys: Array<Poly>, nvp: Int, pp: IntArray
     ) {
         var src = 0
-        for (i in 0 until params.polyCount) {
+        for (i in 0 until params.numPolygons) {
             val p = navPolys[i]
-            p.vertCount = 0
+            p.numVertices = 0
             p.flags = params.polyFlags[i]
             p.area = params.polyAreas[i]
             p.type = Poly.DT_POLYTYPE_GROUND
@@ -477,7 +480,7 @@ object NavMeshBuilder {
                     // Normal connection
                     p.neighborData[j] = pp[src + nvp + j] + 1
                 }
-                p.vertCount++
+                p.numVertices++
             }
             src += nvp * 2
         }
@@ -490,16 +493,17 @@ object NavMeshBuilder {
     ) {
         var n = 0
         offMeshConClass ?: return
-        for (i in 0 until params.offMeshConCount) {
+        val data = params.offMeshConnections
+        for (i in 0 until data.size) {
             // Only store connections which start from this tile.
             if (offMeshConClass[i * 2] == OffMeshConnection.FROM_THIS_TILE) {
                 val p = Poly(offMeshPolyBase + n, nvp)
                 navPolys[offMeshPolyBase + n] = p
-                p.vertCount = 2
+                p.numVertices = 2
                 p.vertices[0] = offMeshVerticesBase + n * 2
                 p.vertices[1] = offMeshVerticesBase + n * 2 + 1
-                p.flags = params.offMeshConFlags[i]
-                p.area = params.offMeshConAreas[i]
+                p.flags = data.flags[i]
+                p.area = data.areaIds[i]
                 p.type = Poly.DT_POLYTYPE_OFFMESH_CONNECTION
                 n++
             }
@@ -510,22 +514,23 @@ object NavMeshBuilder {
         params: NavMeshDataCreateParams, navDMeshes: Array<PolyDetail>,
         navPolys: Array<Poly>, navDTris: ByteArray, navDVertices: FloatArray
     ) {
-        var vbase = 0
-        val dm = params.detailMeshes ?: return
+        var dstOffset = 0
+        val detailMeshes = params.detailMeshes ?: return
         val detailVertices = params.detailVertices ?: return
-        for (i in 0 until params.polyCount) {
-            val dtl = navDMeshes[i]
-            val vb = dm[i * 4]
-            val ndv = dm[i * 4 + 1]
-            val nv = navPolys[i].vertCount
-            dtl.vertBase = vbase
-            dtl.vertCount = ndv - nv
-            dtl.triBase = dm[i * 4 + 2]
-            dtl.triCount = dm[i * 4 + 3]
+        for (i in 0 until params.numPolygons) {
+            val polyDetail = navDMeshes[i]
+            val vertexBase = detailMeshes[i * 4]
+            val nextVertexBase = detailMeshes[i * 4 + 1]
+            val srcOffset = navPolys[i].numVertices
+            polyDetail.vertBase = dstOffset
+            polyDetail.vertCount = nextVertexBase - srcOffset
+            polyDetail.triBase = detailMeshes[i * 4 + 2]
+            polyDetail.triCount = detailMeshes[i * 4 + 3]
             // Copy vertices except the first 'nv' vertices, which are equal to nav poly vertices.
-            if (ndv - nv != 0) {
-                detailVertices.copyInto(navDVertices, vbase * 3, (vb + nv) * 3, 3 * (vb + ndv))
-                vbase += ndv - nv
+            if (nextVertexBase - srcOffset != 0) {
+                detailVertices.copyInto(navDVertices, dstOffset * 3,
+                    (vertexBase + srcOffset) * 3, 3 * (vertexBase + nextVertexBase))
+                dstOffset += nextVertexBase - srcOffset
             }
         }
         // Store triangles.
@@ -539,14 +544,14 @@ object NavMeshBuilder {
         navDTris: ByteArray
     ) {
         var triBase = 0
-        for (i in 0 until params.polyCount) {
-            val dtl = navDMeshes[i]
-            val nv = navPolys[i].vertCount
-            dtl.vertBase = 0
-            dtl.vertCount = 0
-            dtl.triBase = triBase
-            dtl.triCount = nv - 2
-            triBase = triangulatePolygonWithLocalIndices(nv, triBase, navDTris)
+        for (i in 0 until params.numPolygons) {
+            val polyDetail = navDMeshes[i]
+            val numVertices = navPolys[i].numVertices
+            polyDetail.vertBase = 0
+            polyDetail.vertCount = 0
+            polyDetail.triBase = triBase
+            polyDetail.triCount = numVertices - 2
+            triBase = triangulatePolygonWithLocalIndices(numVertices, triBase, navDTris)
         }
     }
 
@@ -573,19 +578,20 @@ object NavMeshBuilder {
     ) {
         offMeshConClass ?: return
         var n = 0
-        for (i in 0 until params.offMeshConCount) {
+        val data = params.offMeshConnections
+        for (i in 0 until data.size) {
             // Only store connections, which start from this tile.
             if (offMeshConClass[i * 2] == OffMeshConnection.FROM_THIS_TILE) {
                 val con = offMeshCons[n]
                 con.poly = offMeshPolyBase + n
                 // Copy connection end-points.
                 val endPts = i * 2 * 3
-                con.posA.set(params.offMeshConVertices, endPts)
-                con.posB.set(params.offMeshConVertices, endPts + 3)
-                con.rad = params.offMeshConRad[i]
-                con.flags = if (params.offMeshConDir[i] != 0) NavMesh.OFFMESH_IS_BIDIRECTIONAL else 0
+                con.posA.set(data.fromTo, endPts)
+                con.posB.set(data.fromTo, endPts + 3)
+                con.radius = data.radius[i]
+                con.flags = if (data.isBidirectional[i]) NavMesh.OFFMESH_IS_BIDIRECTIONAL else 0
                 con.side = offMeshConClass[i * 2 + 1]
-                if (params.offMeshConUserID.isNotEmpty()) con.userId = params.offMeshConUserID[i]
+                if (data.userIds.isNotEmpty()) con.userId = data.userIds[i]
                 n++
             }
         }

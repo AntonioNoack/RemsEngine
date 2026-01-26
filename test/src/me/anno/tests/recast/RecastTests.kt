@@ -113,7 +113,7 @@ class RecastTests {
         val navMeshBuilder1 = NavMeshBuilder()
         navMeshBuilder1.agentType.height = 1f
         navMeshBuilder1.cellSize = 0.05f
-        navMeshBuilder1.cellHeight = 0.5f
+        navMeshBuilder1.cellHeight = 0.05f
         navMeshBuilder1.agentType.radius = 0.01f
         navMeshBuilder1.agentType.maxStepHeight = 0f
         navMeshBuilder1.collisionMask = -1

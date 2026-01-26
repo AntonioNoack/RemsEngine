@@ -262,18 +262,18 @@ object RecastRasterization {
         ctx: Telemetry?
     ) {
         ctx?.startTimer(TelemetryType.RASTERIZE_TRIANGLES)
-        val ics = 1f / solid.cellSize
-        val ich = 1f / solid.cellHeight
+        val invCellSize = 1f / solid.cellSize
+        val invCellHeight = 1f / solid.cellHeight
         // Rasterize triangles.
         for (i in 0 until numTriangles) {
             val v0 = tris[i * 3]
             val v1 = tris[i * 3 + 1]
             val v2 = tris[i * 3 + 2]
-            // Rasterize.
+
             rasterizeTriangle(
                 vertices, v0, v1, v2,
                 areas[i], solid, solid.bounds, solid.cellSize,
-                ics, ich, flagMergeThr
+                invCellSize, invCellHeight, flagMergeThr
             )
         }
         ctx?.stopTimer(TelemetryType.RASTERIZE_TRIANGLES)

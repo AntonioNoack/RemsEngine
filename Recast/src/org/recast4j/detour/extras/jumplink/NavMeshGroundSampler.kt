@@ -39,27 +39,14 @@ internal object NavMeshGroundSampler : AbstractGroundSampler() {
     ): NavMeshQuery {
         val rMesh = r.mesh
         val rMeshDetail = r.meshDetail!!
-        val params = NavMeshDataCreateParams()
-        params.vertices = rMesh.vertices
-        params.vertCount = rMesh.numVertices
-        params.polys = rMesh.polygons
-        params.polyAreas = rMesh.areaIds
-        params.polyFlags = rMesh.flags
-        params.polyCount = rMesh.numPolygons
-        params.maxVerticesPerPolygon = rMesh.maxVerticesPerPolygon
-        params.detailMeshes = rMeshDetail.subMeshes
-        params.detailVertices = rMeshDetail.vertices
-        params.detailVerticesCount = rMeshDetail.numVertices
-        params.detailTris = rMeshDetail.triangles
-        params.detailTriCount = rMeshDetail.numTriangles
-        params.walkableRadius = agentRadius
-        params.walkableHeight = agentHeight
-        params.walkableClimb = agentClimb
-        params.bounds = rMesh.bounds
-        params.cellSize = rMesh.cellSize
-        params.cellHeight = rMesh.cellHeight
-        params.buildBvTree = true
-        return NavMeshQuery(NavMesh(NavMeshBuilder.createNavMeshData(params)!!, params.maxVerticesPerPolygon, 0))
+        val p = NavMeshDataCreateParams()
+        p.setFromMesh(rMesh)
+        p.setFromMeshDetails(rMeshDetail)
+        p.walkableRadius = agentRadius
+        p.walkableHeight = agentHeight
+        p.walkableClimb = agentClimb
+        p.buildBvTree = true
+        return NavMeshQuery(NavMesh(NavMeshBuilder.createNavMeshData(p)!!, p.maxVerticesPerPolygon, 0))
     }
 
     private fun getNavMeshHeight(

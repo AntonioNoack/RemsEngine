@@ -40,9 +40,14 @@ object CylinderModel {
 
         val vertexCount = (us + 1) * vs + top.toInt(us) + bottom.toInt(us)
 
-        mesh.positions = mesh.positions.resize(3 * vertexCount)
-        mesh.normals = mesh.normals.resize(3 * vertexCount)
-        mesh.uvs = mesh.uvs.resize(2 * vertexCount)
+        val positions = mesh.positions.resize(3 * vertexCount)
+        val normals = mesh.normals.resize(3 * vertexCount)
+        val uvs = mesh.uvs.resize(2 * vertexCount)
+
+        mesh.positions = positions
+        mesh.normals = normals
+        mesh.uvs = uvs
+
         if (middleTopBottom != null) mesh.materials = middleTopBottom
         val materialIds = if (middleTopBottom != null) mesh.materialIds.resize(triangleCount) else null
         mesh.materialIds = materialIds
@@ -58,9 +63,6 @@ object CylinderModel {
 
         var k = 0
         var l = 0
-        val positions = mesh.positions!!
-        val normals = mesh.normals!!
-        val uvs = mesh.uvs!!
         for (v in 0 until vs) {
             val y = mix(y0, y1, v / (vs - 1f))
             for (u in 0..us) {

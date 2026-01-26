@@ -31,7 +31,7 @@ class Poly(val index: Int, maxVerticesPerPoly: Int) {
     var flags = 0
 
     /** The number of vertices in the polygon.  */
-    var vertCount = 0
+    var numVertices = 0
 
     /**
      * The bit packed area id and polygon type.

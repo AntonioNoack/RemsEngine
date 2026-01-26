@@ -42,22 +42,22 @@ object RecastVoxelization {
         // Find triangles which are walkable based on their slope and rasterize them.
         // If your input data is multiple meshes, you can transform them here,
         // calculate the area type for each of the meshes and rasterize them.
-        for (geom in geomProvider.meshes) {
-            val vertices = geom.vertices
+        for (mesh in geomProvider.meshes) {
+            val vertices = mesh.vertices
             if (cfg.useTiles) {
-                geom.foreachChunkOverlappingRect(builderCfg.bounds) { node ->
+                mesh.foreachChunkOverlappingRect(builderCfg.bounds) { node ->
                     val tris = node.triangles
-                    val numTris = tris.size / 3
-                    val triAreas =
-                        markWalkableTriangles(cfg.walkableSlopeAngle, vertices, tris, numTris, cfg.walkableAreaMod)
-                    rasterizeTriangles(solid, vertices, tris, triAreas, numTris, cfg.walkableClimb, ctx)
+                    val numTriangles = tris.size / 3
+                    val triangleAreas =
+                        markWalkableTriangles(cfg.walkableSlopeAngle, vertices, tris, numTriangles, cfg.walkableAreaMod)
+                    rasterizeTriangles(solid, vertices, tris, triangleAreas, numTriangles, cfg.walkableClimb, ctx)
                 }
             } else {
-                val tris = geom.triangles
-                val numTris = tris.size / 3
-                val triAreas =
-                    markWalkableTriangles(cfg.walkableSlopeAngle, vertices, tris, numTris, cfg.walkableAreaMod)
-                rasterizeTriangles(solid, vertices, tris, triAreas, numTris, cfg.walkableClimb, ctx)
+                val tris = mesh.triangles
+                val numTriangles = tris.size / 3
+                val triangleAreas =
+                    markWalkableTriangles(cfg.walkableSlopeAngle, vertices, tris, numTriangles, cfg.walkableAreaMod)
+                rasterizeTriangles(solid, vertices, tris, triangleAreas, numTriangles, cfg.walkableClimb, ctx)
             }
         }
         return solid

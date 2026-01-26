@@ -104,7 +104,7 @@ object MeshDataReader {
                 polys[i].neighborData[j] = buf.uint16()
             }
             polys[i].flags = buf.uint16()
-            polys[i].vertCount = buf.uint8()
+            polys[i].numVertices = buf.uint8()
             polys[i].areaAndType = buf.uint8()
         }
         return polys
@@ -159,7 +159,7 @@ object MeshDataReader {
     private fun readOffMeshCon(buf: ByteBuffer, con: OffMeshConnection) {
         con.posA.set(buf.getFloat(), buf.getFloat(), buf.getFloat())
         con.posB.set(buf.getFloat(), buf.getFloat(), buf.getFloat())
-        con.rad = buf.getFloat()
+        con.radius = buf.getFloat()
         con.poly = buf.uint16()
         con.flags = buf.uint8()
         con.side = buf.uint8().toByte()

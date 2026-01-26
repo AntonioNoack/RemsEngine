@@ -21,8 +21,6 @@ import org.recast4j.detour.MeshData
 import org.recast4j.detour.NavMesh
 import org.recast4j.detour.NavMeshBuilder.createNavMeshData
 import org.recast4j.detour.NavMeshDataCreateParams
-import org.recast4j.detour.NavMeshDataCreateParams.Companion.f0
-import org.recast4j.detour.NavMeshDataCreateParams.Companion.i0
 import org.recast4j.dynamic.collider.Collider
 import org.recast4j.dynamic.io.VoxelTile
 import org.recast4j.recast.AreaModification
@@ -148,7 +146,7 @@ class DynamicTile(val voxelTile: VoxelTile) {
         params.polys = mesh.polygons
         params.polyAreas = mesh.areaIds
         params.polyFlags = mesh.flags
-        params.polyCount = mesh.numPolygons
+        params.numPolygons = mesh.numPolygons
         params.maxVerticesPerPolygon = mesh.maxVerticesPerPolygon
         if (meshDetail != null) {
             params.detailMeshes = meshDetail.subMeshes
@@ -164,13 +162,6 @@ class DynamicTile(val voxelTile: VoxelTile) {
         params.cellSize = cellSize
         params.cellHeight = cellHeight
         params.buildBvTree = true
-        params.offMeshConCount = 0
-        params.offMeshConRad = f0
-        params.offMeshConVertices = params.offMeshConRad
-        params.offMeshConUserID = i0
-        params.offMeshConFlags = params.offMeshConUserID
-        params.offMeshConAreas = params.offMeshConFlags
-        params.offMeshConDir = params.offMeshConAreas
         return params
     }
 

@@ -1,10 +1,13 @@
 package me.anno.recast
 
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.MeshIndices.flattenedTriangleIndices
 import me.anno.ecs.components.mesh.TransformMesh.transformPositions
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.AABBf
@@ -22,27 +25,33 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
 
     init {
         world.validateTransform()
-        world.forAllComponentsInChildren(MeshComponentBase::class) {
-            if (it.collisionMask.hasFlag(mask)) {
-                val mesh = it.getMesh()
-                if (mesh is Mesh) addMesh(mesh, it)
+        world.forAllComponentsInChildren(MeshComponentBase::class) { comp ->
+            if (comp.collisionMask.hasFlag(mask)) {
+                val mesh = comp.getMesh()
+                if (mesh is Mesh) addMesh(mesh, comp)
             }
         }
     }
 
     private fun addMesh(mesh: Mesh, it: MeshComponentBase) {
         var src = mesh.positions ?: return
-        val faces = mesh.indices ?: IntArray(src.size / 3) { it }
+        val faces = mesh.flattenedTriangleIndices()
+        src = transformAndGetBounds(src, mesh, it)
+        meshes.add(TriMesh(src, faces))
+    }
+
+    private fun transformAndGetBounds(src: FloatArray, mesh: Mesh, it: Component): FloatArray {
         // apply transform onto mesh
+        var src = src
         val gt = it.transform?.globalTransform
         if (gt != null && !gt.isIdentity()) {
             src = transformPositions(gt, src.copyOf(), 3)
             val vec = JomlPools.vec3f.borrow()
-            for (i in 0 until (src.size - 2) / 3) {
-                bounds.union(vec.set(src, i * 3))
+            forLoopSafely(src.size, 3) { i ->
+                bounds.union(vec.set(src, i))
             }
         } else bounds.union(mesh.getBounds())
-        meshes.add(TriMesh(src, faces))
+        return src
     }
 
 }

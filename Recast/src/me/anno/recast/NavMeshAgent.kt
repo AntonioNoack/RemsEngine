@@ -44,22 +44,24 @@ open class NavMeshAgent(val data: NavMeshData) : Component(), OnUpdate, OnEnable
         crowdAgent = null
     }
 
-    fun teleportTo(position: Vector3f) {
-        val crowdAgent = crowdAgent ?: return
+    fun teleportTo(position: Vector3f): Boolean {
+        val crowdAgent = crowdAgent ?: return false
         data.crowd.resetMoveTarget(crowdAgent)
         crowdAgent.currentPosition.set(position)
         // todo where else is the position stored???
         // todo update the reference...
         // todo update the corridor
+        return true
     }
 
-    fun moveTo(position: Vector3f) {
-        val crowdAgent = crowdAgent ?: return
+    fun moveTo(position: Vector3f): Boolean {
+        val crowdAgent = crowdAgent ?: return false
         val nextPoly = data.query.findNearestPoly(position, data.filter)
-        if (nextPoly.succeeded()) {
+        return if (nextPoly.succeeded()) {
             val result = nextPoly.result!!
             crowdAgent.setTarget(result.nearestRef, position)
-        }
+            true
+        } else false
     }
 
     override fun onUpdate() {

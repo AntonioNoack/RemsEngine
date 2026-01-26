@@ -4,6 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
+import me.anno.ecs.components.mesh.MeshIndices.flattenedTriangleIndices
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.texture.Texture2D
@@ -92,7 +93,7 @@ object BVHBuilder {
         val srcPos = mesh.positions ?: return null
         mesh.ensureNorTanUVs()
         val srcNor = mesh.normals!!
-        val indices = mesh.indices ?: IntArray(srcPos.size / 3) { it }
+        val indices = mesh.flattenedTriangleIndices()
         val srcUVs = mesh.uvs
         val geometryData = GeometryData(srcPos, srcNor, srcUVs, indices, mesh.color0)
         return recursiveBuildBLAS(srcPos, indices, 0, indices.size / 3, maxNodeSize, splitMethod, geometryData)

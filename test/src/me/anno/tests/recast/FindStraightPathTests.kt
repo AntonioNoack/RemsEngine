@@ -74,7 +74,7 @@ class FindStraightPathTests {
                     vertices[1] = it + 1
                     vertices[2] = it + 2
                 }
-                vertCount = 3
+                numVertices = 3
                 if (it > 0) neighborData[0] = (it - 1) + 1
                 if (it + 1 < data.polyCount) neighborData[1] = (it + 1) + 1
             }

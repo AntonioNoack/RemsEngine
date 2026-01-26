@@ -19,7 +19,6 @@ freely, subject to the following restrictions:
 package org.recast4j.detour
 
 import org.joml.AABBf
-import org.joml.Vector3f
 import org.recast4j.detour.NavMeshBuilder.createNavMeshData
 import org.recast4j.detour.NavMeshBuilder.subdivide
 
@@ -89,7 +88,7 @@ class MeshData : MeshHeader() {
                 val polygon = data.polygons[i]
                 val polygonVertices = polygon.vertices
                 bounds.clear()
-                for (j in 0 until polygon.vertCount) {
+                for (j in 0 until polygon.numVertices) {
                     bounds.union(data.vertices, polygonVertices[j] * 3)
                 }
                 srcNodes[i].setQuantized(bounds, data.bounds, quantFactor)

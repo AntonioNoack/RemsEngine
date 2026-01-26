@@ -71,7 +71,7 @@ object NavMeshDebug {
             val polyIdx = poly.vertices
             val detailMesh = dMeshes[polyIndex]
             val dIdx = data.detailTriangles
-            val pVertexCount = poly.vertCount
+            val pVertexCount = poly.numVertices
             val dOffset = detailMesh.vertBase
             for (triangleIndex in 0 until detailMesh.triCount) {
                 val di = (detailMesh.triBase + triangleIndex) * 4
