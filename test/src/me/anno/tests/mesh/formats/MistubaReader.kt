@@ -1,4 +1,4 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.formats
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth

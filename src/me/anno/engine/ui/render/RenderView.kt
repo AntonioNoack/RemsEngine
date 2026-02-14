@@ -97,12 +97,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.tan
 
-// todo make shaders of materials be references via a file (StaticRef)? this will allow for visual shaders in the future
-
-// todo define custom render modes using files within the project, editable in a GraphEditor
-
-// todo read Nanite paper and find out how we can calculate meshlet hierarchies
-
 /**
  * a panel that renders the scene;
  * no controls are provided by this class, it just draws

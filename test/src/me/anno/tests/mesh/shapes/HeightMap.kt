@@ -1,4 +1,4 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.shapes
 
 import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageCache
@@ -13,7 +13,6 @@ import me.anno.utils.hpc.HeavyProcessing
 import me.anno.utils.structures.Iterators.filter
 import me.anno.utils.structures.Iterators.toList
 import me.anno.utils.types.Floats.roundToIntOr
-import kotlin.math.roundToInt
 
 fun main() {
     OfficialExtensions.initForTests()

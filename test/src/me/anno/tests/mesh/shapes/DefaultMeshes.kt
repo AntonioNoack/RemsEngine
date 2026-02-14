@@ -1,4 +1,4 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.shapes
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent

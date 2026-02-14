@@ -22,6 +22,8 @@ open class GlyphLayout(
         fontImpl.fillGlyphLayout(font, text, this, relativeWidthLimit, maxNumLines)
     }
 
+    fun getY(glyphIndex: Int): Int = getY(glyphIndex, font)
+
     fun getSizeX(widthLimit: Int): Int {
         return min(width, widthLimit)
     }

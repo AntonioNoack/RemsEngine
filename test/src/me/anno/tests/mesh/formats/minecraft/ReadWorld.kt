@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.minecraft
+package me.anno.tests.mesh.formats.minecraft
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.DirectionalLight

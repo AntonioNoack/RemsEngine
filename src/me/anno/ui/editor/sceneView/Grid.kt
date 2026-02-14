@@ -40,6 +40,8 @@ object Grid {
     val lineBuffer = StaticBuffer("gridLines", attr, 2)
     val sphereBuffer = StaticBuffer("gridSphere", attr, 3 * 64 * 2)
 
+    val gridCellSize = 0.01f
+
     init {
 
         lineBuffer.put(+1f, 0f, 0f)
@@ -47,7 +49,7 @@ object Grid {
         lineBuffer.drawMode = DrawMode.LINES
 
         for (i in -100..100) {
-            val v = 0.01f * i
+            val v = gridCellSize * i
             gridBuffer.put(v, 0f, +1f)
             gridBuffer.put(v, 0f, -1f)
             gridBuffer.put(+1f, 0f, v)

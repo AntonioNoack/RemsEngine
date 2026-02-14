@@ -10,6 +10,7 @@ import me.anno.image.ImageWriter
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.sq
 import me.anno.maths.noise.PerlinNoise
+import me.anno.tests.mesh.simplification.simplifyMesh
 import me.anno.utils.assertions.assertLessThan
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector2f

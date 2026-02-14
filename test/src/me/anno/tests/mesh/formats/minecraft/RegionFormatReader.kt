@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.minecraft
+package me.anno.tests.mesh.formats.minecraft
 
 import me.anno.utils.types.BufferInputStream
 import java.io.DataInputStream
@@ -6,7 +6,9 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.zip.InflaterInputStream
 
-// .MCR
+/**
+ * .mcr/mca file extension
+ * */
 object RegionFormatReader {
 
     class RegionSection {
@@ -22,7 +24,6 @@ object RegionFormatReader {
         private val compression get() = bytes.get(offset + 4).toInt() // only format 1 is used according to docs
         val properties by lazy {
             if (compression != 2) throw NotImplementedError("Unknown compression")
-            // ZLib... what is that???
             val nbtRaw = InflaterInputStream(BufferInputStream(bytes, offset + 5, exactLength - 1)).buffered()
             val map0 = NBTReader.read(DataInputStream(nbtRaw), 10) as Map<String, Any>
             if (map0.size != 1) throw IllegalStateException("Expected one element")

@@ -1,4 +1,4 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.shapes
 
 import me.anno.ecs.components.mesh.shapes.RingMeshModel.createRingMesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI

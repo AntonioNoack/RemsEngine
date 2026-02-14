@@ -1,4 +1,4 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.triangulation
 
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths.TAU

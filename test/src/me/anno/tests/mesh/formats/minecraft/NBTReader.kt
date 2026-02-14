@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.minecraft
+package me.anno.tests.mesh.formats.minecraft
 
 import me.anno.io.Streams.readNBytes2
 import java.io.DataInputStream
