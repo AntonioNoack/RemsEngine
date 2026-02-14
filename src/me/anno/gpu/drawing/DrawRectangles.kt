@@ -122,10 +122,16 @@ object DrawRectangles {
         drawRect(x, y, w, h, color.toVecRGBA(tmp))
     }
 
+    /**
+     * coordinates are including border thickness
+     * */
     fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, thickness: Int) {
         drawBorder(x, y, w, h, color, thickness, thickness)
     }
 
+    /**
+     * coordinates are including border thickness
+     * */
     fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, thicknessX: Int, thicknessY: Int) {
         if (color.a() == 0) return
         drawRect(x, y, w, thicknessY, color)

@@ -242,12 +242,22 @@ object ComponentUI {
     fun createUI2(
         name: String?, visibilityKey: String,
         property: IProperty<Any?>, range: Range?, style: Style
+    ): Panel {
+        val title = if (name != null) NameDesc(name.camelCaseToTitle()) else NameDesc.EMPTY
+        val value = property.get()
+        return createUI2Impl(name, visibilityKey, property, range, title, value, style)
+            ?: TextPanel("?? ${title.name}, ${if (value != null) value::class else null}", style)
+    }
+
+    fun createUI2Impl(
+        name: String?, visibilityKey: String,
+        property: IProperty<Any?>, range: Range?,
+        title: NameDesc, value: Any?,
+        style: Style,
     ): Panel? {
 
-        val title = if (name != null) NameDesc(name.camelCaseToTitle()) else NameDesc.EMPTY
-
         val type0 = property.annotations.firstInstanceOrNull(me.anno.ecs.annotations.Type::class)?.type
-        val type1 = type0 ?: when (val value = property.get()) {
+        val type1 = type0 ?: when (value) {
 
             // native types
             is Boolean,
@@ -324,7 +334,7 @@ object ComponentUI {
             }
             is Saveable -> return createISaveableInput(title, value, style, property)
             is ExtendableEnum -> return createExtendableEnumInput(title, property, value, style)
-            else -> return TextPanel("?? ${title.name}, ${if (value != null) value::class else null}", style)
+            else -> return null
         }
         return createUIByTypeName(name, visibilityKey, property, type1, range, style)
     }

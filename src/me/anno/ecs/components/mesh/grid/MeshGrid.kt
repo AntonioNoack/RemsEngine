@@ -34,8 +34,12 @@ class MeshGrid : MeshSpawner(), OnDrawGUI {
     // todo support other grid shapes than just regular rectangular?
     val grid = HashMap<Vector2i, FileReference>()
     var cellSize = Vector2d(1.0)
+        set(value) {
+            field.set(value)
+            invalidateBounds()
+        }
 
-    @DebugAction
+    @DebugAction(parameterNames = "x,y,w,h,mesh")
     fun fill(x: Int, y: Int, w: Int, h: Int, mesh: Mesh?) {
         for (x in x until x + w) {
             for (y in y until y + h) {
@@ -44,11 +48,12 @@ class MeshGrid : MeshSpawner(), OnDrawGUI {
         }
     }
 
-    @DebugAction
+    @DebugAction(parameterNames = "x,y,mesh")
     fun set(x: Int, y: Int, mesh: Mesh?) {
         val key = Vector2i(x, y)
         if (mesh != null) grid[key] = mesh.ref
         else grid.remove(key)
+        invalidateBounds()
     }
 
     override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
@@ -88,7 +93,7 @@ class MeshGrid : MeshSpawner(), OnDrawGUI {
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "cellSize" -> cellSize = value as? Vector2d ?: return
+            "cellSize" -> cellSize.set(value as? Vector2d ?: return)
             "grid" -> {
                 if (value !is List<*>) return
                 grid.clear()

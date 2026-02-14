@@ -247,14 +247,11 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     fun drawRectangleSelection() {
         if (!Input.isLeftDown || !Input.isShiftDown || !isAnyChildInFocus) return
         val window = window ?: return
-        val x0 = min(window.mouseX, window.mouseDownX).toIntOr()
-        val x1 = max(window.mouseX, window.mouseDownX).toIntOr()
-        val y0 = min(window.mouseY, window.mouseDownY).toIntOr()
-        val y1 = max(window.mouseY, window.mouseDownY).toIntOr()
-        drawBorder(
-            x0, y0, x1 - x0, y1 - y0,
-            UIColors.greenYellow, 2
-        )
+        val x0 = max(min(window.mouseX, window.mouseDownX).toIntOr(), x)
+        val x1 = min(max(window.mouseX, window.mouseDownX).toIntOr(), x + width)
+        val y0 = max(min(window.mouseY, window.mouseDownY).toIntOr(), y)
+        val y1 = min(max(window.mouseY, window.mouseDownY).toIntOr(), y + height)
+        drawBorder(x0, y0, x1 - x0, y1 - y0, UIColors.greenYellow, 2)
     }
 
     override fun drawGizmos() {

@@ -2,12 +2,20 @@ package me.anno.engine.inspector
 
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Group
+import me.anno.ecs.components.anim.AnimationCache
+import me.anno.ecs.components.anim.SkeletonCache
+import me.anno.ecs.components.mesh.MeshCache
+import me.anno.ecs.components.mesh.material.MaterialCache
+import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.PrefabInspector.Companion.formatWarning
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.PropertyTracking.createTrackingButton
 import me.anno.engine.inspector.CachedProperty.Companion.DEFAULT_GROUP
 import me.anno.engine.ui.input.ComponentUI
+import me.anno.engine.ui.input.ComponentUI.createUIByTypeName
+import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
@@ -16,6 +24,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PropertyTablePanel
 import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.groups.TablePanel
+import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
@@ -25,6 +34,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
+import me.anno.utils.types.Defaults
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.ifBlank2
 import me.anno.utils.types.Strings.shorten2Way
@@ -58,28 +68,128 @@ object InspectorUtils {
         val group = SettingCategory(NameDesc("DebugActions"), style).showByDefault()
         val debugActionWrapper = group.content
         for (debugAction in reflections.debugActions) {
-            val action = debugAction.method
-            val clazz = action.declaringClass ?: continue
-            val isSupported = action.parameterCount == 0
-            // todo if there are extra arguments, we would need to create a list inputs for them
-            val nameDesc = NameDesc(debugAction.title, if (isSupported) "" else "Not supported yet", "")
-            val button = TextButton(nameDesc, style)
-                .apply { isInputAllowed = isSupported }
-                .addLeftClickListener {
-                    // could become a little heavy....
-                    for (instance in instances) {
-                        if (clazz.isInstance(instance)) {
-                            action.invoke(instance)
-                        }
-                    }
-                    invalidateUI(true) // typically sth would have changed -> show that automatically
-                }
-            debugActionWrapper.add(button)
+            debugActionWrapper += showDebugAction(debugAction, instances, style) ?: continue
         }
         group.alignmentX = AxisAlignment.MIN
         list.add(group)
     }
 
+    fun showDebugAction(
+        debugAction: DebugActionInstance,
+        instances: List<Inspectable>, style: Style,
+    ): TextButton? {
+        val action = debugAction.method
+        val clazz = action.declaringClass ?: return null
+        val parameters = action.parameters
+        val parameterNames = parameters.mapIndexed { index, parameter ->
+            debugAction.parameterNames.getOrNull(index) ?: parameter.name
+        }
+        val isSimpleAction = parameters.isEmpty()
+        val nameDesc = NameDesc(
+            debugAction.title,
+            parameters.withIndex().joinToString(", ", "(", ")") { (index, it) ->
+                val type = it.type?.simpleName?.capitalize() ?: "??"
+                val name = parameterNames[index]
+                "$name: $type"
+            }, ""
+        )
+        val button = TextButton(nameDesc, style)
+        if (isSimpleAction) {
+            button.addLeftClickListener {
+                // could become a little heavy....
+                for (instance in instances) {
+                    if (clazz.isInstance(instance)) {
+                        action.invoke(instance)
+                    }
+                }
+                invalidateUI(true) // typically sth would have changed -> show that automatically
+            }
+        } else {
+            // there are extra arguments, create inputs for them
+            button.addLeftClickListener {
+                val values = arrayOfNulls<Any>(parameters.size)
+                val table = PropertyTablePanel(2, parameters.size, style)
+                val isReferenceTo = arrayOfNulls<PrefabByFileCache<*>>(parameters.size)
+                for ((index, parameter) in parameters.withIndex()) {
+
+                    val type = parameter.type
+                    var typeName = type?.simpleName?.capitalize() ?: "?"
+                    when (typeName) {
+                        "Mesh" -> {
+                            typeName = "Mesh/Reference"
+                            isReferenceTo[index] = MeshCache
+                        }
+                        "Material" -> {
+                            typeName = "Material/Reference"
+                            isReferenceTo[index] = MaterialCache
+                        }
+                        "Skeleton" -> {
+                            typeName = "Skeleton/Reference"
+                            isReferenceTo[index] = SkeletonCache
+                        }
+                        "Animation" -> {
+                            typeName = "Animation/Reference"
+                            isReferenceTo[index] = AnimationCache
+                        }
+                    }
+
+                    val property = object : IProperty<Any?> {
+
+                        override val annotations: List<Annotation> get() = emptyList()
+
+                        override fun set(panel: Panel?, value: Any?, mask: Int) {
+                            values[index] = value
+                        }
+
+                        override fun init(panel: Panel?) {}
+                        override fun get(): Any? = values[index]
+                        override fun getDefault(): Any? = Defaults.getDefaultValue(typeName)
+
+                        override fun reset(panel: Panel?): Any? {
+                            val value = getDefault()
+                            values[index] = value
+                            return value
+                        }
+                    }
+
+                    values[index] = property.getDefault()
+                    table[0, index] = TextPanel(parameterNames[index], style)
+                    table[1, index] = createUIByTypeName(null, "", property, typeName, null, style)
+                }
+                val okButton = TextButton(nameDesc, style)
+                okButton.addLeftClickListener {
+                    val values = Array(values.size) { index ->
+                        val value = values[index]
+                        val cache = isReferenceTo[index]
+                        if (cache != null) cache.getEntry(value as? FileReference).waitFor()
+                        else value
+                    }
+                    for (index in values.indices) {
+                        val param = parameters[index]
+                        val value = values[index]
+                        if (param.type.isPrimitive) {
+                            check(value != null) {
+                                "Parameter '${parameterNames[index]}' must not be null"
+                            }
+                        } else {
+                            check(value == null || param.type.isInstance(value)) {
+                                "Parameter '${parameterNames[index]}' has incorrect type, $value (${value?.javaClass}) !is ${param.type}"
+                            }
+                        }
+                    }
+                    // could become a little heavy....
+                    for (instance in instances) {
+                        if (clazz.isInstance(instance)) {
+                            action.invoke(instance, *values)
+                        }
+                    }
+                    invalidateUI(true) // typically sth would have changed -> show that automatically
+                }
+                Menu.openMenuByPanels(button.windowStack, nameDesc, listOf(table, okButton))
+            }
+        }
+        return button
+    }
 
     /**
      * debug properties: text showing the value, constantly updating
@@ -146,7 +256,8 @@ object InspectorUtils {
             val panel = ComponentUI.createUI2(
                 "", "",
                 property2, property.range, style
-            ) ?: return
+            )
+
             panel.tooltip = property.description
             panel.forAllPanels { panel2 ->
                 if (panel2 is InputPanel<*>) {

@@ -100,7 +100,8 @@ class CachedReflections private constructor(
                 if (debugAction != null && checkIsAccessible(method) != null) {
                     val order = method.getAnnotation(orderAnnotationClass)?.index ?: 0
                     val title = debugAction.title.ifEmpty { method.name.camelCaseToTitle() }
-                    val item = DebugActionInstance(method, title, order)
+                    val parameterNames = debugAction.parameterNames.split(",").map { it.trim() }
+                    val item = DebugActionInstance(method, title, parameterNames, order)
                     if (list is MutableList) list.add(item)
                     else list = arrayListOf(item)
                 }
