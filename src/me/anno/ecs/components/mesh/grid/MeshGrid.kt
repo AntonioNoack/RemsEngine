@@ -1,11 +1,13 @@
 package me.anno.ecs.components.mesh.grid
 
+import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnDrawGUI
@@ -16,8 +18,15 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.posMod
+import me.anno.maths.Packing.pack64
+import me.anno.maths.chunks.hexagon.HexagonGridMaths
+import me.anno.maths.chunks.triangles.TriangleGridMaths
+import me.anno.maths.noise.RandomBySeed.getNextSeed
+import me.anno.maths.noise.RandomBySeed.getRandomFloat
+import me.anno.maths.noise.RandomBySeed.initialMix
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.Grid.gridCellSize
+import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4fArrayList
 import org.joml.Matrix4x3
 import org.joml.Vector2d
@@ -31,13 +40,37 @@ import org.joml.Vector2i
 @Docs("This is effectively a sprite layer, a regular 2d grid, where you can add meshes")
 class MeshGrid : MeshSpawner(), OnDrawGUI {
 
-    // todo support other grid shapes than just regular rectangular?
+    // todo support other grid shapes than just regular rectangular
+    //  - hex grid
+    //  - triangle grid
+    //  - randomized grid
+
     val grid = HashMap<Vector2i, FileReference>()
+
     var cellSize = Vector2d(1.0)
         set(value) {
             field.set(value)
             invalidateBounds()
         }
+
+    var seed = 0L
+        set(value) {
+            field = value
+            invalidateBounds()
+        }
+
+    var gridShape = GridShape.RECTANGULAR
+        set(value) {
+            field = value
+            invalidateBounds()
+        }
+
+    enum class GridShape {
+        RECTANGULAR,
+        TRIANGULAR,
+        HEXAGONAL,
+        RANDOMIZED
+    }
 
     @DebugAction(parameterNames = "x,y,w,h,mesh")
     fun fill(x: Int, y: Int, w: Int, h: Int, mesh: Mesh?) {
@@ -56,14 +89,48 @@ class MeshGrid : MeshSpawner(), OnDrawGUI {
         invalidateBounds()
     }
 
+    @DebugAction
+    fun convertToMeshComponents() {
+        // todo we have to change the prefab, too
+        val entity = entity ?: return
+        entity.remove(this)
+
+        val tmp = Vector2d()
+        for ((key, value) in grid) {
+            getPosition(key, tmp)
+            Entity(entity)
+                .setPosition(tmp.x, 0.0, tmp.y)
+                .add(MeshComponent(value))
+        }
+    }
+
+    fun getPosition(key: Vector2i, dst: Vector2d): Vector2d {
+        return when (gridShape) {
+            GridShape.RECTANGULAR -> dst.set(key.x.toDouble(), key.y.toDouble())
+            GridShape.TRIANGULAR -> TriangleGridMaths.getCenter(key.x, key.y, dst)
+            GridShape.HEXAGONAL -> HexagonGridMaths.getCenter(key.x, key.y, dst)
+            GridShape.RANDOMIZED -> {
+                // randomize a little;
+                // todo keep distances to neighbors...
+                val seed0 = seed xor initialMix(pack64(key.x, key.y))
+                val rx = getRandomFloat(seed0) - 0.5f
+                val ry = getRandomFloat(getNextSeed(seed0)) - 0.5f
+                dst.set((key.x + rx) * cellSize.x, (key.y + ry) * cellSize.y)
+            }
+        }.mul(cellSize)
+    }
+
     override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
         var i = 0
-        for ((pos, mesh) in grid) {
+        val tmp = JomlPools.vec2d.create()
+        for ((key, mesh) in grid) {
             val mesh = MeshCache[mesh] ?: continue
             val transform = getTransform(i++)
-            transform.setLocalPosition(pos.x * cellSize.x, 0.0, pos.y * cellSize.y)
+            getPosition(key, tmp)
+            transform.setLocalPosition(tmp.x, 0.0, tmp.y)
             callback(mesh, null, transform)
         }
+        JomlPools.vec2d.sub(1)
     }
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
@@ -72,13 +139,22 @@ class MeshGrid : MeshSpawner(), OnDrawGUI {
         stack.set(RenderState.cameraMatrix)
         val transform = transform?.getDrawMatrix() ?: Matrix4x3()
         val pos = RenderState.cameraPosition
-        stack.translate(
-            (posMod(transform.m30 - pos.x, cellSize.x) - cellSize.x * 0.5f).toFloat(),
-            (transform.m31 - pos.y).toFloat(),
-            (posMod(transform.m32 - pos.z, cellSize.y) - cellSize.y * 0.5f).toFloat()
-        )
+        var x = transform.m30 - pos.x
+        val y = transform.m31 - pos.y
+        var z = transform.m32 - pos.z
+        when (gridShape) {
+            GridShape.RECTANGULAR -> {
+                x = posMod(x, cellSize.x) - cellSize.x * 0.5f
+                z = posMod(z, cellSize.y) - cellSize.y * 0.5f
+            }
+            GridShape.TRIANGULAR -> {}
+            GridShape.HEXAGONAL -> {}
+            GridShape.RANDOMIZED -> {}
+        }
+        stack.translate(x.toFloat(), y.toFloat(), z.toFloat())
 
         // todo why is blending not working???
+        // todo render appropriate grid
         GFXState.blendMode.use(BlendMode.DEFAULT) {
             stack.scale(cellSize.x.toFloat() / gridCellSize, 0f, cellSize.y.toFloat() / gridCellSize)
             Grid.drawGrid(stack, 0.1f)
@@ -87,6 +163,7 @@ class MeshGrid : MeshSpawner(), OnDrawGUI {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
+        writer.writeEnum("gridShape", gridShape)
         writer.writeVector2d("cellSize", cellSize)
         writer.writeObjectList(null, "grid", grid.map { MeshGridEntry(it.key, it.value) })
     }
@@ -94,6 +171,8 @@ class MeshGrid : MeshSpawner(), OnDrawGUI {
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "cellSize" -> cellSize.set(value as? Vector2d ?: return)
+            "gridShape" -> gridShape = value as? GridShape
+                ?: GridShape.entries[value as? Int ?: return]
             "grid" -> {
                 if (value !is List<*>) return
                 grid.clear()

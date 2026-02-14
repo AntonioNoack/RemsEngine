@@ -89,8 +89,7 @@ object TriangleGridMaths {
     )
 
     fun getVertices(down: Boolean): List<Vector2d> {
-        return if (down) verticesDown
-        else verticesUp
+        return if (down) verticesDown else verticesUp
     }
 
     fun getVertex(i: Int, j: Int, vertexIndex: Int, dst: Vector2d): Vector2d {
@@ -133,15 +132,15 @@ object TriangleGridMaths {
         return indexToCoords(i shr 1, j, i.hasFlag(1), dst)
     }
 
-    fun indexToCenter(i: Int, j: Int, down: Boolean, dst: Vector2d): Vector2d {
+    fun getCenter(i: Int, j: Int, down: Boolean, dst: Vector2d): Vector2d {
         return dst.set(
             di.x * i + dj.x * j + if (down) 0.5 else 0.0,
             di.y * i + dj.y * j + if (down) +DELTA_Y_TO_CENTER else -DELTA_Y_TO_CENTER
         )
     }
 
-    fun indexToCenter(i: Int, j: Int, dst: Vector2d): Vector2d {
-        return indexToCenter(i shr 1, j, i.hasFlag(1), dst)
+    fun getCenter(i: Int, j: Int, dst: Vector2d): Vector2d {
+        return getCenter(i shr 1, j, i.hasFlag(1), dst)
     }
 
     fun coordsToIndex(

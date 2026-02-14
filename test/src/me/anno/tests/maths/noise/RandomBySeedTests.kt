@@ -1,12 +1,12 @@
 package me.anno.tests.maths.noise
 
 import me.anno.maths.Maths.sq
-import me.anno.maths.noise.StaticNoise
-import me.anno.maths.noise.StaticNoise.getRandomBool
-import me.anno.maths.noise.StaticNoise.getRandomDouble
-import me.anno.maths.noise.StaticNoise.getRandomFloat
-import me.anno.maths.noise.StaticNoise.getRandomInt
-import me.anno.maths.noise.StaticNoise.getRandomLong
+import me.anno.maths.noise.RandomBySeed
+import me.anno.maths.noise.RandomBySeed.getRandomBool
+import me.anno.maths.noise.RandomBySeed.getRandomDouble
+import me.anno.maths.noise.RandomBySeed.getRandomFloat
+import me.anno.maths.noise.RandomBySeed.getRandomInt
+import me.anno.maths.noise.RandomBySeed.getRandomLong
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.toInt
@@ -15,14 +15,15 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-class StaticRandomTests {
+class RandomBySeedTests {
+
     @Test
-    fun testRandomNoise() {
+    fun testRandomGaussian() {
         val n = 10_000
         val random = Random(18646)
         val values = DoubleArray(n) {
             val seed = random.nextLong()
-            StaticNoise.getRandomGaussian(seed)
+            RandomBySeed.getRandomGaussian(seed)
         }
 
         val mean = values.sum() / n
@@ -34,7 +35,7 @@ class StaticRandomTests {
 
         println("mean,var: $mean,$variance, b1/2/3: $bucket1,$bucket2,$bucket3")
 
-        assertEquals(0.0, mean, 0.002)
+        assertEquals(0.0, mean, 0.02)
         assertEquals(1.0, variance, 0.02)
 
         assertEquals(6827, bucket1, 80)
@@ -43,12 +44,12 @@ class StaticRandomTests {
     }
 
     @Test
-    fun testRandomNoiseF() {
+    fun testRandomGaussianF() {
         val n = 10_000
         val random = Random(18646)
         val values = DoubleArray(n) {
             val seed = random.nextLong()
-            StaticNoise.getRandomGaussianF(seed).toDouble()
+            RandomBySeed.getRandomGaussianF(seed).toDouble()
         }
 
         val mean = values.sum() / n

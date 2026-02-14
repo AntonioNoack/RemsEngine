@@ -4,7 +4,7 @@ import me.anno.maths.chunks.triangles.TriangleGridMaths.coordsToIndex
 import me.anno.maths.chunks.triangles.TriangleGridMaths.getClosestLine
 import me.anno.maths.chunks.triangles.TriangleGridMaths.getClosestVertex
 import me.anno.maths.chunks.triangles.TriangleGridMaths.getVertex
-import me.anno.maths.chunks.triangles.TriangleGridMaths.indexToCenter
+import me.anno.maths.chunks.triangles.TriangleGridMaths.getCenter
 import me.anno.maths.chunks.triangles.TriangleGridMaths.indexToCoords
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawRectangles
@@ -47,21 +47,25 @@ fun main() {
         val tmp2 = Vector2d()
         for (j in -dy..dy) {
             for (i in -dx..dx) {
+
                 val isHovered = hovCell.x == i && hovCell.y == j
                 val color = if (isHovered && hovVert == 3) {
                     0x00ff00.withAlpha(255)
                 } else {
                     white.withAlpha(if (isHovered) 255 else 100)
                 }
+
                 val c = indexToCoords(i, j, tmp).mul(scale)
-                val c2 = indexToCenter(i, j, tmp1).mul(scale)
+                val c2 = getCenter(i, j, tmp1).mul(scale)
                 val x = c.x
                 val y = c.y
+
                 if (Input.isControlDown) {
                     DrawRectangles.drawRect(c2.x.toInt() + cx - 1, c2.y.toInt() + cy - 1, 3, 3, color)
                 } else {
                     DrawRectangles.drawRect(x.toInt() + cx - 1, y.toInt() + cy - 1, 3, 3, color)
                 }
+
                 val a = getVertex(i, j, 0, tmp1).mul(scale)
                 for (k in 0 until 3) {
 

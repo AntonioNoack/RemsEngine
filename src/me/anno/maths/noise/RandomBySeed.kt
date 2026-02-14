@@ -12,18 +12,20 @@ import kotlin.math.sqrt
  *
  * This is the same algorithm as java.util.Random, and not cryptically-secure.
  * */
-object StaticNoise {
+object RandomBySeed {
 
-    const val MASK: Long = (1L shl 48) - 1
+    const val GENERATED_BITS = 48
+    const val MASK: Long = (1L shl GENERATED_BITS) - 1
 
     // 48 bits is the best we can do for our magic
     // this magic was especially chosen for its great non-period properties
     // we also choose the same values as Java, so you could replace Random(seed).nextLong() with getRandomLong(seed)
     private const val MULTIPLIER: Long = 0x5DEECE66DL
     private const val ADDEND: Long = 0xBL
-    private const val INV_FLOAT = 1f / (1L shl 24)
-    private const val INV_DOUBLE = 1.0 / (1L shl 53)
     private const val MASK_DOUBLE = MASK.toDouble()
+
+    private const val FLOAT_MANTISSA_BITS = 23
+    private const val DOUBLE_MANTISSA_BITS = 52
 
     /**
      * Probability is a value between 0 and 1.
@@ -37,37 +39,37 @@ object StaticNoise {
     }
 
     fun getRandomInt(seed: Long): Int {
-        return getRandomBits(seed, 32)
+        return getRandomBits32(seed)
     }
 
     fun getRandomFloat(seed: Long): Float {
-        return getRandomBits(seed, 24) * INV_FLOAT
+        // create float [1,2) from bits, then subtract one
+        val random = getNextSeed(initialMix(seed))
+        return rawRandomFloat(random, 127 shl FLOAT_MANTISSA_BITS) - 1f
     }
 
     fun getRandomDouble(seed: Long): Double {
-        val seed0 = initialMix(seed)
-        val seed1 = getNextSeed(seed0)
-        val seed2 = getNextSeed(seed1)
-        return createDoubleFromSeeds(seed1, seed2)
+        // not fully random, but should be good enough
+        // create double [1,2) from bits, then subtract one
+        val random = getNextSeed(initialMix(seed))
+        return rawRandomDouble(random, 1023L shl DOUBLE_MANTISSA_BITS) - 1.0
     }
 
-    private fun createDoubleFromSeeds(seed1: Long, seed2: Long): Double {
-        return createDoubleLongFromSeeds(seed1, seed2) * INV_DOUBLE
+    fun rawRandomFloat(random: Long, mask: Int): Float {
+        val mantissa = random.shr(GENERATED_BITS - FLOAT_MANTISSA_BITS).toInt()
+        return Float.fromBits(mantissa or mask)
     }
 
-    private fun createDoubleLongFromSeeds(seed1: Long, seed2: Long): Long {
-        val high = getRandomBitsFromSeed(seed1, 26)
-        val low = getRandomBitsFromSeed(seed2, 27)
-        return ((high.toLong() shl 27) + low)
+    fun rawRandomDouble(random: Long, mask: Long): Double {
+        val mantissa = random.shl(DOUBLE_MANTISSA_BITS - GENERATED_BITS)
+        return Double.fromBits(mantissa or mask)
     }
 
     fun getRandomLong(seed: Long): Long {
         val seed0 = initialMix(seed)
         val seed1 = getNextSeed(seed0)
         val seed2 = getNextSeed(seed1)
-        val high = getRandomBitsFromSeed(seed1, 32)
-        val low = getRandomBitsFromSeed(seed2, 32)
-        return pack64(high, low)
+        return seed1.shl(32) xor seed2
     }
 
     fun getRandomInt(seed: Long, min: Int, maxExcl: Int): Int {
@@ -104,37 +106,40 @@ object StaticNoise {
         }
     }
 
-    fun getRandomGaussian(seed: Long): Double {
-        var seed0 = initialMix(seed)
-        val toDoubleX2 = INV_DOUBLE * 2.0
+    fun getRandomGaussianF(seed: Long): Float {
+        var seed2 = initialMix(seed)
+        val mask = 128 shl FLOAT_MANTISSA_BITS // [2,4)
+        val offset = 3f
         while (true) {
-            val seed3 = getNextSeed(seed0)
-            val seed2 = getNextSeed(seed3)
             val seed1 = getNextSeed(seed2)
-            seed0 = getNextSeed(seed1)
+            seed2 = getNextSeed(seed1)
 
-            val v1 = toDoubleX2 * createDoubleLongFromSeeds(seed3, seed2) - 1.0
-            val v2 = toDoubleX2 * createDoubleLongFromSeeds(seed1, seed0) - 1.0
-            val s = v1 * v1 + v2 * v2
-            if (s >= 1.0 || s == 0.0) continue
+            val x = rawRandomFloat(seed1, mask) - offset
+            val y = rawRandomFloat(seed2, mask) - offset
 
-            return v1 * sqrt(-2 * ln(s) / s)
+            val s = x * x + y * y
+            if (s >= 1f || s == 0f) continue
+
+            return x * sqrt(-2f * ln(s) / s)
         }
     }
 
-    fun getRandomGaussianF(seed: Long): Float {
-        var seed0 = initialMix(seed)
-        val toFloatX2 = 2f / (1L shl 24)
+    fun getRandomGaussian(seed: Long): Double {
+        var seed2 = initialMix(seed)
+        val offset = 3.0
+        val mask = 1024L shl DOUBLE_MANTISSA_BITS // 1023 -> [1,2), 1024 -> [2,4)
         while (true) {
-            val seed1 = getNextSeed(seed0)
-            seed0 = getNextSeed(seed1)
+            val seed1 = getNextSeed(seed2)
+            seed2 = getNextSeed(seed1)
 
-            val v1 = toFloatX2 * getRandomBitsFromSeed(seed1, 24) - 1f
-            val v2 = toFloatX2 * getRandomBitsFromSeed(seed0, 24) - 1f
-            val s = v1 * v1 + v2 * v2
-            if (s >= 1f || s == 0f) continue
+            // 2 .. 4 -> -1 .. 1
+            val x = rawRandomDouble(seed1, mask) - offset
+            val y = rawRandomDouble(seed2, mask) - offset
 
-            return v1 * sqrt(-2f * ln(s) / s)
+            val s = x * x + y * y
+            if (s >= 1.0 || s == 0.0) continue
+
+            return x * sqrt(-2 * ln(s) / s)
         }
     }
 
@@ -146,9 +151,8 @@ object StaticNoise {
         return (seed * MULTIPLIER + ADDEND).and(MASK)
     }
 
-    fun getRandomBits(seed: Long, bits: Int): Int {
-        val nextSeed = getNextSeed(initialMix(seed))
-        return getRandomBitsFromSeed(nextSeed, bits)
+    fun getRandomBits32(seed: Long): Int {
+        return getNextSeed(initialMix(seed)).toInt()
     }
 
     fun getRandomBitsFromSeed(seed: Long, bits: Int): Int {
