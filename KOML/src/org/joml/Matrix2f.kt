@@ -202,6 +202,20 @@ open class Matrix2f : Matrix<Matrix2f, Vector2f, Vector2f> {
         return dst
     }
 
+    /**
+     * inverts this matrix without saving the result, and then transforming v as a direction
+     * */
+    fun transformInverse(v: Vector2f, dst: Vector2f = v): Vector2f {
+        val s = 1f / (m00 * m11 - m01 * m10)
+        if (!s.isFinite()) return dst.set(0f)
+
+        val nm00 = m11 * s
+        val nm01 = -m01 * s
+        val nm10 = -m10 * s
+        val nm11 = m00 * s
+        return dst.set(nm00 * v.x + nm10 * v.y, nm01 * v.x + nm11 * v.y)
+    }
+
     fun transformTranspose(v: Vector2f): Vector2f {
         return v.mulTranspose(this)
     }

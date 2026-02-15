@@ -647,6 +647,28 @@ open class Matrix3d : Matrix<Matrix3d, Vector3d, Vector3d> {
         )
     }
 
+    /**
+     * inverts this matrix without saving the result, and then transforming v as a direction
+     * */
+    fun transformInverse(v: Vector3d, dst: Vector3d = v): Vector3d {
+        val a = m00 * m11 - m01 * m10
+        val b = m02 * m10 - m00 * m12
+        val c = m01 * m12 - m02 * m11
+        val nm00 = m11 * m22 - m21 * m12
+        val nm01 = m21 * m02 - m01 * m22
+        val nm10 = m20 * m12 - m10 * m22
+        val nm11 = m00 * m22 - m20 * m02
+        val nm20 = m10 * m21 - m20 * m11
+        val nm21 = m20 * m01 - m00 * m21
+        val s = 1.0 / (a * m22 + b * m21 + c * m20)
+        if (!s.isFinite()) return dst.set(0.0)
+
+        val rx = v.dot(nm00, nm10, nm20) * s
+        val ry = v.dot(nm01, nm11, nm21) * s
+        val rz = v.dot(c, b, a) * s
+        return dst.set(rx, ry, rz)
+    }
+
     @JvmOverloads
     fun rotateX(ang: Double, dst: Matrix3d = this): Matrix3d {
         val sin = sin(ang)

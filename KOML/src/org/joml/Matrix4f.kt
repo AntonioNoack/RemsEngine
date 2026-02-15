@@ -963,8 +963,9 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         val j = m21 * m32 - m22 * m31
         val k = m21 * m33 - m23 * m31
         val l = m22 * m33 - m23 * m32
-        var det = a * l - b * k + c * j + d * i - e * h + f * g
-        det = 1f / det
+        val det = 1f / (a * l - b * k + c * j + d * i - e * h + f * g)
+        if (!det.isFinite()) return dst.zero()
+
         return dst._m00((m11 * l + (-m12 * k + m13 * j)) * det)
             ._m01((-m01 * l + m02 * k + -m03 * j) * det)
             ._m02((m31 * f - m32 * e + m33 * d) * det)
@@ -996,8 +997,9 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         val j = m21 * m32 - m22 * m31
         val k = m21 * m33 - m23 * m31
         val l = m22 * m33 - m23 * m32
-        var det = a * l - b * k + c * j + d * i - e * h + f * g
-        det = 1f / det
+        val det = 1f / (a * l - b * k + c * j + d * i - e * h + f * g)
+        if (!det.isFinite()) return dst.zero()
+
         val nm00 = (m11 * l + (-m12 * k + m13 * j)) * det
         val nm01 = (-m01 * l + (m02 * k + -m03 * j)) * det
         val nm02 = (m31 * f + (-m32 * e + m33 * d)) * det
@@ -1022,8 +1024,12 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
     fun invertPerspective(dst: Matrix4f = this): Matrix4f {
         val a = 1f / (m00 * m11)
         val l = -1f / (m23 * m32)
-        return dst.set(m11 * a, 0f, 0f, 0f, 0f, m00 * a, 0f, 0f, 0f, 0f, 0f, -m23 * l, 0f, 0f, -m32 * l, m22 * l)
-            ._properties(0)
+        return dst.set(
+            m11 * a, 0f, 0f, 0f,
+            0f, m00 * a, 0f, 0f,
+            0f, 0f, 0f, -m23 * l,
+            0f, 0f, -m32 * l, m22 * l
+        )._properties(0)
     }
 
     @JvmOverloads
@@ -1720,6 +1726,11 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
 
     fun transformTranspose(x: Float, y: Float, z: Float, w: Float, dst: Vector4f): Vector4f {
         return dst.set(x, y, z, w).mulTranspose(this)
+    }
+
+    fun transformInverse(v: Vector4f, dst: Vector4f = v): Vector4f {
+        val inv = invert(Matrix4f())
+        return inv.transform(v, dst)
     }
 
     fun transformProject(v: Vector4f): Vector4f {

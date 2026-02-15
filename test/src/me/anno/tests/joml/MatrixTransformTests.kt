@@ -508,6 +508,202 @@ class MatrixTransformTests {
         }
     }
 
+    @Test
+    fun testTransformPositionInverse() {
+        testMatrixTransform(
+            Matrix3x2f().set(
+                1f, 2f, 3f,
+                4f, 5f, 6f
+            ), ::Vector2f, { m, v ->
+                m.transformPosition(v)
+                m.transformPositionInverse(v)
+            }, { it }
+        )
+        testMatrixTransform(
+            Matrix3x2d().set(
+                1.0, 2.0, 3.0,
+                4.0, 5.0, 6.0
+            ), ::Vector2d, { m, v ->
+                m.transformPosition(v)
+                m.transformPositionInverse(v)
+            }, { it }
+        )
+        testMatrixTransform(
+            Matrix4x3f().set(
+                1f / 1f, 1f / 2f, 1f / 3f,
+                1f / 4f, 1f / 5f, 1f / 6f,
+                1f / 7f, 1f / 8f, 1f / 9f,
+                10f, 11f, 12f
+            ), ::Vector3f, { m, v ->
+                m.transformPosition(v)
+                m.transformPositionInverse(v)
+            }, { it }, 1e-3
+        )
+        testMatrixTransform(
+            Matrix4x3d().set(
+                1.0 / 1.0, 1.0 / 2.0, 1.0 / 3.0,
+                1.0 / 4.0, 1.0 / 5.0, 1.0 / 6.0,
+                1.0 / 7.0, 1.0 / 8.0, 1.0 / 9.0,
+                10.0, 11.0, 12.0
+            ), ::Vector3d, { m, v ->
+                m.transformPosition(v)
+                m.transformPositionInverse(v)
+            }, { it }
+        )
+        testMatrixTransform(
+            Matrix4x3().set(
+                1f / 1f, 1f / 2f, 1f / 3f,
+                1f / 4f, 1f / 5f, 1f / 6f,
+                1f / 7f, 1f / 8f, 1f / 9f,
+                10.0, 11.0, 12.0
+            ), ::Vector3f, { m, v ->
+                m.transformPosition(v)
+                m.transformPositionInverse(v)
+            }, { it }, 1e-3
+        )
+        testMatrixTransform(
+            Matrix4x3().set(
+                1f / 1f, 1f / 2f, 1f / 3f,
+                1f / 4f, 1f / 5f, 1f / 6f,
+                1f / 7f, 1f / 8f, 1f / 9f,
+                10.0, 11.0, 12.0
+            ), ::Vector3d, { m, v ->
+                m.transformPosition(v)
+                m.transformPositionInverse(v)
+            }, { it }
+        )
+    }
+
+    @Test
+    fun testTransformDirectionInverse() {
+        testMatrixTransform(
+            Matrix3x2f().set(
+                1f, 2f, 3f,
+                4f, 5f, 6f
+            ), ::Vector2f, { m, v ->
+                m.transformDirection(v)
+                m.transformDirectionInverse(v)
+            }, { it }
+        )
+        testMatrixTransform(
+            Matrix3x2d().set(
+                1.0, 2.0, 3.0,
+                4.0, 5.0, 6.0
+            ), ::Vector2d, { m, v ->
+                m.transformDirection(v)
+                m.transformDirectionInverse(v)
+            }, { it }
+        )
+        testMatrixTransform(
+            Matrix4x3f().set(
+                1f / 1f, 1f / 2f, 1f / 3f,
+                1f / 4f, 1f / 5f, 1f / 6f,
+                1f / 7f, 1f / 8f, 1f / 9f,
+                10f, 11f, 12f
+            ), ::Vector3f, { m, v ->
+                m.transformDirection(v)
+                m.transformDirectionInverse(v)
+            }, { it }, 1e-3
+        )
+        testMatrixTransform(
+            Matrix4x3d().set(
+                1.0 / 1.0, 1.0 / 2.0, 1.0 / 3.0,
+                1.0 / 4.0, 1.0 / 5.0, 1.0 / 6.0,
+                1.0 / 7.0, 1.0 / 8.0, 1.0 / 9.0,
+                10.0, 11.0, 12.0
+            ), ::Vector3d, { m, v ->
+                m.transformDirection(v)
+                m.transformDirectionInverse(v)
+            }, { it }
+        )
+        testMatrixTransform(
+            Matrix4x3().set(
+                1f / 1f, 1f / 2f, 1f / 3f,
+                1f / 4f, 1f / 5f, 1f / 6f,
+                1f / 7f, 1f / 8f, 1f / 9f,
+                10.0, 11.0, 12.0
+            ), ::Vector3f, { m, v ->
+                m.transformDirection(v)
+                m.transformDirectionInverse(v)
+            }, { it }, 1e-3
+        )
+        testMatrixTransform(
+            Matrix4x3().set(
+                1f / 1f, 1f / 2f, 1f / 3f,
+                1f / 4f, 1f / 5f, 1f / 6f,
+                1f / 7f, 1f / 8f, 1f / 9f,
+                10.0, 11.0, 12.0
+            ), ::Vector3d, { m, v ->
+                m.transformDirection(v)
+                m.transformDirectionInverse(v)
+            }, { it }
+        )
+    }
+
+    @Test
+    fun testTransformInverse() {
+        testMatrixTransform(
+            Matrix2f().set(
+                1f, 2f,
+                3f, 4f,
+            ), ::Vector2f, { m, v ->
+                m.transform(v)
+                m.transformInverse(v)
+            }, { it }
+        )
+        testMatrixTransform(
+            Matrix2d().set(
+                1.0, 2.0,
+                3.0, 4.0,
+            ), ::Vector2d, { m, v ->
+                m.transform(v)
+                m.transformInverse(v)
+            }, { it }
+        )
+        testMatrixTransform(
+            Matrix3f().set(
+                1f / 1f, 1f / 2f, 1f / 3f,
+                1f / 4f, 1f / 5f, 1f / 6f,
+                1f / 7f, 1f / 8f, 1f / 9f,
+            ), ::Vector3f, { m, v ->
+                m.transform(v)
+                m.transformInverse(v)
+            }, { it }, 1e-3
+        )
+        testMatrixTransform(
+            Matrix3d().set(
+                1.0 / 1.0, 1.0 / 2.0, 1.0 / 3.0,
+                1.0 / 4.0, 1.0 / 5.0, 1.0 / 6.0,
+                1.0 / 7.0, 1.0 / 8.0, 1.0 / 9.0,
+            ), ::Vector3d, { m, v ->
+                m.transform(v)
+                m.transformInverse(v)
+            }, { it }
+        )
+        testMatrixTransform(
+            Matrix4f().set(
+                1f / 1f, 1f / 2f, 1f / 3f, 1f / 4f,
+                1f / 5f, 1f / 6f, 1f / 7f, 1f / 8f,
+                1f / 9f, 1f / 10f, 1f / 11f, 1f / 12f,
+                1f / 13f, 1f / 14f, 1f / 15f, 1f / 16f
+            ), ::Vector4f, { m, v ->
+                m.transform(v)
+                m.transformInverse(v)
+            }, { it }, 0.1
+        )
+        testMatrixTransform(
+            Matrix4d().set(
+                1.0 / 1.0, 1.0 / 2.0, 1.0 / 3.0, 1.0 / 4.0,
+                1.0 / 5.0, 1.0 / 6.0, 1.0 / 7.0, 1.0 / 8.0,
+                1.0 / 9.0, 1.0 / 10.0, 1.0 / 11.0, 1.0 / 12.0,
+                1.0 / 13.0, 1.0 / 14.0, 1.0 / 15.0, 1.0 / 16.0
+            ), ::Vector4d, { m, v ->
+                m.transform(v)
+                m.transformInverse(v)
+            }, { it }
+        )
+    }
+
     // todo test all chaining operations,
     //  so translation, rotation (quaternion/axis-angle), scale
 
@@ -546,12 +742,14 @@ class MatrixTransformTests {
         matrix: M,
         createVector: () -> V,
         transform: (M, V) -> V,
-        transformManually: (V) -> V
+        transformManually: (V) -> V,
+        epsilon: Double = 1e-4
     ) {
         testMatrixTransform(
             matrix, createVector,
             transform, null,
-            transformManually
+            transformManually,
+            epsilon
         )
     }
 
@@ -560,7 +758,8 @@ class MatrixTransformTests {
         createVector: () -> V,
         transform1: (M, V) -> V,
         transform2: ((M, V) -> V)?,
-        transformManually: (V) -> V
+        transformManually: (V) -> V,
+        epsilon: Double = 1e-4
     ) {
         val random = Random(1234)
         for (i in 0 until 20) {
@@ -585,10 +784,10 @@ class MatrixTransformTests {
             }
             val expected = transformManually(a)
             val actually1 = transform1(matrix, b)
-            assertEquals(expected, actually1, 1e-4)
+            assertEquals(expected, actually1, epsilon)
             if (transform2 != null) {
                 val actually2 = transform2(matrix, c)
-                assertEquals(expected, actually2, 1e-4)
+                assertEquals(expected, actually2, epsilon)
             }
         }
     }

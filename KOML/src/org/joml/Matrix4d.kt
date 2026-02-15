@@ -1741,6 +1741,11 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         return dst.set(x, y, z, w).mulTranspose(this)
     }
 
+    fun transformInverse(v: Vector4d, dst: Vector4d = v): Vector4d {
+        val inv = invert(Matrix4d())
+        return inv.transform(v, dst)
+    }
+
     fun transformProject(v: Vector4d): Vector4d {
         return v.mulProject(this)
     }
@@ -3641,8 +3646,9 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         val m00m12 = m00 * m12
         val m01m12 = m01 * m12
         val m02m11 = m02 * m11
-        val det = (m00m11 - m01m10) * m22 + (m02m10 - m00m12) * m21 + (m01m12 - m02m11) * m20
-        val s = 1.0 / det
+        val s = 1.0 / ((m00m11 - m01m10) * m22 + (m02m10 - m00m12) * m21 + (m01m12 - m02m11) * m20)
+        if (!s.isFinite()) return dst.zero()
+
         val nm00 = (m11 * m22 - m21 * m12) * s
         val nm01 = (m20 * m12 - m10 * m22) * s
         val nm02 = (m10 * m21 - m20 * m11) * s
@@ -3675,8 +3681,9 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         val m00m12 = m00 * m12
         val m01m12 = m01 * m12
         val m02m11 = m02 * m11
-        val det = (m00m11 - m01m10) * m22 + (m02m10 - m00m12) * m21 + (m01m12 - m02m11) * m20
-        val s = 1.0 / det
+        val s = 1.0 / ((m00m11 - m01m10) * m22 + (m02m10 - m00m12) * m21 + (m01m12 - m02m11) * m20)
+        if (!s.isFinite()) return dst.zero()
+
         return dst._m00((m11 * m22 - m21 * m12) * s)._m01((m20 * m12 - m10 * m22) * s)
             ._m02((m10 * m21 - m20 * m11) * s)._m10((m21 * m02 - m01 * m22) * s)
             ._m11((m00 * m22 - m20 * m02) * s)._m12((m20 * m01 - m00 * m21) * s)

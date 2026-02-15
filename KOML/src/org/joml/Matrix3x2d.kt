@@ -476,7 +476,29 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
     }
 
     fun transformDirection(x: Double, y: Double, dst: Vector2d): Vector2d {
-        return transformDirection(dst.set(x, y))
+        return dst.set(x, y).mulDirection(this, dst)
+    }
+
+    /**
+     * inverts this matrix without saving the result, and then transforming v as a position
+     * */
+    fun transformPositionInverse(v: Vector2d, dst: Vector2d = v): Vector2d {
+        v.sub(m20, m21, dst)
+        return transformDirectionInverse(dst)
+    }
+
+    /**
+     * inverts this matrix without saving the result, and then transforming v as a direction
+     * */
+    fun transformDirectionInverse(v: Vector2d, dst: Vector2d = v): Vector2d {
+        val s = 1.0 / (m00 * m11 - m01 * m10)
+        if (!s.isFinite()) return dst.set(0.0)
+
+        val nm00 = m11 * s
+        val nm01 = -m01 * s
+        val nm10 = -m10 * s
+        val nm11 = m00 * s
+        return dst.set(nm00 * v.x + nm10 * v.y, nm01 * v.x + nm11 * v.y)
     }
 
     @JvmOverloads
