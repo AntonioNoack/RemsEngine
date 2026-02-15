@@ -13,15 +13,15 @@ import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf
-import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.sq
+import me.anno.maths.MinMax.max
 import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.OS.documents
+import me.anno.utils.OS.engineProject
 import me.anno.utils.structures.Iterators.filter
 import me.anno.utils.structures.Iterators.map
 import me.anno.utils.structures.lists.Lists.none2
@@ -44,7 +44,7 @@ class Package(val name: String) {
 // find project parts visually, which could be extracted
 fun main() {
 
-    val source = documents.getChild("IdeaProjects/RemsEngine/src")
+    val source = engineProject.getChild("src")
 
     val ignoredPaths = listOf(
         "kotlin.",

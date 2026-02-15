@@ -3,8 +3,8 @@ package me.anno.jvm.build
 import me.anno.io.files.Reference.getReference
 import me.anno.jvm.utils.BetterProcessBuilder.Companion.readLines
 import me.anno.utils.OS
-import me.anno.utils.OS.documents
 import me.anno.utils.OS.home
+import me.anno.utils.OS.ideProjects
 import me.anno.utils.Threads
 import me.anno.utils.assertions.assertTrue
 import java.io.File
@@ -15,7 +15,7 @@ import java.io.File
 fun main() {
 
     // this shouldn't be hardcoded...
-    val enginePath = documents.getChild("IdeaProjects/RemsEngine")
+    val enginePath = OS.engineProject
     assertTrue(enginePath.exists) { "Missing $enginePath" }
 
     // this is linked by using a relative path... not the best solution...
@@ -32,7 +32,7 @@ fun main() {
     val adb = androidSDKPath.getChild(if (OS.isWindows) "platform-tools/adb.exe" else "platform-tools/adb")
     assertTrue(adb.exists) { "Missing $adb" }
 
-    val androidPortPath = documents.getChild("IdeaProjects/RemsEngineAndroid")
+    val androidPortPath = ideProjects.getChild("RemsEngineAndroid")
     androidPortPath.tryMkdirs()
 
     fun execute(args: List<String>) {

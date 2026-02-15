@@ -22,7 +22,7 @@ fun main() {
     )
     assertNotEquals("Int", type0)
     val zero0 = types.first { (type, _) -> type == type0 }.second
-    val project = OS.documents.getChild("IdeaProjects/RemsEngine")
+    val project = OS.engineProject
     val folder = project.getChild("src/me/anno/utils/structures/arrays")
     val srcFile = folder.getChild("${type0}ArrayList.kt")
     assertTrue(srcFile.exists, "Missing $srcFile")

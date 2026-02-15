@@ -1,7 +1,7 @@
 package me.anno.tests.image
 
 import me.anno.io.files.FileReference
-import me.anno.utils.OS
+import me.anno.utils.OS.ideProjects
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
@@ -28,7 +28,7 @@ fun main() {
         return Imaging.getBufferedImage(file.inputStreamSync())
     }
 
-    val progress = OS.documents.getChild("IdeaProjects/VideoStudio/progress")
+    val progress = ideProjects.getChild("RemsStudio/progress")
 
     // this works, but does it work everywhere??...
     val fileNames = listOf(

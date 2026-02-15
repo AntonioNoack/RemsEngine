@@ -2,12 +2,12 @@ package me.anno.tools
 
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
-import me.anno.utils.OS.documents
+import me.anno.utils.OS
 import me.anno.utils.structures.Iterators.mapNotNull
 import me.anno.utils.structures.Iterators.toList
 
 fun main() {
-    val project = documents.getChild("IdeaProjects/RemsEngine")
+    val project = OS.engineProject
     val src = project.getChild("src")
     val sources = listOf(
         src

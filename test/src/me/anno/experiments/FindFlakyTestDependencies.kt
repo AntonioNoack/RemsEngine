@@ -2,7 +2,7 @@ package me.anno.experiments
 
 import me.anno.Engine
 import me.anno.io.files.FileReference
-import me.anno.utils.OS.documents
+import me.anno.utils.OS.engineProject
 import me.anno.utils.algorithms.Recursion
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.BeforeEach
@@ -22,7 +22,7 @@ fun main() {
     // todo when everything is repaired, implement multi-threaded tests :3
     // todo also run Bullet tests :3
 
-    val src = documents.getChild("IdeaProjects/RemsEngine/test/src")
+    val src = engineProject.getChild("test/src")
     val testClasses = findTestClasses(src)
 
     val testMethods = testClasses.map { clazz ->

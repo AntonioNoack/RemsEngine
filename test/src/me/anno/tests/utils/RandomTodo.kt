@@ -1,12 +1,12 @@
 package me.anno.tests.utils
 
 import me.anno.io.files.FileReference
-import me.anno.utils.OS.documents
+import me.anno.utils.OS
 
 val tasks = HashMap<String, String>()
 fun main() {
     // find all tasks
-    index(documents.getChild("IdeaProjects/RemsEngine"))
+    index(OS.engineProject)
     // choose random one
     println(tasks.entries.random())
 }

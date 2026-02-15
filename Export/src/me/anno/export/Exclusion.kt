@@ -62,7 +62,7 @@ object Exclusion {
     fun excludeNonMinimalUI(sources: HashMap<String, ByteArray>, customReflections: Boolean) {
         // UI in engine
         sources.removeIf { it.key.endsWith(".md") }
-        excludeFiles(sources, "me/anno/ui/editor/", listOf("stacked/Option.class", "OptionBar"))
+        excludeFiles(sources, "me/anno/ui/editor/", listOf("stacked/Option.class", "OptionBar", "files/Favourite.class"))
         excludeFiles(sources, "me/anno/engine/ui/input/")
         excludeFiles(sources, "me/anno/ui/input/", listOf("EnumInput", "InputPanel")) // why is this needed??
         excludeFiles(sources, "me/anno/ui/debug/", listOf("FrameTimings"))
@@ -74,13 +74,12 @@ object Exclusion {
             sources, "me/anno/ui/base/groups/",
             listOf("PanelGroup", "PanelContainer", "PanelList", "PanelStack", "NineTilePanel", "ListSizeCalculator")
         )
-        excludeFiles(sources, "me/anno/image/thumbs/") // mostly just used in UI
         excludeFiles(sources, "me/anno/engine/ui/ECSTreeView")
         excludeFiles(sources, "me/anno/engine/ui/ECSFileExplorer")
         excludeFiles(sources, "me/anno/engine/ui/scenetabs")
         excludeFiles(sources, "me/anno/engine/ui/control/Blender")
         excludeFiles(sources, "me/anno/engine/ui/control/Dragging")
-        excludeFiles(sources, "me/anno/maths/", listOf("Maths", "bvh", "Packing"))
+        excludeFiles(sources, "me/anno/maths/", listOf("Maths", "Packing", "MinMax", "Smoothstep", "bvh"))
         excludeFiles(sources, "me/anno/network/")
         // other engine things
         excludeFiles(sources, "textures") // I'm not too sure about this...

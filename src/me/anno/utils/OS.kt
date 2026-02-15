@@ -71,5 +71,19 @@ object OS {
     val screenshots by lazy { pictures.getChild("Screenshots") }
 
     @JvmStatic
-    val application by lazy { getReference(File(".").absolutePath) }
+    val application by lazy {
+        var file = File(".").absoluteFile
+        while (file.name == "test" || file.name == ".") file = file.parentFile
+        getReference(file.absolutePath)
+    }
+
+    @JvmStatic
+    val ideProjects by lazy {
+        application.getParent()
+    }
+
+    @JvmStatic
+    val engineProject by lazy {
+        ideProjects.getChild("RemsEngine")
+    }
 }

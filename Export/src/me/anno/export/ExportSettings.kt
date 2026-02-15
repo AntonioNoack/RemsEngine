@@ -1,6 +1,5 @@
 package me.anno.export
 
-import me.anno.utils.Threads
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
 import me.anno.export.idea.IdeaProject
@@ -23,7 +22,8 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.input.TextInput
-import me.anno.utils.OS.documents
+import me.anno.utils.OS
+import me.anno.utils.Threads
 import me.anno.utils.async.Callback.Companion.mapCallback
 
 class ExportSettings : NamedSaveable() {
@@ -40,7 +40,7 @@ class ExportSettings : NamedSaveable() {
     var minimalUI = false
     var useKotlynReflect = false
 
-    val projectRoots = arrayListOf(documents.getChild("IdeaProjects/RemsEngine"))
+    val projectRoots = arrayListOf(OS.engineProject)
 
     val excludedModules = HashSet<String>()
 

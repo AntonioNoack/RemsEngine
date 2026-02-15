@@ -8,7 +8,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.SignatureCache
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.OS.desktop
-import me.anno.utils.OS.documents
+import me.anno.utils.OS.ideProjects
 import me.anno.utils.OS.pictures
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
@@ -60,7 +60,7 @@ class JPGReader {
             }
 
             val out = System.out
-            val out2 = documents.getChild("IdeaProjects/VideoStudio/src/me/anno/image/jpg/log0.txt")
+            val out2 = ideProjects.getChild("RemsStudio/src/me/anno/image/jpg/log0.txt")
                 .outputStream()
             System.setOut(PrintStream(object : OutputStream() {
                 override fun write(p0: Int) {

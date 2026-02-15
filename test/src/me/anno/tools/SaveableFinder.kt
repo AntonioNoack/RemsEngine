@@ -1,15 +1,14 @@
 package me.anno.tools
 
 import me.anno.config.DefaultConfig.style
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
+import me.anno.io.saveable.Saveable
 import me.anno.ui.Style
-import me.anno.utils.OS.documents
+import me.anno.utils.OS
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.isName
 import org.apache.logging.log4j.LogManager
 import java.lang.reflect.Modifier
-import kotlin.collections.iterator
 
 class SaveableFinder {
 
@@ -87,7 +86,7 @@ class SaveableFinder {
         @JvmStatic
         fun main(args: Array<String>) {
             val instance = SaveableFinder()
-            val project = documents.getChild("IdeaProjects/RemsEngine")
+            val project = OS.engineProject
             val sources = listOf(
                 "src",
                 "Bullet/src",
@@ -107,7 +106,8 @@ class SaveableFinder {
                 instance.index(project.getChild(source))
             }
             // saveables.yaml
-            println(instance.dst.toList()
+            println(
+                instance.dst.toList()
                 .sortedBy { it.first }
                 .joinToString("\n") { (k, v) -> "$k: $v" })
         }

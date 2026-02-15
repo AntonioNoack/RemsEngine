@@ -2,6 +2,7 @@ package me.anno.tools
 
 import me.anno.io.files.FileReference
 import me.anno.utils.OS.documents
+import me.anno.utils.OS.ideProjects
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.collections.iterator
@@ -20,7 +21,7 @@ fun main() {
         }
     }
 
-    val src = documents.getChild("IdeaProjects/RobotSteve")
+    val src = ideProjects.getChild("RobotSteve")
     add(src.getChild("lib/luaj-jse-3.0.2.jar"))
     add(src.getChild("target/RobotSteve-1.0-SNAPSHOT.jar"))
 

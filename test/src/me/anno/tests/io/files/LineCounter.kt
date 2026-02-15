@@ -2,7 +2,7 @@ package me.anno.tests.io.files
 
 import me.anno.io.files.FileReference
 import me.anno.tests.LOGGER
-import me.anno.utils.OS.documents
+import me.anno.utils.OS
 import me.anno.utils.structures.Iterators.toList
 import me.anno.utils.types.Floats.formatPercent
 import me.anno.utils.types.Strings.isBlank2
@@ -12,7 +12,7 @@ import kotlin.math.min
 // todo have 10% docs everywhere(?)
 //  never ever write useless/redundant docs!
 
-val project = documents.getChild("IdeaProjects/RemsEngine")
+val project = OS.engineProject
 const val threshold = 10_000
 
 class LocalTotal(val partial: Int, val total: Int, val docs: Int) {
