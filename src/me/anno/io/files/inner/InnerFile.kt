@@ -1,5 +1,6 @@
 package me.anno.io.files.inner
 
+import me.anno.cache.Promise.Companion.ASYNC_WARNING
 import me.anno.io.VoidOutputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -57,19 +58,22 @@ abstract class InnerFile(
         return VoidOutputStream
     }
 
+    @Deprecated(message = ASYNC_WARNING)
     fun get(path: String) = getLc(path.replace('\\', '/').lowercase())
 
+    @Deprecated(message = ASYNC_WARNING)
     open fun getLc(path: String): FileReference? {
-        if (path.isEmpty()) return InnerFolderCache.readAsFolder(this, false)
-        val m = InnerFolderCache.readAsFolder(this, false)
-        return m?.getLc(path)
+        val asFolder = InnerFolderCache.readAsFolder(this).waitFor()
+        return if (path.isEmpty()) asFolder else asFolder?.getLc(path)
     }
 
+    @Deprecated(message = ASYNC_WARNING)
     override fun getChildImpl(name: String): FileReference {
-        val asFolder = InnerFolderCache.readAsFolder(this, false)
+        val asFolder = InnerFolderCache.readAsFolder(this).waitFor()
         return asFolder?.getChild(name) ?: InvalidRef
     }
 
+    @Deprecated(message = ASYNC_WARNING)
     override val exists: Boolean = true
 
     override fun deleteOnExit() {

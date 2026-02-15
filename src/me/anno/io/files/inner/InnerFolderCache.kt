@@ -1,10 +1,9 @@
 package me.anno.io.files.inner
 
-import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
-import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.cache.FileCacheSection.getFileEntryWithoutGenerator
+import me.anno.cache.Promise
 import me.anno.extensions.FileReaderRegistry
 import me.anno.extensions.FileReaderRegistryImpl
 import me.anno.image.ImageAsFolder
@@ -36,18 +35,13 @@ object InnerFolderCache : CacheSection<FileKey, InnerFolder>("InnerFolderCache")
         return getFileEntryWithoutGenerator(file)?.value
     }
 
-    fun readAsFolder(file: FileReference, async: Boolean): InnerFile? {
-        return readAsFolder(file, timeoutMillis, async)
-    }
-
-    fun readAsFolder(file: FileReference, async: Boolean, callback: Callback<InnerFolder?>) {
-        return getFileEntryAsync(file, false, timeoutMillis, generator, callback)
-    }
-
-    fun readAsFolder(file: FileReference, timeoutMillis: Long, async: Boolean): InnerFile? {
-        if (file is InnerFile && file.folder != null) return file.folder
+    fun readAsFolder(file: FileReference): Promise<InnerFolder> {
         return getFileEntry(file, false, timeoutMillis, generator)
-            .waitFor(async)
+    }
+
+    fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
+        getFileEntry(file, false, timeoutMillis, generator)
+            .waitFor(callback)
     }
 
     private fun generate(file1: FileReference, result: Promise<InnerFolder>) {

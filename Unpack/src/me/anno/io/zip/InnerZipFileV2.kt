@@ -5,7 +5,9 @@ import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerFolderCache
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.mapAsync
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -21,7 +23,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.name
 import kotlin.streams.toList
 
-@Deprecated("This class isn't ready for use yet")
 class InnerZipFileV2(
     absolutePath: String,
     val fileSystem: ZipFileSystem,
@@ -186,11 +187,19 @@ class InnerZipFileV2(
     }
 
     override fun listChildren(callback: Callback<List<FileReference>>) {
-        callback.ok(Files.list(path).toList().map { child ->
-            var name = child.name
-            if (name.endsWith('/')) name = name.substring(0, name.lastIndex)
-            getChildByName(name)
-        })
+        if (Files.isDirectory(path)) {
+            val childNames = Files.list(path).toList()
+            val children = childNames.map { child ->
+                var name = child.name
+                if (name.endsWith('/')) name = name.substring(0, name.lastIndex) // remove trailing slash
+                getChildByName(name)
+            }
+            callback.ok(children)
+        } else {
+            InnerFolderCache.readAsFolder(this, callback.mapAsync { value, callback ->
+                value.listChildren(callback)
+            })
+        }
     }
 
     private fun getChildByName(childName: String): FileReference {
@@ -200,7 +209,6 @@ class InnerZipFileV2(
     }
 
     companion object {
-
         fun createZipFile(
             source: FileReference,
             callback: Callback<InnerFolder>

@@ -24,15 +24,6 @@ object FileCacheSection {
         return getEntry(validFile.getFileKey(), timeoutMillis, generator)
     }
 
-    @Deprecated("Please get rid of all -Async functions, we don't need them")
-    fun <V : Any> CacheSection<FileKey, V>.getFileEntryAsync(
-        file: FileReference, allowDirectories: Boolean,
-        timeoutMillis: Long, generator: (FileKey, Promise<V>) -> Unit, callback: Callback<V>
-    ) {
-        getFileEntry(file, allowDirectories, timeoutMillis, generator)
-            .waitFor(callback)
-    }
-
     fun <V : Any> CacheSection<FileKey, V>.getValidFile(
         file: FileReference,
         allowDirectories: Boolean

@@ -51,18 +51,20 @@ class MeshLoaderPlugin : Plugin() {
         dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
-        val children = readAsFolder(srcFile, false)?.listChildren() ?: emptyList()
-        if (children.isNotEmpty()) {
-            val maxSize = 25 // with more, too many details are lost
-            AssetThumbnails.generateMaterialFrame(
-                srcFile, dstFile,
-                if (children.size < maxSize) children else
-                    children.subList(0, maxSize), size, callback
-            )
-        } else {
-            // just an empty material to symbolize, that the file is empty
-            // we maybe could do better with some kind of texture...
-            AssetThumbnails.generateMaterialFrame(srcFile, dstFile, Material(), size, callback)
+        readAsFolder(srcFile).waitFor { children ->
+            val children = children?.children?.values?.toList()
+            if (!children.isNullOrEmpty()) {
+                val maxSize = 25 // with more, too many details are lost
+                AssetThumbnails.generateMaterialFrame(
+                    srcFile, dstFile,
+                    if (children.size < maxSize) children else
+                        children.subList(0, maxSize), size, callback
+                )
+            } else {
+                // just an empty material to symbolize, that the file is empty
+                // we maybe could do better with some kind of texture...
+                AssetThumbnails.generateMaterialFrame(srcFile, dstFile, Material(), size, callback)
+            }
         }
     }
 

@@ -346,9 +346,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         get() = Promise.loadSync(this::zipFileForDirectory)
 
     fun zipFileForDirectory(callback: Callback<FileReference>) {
-        InnerFolderCache.readAsFolder(this, true, callback.mapAsync { zipFile, cb ->
-            if (zipFile != null && !zipFile.isDirectory) {
-                InnerFolderCache.readAsFolder(zipFile, true, cb.map { twice -> twice ?: zipFile })
+        InnerFolderCache.readAsFolder(this, callback.mapAsync { zipFile, cb ->
+            if (!zipFile.isDirectory) {
+                InnerFolderCache.readAsFolder(zipFile, cb)
             } else cb.call(zipFile, null)
         })
     }
@@ -417,7 +417,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun listChildren(callback: Callback<List<FileReference>>) {
-        InnerFolderCache.readAsFolder(this, true) { folder, _ ->
+        InnerFolderCache.readAsFolder(this) { folder, _ ->
             if (folder is InnerFolder) folder.listChildren(callback)
             else callback.ok(emptyList())
         }

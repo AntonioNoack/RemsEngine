@@ -5,6 +5,8 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityPhysics.invalidatePhysicsTransform
 import me.anno.ecs.EntityQuery.forAllEntitiesInChildren
 import me.anno.ecs.Transform
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.grid.DropPositionAdjuster
 import me.anno.ecs.components.mesh.material.Material
@@ -722,7 +724,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         val ci = PrefabInspector.currentInspector!!
         val dropPosition = findDropPosition(Vector3d())
         for (file in files) {
-            onPasteFile(file, ci, hovEntity, hovComponent, dropPosition, results)
+            pasteFromFile(file, ci, hovEntity, hovComponent, dropPosition, results)
         }
         if (results.isNotEmpty()) {
             dragged = null
@@ -730,7 +732,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }
     }
 
-    fun onPasteFile(
+    fun pasteFromFile(
         file: FileReference, ci: PrefabInspector,
         hovEntity: Entity?, hovComponent: Component?,
         dropPosition: Vector3d, results: ArrayList<PrefabSaveable>
@@ -738,17 +740,21 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         val prefab = PrefabCache[file].waitFor()?.prefab ?: return
         when (val sampleInstance = prefab.getSampleInstance()) {
             is Material -> {
-                onPasteMaterial(file, hovComponent, sampleInstance)
+                pasteMaterial(file, hovComponent, sampleInstance)
             }
             is Entity -> {
-                onPasteEntity(file, results, prefab, dropPosition, sampleInstance)
+                pasteEntity(file, results, prefab, dropPosition, sampleInstance)
             }
             is DCDroppable -> sampleInstance.drop(
                 this, prefab, hovEntity, hovComponent,
                 dropPosition, dropRotation, dropScale, results
             )
+            is Mesh -> {
+                val meshComponent = MeshComponent(file)
+                pasteComponent(results, hovEntity, ci, prefab, dropPosition, meshComponent)
+            }
             is Component -> {
-                onPasteComponent(results, hovEntity, ci, prefab, dropPosition, sampleInstance)
+                pasteComponent(results, hovEntity, ci, prefab, dropPosition, sampleInstance)
             }
             else -> {
                 // todo try to add it to all available, hovered and selected instances
@@ -758,7 +764,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         LOGGER.info("Pasted $file")
     }
 
-    fun onPasteMaterial(
+    fun pasteMaterial(
         file: FileReference, hovComponent: Component?,
         sampleInstance: Material,
     ) {
@@ -809,7 +815,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }*/
     }
 
-    fun onPasteEntity(
+    fun pasteEntity(
         file: FileReference, results: ArrayList<PrefabSaveable>,
         prefab: Prefab, dropPosition: Vector3d, sampleInstance: Entity,
     ) {
@@ -818,7 +824,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         // done while dragging this, show preview
         // done place it where the preview was drawn
         val world = renderView.getWorld() as? Entity
-        var root = EditorState.selection.firstInstanceOrNull(Entity::class) ?: world
+        var root: Entity? = EditorState.selection.firstInstanceOrNull(Entity::class) ?: world
         while (root != null && root != world && root.prefab?.findCAdd(root.prefabPath)
                 .run { this == null || this.prefab != InvalidRef }
         ) {
@@ -829,10 +835,10 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             val (pos, rot, sca) =
                 getDropTransform(root, sampleInstance, dropPosition)
             addToParent(prefab, root, 'e', pos, rot, sca, results)
-        } else LOGGER.warn("Could not drop $file onto ${root?.className}")
+        } else LOGGER.warn("Could not drop $file")
     }
 
-    fun onPasteComponent(
+    fun pasteComponent(
         results: ArrayList<PrefabSaveable>,
         hovEntity: Entity?, ci: PrefabInspector,
         prefab: Prefab, dropPosition: Vector3d, sampleInstance: Component,
