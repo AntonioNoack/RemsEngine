@@ -10,7 +10,8 @@ import kotlin.math.sqrt
  * Create noise values from a seed without creating any instance.
  * This is good for having a base-seed, property-seed (static, final), and then using their xor value for values.
  *
- * This is the same algorithm as java.util.Random, and not cryptically-secure.
+ * These algorithms are not cryptically-secure.
+ * If you need the same algorithm as Java or Kotlin by default, just implement it yourself (or ask nicely).
  * */
 object RandomBySeed {
 
@@ -20,6 +21,8 @@ object RandomBySeed {
     // 48 bits is the best we can do for our magic
     // this magic was especially chosen for its great non-period properties
     // we also choose the same values as Java, so you could replace Random(seed).nextLong() with getRandomLong(seed)
+    // other function won't work as easily, because I've replaced them with faster methods
+
     private const val MULTIPLIER: Long = 0x5DEECE66DL
     private const val ADDEND: Long = 0xBL
     private const val MASK_DOUBLE = MASK.toDouble()

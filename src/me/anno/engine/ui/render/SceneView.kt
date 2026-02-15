@@ -152,7 +152,7 @@ class SceneView(val renderView: RenderView, style: Style) : PanelStack(style) {
             return sceneView
         }
 
-        private fun tryStartVR(sceneView: SceneView) {
+        fun tryStartVR(sceneView: SceneView) {
             addEvent {
                 val osWindow = GFX.someWindow
                 VRRenderingRoutine.tryStartVR(osWindow, sceneView.renderView)

@@ -31,6 +31,8 @@ import org.joml.Matrix4fArrayList
 import org.joml.Matrix4x3
 import org.joml.Vector2d
 import org.joml.Vector2i
+import org.joml.Vector3d
+import kotlin.math.round
 
 // todo when this is selected, allow dropping meshes into the different cells
 // todo test this with different floor tiles,
@@ -38,12 +40,7 @@ import org.joml.Vector2i
 //  and then build something epic :3
 
 @Docs("This is effectively a sprite layer, a regular 2d grid, where you can add meshes")
-class MeshGrid : MeshSpawner(), OnDrawGUI {
-
-    // todo support other grid shapes than just regular rectangular
-    //  - hex grid
-    //  - triangle grid
-    //  - randomized grid
+class MeshGrid : MeshSpawner(), OnDrawGUI, DropPositionAdjuster {
 
     val grid = HashMap<Vector2i, FileReference>()
 
@@ -105,19 +102,60 @@ class MeshGrid : MeshSpawner(), OnDrawGUI {
     }
 
     fun getPosition(key: Vector2i, dst: Vector2d): Vector2d {
+        return getPosition(key.x, key.y, dst)
+    }
+
+    fun getPosition(i: Int, j: Int, dst: Vector2d): Vector2d {
         return when (gridShape) {
-            GridShape.RECTANGULAR -> dst.set(key.x.toDouble(), key.y.toDouble())
-            GridShape.TRIANGULAR -> TriangleGridMaths.getCenter(key.x, key.y, dst)
-            GridShape.HEXAGONAL -> HexagonGridMaths.getCenter(key.x, key.y, dst)
+            GridShape.RECTANGULAR -> dst.set(i.toDouble(), j.toDouble())
+            GridShape.TRIANGULAR -> TriangleGridMaths.getCenter(i, j, dst)
+            GridShape.HEXAGONAL -> HexagonGridMaths.getCenter(i, j, dst)
             GridShape.RANDOMIZED -> {
                 // randomize a little;
                 // todo keep distances to neighbors...
-                val seed0 = seed xor initialMix(pack64(key.x, key.y))
+                val seed0 = seed xor initialMix(pack64(i, j))
                 val rx = getRandomFloat(seed0) - 0.5f
                 val ry = getRandomFloat(getNextSeed(seed0)) - 0.5f
-                dst.set((key.x + rx) * cellSize.x, (key.y + ry) * cellSize.y)
+                dst.set((i + rx) * cellSize.x, (j + ry) * cellSize.y)
             }
         }.mul(cellSize)
+    }
+
+    override fun adjust(position: Vector3d) {
+        val transform = transform?.globalTransform
+        transform?.transformPositionInverse(position)
+        var px = position.x / cellSize.x
+        var py = position.z / cellSize.y
+        when (gridShape) {
+            GridShape.RECTANGULAR -> {
+                px = round(px) * cellSize.x
+                py = round(py) * cellSize.y
+            }
+            GridShape.TRIANGULAR -> {
+                val tmp = Vector2d(px, py)
+                val (i, j) = TriangleGridMaths.getClosestTriangle(tmp, Vector2i())
+                TriangleGridMaths.getCenter(i, j, tmp).mul(cellSize)
+                px = tmp.x
+                py = tmp.y
+            }
+            GridShape.HEXAGONAL -> {
+                val tmp = Vector2d(px, py)
+                val (i, j) = HexagonGridMaths.getClosestHexagon(tmp, Vector2i())
+                HexagonGridMaths.getCenter(i, j, tmp).mul(cellSize)
+                px = tmp.x
+                py = tmp.y
+            }
+            GridShape.RANDOMIZED -> {
+                val xi = round(px).toInt()
+                val yi = round(py).toInt()
+                val tmp = Vector2d()
+                getPosition(xi, yi, tmp) // already multiplied
+                px = tmp.x
+                py = tmp.y
+            }
+        }
+        position.set(px, 0.0, py)
+        transform?.transformPosition(position)
     }
 
     override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
@@ -154,7 +192,7 @@ class MeshGrid : MeshSpawner(), OnDrawGUI {
         stack.translate(x.toFloat(), y.toFloat(), z.toFloat())
 
         // todo why is blending not working???
-        // todo render appropriate grid
+        // todo render appropriate grid (triangles, hexagons, random cells)
         GFXState.blendMode.use(BlendMode.DEFAULT) {
             stack.scale(cellSize.x.toFloat() / gridCellSize, 0f, cellSize.y.toFloat() / gridCellSize)
             Grid.drawGrid(stack, 0.1f)

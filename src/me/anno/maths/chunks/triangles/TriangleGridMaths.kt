@@ -174,6 +174,21 @@ object TriangleGridMaths {
         return dstIndex
     }
 
+    fun getClosestTriangle(
+        positions: Vector2d,
+        dstIndex: Vector2i,
+    ): Vector2i {
+        val i = positions.dot(dx)
+        val j = positions.dot(dy)
+        val fi = floor(i + 0.25)
+        val fj = round(j)
+        dstIndex.set(fi.toInt() * 2, fj.toInt())
+        val dx = i - fi
+        val dy = j - fj
+        if (dx + dy > 0.25) dstIndex.x++
+        return dstIndex
+    }
+
     fun getClosestVertex(
         positions: Vector2d, allowCenter: Boolean,
         tmpCoords: Vector2d, tmpDiffCenter: Vector2d,

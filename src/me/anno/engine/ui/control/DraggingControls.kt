@@ -6,6 +6,7 @@ import me.anno.ecs.EntityPhysics.invalidatePhysicsTransform
 import me.anno.ecs.EntityQuery.forAllEntitiesInChildren
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.grid.DropPositionAdjuster
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Hierarchy
@@ -66,8 +67,6 @@ import kotlin.math.min
 import kotlin.math.sign
 import kotlin.math.tan
 
-// todo rectangle-selection on shift-drag
-
 // todo for physics controlled objects, what do we need to make it possible to make them float? remember reference position?
 
 // todo adjust movement speed and mouse rotation based on FOV
@@ -75,7 +74,8 @@ import kotlin.math.tan
 // todo select a bunch of assets, make it a collection,
 //  and draw them using a brush, for foliage
 
-// todo it would be nice if we could place images onto materials (?)
+// it would be nice if we could place images onto materials (?)
+//  -> it would be unclear whether to create a material, or an image
 
 // todo gizmos & movement for properties with @PositionAnnotation
 
@@ -371,11 +371,13 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     open fun resetCamera() {
         // reset the camera
+        val renderView = renderView
         renderView.orbitRotation.identity()
         renderView.orbitCenter.set(0.0)
         renderView.radius = 10f
         renderView.near = 1e-3f
         renderView.far = 1e10f
+        val camera = camera
         camera.fovOrthographic = 5f
         camera.fovYDegrees = 90f
         camera.isPerspective = true
@@ -521,7 +523,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                         is Entity -> {
                             val transform = inst.transform
                             when (mode) {
-                                Mode.TRANSLATING -> transformPosition(transform, camTransform, offset, i, tmp)
+                                Mode.TRANSLATING -> transformPosition(transform, camTransform, offset, tmp)
                                 Mode.ROTATING -> transformRotation(transform, rotationAngle.toFloat(), dir, gizmoMask)
                                 Mode.SCALING -> transformScale(transform, (dx - dy).toDouble(), offset)
                                 else -> return
@@ -558,9 +560,10 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             }
         }
 
-    fun transformPosition(transform: Transform, camTransform: Matrix4x3, offset: Vector3f, i: Int, tmp: Vector3d) {
+    fun transformPosition(transform: Transform, camTransform: Matrix4x3, offset: Vector3f, tmp: Vector3d) {
         val global = transform.globalTransform
-        if (i == 0) {
+        if (instancesToTransform.size == 1) {
+            // todo use average distance
             val distance = camTransform.distance(global)
             if (distance > 0.0) {
                 // correct
@@ -894,6 +897,10 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }
         if (camDir.y < 0.0 && dst.y > camPos.y) {
             dst.sub(snappingSettings.snapY)
+        }
+        for (selected in EditorState.selection) {
+            if (selected !is DropPositionAdjuster) continue
+            selected.adjust(dst)
         }
         return dst
     }
