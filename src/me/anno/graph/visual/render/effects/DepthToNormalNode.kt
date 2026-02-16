@@ -34,24 +34,21 @@ class DepthToNormalNode : TimedRenderingNode(
 ) {
 
     override fun executeAction() {
-        val depth = getInput(1) as? Texture ?: return
+        val depth = getInput(1) as? Texture
         val target = if (getIntInput(2) == 0) TargetType.UInt8x2 else TargetType.UInt16x2
-        val depthTex = depth.texOrNull
-        if (depthTex != null) {
-            timeRendering(name, timer) {
-                val result = FBStack[name, depthTex.width, depthTex.height, target, 1, DepthBufferType.NONE]
-                GFXState.useFrame(result) {
-                    val shader = shader
-                    shader.use()
-                    shader.v4f("depthMask", depth.mask)
-                    depthTex.bindTrulyNearest(0)
-                    bindDepthUniforms(shader)
-                    flat01.draw(shader)
-                }
-                setOutput(1, Texture.texture(result, 0, "xy", DeferredLayerType.NORMAL))
+        val depthTex = depth.texOrNull ?: return finish()
+
+        timeRendering(name, timer) {
+            val result = FBStack[name, depthTex.width, depthTex.height, target, 1, DepthBufferType.NONE]
+            GFXState.useFrame(result) {
+                val shader = shader
+                shader.use()
+                shader.v4f("depthMask", depth.mask)
+                depthTex.bindTrulyNearest(0)
+                bindDepthUniforms(shader)
+                flat01.draw(shader)
             }
-        } else {
-            setOutput(1, null)
+            setOutput(1, Texture.texture(result, 0, "xy", DeferredLayerType.NORMAL))
         }
     }
 

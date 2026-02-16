@@ -17,12 +17,11 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.depthTexture
-import me.anno.gpu.texture.TextureLib.grayTexture
-import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.isZWMapping
 import me.anno.graph.visual.render.Texture.Companion.mask
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.graph.visual.render.effects.TimedRenderingNode.Companion.finish
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.maths.Maths.clamp
 import me.anno.maths.MinMax.max
@@ -57,42 +56,41 @@ class PixelationNode : RenderViewNode(
         val normalStrength = max(getFloatInput(2), 0f)
         val depthStrength = clamp(getFloatInput(3))
         val normalThreshold = max(getFloatInput(3), 1e-7f)
-        val color0 = getInput(5) as? Texture
+        val color0 = getTextureInput(5) ?: return finish()
         val normal0 = getInput(6) as? Texture
         val depth0 = getInput(7) as? Texture
-        val color = color0.texOrNull ?: grayTexture
         val normal = normal0.texOrNull ?: blackTexture
         val depth = depth0.texOrNull ?: depthTexture
         if (pixelSize == 1 && normalStrength == 0f && depthStrength == 0f) {
-            setOutput(1, color0 ?: Texture(missingTexture))
-        } else {
-            timeRendering(name, timer) {
-                val width0 = max(color.width, max(normal.width, depth.width))
-                val height0 = max(color.height, max(normal.height, depth.height))
-                val width1 = max(width0 / pixelSize, 1)
-                val height1 = max(height0 / pixelSize, 1)
-                val result = FBStack[name, width1, height1, 3, true, 1, DepthBufferType.NONE]
-                useFrame(result, copyRenderer) {
-                    val shader = shader
-                    shader.use()
-                    shader.v1f("normalStrength", if (normal == blackTexture) 0f else normalStrength)
-                    shader.v1f("depthStrength", if (depth == depthTexture) 0f else depthStrength)
-                    color.bindTrulyNearest(shader, "colorTex")
-                    normal.bindTrulyNearest(shader, "normalTex")
-                    depth.bindTrulyNearest(shader, "depthTex")
-                    shader.v1b("normalZW", normal0.isZWMapping)
-                    shader.v4f("depthMask", depth0.mask)
-                    shader.v2f("duv0", 1f / width0, 1f / height0)
-                    shader.v2f("duv", 1f / width1, 1f / height1)
-                    shader.v1i("pixelSize", pixelSize)
-                    shader.v1f("normalThreshold", normalThreshold)
-                    bindDepthUniforms(shader)
-                    flat01.draw(shader)
-                }
-                setOutput(1, Texture(result.getTexture0()))
-                setOutput(2, width1)
-                setOutput(3, height1)
+            return finish(color0)
+        }
+
+        timeRendering(name, timer) {
+            val width0 = max(color0.width, max(normal.width, depth.width))
+            val height0 = max(color0.height, max(normal.height, depth.height))
+            val width1 = max(width0 / pixelSize, 1)
+            val height1 = max(height0 / pixelSize, 1)
+            val result = FBStack[name, width1, height1, 3, true, 1, DepthBufferType.NONE]
+            useFrame(result, copyRenderer) {
+                val shader = shader
+                shader.use()
+                shader.v1f("normalStrength", if (normal == blackTexture) 0f else normalStrength)
+                shader.v1f("depthStrength", if (depth == depthTexture) 0f else depthStrength)
+                color0.bindTrulyNearest(shader, "colorTex")
+                normal.bindTrulyNearest(shader, "normalTex")
+                depth.bindTrulyNearest(shader, "depthTex")
+                shader.v1b("normalZW", normal0.isZWMapping)
+                shader.v4f("depthMask", depth0.mask)
+                shader.v2f("duv0", 1f / width0, 1f / height0)
+                shader.v2f("duv", 1f / width1, 1f / height1)
+                shader.v1i("pixelSize", pixelSize)
+                shader.v1f("normalThreshold", normalThreshold)
+                bindDepthUniforms(shader)
+                flat01.draw(shader)
             }
+            setOutput(1, Texture(result.getTexture0()))
+            setOutput(2, width1)
+            setOutput(3, height1)
         }
     }
 

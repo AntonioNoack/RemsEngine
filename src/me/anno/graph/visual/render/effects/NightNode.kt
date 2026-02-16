@@ -19,10 +19,9 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib.depthTexture
-import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.graph.visual.render.effects.TimedRenderingNode.Companion.finish
 import me.anno.graph.visual.render.scene.RenderViewNode
 
 /**
@@ -42,28 +41,25 @@ class NightNode : RenderViewNode(
 
         val settings = GlobalSettings[NightSettings::class]
 
-        val color0 = getInput(1) as? Texture
-        val color1 = color0.texOrNull
+        val color1 = getTextureInput(1) ?: return finish()
         val depth = getTextureInput(2, depthTexture)
-        if (color1 == null || settings.strength <= 0f) {
-            setOutput(1, color0 ?: Texture(missingTexture))
-        } else {
-            timeRendering(name, timer) {
-                val result = FBStack[name, color1.width, color1.height, 3, true, 1, DepthBufferType.NONE]
-                useFrame(result, copyRenderer) {
-                    val shader = simpleNightShader
-                    shader.use()
-                    shader.v1f("exposure", 0.02f / settings.strength)
-                    shader.v1f("skyDarkening", settings.skyBrightnessFactor)
-                    color1.bindTrulyNearest(shader, "colorTex")
-                    depth.bindTrulyNearest(shader, "depthTex")
-                    (renderView.pipeline.bakedSkybox?.getTexture0() ?: whiteCube)
-                        .bind(shader, "skyTex", Filtering.LINEAR, Clamping.CLAMP)
-                    bindDepthUniforms(shader)
-                    flat01.draw(shader)
-                }
-                setOutput(1, Texture(result.getTexture0()))
+        if (settings.strength <= 0f) return finish(color1)
+
+        timeRendering(name, timer) {
+            val result = FBStack[name, color1.width, color1.height, 3, true, 1, DepthBufferType.NONE]
+            useFrame(result, copyRenderer) {
+                val shader = simpleNightShader
+                shader.use()
+                shader.v1f("exposure", 0.02f / settings.strength)
+                shader.v1f("skyDarkening", settings.skyBrightnessFactor)
+                color1.bindTrulyNearest(shader, "colorTex")
+                depth.bindTrulyNearest(shader, "depthTex")
+                (renderView.pipeline.bakedSkybox?.getTexture0() ?: whiteCube)
+                    .bind(shader, "skyTex", Filtering.LINEAR, Clamping.CLAMP)
+                bindDepthUniforms(shader)
+                flat01.draw(shader)
             }
+            setOutput(1, Texture(result.getTexture0()))
         }
     }
 

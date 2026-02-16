@@ -355,13 +355,13 @@ object Maths {
 
     @JvmStatic
     fun mixAngle(a: Float, b: Float, f: Float, period: Float = TAUf): Float {
-        if (abs(a - b) <= period) return mix(a, b, f) // fast-path
+        if (abs(a - b) <= 0.5f * period) return mix(a, b, f) // fast-path
         return mix(a, b + round(a - b, period), f)
     }
 
     @JvmStatic
     fun mixAngle(a: Double, b: Double, f: Double, period: Double = TAU): Double {
-        if (abs(a - b) <= period) return mix(a, b, f) // fast-path
+        if (abs(a - b) <= 0.5 * period) return mix(a, b, f) // fast-path
         return mix(a, b + round(a - b, period), f)
     }
 

@@ -18,7 +18,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
@@ -46,20 +45,18 @@ class DepthOfFieldNode : TimedRenderingNode(
     override fun executeAction() {
 
         val applyToneMapping = getBoolInput(1)
-        val color = getTextureInput(2)
-        val depth = getTextureInput(3)
+        val color = getTextureInput(2) ?: return finish()
+        val depth = getTextureInput(3) ?: return finish()
 
-        if (color != null && depth != null) {
-            val settings = GlobalSettings[DepthOfFieldSettings::class]
-            timeRendering(name, timer) {
-                val result = render(
-                    color, depth, settings.spherical, settings.focusPoint, settings.focusScale,
-                    clamp(settings.maxBlurSize, 1f, 20f),
-                    clamp(settings.radScale, 0.25f, 2f), applyToneMapping
-                ).getTexture0()
-                setOutput(1, Texture(result))
-            }
-        } else setOutput(1, Texture(blackTexture))
+        val settings = GlobalSettings[DepthOfFieldSettings::class]
+        timeRendering(name, timer) {
+            val result = render(
+                color, depth, settings.spherical, settings.focusPoint, settings.focusScale,
+                clamp(settings.maxBlurSize, 1f, 20f),
+                clamp(settings.radScale, 0.25f, 2f), applyToneMapping
+            ).getTexture0()
+            setOutput(1, Texture(result))
+        }
     }
 
     companion object {

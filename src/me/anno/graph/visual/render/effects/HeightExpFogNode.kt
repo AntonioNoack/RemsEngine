@@ -24,10 +24,10 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.graph.visual.render.effects.TimedRenderingNode.Companion.finish
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.maths.Maths.pow
 import me.anno.maths.MinMax.max
@@ -53,24 +53,23 @@ class HeightExpFogNode : RenderViewNode(
 
     override fun executeAction() {
         val color0 = getInput(2) as? Texture
-        val color = color0.texOrNull
-        val depth = getTextureInput(3)
+        val color = color0?.texOrNull ?: return finish()
+        val depth = getTextureInput(3) ?: return finish(color0)
 
         val settings = GlobalSettings[HeightExpFogSettings::class]
 
         val relativeDistance = max(settings.expFogDistance, 0f)
         val fogStrength = settings.heightFogStrength
-        if (color == null || depth == null || (relativeDistance.isFinite() && fogStrength <= 0f)) {
-            setOutput(1, color0 ?: Texture(missingTexture))
-        } else {
-            timeRendering(name, timer) {
-                renderFog(color, depth, settings)
-            }
+        if (!relativeDistance.isFinite() && fogStrength <= 0f) {
+            return finish(color0)
+        }
+
+        timeRendering(name, timer) {
+            renderFog(color, depth, settings)
         }
     }
 
     private fun renderFog(color: ITexture2D, depth: ITexture2D, settings: HeightExpFogSettings) {
-
         val cheapMixing = getBoolInput(1)
         val result = FBStack[name, color.width, color.height, 3, true, 1, DepthBufferType.NONE]
         useFrame(result, copyRenderer) {
@@ -100,7 +99,7 @@ class HeightExpFogNode : RenderViewNode(
             bindDepthUniforms(shader)
             flat01.draw(shader)
         }
-        setOutput(1, Texture(result.getTexture0()))
+        finish(result.getTexture0())
     }
 
     companion object {
