@@ -10,7 +10,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.CullMode
-import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
@@ -272,6 +271,7 @@ open class Material : PrefabSaveable(), Renderable {
     )
 
     override fun hashCode(): Int {
+        // only hash common properties?
         var result = shaderOverrides.hashCode()
         result = 31 * result + diffuseBase.hashCode()
         result = 31 * result + diffuseMap.hashCode()
@@ -292,11 +292,17 @@ open class Material : PrefabSaveable(), Renderable {
         return result
     }
 
-    @Suppress("RedundantIf")
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Material) return false
+        // if you have a customized Material class, you must implement your own equals function
+        if (this::class != Material::class || other !is Material ||
+            other::class != Material::class
+        ) return false
 
+        return equalProperties(other)
+    }
+
+    fun equalProperties(other: Material): Boolean {
         if (pipelineStage != other.pipelineStage) return false
         if (shader !== other.shader) return false
         if (diffuseBase != other.diffuseBase) return false
