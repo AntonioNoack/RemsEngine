@@ -79,11 +79,11 @@ object RandomBySeed {
         val numValues = maxExcl - min
         if (numValues < 1) return getRandomInt(seed)
 
-        var seed = initialMix(seed)
+        var seedI = initialMix(seed)
         val numBits = 32 - (numValues - 1).countLeadingZeroBits()
         while (true) {
-            seed = getNextSeed(seed)
-            val value = getRandomBitsFromSeed(seed, numBits)
+            seedI = getNextSeed(seedI)
+            val value = getRandomBitsFromSeed(seedI, numBits)
             if (value < numValues) return min + value
         }
     }
@@ -147,7 +147,8 @@ object RandomBySeed {
     }
 
     fun initialMix(seed: Long): Long {
-        return (seed xor MULTIPLIER).and(MASK)
+        // xor is not good for seed = 0..n, so use multiplier instead
+        return (seed * MULTIPLIER).and(MASK)
     }
 
     fun getNextSeed(seed: Long): Long {

@@ -171,4 +171,24 @@ class RandomBySeedTests {
         assertTrue(deviations.all { dev -> abs(dev) < 3f })
         println(deviations)
     }
+
+    @Test
+    fun test06IntVariedForSmallSeeds() {
+        val slots = IntArray(6)
+        repeat(100) {
+            slots[getRandomInt(it.toLong(), 0, 6)]++
+        }
+        check(slots.all { it < 20 })
+        println(slots.toList())
+    }
+
+    @Test
+    fun test06FloatVariedForSmallSeeds() {
+        val slots = IntArray(6)
+        repeat(100) {
+            slots[(getRandomFloat(it.toLong()) * 6f).toInt()]++
+        }
+        check(slots.all { it < 20 })
+        println(slots.toList())
+    }
 }
