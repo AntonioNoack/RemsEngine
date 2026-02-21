@@ -61,7 +61,6 @@ import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL11C.glReadPixels
 import org.lwjgl.opengl.GL46C.GL_BGR
 import org.lwjgl.opengl.GL46C.GL_BGRA
 import org.lwjgl.opengl.GL46C.GL_BYTE
@@ -109,6 +108,7 @@ import org.lwjgl.opengl.GL46C.glGenerateMipmap
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
 import org.lwjgl.opengl.GL46C.glObjectLabel
 import org.lwjgl.opengl.GL46C.glPixelStorei
+import org.lwjgl.opengl.GL46C.glReadPixels
 import org.lwjgl.opengl.GL46C.glTexImage2D
 import org.lwjgl.opengl.GL46C.glTexImage2DMultisample
 import org.lwjgl.opengl.GL46C.glTexParameterf

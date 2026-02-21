@@ -25,7 +25,7 @@ import me.anno.utils.types.Ranges.size
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3
 import org.lwjgl.PointerBuffer
-import org.lwjgl.opengl.GL15C.GL_ELEMENT_ARRAY_BUFFER
+import org.lwjgl.opengl.GL46C.GL_ELEMENT_ARRAY_BUFFER
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
 import org.lwjgl.opengl.GL46C.glMultiDrawArrays
 import org.lwjgl.opengl.GL46C.glMultiDrawElements

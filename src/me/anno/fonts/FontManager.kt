@@ -7,15 +7,11 @@ import me.anno.fonts.FontStats.queryInstalledFonts
 import me.anno.fonts.keys.CharCacheKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
-import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.hpc.ProcessingQueue
-import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
-import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.min

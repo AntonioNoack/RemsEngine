@@ -6,11 +6,11 @@ import me.anno.gpu.shader.Shader
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
 import me.anno.utils.types.Booleans.withoutFlag
-import org.lwjgl.opengl.GL15C.GL_ARRAY_BUFFER
-import org.lwjgl.opengl.GL20C.glVertexAttribPointer
-import org.lwjgl.opengl.GL30C.glVertexAttribIPointer
-import org.lwjgl.opengl.GL33C.glVertexAttribDivisor
 import org.lwjgl.opengl.GL46C
+import org.lwjgl.opengl.GL46C.GL_ARRAY_BUFFER
+import org.lwjgl.opengl.GL46C.glVertexAttribDivisor
+import org.lwjgl.opengl.GL46C.glVertexAttribIPointer
+import org.lwjgl.opengl.GL46C.glVertexAttribPointer
 
 object BufferState {
 

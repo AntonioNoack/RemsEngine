@@ -29,24 +29,24 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11C.GL_BACK
-import org.lwjgl.opengl.GL11C.GL_BLEND
-import org.lwjgl.opengl.GL11C.GL_CULL_FACE
-import org.lwjgl.opengl.GL11C.GL_FILL
-import org.lwjgl.opengl.GL11C.GL_FRONT
-import org.lwjgl.opengl.GL11C.GL_FRONT_AND_BACK
-import org.lwjgl.opengl.GL11C.GL_LINE
-import org.lwjgl.opengl.GL11C.glColorMask
-import org.lwjgl.opengl.GL11C.glCullFace
-import org.lwjgl.opengl.GL11C.glDepthFunc
-import org.lwjgl.opengl.GL11C.glDepthMask
-import org.lwjgl.opengl.GL11C.glDisable
-import org.lwjgl.opengl.GL11C.glEnable
-import org.lwjgl.opengl.GL11C.glPolygonMode
-import org.lwjgl.opengl.GL20C.GL_LOWER_LEFT
-import org.lwjgl.opengl.GL45C.GL_NEGATIVE_ONE_TO_ONE
-import org.lwjgl.opengl.GL45C.GL_ZERO_TO_ONE
-import org.lwjgl.opengl.GL45C.glClipControl
+import org.lwjgl.opengl.GL46C.GL_BACK
+import org.lwjgl.opengl.GL46C.GL_BLEND
+import org.lwjgl.opengl.GL46C.GL_CULL_FACE
+import org.lwjgl.opengl.GL46C.GL_FILL
+import org.lwjgl.opengl.GL46C.GL_FRONT
+import org.lwjgl.opengl.GL46C.GL_FRONT_AND_BACK
+import org.lwjgl.opengl.GL46C.GL_LINE
+import org.lwjgl.opengl.GL46C.GL_LOWER_LEFT
+import org.lwjgl.opengl.GL46C.GL_NEGATIVE_ONE_TO_ONE
+import org.lwjgl.opengl.GL46C.GL_ZERO_TO_ONE
+import org.lwjgl.opengl.GL46C.glClipControl
+import org.lwjgl.opengl.GL46C.glColorMask
+import org.lwjgl.opengl.GL46C.glCullFace
+import org.lwjgl.opengl.GL46C.glDepthFunc
+import org.lwjgl.opengl.GL46C.glDepthMask
+import org.lwjgl.opengl.GL46C.glDisable
+import org.lwjgl.opengl.GL46C.glEnable
+import org.lwjgl.opengl.GL46C.glPolygonMode
 
 object GFXContext {
 
