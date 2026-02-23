@@ -29,6 +29,7 @@ import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.components.FillSpace
 import me.anno.engine.projects.GameEngineProject
+import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView0
 import me.anno.engine.ui.render.Renderers
@@ -99,7 +100,7 @@ object AssetThumbnails {
         if (!bounds.isEmpty() && bounds.volume.isFinite()) {
             rv.radius = 100f * bounds.maxDelta.toFloat()
             bounds.getCenter(rv.orbitCenter)
-            rv.updateEditorCameraTransform()
+            ControlScheme.updateEditorCameraTransformImpl(rv)
             rv.setRenderState()
             // calculate ideal transform like previously
             // for that, calculate bounds on screen, then rescale/recenter
@@ -212,7 +213,6 @@ object AssetThumbnails {
                 findFramingRadius(scene, bounds)
                 rv.near = rv.radius * 0.01f
                 rv.far = rv.radius * 2.0f
-                rv.updateEditorCameraTransform()
                 rv.setRenderState()
                 rv.prepareDrawScene(size, size, 1f, cam, update = false, fillPipeline = true)
                 // don't use EditorState

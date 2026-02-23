@@ -115,7 +115,6 @@ open class ControllerOnSphere(
         renderView.orbitRotation.identity()
             .lookAlong(forward, up)
             .invert()
-        renderView.updateEditorCameraTransform()
     }
 
     override fun moveCamera(dx: Float, dy: Float, dz: Float) {

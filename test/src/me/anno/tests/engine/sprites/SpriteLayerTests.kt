@@ -10,6 +10,7 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView1
+import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -138,7 +139,6 @@ class SpriteLayerTests {
         rv.setPosSize(0, 0, size, size)
         rv.radius = cells * 0.5f
         rv.orbitRotation.identity()
-        rv.updateEditorCameraTransform()
         rv.renderMode = RenderMode.COLOR
         val fb = Framebuffer("spriteTest", size, size, TargetType.UInt8x4, DepthBufferType.TEXTURE)
         for (i in 0 until 3) useFrame(fb) { // todo why are three frames necessary???

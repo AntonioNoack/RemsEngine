@@ -128,7 +128,6 @@ class TextComponentImplTests {
         rv.setPosSize(0, 0, w, h)
         rv.radius = 2.3f
         rv.orbitRotation.identity()
-        rv.updateEditorCameraTransform()
         rv.renderMode = RenderMode.COLOR
         return rv
     }

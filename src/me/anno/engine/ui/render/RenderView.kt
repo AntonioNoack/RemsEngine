@@ -156,27 +156,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         fsr22.destroy()
     }
 
-    open fun updateEditorCameraTransform() {
-
-        val radius = radius
-        val camera = editorCamera
-        val cameraNode = editorCameraNode
-
-        if (!orbitCenter.isFinite) LOGGER.warn("Invalid position $orbitCenter")
-        if (!orbitRotation.isFinite) LOGGER.warn("Invalid rotation $orbitRotation")
-
-        camera.far = far
-        camera.near = near
-
-        val tmp3d = JomlPools.vec3d.borrow()
-        cameraNode.transform.localPosition =
-            if (enableOrbiting) orbitRotation.transform(tmp3d.set(0f, 0f, radius)).add(orbitCenter)
-            else orbitCenter
-        cameraNode.transform.localRotation = orbitRotation
-        cameraNode.transform.teleportUpdate()
-        cameraNode.validateTransform()
-    }
-
     private fun tryRenderVRViews(): Boolean {
         val vrr = VRRenderingRoutine.vrRoutine
         if (vrr == null || !vrr.isActive) return false
@@ -210,8 +189,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         currentInstance = this
 
         val skipUpdate = FrameGenInitNode.skipThisFrame() && usesFrameGen()
-
-        updateEditorCameraTransform()
 
         val world = getWorld()
 

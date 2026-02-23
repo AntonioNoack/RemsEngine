@@ -30,7 +30,6 @@ fun main() {
             it.renderView.radius = 10f * sphere.len
             it.renderView.near = it.renderView.radius * 0.01f
             it.renderView.far = it.renderView.radius * 1e5f
-            it.renderView.updateEditorCameraTransform()
         }
     }
 }

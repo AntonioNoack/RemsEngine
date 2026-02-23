@@ -610,7 +610,6 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                     val newRadius = length(aabb.deltaX, aabb.deltaY, aabb.deltaZ).toFloat()
                     if (newRadius.isFinite() && newRadius > 0f) it.radius = newRadius
                     it.orbitCenter.set(element.transform.globalPosition)
-                    it.updateEditorCameraTransform()
                 }
             }
         }

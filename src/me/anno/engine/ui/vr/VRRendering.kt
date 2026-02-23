@@ -1,5 +1,6 @@
 package me.anno.engine.ui.vr
 
+import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFXState.useFrame
@@ -96,7 +97,8 @@ abstract class VRRendering {
     }
 
     private fun prepareRenderViewRendering(rv: RenderView, width: Int, height: Int) {
-        rv.updateEditorCameraTransform()
+        // todo is this ok???
+        ControlScheme.updateEditorCameraTransformImpl(rv)
         val skipFrame = rv.skipUpdate()
         rv.prepareDrawScene(width, height, 1f, rv.editorCamera, !skipFrame, !skipFrame)
     }

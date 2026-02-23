@@ -168,6 +168,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         moveCameraByInputs()
         updateViewRotation(false)
         renderView.editorCamera.fovYDegrees = settings.fovY
+        updateEditorCameraTransform()
     }
 
     open fun updateViewRotation(jump: Boolean) {
@@ -516,7 +517,31 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         camera.fovOrthographic = renderView.radius
     }
 
+    open fun updateEditorCameraTransform() {
+        updateEditorCameraTransformImpl(renderView)
+    }
+
     companion object {
         private val LOGGER = LogManager.getLogger(ControlScheme::class)
+
+        fun updateEditorCameraTransformImpl(rv: RenderView) {
+            val radius = rv.radius
+            val camera = rv.editorCamera
+            val cameraNode = rv.editorCameraNode
+
+            if (!rv.orbitCenter.isFinite) LOGGER.warn("Invalid position ${rv.orbitCenter}")
+            if (!rv.orbitRotation.isFinite) LOGGER.warn("Invalid rotation ${rv.orbitRotation}")
+
+            camera.far = rv.far
+            camera.near = rv.near
+
+            val tmp3d = JomlPools.vec3d.borrow()
+            cameraNode.transform.localPosition =
+                if (rv.enableOrbiting) rv.orbitRotation.transform(tmp3d.set(0f, 0f, radius)).add(rv.orbitCenter)
+                else rv.orbitCenter
+            cameraNode.transform.localRotation = rv.orbitRotation
+            cameraNode.transform.teleportUpdate()
+            cameraNode.validateTransform()
+        }
     }
 }
