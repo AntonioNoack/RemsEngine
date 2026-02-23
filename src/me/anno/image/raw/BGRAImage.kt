@@ -34,10 +34,6 @@ class BGRAImage(val src: Image) : Image(
             src.height = value
         }
 
-    override fun getIndex(x: Int, y: Int): Int {
-        return src.getIndex(x, y)
-    }
-
     override fun getRGB(index: Int): Int {
         // argb -> abgr
         return convertABGR2ARGB(src.getRGB(index))

@@ -42,10 +42,14 @@ abstract class Image(
         return "${this::class.simpleName}@${hash32(this)}[$width x $height x $numChannels${if (hasAlphaChannel) ", alpha" else ""}]"
     }
 
-    open fun getIndex(x: Int, y: Int): Int {
+    fun getIndex(x: Int, y: Int): Int {
         val xi = clamp(x, 0, width - 1)
         val yi = clamp(y, 0, height - 1)
         return offset + xi + yi * stride
+    }
+
+    fun getUnsafeIndex(x: Int, y: Int): Int {
+        return offset + x + y * stride
     }
 
     open fun asIntImage(): IntImage {

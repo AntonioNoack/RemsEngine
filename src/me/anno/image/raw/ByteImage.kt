@@ -19,24 +19,18 @@ open class ByteImage(
             this(width, height, format, ByteArray(width * height * format.numChannels))
 
     constructor(width: Int, height: Int, format: ByteImageFormat, data: ByteArray) :
-            this(width, height, format, data, 0, format.numChannels * width)
+            this(width, height, format, data, 0, width)
 
     override fun toString(): String {
         return "${this.javaClass.simpleName}@${hash32(this)}[$width x $height x $format]"
     }
 
-    override fun getIndex(x: Int, y: Int): Int {
-        val xi = clamp(x, 0, width - 1)
-        val yi = clamp(y, 0, height - 1)
-        return offset + xi * numChannels + yi * stride
-    }
-
     override fun getRGB(index: Int): Int {
-        return format.fromBytes(data, index, hasAlphaChannel)
+        return format.fromBytes(data, index * numChannels, hasAlphaChannel)
     }
 
     override fun setRGB(index: Int, value: Int) {
-        format.toBytes(value, data, index)
+        format.toBytes(value, data, index * numChannels)
     }
 
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
@@ -62,7 +56,7 @@ open class ByteImage(
         val lineLength = width * numChannels
         for (y in 0 until height) {
             val yi = if (flipped) height - 1 - y else y
-            dst.put(data, getIndex(0, yi), lineLength)
+            dst.put(data, getIndex(0, yi) * numChannels, lineLength)
         }
     }
 

@@ -17,10 +17,6 @@ open class OpaqueImage(val src: Image) : Image(
     false, src.offset, src.stride
 ) {
 
-    override fun getIndex(x: Int, y: Int): Int {
-        return src.getIndex(x, y)
-    }
-
     override fun getRGB(index: Int): Int = src.getRGB(index) or black
 
     override fun setRGB(index: Int, value: Int) {

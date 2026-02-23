@@ -123,8 +123,9 @@ class TextureReadPixelTests {
                 texture.readIntPixels(ox, oy, wx, hx, readData)
             } else {
                 texture.readBytePixels(ox, oy, wx, hx, byteData)
+                val format = ByteImageFormat.RGB
                 for (i in 0 until wx * hx) {
-                    readData[i] = ByteImageFormat.RGB.fromBytes(byteData, i * 3, true)
+                    readData[i] = format.fromBytes(byteData, i * format.numChannels, true)
                 }
             }
             GFX.check()

@@ -6,15 +6,12 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
-import me.anno.maths.Maths
-import me.anno.maths.Maths.clamp
 import me.anno.utils.Color
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
 import me.anno.utils.async.Callback
-import me.anno.utils.pooling.JomlPools
 import org.joml.Vector4f
 import kotlin.math.max
 
@@ -40,17 +37,11 @@ class FloatImage(
     constructor(width: Int, height: Int, channels: Int, data: FloatArray, offset: Int, stride: Int) :
             this(width, height, channels, data, LinearColorMap.default, offset, stride)
 
-    override fun getIndex(x: Int, y: Int): Int {
-        val xi = clamp(x, 0, width - 1)
-        val yi = clamp(y, 0, height - 1)
-        return offset + xi * numChannels + yi * stride
-    }
-
     /**
      * gets the value on the field
      * */
     override fun getValue(index: Int, channel: Int): Float {
-        return data[index + channel]
+        return data[index * numChannels + channel]
     }
 
     /**
@@ -64,6 +55,7 @@ class FloatImage(
     }
 
     override fun setRGB(index: Int, value: Vector4f) {
+        val index = index * numChannels
         setValue(index, 0, value.x)
         if (numChannels > 1) setValue(index, 1, value.y)
         if (numChannels > 2) setValue(index, 2, value.z)
@@ -71,6 +63,7 @@ class FloatImage(
     }
 
     override fun setRGB(index: Int, value: Int) {
+        val index = index * numChannels
         setValue(index, 0, value.r01())
         if (numChannels > 1) setValue(index, 1, value.g01())
         if (numChannels > 2) setValue(index, 2, value.b01())
@@ -78,6 +71,7 @@ class FloatImage(
     }
 
     override fun getRGB(index: Int): Int {
+        val index = index * numChannels
         val numChannels = numChannels
         return if (numChannels == 1) {
             map.getColor(data[index])

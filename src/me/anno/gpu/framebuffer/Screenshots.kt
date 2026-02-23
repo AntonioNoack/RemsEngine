@@ -1,12 +1,12 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.Time
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.Image
+import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.clamp
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
@@ -143,12 +143,7 @@ object Screenshots {
         return bestResult
     }
 
-    fun takeScreenshot(
-        w: Int, h: Int,
-        renderer: Renderer,
-        drawScene: () -> Unit
-    ) {
-
+    fun getNextScreenshotFile(): FileReference? {
         val folder = OS.screenshots
         folder.tryMkdirs()
 
@@ -156,36 +151,32 @@ object Screenshots {
         var name = format.format(Date())
         if (folder.getChild("$name.png").exists) name += "_${Time.nanoTime}"
         name += ".png"
-        if (folder.getChild(name).exists) return // image already exists somehow...
 
-        addGPUTask("Screenshots.take", w, h) {
+        val file = folder.getChild(name)
+        if (file.exists) return null // image already exists somehow...
 
-            GFX.check()
+        return file
+    }
 
+    fun takeScreenshot(
+        w: Int, h: Int,
+        renderer: Renderer,
+        drawScene: () -> Unit
+    ) {
+        val dstFile = getNextScreenshotFile() ?: return
+        addGPUTask("TakeScreenshot", w, h) {
             val fb = FBStack["Screenshot", w, h, 4, false, 8, DepthBufferType.INTERNAL]
-
-            GFX.check()
-
-            fun getPixels(renderer: Renderer): Image? {
-                // draw only the clicked area?
-                GFXState.useFrame(fb, renderer) {
-                    GFX.check()
-                    drawScene()
-                    // Scene.draw(camera, RemsStudio.root, 0, 0, w, h, RemsStudio.editorTime, true, renderer, this)
-                    fb.bindTrulyNearest(0)
-                }
-                return fb.createImage(flipY = false, withAlpha = false)
+            // draw only the clicked area?
+            GFXState.useFrame(fb, renderer) {
+                drawScene()
+                fb.bindTrulyNearest(0)
             }
-
-            GFX.check()
-
-            val image = getPixels(renderer)
+            val image = fb.createImage(flipY = false, withAlpha = false)
             if (image != null) Threads.runTaskThread("Save Screenshot") {
-                val file = folder.getChild(name)
-                image.write(file)
+                image.write(dstFile)
                 LOGGER.info(
                     Dict["Saved screenshot to %1", "ui.sceneView.savedScreenshot"]
-                        .replace("%1", formatFilePath(file))
+                        .replace("%1", formatFilePath(dstFile))
                 )
             }
         }
