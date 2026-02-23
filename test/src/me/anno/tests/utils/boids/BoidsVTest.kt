@@ -48,7 +48,7 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner(), OnUpdate {
 
     override fun onUpdate() {
         val dt = Time.deltaTime.toFloat()
-        for (i in 0 until n) {
+        repeat(n) { i ->
 
             val posA = positions[i]
             val dirA = directions[i]
@@ -95,21 +95,21 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner(), OnUpdate {
 
     override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
         val mesh = birdMesh
-        for (i in 0 until n) {
+        repeat(n) { i ->
             val transform = getTransform(i)
             transform.setLocalPosition(positions[i])
             transform.setLocalRotation(rotations[i])
-            if (callback(mesh, null, transform)) break
+            if (callback(mesh, null, transform)) return
         }
     }
 
     override fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, Material?) -> FloatArrayList): Boolean {
         val list = callback(birdMesh, null)
         list.ensureExtra(8 * n)
-        for (i in 0 until n) {
+        repeat(n) { i ->
             pos2[i].set(positions[i])
         }
-        for (i in 0 until n) {
+        repeat(n) { i ->
             val pos = positions[i]
             val rot = rotations[i]
             list.add(pos)
@@ -129,7 +129,7 @@ fun main() {
     val boid = BoidVTest(m, n)
 
     val s = 1000f
-    for (i in 0 until n) {
+    repeat(n) { i ->
         boid.positions[i].set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).mul(s)
         boid.directions[i].set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).normalize()
         for (ji in 0 until m) { // prevent duplicates? no, not really needed
@@ -139,7 +139,7 @@ fun main() {
     }
 
     val color = white.withAlpha(0.05f)
-    for (i in 0 until n) {
+    repeat(n) { i ->
         for (j in 0 until m) {
             showDebugLine(
                 DebugLine(

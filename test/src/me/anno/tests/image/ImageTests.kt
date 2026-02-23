@@ -9,6 +9,8 @@ import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.tests.image.raw.ByteImageFormatTest.Companion.supportedMask
+import me.anno.utils.Color
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.assertions.assertContains
 import me.anno.utils.assertions.assertContentEquals
 import me.anno.utils.assertions.assertEquals
@@ -121,7 +123,7 @@ class ImageTests {
                 assertNull(err)
                 val clonedImage = assertIs(FloatImage::class, texture.createImage(false, withAlpha = true))
                 assertNotSame(clonedImage, image)
-                assertContentEquals(clonedImage, image)
+                assertContentEquals(image, clonedImage)
                 texture.destroy()
             }
         }
@@ -140,18 +142,34 @@ class ImageTests {
         }
     }
 
-    fun assertContentEqualsMasked(a: Image, b: Image, mask: Int) {
-        assertEquals(a.width, b.width)
-        assertEquals(a.height, b.width)
-        a.forEachPixel { x, y ->
-            val colorA = a.getRGB(x, y) and mask
-            val colorB = b.getRGB(x, y) and mask
-            assertEquals(colorA, colorB)
+    fun assertContentEqualsMasked(expected: Image, actual: Image, mask: Int) {
+        assertEquals(expected.width, actual.width)
+        assertEquals(expected.height, actual.width)
+        expected.forEachPixel { x, y ->
+            val expectedColor = expected.getRGB(x, y) and mask
+            val actualColor = actual.getRGB(x, y) and mask
+            assertEquals(expectedColor, actualColor) {
+                showImage("Expected", expected, mask)
+                showImage("Actual", actual, mask)
+                "${expectedColor.toHexColor()} != ${actualColor.toHexColor()} @($x,$y)"
+            }
         }
     }
 
-    fun assertContentEquals(a: Image, b: Image) {
-        return assertContentEqualsMasked(a, b, -1)
+    fun showImage(name: String, image: Image, mask: Int) {
+        println("$name[${Color.hex32(mask)}, ${image.offset}, ${image.stride}]:")
+        repeat(image.height) { y ->
+            print(" ")
+            repeat(image.width) { x ->
+                print(" ")
+                print(Color.hex32(image.getRGB(x, y) and mask))
+            }
+            println()
+        }
+    }
+
+    fun assertContentEquals(expected: Image, actual: Image) {
+        return assertContentEqualsMasked(expected, actual, -1)
     }
 
     @Test

@@ -34,16 +34,16 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
     open fun fill(palette: IntArray?, dst: IntArray) {
         val dz = getIndex(0, 0, 1)
-        for (x in 0 until sizeX) {
-            for (y in 0 until sizeY) {
+        repeat(sizeX) { x ->
+            repeat(sizeY) { y ->
                 var i = getIndex(x, y, 0)
                 if (palette != null) {
-                    for (z in 0 until sizeZ) {
+                    repeat(sizeZ) { z ->
                         dst[i] = palette[getBlock(x, y, z)]
                         i += dz
                     }
                 } else {
-                    for (z in 0 until sizeZ) {
+                    repeat(sizeZ) { z ->
                         dst[i] = getBlock(x, y, z)
                         i += dz
                     }
@@ -54,9 +54,9 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
     open fun fill(dst: IntArray) {
         var i = 0
-        for (x in 0 until sizeX) {
-            for (y in 0 until sizeY) {
-                for (z in 0 until sizeZ) {
+        repeat(sizeX) { x ->
+            repeat(sizeY) { y ->
+                repeat(sizeZ) { z ->
                     dst[i++] = getBlock(x, y, z)
                 }
             }
@@ -65,9 +65,9 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
     open fun countBlocks(): Int {
         var i = 0
-        for (x in 0 until sizeX) {
-            for (y in 0 until sizeY) {
-                for (z in 0 until sizeZ) {
+        repeat(sizeX) { x ->
+            repeat(sizeY) { y ->
+                repeat(sizeZ) { z ->
                     if (getBlock(x, y, z) != 0) i++
                 }
             }

@@ -261,7 +261,7 @@ class Framebuffer3D(
         GFXState.useFrame(this, renderer) {
             Frame.bind()
             bindDirectly()
-            for (z in 0 until depth) {
+            repeat(depth) { z ->
                 // update all attachments, updating the framebuffer texture targets
                 updateAttachments(z)
                 val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)

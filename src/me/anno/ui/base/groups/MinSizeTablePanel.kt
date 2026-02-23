@@ -25,15 +25,14 @@ open class MinSizeTablePanel(sizeX: Int, sizeY: Int, style: Style) :
 
         val perWeightX = (w - totalSpacingX)
         val perWeightY = (h - totalSpacingY)
-        for (y in 0 until sizeY) {
-            val sizeYGuess = perWeightY
-            for (x in 0 until sizeX) {
+        repeat(sizeY) { y ->
+            repeat(sizeX) { x ->
                 val child = children[getIndex(x, y)]
-                if (!child.isVisible) continue
-                val sizeXGuess = perWeightX
-                child.calculateSize(sizeXGuess, sizeYGuess) // for its children
-                minWs[x] = max(minWs[x], child.minW)
-                minHs[y] = max(minHs[y], child.minH)
+                if (child.isVisible) {
+                    child.calculateSize(perWeightX, perWeightY) // for its children
+                    minWs[x] = max(minWs[x], child.minW)
+                    minHs[y] = max(minHs[y], child.minH)
+                }
             }
         }
 

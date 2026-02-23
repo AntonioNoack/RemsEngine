@@ -16,7 +16,7 @@ open class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 1
 
     operator fun set(k1: KManifold, k2: KFewOnly, k3: KFewOnly2, v: Value) {
         val list = values.getOrPut(k1) { TripleArrayList(8) }
-        for (i in 0 until list.size) {
+        repeat(list.size) { i ->
             if (list.getFirst(i) == k2 && list.getSecond(i) == k3) {
                 list.setThird(i, v)
                 return

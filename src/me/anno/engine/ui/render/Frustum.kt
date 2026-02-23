@@ -175,7 +175,7 @@ class Frustum {
             normals[i + 1].set(normals[i]).negate()
         }
 
-        for (i in 0 until 6) {
+        repeat(6) { i ->
             planes[i].set(positions[i], normals[i])
         }
 

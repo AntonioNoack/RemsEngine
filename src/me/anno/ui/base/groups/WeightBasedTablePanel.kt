@@ -52,15 +52,16 @@ open class WeightBasedTablePanel(sizeX: Int, sizeY: Int, style: Style) :
 
         val perWeightX = (w - totalSpacingX) / weightsX.sum()
         val perWeightY = (h - totalSpacingY) / weightsY.sum()
-        for (y in 0 until sizeY) {
+        repeat(sizeY) { y ->
             val sizeYGuess = (weightsY[y] * perWeightY).toInt()
-            for (x in 0 until sizeX) {
+            repeat(sizeX) { x ->
                 val child = children[getIndex(x, y)]
-                if (child == placeholder) continue
-                val sizeXGuess = (weightsX[x] * perWeightX).toInt()
-                child.calculateSize(sizeXGuess, sizeYGuess) // for its children
-                minWs[x] = max(minWs[x], child.minW)
-                minHs[y] = max(minHs[y], child.minH)
+                if (child != placeholder) {
+                    val sizeXGuess = (weightsX[x] * perWeightX).toInt()
+                    child.calculateSize(sizeXGuess, sizeYGuess) // for its children
+                    minWs[x] = max(minWs[x], child.minW)
+                    minHs[y] = max(minHs[y], child.minH)
+                }
             }
         }
 

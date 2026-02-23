@@ -31,8 +31,8 @@ abstract class AbstractTileLayersBuilder {
 
     private fun buildSingleThread(order: ByteOrder, cCompatibility: Boolean, tw: Int, th: Int): List<ByteArray> {
         val layers: MutableList<ByteArray> = ArrayList()
-        for (y in 0 until th) {
-            for (x in 0 until tw) {
+        repeat(th) { y ->
+            repeat(tw) { x ->
                 layers.addAll(build(x, y, order, cCompatibility)!!)
             }
         }
@@ -48,8 +48,8 @@ abstract class AbstractTileLayersBuilder {
     ): List<ByteArray> {
         val ec = Executors.newFixedThreadPool(threads)
         val partialResults = Array(th) { arrayOfNulls<List<ByteArray>>(tw) }
-        for (y in 0 until th) {
-            for (x in 0 until tw) {
+        repeat(th) { y ->
+            repeat(tw) { x ->
                 ec.submit { partialResults[y][x] = build(x, y, order, cCompatibility) }
             }
         }
@@ -59,8 +59,8 @@ abstract class AbstractTileLayersBuilder {
         } catch (_: InterruptedException) {
         }
         val layers: MutableList<ByteArray> = ArrayList()
-        for (y in 0 until th) {
-            for (x in 0 until tw) {
+        repeat(th) { y ->
+            repeat(tw) { x ->
                 layers.addAll(partialResults[y][x]!!)
             }
         }

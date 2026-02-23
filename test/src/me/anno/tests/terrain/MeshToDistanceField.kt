@@ -159,7 +159,7 @@ fun meshToDistanceFieldToMesh(mesh: Mesh, fieldSize: Vector3i, bounds: AABBf): M
             field, 0f, bounds, false
         ).toFloatArray()
     } else {
-        val layers = (0 until fieldSize.z).map { z ->
+        val layers = List(fieldSize.z) { z ->
             FloatImage(
                 fieldSize.x, fieldSize.y, 1,
                 field, fieldSize.x * fieldSize.y * z, fieldSize.x

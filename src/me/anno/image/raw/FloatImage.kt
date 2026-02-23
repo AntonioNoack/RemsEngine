@@ -26,12 +26,12 @@ class FloatImage(
 
     constructor(width: Int, height: Int, channels: Int, data: FloatArray) : this(
         width, height, channels, data, LinearColorMap.default,
-        0, channels * width
+        0, width
     )
 
     constructor(width: Int, height: Int, channels: Int, map: ColorMap) : this(
         width, height, channels, FloatArray(width * height * channels), map,
-        0, channels * width
+        0, width
     )
 
     constructor(width: Int, height: Int, channels: Int, data: FloatArray, offset: Int, stride: Int) :
@@ -86,10 +86,10 @@ class FloatImage(
     }
 
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
-        val tmp = FloatArray(width * height * numChannels)
         val lineLength = width * numChannels
-        for (y in 0 until height) {
-            val src0 = getIndex(0, height - 1 - y)
+        val tmp = FloatArray(height * lineLength)
+        repeat(height) { y ->
+            val src0 = getIndex(0, height - 1 - y) * numChannels
             val src1 = src0 + lineLength
             val dstI = y * lineLength
             data.copyInto(tmp, dstI, src0, src1)

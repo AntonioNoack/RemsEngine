@@ -41,8 +41,8 @@ class RecastBuilder(val progressListener: RecastBuilderProgressListener? = null)
     ): List<RecastBuilderResult> {
         val result = ArrayList<RecastBuilderResult>(tw * th)
         val progressCtr = AtomicInteger()
-        for (y in 0 until th) {
-            for (x in 0 until tw) {
+        repeat(th) { y ->
+            repeat(tw) { x ->
                 result.add(buildTile(geom, cfg, bounds, x, y, progressCtr, tw * th))
             }
         }
@@ -56,8 +56,8 @@ class RecastBuilder(val progressListener: RecastBuilderProgressListener? = null)
         val result = ArrayList<RecastBuilderResult>(tw * th)
         val progressCtr = AtomicInteger()
         val latch = CountDownLatch(tw * th)
-        for (y in 0 until th) {
-            for (x in 0 until tw) {
+        repeat(th) { y ->
+            repeat(tw) { x ->
                 executor.execute {
                     try {
                         val tile = buildTile(geom, cfg, bounds, x, y, progressCtr, tw * th)

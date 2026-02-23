@@ -154,9 +154,9 @@ open class Texture3D(
 
     private fun fillIntData(img: Image, intData: IntArray) {
         var k = 0
-        for (z in 0 until depth) {
-            for (y in 0 until height) {
-                for (x in 0 until width) {
+        repeat(depth) { z ->
+            repeat(height) { y ->
+                repeat(width) { x ->
                     intData[k++] = img.getRGB(z * width + x, y)
                 }
             }

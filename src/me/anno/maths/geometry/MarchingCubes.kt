@@ -81,8 +81,8 @@ object MarchingCubes {
                 return if ((v >= threshold) == firstSign) v else firstValue
             }
 
-            for (z in 0 until sizeZ) {
-                for (y in 0 until sizeY) {
+            repeat(sizeZ) { z ->
+                repeat(sizeY) { y ->
                     if (y == 0 || y == sizeY - 1 || z == 0 || z == sizeZ - 1) {
                         // set stripe to zero
                         val i0 = z * wh + y * sizeX
@@ -243,8 +243,8 @@ object MarchingCubes {
             fun checkValue(v: Float): Float {
                 return if ((v >= threshold) == firstSign) v else firstValue
             }
-            for (z in 0 until sizeZ) {
-                for (y in 0 until sizeY) {
+            repeat(sizeZ) { z ->
+                repeat(sizeY) { y ->
                     if (y == 0 || y == sizeY - 1 || z == 0 || z == sizeZ - 1) {
                         // set stripe to zero
                         val i0 = z * wh + y * sizeX

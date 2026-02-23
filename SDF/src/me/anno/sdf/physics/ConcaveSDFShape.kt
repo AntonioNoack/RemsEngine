@@ -40,10 +40,10 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
             collider.margin = value
         }
 
-    val fx = 6
-    val fy = 6
-    val fz = 6
-    val field = FloatArray(fx * fy * fz)
+    val sizeX = 6
+    val sizeY = 6
+    val sizeZ = 6
+    val field = FloatArray(sizeX * sizeY * sizeZ)
 
     val min2 = Vector3d()
     val max2 = Vector3d()
@@ -79,14 +79,14 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
             // sizes could be adjusted to match the "aspect ratio" of the aabb better
             var i = 0
             val pos = JomlPools.vec4f.create()
-            val ffx = 1.0 / (fx - 1.0)
-            val ffy = 1.0 / (fy - 1.0)
-            val ffz = 1.0 / (fz - 1.0)
-            for (z in 0 until fz) {
+            val ffx = 1.0 / (sizeX - 1.0)
+            val ffy = 1.0 / (sizeY - 1.0)
+            val ffz = 1.0 / (sizeZ - 1.0)
+            repeat(sizeZ) { z ->
                 val zf = z * ffz
-                for (y in 0 until fy) {
+                repeat(sizeY) { y ->
                     val yf = y * ffy
-                    for (x in 0 until fx) {
+                    repeat(sizeX) { x ->
                         val xf = x * ffx
                         pos.set(
                             Maths.mix(min2.x, max2.x, xf),
@@ -109,7 +109,7 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
             val bd = JomlPools.vec3d.create()
             val cd = JomlPools.vec3d.create()
             var triangleId = 0
-            MarchingCubes.march(fx, fy, fz, field, 0f, bounds1, false) { a, b, c ->
+            MarchingCubes.march(sizeX, sizeY, sizeZ, field, 0f, bounds1, false) { a, b, c ->
                 // is the order correct? (front/back sides)
                 // or is this ignored by Bullet?
                 ad.set(a)

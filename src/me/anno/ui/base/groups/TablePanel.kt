@@ -38,7 +38,7 @@ abstract class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(sty
             if (field > value) {
                 // size down
                 // destroy old children
-                for (y in 0 until sizeY) {
+                repeat(sizeY) { y ->
                     for (x in value until field) {
                         val oi = x + y * field
                         val child = children[oi]

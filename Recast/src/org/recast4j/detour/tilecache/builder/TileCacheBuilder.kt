@@ -1170,7 +1170,7 @@ object TileCacheBuilder {
         val tpoly = IntArray(nhole)
 
         // Generate temp vertex array for triangulation.
-        for (i in 0 until nhole) {
+        repeat(nhole) { i ->
             val pi = hole[i]
             tvertices[i * 4] = mesh.vertices[pi * 3]
             tvertices[i * 4 + 1] = mesh.vertices[pi * 3 + 1]
