@@ -12,6 +12,8 @@ import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.input.MouseLock.isMouseLocked
+import me.anno.input.MouseLock.unlockMouse
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.bvh.HitType
@@ -75,11 +77,11 @@ class BallPhysics(
     override fun onKeyDown(key: Key): Boolean {
         return when (key) {
             Key.BUTTON_LEFT -> {
-                if (Input.isMouseLocked) shootBullet() else lockMouse()
+                if (isMouseLocked) shootBullet() else lockMouse()
                 true
             }
             Key.KEY_ESCAPE -> {
-                Input.unlockMouse()
+                unlockMouse()
                 true
             }
             else -> super.onKeyDown(key)

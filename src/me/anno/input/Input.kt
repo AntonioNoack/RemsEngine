@@ -11,6 +11,8 @@ import me.anno.gpu.OSWindow
 import me.anno.input.Clipboard.copyFiles
 import me.anno.input.Clipboard.getClipboardContent
 import me.anno.input.Clipboard.setClipboardContent
+import me.anno.input.MouseLock.mouseLockPanel
+import me.anno.input.MouseLock.mouseLockWindow
 import me.anno.input.controller.Controller
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -102,20 +104,9 @@ object Input {
                 isKeyDown(Key.KEY_NUM_LOCK).toInt(GLFW.GLFW_MOD_NUM_LOCK) or
                 isKeyDown(Key.KEY_CAPS_LOCK).toInt(GLFW.GLFW_MOD_CAPS_LOCK)
 
-    var mouseLockWindow: OSWindow? = null
-    var mouseLockPanel: Panel? = null
-
-    val isMouseLocked: Boolean
-        get() = mouseLockWindow?.isInFocus == true && mouseLockPanel != null
-
     fun skipCharTyped(codepoint: Int): Boolean {
         return isKeyDown(Key.KEY_LEFT_ALT) &&
                 codepoint < 128 && codepoint.toChar().lowercaseChar() in 'a'..'z'
-    }
-
-    fun unlockMouse() {
-        mouseLockWindow = null
-        mouseLockPanel = null
     }
 
     val shiftSlowdown get() = if (isAltDown) 5f else if (isShiftDown) 0.2f else 1f

@@ -77,7 +77,6 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.hex24
 import me.anno.utils.GFXFeatures
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
@@ -488,9 +487,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         // camera matrix and mouse position to ray direction
         if (update) {
             val window = window
-            if (window != null) {
+            if (window != null && !isMouseLocked()) {
                 updateMouseRay(window.mouseX, window.mouseY)
             } else {
+                // use the center of the screen
                 mousePosition.set(cameraPosition)
                 mouseDirection.set(cameraDirection)
             }
@@ -779,7 +779,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        updateMouseRay(x, y)
+        if (!isMouseLocked()) updateMouseRay(x, y)
         super.onMouseMoved(x, y, dx, dy)
     }
 
@@ -803,6 +803,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     val cameraPosition = Vector3d()
     val cameraDirection = Vector3f()
     val cameraRotation = Quaternionf()
+
+    // todo mouse pos & dir belong into ControlScheme
     val mousePosition = Vector3d()
     val mouseDirection = Vector3f()
 

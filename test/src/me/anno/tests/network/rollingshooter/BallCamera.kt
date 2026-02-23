@@ -8,7 +8,7 @@ import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderView
-import me.anno.input.Input
+import me.anno.input.MouseLock.isMouseLocked
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
@@ -32,7 +32,7 @@ class BallCamera(
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
-        return if (Input.isMouseLocked) {
+        return if (isMouseLocked) {
             // rotate camera
             val speed = 1f / RenderView.currentInstance!!.height
             rotX = clamp(rotX + dy * speed, -PIf / 2, PIf / 2)

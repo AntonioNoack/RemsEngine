@@ -22,8 +22,8 @@ import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.input.GLFWListeners
 import me.anno.input.Input
-import me.anno.input.Input.isMouseLocked
-import me.anno.input.Input.mouseLockWindow
+import me.anno.input.MouseLock.isMouseLocked
+import me.anno.input.MouseLock.mouseLockWindow
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_MILLIS

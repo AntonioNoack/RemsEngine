@@ -24,8 +24,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
-import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.input.MouseLock.mouseLockPanel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
@@ -191,7 +191,7 @@ open class Window(
             }
         }
 
-        val mlp = Input.mouseLockPanel
+        val mlp = mouseLockPanel
         if (mlp != null && mlp.window == this) {
             markInFocus(mlp)
         }

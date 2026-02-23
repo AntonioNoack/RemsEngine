@@ -8,8 +8,8 @@ import me.anno.gpu.OSWindow
 import me.anno.input.ActionManager
 import me.anno.input.ButtonUpdateState
 import me.anno.input.Input
-import me.anno.input.Input.isMouseLocked
 import me.anno.input.Key
+import me.anno.input.MouseLock.isMouseLocked
 import me.anno.input.Output
 import me.anno.maths.Maths.sq
 import me.anno.utils.InternalAPI

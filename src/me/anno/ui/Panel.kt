@@ -12,8 +12,8 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.input.MouseLock
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
@@ -612,14 +612,18 @@ open class Panel(val style: Style) : PrefabSaveable() {
     fun lockMouse(): Boolean {
         val window = GFX.focusedWindow
         return if (window != null) {
-            Input.mouseLockWindow = window
-            Input.mouseLockPanel = this
+            MouseLock.mouseLockWindow = window
+            MouseLock.mouseLockPanel = this
             true
         } else false
     }
 
+    fun isMouseLocked(): Boolean {
+        return MouseLock.isMouseLocked
+    }
+
     fun unlockMouse() {
-        Input.unlockMouse()
+        MouseLock.unlockMouse()
     }
 
     override fun clone(): Panel {
