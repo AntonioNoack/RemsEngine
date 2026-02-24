@@ -8,6 +8,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.EntityQuery.getComponentsInChildren
 import me.anno.ecs.Transform
+import me.anno.ecs.components.FillSpace
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.anim.SkeletonCache
@@ -27,7 +28,6 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.ecs.components.FillSpace
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.PlayMode
@@ -39,6 +39,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.graph.hdb.HDBKey
@@ -57,6 +58,7 @@ import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.lists.Lists
 import me.anno.utils.structures.lists.Lists.all2
+import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -151,6 +153,15 @@ object AssetThumbnails {
             .flatMap { it.materials }.distinct()
             .filter { it.exists }.toHashSet()
 
+        loadAssets(meshFiles, materialFiles, callback)
+    }
+
+    private fun loadAssets(
+        meshFiles: List<FileReference>,
+        materialFiles: HashSet<FileReference>,
+        callback: () -> Unit
+    ) {
+
         val textureFiles = HashSet<FileReference>()
         val meshToMat = HashSet<FileReference>()
         val matToTex = HashSet<FileReference>()
@@ -207,25 +218,69 @@ object AssetThumbnails {
                 Renderers.previewRenderer,
                 false, callback, size, size
             ) {
-                GFX.check()
-                val rv = rv
-                val cam = rv.editorCamera
-                findFramingRadius(scene, bounds)
-                rv.near = rv.radius * 0.01f
-                rv.far = rv.radius * 2.0f
-                rv.setRenderState()
-                rv.prepareDrawScene(size, size, 1f, cam, update = false, fillPipeline = true)
-                // don't use EditorState
-                GFXState.ditherMode.use(DitherMode.DITHER2X2) {
-                    rv.pipeline.clear()
-                    rv.pipeline.fill(scene)
-                    rv.setRenderState()
-                    GFXState.currentBuffer.clearColor(0, depth = true)
-                    rv.pipeline.singlePassWithoutSky()
-                }
-                GFX.check()
+                renderEntity(scene, bounds, size)
             }
         }
+    }
+
+    private fun renderEntity(scene: Entity, bounds: AABBd, size: Int) {
+        GFX.check()
+        val rv = rv
+        val cam = rv.editorCamera
+        findFramingRadius(scene, bounds)
+        rv.near = rv.radius * 0.01f
+        rv.far = rv.radius * 2.0f
+        rv.setRenderState()
+        rv.prepareDrawScene(size, size, 1f, cam, update = false, fillPipeline = true)
+        // don't use EditorState
+        GFXState.ditherMode.use(DitherMode.DITHER2X2) {
+            rv.pipeline.clear()
+            rv.pipeline.fill(scene)
+            rv.setRenderState()
+            GFXState.currentBuffer.clearColor(0, depth = true)
+            rv.pipeline.singlePassWithoutSky()
+        }
+        GFX.check()
+    }
+
+    @JvmStatic
+    fun generateRenderableFrame1(
+        srcFile: FileReference,
+        dstFile: HDBKey,
+        size: Int,
+        scene: Renderable,
+        callback: Callback<ITexture2D>
+    ) {
+        val scene = convertRenderableToEntity(scene)
+        generateEntityFrame(srcFile, dstFile, size, scene, callback)
+    }
+
+    private class HelperMeshComponent(val iMesh: IMesh) : MeshComponentBase() {
+        override fun getMeshOrNull(): IMesh = iMesh
+        override fun getMesh(): IMesh = iMesh
+    }
+
+    @JvmStatic
+    fun convertRenderableToEntity(renderable: Renderable): Entity {
+        // far from ideal...
+        val scene = Entity()
+        val pipeline = Pipeline(null)
+        renderable.fill(pipeline, scene.transform)
+        for (stage in pipeline.stages) {
+            for (request in stage.drawRequests) {
+                Entity(scene)
+                    .add(HelperMeshComponent(request.mesh).apply {
+                        materials = request.material.ref.wrap()
+                        // todo only render one materialIndex...
+                    })
+                    .transform.set(request.transform)
+            }
+            // todo instanced meshes, too
+        }
+        if (scene.children.isEmpty()) {
+            LOGGER.warn("Cannot create thumbnail for ${renderer.javaClass}")
+        }
+        return scene
     }
 
     @JvmStatic
@@ -311,7 +366,7 @@ object AssetThumbnails {
             entity.add(comp.clone() as Component)
             generateEntityFrame(srcFile, dstFile, size, entity, callback)
         } else {
-            LOGGER.warn("Cannot render ${comp::class}")
+            generateRenderableFrame1(srcFile, dstFile, size, comp, callback)
         }
     }
 
