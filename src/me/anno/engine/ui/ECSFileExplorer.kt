@@ -1,26 +1,23 @@
 package me.anno.engine.ui
 
-import me.anno.cache.CacheSection
-import me.anno.cache.FileCache
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.TransformMesh.scale
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent
-import me.anno.engine.projects.FileEncoding
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.projects.GameEngineProject.Companion.invalidateThumbnails
 import me.anno.engine.ui.AssetImport.deepCopyImport
 import me.anno.engine.ui.AssetImport.shallowCopyImport
 import me.anno.engine.ui.ECSTreeView.Companion.optionToMenu
+import me.anno.engine.ui.MeshUtils.importInplace
+import me.anno.engine.ui.MeshUtils.scaleMeshes
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
@@ -40,16 +37,13 @@ import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.files.Files.findNextChild
 import me.anno.utils.files.Files.findNextFile
-import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.LocalFile.toGlobalFile
-import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.all2
-import me.anno.utils.structures.lists.Lists.none2
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.reflect.KClass
 
@@ -246,58 +240,6 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
             addOptionToCreateFile(name, clazzName)
         }
 
-        fun scaleMeshes(files: List<FileReference>, scale: Float) {
-            for (file in files) {
-                if (file.isDirectory) {
-                    file.listChildren { children, _ ->
-                        scaleMeshes(children ?: emptyList(), scale)
-                    }
-                } else {
-                    scaleMesh(file, scale)
-                }
-            }
-        }
-
-        fun scaleMesh(file: FileReference, scale: Float) {
-            val decoder = FileEncoding.getForExtension(file.lcExtension, false)
-                ?: run {
-                    LOGGER.warn("Skipped file, because of extension mismatch: $file")
-                    return
-                }
-
-            file.readBytes { bytes, _ ->
-                if (bytes == null) {
-                    LOGGER.warn("Could not read bytes from $file")
-                    return@readBytes
-                }
-
-                val instances = decoder.decode(bytes, workspace, true)
-                if (instances.none2 { it is Mesh || it is Prefab && it.clazzName == "Mesh" }) {
-                    LOGGER.warn("Could not find meshes in $file")
-                    return@readBytes
-                }
-
-                val distinctMeshes = instances.filterIsInstance2(Mesh::class).distinct()
-                distinctMeshes.forEach { mesh -> mesh.scale(Vector3f(scale)) }
-
-                val distinctPrefabs = instances.filterIsInstance2(Prefab::class)
-                    .filter { prefab -> prefab.clazzName == "Mesh" && prefab["positions"] is FloatArray }.distinct()
-                distinctPrefabs.forEach { prefab ->
-                    val positions = prefab["positions"] as FloatArray
-                    for (i in positions.indices) {
-                        positions[i] *= scale
-                    }
-                }
-
-                val encoded = decoder.encode(instances, workspace)
-                file.writeBytes(encoded)
-                LOGGER.info("Scaled $file by $scale, ${encoded.size.formatFileSize()}")
-
-                // invalidate all its dependent assets...
-                invalidateThumbnails(listOf(file))
-            }
-        }
-
         fun <V : PrefabSaveable> addComplexButtonToCreate(name: String, clazz: KClass<V>) {
             folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { p, files ->
                 val first = getFirstFolder(files)
@@ -435,7 +377,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                             file.writeBytes(encoding.encode(prefab, workspace))
                         }
                         // and at the end, invalidate the thumbnail for these secondary source files
-                        GameEngineProject.invalidateThumbnails(invalidFiles)
+                        invalidateThumbnails(invalidFiles)
                     }
                 } else LOGGER.warn("No valid target was found")
             }
@@ -470,14 +412,43 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                     ))
             }
 
+            // todo test this...;
+            // todo deep option
+            val importInplace = FileExplorerOption(NameDesc("Shallow-Import Inplace")) { _, files ->
+                importInplace(files)
+            }
+
+            val showDependencies = FileExplorerOption(NameDesc("Show dependencies")) { fe, files ->
+                val project = currentProject
+                if (project != null) {
+                    val dependencies = Recursion.collectRecursiveSet(files) { file, remaining ->
+                        remaining.addAll(project.findDependencies(file))
+                    } - files.toSet()
+                    if (dependencies.isNotEmpty()) {
+                        val src = project.location.absolutePath
+                        Menu.openMenu(fe.windowStack, NameDesc("Dependencies"), dependencies.map { file ->
+                            val path = file.absolutePath
+                            val name = if (path.startsWith(src)) path.substring(src.length) else path
+                            MenuOption(NameDesc(name)) {
+                                ECSSceneTabs.open(file, PlayMode.EDITING, setActive = true)
+                            }
+                        })
+                    } else Menu.msg(NameDesc("No dependencies found"))
+                } else Menu.msg(NameDesc("Missing project for dependency lookup"))
+            }
+
             fileOptions.add(openAsScene)
             fileOptions.add(extendPrefab)
             fileOptions.add(assignMaterialToMeshes)
             fileOptions.add(deepCopyImport)
             fileOptions.add(scaleMeshOption)
+            fileOptions.add(importInplace)
+            fileOptions.add(showDependencies)
             fileOptions.add(clearHistory)
 
             folderOptions.add(scaleMeshOption)
+            folderOptions.add(importInplace)
+            folderOptions.add(showDependencies)
             folderOptions.add(openAsScene)
 
             // todo create shader (MaterialGraph), post-processing (ShaderGraph), render mode (RenderGraph),
