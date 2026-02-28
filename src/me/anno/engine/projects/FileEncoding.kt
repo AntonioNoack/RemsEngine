@@ -29,6 +29,16 @@ enum class FileEncoding(val id: Int) {
 
     companion object {
         const val BINARY_MAGIC = "RemsEngineZZ"
+
+        fun getForExtension(lcExtension: String, isPretty: Boolean): FileEncoding? {
+            return when (lcExtension) {
+                "json" -> if (isPretty) PRETTY_JSON else COMPACT_JSON
+                "xml" -> if (isPretty) PRETTY_XML else COMPACT_XML
+                "yaml" -> YAML
+                "bin" -> BINARY
+                else -> null
+            }
+        }
     }
 
     val extension: String
@@ -50,13 +60,7 @@ enum class FileEncoding(val id: Int) {
     }
 
     fun getForExtension(lcExtension: String): FileEncoding {
-        return when (lcExtension) {
-            "json" -> if (isPretty) PRETTY_JSON else COMPACT_JSON
-            "xml" -> if (isPretty) PRETTY_XML else COMPACT_XML
-            "yaml" -> YAML
-            "bin" -> BINARY
-            else -> this
-        }
+        return getForExtension(lcExtension, isPretty) ?: this
     }
 
     fun decode(bytes: ByteArray, workspace: FileReference, safely: Boolean): List<Saveable> {

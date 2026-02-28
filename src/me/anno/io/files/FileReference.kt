@@ -280,9 +280,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun writeBytes(bytes: ByteArray, offset: Int, length: Int) {
-        outputStream().use { os ->
-            os.write(bytes, offset, length)
-        }
+        outputStream().use { os -> os.write(bytes, offset, length) }
+        invalidate()
     }
 
     fun writeBytes(bytes: ByteArray) {

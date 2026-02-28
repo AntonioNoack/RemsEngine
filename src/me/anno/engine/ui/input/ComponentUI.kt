@@ -127,6 +127,16 @@ object ComponentUI {
 
     private val LOGGER = LogManager.getLogger(ComponentUI::class)
 
+    val deepCopyName = NameDesc(
+        "Deep-Copy-Import", "Make this file [mutable, project-indexed] by transferring it to the project",
+        ""
+    )
+
+    val shallowCopyName = NameDesc(
+        "Shallow-Copy-Import", "Make this file [mutable, project-indexed] by transferring it to the project",
+        ""
+    )
+
     val fileInputRightClickOptions = listOf(
         FileExplorerOption(NameDesc("Open Scene")) { _, files ->
             for (file in files) {
@@ -136,18 +146,12 @@ object ComponentUI {
                 )
             }
         },
-        FileExplorerOption(
-            NameDesc(
-                "Deep-Copy-Import", "Make this file [mutable, project-indexed] by transferring it to the project",
-                ""
-            )
-        ) { _, files -> AssetImport.deepCopyImport(EngineBase.workspace, files, null) },
-        FileExplorerOption(
-            NameDesc(
-                "Shallow-Copy-Import", "Make this file [mutable, project-indexed] by transferring it to the project",
-                ""
-            )
-        ) { _, files -> AssetImport.shallowCopyImport(EngineBase.workspace, files, null) },
+        FileExplorerOption(deepCopyName) { _, files ->
+            AssetImport.deepCopyImport(EngineBase.workspace, files, null)
+        },
+        FileExplorerOption(shallowCopyName) { _, files ->
+            AssetImport.shallowCopyImport(EngineBase.workspace, files, null)
+        },
 
         // todo test whether this actually works
         // (on both Windows and Linux)
