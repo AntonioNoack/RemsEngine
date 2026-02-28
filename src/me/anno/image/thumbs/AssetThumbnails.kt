@@ -31,6 +31,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.PlayMode
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView0
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.CullMode
@@ -103,7 +104,7 @@ object AssetThumbnails {
             rv.radius = 100f * bounds.maxDelta.toFloat()
             bounds.getCenter(rv.orbitCenter)
             ControlScheme.updateEditorCameraTransformImpl(rv)
-            rv.setRenderState()
+
             // calculate ideal transform like previously
             // for that, calculate bounds on screen, then rescale/recenter
             val visualBounds = AABBf()
@@ -124,6 +125,7 @@ object AssetThumbnails {
                     visualBounds.union(vec0)
                 }
             }
+
             scene.forAll {
                 when (it) {
                     is MeshComponentBase -> addMesh(it.getMesh(), it.transform ?: scene.transform)
@@ -133,10 +135,13 @@ object AssetThumbnails {
                     }
                 }
             }
+
             rv.radius = 400f * max(visualBounds.deltaX, visualBounds.deltaY)
+            ControlScheme.updateEditorCameraTransformImpl(rv)
         } else {
             rv.radius = 1f
             rv.orbitCenter.set(0.0)
+            ControlScheme.updateEditorCameraTransformImpl(rv)
         }
     }
 
