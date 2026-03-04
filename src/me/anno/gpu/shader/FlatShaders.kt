@@ -7,6 +7,7 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.structures.lists.LazyList
+import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.iff
@@ -124,26 +125,28 @@ object FlatShaders {
             "   else if(alphaMode == 2) { col.rgb *= data.x; }\n" +
             "   else { col.rgb *= data.a; }\n"
 
-    val flatShaderTexture = BaseShader(
-        "flatShaderTexture",
-        ShaderLib.uiVertexShaderList,
-        ShaderLib.uiVertexShader, uvList,
-        listOf(
-            Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = rrr, 3 = a
-            Variable(GLSLType.V4F, "color"),
-            Variable(GLSLType.V1B, "applyToneMapping"),
-            Variable(GLSLType.S2D, "tex"),
-        ), "" +
-                tonemapGLSL +
-                "void main() {\n" +
-                "   vec4 col = color;\n" +
-                "   vec4 data = texture(tex, uv);\n" +
-                alphaModeProcessing +
-                "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec4(1.0,0.0,1.0,1.0); }\n" +
-                "   else if(applyToneMapping) { col = tonemap(col); }\n" +
-                "   gl_FragColor = col;\n" +
-                "}"
-    )
+    val flatShaderTexture = LazyMap { msaa: Boolean ->
+        BaseShader(
+            "flatShaderTexture",
+            ShaderLib.uiVertexShaderList,
+            ShaderLib.uiVertexShader, uvList,
+            listOf(
+                Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = rrr, 3 = a
+                Variable(GLSLType.V4F, "color"),
+                Variable(GLSLType.V1B, "applyToneMapping"),
+                Variable(if (msaa) GLSLType.S2DMS else GLSLType.S2D, "tex"),
+            ), "" +
+                    tonemapGLSL +
+                    "void main() {\n" +
+                    "   vec4 col = color;\n" +
+                    "   vec4 data = ${if(msaa) "texelFetch(tex, ivec2(uv * textureSize(tex)), 0)" else "texture(tex, uv)"};\n" +
+                    alphaModeProcessing +
+                    "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec4(1.0,0.0,1.0,1.0); }\n" +
+                    "   else if(applyToneMapping) { col = tonemap(col); }\n" +
+                    "   gl_FragColor = col;\n" +
+                    "}"
+        )
+    }
 
     val flatShaderTextureArray = BaseShader(
         "flatShaderTexture",

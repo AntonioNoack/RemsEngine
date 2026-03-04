@@ -1,6 +1,6 @@
 package me.anno.graph.visual.render.effects.framegen
 
-import me.anno.Time
+import me.anno.Time.frameIndex
 import me.anno.config.ConfigRef
 import me.anno.engine.ui.render.RenderMode.Companion.opaqueNodeSettings
 import me.anno.graph.visual.FlowGraph
@@ -19,10 +19,10 @@ import me.anno.graph.visual.render.effects.UnditherNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
-import me.anno.graph.visual.render.scene.RenderTransparentNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
-import me.anno.maths.MinMax.max
+import me.anno.graph.visual.render.scene.RenderTransparentNode
 import me.anno.maths.Maths.posMod
+import me.anno.maths.MinMax.max
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 
@@ -47,7 +47,6 @@ class FrameGenInitNode : FlowGraphNode(
 
         var interFrames by ConfigRef("gpu.frameGen.intermediateFrames", 1)
         val totalFrames get() = 1 + max(0, interFrames)
-        val frameIndex get() = Time.frameIndex
 
         fun skipThisFrame(): Boolean {
             return posMod(frameIndex, totalFrames) > 0

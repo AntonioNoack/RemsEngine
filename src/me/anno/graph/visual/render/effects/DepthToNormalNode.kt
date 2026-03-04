@@ -21,7 +21,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask
-import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
+import me.anno.utils.structures.maps.LazyMap
 
 /**
  * reconstructs normal from depth value;
@@ -36,12 +37,12 @@ class DepthToNormalNode : TimedRenderingNode(
     override fun executeAction() {
         val depth = getInput(1) as? Texture
         val target = if (getIntInput(2) == 0) TargetType.UInt8x2 else TargetType.UInt16x2
-        val depthTex = depth.texOrNull ?: return finish()
+        val depthTex = depth.texMSOrNull ?: return finish()
 
         timeRendering(name, timer) {
-            val result = FBStack[name, depthTex.width, depthTex.height, target, 1, DepthBufferType.NONE]
+            val result = FBStack[name, depthTex.width, depthTex.height, target, depthTex.samples, DepthBufferType.NONE]
             GFXState.useFrame(result) {
-                val shader = shader
+                val shader = shader[depthTex.samples > 1]
                 shader.use()
                 shader.v4f("depthMask", depth.mask)
                 depthTex.bindTrulyNearest(0)
@@ -53,53 +54,55 @@ class DepthToNormalNode : TimedRenderingNode(
     }
 
     companion object {
-        val shader = Shader(
-            "depthToNormal", emptyList(), coordsUVVertexShader, uvList,
-            listOf(
-                Variable(GLSLType.S2D, "depthTex"),
-                Variable(GLSLType.V4F, "depthMask"),
-                Variable(GLSLType.V4F, "result", VariableMode.OUT)
-            ) + depthVars, "" +
-                    quatRot +
-                    rawToDepth +
-                    depthToPosition +
-                    octNormalPacking +
-                    "float getDepth(ivec2 uv){\n" +
-                    "   ivec2 uvi = clamp(uv, ivec2(0,0), textureSize(depthTex,0)-1);\n" +
-                    "   float rawDepth = dot(depthMask,texelFetch(depthTex,uvi,0));\n" +
-                    "   return rawToDepth(rawDepth);\n" +
-                    "}\n" +
-                    "vec3 getPosition(vec2 uv, float depth){\n" +
-                    "   return depthToPosition(uv, max(depth, 1e-10));\n" +
-                    "}\n" +
-                    // todo we might have only F16 precision forward depth on older hardware (FBStack -> set extra depth to FP16)
-                    //  if so, as long as the values are too similar, use a wider testing stencil if the values are too similar
-                    "void main() {\n" +
-                    "   vec2 duv = vec2(dFdx(uv.x),dFdy(uv.y));\n" +
-                    "   ivec2 uvi = ivec2(gl_FragCoord.xy);\n" +
-                    "   float d00 = getDepth(uvi);\n" +
-                    "   float dpx = getDepth(uvi+ivec2(1,0));\n" +
-                    "   float dmx = getDepth(uvi-ivec2(1,0));\n" +
-                    "   float dpy = getDepth(uvi+ivec2(0,1));\n" +
-                    "   float dmy = getDepth(uvi-ivec2(0,1));\n" +
-                    "   vec3 normal;\n" +
-                    // todo for F16 forward depth, this value isn't taking effect
-                    "   if(d00 > 1e10){\n" +
-                    // sky doesn't have depth information / is at infinity -> different algorithm for it
-                    "       normal = -rawCameraDirection(uv);\n" +
-                    "   } else {\n" +
-                    // prefer px/mx with closer depth value
-                    "       vec3 pos0 = depthToPosition(uv, max(d00, 1e-10));\n" +
-                    "       vec3 dx = abs(dpx-d00) < abs(dmx-d00) ?\n" +
-                    "                   getPosition(uv+vec2(duv.x,0.0),dpx) - pos0 :\n" +
-                    "            pos0 - getPosition(uv-vec2(duv.x,0.0),dmx);\n" +
-                    "       vec3 dy = abs(dpy-d00) < abs(dmy-d00) ?\n" +
-                    "                   getPosition(uv+vec2(0.0,duv.y),dpy) - pos0 :\n" +
-                    "            pos0 - getPosition(uv-vec2(0.0,duv.y),dmy);\n" +
-                    "       normal = cross(dx,dy);\n" +
-                    "   }\n" +
-                    "   result = vec4(PackNormal(normal),0.0,1.0);\n" +
-                    "}\n"
-        )
+        val shader = LazyMap { msaa: Boolean ->
+            Shader(
+                "depthToNormal", emptyList(), coordsUVVertexShader, uvList,
+                listOf(
+                    Variable(if (msaa) GLSLType.S2DMS else GLSLType.S2D, "depthTex"),
+                    Variable(GLSLType.V4F, "depthMask"),
+                    Variable(GLSLType.V4F, "result", VariableMode.OUT)
+                ) + depthVars, "" +
+                        quatRot +
+                        rawToDepth +
+                        depthToPosition +
+                        octNormalPacking +
+                        "float getDepth(ivec2 uv){\n" +
+                        "   ivec2 uvi = clamp(uv, ivec2(0,0), ${if (msaa) "textureSize(depthTex)" else "textureSize(depthTex,0)"}-1);\n" +
+                        "   float rawDepth = dot(depthMask, texelFetch(depthTex,uvi,${if (msaa) "gl_SampleID" else "0"}));\n" +
+                        "   return rawToDepth(rawDepth);\n" +
+                        "}\n" +
+                        "vec3 getPosition(vec2 uv, float depth){\n" +
+                        "   return depthToPosition(uv, max(depth, 1e-10));\n" +
+                        "}\n" +
+                        // todo we might have only F16 precision forward depth on older hardware (FBStack -> set extra depth to FP16)
+                        //  if so, as long as the values are too similar, use a wider testing stencil if the values are too similar
+                        "void main() {\n" +
+                        "   vec2 duv = vec2(dFdx(uv.x),dFdy(uv.y));\n" +
+                        "   ivec2 uvi = ivec2(gl_FragCoord.xy);\n" +
+                        "   float d00 = getDepth(uvi);\n" +
+                        "   float dpx = getDepth(uvi+ivec2(1,0));\n" +
+                        "   float dmx = getDepth(uvi-ivec2(1,0));\n" +
+                        "   float dpy = getDepth(uvi+ivec2(0,1));\n" +
+                        "   float dmy = getDepth(uvi-ivec2(0,1));\n" +
+                        "   vec3 normal;\n" +
+                        // todo for F16 forward depth, this value isn't taking effect
+                        "   if(d00 > 1e10){\n" +
+                        // sky doesn't have depth information / is at infinity -> different algorithm for it
+                        "       normal = -rawCameraDirection(uv);\n" +
+                        "   } else {\n" +
+                        // prefer px/mx with closer depth value
+                        "       vec3 pos0 = depthToPosition(uv, max(d00, 1e-10));\n" +
+                        "       vec3 dx = abs(dpx-d00) < abs(dmx-d00) ?\n" +
+                        "                   getPosition(uv+vec2(duv.x,0.0),dpx) - pos0 :\n" +
+                        "            pos0 - getPosition(uv-vec2(duv.x,0.0),dmx);\n" +
+                        "       vec3 dy = abs(dpy-d00) < abs(dmy-d00) ?\n" +
+                        "                   getPosition(uv+vec2(0.0,duv.y),dpy) - pos0 :\n" +
+                        "            pos0 - getPosition(uv-vec2(0.0,duv.y),dmy);\n" +
+                        "       normal = cross(dx,dy);\n" +
+                        "   }\n" +
+                        "   result = vec4(PackNormal(normal),0.0,1.0);\n" +
+                        "}\n"
+            )
+        }
     }
 }

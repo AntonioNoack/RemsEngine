@@ -483,7 +483,8 @@ object WindowManagement {
             GLFW.glfwSwapBuffers(window.pointer)
             // works in reducing input latency by 1 frame 😊
             // https://www.reddit.com/r/GraphicsProgramming/comments/tkpdhd/minimising_input_latency_in_opengl/
-            if (DefaultConfig["gpu.glFinishForLatency", OS.isWindows]) {
+            // it fixes vsync-stuttering for me on Ubuntu
+            if (DefaultConfig["gpu.glFinishForLatency", OS.isWindows || OS.isLinux]) {
                 GL46C.glFinish()
             }
             window.updateVsync()

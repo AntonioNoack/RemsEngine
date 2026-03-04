@@ -24,6 +24,8 @@ import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.compiler.ShaderExprNode
 import me.anno.graph.visual.render.effects.AnimeOutlineNode
 import me.anno.graph.visual.render.effects.BloomNode
+import me.anno.graph.visual.render.effects.CheckerboardHelperNode
+import me.anno.graph.visual.render.effects.CheckerboardResolveNode
 import me.anno.graph.visual.render.effects.ColorBlindnessMode
 import me.anno.graph.visual.render.effects.ColorBlindnessNode.Companion.createRenderGraph
 import me.anno.graph.visual.render.effects.DepthOfFieldNode
@@ -657,6 +659,21 @@ class RenderMode private constructor(
                 .then(FXAANode())
                 .finish()
         )
+
+        val CHECKERBOARD = RenderMode("Checkerboard", QuickPipeline()
+            .then(CheckerboardHelperNode())
+
+            .then1(RenderForwardNode(), opaqueNodeSettings)
+            .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.DECAL))
+            .then(RenderTransparentNode())
+            .depthToSSAO()
+            .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+            .thenAlphaBlendPass()
+            .then(GizmoNode())
+
+            .then(CheckerboardResolveNode())
+            .then(FXAANode())
+            .finish())
 
         val VIGNETTE = RenderMode("Vignette", createHDRPostProcessGraph(VignetteNode()))
         val PIXELATION = RenderMode("Pixelation", createHDRPostProcessGraph(PixelationNode()))

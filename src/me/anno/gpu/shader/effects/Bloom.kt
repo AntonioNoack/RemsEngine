@@ -193,18 +193,18 @@ object Bloom {
                     Renderers.tonemapGLSL +
                     "void main(){\n" +
                     "   vec3 sum = vec3(0.0), bloom = texture(bloomTex, uv).rgb;\n" +
-                    "   ivec2 uvi = ivec2(gl_FragCoord.xy);\n".iff(msIn) +
-                    "   for(int i=0;i<numSamples;i++){\n".iff(msIn) +
-                    "       vec3 color = texture(base,uv).rgb;\n".iff(!msIn) +
-                    "       vec3 color = texelFetch(base,uvi,i).rgb;\n".iff(msIn) +
+                    "   ivec2 uvi = ivec2(gl_FragCoord.xy);\n" + // .iff(msIn) +
+                    // "   for(int i=0;i<numSamples;i++){\n".iff(msIn) +
+                    "       vec3 color = texelFetch(base,uvi,gl_SampleID).rgb;\n" + // .iff(!msIn) +
+                    // "       vec3 color = texelFetch(base,uvi,i).rgb;\n".iff(msIn) +
                     "       color = pow(max(color,vec3(0.0)),vec3(2));\n" + // srgb -> linear
                     "       color += bloom;\n" +
-                    "       if(applyToneMapping) {\n" +
+                    "       if (applyToneMapping) {\n" +
                     "           color = tonemapLinear(color);\n" +
                     "       }\n" +
                     "       sum += color;\n" +
-                    "   }\n".iff(msIn) +
-                    "   sum *= invNumSamples;\n".iff(msIn) +
+                    // "   }\n".iff(msIn) +
+                    // "   sum *= invNumSamples;\n".iff(msIn) +
                     "   sum = sqrt(sum);\n" + // linear -> srgb
                     "   result = vec4(sum, 1.0);\n" +
                     "}\n"

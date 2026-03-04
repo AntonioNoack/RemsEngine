@@ -16,7 +16,7 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
-import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.maths.Maths.clamp
 
@@ -66,9 +66,9 @@ class GizmoNode : RenderViewNode(
         val aabbs = getBoolInput(5)
         val debug = getBoolInput(6)
 
-        val colorT = getTextureInput(7, blackTexture)
+        val colorT = (getInput(7) as? Texture).texMSOrNull ?: blackTexture
         val depth = getInput(8) as? Texture
-        val depthT = depth.texOrNull ?: depthTexture
+        val depthT = depth.texMSOrNull ?: depthTexture
         val depthM = depth.mask1Index
 
         // else we can't cast to Framebuffer

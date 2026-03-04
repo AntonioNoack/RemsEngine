@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects.framegen
 
+import me.anno.Time.frameIndex
 import me.anno.cache.ICacheData
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.Blitting
@@ -12,7 +13,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.effects.TimedRenderingNode
-import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode.Companion.frameIndex
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode.Companion.totalFrames
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode.Companion.skipThisFrame
 import me.anno.maths.Maths.posMod

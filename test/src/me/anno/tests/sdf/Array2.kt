@@ -26,7 +26,11 @@ import me.anno.utils.types.Floats.toRadians
  * */
 fun main() {
     OfficialExtensions.initForTests()
-    SceneView.testSceneWithUI("SDFArray2", Entity().apply {
+    SceneView.testSceneWithUI("SDFArray2", createDonutOfBricks())
+}
+
+fun createDonutOfBricks(): Entity {
+    return Entity().apply {
         add(SDFArray2().apply {
             maxSteps = 500
             useModulatorMaterials = true
@@ -98,5 +102,5 @@ fun main() {
                 })
             })
         })
-    })
+    }
 }

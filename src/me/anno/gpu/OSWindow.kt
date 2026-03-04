@@ -121,8 +121,9 @@ open class OSWindow(var title: String) {
         return GLFW.glfwGetWindowMonitor(pointer) != 0L
     }
 
-    fun toggleFullscreen() {
+    fun toggleFullscreen(): Boolean {
         // a little glitchy ^^, but it works :D
+        if (pointer == INVALID_POINTER64) return false
         val usedMonitor = GLFW.glfwGetWindowMonitor(pointer)
         if (usedMonitor == 0L) {
             savedWidth = width
@@ -155,6 +156,7 @@ open class OSWindow(var title: String) {
         this.height = height[0]
         // this information gets lost otherwise...
         forceUpdateVsync()
+        return true
     }
 
     fun updateMouseTarget(): Boolean {

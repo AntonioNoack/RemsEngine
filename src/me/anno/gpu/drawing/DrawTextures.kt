@@ -55,7 +55,7 @@ object DrawTextures {
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = flatShaderTexture.value
+        val shader = flatShaderTexture[texture.samples > 1].value
         val mono = getNumChannels(texture.internalFormat) == 1
         shader.use()
         posSize(shader, x, y, w, h, true)
@@ -97,7 +97,7 @@ object DrawTextures {
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = flatShaderTexture.value
+        val shader = flatShaderTexture[texture.samples > 1].value
         val mono = texture.channels == 1
         shader.use()
         posSize(shader, x, y, w, h)
@@ -154,7 +154,7 @@ object DrawTextures {
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = flatShaderTexture.value
+        val shader = flatShaderTexture[texture.samples > 1].value
         shader.use()
         posSize(shader, x, y, w, h, true)
         shader.v4f("color", color)

@@ -50,6 +50,7 @@ import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask
+import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.input.Input
@@ -620,7 +621,7 @@ object DebugRendering {
     private fun findRelevantTextures(node: Node): List<Pair<String, ITexture2D>> {
         return node.outputs.mapNotNull { output ->
             if (output.type == "Texture") {
-                val value = (output.currValue as? Texture)?.texOrNull
+                val value = (output.currValue as? Texture).texMSOrNull
                 if (value != null) Pair(output.name, value) else null
             } else null
         }.distinctTextures()

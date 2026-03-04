@@ -28,17 +28,17 @@ class BloomNode : TimedRenderingNode(
         val settings = GlobalSettings[BloomSettings::class]
         val applyToneMapping = getBoolInput(1)
         val colorT = getInput(2) as? Texture ?: return finish()
-        val colorTT = colorT.texOrNull ?: return finish(colorT)
-        val colorMT = if (applyToneMapping) colorT.texMSOrNull ?: colorTT else colorTT
-        if (settings.strength <= 0f) return finish(colorT)
+        val colorMT = colorT.texMSOrNull ?: return finish(colorT)
+        val colorTT = colorT.texOrNull ?: return finish(colorMT)
+        if (settings.strength <= 0f) return finish(colorMT)
 
         timeRendering(name, timer) {
             val target = if (applyToneMapping) TargetType.UInt8x4 else TargetType.Float16x4
-            val result = FBStack[name, colorTT.width, colorTT.height, target, 1, DepthBufferType.NONE]
+            val result = FBStack[name, colorTT.width, colorTT.height, target, colorMT.samples, DepthBufferType.NONE]
             useFrame(result) {
                 Bloom.bloom(colorTT, colorMT, settings.offset, settings.strength, applyToneMapping)
             }
-            finish(result.getTexture0())
+            finish(result.getTexture0MS())
         }
     }
 }

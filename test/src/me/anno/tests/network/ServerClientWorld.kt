@@ -26,7 +26,6 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.InetAddress
 import java.net.Socket
-import kotlin.concurrent.thread
 
 const val tcpPort = 65113
 const val udpPort = 65112

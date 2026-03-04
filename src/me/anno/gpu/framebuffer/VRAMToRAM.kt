@@ -51,7 +51,7 @@ object VRAMToRAM {
             is Texture2DArray -> FlatShaders.flatShader2DArraySlice
             is Texture3D -> FlatShaders.flatShaderTexture3D
             is CubemapTexture -> FlatShaders.flatShaderCubemap
-            else -> FlatShaders.flatShaderTexture
+            else -> FlatShaders.flatShaderTexture[texture.samples > 1]
         }.value
         shader.use()
         GFXx2D.posSize(shader, x, GFX.viewportHeight - y, w, -h)
