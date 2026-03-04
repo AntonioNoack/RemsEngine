@@ -183,6 +183,7 @@ class RenderMode private constructor(
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
+                // todo this combination node needs to apply MSAA; previously this was done in SSAO node
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())

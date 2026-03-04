@@ -139,7 +139,7 @@ object FlatShaders {
                     tonemapGLSL +
                     "void main() {\n" +
                     "   vec4 col = color;\n" +
-                    "   vec4 data = ${if(msaa) "texelFetch(tex, ivec2(uv * textureSize(tex)), 0)" else "texture(tex, uv)"};\n" +
+                    "   vec4 data = ${if (msaa) "texelFetch(tex, ivec2(uv * textureSize(tex)), 0)" else "texture(tex, uv)"};\n" +
                     alphaModeProcessing +
                     "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec4(1.0,0.0,1.0,1.0); }\n" +
                     "   else if(applyToneMapping) { col = tonemap(col); }\n" +
@@ -193,20 +193,22 @@ object FlatShaders {
                 "}"
     )
 
-    val depthShader = BaseShader(
-        "depth", ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader, uvList, listOf(
-            Variable(GLSLType.V1B, "reverseDepth"),
-            Variable(GLSLType.S2D, "tex")
-        ), "" +
-                "void main(){\n" +
-                "   float depth0 = texture(tex, uv).x;\n" +
-                "   float depth1 = reverseDepth ? depth0 : 1.0-depth0;\n" +
-                "   float depth2 = fract(log2(abs(depth1)));\n" +
-                "   float depth3 = 0.1 + 0.9 * depth2;\n" +
-                "   bool withinBounds = depth0 > 0.0 && depth0 < 1.0;\n" +
-                "   gl_FragColor = vec4(withinBounds ? vec3(depth3) : vec3(depth3, 0.0, 0.0), 1.0);\n" +
-                "}"
-    )
+    val depthShader = LazyMap { msaa: Boolean ->
+        BaseShader(
+            "depth", ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader, uvList, listOf(
+                Variable(GLSLType.V1B, "reverseDepth"),
+                Variable(if (msaa) GLSLType.S2DMS else GLSLType.S2D, "tex")
+            ), "" +
+                    "void main(){\n" +
+                    "   float depth0 = ${if (msaa) "texelFetch(tex, ivec2(uv * textureSize(tex)), 0).x" else "texture(tex, uv).x"};\n" +
+                    "   float depth1 = reverseDepth ? depth0 : 1.0-depth0;\n" +
+                    "   float depth2 = fract(log2(abs(depth1)));\n" +
+                    "   float depth3 = 0.1 + 0.9 * depth2;\n" +
+                    "   bool withinBounds = depth0 > 0.0 && depth0 < 1.0;\n" +
+                    "   gl_FragColor = vec4(withinBounds ? vec3(depth3) : vec3(depth3, 0.0, 0.0), 1.0);\n" +
+                    "}"
+        )
+    }
 
     val depthArrayShader = BaseShader(
         "depth", ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader, uvList, listOf(

@@ -17,7 +17,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.effects.CheckerboardHelperNode.Companion.flipPattern
-import me.anno.input.Input
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4i
