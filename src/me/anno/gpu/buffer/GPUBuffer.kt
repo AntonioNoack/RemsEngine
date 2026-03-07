@@ -30,19 +30,24 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_ALREADY_SIGNALED
+import org.lwjgl.opengl.GL46C.GL_BUFFER_UPDATE_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.GL_CONDITION_SATISFIED
+import org.lwjgl.opengl.GL46C.GL_COPY_READ_BUFFER
+import org.lwjgl.opengl.GL46C.GL_COPY_WRITE_BUFFER
 import org.lwjgl.opengl.GL46C.GL_DYNAMIC_STORAGE_BIT
 import org.lwjgl.opengl.GL46C.GL_MAP_WRITE_BIT
 import org.lwjgl.opengl.GL46C.GL_SYNC_FLUSH_COMMANDS_BIT
 import org.lwjgl.opengl.GL46C.GL_SYNC_GPU_COMMANDS_COMPLETE
 import org.lwjgl.opengl.GL46C.glBufferStorage
 import org.lwjgl.opengl.GL46C.glClientWaitSync
+import org.lwjgl.opengl.GL46C.glCopyBufferSubData
 import org.lwjgl.opengl.GL46C.glDeleteBuffers
 import org.lwjgl.opengl.GL46C.glDeleteSync
 import org.lwjgl.opengl.GL46C.glFenceSync
 import org.lwjgl.opengl.GL46C.glFlushMappedBufferRange
 import org.lwjgl.opengl.GL46C.glGetBufferSubData
 import org.lwjgl.opengl.GL46C.glMapBuffer
+import org.lwjgl.opengl.GL46C.glMemoryBarrier
 import org.lwjgl.opengl.GL46C.glUnmapBuffer
 import java.nio.Buffer
 import java.nio.ByteBuffer
@@ -345,13 +350,16 @@ abstract class GPUBuffer(
                 // according to https://registry.khronos.org/OpenGL-Refpages/gl4/html/glCopyBufferSubData.xhtml
             }
 
+            // just in case...
+            glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT)
+
             GFX.check()
-            bindBuffer(GL46C.GL_COPY_READ_BUFFER, pointer)
-            bindBuffer(GL46C.GL_COPY_WRITE_BUFFER, toBuffer.pointer)
+            bindBuffer(GL_COPY_READ_BUFFER, pointer)
+            bindBuffer(GL_COPY_WRITE_BUFFER, toBuffer.pointer)
             // println("glCopyBufferSubData(#${pointer}->#${toBuffer.pointer},$from->$to,x$size)")
-            GL46C.glCopyBufferSubData(
-                GL46C.GL_COPY_READ_BUFFER,
-                GL46C.GL_COPY_WRITE_BUFFER,
+            glCopyBufferSubData(
+                GL_COPY_READ_BUFFER,
+                GL_COPY_WRITE_BUFFER,
                 from, to, size
             )
             GFX.check()

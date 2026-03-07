@@ -28,13 +28,23 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.opengl.GL46C.GL_BUFFER_UPDATE_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.GL_PIXEL_BUFFER_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_FETCH_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
 import kotlin.math.min
 
 object DrawTexts {
 
     private val LOGGER = LogManager.getLogger(DrawTexts::class)
+    private const val BARRIER_BITS =
+        GL_SHADER_IMAGE_ACCESS_BARRIER_BIT or
+                GL_TEXTURE_FETCH_BARRIER_BIT or
+                GL_BUFFER_UPDATE_BARRIER_BIT or
+                GL_FRAMEBUFFER_BARRIER_BIT or
+                GL_PIXEL_BUFFER_BARRIER_BIT
 
     var enableComputeRendering = false
         private set
@@ -163,13 +173,13 @@ object DrawTexts {
 
             drawHelper.mod2 = 0
             fontImpl.fillGlyphLayout(font, text, DrawLayoutHelper, relativeWidthLimit, maxNumLines)
-            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+            glMemoryBarrier(BARRIER_BITS)
             drawHelper.clear()
 
             if (numChars > 1) {
                 drawHelper.mod2 = 1
                 fontImpl.fillGlyphLayout(font, text, DrawLayoutHelper, relativeWidthLimit, maxNumLines)
-                glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+                glMemoryBarrier(BARRIER_BITS)
                 drawHelper.clear()
             }
         } else {

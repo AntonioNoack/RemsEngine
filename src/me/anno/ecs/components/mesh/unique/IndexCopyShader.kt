@@ -5,10 +5,17 @@ import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 import org.joml.Vector3i
-import org.lwjgl.opengl.GL42C.glMemoryBarrier
-import org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.GL_BUFFER_UPDATE_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.GL_ELEMENT_ARRAY_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.glMemoryBarrier
 
 object IndexCopyShader {
+    private const val BARRIER_BITS =
+        GL_SHADER_STORAGE_BARRIER_BIT or
+                GL_BUFFER_UPDATE_BARRIER_BIT or
+                GL_ELEMENT_ARRAY_BARRIER_BIT
+
     private val shader = ComputeShader(
         "backward", 460, Vector3i(64, 1, 1), listOf(
             Variable(GLSLType.V1I, "inputOffset"),
@@ -38,6 +45,6 @@ object IndexCopyShader {
         shader.bindBuffer(0, srcData)
         shader.bindBuffer(1, dstData)
         shader.runBySize(numElementsToCopy)
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
+        glMemoryBarrier(BARRIER_BITS)
     }
 }

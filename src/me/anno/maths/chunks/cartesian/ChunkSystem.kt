@@ -154,21 +154,27 @@ abstract class ChunkSystem<Chunk : Any, Element>(
     }
 
     open fun getUnsafeIndex(localX: Int, localY: Int, localZ: Int): Int {
-        return localX + (localZ + localY.shl(bitsZ)).shl(bitsX)
+        return localX or (localZ or localY.shl(bitsZ)).shl(bitsX)
     }
 
-    open fun decodeIndex(yzx: Int, dst: Vector3i = Vector3i()): Vector3i {
-        dst.x = yzx and maskX
-        val yz = yzx shr bitsX
-        dst.z = yz and maskZ
-        val y = yz shr bitsZ
-        dst.y = y and maskY
-        return dst
+    open fun decodeIndex(index: Int, dst: Vector3i = Vector3i()): Vector3i {
+        return dst.set(indexToX(index), indexToY(index), indexToZ(index))
+    }
+
+    open fun indexToX(index: Int): Int {
+        return index.and(maskX)
+    }
+
+    open fun indexToY(index: Int): Int {
+        return (index.shr(bitsX + bitsZ)).and(maskY)
+    }
+
+    open fun indexToZ(index: Int): Int {
+        return index.shr(bitsX).and(maskZ)
     }
 
     fun process(
-        min: Vector3i,
-        max: Vector3i,
+        min: Vector3i, max: Vector3i,
         generateIfMissing: Boolean,
         processor: (x: Int, y: Int, z: Int, e: Element) -> Unit
     ) {

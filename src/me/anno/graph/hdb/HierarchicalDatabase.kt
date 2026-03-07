@@ -308,7 +308,7 @@ class HierarchicalDatabase(
 
         val storage1 = sf.ensureStorage()
         storage1.storage = oldData
-        val type = storage1.add(file, value.bytes)
+        val type = storage1.add(file, value.bytes)?.type
         val data = storage1.storage!!
         synchronized(files) { folder.files[hash] = file }
 
@@ -317,14 +317,16 @@ class HierarchicalDatabase(
 
         cache.setValue(sf.index, data, cacheTimeoutMillis)
 
-        if (type == ReplaceType.InsertInto && file1.exists) {
-            val writer = RandomAccessFile(file1.absolutePath, "rw")
-            writer.seek(file.range.first.toLong())
-            writer.write(value.bytes, value.range.first, value.size)
-            writer.close()
-        } else {
-            storage.tryMkdirs()
-            file1.writeBytes(data)
+        if (type != null) {
+            if (type == ReplaceType.InsertInto && file1.exists) {
+                val writer = RandomAccessFile(file1.absolutePath, "rw")
+                writer.seek(file.range.first.toLong())
+                writer.write(value.bytes, value.range.first, value.size)
+                writer.close()
+            } else {
+                storage.tryMkdirs()
+                file1.writeBytes(data)
+            }
         }
     }
 

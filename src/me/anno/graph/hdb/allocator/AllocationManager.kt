@@ -42,12 +42,12 @@ interface AllocationManager<Instance, Array, ArrayDelta> {
         if (space > 0) holes.add(IntRange(start, endExcl - 1))
     }
 
-    fun add(addedInstance: Instance, addedData: ArrayDelta): ReplaceType {
+    fun add(addedInstance: Instance, addedData: ArrayDelta): Insertion? {
         synchronized(this) {
             // find hole with enough space
             val insertRange = getRange(addedInstance)
             val requiredSpace = insertRange.size
-            if (requiredSpace <= 0) return ReplaceType.Append
+            if (requiredSpace <= 0) return null
 
             val holeIndex = holes.indexOfFirst2 { hole -> hole.size >= requiredSpace }
             if (holeIndex >= 0) {
@@ -72,24 +72,28 @@ interface AllocationManager<Instance, Array, ArrayDelta> {
                 } else {
                     holes.removeAt(holeIndex)
                 }
-                return ReplaceType.InsertInto
+                return Insertion(ReplaceType.InsertInto, hole.first)
             } else {
-                if (!shouldOptimize(instances, storageSize)) {
+                val insertPos = if (!canMoveData() || !shouldOptimize(instances, storageSize)) {
                     // old data is kept -> no copy of all elements necessary
                     resizeAndAppend(addedInstance, addedData, insertRange)
                 } else {
                     packAndAppend(addedInstance, addedData, insertRange)
                 }
-                return ReplaceType.WriteCompletely
+                val type = if (canMoveData()) ReplaceType.WriteCompletely else ReplaceType.Append
+                return Insertion(type, insertPos)
             }
         }
     }
 
-    private fun resizeAndAppend(addedInstance: Instance, addedData: ArrayDelta, insertRange: IntRange) {
+    private fun resizeAndAppend(addedInstance: Instance, addedData: ArrayDelta, insertRange: IntRange): Int {
         val requiredSpace = insertRange.size
         val newSize = roundUpStorage(storageSize + requiredSpace)
         val newData = allocate(newSize)
-        if (newData === storage) {
+        val canMoveData = canMoveData()
+        val storage = storage
+        return if (newData === storage || !canMoveData) {
+
             val lastHole = holes.lastOrNull()
             val newStart = if (lastHole != null && lastHole.last + 1 == storageSize) {
                 // use the last hole, too
@@ -97,14 +101,20 @@ interface AllocationManager<Instance, Array, ArrayDelta> {
                 lastHole.first
             } else storageSize
 
+            if (storage != null && newData !== storage && instances.isNotEmpty() && newStart > 0) {
+                val i0 = getRange(instances.first()).first
+                moveData(i0, storage, IntRange(i0, newStart - 1), newData)
+            }
+
             insertLast(newStart, insertRange, newData, addedInstance, addedData)
             finishResize(newData, newStart + requiredSpace, newSize)
+            newStart
         } else {
             packAndAppend(addedInstance, addedData, insertRange, newData, newSize)
         }
     }
 
-    private fun packAndAppend(addedInstance: Instance, addedData: ArrayDelta, insertRange: IntRange) {
+    private fun packAndAppend(addedInstance: Instance, addedData: ArrayDelta, insertRange: IntRange): Int {
         val requiredSpace = insertRange.size
         val totalSize = instances.sumOf { instance -> getRange(instance).size }
         val newSize = roundUpStorage(totalSize + requiredSpace)
@@ -115,12 +125,13 @@ interface AllocationManager<Instance, Array, ArrayDelta> {
     private fun packAndAppend(
         addedInstance: Instance, addedData: ArrayDelta, insertRange: IntRange,
         newData: Array, newSize: Int,
-    ) {
+    ): Int {
         val oldData = storage
         val newStart = packImpl(newData)
         insertLast(newStart, insertRange, newData, addedInstance, addedData)
         finishResize(newData, newStart + insertRange.size, newSize)
         if (oldData !== newData && oldData != null) deallocate(oldData)
+        return newStart
     }
 
     fun pack(newSize: Int) {
@@ -238,4 +249,10 @@ interface AllocationManager<Instance, Array, ArrayDelta> {
 
     fun moveData(from: Int, fromData: Array, to: IntRange, toData: Array)
     fun insertData(from: Int, fromData: ArrayDelta, to: IntRange, toData: Array)
+
+    /**
+     * return false, if data must not move, e.g. because you store indices of it;
+     * a first move (insertData) must be supported though
+     * */
+    fun canMoveData(): Boolean = true
 }

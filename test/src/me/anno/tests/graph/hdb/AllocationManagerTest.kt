@@ -152,7 +152,7 @@ class AllocationManagerTest {
         testRemoval(manager, 2, 5)
         // insert replacement value
         val newData = TestData(55, 100)
-        val type = manager.add(newData, -17)
+        val type = manager.add(newData, -17)?.type
         val storage1 = manager.storage!!
         // check insertion
         val insertCopy = CopyOperation(
@@ -193,7 +193,7 @@ class AllocationManagerTest {
         testRemoval(manager, 2, 4)
         // insert replacement value
         val newData = TestData(55, 150)
-        val type = manager.add(newData, -17)
+        val type = manager.add(newData, -17)?.type
         val storage1 = manager.storage!!
         // check insertion
         val insertCopy = CopyOperation(

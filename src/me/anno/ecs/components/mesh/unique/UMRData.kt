@@ -45,7 +45,8 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
         val b0 = buffer0
         val b1 = buffer1
         clock.start()
-        add(mesh, mesh)
+        val invalid = add(mesh, mesh) == null
+        if (invalid) return false
         val bx = storage
         clock.stop("Insert", 0.01)
         entries[key] = mesh

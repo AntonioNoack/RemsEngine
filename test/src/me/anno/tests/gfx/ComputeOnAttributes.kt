@@ -17,7 +17,7 @@ import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix3f
 import org.joml.Vector3i
-import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.GL_ALL_BARRIER_BITS
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
 
 fun main() {
@@ -63,7 +63,7 @@ fun rotatingCube() {
             shader.v1i("size", size)
             shader.bindBuffer(0, buffer)
             shader.runBySize(size)
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
+            glMemoryBarrier(GL_ALL_BARRIER_BITS)
         }
     }
     scene.add(comp)

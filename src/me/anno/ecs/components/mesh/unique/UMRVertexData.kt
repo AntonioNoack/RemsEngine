@@ -24,7 +24,7 @@ class UMRVertexData<Key, Mesh>(val self: UniqueMeshRenderer<Key, Mesh>) : UMRDat
     }
 
     private fun adjustIndexValues(indexBuffer: GPUBuffer, from: Int, to: IntRange) {
-        val valueDelta = to.start - from
+        val valueDelta = to.first - from
         val fromRange = from until (from + to.size)
         object : UMRIterator<IntRange> {
             override fun getRange(entry: IntRange): IntRange = entry
@@ -38,13 +38,17 @@ class UMRVertexData<Key, Mesh>(val self: UniqueMeshRenderer<Key, Mesh>) : UMRDat
         }.iterateRanges(collectRangesToMove(fromRange))
     }
 
+    // should only be used for initial move
+    // todo test that it only is used for initial moves
     override fun moveData(from: Int, fromData: StaticBuffer, to: IntRange, toData: StaticBuffer) {
         super.moveData(from, fromData, to, toData)
 
         val umrIndexData = self.umrIndexData ?: return
-        if (from != to.start && (fromData == buffer0 || fromData == buffer1)) {
+        if (from != to.first && (fromData == buffer0 || fromData == buffer1)) {
             val indexBuffer = umrIndexData.buffer
             adjustIndexValues(indexBuffer, from, to)
         }
     }
+
+    override fun canMoveData(): Boolean = false
 }
