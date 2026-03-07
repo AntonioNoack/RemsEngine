@@ -6,8 +6,8 @@ import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.StaticBuffer
 
 class UMRIndexData<Key, Mesh>(val self: UniqueMeshRenderer<Key, Mesh>) : UMRData<Key, Mesh>(indexAttributes) {
-    override fun getRange(key: Mesh): IntRange = self.getIndexRange(key)
-    override fun setRange(key: Mesh, value: IntRange) = self.setIndexRange(key, value)
+    override fun getRange(instance: Mesh): IntRange = self.getIndexRange(instance)
+    override fun setRange(instance: Mesh, value: IntRange) = self.setIndexRange(instance, value)
     override fun insertData(from: Int, fromData: Mesh, to: IntRange, toData: StaticBuffer) {
         self.insertIndexData(from, fromData, to, toData)
     }

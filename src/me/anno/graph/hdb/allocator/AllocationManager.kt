@@ -1,198 +1,219 @@
 package me.anno.graph.hdb.allocator
 
-import me.anno.utils.assertions.assertEquals
-import me.anno.utils.assertions.assertTrue
-import me.anno.utils.structures.lists.Lists.binarySearch
+import me.anno.utils.structures.lists.Lists.indexOfFirst2
 import me.anno.utils.types.Ranges.size
 import org.apache.logging.log4j.LogManager
 
-interface AllocationManager<Key, StoredData, InsertData> {
+interface AllocationManager<Instance, Array, ArrayDelta> {
 
     companion object {
         private val LOGGER = LogManager.getLogger(AllocationManager::class)
+        val emptyRange = IntRange(0, -1)
     }
 
-    fun remove(element: Key, sortedElements: ArrayList<Key>, sortedRanges: ArrayList<IntRange>): Boolean {
-        val searchedRange = getRange(element)
-        val searchedStart = searchedRange.first
-        val ei = sortedElements.binarySearch {
-            getRange(it).first.compareTo(searchedStart)
+    val instances: ArrayList<Instance>
+    val holes: ArrayList<IntRange>
+    var storage: Array?
+    var storageSize: Int
+
+    fun validate(): Boolean {
+        instances.sortBy { instance -> getRange(instance).first }
+        synchronized(this) {
+            holes.clear()
+            var start = 0
+            for (i in instances.indices) {
+                val instance = instances[i]
+                val range = getRange(instance)
+                if (start > range.first) {
+                    LOGGER.warn("Overlapping ranges[$i] ${instances.map { getRange(it) }}")
+                    return false
+                }
+                addHole(start, range.first)
+                start = range.last + 1
+            }
+            addHole(start, storageSize)
         }
-        if (ei < 0) return false
-        sortedElements.removeAt(ei)
-        removeFromSortedRanges(searchedRange, sortedRanges)
         return true
     }
 
-    private fun removeFromSortedRanges(searchedRange: IntRange, sortedRanges: ArrayList<IntRange>) {
-        val searchedStart = searchedRange.first
-        val ri = sortedRanges.binarySearch {
-            it.first.compareTo(searchedStart)
-        }
-        assertTrue(ri != -1) // if it was -1, it would be less than sortedRanges[0]
-        if (ri < 0) {
-            // no range starts with us, so we must be in-between or at the end
-            val idx = (-ri - 1) - 1
-            val foundRange = sortedRanges[idx]
-            assertTrue(foundRange.last >= searchedRange.last) // else we're in an impossible place
-            sortedRanges[idx] = foundRange.first until searchedStart // the first part always stays
-            if (foundRange.last > searchedRange.last) {
-                // we're in-between -> split this range -> add the end segment
-                sortedRanges.add(idx + 1, searchedRange.last + 1..foundRange.last)
-            }
-        } else {
-            val foundRange = sortedRanges[ri]
-            // there is a range with that start -> shrink or remove it
-            if (foundRange == searchedRange) {
-                sortedRanges.removeAt(ri)
-            } else {
-                // shrink it
-                sortedRanges[ri] = searchedRange.last + 1..foundRange.last
-            }
-        }
+    private fun addHole(start: Int, endExcl: Int) {
+        val space = endExcl - start
+        check(space >= 0) { "Expected space to be non-negative" }
+        if (space > 0) holes.add(IntRange(start, endExcl - 1))
     }
 
-    fun calculateSortedRanges(sortedElements: List<Key>, dst: ArrayList<IntRange>): ArrayList<IntRange> {
-        var position = 0
-        var size = 0
-        var lastRange: IntRange? = null
-        for (i in sortedElements.indices) {
-            val range = getRange(sortedElements[i])
-            if (range.first == position + size) { // grow current range
-                size += range.size
-                lastRange = null
-            } else { // new range needs to be created
-                if (size > 0) {
-                    val lastRange1 = lastRange ?: (position until position + size)
-                    dst.add(lastRange1)
-                } // else the first range might not start at zero
-                position = range.first
-                size = range.size
-                lastRange = range
-            }
-        }
-        if (size > 0) {
-            dst.add(lastRange ?: (position until position + size))
-        }
-        return dst
-    }
+    fun add(addedInstance: Instance, addedData: ArrayDelta): ReplaceType {
+        synchronized(this) {
+            // find hole with enough space
+            val insertRange = getRange(addedInstance)
+            val requiredSpace = insertRange.size
+            if (requiredSpace <= 0) return ReplaceType.Append
 
-    fun insert(
-        sortedElements: ArrayList<Key>,
-        sortedRanges: ArrayList<IntRange>,
-        newKey: Key, newData: InsertData,
-        available: Int, dstData: StoredData
-    ): Pair<ReplaceType, StoredData> {
+            val holeIndex = holes.indexOfFirst2 { hole -> hole.size >= requiredSpace }
+            if (holeIndex >= 0) {
+                val hole = holes[holeIndex]
+                val remainder = hole.size - requiredSpace
+                check(remainder >= 0)
 
-        val newDataRange = getRange(newKey)
-        val newSize = newDataRange.size
-        if (sortedRanges.isEmpty()) {
-            return ReplaceType.Append to append(
-                sortedElements, sortedRanges,
-                newKey, newData, newDataRange,
-                newSize, available, dstData
-            )
-        }
+                // copy data
+                val toRange = IntRange(hole.first, hole.first + requiredSpace - 1)
+                insertData(insertRange.first, addedData, toRange, storage!!)
+                setRange(addedInstance, toRange)
 
-        val newDataStart = newDataRange.first
+                // updating instances-list
+                var insertIndex = instances.binarySearch { other -> getRange(other).first.compareTo(hole.first) }
+                check(insertIndex < 0) { "Tried inserting into $hole, but found instance ${getRange(instances[insertIndex])} at the same place" }
+                insertIndex = -insertIndex - 1
+                instances.add(insertIndex, addedInstance)
 
-        // check if 0th place is ok
-        val r0 = sortedRanges.first()
-        if (newSize <= r0.first) {
-            val newRange = 0 until newSize
-
-            copyKey(newKey, newDataStart, newData, newRange, dstData)
-
-            sortedElements.add(0, newKey)
-            if (newSize == r0.first) {
-                // compact with first, if fills in gap perfectly
-                sortedRanges[0] = 0..r0.last
-            } else {
-                sortedRanges.add(0, newRange)
-            }
-            return ReplaceType.InsertInto to dstData
-        }
-
-        // check if we can insert it in-between
-        intermediate@ for (i in 1 until sortedRanges.size) {
-            val ri = sortedRanges[i - 1]
-            val rj = sortedRanges[i]
-            val start = ri.last + 1
-            if (start + newSize <= rj.first) {
-
-                val newRange = start until start + newSize
-                copyKey(newKey, newDataStart, newData, newRange, dstData)
-
-                val idx = sortedElements.binarySearch { // find the element, which belongs to ri by end-position
-                    (getRange(it).last + 1).compareTo(start)
-                }
-                if (idx !in sortedElements.indices) {
-                    LOGGER.error("BinarySearch went wrong or data is corrupted")
-                    continue@intermediate
-                }
-                sortedElements.add(idx + 1, newKey)
-                if (start + newSize == rj.first) {
-                    // fill in gap completely
-                    sortedRanges[i - 1] = ri.first..rj.last
-                    sortedRanges.removeAt(i)
+                // updating holes
+                if (remainder > 0) {
+                    holes[holeIndex] = IntRange(hole.first + requiredSpace, hole.last)
                 } else {
-                    // append onto 'ri'
-                    sortedRanges[i - 1] = ri.first until start + newSize
+                    holes.removeAt(holeIndex)
                 }
-                return ReplaceType.InsertInto to dstData
+                return ReplaceType.InsertInto
+            } else {
+                if (!shouldOptimize(instances, storageSize)) {
+                    // old data is kept -> no copy of all elements necessary
+                    resizeAndAppend(addedInstance, addedData, insertRange)
+                } else {
+                    packAndAppend(addedInstance, addedData, insertRange)
+                }
+                return ReplaceType.WriteCompletely
             }
         }
-
-        // check if at the end is ok
-        val re = sortedRanges.last()
-        val start = re.first + re.size
-        if (start + newSize < available) {
-            val newRange = start until start + newSize
-            copyKey(newKey, newDataStart, newData, newRange, dstData)
-            sortedElements.add(newKey)
-            // extend last range
-            sortedRanges[sortedRanges.lastIndex] = re.first..newRange.last
-            return ReplaceType.InsertInto to dstData
-        }
-
-        // we have to append it
-        return ReplaceType.Append to append(
-            sortedElements, sortedRanges,
-            newKey, newData, newDataRange,
-            newSize, available, dstData
-        )
     }
 
-    /**
-     * appends element at the end; compacts if necessary;
-     * */
-    private fun append(
-        sortedElements: ArrayList<Key>, sortedRanges: ArrayList<IntRange>,
-        newKey: Key, newData: InsertData, newDataRange: IntRange, newSize: Int,
-        available: Int, oldData: StoredData
-    ): StoredData {
-        val newData1 = pack(sortedElements, sortedRanges, newKey, available, oldData)
-        val start = sortedRanges.lastOrNull()?.run { last + 1 } ?: 0
-        val newRange = start until start + newSize
-        sortedElements.add(newKey)
-        if (sortedRanges.isNotEmpty()) {
-            // merge with last range
-            val last = sortedRanges.last()
-            sortedRanges[sortedRanges.lastIndex] = last.first..newRange.last
+    private fun resizeAndAppend(addedInstance: Instance, addedData: ArrayDelta, insertRange: IntRange) {
+        val requiredSpace = insertRange.size
+        val newSize = roundUpStorage(storageSize + requiredSpace)
+        val newData = allocate(newSize)
+        if (newData === storage) {
+            val lastHole = holes.lastOrNull()
+            val newStart = if (lastHole != null && lastHole.last + 1 == storageSize) {
+                // use the last hole, too
+                holes.removeLast()
+                lastHole.first
+            } else storageSize
+
+            insertLast(newStart, insertRange, newData, addedInstance, addedData)
+            finishResize(newData, newStart + requiredSpace, newSize)
         } else {
-            // append it
-            sortedRanges.add(newRange)
+            packAndAppend(addedInstance, addedData, insertRange, newData, newSize)
         }
-        copyKey(newKey, newDataRange.first, newData, newRange, newData1)
-        return newData1
     }
 
-    private fun sumSize(elements: Collection<Key>): Int {
-        return elements.sumOf { getRange(it).size }
+    private fun packAndAppend(addedInstance: Instance, addedData: ArrayDelta, insertRange: IntRange) {
+        val requiredSpace = insertRange.size
+        val totalSize = instances.sumOf { instance -> getRange(instance).size }
+        val newSize = roundUpStorage(totalSize + requiredSpace)
+        val newData = allocate(newSize)
+        return packAndAppend(addedInstance, addedData, insertRange, newData, newSize)
     }
 
-    private fun sumSize1(ranges: Collection<IntRange>): Int {
-        return ranges.sumOf { it.size }
+    private fun packAndAppend(
+        addedInstance: Instance, addedData: ArrayDelta, insertRange: IntRange,
+        newData: Array, newSize: Int,
+    ) {
+        val oldData = storage
+        val newStart = packImpl(newData)
+        insertLast(newStart, insertRange, newData, addedInstance, addedData)
+        finishResize(newData, newStart + insertRange.size, newSize)
+        if (oldData !== newData && oldData != null) deallocate(oldData)
+    }
+
+    fun pack(newSize: Int) {
+        val newData = allocate(newSize)
+        val newStart = packImpl(newData)
+        finishResize(newData, newStart, newSize)
+    }
+
+    private fun packImpl(newData: Array): Int {
+        if (instances.isEmpty()) return 0
+        var newStart = 0
+        val oldData = storage!!
+        for (i in instances.indices) {
+            val instance = instances[i]
+            val oldRange = getRange(instance)
+            val newRange = IntRange(newStart, newStart + oldRange.size - 1)
+
+            // todo if chunks are consecutive, we need much fewer copies
+            moveData(oldRange.first, oldData, newRange, newData)
+
+            setRange(instance, newRange)
+            newStart += oldRange.size
+        }
+        return newStart
+    }
+
+    private fun insertLast(
+        newStart: Int, insertRange: IntRange, newData: Array,
+        addedInstance: Instance, addedData: ArrayDelta
+    ) {
+        val requiredSpace = insertRange.size
+        val newRange = IntRange(newStart, newStart + requiredSpace - 1)
+        insertData(insertRange.first, addedData, newRange, newData)
+        setRange(addedInstance, newRange)
+        instances.add(addedInstance)
+    }
+
+    private fun finishResize(newData: Array, newStart: Int, newSize: Int) {
+        storage = newData
+        storageSize = newSize
+        holes.clear()
+        addHole(newStart, newSize)
+    }
+
+    fun remove(element: Instance): Boolean {
+        synchronized(this) {
+            val searchedRange = getRange(element)
+            if (searchedRange.isEmpty()) return false
+
+            val searchedStart = searchedRange.first
+            val index = instances.binarySearch { other -> getRange(other).first.compareTo(searchedStart) }
+            if (index < 0) return false
+
+            val removed = instances.removeAt(index)
+            val removedRange = getRange(removed)
+            if (removedRange != searchedRange) {
+                LOGGER.warn("Tried removing $element@$searchedRange, but removed $removed@$removedRange instead")
+            }
+
+            addHole(removedRange)
+            setRange(element, emptyRange) // just in case
+            return true
+        }
+    }
+
+    private fun addHole(range: IntRange) {
+        var insertIndex = holes.binarySearch { other -> other.first.compareTo(range.first) }
+        check(insertIndex < 0) { "Duplicate hole start" }
+        insertIndex = -insertIndex - 1
+
+        holes.add(insertIndex, range)
+        tryJoinHoles(insertIndex)
+        tryJoinHoles(insertIndex - 1)
+    }
+
+    private fun tryJoinHoles(i: Int) {
+        if (i < 0 || i + 1 >= holes.size) return
+        val h0 = holes[i]
+        val h1 = holes[i + 1]
+        val delta = h1.first - (h0.last + 1)
+        check(delta >= 0) { "Overlapping holes" }
+        if (delta == 0) {
+            holes.removeAt(i + 1)
+            holes[i] = IntRange(h0.first, h1.last)
+        }
+    }
+
+    fun clear() {
+        synchronized(this) {
+            instances.clear()
+            holes.clear()
+            holes.add(IntRange(0, storageSize - 1))
+        }
     }
 
     private fun maximumAcceptableSize(requiredSize: Int): Int {
@@ -200,99 +221,21 @@ interface AllocationManager<Key, StoredData, InsertData> {
         else requiredSize * 3 / 2 + 1024
     }
 
-    fun shouldOptimize(elements: List<Key>, available: Int): Boolean {
-        val requiredSize = sumSize(elements)
+    fun shouldOptimize(elements: List<Instance>, available: Int): Boolean {
+        val requiredSize = elements.sumOf { getRange(it).size }
         return available > maximumAcceptableSize(requiredSize)
-    }
-
-    fun pack(keys: Collection<Key>, oldData: StoredData): StoredData {
-        return pack(keys, oldData, sumSize(keys)).first
-    }
-
-    fun pack(keys: Collection<Key>, oldData: StoredData, requiredSize: Int): Pair<StoredData, Int> {
-        val newData = allocate(requiredSize)
-        var pos = 0
-        for (key in keys) {
-            val oldRange = getRange(key)
-            val newRange = pos until pos + oldRange.size
-            moveData(oldRange.first, oldData, newRange, newData)
-            setRange(key, newRange)
-            pos += oldRange.size
-        }
-        deallocate(oldData)
-        return newData to pos
-    }
-
-    /**
-     * returns whether the data is compact, and if so, how many elements it contains
-     * */
-    private fun getCompactSizeIfCompact(ranges: List<IntRange>): Int {
-        if (ranges.isEmpty()) return 0
-        val first = ranges.first()
-        if (first.first != 0) return -1
-        val last = ranges.last()
-        val size = ranges.sumOf { it.size }
-        return if (size == last.last + 1) size
-        else -1
-    }
-
-    /**
-     * pack elements, so we have enough space for elementX, too;
-     * adjust ranges as needed, but don't add X yet.
-     * */
-    fun pack(
-        elements: Collection<Key>, ranges: ArrayList<IntRange>,
-        elementX: Key, available: Int, oldData: StoredData
-    ): StoredData {
-        val extraSize = getRange(elementX).size
-        val compactSize = getCompactSizeIfCompact(ranges)
-        if (compactSize > 0) {
-            val requiredSize = compactSize + extraSize
-            if (available >= requiredSize) {
-                return oldData
-            } else if (allocationKeepsOldData()) {
-                // it is compact, but we need extra storage...
-                val allocSize = roundUpStorage(requiredSize)
-                return resizeTo(oldData, compactSize, allocSize)
-            }
-        }
-
-        val requiredSize = sumSize1(ranges) + extraSize
-        val allocSize = roundUpStorage(requiredSize)
-        val (newData, pos) = pack(elements, oldData, allocSize)
-        ranges.clear()
-        ranges.add(0 until pos)
-        return newData
-    }
-
-    fun resizeTo(oldData: StoredData, compactSize: Int, allocSize: Int): StoredData {
-        val newData = allocate(allocSize)
-        moveData(0, oldData, 0 until compactSize, newData)
-        deallocate(oldData)
-        return newData
     }
 
     fun roundUpStorage(requiredSize: Int): Int {
         return requiredSize + (requiredSize ushr 1)
     }
 
-    fun setRange(key: Key, value: IntRange)
-    fun getRange(key: Key): IntRange
+    fun setRange(instance: Instance, value: IntRange)
+    fun getRange(instance: Instance): IntRange
 
-    fun allocate(newSize: Int): StoredData
-    fun deallocate(data: StoredData)
+    fun allocate(newSize: Int): Array
+    fun deallocate(data: Array)
 
-    /**
-     * return false, if any allocate()-call clears all data and needs all data reinserted
-     * */
-    fun allocationKeepsOldData(): Boolean
-
-    fun moveData(from: Int, fromData: StoredData, to: IntRange, toData: StoredData)
-    fun insertData(from: Int, fromData: InsertData, to: IntRange, toData: StoredData)
-
-    fun copyKey(key: Key, from: Int, fromData: InsertData, to: IntRange, toData: StoredData) {
-        assertEquals(getRange(key).size, to.size)
-        insertData(from, fromData, to, toData)
-        setRange(key, to)
-    }
+    fun moveData(from: Int, fromData: Array, to: IntRange, toData: Array)
+    fun insertData(from: Int, fromData: ArrayDelta, to: IntRange, toData: Array)
 }

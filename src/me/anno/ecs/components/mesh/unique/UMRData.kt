@@ -21,11 +21,12 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
     @InternalAPI
     val entries = HashMap<Key, Mesh>()
 
-    @InternalAPI
-    val sortedEntries = ArrayList<Mesh>()
+    override val instances = ArrayList<Mesh>()
+    override var storage: StaticBuffer? = null
+    override var storageSize: Int = 0
 
     @InternalAPI
-    val sortedRanges = ArrayList<IntRange>()
+    override val holes = ArrayList<IntRange>()
 
     /**
      * buffers are swapped when they need to be resized
@@ -44,11 +45,8 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
         val b0 = buffer0
         val b1 = buffer1
         clock.start()
-        val bx = insert(
-            sortedEntries, sortedRanges,
-            mesh, mesh,
-            b0.vertexCount, b0,
-        ).second
+        add(mesh, mesh)
+        val bx = storage
         clock.stop("Insert", 0.01)
         entries[key] = mesh
         assertTrue(bx === b0 || bx === b1)
@@ -59,7 +57,7 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
 
     fun remove(key: Key, destroyMesh: Boolean): Mesh? {
         val entry = entries.remove(key) ?: return null
-        assertTrue(remove(entry, sortedEntries, sortedRanges))
+        remove(entry)
         if (destroyMesh && entry is ICacheData) {
             entry.destroy()
         }
@@ -75,13 +73,12 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
 
     fun clear(destroyMeshes: Boolean) {
         entries.clear()
-        for (entry in sortedEntries) {
+        for (entry in instances) {
             if (destroyMeshes && entry is ICacheData) {
                 entry.destroy()
             }
         }
-        sortedEntries.clear()
-        sortedRanges.clear()
+        clear()
     }
 
     override fun destroy() {
@@ -115,7 +112,6 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
         // we just swap between buffer0 and buffer1, so we must not destroy anything
     }
 
-    override fun allocationKeepsOldData(): Boolean = true
     override fun roundUpStorage(requiredSize: Int): Int = requiredSize * 2
 
     override fun moveData(from: Int, fromData: StaticBuffer, to: IntRange, toData: StaticBuffer) {

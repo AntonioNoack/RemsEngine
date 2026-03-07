@@ -6,8 +6,8 @@ import me.anno.utils.types.Ranges.overlaps
 import me.anno.utils.types.Ranges.size
 
 class UMRVertexData<Key, Mesh>(val self: UniqueMeshRenderer<Key, Mesh>) : UMRData<Key, Mesh>(self.attributes) {
-    override fun getRange(key: Mesh): IntRange = self.getVertexRange(key)
-    override fun setRange(key: Mesh, value: IntRange) = self.setVertexRange(key, value)
+    override fun getRange(instance: Mesh): IntRange = self.getVertexRange(instance)
+    override fun setRange(instance: Mesh, value: IntRange) = self.setVertexRange(instance, value)
     override fun insertData(from: Int, fromData: Mesh, to: IntRange, toData: StaticBuffer) =
         self.insertVertexData(from, fromData, to, toData)
 

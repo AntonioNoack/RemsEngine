@@ -67,7 +67,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     abstract fun insertIndexData(from: Int, fromData: Mesh, to: IntRange, toData: StaticBuffer)
 
     val stride: Int get() = attributes.stride
-    val values: List<Mesh> get() = umrVertexData.sortedEntries
+    val values: List<Mesh> get() = umrVertexData.instances
     val buffer: StaticBuffer get() = umrVertexData.buffer
 
     @DebugProperty
@@ -202,7 +202,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
             }
         }
         val iterData = umrIndexData ?: umrVertexData
-        val counter = iterator.iterateRanges(iterData.sortedEntries) * factor
+        val counter = iterator.iterateRanges(iterData.instances) * factor
         numPrimitives = when (drawMode) {
             DrawMode.POINTS -> counter
             DrawMode.LINES, DrawMode.LINE_STRIP -> counter shr 1
@@ -218,7 +218,8 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
         pipeline: Pipeline, shader: Shader, materialIndex: Int,
         instanceData: Buffer, drawLines: Boolean
     ) {
-        LOGGER.warn("Drawing a bulk-mesh instanced doesn't make sense")
+        LOGGER.warn("Drawing a bulk-mesh instanced would be overkill, only rendering one")
+        draw(pipeline, shader, materialIndex, drawLines)
     }
 
     override fun destroy() {

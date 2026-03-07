@@ -1,10 +1,9 @@
 package me.anno.graph.hdb
 
 import me.anno.Time
-import me.anno.cache.Promise
 import me.anno.cache.CacheSection
+import me.anno.cache.Promise
 import me.anno.engine.Events.addEvent
-import me.anno.graph.hdb.allocator.FileAllocation
 import me.anno.graph.hdb.allocator.ReplaceType
 import me.anno.graph.hdb.index.File
 import me.anno.graph.hdb.index.Folder
@@ -18,6 +17,7 @@ import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.async.UnitCallback
 import me.anno.utils.structures.maps.Maps.removeIf
+import me.anno.utils.types.Ranges.size
 import org.apache.logging.log4j.LogManager
 import speiger.primitivecollections.IntToObjectHashMap
 import java.io.FileNotFoundException
@@ -72,8 +72,7 @@ class HierarchicalDatabase(
             // validate all storage files: files and ranges need to be reconstructed
             storageFiles.forEach { _, sf ->
                 synchronized(sf) {
-                    sf.rebuildSortedFiles()
-                    sf.rebuildSortedRanges()
+                    sf.rebuildStorage()
                 }
             }
         }
@@ -173,8 +172,8 @@ class HierarchicalDatabase(
     }
 
     private fun optimizeStorage(sf: StorageFile) {
-        val files = sf.sortedFiles
-        if (!FileAllocation.shouldOptimize(files, sf.size)) return
+        val files = sf.files
+        if (!sf.storage.shouldOptimize(files, sf.size)) return
         // load and manipulate storage
         synchronized(sf) {
             val file = getFile(sf.index)
@@ -190,9 +189,11 @@ class HierarchicalDatabase(
     }
 
     private fun optimizeStorage(sf: StorageFile, file: FileReference, bytes: ByteArray) {
+        val storage = sf.storage
+        storage.storage = bytes
         synchronized(sf) { // we might have switched to a different thread
-            val newBytes = FileAllocation.pack(sf.sortedFiles, bytes)
-            file.writeBytes(newBytes)
+            storage.pack(storage.instances.sumOf { it.range.size })
+            file.writeBytes(storage.storage!!)
         }
     }
 
@@ -240,11 +241,11 @@ class HierarchicalDatabase(
     }
 
     private fun getDataAsync(sf: StorageFile, callback: Callback<ByteArray>) {
-        cache.getEntry(sf.index, cacheTimeoutMillis, { keyI, result ->
+        cache.getEntry(sf.index, cacheTimeoutMillis) { keyI, result ->
             val file = getFile(keyI)
             if (file.exists) file.readBytes(result)
             else result.value = null
-        }).waitFor(callback)
+        }.waitFor(callback)
     }
 
     private fun getDataFromCacheOnly(sf: StorageFile): ByteArray? {
@@ -305,10 +306,10 @@ class HierarchicalDatabase(
         synchronized(files) { files.remove(hash) }
         val file = File(System.currentTimeMillis(), value.range)
 
-        val (type, data) = FileAllocation.insert(
-            sf.sortedFiles, sf.sortedRanges, file,
-            value.bytes, oldData.size, oldData,
-        )
+        val storage1 = sf.ensureStorage()
+        storage1.storage = oldData
+        val type = storage1.add(file, value.bytes)
+        val data = storage1.storage!!
         synchronized(files) { folder.files[hash] = file }
 
         val file1 = getFile(sf.index)
@@ -335,8 +336,7 @@ class HierarchicalDatabase(
                     files.removeIf { _, file -> !file.range.isEmpty() }
                 }
             }
-            sf.sortedFiles.clear()
-            sf.sortedRanges.clear()
+            sf.storage.clear()
             sf.size = 0
         }
     }
@@ -406,7 +406,7 @@ class HierarchicalDatabase(
 
     fun removeAll(folder: Folder, recursive: Boolean): Boolean {
         synchronized(this) {
-            if (recursive && folder.children.isNotEmpty()) {
+            return if (recursive && folder.children.isNotEmpty()) {
                 val storages = HashSet<StorageFile?>()
                 Recursion.processRecursive(folder) { folderI, remaining ->
                     removeAll(folderI, false)
@@ -421,9 +421,9 @@ class HierarchicalDatabase(
                     storage ?: continue
                     optimizeStorage(storage)
                 }
-                return true
+                true
             } else {
-                return if (folder.files.isNotEmpty()) {
+                if (folder.files.isNotEmpty()) {
                     folder.files.clear()
                     optimizeStorage(folder)
                     true

@@ -64,8 +64,7 @@ class PrefabInspector(var prefabSource: FileReference) {
     val prefab: Prefab
         get() {
             val prefab = PrefabCache[prefabSource]
-                .waitFor()?.prefab
-                ?: throw NullPointerException("Missing prefab of $prefabSource, ${prefabSource::class.simpleName}")
+                .waitFor()?.prefab ?: nullPrefab
             val history = prefab.history ?: ChangeHistory()
             if (history.currentState.isEmpty()) {
                 history.put(serialize(prefab))
@@ -502,6 +501,7 @@ class PrefabInspector(var prefabSource: FileReference) {
         }
 
         private val LOGGER = LogManager.getLogger(PrefabInspector::class)
+        private val nullPrefab = Prefab()
 
         var currentInspector: PrefabInspector? = null
     }

@@ -5,7 +5,14 @@ import me.anno.utils.InternalAPI
 import me.anno.utils.types.Ranges.size
 
 @InternalAPI
-object FileAllocation : AllocationManager<File, ByteArray, ByteArray> {
+class FileAllocation(
+    override val instances: ArrayList<File>,
+    override var storage: ByteArray?,
+    override var storageSize: Int
+) : AllocationManager<File, ByteArray, ByteArray> {
+
+    override val holes = ArrayList<IntRange>()
+
     override fun allocate(newSize: Int): ByteArray {
         return ByteArray(newSize)
     }
@@ -22,15 +29,11 @@ object FileAllocation : AllocationManager<File, ByteArray, ByteArray> {
         moveData(from, fromData, to, toData)
     }
 
-    override fun setRange(key: File, value: IntRange) {
-        key.range = value
+    override fun setRange(instance: File, value: IntRange) {
+        instance.range = value
     }
 
-    override fun getRange(key: File): IntRange {
-        return key.range
-    }
-
-    override fun allocationKeepsOldData(): Boolean {
-        return true
+    override fun getRange(instance: File): IntRange {
+        return instance.range
     }
 }

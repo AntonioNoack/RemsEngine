@@ -1,43 +1,53 @@
 package me.anno.graph.hdb.index
 
-import me.anno.graph.hdb.allocator.FileAllocation.calculateSortedRanges
+import me.anno.graph.hdb.allocator.FileAllocation
 import me.anno.utils.InternalAPI
+import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.types.Ranges.overlaps
 
 @InternalAPI
 class StorageFile(val index: Int) {
 
-    val sortedFiles = ArrayList<File>()
-    val sortedRanges = ArrayList<IntRange>()
+    val storage = FileAllocation(ArrayList(), null, 0)
+    val files get() = storage.instances
+
     val folders = HashSet<Folder>()
-    var size = 0
+
+    var size: Int
+        get() = storage.storageSize
+        set(value) {
+            storage.storageSize = value
+        }
+
     var isDirty = false
 
     fun clear() {
-        sortedFiles.clear()
-        sortedRanges.clear()
+        storage.clear()
         folders.clear()
         size = 0
         isDirty = false
     }
 
-    fun rebuildSortedFiles() {
-        sortedFiles.clear()
+    fun rebuildStorage() {
+        files.clear()
         for (folder in folders) {
-            val files = folder.files
-            synchronized(files) {
-                sortedFiles.ensureCapacity(sortedFiles.size + files.size)
-                files.forEach { _, file -> sortedFiles.add(file) }
+            val childFiles = folder.files
+            synchronized(childFiles) {
+                childFiles.forEach { _, file -> files.add(file) }
             }
         }
-        sortedFiles.sortBy { it.range.first }
-    }
-
-    fun rebuildSortedRanges() {
-        sortedRanges.clear()
-        calculateSortedRanges(sortedFiles, sortedRanges)
+        ensureStorage()
     }
 
     override fun toString(): String {
         return "StorageFile#$index { size: $size }"
+    }
+
+    fun ensureStorage(): FileAllocation {
+        while (!storage.validate()) {
+            val allFiles = ArrayList(files)
+            files.removeIf { file -> allFiles.any2 { other -> other !== file && other.range.overlaps(file.range) } }
+        }
+        return storage
     }
 }
