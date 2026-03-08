@@ -222,11 +222,10 @@ abstract class GPUBuffer(
     fun uploadBytesPartially(fromOffsetInDataI: Int, fromData: Any, sizeInBytes: Long, toOffsetInBytes: Long) {
 
         val toBuffer = this
-        val size = sizeInBytes
 
         // initial checks
-        if (size == 0L) return
-        assertGreaterThanEquals(size, 0, "Size must be non-negative")
+        if (sizeInBytes == 0L) return
+        assertGreaterThanEquals(sizeInBytes, 0, "Size must be non-negative")
 
         // just in case, ensure the buffers have data;
         // might fail us on Android, where OpenGL can lose its session
@@ -234,11 +233,11 @@ abstract class GPUBuffer(
         assertTrue(isPointerValid(pointer))
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Copying to ${toBuffer.name}: from $fromOffsetInDataI to $toOffsetInBytes, x$size")
+            LOGGER.debug("Copying to ${toBuffer.name}: from $fromOffsetInDataI to $toOffsetInBytes, x$sizeInBytes")
         }
 
-        if (toOffsetInBytes < 0 || locallyAllocated < toOffsetInBytes + size) {
-            throw IllegalStateException("Illegal copy $fromOffsetInDataI to $toOffsetInBytes [from], $fromOffsetInDataI + $size vs $locallyAllocated")
+        if (toOffsetInBytes < 0 || locallyAllocated < toOffsetInBytes + sizeInBytes) {
+            throw IllegalStateException("Illegal copy $fromOffsetInDataI to $toOffsetInBytes [from], $fromOffsetInDataI + $sizeInBytes vs $locallyAllocated")
         }
 
         // actual copy
@@ -362,7 +361,37 @@ abstract class GPUBuffer(
                 GL_COPY_WRITE_BUFFER,
                 from, to, size
             )
+
+            glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT)
+
             GFX.check()
+        }
+
+        copyBytesToCPU(toBuffer, from, from, size)
+    }
+
+    fun copyBytesToCPU(toBuffer: GPUBuffer, from: Long, to: Long, size: Long) {
+        // todo should we have this???
+        // todo test this...
+        val fromNio = nioBuffer
+        val toNio = toBuffer.nioBuffer
+        if (fromNio != null && toNio != null) {
+            val fromPos = fromNio.position()
+            val fromLimit = fromNio.limit()
+            val toPos = toNio.position()
+            val toLimit = toNio.limit()
+
+            fromNio.position(from.toInt())
+            fromNio.limit((from + size).toInt())
+            toNio.position(to.toInt())
+            toNio.limit((to + size).toInt())
+
+            fromNio.put(toNio)
+
+            fromNio.position(fromPos)
+            fromNio.limit(fromLimit)
+            toNio.position(toPos)
+            toNio.limit(toLimit)
         }
     }
 
