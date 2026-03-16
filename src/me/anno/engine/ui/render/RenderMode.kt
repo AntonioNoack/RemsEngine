@@ -1,7 +1,6 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.annotations.ExtendableEnum
-import me.anno.graph.visual.render.effects.SnowNode
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.boneIndicesRenderer
 import me.anno.engine.ui.render.Renderers.boneWeightsRenderer
@@ -43,11 +42,13 @@ import me.anno.graph.visual.render.effects.MotionBlurNode
 import me.anno.graph.visual.render.effects.NightNode
 import me.anno.graph.visual.render.effects.OutlineEffectNode
 import me.anno.graph.visual.render.effects.OutlineEffectSelectNode
+import me.anno.graph.visual.render.effects.PaniniProjectionNode
 import me.anno.graph.visual.render.effects.PixelationNode
 import me.anno.graph.visual.render.effects.SSAONode
 import me.anno.graph.visual.render.effects.SSGINode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.effects.SmoothNormalsNode
+import me.anno.graph.visual.render.effects.SnowNode
 import me.anno.graph.visual.render.effects.TAAHelperNode
 import me.anno.graph.visual.render.effects.TAANode
 import me.anno.graph.visual.render.effects.ToneMappingNode
@@ -68,8 +69,8 @@ import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderForwardNode
 import me.anno.graph.visual.render.scene.RenderForwardPlusNode
-import me.anno.graph.visual.render.scene.RenderTransparentNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
+import me.anno.graph.visual.render.scene.RenderTransparentNode
 import me.anno.graph.visual.scalar.FloatMathBinary
 import me.anno.graph.visual.vector.MathF2XNode
 import me.anno.io.files.FileReference
@@ -661,24 +662,36 @@ class RenderMode private constructor(
                 .finish()
         )
 
-        val CHECKERBOARD = RenderMode("Checkerboard", QuickPipeline()
-            .then(CheckerboardHelperNode())
+        val CHECKERBOARD = RenderMode(
+            "Checkerboard", QuickPipeline()
+                .then(CheckerboardHelperNode())
 
-            .then1(RenderForwardNode(), opaqueNodeSettings)
-            .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.DECAL))
-            .then(RenderTransparentNode())
-            .depthToSSAO()
-            .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-            .thenAlphaBlendPass()
-            .then(GizmoNode())
+                .then1(RenderForwardNode(), opaqueNodeSettings)
+                .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then(RenderTransparentNode())
+                .depthToSSAO()
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenAlphaBlendPass()
+                .then(GizmoNode())
 
-            .then(CheckerboardResolveNode())
-            .then(FXAANode())
-            .finish())
+                .then(CheckerboardResolveNode())
+                .then(FXAANode())
+                .finish()
+        )
 
         val VIGNETTE = RenderMode("Vignette", createHDRPostProcessGraph(VignetteNode()))
         val PIXELATION = RenderMode("Pixelation", createHDRPostProcessGraph(PixelationNode()))
         val SNOW = RenderMode("Snow", createHDRPostProcessGraph(SnowNode()))
+
+        val PANINI = RenderMode(
+            "Panini Projection",
+            createPostProcessGraphBase()
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenAlphaBlendPass()
+                .then(GizmoNode())
+                .then(PaniniProjectionNode())
+                .finish()
+        )
 
         val COLD_LUT = RenderMode("Cold LUT", createLUTGraph(res.getChild("textures/lut/coldLUT.png")))
         val SEPIA_LUT = RenderMode("Sepia LUT", createLUTGraph(res.getChild("textures/lut/sepiaLUT.png")))

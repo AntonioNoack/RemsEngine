@@ -76,6 +76,7 @@ open class StaticBuffer(
     }
 
     fun zeroBytes(first: Int, length: Int) {
+        if (length <= 0) return
         ensureBuffer()
         BufferFillShader.fill(this, first, length, 0)
     }

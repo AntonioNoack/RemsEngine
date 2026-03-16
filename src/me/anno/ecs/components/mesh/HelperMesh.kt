@@ -59,7 +59,7 @@ class HelperMesh(val indices: IntArray) : ICacheData {
                         for (i in materialIds.indices) {
                             val id = materialIds[i]
                             if (id == materialId) {
-                                for (k in 0 until unitSize) {
+                                repeat(unitSize) {
                                     helperIndices[j++] = indices[i3++]
                                 }
                             } else i3 += unitSize

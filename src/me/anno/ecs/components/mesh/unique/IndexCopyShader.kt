@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
 
 object IndexCopyShader {
+
     private const val BARRIER_BITS =
         GL_SHADER_STORAGE_BARRIER_BIT or
                 GL_BUFFER_UPDATE_BARRIER_BIT or

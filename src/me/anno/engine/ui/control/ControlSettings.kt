@@ -50,4 +50,5 @@ open class ControlSettings : Inspectable {
 
     @Group("Debug")
     var displayVRInRedCyan by ConfigRef("debug.showStereoInRedCyan", false)
+
 }

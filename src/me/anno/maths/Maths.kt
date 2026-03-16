@@ -47,6 +47,9 @@ object Maths {
     const val PHI = GOLDEN_RATIO
     const val PHIf = GOLDEN_RATIOf
 
+    const val INV_PHI = 1.0 / PHI // = 1 - PHI
+    const val INV_PHIf = 1f / PHIf // = 1 - PHI
+
     @JvmStatic
     fun sq(x: Int) = x * x
 

@@ -58,6 +58,7 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
 
     fun remove(key: Key, destroyMesh: Boolean): Mesh? {
         val entry = entries.remove(key) ?: return null
+        zero(entry)
         remove(entry)
         if (destroyMesh && entry is ICacheData) {
             entry.destroy()
@@ -67,13 +68,18 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
 
     fun zero(key: Key): Boolean {
         val entry = entries[key] ?: return false
-        val range = getRange(entry)
-        if (!range.isEmpty()) buffer.zeroElements(range.first, range.size)
+        zero(entry)
         return true
+    }
+
+    fun zero(entry: Mesh) {
+        val range = getRange(entry)
+        buffer.zeroElements(range.first, range.size)
     }
 
     fun clear(destroyMeshes: Boolean) {
         entries.clear()
+        // todo zero the whole range
         for (entry in instances) {
             if (destroyMeshes && entry is ICacheData) {
                 entry.destroy()
