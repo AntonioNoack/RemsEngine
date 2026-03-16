@@ -226,6 +226,9 @@ open class Quaternionf(
         return setFromNormalized(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
+    /**
+     * this method only works if det(m) > 0!
+     * */
     fun setFromNormalized(
         m00: Float, m01: Float, m02: Float,
         m10: Float, m11: Float, m12: Float,

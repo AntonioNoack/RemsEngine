@@ -198,6 +198,9 @@ open class Quaterniond(
         )
     }
 
+    /**
+     * this method only works if det(m) > 0!
+     * */
     fun setFromNormalized(
         m00: Double, m01: Double, m02: Double,
         m10: Double, m11: Double, m12: Double,
