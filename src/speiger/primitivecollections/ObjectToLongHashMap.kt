@@ -104,6 +104,10 @@ class ObjectToLongHashMap<K> : ObjectToHashMap<K, LongArray> {
         growMaybe()
     }
 
+    fun addAll(source: ObjectToLongHashMap<K>) {
+        source.forEach(this::put)
+    }
+
     fun forEach(callback: ObjectLongCallback<K>) {
         @Suppress("UNCHECKED_CAST")
         if (containsNull) callback.call(null as K, values[nullIndex])

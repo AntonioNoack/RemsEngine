@@ -67,6 +67,10 @@ class IntToIntHashMap(
         }
     }
 
+    fun addAll(source: IntToIntHashMap) {
+        source.forEach(this::put)
+    }
+
     fun keysToHashSet() = content.keysToHashSet()
     fun forEachKey(callback: IntCallback) {
         content.forEachKey { key -> callback.call(key.toInt()) }

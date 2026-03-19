@@ -51,6 +51,10 @@ class LongHashSet : LongToHashMap<Unit> {
         growMaybe()
     }
 
+    fun addAll(source: LongHashSet) {
+        source.forEach(this::add)
+    }
+
     fun forEach(callback: LongCallback) =
         forEachKey(callback)
 

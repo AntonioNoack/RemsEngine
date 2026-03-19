@@ -48,6 +48,10 @@ class IntHashSet(
         }
     }
 
+    fun addAll(source: IntHashSet) {
+        source.forEach(this::add)
+    }
+
     fun first(ifEmpty: Int): Int = content.firstKey(ifEmpty.toLong()).toInt()
 
     fun removeIf(predicate: IntPredicate) =

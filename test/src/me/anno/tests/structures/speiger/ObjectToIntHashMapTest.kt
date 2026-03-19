@@ -2,7 +2,6 @@ package me.anno.tests.structures.speiger
 
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
-import me.anno.utils.assertions.assertNull
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import speiger.primitivecollections.ObjectToIntHashMap

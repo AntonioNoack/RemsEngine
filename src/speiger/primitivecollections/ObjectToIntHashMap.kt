@@ -69,10 +69,14 @@ class ObjectToIntHashMap<K>(
         }
     }
 
+    fun addAll(source: ObjectToIntHashMap<K>) {
+        source.forEach(this::put)
+    }
+
     fun keysToHashSet() = content.keysToHashSet()
     fun forEachKey(callback: (K) -> Unit) = content.forEachKey(callback)
     fun removeIf(predicate: ObjectIntPredicate<K>): Int =
         content.removeIf { key, value -> predicate.test(key, value.toInt()) }
 
-    override fun clone(): ObjectToIntHashMap<K> = ObjectToIntHashMap<K>(content.clone())
+    override fun clone(): ObjectToIntHashMap<K> = ObjectToIntHashMap(content.clone())
 }

@@ -110,6 +110,10 @@ class ObjectToObjectHashMap<K, V> : ObjectToHashMap<K, Array<Any?>> {
         growMaybe()
     }
 
+    fun addAll(source: ObjectToObjectHashMap<K, V>) {
+        source.forEach(this::put)
+    }
+
     fun forEach(callback: (K, V) -> Unit) {
         @Suppress("UNCHECKED_CAST")
         if (containsNull) callback(null as K, values[nullIndex] as V)

@@ -109,6 +109,10 @@ class LongToObjectHashMap<V> : LongToHashMap<Array<V?>> {
         }
     }
 
+    fun addAll(source: LongToObjectHashMap<V>) {
+        source.forEach(this::put)
+    }
+
     fun removeIf(predicate: LongObjectPredicate<V>): Int {
         @Suppress("UNCHECKED_CAST")
         return removeIfImpl { predicate.test(keys[it], values[it] as V) }

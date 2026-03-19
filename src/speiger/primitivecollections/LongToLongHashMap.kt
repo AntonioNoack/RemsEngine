@@ -115,6 +115,10 @@ class LongToLongHashMap : LongToHashMap<LongArray> {
         }
     }
 
+    fun addAll(source: LongToLongHashMap) {
+        source.forEach(this::put)
+    }
+
     fun removeIf(predicate: LongLongPredicate): Int {
         return removeIfImpl { predicate.test(keys[it], values[it]) }
     }

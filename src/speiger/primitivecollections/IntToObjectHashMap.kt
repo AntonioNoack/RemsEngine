@@ -73,6 +73,10 @@ class IntToObjectHashMap<V>(
         content.forEachKey { key -> callback.call(key.toInt()) }
     }
 
+    fun addAll(source: IntToObjectHashMap<V>) {
+        source.forEach(this::put)
+    }
+
     fun firstKey(ifEmpty: Int = -1): Int = content.firstKey(ifEmpty.toLong()).toInt()
 
     fun keysToHashSet() = IntHashSet(content.keysToHashSet())

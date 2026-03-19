@@ -67,6 +67,10 @@ class LongToIntHashMap(
         }
     }
 
+    fun addAll(source: LongToIntHashMap) {
+        source.forEach(this::put)
+    }
+
     fun keysToHashSet() = content.keysToHashSet()
     fun forEachKey(callback: LongCallback) = content.forEachKey(callback)
     fun firstKey(ifEmpty: Long): Long = content.firstKey(ifEmpty)

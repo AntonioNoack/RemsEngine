@@ -66,6 +66,10 @@ class LongToDoubleHashMap(
         }
     }
 
+    fun addAll(source: LongToDoubleHashMap) {
+        source.forEach(this::put)
+    }
+
     fun keysToHashSet() = content.keysToHashSet()
     fun forEachKey(callback: LongCallback) = content.forEachKey(callback)
     fun removeIf(predicate: LongDoublePredicate): Int =
