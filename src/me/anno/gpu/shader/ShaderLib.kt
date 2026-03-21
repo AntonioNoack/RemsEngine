@@ -96,7 +96,8 @@ object ShaderLib {
 
     val brightness = "" +
             "float brightnessSq(vec3 color){\n" +
-            "   return (${YUV_Y.x}*color.r*color.r + ${YUV_Y.y}*color.g*color.g + ${YUV_Y.z}*color.b*color.b);\n" +
+            "   vec3 yuv = vec3(${YUV_Y.x},${YUV_Y.y},${YUV_Y.z});\n" +
+            "   return dot(yuv,color*color);\n" +
             "}\n" +
             "float brightness(vec3 color){\n" +
             "   return sqrt(brightnessSq(color));\n" +
@@ -110,7 +111,7 @@ object ShaderLib {
             "   return vec4(mix(back.rgb,front.rgb,front.a),1.0-(1.0-front.a)*(1.0-back.a));\n" +
             "}\n"
 
-    fun brightness(r: Float, g: Float, b: Float) = sqrt(YUV_Y.dot(r * r, g * g, b * b, 1f))
+    fun brightness(r: Float, g: Float, b: Float) = sqrt(YUV_Y.dot(r * r, g * g, b * b, 0f))
 
     // https://community.khronos.org/t/quaternion-functions-for-glsl/50140/3
     const val quatRot = "" +
