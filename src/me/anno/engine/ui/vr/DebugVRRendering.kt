@@ -33,7 +33,7 @@ object DebugVRRendering {
         ShaderLib.uiVertexShaderList,
         ShaderLib.uiVertexShader, uvList,
         listOf(
-            Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.V1F, "applyToneMapping"),
             Variable(GLSLType.V1F, "gamma"),
             Variable(GLSLType.V4F, "leftTiling"),
             Variable(GLSLType.V4F, "rightTiling"),
@@ -57,7 +57,7 @@ object DebugVRRendering {
         ShaderLib.uiVertexShaderList,
         ShaderLib.uiVertexShader, uvList,
         listOf(
-            Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.V1F, "applyToneMapping"),
             Variable(GLSLType.V1F, "gamma"),
             Variable(GLSLType.V4F, "leftTiling"),
             Variable(GLSLType.S2D, "leftTexture"),

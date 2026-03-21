@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.engine.ui.render.RenderMode.Companion.thenBloomAndExposure
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -15,8 +16,8 @@ import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
 import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
-import me.anno.graph.visual.render.scene.RenderTransparentNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
+import me.anno.graph.visual.render.scene.RenderTransparentNode
 import org.joml.Vector4f
 
 /**
@@ -64,7 +65,10 @@ class FSR1Node : TimedRenderingNode(
 
         timeRendering(name, timer) {
             useFrame(width, height, true, f0, copyRenderer) {
-                FSR.upscale(color, 0, 0, width, height, flipY = true, applyToneMapping = false, withAlpha = false)
+                FSR.upscale(
+                    color, 0, 0, width, height,
+                    flipY = true, applyToneMapping = 0f, withAlpha = false
+                )
             }
 
             if (sharpness > 0f) {
@@ -98,7 +102,7 @@ class FSR1Node : TimedRenderingNode(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(GizmoNode())

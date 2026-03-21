@@ -30,7 +30,7 @@ fun main() {
     GFXState.useFrame(upscaled) {
         FSR.upscale(
             texture, 0, 0, ow, oh, 0,
-            flipY = true, applyToneMapping = false, withAlpha = false
+            flipY = true, applyToneMapping = 0f, withAlpha = false
         )
     }
     upscaled.createImage(false, withAlpha = false)

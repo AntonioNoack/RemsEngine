@@ -133,7 +133,7 @@ object FlatShaders {
             listOf(
                 Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = rrr, 3 = a
                 Variable(GLSLType.V4F, "color"),
-                Variable(GLSLType.V1B, "applyToneMapping"),
+                Variable(GLSLType.V1F, "applyToneMapping"),
                 Variable(if (msaa) GLSLType.S2DMS else GLSLType.S2D, "tex"),
             ), "" +
                     tonemapGLSL +
@@ -142,7 +142,7 @@ object FlatShaders {
                     "   vec4 data = ${if (msaa) "texelFetch(tex, ivec2(uv * textureSize(tex)), 0)" else "texture(tex, uv)"};\n" +
                     alphaModeProcessing +
                     "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec4(1.0,0.0,1.0,1.0); }\n" +
-                    "   else if(applyToneMapping) { col = tonemap(col); }\n" +
+                    "   else if (applyToneMapping > 0.0) { col.rgb = tonemap(applyToneMapping * col.rgb); }\n" +
                     "   gl_FragColor = col;\n" +
                     "}"
         )
@@ -156,7 +156,7 @@ object FlatShaders {
             Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V1F, "layer"),
-            Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.V1F, "applyToneMapping"),
             Variable(GLSLType.S2DA, "tex"),
         ), "" +
                 tonemapGLSL +
@@ -165,7 +165,7 @@ object FlatShaders {
                 "   vec4 data = texture(tex, vec3(uv,layer));\n" +
                 alphaModeProcessing +
                 "   if(!(col.x >= -1e38 && col.x <= 1e38)) col = vec4(1.0,0.0,1.0,1.0);\n" +
-                "   if(applyToneMapping) col = tonemap(col);\n" +
+                "   if (applyToneMapping > 0.0) col = tonemap(applyToneMapping * col);\n" +
                 "   gl_FragColor = col;\n" +
                 "}"
     )
@@ -177,7 +177,7 @@ object FlatShaders {
         listOf(
             Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
             Variable(GLSLType.V4F, "color"),
-            Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.V1F, "applyToneMapping"),
             Variable(GLSLType.V1F, "layer"),
             Variable(GLSLType.S3D, "tex"),
         ), "" +
@@ -188,7 +188,7 @@ object FlatShaders {
                 "   if(alphaMode == 0) col *= texture(tex, uvw);\n" +
                 "   else if(alphaMode == 1) col.rgb *= texture(tex, uvw).rgb;\n" +
                 "   else col.rgb *= texture(tex, uvw).a;\n" +
-                "   if(applyToneMapping) col = tonemap(col);\n" +
+                "   if (applyToneMapping > 0.0) col.rgb = tonemap(applyToneMapping * col.rgb);\n" +
                 "   gl_FragColor = col;\n" +
                 "}"
     )

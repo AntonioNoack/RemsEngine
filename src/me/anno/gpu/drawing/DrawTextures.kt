@@ -2,6 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.FlatShaders.depthArrayShader
 import me.anno.gpu.shader.FlatShaders.depthShader
@@ -31,7 +32,7 @@ object DrawTextures {
     fun drawProjection(
         x: Int, y: Int, w: Int, h: Int,
         texture: CubemapTexture, ignoreAlpha: Boolean, color: Int,
-        applyToneMapping: Boolean,
+        applyToneMapping: Float,
         showDepth: Boolean
     ) {
         if (w == 0 || h == 0) return
@@ -41,7 +42,7 @@ object DrawTextures {
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)
         shader.v1b("ignoreTexAlpha", ignoreAlpha)
-        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1f("applyToneMapping", applyToneMapping)
         shader.v1b("showDepth", showDepth)
         texture.bind(0, texture.filtering, Clamping.CLAMP)
         flat01.draw(shader)
@@ -51,7 +52,7 @@ object DrawTextures {
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, ignoreAlpha: Boolean, color: Int = -1, tiling: Vector4f? = null,
-        applyToneMapping: Boolean = false
+        applyToneMapping: Float = 0f
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
@@ -61,7 +62,7 @@ object DrawTextures {
         posSize(shader, x, y, w, h, true)
         shader.v4f("color", color)
         shader.v1i("alphaMode", if (mono) 2 else ignoreAlpha.toInt())
-        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1f("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)
         flat01.draw(shader)
@@ -72,7 +73,7 @@ object DrawTextures {
         x: Int, y: Int, w: Int, h: Int,
         texture: Texture2DArray, layer: Float,
         ignoreAlpha: Boolean, color: Int = -1, tiling: Vector4f? = null,
-        applyToneMapping: Boolean = false
+        applyToneMapping: Float = 0f
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
@@ -81,7 +82,7 @@ object DrawTextures {
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)
         shader.v1i("alphaMode", ignoreAlpha.toInt())
-        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1f("applyToneMapping", applyToneMapping)
         shader.v1f("layer", layer)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)
@@ -93,7 +94,7 @@ object DrawTextures {
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, ignoreAlpha: Boolean,
         color: Vector4f, tiling: Vector4f? = null,
-        applyToneMapping: Boolean = false
+        applyToneMapping: Float = 0f
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
@@ -103,7 +104,7 @@ object DrawTextures {
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)
         shader.v1i("alphaMode", if (mono) 2 else ignoreAlpha.toInt())
-        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1f("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)
         flat01.draw(shader)
@@ -150,7 +151,7 @@ object DrawTextures {
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D,
         color: Int = -1, tiling: Vector4f? = null,
-        applyToneMapping: Boolean = false
+        applyToneMapping: Float = 0f
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
@@ -159,7 +160,7 @@ object DrawTextures {
         posSize(shader, x, y, w, h, true)
         shader.v4f("color", color)
         shader.v1i("alphaMode", 3)
-        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1f("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)
         flat01.draw(shader)
@@ -168,7 +169,7 @@ object DrawTextures {
 
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int, texture: ITexture2D,
-        color: Int = -1, tiling: Vector4f? = null, applyToneMapping: Boolean = false
+        color: Int = -1, tiling: Vector4f? = null, applyToneMapping: Float = 0f
     ) = drawTexture(x, y, w, h, texture, false, color, tiling, applyToneMapping)
 
     fun drawTransparentBackground(x: Int, y: Int, w: Int, h: Int, numVerticalStripes: Float = 5f) {
@@ -176,7 +177,7 @@ object DrawTextures {
         tiling.set(numVerticalStripes * w.toFloat() / h.toFloat(), numVerticalStripes, 0f, 0f)
         val texture = TextureLib.colorShowTexture
         texture.bind(0, Filtering.TRULY_NEAREST, Clamping.REPEAT)
-        drawTexture(x, y, w, h, texture, -1, tiling, false)
+        drawTexture(x, y, w, h, texture, -1, tiling, 0f)
         JomlPools.vec4f.sub(1)
     }
 
@@ -214,7 +215,7 @@ object DrawTextures {
         texture: Texture3D,
         ignoreAlpha: Boolean,
         color: Int,
-        applyToneMapping: Boolean,
+        applyToneMapping: Float,
         showDepth: Boolean
     ) {
         if (w == 0 || h == 0) return
@@ -224,7 +225,7 @@ object DrawTextures {
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)
         shader.v1b("ignoreTexAlpha", ignoreAlpha)
-        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1f("applyToneMapping", applyToneMapping)
         shader.v1b("showDepth", showDepth)
         shader.v1f("z", z)
         texture.bind(0)
@@ -238,7 +239,7 @@ object DrawTextures {
         texture: Texture2DArray,
         ignoreAlpha: Boolean,
         color: Int,
-        applyToneMapping: Boolean,
+        applyToneMapping: Float,
         showDepth: Boolean
     ) {
         if (w == 0 || h == 0) return
@@ -248,7 +249,7 @@ object DrawTextures {
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)
         shader.v1b("ignoreTexAlpha", ignoreAlpha)
-        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1f("applyToneMapping", applyToneMapping)
         shader.v1b("showDepth", showDepth)
         shader.v1f("layer", z + 0.5f)
         texture.bind(0)

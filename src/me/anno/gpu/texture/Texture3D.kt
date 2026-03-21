@@ -29,6 +29,7 @@ import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
 import me.anno.utils.pooling.Pools.byteBufferPool
 import me.anno.utils.pooling.Pools.intArrayPool
+import me.anno.utils.types.Booleans.toFloat
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_BGRA
@@ -404,7 +405,7 @@ open class Texture3D(
         GFXx2D.posSize(shader, x, GFX.viewportHeight - y, width, -height)
         shader.v4f("color", -1)
         shader.v1i("alphaMode", ignoreAlpha.toInt())
-        shader.v1b("applyToneMapping", isHDR)
+        shader.v1f("applyToneMapping", isHDR.toFloat())
         shader.v1f("layer", z)
         GFXx2D.noTiling(shader)
         bind(0, filtering, Clamping.CLAMP)

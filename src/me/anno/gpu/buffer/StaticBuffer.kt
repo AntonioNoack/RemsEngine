@@ -1,6 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.BufferFillShader.fill
 import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.shader.Shader
 import me.anno.utils.pooling.ByteBufferPool
@@ -69,16 +70,6 @@ open class StaticBuffer(
         val byteSize = attributes.totalSize(vertexCount)
         return ByteBufferPool.allocateDirect(byteSize)
             .order(ByteOrder.nativeOrder())
-    }
-
-    fun zeroElements(first: Int, length: Int) {
-        zeroBytes(first * stride, length * stride)
-    }
-
-    fun zeroBytes(first: Int, length: Int) {
-        if (length <= 0) return
-        ensureBuffer()
-        BufferFillShader.fill(this, first, length, 0)
     }
 
     companion object {

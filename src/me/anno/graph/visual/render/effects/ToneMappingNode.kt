@@ -18,19 +18,21 @@ import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
 class ToneMappingNode : TimedRenderingNode(
     "ToneMapping",
-    listOf("Texture", "Illuminated", "Float", "Exposure", "Boolean", "Apply"),
+    listOf(
+        "Texture", "Illuminated",
+        "Float", EXPOSURE_NAME, // set to a value of 0 to disable tone-mapping
+    ),
     listOf("Texture", "Illuminated")
 ) {
 
     init {
         setInput(2, 1f)
-        setInput(3, true)
     }
 
     override fun executeAction() {
         val color = getInput(1) as? Texture
-        val result = if (getBoolInput(3)) {
-            val exposure = getFloatInput(2)
+        val exposure = getFloatInput(2)
+        val result = if (exposure > 0f) {
             val source = color.texOrNull ?: return
             Texture(applyToneMapping(source, exposure, name, timer))
         } else color
@@ -38,6 +40,9 @@ class ToneMappingNode : TimedRenderingNode(
     }
 
     companion object {
+
+        @Suppress("MayBeConstant")
+        val EXPOSURE_NAME = "Tone Mapping Exposure"
 
         fun applyToneMapping(
             source: ITexture2D, exposure: Float,

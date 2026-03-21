@@ -4,6 +4,7 @@ import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.ITexture2D
 import me.anno.ui.Style
+import me.anno.utils.Color.white4
 import kotlin.math.log2
 import kotlin.math.max
 
@@ -34,6 +35,11 @@ abstract class ImagePanel(style: Style) : ImagePanelBase(style) {
             )
         }
         texture.bind(0, filtering, Clamping.CLAMP)
-        DrawTextures.drawTexture(lix, liy, liw, lih, texture, -1, null, flipY)
+        // todo should we put flipY into liy and lih? sounds reasonable...
+        DrawTextures.drawTexture(
+            lix, if (flipY) liy + lih else liy, liw, if (flipY) -lih else lih, texture,
+            false, white4, null,
+            applyToneMapping = 0f
+        )
     }
 }

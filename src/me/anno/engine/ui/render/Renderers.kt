@@ -159,7 +159,7 @@ object Renderers {
                 ShaderStage(
                     "pbr", listOf(
                         // rendering
-                        Variable(GLSLType.V1B, "applyToneMapping"),
+                        Variable(GLSLType.V1F, "applyToneMapping"),
                         // light data
                         Variable(GLSLType.V1I, "numberOfLights"),
                         Variable(GLSLType.V1B, "receiveShadows"),
@@ -208,7 +208,7 @@ object Renderers {
                             (if (flags.hasFlag(IS_DEFERRED)) "" else skyMapCode) +
                             "#endif\n" +
                             colorToLinear +
-                            "   if(applyToneMapping) finalColor = tonemapLinear(finalColor);\n" +
+                            "   if (applyToneMapping > 0.0) finalColor = tonemapLinear(applyToneMapping * finalColor);\n" +
                             colorToSRGB +
                             "   finalResult = vec4(finalColor, finalAlpha);\n"
                 ).add(randomGLSL).add(tonemapGLSL).add(getReflectivity).add(sampleSkyboxForAmbient)

@@ -38,7 +38,7 @@ object FSR {
                 Variable(GLSLType.V4F, "con2"),
                 Variable(GLSLType.V4F, "con3"),
                 Variable(GLSLType.V2F, "texelOffset"),
-                Variable(GLSLType.V1B, "applyToneMapping"),
+                Variable(GLSLType.V1F, "applyToneMapping"),
                 Variable(GLSLType.V1I, "numChannels")
             ), "" +
                     "#define A_GPU 1\n" +
@@ -102,7 +102,8 @@ object FSR {
                     "   float alpha = texture(source,uv).a;\n" +
                     "   vec2 positions = uv * dstWH;\n" +
                     "   FsrEasuF(color, positions, con0, con1, con2, con3);\n" +
-                    "   glFragColor = vec4(applyToneMapping ? tonemap(color) : color, alpha);\n" +
+                    "   if (applyToneMapping > 0.0) color = tonemap(applyToneMapping * color);\n" +
+                    "   glFragColor = vec4(color, alpha);\n" +
                     "}"
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such
@@ -139,7 +140,7 @@ object FSR {
     fun upscale(
         source: ITexture2D, x: Int, y: Int, w: Int, h: Int,
         backgroundColor: Int, flipY: Boolean,
-        applyToneMapping: Boolean, withAlpha: Boolean
+        applyToneMapping: Float, withAlpha: Boolean
     ) {
         // if source is null, the texture needs to be bound to slot 0
         val shader = upscaleShader.value
@@ -151,7 +152,7 @@ object FSR {
             texelOffset(shader, w, h)
             posSize(shader, x, y, w, h, true)
             shader.v3f("background", backgroundColor)
-            shader.v1b("applyToneMapping", applyToneMapping)
+            shader.v1f("applyToneMapping", applyToneMapping)
             shader.v1i("numChannels", min(if (withAlpha) 4 else 3, source.channels))
             flat01.draw(shader)
         } else {
@@ -169,7 +170,7 @@ object FSR {
 
     fun upscale(
         source: ITexture2D, x: Int, y: Int, w: Int, h: Int,
-        flipY: Boolean, applyToneMapping: Boolean, withAlpha: Boolean
+        flipY: Boolean, applyToneMapping: Float, withAlpha: Boolean
     ) {
         upscale(source, x, y, w, h, 0, flipY, applyToneMapping, withAlpha)
     }

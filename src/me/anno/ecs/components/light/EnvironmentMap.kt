@@ -137,7 +137,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
                         resolution, 1f,
                         position, camRotInv // needs to be the inverse again
                     )
-                    pipeline.applyToneMapping = false
+                    pipeline.applyToneMapping = 0f
                     pipeline.fill(root)
 
                     // define RenderState

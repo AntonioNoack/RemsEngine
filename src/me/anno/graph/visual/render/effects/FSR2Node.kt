@@ -1,6 +1,7 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.ecs.components.mesh.material.Materials
+import me.anno.engine.ui.render.RenderMode.Companion.thenBloomAndExposure
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.deferred.DeferredLayerType.Companion.COLOR
@@ -100,7 +101,7 @@ class FSR2Node : RenderViewNode(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(FSR2Node())

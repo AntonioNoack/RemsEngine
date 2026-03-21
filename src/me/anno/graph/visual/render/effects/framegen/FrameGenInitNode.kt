@@ -3,12 +3,12 @@ package me.anno.graph.visual.render.effects.framegen
 import me.anno.Time.frameIndex
 import me.anno.config.ConfigRef
 import me.anno.engine.ui.render.RenderMode.Companion.opaqueNodeSettings
+import me.anno.engine.ui.render.RenderMode.Companion.thenBloomAndExposure
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.FlowGraphNode
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.QuickPipeline
-import me.anno.graph.visual.render.effects.BloomNode
 import me.anno.graph.visual.render.effects.FXAANode
 import me.anno.graph.visual.render.effects.GizmoNode
 import me.anno.graph.visual.render.effects.OutlineEffectNode
@@ -69,7 +69,7 @@ class FrameGenInitNode : FlowGraphNode(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(GizmoNode())

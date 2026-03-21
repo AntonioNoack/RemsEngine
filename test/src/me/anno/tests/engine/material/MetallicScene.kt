@@ -20,8 +20,8 @@ fun main() {
     OfficialExtensions.initForTests()
 
     // done we need an exposure setting: can be found in RenderGraph
-    // todo we need an auto-exposure implementation
-    // done: and desaturation in the dark: there is a sample night-shader, which implements that
+    // done we need an auto-exposure implementation
+    // done and desaturation in the dark: there is a sample night-shader, which implements that
 
     testSceneWithUI("Metallic", createMetallicScene()) {
         WindowRenderFlags.enableVSync = false

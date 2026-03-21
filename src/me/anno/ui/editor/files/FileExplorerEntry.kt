@@ -79,6 +79,7 @@ import me.anno.utils.files.OpenFileExternally.openInStandardProgram
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.count2
+import me.anno.utils.types.Booleans.toFloat
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings
@@ -236,15 +237,15 @@ open class FileExplorerEntry(
         var (iw, ih) = scaleMaxPreview(image.width, image.height, abs(w), abs(h), 5)
         iw *= w.sign
         ih *= h.sign
-        val isHDR = image.isHDR
+        val applyToneMapping = image.isHDR.toFloat()
         // we can use FSR to upsample the images xD
         val x = x0 + (w - iw) / 2
         val y = y0 + (h - ih) / 2
         if (image is Texture2D) image.filtering = Filtering.LINEAR
         if (iw > image.width && ih > image.height) {// maybe use fsr only, when scaling < 4x
-            FSR.upscale(image, x, y, iw, ih, backgroundColor, false, isHDR, true)// ^^
+            FSR.upscale(image, x, y, iw, ih, backgroundColor, false, applyToneMapping, true)// ^^
         } else {
-            drawTexture(x, y, iw, ih, image, -1, null, isHDR)
+            drawTexture(x, y, iw, ih, image, -1, null, applyToneMapping)
         }
     }
 

@@ -1,17 +1,17 @@
 package me.anno.tests.engine.effect
 
 import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.RenderMode.Companion.thenBloomAndExposure
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.QuickPipeline
-import me.anno.graph.visual.render.effects.BloomNode
 import me.anno.graph.visual.render.effects.GizmoNode
 import me.anno.graph.visual.render.effects.SSAONode
+import me.anno.graph.visual.render.effects.SSGINode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
-import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
-import me.anno.graph.visual.actions.ActionNode
-import me.anno.graph.visual.render.effects.SSGINode
+import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.utils.OS.downloads
 
 // todo implement ray-traced global illumination
@@ -45,7 +45,7 @@ val RTGIRenderMode = RenderMode(
         .then(CombineLightsNode())
         .then(SSGINode())
         .then(SSRNode())
-        .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+        .thenBloomAndExposure()
         .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
         .finish()
 )

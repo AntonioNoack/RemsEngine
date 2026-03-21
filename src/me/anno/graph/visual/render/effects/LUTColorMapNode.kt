@@ -20,6 +20,7 @@ import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.graph.visual.render.effects.ToneMappingNode.Companion.EXPOSURE_NAME
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -32,8 +33,7 @@ class LUTColorMapNode : RenderViewNode(
     "LUT Color Map",
     listOf(
         "Float", "LUT Strength",
-        "Float", "Tone Mapping Exposure",
-        "Bool", "Apply Tone Mapping",
+        "Float", EXPOSURE_NAME, // set to a value of 0 to disable tone-mapping
         "File", "LUT Source",
         "Texture", "Illuminated",
     ), listOf("Texture", "Illuminated")
@@ -41,22 +41,20 @@ class LUTColorMapNode : RenderViewNode(
 
     init {
         setInput(1, 1f)
-        setInput(2, 1f)
-        setInput(3, false)
-        setInput(4, InvalidRef)
+        setInput(2, 0f)
+        setInput(3, InvalidRef)
     }
 
     override fun executeAction() {
         val strength = getFloatInput(1)
-        val toneMappingExposure = getFloatInput(2)
-        val applyToneMapping = getBoolInput(3)
-        val lutSource = getInput(4) as? FileReference ?: InvalidRef
+        val applyToneMapping = getFloatInput(2)
+        val lutSource = getInput(3) as? FileReference ?: InvalidRef
         val lut = TextureCache.getLUT(lutSource)
-        val color0 = getInput(5) as? Texture
+        val color0 = getInput(4) as? Texture
         val color1 = color0.texOrNull
         if (color1 == null || lut == null || abs(strength) < 1e-7f) {
             val result = if (color1 != null) {
-                Texture(ToneMappingNode.applyToneMapping(color1, toneMappingExposure, name, timer))
+                Texture(ToneMappingNode.applyToneMapping(color1, applyToneMapping, name, timer))
             } else {
                 color0 ?: Texture(missingTexture)
             }
@@ -69,8 +67,7 @@ class LUTColorMapNode : RenderViewNode(
                 val shader = lutShader
                 shader.use()
                 shader.v1f("strength", strength)
-                shader.v1f("exposure", toneMappingExposure)
-                shader.v1b("applyToneMapping", applyToneMapping)
+                shader.v1f("applyToneMapping", applyToneMapping)
                 color1.bindTrulyNearest(shader, "colorTex")
                 lut.bindTrulyLinear(shader, "lutTex")
                 (renderView.pipeline.bakedSkybox?.getTexture0() ?: whiteCube)
@@ -87,15 +84,14 @@ class LUTColorMapNode : RenderViewNode(
             "lut", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "strength"),
-                Variable(GLSLType.V1F, "exposure"),
-                Variable(GLSLType.V1B, "applyToneMapping"),
+                Variable(GLSLType.V1F, "applyToneMapping"),
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S3D, "lutTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ), Renderers.tonemapGLSL +
                     "void main() {\n" +
                     "   vec3 color = texture(colorTex,uv).rgb;\n" +
-                    "   if(applyToneMapping) color = tonemap(exposure * color);\n" +
+                    "   if (applyToneMapping > 0.0) color = tonemap(applyToneMapping * color);\n" +
                     // mixing in sRGB instead of linear isn't the best, but the LUT is sRGB anyway
                     "   color = mix(color, texture(lutTex,color,0.0).rgb, strength);\n" +
                     "   result = vec4(color, 1.0);\n" +

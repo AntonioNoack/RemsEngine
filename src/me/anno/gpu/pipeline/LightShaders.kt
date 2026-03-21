@@ -90,8 +90,8 @@ object LightShaders {
 
     val useMSAA: Boolean get() = GFXState.currentBuffer.samples > 1
 
-    fun combineLighting(shader: Shader, applyToneMapping: Boolean) {
-        shader.v1b("applyToneMapping", applyToneMapping)
+    fun combineLighting(shader: Shader, applyToneMapping: Float) {
+        shader.v1f("applyToneMapping", applyToneMapping)
         bindDepthUniforms(shader)
         flat01.draw(shader)
     }
@@ -132,7 +132,7 @@ object LightShaders {
             Variable(GLSLType.V3F, "finalNormal"),
             Variable(GLSLType.V1F, "finalReflectivity"),
             Variable(GLSLType.V1F, "finalOcclusion"),
-            Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.V1F, "applyToneMapping"),
             Variable(GLSLType.V3F, "finalLight"),
             Variable(GLSLType.V1F, "ambientOcclusion"),
             Variable(GLSLType.V4F, "color", VariableMode.OUT)
@@ -142,7 +142,7 @@ object LightShaders {
                 "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, finalRoughness, finalReflectivity);\n" +
                 "   float invOcclusion = (1.0 - finalOcclusion) * (1.0 - ambientOcclusion);\n" +
                 combineLightFinishLine +
-                "   if(applyToneMapping) finalColor = tonemapLinear(finalColor);\n" +
+                "   if (applyToneMapping > 0.0) finalColor = tonemapLinear(applyToneMapping * finalColor);\n" +
                 colorToSRGB +
                 "   color = vec4(finalColor, 1.0);\n"
     ).add(tonemapGLSL).add(getReflectivity).add(sampleSkyboxForAmbient)

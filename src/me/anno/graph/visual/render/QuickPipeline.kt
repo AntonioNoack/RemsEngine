@@ -27,6 +27,16 @@ class QuickPipeline {
         return then(node, emptyMap(), emptyMap())
     }
 
+    fun then(extraOutputs: Map<String, Any?>): QuickPipeline {
+        for ((key, value) in extraOutputs) {
+            values[key] = NodeOutput().apply {
+                this.currValue = value
+                this.defaultValue = values
+            }
+        }
+        return this
+    }
+
     fun then1(node: Node, extraInputs: Map<String, Any?>): QuickPipeline {
         return then(node, extraInputs, emptyMap())
     }

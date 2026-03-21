@@ -124,7 +124,7 @@ object DebugGPUStorage {
             val z = if (isHovered) clamp((window!!.mouseX - x) / w)
             else fract(Time.nanoTime / 5.0).toFloat()
             val isDepth = isDepthFormat(tex.internalFormat)
-            DrawTextures.draw3dSlice(x, y, w, h, z, tex, true, -1, false, isDepth)
+            DrawTextures.draw3dSlice(x, y, w, h, z, tex, true, -1, 0f, isDepth)
         }
     }
 
@@ -145,7 +145,7 @@ object DebugGPUStorage {
             // todo why is every 2nd slice missing??
             DrawTextures.draw2dArraySlice(
                 x, y, w, h, zi,
-                tex, true, -1, false, isDepth
+                tex, true, -1, 0f, isDepth
             )
         }
     }
@@ -157,7 +157,7 @@ object DebugGPUStorage {
         val isDepth get() = isDepthFormat(tex.internalFormat)
 
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
-            DrawTextures.drawProjection(x, y, w, h, tex, false, -1, false, isDepth)
+            DrawTextures.drawProjection(x, y, w, h, tex, false, -1, 0f, isDepth)
         }
     }
 

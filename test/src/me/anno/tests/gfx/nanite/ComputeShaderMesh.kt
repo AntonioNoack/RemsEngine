@@ -164,7 +164,7 @@ class ComputeShaderMesh(val mesh: Mesh) : IMesh {
     ) {
         val material = Materials.getMaterial(mesh.materials, materialIndex)
         material.bind(shader)
-        bindCameraUniforms(shader, false)
+        bindCameraUniforms(shader, 0f)
         bindJitterUniforms(shader)
         bindTransformUniforms(shader, null)
         bindLightUniforms(pipeline, shader, AABBd(), true)

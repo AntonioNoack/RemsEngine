@@ -85,7 +85,7 @@ fun main() {
                     FSR.upscale(
                         scaledDown.getTexture0(),
                         0, 0, reconstructed.width, reconstructed.height,
-                        flipY = true, applyToneMapping = false, withAlpha = false
+                        flipY = true, applyToneMapping = 0f, withAlpha = false
                     )
                     scaledDown.bindTexture0(0, filtering, Clamping.CLAMP)
                     Blitting.copyColor(1, true)

@@ -4,8 +4,17 @@ import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 import org.joml.Vector3i
+import org.lwjgl.opengl.GL46C.GL_BUFFER_UPDATE_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.GL_ELEMENT_ARRAY_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.glMemoryBarrier
 
 object BufferFillShader {
+    private const val BARRIER_BITS =
+        GL_SHADER_STORAGE_BARRIER_BIT or
+                GL_BUFFER_UPDATE_BARRIER_BIT or
+                GL_ELEMENT_ARRAY_BARRIER_BIT
+
     private val fillShader = ComputeShader(
         "fill", Vector3i(64, 1, 1), listOf(
             Variable(GLSLType.V1I, "byteStart"),
@@ -43,7 +52,7 @@ object BufferFillShader {
                 """.trimIndent()
     )
 
-    fun fill(buffer: GPUBuffer, byteStart: Int, byteLength: Int, value: Int) {
+    fun GPUBuffer.fill(byteStart: Int, byteLength: Int, value: Int) {
         if (byteLength <= 0) return
         val start = byteStart shr 2
         val end = (byteStart + byteLength + 3) shr 2
@@ -52,7 +61,8 @@ object BufferFillShader {
         shader.v1i("byteStart", byteStart)
         shader.v1i("byteLength", byteLength)
         shader.v1i("value", value)
-        shader.bindBuffer(0, buffer)
-        shader.runBySize(end - start, 0, 0)
+        shader.bindBuffer(0, this)
+        shader.runBySize(end - start)
+        glMemoryBarrier(BARRIER_BITS)
     }
 }

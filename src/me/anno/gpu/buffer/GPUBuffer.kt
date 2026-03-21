@@ -8,6 +8,7 @@ import me.anno.gpu.GFX.INVALID_SESSION
 import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
+import me.anno.gpu.buffer.BufferFillShader.fill
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.maths.Maths
 import me.anno.utils.Color.a
@@ -178,11 +179,11 @@ abstract class GPUBuffer(
         }
     }
 
-    open fun uploadEmpty(newLimit: Long) {
+    open fun uploadEmpty(newLimitInBytes: Long) {
 
         GFX.checkIsGFXThread()
 
-        assertTrue(newLimit > 0)
+        assertTrue(newLimitInBytes > 0)
         if (isPointerValid(pointer)) {
             glDeleteBuffers(pointer)
             pointer = 0
@@ -190,11 +191,11 @@ abstract class GPUBuffer(
 
         prepareUpload()
         bindBuffer(target, pointer)
-        elementCount = (newLimit / stride).toInt()
+        elementCount = (newLimitInBytes / stride).toInt()
 
-        glBufferStorage(target, newLimit, GL_DYNAMIC_STORAGE_BIT)
+        glBufferStorage(target, newLimitInBytes, GL_DYNAMIC_STORAGE_BIT)
         // GL46C.glBufferData(type, newLimit, usage.id)
-        locallyAllocated = allocate(locallyAllocated, newLimit)
+        locallyAllocated = allocate(locallyAllocated, newLimitInBytes)
 
         finishUpload()
     }
@@ -641,6 +642,16 @@ abstract class GPUBuffer(
             if (destroyTmpBuffer) tmpBuffer.destroy()
             glDeleteSync(fence)
         })
+    }
+
+    fun zeroElements(first: Int, length: Int) {
+        zeroBytes(first * stride, length * stride)
+    }
+
+    fun zeroBytes(first: Int, length: Int) {
+        if (length <= 0) return
+        ensureBuffer()
+        fill(first, length, 0)
     }
 
     companion object {

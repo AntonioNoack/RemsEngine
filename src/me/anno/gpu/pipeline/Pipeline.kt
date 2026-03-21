@@ -81,7 +81,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     // therefore use 0,0,0,0 to disable this plane
     val reflectionCullingPlane = Planed()
 
-    var applyToneMapping = true
+    var applyToneMapping = 1f
 
     val transparentPasses = ArrayList<TransparentPass>()
 

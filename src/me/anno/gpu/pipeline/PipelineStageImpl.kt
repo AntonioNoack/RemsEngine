@@ -126,13 +126,13 @@ class PipelineStageImpl(
             }
         }
 
-        fun bindCameraUniforms(shader: GPUShader, applyToneMapping: Boolean) {
+        fun bindCameraUniforms(shader: GPUShader, applyToneMapping: Float) {
             // information for the shader, which is material agnostic
             // add all things, the shader needs to know, e.g., light direction, strength, ...
             // (for the cheap shaders, which are not deferred)
             shader.m4x4("transform", RenderState.cameraMatrix)
             shader.m4x4("prevTransform", RenderState.prevCameraMatrix)
-            shader.v1b("applyToneMapping", applyToneMapping)
+            shader.v1f("applyToneMapping", applyToneMapping)
             shader.v3f("cameraPosition", RenderState.cameraPosition)
             shader.v4f("cameraRotation", RenderState.cameraRotation)
             shader.v1b("reverseDepth", GFXState.depthMode.currentValue.reversedDepth)

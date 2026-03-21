@@ -41,6 +41,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.graph.visual.render.effects.ToneMappingNode.Companion.EXPOSURE_NAME
 import me.anno.graph.visual.render.scene.RenderForwardNode.Companion.copyInputs
 import me.anno.maths.Maths.clamp
 import me.anno.utils.assertions.assertTrue
@@ -58,14 +59,14 @@ import org.joml.Vector2i
  *   can we use bindless textures? might help a lot, too
  *   textures with lots of shadow maps could use two memory slots, if we need that
  * */
-class RenderForwardPlusNode() : RenderViewNode(
+class RenderForwardPlusNode : RenderViewNode(
     "RenderSceneForward+", listOf(
         // usual rendering inputs
         "Int", "Width",
         "Int", "Height",
         "Int", "Samples",
         "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
-        "Boolean", "Apply Tone Mapping",
+        "Float", EXPOSURE_NAME, // set to a value of 0 to disable tone-mapping
         "Int", "Skybox Resolution", // or 0 to not bake it
         "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky",
         // previous data
@@ -109,7 +110,7 @@ class RenderForwardPlusNode() : RenderViewNode(
                         "forward+", listOf(
 
                             // rendering
-                            Variable(GLSLType.V1B, "applyToneMapping"),
+                            Variable(GLSLType.V1F, "applyToneMapping"),
                             // light data
                             Variable(GLSLType.V1I, "numberOfLights"),
                             Variable(GLSLType.V1B, "receiveShadows"),
@@ -188,7 +189,7 @@ class RenderForwardPlusNode() : RenderViewNode(
                                 (if (flags.hasFlag(IS_DEFERRED)) "" else skyMapCode) +
                                 "#endif\n" +
                                 colorToLinear +
-                                "   if(applyToneMapping) finalColor = tonemapLinear(finalColor);\n" +
+                                "   if (applyToneMapping > 0.0) finalColor = tonemapLinear(applyToneMapping * finalColor);\n" +
                                 colorToSRGB +
                                 "   finalResult = vec4(finalColor, finalAlpha);\n"
                     ).add(randomGLSL).add(tonemapGLSL).add(getReflectivity).add(sampleSkyboxForAmbient)
@@ -215,7 +216,7 @@ class RenderForwardPlusNode() : RenderViewNode(
     val height get() = getIntInput(2)
     val samples get() = clamp(getIntInput(3), 1, GFX.maxSamples)
     val stage get() = getInput(4) as PipelineStage
-    val applyToneMapping get() = getBoolInput(5)
+    val applyToneMapping get() = getFloatInput(5)
     val skyResolution get() = getIntInput(6)
     val drawSky get() = getInput(7) as DrawSkyMode
 

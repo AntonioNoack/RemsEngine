@@ -90,7 +90,7 @@ class MinimapPanel : Panel(style) {
         // render scene from top onto FB
         rv.drawScene(
             size, size, colorRenderer, fb,
-            changeSize = true, hdr = false, sky = true
+            changeSize = true, 0f, sky = true
         )
 
         val r = size * 0.5f

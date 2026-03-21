@@ -22,6 +22,7 @@ import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.compiler.ShaderExprNode
 import me.anno.graph.visual.render.effects.AnimeOutlineNode
+import me.anno.graph.visual.render.effects.AutoExposureNode
 import me.anno.graph.visual.render.effects.BloomNode
 import me.anno.graph.visual.render.effects.CheckerboardHelperNode
 import me.anno.graph.visual.render.effects.CheckerboardResolveNode
@@ -52,6 +53,7 @@ import me.anno.graph.visual.render.effects.SnowNode
 import me.anno.graph.visual.render.effects.TAAHelperNode
 import me.anno.graph.visual.render.effects.TAANode
 import me.anno.graph.visual.render.effects.ToneMappingNode
+import me.anno.graph.visual.render.effects.ToneMappingNode.Companion.EXPOSURE_NAME
 import me.anno.graph.visual.render.effects.UnditherNode
 import me.anno.graph.visual.render.effects.VignetteNode
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
@@ -137,6 +139,16 @@ class RenderMode private constructor(
             )
         }
 
+        fun QuickPipeline.afterAutoExposure(): QuickPipeline {
+            return then(mapOf(EXPOSURE_NAME to 0f))
+        }
+
+        fun QuickPipeline.thenBloomAndExposure(): QuickPipeline {
+            return then(AutoExposureNode())
+                .then(BloomNode())
+                .afterAutoExposure()
+        }
+
         val values = ArrayList<RenderMode>()
 
         val DEFAULT = RenderMode(
@@ -150,7 +162,7 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -168,7 +180,8 @@ class RenderMode private constructor(
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(RenderTransparentNode()) // todo bug: this is invisible :/
-                .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
+                .then(CombineLightsNode())
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .finish()
         )
@@ -188,7 +201,7 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -225,7 +238,7 @@ class RenderMode private constructor(
                 .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderTransparentNode())
                 .depthToSSAO()
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(GizmoNode())
         }
@@ -245,7 +258,7 @@ class RenderMode private constructor(
                 .then1(RenderForwardPlusNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderTransparentNode())
                 .depthToSSAO()
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(GizmoNode())
                 .finish()
@@ -284,7 +297,7 @@ class RenderMode private constructor(
                 .then(BoxCullingNode())
                 .then(RenderDeferredNode())
                 .then(RenderLightsNode(), mapOf("Light" to listOf("Illuminated")))
-                .then1(ToneMappingNode(), mapOf("Exposure" to 0x22 / 255f))
+                .then1(ToneMappingNode(), mapOf(EXPOSURE_NAME to 0x22 / 255f))
                 .then(GizmoNode())
                 .finish()
         )
@@ -296,7 +309,7 @@ class RenderMode private constructor(
                 .then(MSAAHelperNode())
                 .then1(RenderDeferredNode(), mapOf("Samples" to 8))
                 .then(RenderLightsNode(), mapOf("Samples" to 8), mapOf("Light" to listOf("Illuminated")))
-                .then1(ToneMappingNode(), mapOf("Exposure" to 0x22 / 255f))
+                .then1(ToneMappingNode(), mapOf(EXPOSURE_NAME to 0x22 / 255f))
                 .then(GizmoNode())
                 .finish()
         )
@@ -332,7 +345,7 @@ class RenderMode private constructor(
                 .then(SSAONode())
                 .then1(CombineLightsNode(), mapOf("Ambient Occlusion" to 1f))
                 .then(SSRNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .then(GizmoNode())
                 .finish()
         )
@@ -356,7 +369,7 @@ class RenderMode private constructor(
                 .then(SSGINode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -388,7 +401,7 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -416,7 +429,7 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(GizmoNode()) // gizmo node depends on 1:1 depth scale, so we cannot do FSR before it
                 .then(FSR1Node())
@@ -456,7 +469,7 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then1(GizmoNode(), mapOf("Samples" to 8))
                 .then(FXAANode())
@@ -483,7 +496,7 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -503,7 +516,7 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(OutlineEffectSelectNode())
                 .then(OutlineEffectNode())
@@ -532,7 +545,7 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then1(GizmoNode(), mapOf("Samples" to 1))
                 .then(TAANode())
@@ -554,7 +567,7 @@ class RenderMode private constructor(
                 .then(SSRNode())
                 .then(RenderTransparentNode())
                 .then(DepthOfFieldNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(GizmoNode())
                 .finish()
@@ -572,7 +585,7 @@ class RenderMode private constructor(
                 .then(SSRNode())
                 .then(RenderTransparentNode())
                 .then(MotionBlurNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(GizmoNode())
                 .finish()
@@ -590,7 +603,7 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(GizmoNode())
                 .finish()
@@ -622,7 +635,7 @@ class RenderMode private constructor(
         fun createHDRPostProcessGraph(postProcessNode: ActionNode): FlowGraph {
             return createPostProcessGraphBase()
                 .then(postProcessNode)
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(GizmoNode())
                 .finish()
@@ -631,7 +644,9 @@ class RenderMode private constructor(
         fun createLUTGraph(source: FileReference): FlowGraph {
             return createPostProcessGraphBase()
                 .then(BloomNode())
-                .then1(LUTColorMapNode(), mapOf("LUT Source" to source, "Apply Tone Mapping" to true))
+                .then(AutoExposureNode())
+                .then1(LUTColorMapNode(), mapOf("LUT Source" to source))
+                .afterAutoExposure()
                 .thenAlphaBlendPass() // mmh ... todo we might need a "make-tone-mappable"-parameter, so it can be tonemapped
                 .then(GizmoNode())
                 .finish()
@@ -651,7 +666,7 @@ class RenderMode private constructor(
                 .then(CellShadingNode())
                 .then(SSRNode())
                 .then(RenderTransparentNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .then(AnimeOutlineNode())
                 .thenAlphaBlendPass() // cannot handle outlines for transparent things properly anyway -> after anime outlines
                 .then(OutlineEffectSelectNode())
@@ -670,7 +685,7 @@ class RenderMode private constructor(
                 .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderTransparentNode())
                 .depthToSSAO()
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(GizmoNode())
 
@@ -686,7 +701,7 @@ class RenderMode private constructor(
         val PANINI = RenderMode(
             "Panini Projection",
             createPostProcessGraphBase()
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .thenBloomAndExposure()
                 .thenAlphaBlendPass()
                 .then(GizmoNode())
                 .then(PaniniProjectionNode())

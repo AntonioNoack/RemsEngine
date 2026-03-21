@@ -106,7 +106,7 @@ class DrawShaderCompileTest {
         DrawTextures.draw3dSlice(
             0, 0, 10, 10, 0.5f,
             whiteTex3d, false, -1,
-            applyToneMapping = false, showDepth = false
+            applyToneMapping = 0f, showDepth = false
         )
     }
 
@@ -116,7 +116,7 @@ class DrawShaderCompileTest {
         DrawTextures.draw2dArraySlice(
             0, 0, 10, 10, 5,
             whiteTex2da, false, -1,
-            applyToneMapping = false, showDepth = false
+            applyToneMapping = 0f, showDepth = false
         )
     }
 
@@ -131,7 +131,7 @@ class DrawShaderCompileTest {
     fun testDrawProjection() {
         DrawTextures.drawProjection(
             0, 0, 10, 10,
-            whiteCube, false, -1, applyToneMapping = false, showDepth = false
+            whiteCube, false, -1, applyToneMapping = 0f, showDepth = false
         )
     }
 

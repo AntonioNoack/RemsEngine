@@ -29,6 +29,7 @@ import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.graph.visual.render.compiler.GraphShader
+import me.anno.graph.visual.render.effects.ToneMappingNode.Companion.EXPOSURE_NAME
 import me.anno.maths.Maths.clamp
 import me.anno.utils.assertions.assertTrue
 
@@ -41,7 +42,7 @@ class CombineLightsNode : RenderViewNode(
         "Int", "Width",
         "Int", "Height",
         "Int", "Samples",
-        "Bool", "Apply Tone Mapping",
+        "Float", EXPOSURE_NAME, // set to a value of 0 to disable tone-mapping
         // make them same order as outputs from RenderSceneNode & RenderLightsNode
         "Vector3f", "Light",
         "Vector3f", "Diffuse",
@@ -58,7 +59,7 @@ class CombineLightsNode : RenderViewNode(
         setInput(1, 256) // width
         setInput(2, 256) // height
         setInput(3, 1) // samples
-        setInput(4, false) // apply tone mapping
+        setInput(4, 0f) // apply tone mapping
     }
 
     override fun invalidate() {
@@ -139,7 +140,7 @@ class CombineLightsNode : RenderViewNode(
             useFrame(width, height, false, framebuffer, Renderer.copyRenderer) {
                 renderPurely2 {
                     val shader = bindShader(pipeline.bakedSkybox?.getTexture0() ?: blackCube)
-                    combineLighting(shader, applyToneMapping = getBoolInput(4))
+                    combineLighting(shader, applyToneMapping = getFloatInput(4))
                 }
             }
             setOutput(1, Texture(framebuffer.getTexture0()))

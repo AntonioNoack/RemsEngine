@@ -42,7 +42,7 @@ object VRAMToRAM {
     fun drawTexturePure(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, ignoreAlpha: Boolean,
-        applyToneMapping: Boolean = false
+        applyToneMapping: Float = 0f
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
@@ -57,7 +57,7 @@ object VRAMToRAM {
         GFXx2D.posSize(shader, x, GFX.viewportHeight - y, w, -h)
         shader.v4f("color", -1)
         shader.v1i("alphaMode", ignoreAlpha.toInt())
-        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1f("applyToneMapping", applyToneMapping)
         shader.v1f("layer", 0f)
         GFXx2D.noTiling(shader)
         texture.bind(0)

@@ -51,7 +51,6 @@ import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask
 import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
-import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.input.Input
 import me.anno.input.Key
@@ -73,6 +72,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
+import me.anno.utils.types.Booleans.toFloat
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.NumberFormatter.formatFloat
@@ -125,14 +125,17 @@ object DebugRendering {
         if (texture != null && texture.isCreated()) {
             when (texture) {
                 is CubemapTexture -> {
-                    DrawTextures.drawProjection(x, y + h - s, s * 3 / 2, s, texture, true, -1, false, isDepth)
+                    DrawTextures.drawProjection(
+                        x, y + h - s, s * 3 / 2, s, texture, true,
+                        -1, 0f, isDepth
+                    )
                 }
                 is Texture2DArray -> {
                     val layer = floor(Time.gameTime % texture.layers).toFloat()
                     if (Input.isShiftDown && light is PlanarReflection) {
                         DrawTextures.drawTextureArray(
                             x, y, w, h, texture, layer, true,
-                            white.withAlpha(0.7f), null, true
+                            white.withAlpha(0.7f), null, 1f
                         )
                     } else if (isDepth) {
                         DrawTextures.drawDepthTextureArray(x, y + h - s, s, s, texture, layer)
@@ -145,7 +148,7 @@ object DebugRendering {
                     if (Input.isShiftDown && light is PlanarReflection) {
                         DrawTextures.drawTexture(
                             x, y, w, h, texture, true,
-                            white.withAlpha(0.7f), null, true
+                            white.withAlpha(0.7f), null, 1f
                         )
                     } else if (isDepth) {
                         DrawTextures.drawDepthTexture(x, y + h, s, -s, texture)
@@ -181,7 +184,7 @@ object DebugRendering {
         val renderer = Renderers.pbrRenderer
         timeRendering("DrawScene", drawSceneTimer) {
             rv.prepareDrawScene(w, h, w.toFloat() / h, camera, update = false, fillPipeline = true)
-            rv.drawScene(w, h, renderer, buffer, changeSize = true, hdr = true, sky = true)
+            rv.drawScene(w, h, renderer, buffer, changeSize = true, 1f, sky = true)
         }
         // restore near,far
         rv.near = near
@@ -378,7 +381,7 @@ object DebugRendering {
                 w, h,
                 renderer, buffer,
                 changeSize = true,
-                hdr = false, // doesn't matter
+                applyToneMapping = 0f, // doesn't matter
                 sky = false // doesn't matter, I think
             )
             view.pipeline.lightStage.visualizeLightCount = true
@@ -392,7 +395,7 @@ object DebugRendering {
             DrawTextures.drawTexture(
                 x0, y0, x1 - x0, y1 - y0,
                 lightBuffer.getTexture0(), true,
-                white, null, true // lights are bright -> dim them down
+                white, null, 1f // lights are bright -> dim them down
             )
             view.pipeline.lightStage.visualizeLightCount = false
         }
@@ -411,7 +414,7 @@ object DebugRendering {
         val rows = colsRows.y
 
         timeRendering("Scene", drawSceneTimer) {
-            view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
+            view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, 0f)
         }
 
         timeRendering("Gizmos", drawGizmoTimer) {
@@ -457,7 +460,7 @@ object DebugRendering {
                 } else {
                     DrawTextures.drawTexture(
                         x02, y02, x12 - x02, y12 - y02, texture,
-                        true, color, null, applyToneMapping
+                        true, color, null, applyToneMapping.toFloat()
                     )
                 }
 
@@ -487,7 +490,7 @@ object DebugRendering {
         val rows = colsRows.y
 
         timeRendering("Scene", drawSceneTimer) {
-            view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
+            view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, 0f)
         }
 
         timeRendering("Gizmos", drawGizmoTimer) {
@@ -554,7 +557,7 @@ object DebugRendering {
                 } else {
                     DrawTextures.drawTexture(
                         x02, y02, tw, th, texture, true, color,
-                        null, applyTonemapping
+                        null, applyTonemapping.toFloat()
                     )
                 }
                 DrawTexts.drawText(
@@ -641,7 +644,7 @@ object DebugRendering {
         } else {
             DrawTextures.drawTexture(
                 view.x, view.y, view.width, view.height, texture,
-                true, -1, null, texture.isHDR
+                true, -1, null, texture.isHDR.toFloat()
             )
         }
     }
@@ -711,7 +714,7 @@ object DebugRendering {
                 } else {
                     DrawTextures.drawTexture(
                         x2, y, x3 - x2, sz, texture,
-                        true, white, null, texture.isHDR
+                        true, white, null, texture.isHDR.toFloat()
                     )
                 }
                 if (isInspected) {

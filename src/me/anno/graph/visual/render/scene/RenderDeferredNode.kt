@@ -24,6 +24,7 @@ import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.compiler.GraphShader
+import me.anno.graph.visual.render.effects.ToneMappingNode.Companion.EXPOSURE_NAME
 import me.anno.graph.visual.render.scene.utils.CopyInputsOrClear.Companion.bindCopyShader
 import me.anno.graph.visual.render.scene.utils.CopyInputsOrClear.Companion.hasNonDepthInputs
 import me.anno.maths.Maths.clamp
@@ -37,7 +38,7 @@ open class RenderDeferredNode : RenderViewNode(
         "Int", "Height",
         "Int", "Samples",
         "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
-        "Boolean", "Apply Tone Mapping",
+        "Float", EXPOSURE_NAME, // set to a value of 0 to disable tone-mapping
         "Int", "Skybox Resolution", // or 0 to not bake it
         "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky"
     ) + inList,
@@ -85,7 +86,7 @@ open class RenderDeferredNode : RenderViewNode(
     val height get() = getIntInput(2)
     val samples get() = clamp(getIntInput(3), 1, GFX.maxSamples)
     val stage get() = getInput(4) as PipelineStage
-    val applyToneMapping get() = getBoolInput(5)
+    val applyToneMapping get() = getFloatInput(5)
     val skyResolution get() = getIntInput(6)
     val drawSky get() = getInput(7) as DrawSkyMode
 

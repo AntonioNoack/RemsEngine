@@ -3,6 +3,7 @@ package me.anno.tests.engine.effect
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderMode.Companion.opaqueNodeSettings
+import me.anno.engine.ui.render.RenderMode.Companion.thenBloomAndExposure
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.effects.BloomNode
@@ -30,7 +31,7 @@ fun main() {
             .then(SSAONode())
             .then(CombineLightsNode())
             .then(SSRNode())
-            .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+            .thenBloomAndExposure()
             .then(OutlineEffectSelectNode())
             .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
             .then(GizmoNode())

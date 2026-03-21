@@ -19,6 +19,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.effects.ToneMappingNode.Companion.EXPOSURE_NAME
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import kotlin.math.tan
@@ -32,7 +33,7 @@ import kotlin.math.tan
 class DepthOfFieldNode : TimedRenderingNode(
     "Depth of Field",
     listOf(
-        "Bool", "Apply Tone Mapping",
+        "Float", EXPOSURE_NAME, // set to a value of 0 to disable tone-mapping
         "Texture", "Illuminated",
         "Texture", "Depth"
     ), listOf("Texture", "Illuminated")
@@ -44,7 +45,7 @@ class DepthOfFieldNode : TimedRenderingNode(
 
     override fun executeAction() {
 
-        val applyToneMapping = getBoolInput(1)
+        val applyToneMapping = getFloatInput(1)
         val color = getTextureInput(2) ?: return finish()
         val depth = getTextureInput(3) ?: return finish()
 
@@ -74,7 +75,7 @@ class DepthOfFieldNode : TimedRenderingNode(
         fun render(
             color: ITexture2D, depth: ITexture2D, spherical: Float,
             focusPoint: Float, focusScale: Float, maxBlurSize: Float, radScale: Float,
-            applyToneMapping: Boolean,
+            applyToneMapping: Float,
         ): IFramebuffer {
             val w = Maths.ceilDiv(color.width, 2)
             val h = Maths.ceilDiv(color.height, 2)
@@ -98,7 +99,7 @@ class DepthOfFieldNode : TimedRenderingNode(
                 shader.v1f("focusScale", focusScale)
                 shader.v1f("maxBlurSize", maxBlurSize)
                 shader.v1f("radScale", radScale)
-                shader.v1b("applyToneMapping", applyToneMapping)
+                shader.v1f("applyToneMapping", applyToneMapping)
                 shader.v2f("pixelSize", 1f / color.width, 1f / color.height)
                 coc.getTexture0().bind(shader, "cocTex", Filtering.LINEAR, Clamping.CLAMP)
                 color.bindTrulyNearest(shader, "colorTex")
@@ -142,7 +143,7 @@ class DepthOfFieldNode : TimedRenderingNode(
                 Variable(GLSLType.V2F, "fovFactorUV"),
                 Variable(GLSLType.V1F, "maxBlurSize"),
                 Variable(GLSLType.V1F, "radScale"),
-                Variable(GLSLType.V1B, "applyToneMapping"),
+                Variable(GLSLType.V1F, "applyToneMapping"),
                 Variable(GLSLType.V2F, "pixelSize"),
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "depthTex"),
@@ -195,7 +196,9 @@ class DepthOfFieldNode : TimedRenderingNode(
                     "   } else {\n" +
                     "       result = vec4(dof(uv,centerDepth,centerSize),1.0);\n" +
                     "   }\n" +
-                    "   if(applyToneMapping) result = tonemap(result);\n" +
+                    "   if (applyToneMapping > 0.0) {\n" +
+                    "       result.rgb = tonemap(applyToneMapping * result.rgb);\n" +
+                    "   }\n" +
                     "}\n"
         )
     }

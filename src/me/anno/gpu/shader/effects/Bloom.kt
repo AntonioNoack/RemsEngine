@@ -22,7 +22,6 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Strings.iff
 import kotlin.math.exp
 import kotlin.math.max
 
@@ -162,10 +161,10 @@ object Bloom {
         )
     }
 
-    private fun addBloom(source: ITexture2D, bloom: ITexture2D, applyToneMapping: Boolean) {
+    private fun addBloom(source: ITexture2D, bloom: ITexture2D, applyToneMapping: Float) {
         val shader = compositionShader[(source.samples > 1).toInt()]
         shader.use()
-        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1f("applyToneMapping", applyToneMapping)
         shader.v1i("numSamples", source.samples)
         shader.v1f("invNumSamples", 1f / source.samples)
         source.bindTrulyNearest(0)
@@ -183,7 +182,7 @@ object Bloom {
             "composeBloom", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V4F, "result", VariableMode.OUT),
-                Variable(GLSLType.V1B, "applyToneMapping"),
+                Variable(GLSLType.V1F, "applyToneMapping"),
                 Variable(if (msIn) GLSLType.S2DMS else GLSLType.S2D, "base"),
                 Variable(GLSLType.S2D, "bloomTex"),
                 Variable(GLSLType.V1I, "numSamples"),
@@ -199,8 +198,8 @@ object Bloom {
                     // "       vec3 color = texelFetch(base,uvi,i).rgb;\n".iff(msIn) +
                     "       color = pow(max(color,vec3(0.0)),vec3(2));\n" + // srgb -> linear
                     "       color += bloom;\n" +
-                    "       if (applyToneMapping) {\n" +
-                    "           color = tonemapLinear(color);\n" +
+                    "       if (applyToneMapping > 0.0) {\n" +
+                    "           color = tonemapLinear(applyToneMapping * color);\n" +
                     "       }\n" +
                     "       sum += color;\n" +
                     // "   }\n".iff(msIn) +
@@ -213,7 +212,7 @@ object Bloom {
         shader
     }
 
-    fun bloom(source: ITexture2D, sourceMS: ITexture2D, offset: Float, strength: Float, applyToneMapping: Boolean) {
+    fun bloom(source: ITexture2D, sourceMS: ITexture2D, offset: Float, strength: Float, applyToneMapping: Float) {
         GFXState.renderPurely {
             val steps = forwardPass(source, strength, offset)
             val bloom = backwardPass(steps)

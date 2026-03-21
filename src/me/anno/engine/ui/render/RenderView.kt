@@ -78,6 +78,7 @@ import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.hex24
 import me.anno.utils.GFXFeatures
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.types.Booleans.toFloat
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
@@ -355,7 +356,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             }
             else -> {
                 timeRendering("Scene", DebugRendering.drawSceneTimer) {
-                    drawScene(w, h, renderer, buffer, changeSize = true, hdr = false, sky = true)
+                    drawScene(w, h, renderer, buffer, changeSize = true, 0f, sky = true)
                 }
                 timeRendering("Gizmos", DebugRendering.drawGizmoTimer) {
                     drawGizmos(buffer, true)
@@ -387,7 +388,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             val ids = Screenshots.getU8RGBAPixels(diameter, px2, py2, idBuffer, idRenderer) {
                 GFXState.ditherMode.use(DitherMode.DITHER2X2) {
                     idBuffer.clearColor(0, true)
-                    drawScene(width, height, idRenderer, idBuffer, changeSize = false, hdr = false, sky = false)
+                    drawScene(width, height, idRenderer, idBuffer, changeSize = false, 0f, sky = false)
                 }
             }
 
@@ -400,7 +401,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             val depths = Screenshots.getFP32RPixels(diameter, px2, py2, depthBuffer, depthRenderer) {
                 GFXState.ditherMode.use(DitherMode.DITHER2X2) {
                     depthBuffer.clearColor(0, true)
-                    drawScene(width, height, depthRenderer, depthBuffer, changeSize = false, hdr = false, sky = false)
+                    drawScene(width, height, depthRenderer, depthBuffer, changeSize = false, 0f, sky = false)
                 }
             }
 
@@ -588,11 +589,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         renderer: Renderer,
         dst: IFramebuffer,
         changeSize: Boolean,
-        hdr: Boolean,
+        applyToneMapping: Float,
         sky: Boolean = true
     ) {
         GFX.check()
-        pipeline.applyToneMapping = !hdr
+        pipeline.applyToneMapping = applyToneMapping
         useFrame(w, h, changeSize, dst, renderer) {
 
             Frame.bind()
