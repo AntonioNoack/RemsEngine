@@ -33,6 +33,13 @@ import org.lwjgl.opengl.GL46C.glMemoryBarrier
 import kotlin.math.log2
 import kotlin.math.pow
 
+// todo we should also apply desaturation at low exposure levels...
+//  implement that somehow...
+
+// todo bug:
+//  we have quite a lot of noise when exposure is very low...
+//  probably randomness not expected so small values ...
+
 class AutoExposureNode : TimedRenderingNode(
     "AutoExposure",
     listOf(
@@ -170,7 +177,7 @@ class AutoExposureNode : TimedRenderingNode(
                         "    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n" +
                         "    if (coord.x < size.x && coord.y < size.y) {\n" +
                         "        vec3 color = texelFetch(colorTex, coord${",0".iff(!msaa)}).rgb;\n" +
-                        "        float logLum = log2(max(brightness(color), 1e-36));\n" +
+                        "        float logLum = 0.5 * log2(max(brightnessSq(color), 1e-36));\n" + // 0.5 for sqrt
                         "        float normalized = (logLum - minLogLum) * $numBins.0 / (maxLogLum - minLogLum);\n" +
                         "        int binIndex = int(clamp(normalized, 0.0, ${numBins - 2f}));\n" +
                         "        float delta = clamp(normalized-float(binIndex), 0.0, 1.0);\n" +

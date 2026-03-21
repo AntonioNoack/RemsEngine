@@ -95,11 +95,14 @@ object ShaderLib {
             "}\n"
 
     val brightness = "" +
+            "float brightnessSq(vec3 color){\n" +
+            "   return (${YUV_Y.x}*color.r*color.r + ${YUV_Y.y}*color.g*color.g + ${YUV_Y.z}*color.b*color.b);\n" +
+            "}\n" +
             "float brightness(vec3 color){\n" +
-            "   return sqrt(${YUV_Y.x}*color.r*color.r + ${YUV_Y.y}*color.g*color.g + ${YUV_Y.z}*color.b*color.b);\n" +
+            "   return sqrt(brightnessSq(color));\n" +
             "}\n" +
             "float brightness(vec4 color){\n" +
-            "   return sqrt(${YUV_Y.x}*color.r*color.r + ${YUV_Y.y}*color.g*color.g + ${YUV_Y.z}*color.b*color.b);\n" +
+            "   return brightness(color.rgb);\n" +
             "}\n"
 
     const val blendColor = "" +
