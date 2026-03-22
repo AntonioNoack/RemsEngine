@@ -6,6 +6,7 @@ import me.anno.gpu.GLNames
 import me.anno.gpu.shader.ComputeShaderStats.Companion.stats
 import me.anno.gpu.shader.Shader.Companion.builder
 import me.anno.gpu.shader.ShaderLib.matMul
+import me.anno.gpu.shader.builder.ShaderPrinting.implementPrinting
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
@@ -58,6 +59,7 @@ class ComputeShader(
         builder.append(matMul)
         builder.append(source.replace("#extension", "// #extension"))
 
+        hasPrinting = builder.implementPrinting()
         val source = builder.toString()
         builder.clear()
 

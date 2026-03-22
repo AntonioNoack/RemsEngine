@@ -3,14 +3,12 @@ package me.anno.gpu.shader.builder
 import me.anno.gpu.GFX.INVALID_POINTER
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
-import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
-import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
 import me.anno.utils.Color.toHexString
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
 import speiger.primitivecollections.UniqueValueIndexMap
@@ -68,10 +66,7 @@ object ShaderPrinting {
 
     val layout = bind(Attribute("value", AttributeType.SINT32, 1))
 
-    val buffer = StaticBuffer(
-        "println", layout, BUFFER_SIZE,
-        BufferUsage.DYNAMIC
-    )
+    val buffer = ComputeBuffer("println", layout, BUFFER_SIZE)
 
     private const val PREFIX = "println(\""
 
@@ -105,12 +100,9 @@ object ShaderPrinting {
     fun bindPrintingBuffer(shader: GPUShader) {
         if (!shader.hasPrinting) return
         if (buffer.pointer == INVALID_POINTER) {
-            buffer.target = GL46C.GL_SHADER_STORAGE_BUFFER
-            val buffer = buffer.getOrCreateNioBuffer()
-            buffer.position(BUFFER_SIZE * 4)
+            buffer.uploadEmpty(BUFFER_SIZE * 4L)
         }
 
-        buffer.ensureBuffer()
         shader.bindBuffer(SLOT, buffer)
     }
 
@@ -179,7 +171,6 @@ object ShaderPrinting {
                 else -> {}
             }
         }
-        println("$format -> $result")
         return result
     }
 
