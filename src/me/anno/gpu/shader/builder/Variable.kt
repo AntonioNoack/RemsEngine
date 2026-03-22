@@ -29,9 +29,10 @@ class Variable(
         const val CHANNEL_RGBA = 3 shl CHANNEL_OFFSET
 
         const val NUMBER_OFFSET = 32 - 9
-        const val NUMBER_FLOAT = 0 shl NUMBER_OFFSET
-        const val NUMBER_INT = 1 shl NUMBER_OFFSET
-        const val NUMBER_UINT = 2 shl NUMBER_OFFSET
+        const val NUMBER_FLOAT01 = 0 shl NUMBER_OFFSET
+        const val NUMBER_FLOAT = 1 shl NUMBER_OFFSET
+        const val NUMBER_INT = 2 shl NUMBER_OFFSET
+        const val NUMBER_UINT = 3 shl NUMBER_OFFSET
 
         const val NUM_BITS_OFFSET = 32 - 7
         const val BITS_8 = 0 shl NUM_BITS_OFFSET
@@ -41,45 +42,6 @@ class Variable(
 
         const val BINDING_OFFSET = 32 - 5
 
-        fun appendLayoutAndFlags(str: StringBuilder, type: GLSLType, flags: Int) {
-            str.append("layout(")
-            val isImageType = type != GLSLType.BUFFER
-            when (type) {
-                GLSLType.BUFFER -> str.append("std430")
-                GLSLType.IMAGE1D, GLSLType.IMAGE2D, GLSLType.IMAGE3D, GLSLType.IMAGE_CUBE -> {
-                    val numChannels = 1 + (flags shr CHANNEL_OFFSET)
-                    str.append("rgba", 0, numChannels)
-                    val numBits = 8 shl (flags shr NUM_BITS_OFFSET)
-                    str.append(numBits)
-                    val format = when (flags and (3 shl NUMBER_OFFSET)) {
-                        NUMBER_FLOAT -> "f"
-                        NUMBER_INT -> "i"
-                        else -> "ui"
-                    }
-                    str.append(format)
-                }
-                else -> throw IllegalArgumentException()
-            }
-
-            val binding = flags shr BINDING_OFFSET
-            str.append(", binding=").append(binding)
-            str.append(") ")
-
-            if (flags.hasFlag(FLAG_RESTRICT)) str.append("restrict ")
-            if (flags.hasFlag(FLAG_READONLY)) str.append("readonly ")
-            if (flags.hasFlag(FLAG_WRITEONLY)) str.append("writeonly ")
-            if (flags.hasFlag(FLAG_COHERENT)) str.append("coherent ")
-
-            if (isImageType) {
-                // special type-prefixes are needed for int-images
-                when (flags and (3 shl NUMBER_OFFSET)) {
-                    NUMBER_INT -> str.append("i")
-                    NUMBER_UINT -> str.append("u")
-                }
-            }
-
-            str.append(type.glslName)
-        }
     }
 
     fun withType(inOutMode: VariableMode): Variable {
@@ -114,8 +76,9 @@ class Variable(
     constructor(base: Variable, mode: VariableMode) :
             this(base.type, base.name, base.arraySize, mode)
 
-    fun defineBufferFormat(structTypeName: String, isArray: Boolean): Variable {
-        TODO()
+    var structType: String? = null
+    fun defineBufferFormat(structDefinition: String): Variable {
+        this.structType = structDefinition
         return this
     }
 
@@ -133,8 +96,28 @@ class Variable(
         )
     }
 
+    fun readonly(): Variable {
+        flags = flags or FLAG_READONLY
+        return this
+    }
+
+    fun writeonly(): Variable {
+        flags = flags or FLAG_WRITEONLY
+        return this
+    }
+
+    fun restrict(): Variable {
+        flags = flags or FLAG_RESTRICT
+        return this
+    }
+
     fun binding(i: Int): Variable {
         this.binding = i
+        return this
+    }
+
+    fun coherent(): Variable {
+        flags = flags or FLAG_COHERENT
         return this
     }
 
@@ -144,7 +127,7 @@ class Variable(
         val bitsMask = 3 shl NUM_BITS_OFFSET
         assertEquals(0, channels and channelMask.inv())
         assertEquals(0, numberType and numberMask.inv())
-        assertEquals(0, numBits and numberMask.inv())
+        assertEquals(0, numBits and bitsMask.inv())
         val joinedMask = channelMask or numberMask or bitsMask
         flags = (flags and joinedMask.inv()) or (channels or numberType or numBits)
         return this
@@ -170,42 +153,102 @@ class Variable(
             else -> 1000
         } * max(1, arraySize)
 
+    fun isSamplerArray(prefix: String?): Boolean {
+        return prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.isSampler
+    }
+
     fun declare(code: StringBuilder, prefix: String?, assign: Boolean) {
-        if (prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.isSampler) {
-            // define sampler array
-            val type = if (!GFX.supportsDepthTextures) type.withoutShadow() else type
-            for (index in 0 until arraySize) {
-                code.append(prefix).append(' ')
-                code.append(type.glslName).append(' ')
-                code.append(name).append(index).append(";\n")
-            }
+        if (isSamplerArray(prefix)) {
+            declareSamplerArray(code, prefix)
+        } else if (type.isSpecialLayoutType) {
+            declareSpecialLayout(code)
         } else {
-            // define normal variable
-            if (prefix != null) code.append(prefix).append(' ')
-            code.append(type.glslName)
-            if (isArray) {
-                code.append('[').append(arraySize).append(']')
-            }
-            code.append(' ').append(name)
-            if (assign) {
-                when (type) {
-                    GLSLType.V1B -> code.append("=false;\n")
-                    GLSLType.V1F -> code.append("=0.0;\n")
-                    GLSLType.V2F -> code.append("=vec2(0.0,0.0);\n")
-                    GLSLType.V3F -> code.append("=vec3(0.0,0.0,0.0);\n")
-                    GLSLType.V4F -> code.append("=vec4(0.0,0.0,0.0,0.0);\n")
-                    GLSLType.V1I -> code.append("=0;\n")
-                    GLSLType.V2I -> code.append("=ivec2(0,0);\n")
-                    GLSLType.V3I -> code.append("=ivec3(0,0,0);\n")
-                    GLSLType.V4I -> code.append("=ivec4(0,0,0,0);\n")
-                    else -> code.append(";\n")
-                }
-            } else code.append(";\n")
+            declareNormalVariable(code, prefix, assign)
         }
     }
 
-    fun declare0(code: StringBuilder, prefix: String? = null) {
-        if (prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.isSampler) {
+    fun declareSpecialLayout(code: StringBuilder) {
+        // define buffer or image
+        code.append("layout(")
+        when (type) {
+            GLSLType.BUFFER -> code.append("std430")
+            GLSLType.IMAGE1D, GLSLType.IMAGE2D, GLSLType.IMAGE3D, GLSLType.IMAGE_CUBE -> {
+                code.append("rgba", 0, numImageChannels)
+                code.append(numImageChannelBits)
+                val formatI = flags.and(3 shl NUMBER_OFFSET)
+                val format = when (formatI) {
+                    NUMBER_FLOAT01 -> ""
+                    NUMBER_FLOAT -> "f"
+                    NUMBER_INT -> "i"
+                    else -> "ui"
+                }
+                code.append(format)
+            }
+            else -> throw IllegalArgumentException()
+        }
+
+        val binding = flags shr BINDING_OFFSET
+        code.append(", binding=").append(binding)
+        code.append(") ")
+
+        if (flags.hasFlag(FLAG_RESTRICT)) code.append("restrict ")
+        if (flags.hasFlag(FLAG_READONLY)) code.append("readonly ")
+        if (flags.hasFlag(FLAG_WRITEONLY)) code.append("writeonly ")
+        if (flags.hasFlag(FLAG_COHERENT)) code.append("coherent ")
+
+        if (type != GLSLType.BUFFER) {
+            // special type-prefixes are needed for int-images
+            when (flags and (3 shl NUMBER_OFFSET)) {
+                NUMBER_INT -> code.append("i")
+                NUMBER_UINT -> code.append("u")
+            }
+        }
+
+        if (type != GLSLType.BUFFER) code.append("uniform ")
+        code.append(type.glslName).append(' ').append(name)
+        if (type == GLSLType.BUFFER) code.append(" {").append(structType).append("};\n")
+        else code.append(";\n")
+    }
+
+    fun declareSamplerArray(code: StringBuilder, prefix: String?) {
+        // define sampler array
+        val type = if (!GFX.supportsDepthTextures) type.withoutShadow() else type
+        for (index in 0 until arraySize) {
+            code.append(prefix).append(' ')
+            code.append(type.glslName).append(' ')
+            code.append(name).append(index).append(";\n")
+        }
+    }
+
+    fun declareNormalVariable(code: StringBuilder, prefix: String?, assign: Boolean) {
+        // define normal variable
+        if (prefix != null) code.append(prefix).append(' ')
+        code.append(type.glslName)
+        if (isArray) {
+            code.append('[').append(arraySize).append(']')
+        }
+        code.append(' ').append(name)
+        if (assign) appendDefaultValue(code)
+        else code.append(";\n")
+    }
+
+    fun appendDefaultValue(code: StringBuilder) {
+        when (type) {
+            GLSLType.V1B -> code.append("=false;\n")
+            GLSLType.V1F -> code.append("=0.0;\n")
+            GLSLType.V2F -> code.append("=vec2(0.0,0.0);\n")
+            GLSLType.V3F -> code.append("=vec3(0.0,0.0,0.0);\n")
+            GLSLType.V4F -> code.append("=vec4(0.0,0.0,0.0,0.0);\n")
+            GLSLType.V1I -> code.append("=0;\n")
+            GLSLType.V2I -> code.append("=ivec2(0,0);\n")
+            GLSLType.V3I -> code.append("=ivec3(0,0,0);\n")
+            GLSLType.V4I -> code.append("=ivec4(0,0,0,0);\n")
+            else -> code.append(";\n")
+        }
+    }
+
+    fun declareForAssignment(code: StringBuilder, prefix: String? = null) {
+        if (isSamplerArray(prefix)) {
             throw IllegalStateException("Cannot assign to uniform array")
         } else {
             // define normal variable
@@ -242,7 +285,8 @@ class Variable(
      * Only defined for Image1D, Image2D, Image3D and ImageCube!
      * (Compute Shaders Only!)
      * */
-    val numImageChannels get() = 1 + (flags shr CHANNEL_OFFSET)
+    val numImageChannels get() = 1 + (flags shr CHANNEL_OFFSET).and(3)
+    val numImageChannelBits get() = 8 shl ((flags shr NUM_BITS_OFFSET).and(3))
 
     override fun equals(other: Any?): Boolean {
         return other is Variable && other.type == type && other.name == name

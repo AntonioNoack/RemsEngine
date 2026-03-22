@@ -5,8 +5,8 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.components.mesh.material.Texture3DBTv2Material
-import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
@@ -19,6 +19,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.builder.ImageNumberType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture3D
@@ -28,13 +29,14 @@ import me.anno.image.thumbs.AssetThumbHelper.getEndTime
 import me.anno.image.thumbs.AssetThumbHelper.removeMissingFiles
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.PIf
+import me.anno.maths.Maths.mix
 import me.anno.maths.MinMax.max
 import me.anno.maths.MinMax.min
-import me.anno.maths.Maths.mix
 import me.anno.mesh.Shapes.smoothCube
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
+import me.anno.utils.OS.res
 import me.anno.utils.Sleep
 import org.joml.AABBf
 import org.joml.Matrix4f
@@ -65,12 +67,20 @@ fun meshToVoxels(
 
 val mergeChannelsShader = ComputeShader(
     "merge-channels", Vector3i(8, 8, 8), listOf(
-        Variable(GLSLType.V3I, "size")
+        Variable(GLSLType.V3I, "size"),
+        Variable(GLSLType.IMAGE3D, "xyz")
+            .defineImageFormat(4, ImageNumberType.FLOAT01, 8)
+            .binding(0).readonly(),
+        Variable(GLSLType.IMAGE3D, "zyx")
+            .defineImageFormat(4, ImageNumberType.FLOAT01, 8)
+            .binding(1).readonly(),
+        Variable(GLSLType.IMAGE3D, "xzy")
+            .defineImageFormat(4, ImageNumberType.FLOAT01, 8)
+            .binding(2).readonly(),
+        Variable(GLSLType.IMAGE3D, "dst")
+            .defineImageFormat(4, ImageNumberType.FLOAT01, 8)
+            .binding(3).writeonly(),
     ), "" +
-            "layout(rgba8, binding = 0) uniform image3D xyz;\n" +
-            "layout(rgba8, binding = 1) uniform image3D zyx;\n" +
-            "layout(rgba8, binding = 2) uniform image3D xzy;\n" +
-            "layout(rgba8, binding = 3) uniform image3D dst;\n" +
             // better max function: use max by alpha, not combine all colors:
             //  just max() could introduce wrong colors, e.g. max(red, blue) should not become violet
             "vec4 maxByAlpha(vec4 a, vec4 b){\n" +
@@ -176,8 +186,10 @@ fun meshToSeparatedVoxels(
 val skipDistanceShader = ComputeShader(
     "skip-distances", Vector3i(8, 8, 8), listOf(
         Variable(GLSLType.V3I, "size"),
+        Variable(GLSLType.IMAGE3D, "data")
+            .defineImageFormat(4, ImageNumberType.FLOAT01, 8)
+            .binding(0)
     ), "" +
-            "layout(rgba8, binding = 0) uniform image3D data;\n" +
             "#define s 0.003921569\n" +
             "float read(ivec3 positions){\n" +
             "   if(all(greaterThanEqual(positions,ivec3(0))) && all(lessThan(positions,size))){\n" +
@@ -251,14 +263,13 @@ fun mergeChannels(
 
 /**
  * Rasterize a mesh on the GPU in 3D
+ * https://developer.nvidia.com/gpugems/gpugems2/part-v-image-oriented-computing/chapter-37-octree-textures-gpu
  * */
 fun main() {
 
     OfficialExtensions.initForTests()
 
     // convert triangle mesh into voxels quickly
-
-    // https://developer.nvidia.com/gpugems/gpugems2/part-v-image-oriented-computing/chapter-37-octree-textures-gpu
 
     // first triangles -> full cuboid
     // target: 256³ = 16M voxels
@@ -267,7 +278,8 @@ fun main() {
     // oct-tree-leaf:
     // color, normal?, material type / roughness / metallic
     // time limit: 1s
-    val file = downloads.getChild("3d/DamagedHelmet.glb")
+    val file0 = downloads.getChild("3d/DamagedHelmet.glb")
+    val file = if (file0.exists) file0 else res.getChild("meshes/CuteGhost.fbx")
     val mesh = MeshCache.getEntry(file).waitFor() as Mesh
 
     val bounds = AABBf(mesh.getBounds())

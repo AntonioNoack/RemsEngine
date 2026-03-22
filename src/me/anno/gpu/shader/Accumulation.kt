@@ -18,12 +18,14 @@ object Accumulation {
     val smallStepShader = ComputeShader(
         "accumulate", Vector3i(1024, 1, 1), listOf(
             Variable(GLSLType.V1I, "totalSize"),
+            Variable(GLSLType.BUFFER, "dataLayout")
+                .defineBufferFormat("uint data[];")
+                .binding(0)
         ), "" +
-                "layout(std430, binding = 0) buffer dataLayout { uint data[]; };\n" +
                 "shared uint[1024] tmp;\n" + // 32 kB are guaranteed to exist -> we're fine with using 4 kB :)
                 "void main() {\n" +
                 "   int index = int(gl_GlobalInvocationID.x);\n" +
-                "   if(index < totalSize){\n" +
+                "   if (index < totalSize){\n" +
                 "       int localIndex = index & 1023;\n" +
                 "       tmp[localIndex] = data[index];\n" +
                 "       for(int step = 1;step < totalSize;step = step << 1){\n" +
@@ -39,10 +41,16 @@ object Accumulation {
     val generalShader = ComputeShader(
         "accumulate", Vector3i(1024, 1, 1), listOf(
             Variable(GLSLType.V1I, "totalSize"),
-            Variable(GLSLType.V1I, "step")
+            Variable(GLSLType.V1I, "step"),
+            Variable(GLSLType.BUFFER, "srcLayout")
+                .defineBufferFormat("uint src[];")
+                .readonly()
+                .binding(0),
+            Variable(GLSLType.BUFFER, "dstLayout")
+                .defineBufferFormat("uint dst[];")
+                .writeonly()
+                .binding(1)
         ), "" +
-                "layout(std430, binding = 0) buffer srcLayout { uint src[]; };\n" +
-                "layout(std430, binding = 1) buffer dstLayout { uint dst[]; };\n" +
                 "void main() {\n" +
                 "   int index = int(gl_GlobalInvocationID.x);\n" +
                 "   if(index < totalSize){\n" +

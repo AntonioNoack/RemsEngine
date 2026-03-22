@@ -64,7 +64,7 @@ import me.anno.utils.Clock
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.toRGB
-import me.anno.utils.OS.documents
+import me.anno.utils.OS.res
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.ByteBufferPool
@@ -91,7 +91,7 @@ fun main() {
     OfficialExtensions.initForTests()
     val clock = Clock("BRealtimeTest")
     forceLoadRenderDoc()
-    val meshSource = documents.getChild("monkey.obj")
+    val meshSource = res.getChild("meshes/CuteGhost.fbx")
     val mesh = MeshCache.getEntry(meshSource).waitFor() as Mesh
     clock.stop("Loading mesh")
     val blas = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 8)!!
@@ -266,7 +266,7 @@ fun createCPUPanel(
                     for (y in y0 until y1) {
                         var i = x0 + y * w
                         for (x in x0 until x1) {
-                            dir.set(x - cx, cy - y, fovZ).normalize()
+                            dir.set(x - cx, y - cy, fovZ).normalize()
                             lastRot.transform(dir)
 
                             // todo bug: z-order isn't handled properly

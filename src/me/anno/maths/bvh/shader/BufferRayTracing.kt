@@ -32,10 +32,11 @@ object BufferRayTracing {
             "};\n"
 
     // std430 needed? yes, core since 4.3
+    // this needs the struct definitions, so we cannot convert it into Variable()s yet
     val bufferLayouts = "" +
-            "layout(std140, shared, binding = 0) readonly buffer triangles  { Vertex vertices[]; };\n" +
-            "layout(std140, shared, binding = 1) readonly buffer blasBuffer { BLASNode blasNodes[]; };\n" +
-            "layout(std140, shared, binding = 2) readonly buffer tlasBuffer0 { TLASNode0 tlasNodes0[]; };\n" +
-            "layout(std140, shared, binding = 3) readonly buffer tlasBuffer1 { TLASNode1 tlasNodes1[]; };\n" +
+            "layout(std430, binding = 0) readonly buffer triangles  { Vertex vertices[]; };\n" +
+            "layout(std430, binding = 1) readonly buffer blasBuffer { BLASNode blasNodes[]; };\n" +
+            "layout(std430, binding = 2) readonly buffer tlasBuffer0 { TLASNode0 tlasNodes0[]; };\n" +
+            "layout(std430, binding = 3) readonly buffer tlasBuffer1 { TLASNode1 tlasNodes1[]; };\n" +
             "layout(rgba32f, binding = 4) uniform image2D dst;\n"
 }

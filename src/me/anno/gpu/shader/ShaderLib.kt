@@ -1,6 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.shader.YUVHelper.YUV_Y
+import me.anno.gpu.shader.builder.ImageNumberType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import org.joml.Vector3i
@@ -416,9 +417,11 @@ object ShaderLib {
                 Variable(GLSLType.V2I, "invokeSize"),
                 Variable(GLSLType.V1B, "disableSubpixelRendering"),
                 Variable(if (instanced) GLSLType.S2DA else GLSLType.S2D, "tex"),
+                Variable(GLSLType.IMAGE2D, "dst")
+                    .defineImageFormat(4, ImageNumberType.FLOAT01, 8)
+                    .binding(1).restrict()
             ), "" +
                     brightness +
-                    "layout(rgba8, binding = 1) restrict uniform image2D dst;\n" +
                     // the border isn't the most beautiful, but it ensures readability in front of bad backgrounds :)
                     "float read(vec2 uv){\n" +
                     (if (instanced)

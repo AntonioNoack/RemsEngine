@@ -9,6 +9,7 @@ import me.anno.gpu.buffer.AttributeReadWrite.createAccessors
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.builder.ImageNumberType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.structures.maps.LazyMap
@@ -322,17 +323,20 @@ object ComputeShaders {
                 Variable(GLSLType.V1I, "numPrimitives"),
                 Variable(GLSLType.V1I, "numInstances"),
                 Variable(GLSLType.V2I, "viewportSize"),
-            ), "" +
+                Variable(GLSLType.IMAGE2D, "depthTex")
+                    .defineImageFormat(1, ImageNumberType.FLOAT, 32)
+                    .binding(0).coherent(),
+                ) + outputs.mapIndexed { idx, layer ->
+                Variable(GLSLType.IMAGE2D, layer.name + "Tex")
+                    .defineImageFormat(4, ImageNumberType.FLOAT, 32)
+                    .binding(idx + 1)
+            }, "" +
                     createMeshAccessors(meshAttr, attributes, instNames) +
                     createInstanceAccessors(instAttr, attributes, instNames) +
-                    "layout(r32f, binding = 0) coherent uniform image2D depthTex;\n" +
-                    outputs.withIndex().joinToString("") { (idx, layer) ->
-                        "layout(rgba32f, binding = ${idx + 1}) uniform image2D ${layer.name}Tex;\n"
-                    } +
                     (if (indexed != null) {
                         "layout(std430, binding = 2) buffer IndexBuffer {\n" +
                                 "    uint data[];\n" +
-                                "} Indices;\n"
+                                "};\n"
                     } else "") +
                     "struct Pixel {\n" +
                     varyings.joinToString("") {

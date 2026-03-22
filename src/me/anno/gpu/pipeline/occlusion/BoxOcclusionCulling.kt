@@ -29,6 +29,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector3f
 import org.joml.Vector3i
+import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL46C.GL_DRAW_INDIRECT_BUFFER
 import org.lwjgl.opengl.GL46C.glDrawArraysIndirect
 import org.lwjgl.opengl.GL46C.glDrawElementsIndirect
@@ -84,11 +85,12 @@ class BoxOcclusionCulling : AttachedDepthPass() {
                 ), listOf(
                     Variable(GLSLType.V1I, "frameId"),
                     Variable(GLSLType.S2D, "depthTex"),
-                    Variable(GLSLType.V4F, "ignoredOutput", VariableMode.OUT)
+                    Variable(GLSLType.V4F, "ignoredOutput", VariableMode.OUT),
+                    Variable(GLSLType.BUFFER, "isVisible")
+                        .defineBufferFormat("int values[];")
+                        .binding(0)
+                        .writeonly()
                 ), "" +
-                        "layout (binding = 0) writeonly buffer isVisible {\n" +
-                        "  int values[];\n" +
-                        "};\n" +
                         "void main() {\n" +
                         "   float epsilon = 1.0001;\n" +
                         "   float boxDepth = texelFetch(depthTex,ivec2(gl_FragCoord.xy),0).x;\n" +

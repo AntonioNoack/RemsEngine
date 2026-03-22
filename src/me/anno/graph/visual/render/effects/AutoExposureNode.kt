@@ -155,16 +155,12 @@ class AutoExposureNode : TimedRenderingNode(
                     Variable(GLSLType.V1F, "minLogLum"),
                     Variable(GLSLType.V1F, "maxLogLum"),
                     Variable(if (msaa) GLSLType.S2DMS else GLSLType.S2D, "colorTex"),
+                    Variable(GLSLType.BUFFER, "Histogram", numBins)
+                        .defineBufferFormat("uint bins[$numBins];")
+                        .binding(0)
                 ), "" +
-                        // Global histogram
-                        "layout(std430, binding = 0) buffer Histogram {\n" +
-                        "    uint bins[$numBins];\n" +
-                        "};\n" +
-
-                        "shared uint localBins[$numBins];\n" +
-
                         brightness +
-
+                        "shared uint localBins[$numBins];\n" +
                         "void main() {\n" +
                         // Init shared histogram
                         "    for (uint i = gl_LocalInvocationIndex; i < $numBins; i += ${localSize.product()}) {\n" +

@@ -39,9 +39,9 @@ enum class GLSLType(val glslName: String, val id: Int, val components: Int) {
     S2DA("sampler2DArray", 24, 1000),
     S2DAShadow("sampler2DArrayShadow", 25, 1000),
 
-    IMAGE1D("image1d", 26, 1000),
-    IMAGE2D("image2d", 27, 1000),
-    IMAGE3D("image3d", 28, 1000),
+    IMAGE1D("image1D", 26, 1000),
+    IMAGE2D("image2D", 27, 1000),
+    IMAGE3D("image3D", 28, 1000),
     IMAGE_CUBE("imageCube", 29, 1000),
 
     BUFFER("buffer", 30, 1000),
@@ -49,6 +49,7 @@ enum class GLSLType(val glslName: String, val id: Int, val components: Int) {
 
     val isNativeInt = id in 0..7
     val isSampler = glslName.startsWith("sampler")
+    val isSpecialLayoutType = glslName.startsWith("image") || glslName == "buffer"
 
     override fun toString(): String = glslName
 

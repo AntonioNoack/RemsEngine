@@ -8,6 +8,7 @@ import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.loadMat4x3
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.shader.builder.ImageNumberType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
@@ -143,10 +144,17 @@ val commonFunctions = glslIntersections + quatRot + loadMat4x3 + glslRandomGen +
 
 fun createBLASTextureComputeShader(maxDepth: Int): ComputeShader {
     return ComputeShader(
-        "bvh-traversal", Vector3i(16, 16, 1), commonUniforms, "" +
-                "layout(rgba32f, binding = 0) readonly  uniform image2D triangles;\n" +
-                "layout(rgba32f, binding = 1) readonly  uniform image2D nodes;\n" +
-                "layout(rgba32f, binding = 3) uniform image2D dst;\n" +
+        "bvh-traversal", Vector3i(16, 16, 1), commonUniforms + listOf(
+            Variable(GLSLType.IMAGE2D, "triangles")
+                .defineImageFormat(4, ImageNumberType.FLOAT, 32)
+                .binding(0).readonly(),
+            Variable(GLSLType.IMAGE2D, "nodes")
+                .defineImageFormat(4, ImageNumberType.FLOAT, 32)
+                .binding(1).readonly(),
+            Variable(GLSLType.IMAGE2D, "dst")
+                .defineImageFormat(4, ImageNumberType.FLOAT, 32)
+                .binding(3),
+        ), "" +
                 "#define Infinity 1e15\n" +
                 commonFunctions +
                 "#define BLAS_DEPTH $maxDepth\n" +
@@ -275,11 +283,20 @@ fun createTLASTextureComputeShader(bvh: TLASNode): TLASTexShader {
 
     val lib = TextureRTShaderLib()
     val shader = ComputeShader(
-        "bvh-traversal", Vector3i(16, 16, 1), commonUniforms, "" +
-                "layout(rgba32f, binding = 0) readonly  uniform image2D triangles;\n" +
-                "layout(rgba32f, binding = 1) readonly  uniform image2D blasNodes;\n" +
-                "layout(rgba32f, binding = 2) readonly  uniform image2D tlasNodes;\n" +
-                "layout(rgba32f, binding = 3) uniform image2D dst;\n" +
+        "bvh-traversal", Vector3i(16, 16, 1), commonUniforms + listOf(
+            Variable(GLSLType.IMAGE2D, "triangles")
+                .defineImageFormat(4, ImageNumberType.FLOAT, 32)
+                .binding(0).readonly(),
+            Variable(GLSLType.IMAGE2D, "blasNodes")
+                .defineImageFormat(4, ImageNumberType.FLOAT, 32)
+                .binding(1).readonly(),
+            Variable(GLSLType.IMAGE2D, "tlasNodes")
+                .defineImageFormat(4, ImageNumberType.FLOAT, 32)
+                .binding(2).readonly(),
+            Variable(GLSLType.IMAGE2D, "dst")
+                .defineImageFormat(4, ImageNumberType.FLOAT, 32)
+                .binding(3),
+        ), "" +
                 "#define Infinity 1e15\n" +
                 commonFunctions +
                 "#define nodes blasNodes\n" +

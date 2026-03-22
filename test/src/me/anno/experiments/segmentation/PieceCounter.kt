@@ -5,6 +5,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.builder.ImageNumberType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
@@ -31,11 +32,15 @@ fun main() {
             Variable(GLSLType.V1I, "x1"),
             Variable(GLSLType.V1I, "y0"),
             Variable(GLSLType.V1I, "y1"),
-            Variable(GLSLType.V1F, "scale")
+            Variable(GLSLType.V1F, "scale"),
+            Variable(GLSLType.IMAGE2D, "src")
+                .defineImageFormat(4, ImageNumberType.FLOAT01, 8)
+                .binding(0).readonly(),
+            Variable(GLSLType.IMAGE2D, "dst")
+                .defineImageFormat(1, ImageNumberType.FLOAT, 32)
+                .binding(1).writeonly()
         ), "" +
-                "layout(rgba8, binding = 0) uniform image2D src;\n" +
-                "layout(r32f, binding = 1) uniform image2D dst;\n" +
-                "void main(){\n" +
+                "void main() {\n" +
                 "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy);\n" +
                 "   if(any(greaterThanEqual(uv + ivec2(x1-x0,y1-y0), imageSize(src)))) return;\n" +
                 "   float corr = 0.0;\n" +

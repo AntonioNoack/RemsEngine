@@ -428,17 +428,17 @@ class MainStage {
         // assign bridge variables/varyings
         if (isFragmentStage) {
             for ((local, varying) in bridgeVariablesV2F) {
-                local.declare0(code, null)
+                local.declareForAssignment(code, null)
                 code.append("=").append(varying.name).append("; // bridge-step#1\n")
                 defined += local
             }
             for ((local, varying) in bridgeVariablesI2F) {
-                local.declare0(code, null)
+                local.declareForAssignment(code, null)
                 code.append("=").append(varying.name).append("; // bridge-step#2\n")
                 defined += local
             }
             for (variable in bridgeVariables2) {
-                variable.declare0(code, null)
+                variable.declareForAssignment(code, null)
                 code.append("=get_").append(variable.name).append("(); // bridge-step#3\n")
                 defined += variable
             }
@@ -467,7 +467,7 @@ class MainStage {
                     // if the shader works properly, it is overridden anyway
                     val dlt = DeferredLayerType.byName[param.name]
                     if (dlt != null && dlt.workDims == param.type.components) {
-                        param.declare0(code, null)
+                        param.declareForAssignment(code, null)
                         code.append('=')
                         dlt.appendDefaultValue(code)
                         code.append(";\n")

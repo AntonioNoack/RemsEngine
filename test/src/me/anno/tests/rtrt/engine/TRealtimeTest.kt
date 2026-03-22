@@ -22,6 +22,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.input.EnumInput
 import me.anno.utils.Clock
 import me.anno.utils.OS
+import me.anno.utils.OS.res
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -51,10 +52,11 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
         OS.downloads.getChild("3d/ogldev-source/dabrovic-sponza/sponza.obj"),
         OS.downloads.getChild("3d/ogldev-source/conference-room/conference.obj"),
         OS.documents.getChild("TestScene4.fbx"),
-        OS.downloads.getChild("3d/XYZ arrows.obj")
+        OS.downloads.getChild("3d/XYZ arrows.obj"),
+        res.getChild("meshes/CuteGhost.fbx")
     )
 
-    val source = sources[0]
+    val source = sources[5]
     val pipeline = Pipeline(DeferredSettings(listOf(DeferredLayerType.COLOR)))
     pipeline.defaultStage = PipelineStageImpl(
         "default", 0, null, alwaysDepthMode, true, CullMode.BOTH,
