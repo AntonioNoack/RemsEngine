@@ -172,7 +172,7 @@ class AutoExposureNode : TimedRenderingNode(
                         "    ivec2 size = textureSize(colorTex${",0".iff(!msaa)});\n" +
                         "    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n" +
                         "    if (coord.x < size.x && coord.y < size.y) {\n" +
-                        "        vec3 color = texelFetch(colorTex, coord${",0".iff(!msaa)}).rgb;\n" +
+                        "        vec3 color = texelFetch(colorTex, coord, 0).rgb;\n" +
                         "        float logLum = 0.5 * log2(max(brightnessSq(color), 1e-36));\n" + // 0.5 for sqrt
                         "        float normalized = (logLum - minLogLum) * $numBins.0 / (maxLogLum - minLogLum);\n" +
                         "        int binIndex = int(clamp(normalized, 0.0, ${numBins - 2f}));\n" +
