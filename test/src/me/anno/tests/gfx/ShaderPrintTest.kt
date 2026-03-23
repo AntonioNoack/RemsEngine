@@ -20,7 +20,7 @@ fun main() {
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
         ), "" +
                 ShaderPrinting.PRINTING_LIB +
-                ShaderPrinting.definePrintCall(listOf(GLSLType.V2F, GLSLType.V1F)) +
+                ShaderPrinting.definePrintCall(GLSLType.V2F, GLSLType.V1F) +
                 "void main() {\n" +
                 "   float len = fract(1.0 / length(uv));\n" +
                 "   if(len < 1e-5) println(\"Found value: (%f,%f) -> %f\", uv, len);\n" +

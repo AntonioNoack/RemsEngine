@@ -55,15 +55,19 @@ import org.lwjgl.opengl.GL46C.glShaderSource
 import org.lwjgl.opengl.GL46C.glUniform1f
 import org.lwjgl.opengl.GL46C.glUniform1fv
 import org.lwjgl.opengl.GL46C.glUniform1i
+import org.lwjgl.opengl.GL46C.glUniform1iv
 import org.lwjgl.opengl.GL46C.glUniform2f
 import org.lwjgl.opengl.GL46C.glUniform2fv
 import org.lwjgl.opengl.GL46C.glUniform2i
+import org.lwjgl.opengl.GL46C.glUniform2iv
 import org.lwjgl.opengl.GL46C.glUniform3f
 import org.lwjgl.opengl.GL46C.glUniform3fv
 import org.lwjgl.opengl.GL46C.glUniform3i
+import org.lwjgl.opengl.GL46C.glUniform3iv
 import org.lwjgl.opengl.GL46C.glUniform4f
 import org.lwjgl.opengl.GL46C.glUniform4fv
 import org.lwjgl.opengl.GL46C.glUniform4i
+import org.lwjgl.opengl.GL46C.glUniform4iv
 import org.lwjgl.opengl.GL46C.glUniformMatrix2fv
 import org.lwjgl.opengl.GL46C.glUniformMatrix3fv
 import org.lwjgl.opengl.GL46C.glUniformMatrix4fv
@@ -731,6 +735,46 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
                     glUniform4i(loc, x, y, z, w)
                 }
             }
+        }
+    }
+
+    @Suppress("unused")
+    fun v1is(name: String, vs: IntArray) = v1is(getUniformLocation(name), vs)
+    fun v1is(loc: Int, vs: IntArray) {
+        if (loc >= 0) {
+            checkUniformType(loc, GLSLType.V1I, true)
+            potentiallyUse()
+            glUniform1iv(loc, vs)
+        }
+    }
+
+    @Suppress("unused")
+    fun v2is(name: String, vs: IntArray) = v2is(getUniformLocation(name), vs)
+    fun v2is(loc: Int, vs: IntArray) {
+        if (loc >= 0) {
+            checkUniformType(loc, GLSLType.V2I, true)
+            potentiallyUse()
+            glUniform2iv(loc, vs)
+        }
+    }
+
+    @Suppress("unused")
+    fun v3is(name: String, vs: IntArray) = v3is(getUniformLocation(name), vs)
+    fun v3is(loc: Int, vs: IntArray) {
+        if (loc >= 0) {
+            checkUniformType(loc, GLSLType.V3I, true)
+            potentiallyUse()
+            glUniform3iv(loc, vs)
+        }
+    }
+
+    @Suppress("unused")
+    fun v4is(name: String, vs: IntArray) = v4is(getUniformLocation(name), vs)
+    fun v4is(loc: Int, vs: IntArray) {
+        if (loc >= 0) {
+            checkUniformType(loc, GLSLType.V4I, true)
+            potentiallyUse()
+            glUniform4iv(loc, vs)
         }
     }
 

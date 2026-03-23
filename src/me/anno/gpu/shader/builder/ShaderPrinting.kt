@@ -17,7 +17,7 @@ object ShaderPrinting {
 
     private val LOGGER = LogManager.getLogger(ShaderPrinting::class)
 
-    const val MAX_SIZE = 256
+    const val MAX_SIZE = 8 shl 10
     const val SLOT = 32
 
     private const val BUFFER_SIZE = MAX_SIZE + 1
@@ -37,6 +37,10 @@ object ShaderPrinting {
             "void push(int id, float value) { if(id >= 0) printBuffer[id] = floatBitsToInt(value); }\n" +
             "#endif\n"
 
+    fun definePrintCall(vararg types: GLSLType): String {
+        return definePrintCall(types.asList())
+    }
+
     fun definePrintCall(types: List<GLSLType>): String {
         val hash = types.hashCode().toHexString()
         val print = StringBuilder()
@@ -55,7 +59,7 @@ object ShaderPrinting {
             val type = types[i]
             for (j in 0 until type.components) {
                 print.append("push(id+").append(offset++).append(",v").append(i)
-                if (type.components > 1) print.append('.').append('x' + j)
+                if (type.components > 1) print.append('.').append("xyzw"[j])
                 print.append(");")
             }
         }

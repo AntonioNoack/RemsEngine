@@ -111,7 +111,11 @@ open class Shader(
             )
         }
 
-        if (glslVersion < 430 && ("layout(std430" in vertexShader || "layout(std430" in fragmentShader)) {
+        if (glslVersion < 430 &&
+            ("layout(std430" in vertexShader || "layout(std430" in fragmentShader ||
+                    vertexVariables.any2 { it.type == GLSLType.BUFFER } ||
+                    fragmentVariables.any2 { it.type == GLSLType.BUFFER })
+        ) {
             glslVersion = 430
         }
 

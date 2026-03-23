@@ -199,7 +199,7 @@ object ScreenSpaceAmbientOcclusion {
                     "   }\n" +
                     "}"
         ).apply {
-            glslVersion = 330
+            glslVersion = max(glslVersion, 330)
         }
     }
 
