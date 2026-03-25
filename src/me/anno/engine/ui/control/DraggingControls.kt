@@ -636,7 +636,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     }
 
     private fun onChangeTransform(entity: Entity) {
-        val root = entity.getRoot(Entity::class)
+        val root = entity.getRoot(Entity::class) ?: entity
         val prefab = root.prefab
         val path = entity.prefabPath
         val transform = entity.transform

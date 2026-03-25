@@ -40,8 +40,10 @@ import me.anno.ui.base.Search
 import me.anno.ui.base.menu.ComplexMenuEntry
 import me.anno.ui.base.menu.ComplexMenuGroup
 import me.anno.ui.base.menu.ComplexMenuOption
+import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.menuSeparator1
 import me.anno.ui.base.menu.Menu.openComplexMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.treeView.TreeView
@@ -518,14 +520,34 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
             //   - only keep entities with children
             //   - if only one remains, use that
             //   - if there is only one component and no transform, place that at root?
+            val path = parent.prefabPath
             val extraOptions = listOf(
                 ComplexMenuOption(NameDesc("Reset all changes"), prefab != null) {
                     LogManager.enableLogger("Hierarchy")
-                    Hierarchy.resetPrefab(prefab!!, parent.prefabPath, true)
+                    Hierarchy.resetPrefab(prefab!!, path, true)
                 },
                 ComplexMenuOption(NameDesc("Reset changes excl. transform"), prefab != null) {
                     LogManager.enableLogger("Hierarchy")
-                    Hierarchy.resetPrefabExceptTransform(prefab!!, parent.prefabPath, true)
+                    Hierarchy.resetPrefabExceptTransform(prefab!!, path, true)
+                },
+                ComplexMenuOption(
+                    NameDesc("Change Type"),
+                    prefab != null && prefab.addsByItself(path)
+                ) {
+                    val grandParent = parent.parent
+                    val classNames = if (grandParent != null) {
+                        val childOptions = grandParent.listChildTypes().flatMap { childType ->
+                            grandParent.getOptionsByType(childType) ?: emptyList()
+                        }
+                        childOptions.map { it.getSample().className }
+                            .distinct().sorted()
+                    } else objectTypeRegistry.keys
+                    Menu.openMenu(windowStack, NameDesc("Choose New Class"), classNames.map { newClassName ->
+                        MenuOption(NameDesc(newClassName)) {
+                            LogManager.enableLogger("Hierarchy")
+                            Hierarchy.changeType(prefab!!, path, newClassName)
+                        }
+                    })
                 },
                 ComplexMenuOption(NameDesc("Copy path"), prefab != null) {
                     Clipboard.setClipboardContent(parent.prefabPath.toString())

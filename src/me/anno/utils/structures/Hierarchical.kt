@@ -3,6 +3,7 @@ package me.anno.utils.structures
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertFalse
 import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
 interface Hierarchical<V : Hierarchical<V>> {
 
@@ -58,10 +59,10 @@ interface Hierarchical<V : Hierarchical<V>> {
     }
 
     @Suppress("unchecked_cast")
-    fun <V : Any> getRoot(type: KClass<V>): V {
-        val parent = parent ?: return this as V
+    fun <V : Any> getRoot(type: KClass<V>): V? {
+        val parent = parent ?: return type.safeCast(this)
         return if (type.isInstance(parent)) parent.getRoot(type)
-        else this as V
+        else type.safeCast(this)
     }
 
     @Suppress("unchecked_cast")

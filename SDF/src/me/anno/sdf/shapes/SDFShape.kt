@@ -64,7 +64,8 @@ abstract class SDFShape : SDFComponent(), DCPaintable {
         builder.append(",").appendUniform(uniforms, GLSLType.V1F) {
             val currentRenderer = currentRenderer
             val id = if (currentRenderer == Renderer.idRenderer ||
-                currentRenderer == Renderer.randomIdRenderer) clickId else materialId
+                currentRenderer == Renderer.randomIdRenderer
+            ) clickId else materialId
             id.toFloat()
         }.append(",uv);\n")
     }
@@ -85,7 +86,7 @@ abstract class SDFShape : SDFComponent(), DCPaintable {
 
     override fun paint(self: DraggingControls, color: Material, file: FileReference) {
         val materialId = materialId
-        val root = getRoot(SDFComponent::class)
+        val root = getRoot(SDFComponent::class) ?: this
         val oldList = root.sdfMaterials
         if (materialId >= 0 && (materialId < oldList.size + 3)) {
             val newSize = max(materialId + 1, oldList.size)

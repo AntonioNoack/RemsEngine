@@ -2,6 +2,7 @@ package me.anno.ecs.prefab
 
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
+import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.InvalidRef
@@ -11,6 +12,7 @@ import me.anno.utils.Logging.hash32
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 
@@ -418,9 +420,9 @@ object Hierarchy {
         }
         val changes = changes0 + changes1
         if (changes > 0) {
-            LOGGER.info("Removed $changes0 instances + $changes1 properties")
+            LOGGER.info("[resetInclTransform] Removed $changes0 instances + $changes1 properties")
             prefab.invalidateInstance()
-        } else LOGGER.info("Instance was already reset")
+        } else LOGGER.info("[resetInclTransform] Instance was already reset")
     }
 
     fun resetPrefabExceptTransform(prefab: Prefab, path: Path, removeChildren: Boolean) {
@@ -445,8 +447,29 @@ object Hierarchy {
         }
         val changes = changes0 + changes1
         if (changes > 0) {
-            LOGGER.info("Removed $changes0 instances + $changes1 properties")
+            LOGGER.info("[resetExceptTransform] Removed $changes0 instances + $changes1 properties")
             prefab.invalidateInstance()
-        } else LOGGER.info("Instance was already reset")
+        } else {
+            LOGGER.info("[resetExceptTransform] Instance was already reset")
+        }
+    }
+
+    fun changeType(prefab: Prefab, path: Path, newClassName: String): Boolean {
+        val oldType: String
+        if (path == ROOT_PATH) {
+            oldType = prefab.className
+            if (oldType == newClassName) return false
+            prefab.clazzName = newClassName
+        } else {
+            val add = prefab.adds[path.parent ?: ROOT_PATH]
+                ?.firstOrNull2 { add -> add.matches(path) }
+                ?: return false
+            oldType = add.className
+            if (oldType== newClassName) return false
+            add.clazzName = newClassName
+        }
+        LOGGER.info("Changed type of ${prefab.sourceFile}.$path from $oldType to $newClassName")
+        prefab.invalidateInstance()
+        return true
     }
 }

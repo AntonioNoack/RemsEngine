@@ -106,7 +106,7 @@ class PointLight : LightComponent(LightType.POINT) {
                             near / worldScale, far / worldScale, deg90, resolution, 1f, position,
                             cameraRotation
                         )
-                        pipeline.fill(root)
+                        if (root != null) pipeline.fill(root)
                         pipeline.singlePassWithoutSky()
                     }
                 }

@@ -255,7 +255,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
     }
 
     private fun renderCascade(
-        pipeline: Pipeline, root: PrefabSaveable,
+        pipeline: Pipeline, root: PrefabSaveable?,
         position: Vector3d, tmpPos: Vector3d, cascadeIndex: Int,
         rotation: Quaternionf, direction: Vector3f,
         drawTransform: Matrix4x3, resolution: Int,
@@ -273,7 +273,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         )
         val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
         RenderState.calculateDirections(isPerspective, true)
-        pipeline.fill(root)
+        if (root != null) pipeline.fill(root)
         // decals and transparent objects are irrelevant for shadows
         pipeline.stages.getOrNull(PipelineStage.DECAL.id)?.clear()
         pipeline.stages.getOrNull(PipelineStage.GLASS.id)?.clear()

@@ -15,7 +15,7 @@ abstract class TexturedLight(lightType: LightType) : LightComponent(lightType) {
     var texture: FileReference = InvalidRef
 
     @Docs("How big the projected texture shall be; ignored for SpotLight")
-    @Range(0.0, 1.0)
+    @Range(0.0, 3.0)
     var textureSize = 0.1f
 
     var filtering: Filtering = Filtering.TRULY_LINEAR

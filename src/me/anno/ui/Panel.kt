@@ -175,7 +175,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     @NotSerializedProperty
     var wasHovered = false
 
-    val rootPanel: Panel get() = getRoot(Panel::class)
+    val rootPanel: Panel get() = getRoot(Panel::class) ?: this
 
     open val onMovementHideTooltip = true
 

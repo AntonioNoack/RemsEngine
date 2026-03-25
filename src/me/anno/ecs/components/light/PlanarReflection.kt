@@ -94,7 +94,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         cameraMatrix0: Matrix4f,
         cameraPosition: Vector3d
     ) {
-        val transform = transform!!.globalTransform
+        val transform = (transform ?: nullTransform).globalTransform
         val mirrorPosition = transform.getTranslation(tmp0d)
 
         // local -> global = yes, this is the correct direction
@@ -133,7 +133,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         // define last frustum plane
         pipeline.frustum.planes[pipeline.frustum.numPlanes++].set(mirrorPos, mirrorNormal)
 
-        pipeline.fill(root)
+        if (root != null) pipeline.fill(root)
         addDefaultLightsIfRequired(pipeline, root, null)
         // mirrors inside mirrors don't work, because we could look behind things
         pipeline.planarReflections.clear()
@@ -265,6 +265,8 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
     }
 
     companion object {
+
+        private val nullTransform = Transform()
 
         val fullCubeBounds = AABBf(
             -1f, -1f, -1f,

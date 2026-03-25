@@ -113,6 +113,7 @@ class SpotLight : TexturedLight(LightType.SPOT) {
         }
 
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
+            // todo how is the metallic reflection handled? we don't see the proper texture in there...
             return "" +
                     (if (cutoffContinue != null) "if(lightPos.z >= 0.0) $cutoffContinue;\n" else "") + // backside
                     "lightDir = normalize(-lightPos);\n" +
@@ -124,7 +125,7 @@ class SpotLight : TexturedLight(LightType.SPOT) {
                     (if (cutoffContinue != null) "if(ringFalloff >= 1.0) $cutoffContinue;\n" else "") + // outside of light
 
                     "ivec2 colorSize = textureSize(lightColorMap,0);\n" +
-                    "vec2 colorUV = shadowDir * float(max(colorSize.x,colorSize.y)) / vec2(colorSize) * 0.5 + 0.5;\n" +
+                    "vec2 colorUV = shadowDir * float(max(colorSize.x, colorSize.y)) / vec2(colorSize) * 0.5 + 0.5;\n" +
                     // choose mipmap based on distance?... we would be special mipmaps though...
                     "vec4 color = texture(lightColorMap, colorUV);\n" +
                     "lightColor *= color.rgb;\n" +

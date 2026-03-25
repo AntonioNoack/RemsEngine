@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
+import me.anno.ecs.systems.Systems
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.base.BaseWriter
@@ -128,8 +129,16 @@ class Prefab : Saveable {
     fun invalidateInstance() {
         if (sourceFile !is PrefabReadable || adds.isNotEmpty() || sets.isNotEmpty()) {
             synchronized(this) {
+                val oldInstance = _sampleInstance
+                val setWorld = oldInstance === Systems.world
+
                 _sampleInstance?.destroy()
                 _sampleInstance = null
+
+                if (setWorld) {
+                    // todo bug: somehow in testSceneWithUI on lights, the old GUI is still drawn...
+                    Systems.world = getSampleInstance()
+                }
             }
             callListeners()
         } else LOGGER.warn("Cannot invalidate tmp-prefab")

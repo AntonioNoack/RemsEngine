@@ -83,7 +83,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
             needsUpdate1 = true
         }
         val texture = texture
-        if (texture != null && (needsUpdate1 || needsAutoUpdate(0,1))) {
+        if (texture != null && (needsUpdate1 || needsAutoUpdate(0, 1))) {
             needsUpdate1 = false
             drawBuffer(texture)
         }
@@ -115,9 +115,13 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
         val camRotInv = JomlPools.quat4f.create()
 
         val cameraMatrix = JomlPools.mat4f.create()
+
         val root = entity.getRoot(Entity::class)
-        root.validateTransform()
-        root.getGlobalBounds()
+        if (root != null) {
+            root.validateTransform()
+            root.getGlobalBounds()
+        }
+
         timeRendering(className, timer) {
             GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
                 texture.draw(resolution, pbrRenderer) { side ->
@@ -138,7 +142,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
                         position, camRotInv // needs to be the inverse again
                     )
                     pipeline.applyToneMapping = 0f
-                    pipeline.fill(root)
+                    if (root != null) pipeline.fill(root)
 
                     // define RenderState
                     RenderState.cameraMatrix.set(cameraMatrix)
