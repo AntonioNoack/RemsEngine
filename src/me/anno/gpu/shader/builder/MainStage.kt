@@ -127,9 +127,9 @@ class MainStage {
             val dim = 2 + isCubemap.toInt() + isArray.toInt()
             code.append(
                 when (dim) {
-                    2 -> "(int index, vec2 uv){\n"
-                    3 -> "(int index, vec3 uv){\n"
-                    4 -> "(int index, vec4 uv){\n"
+                    2 -> "(int index, vec2 uv) {\n"
+                    3 -> "(int index, vec3 uv) {\n"
+                    4 -> "(int index, vec4 uv) {\n"
                     else -> assertFail("Unsupported num dimensions")
                 }
             )

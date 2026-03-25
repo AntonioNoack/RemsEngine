@@ -6,6 +6,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.engine.ui.LineShapes.drawSphere
 import me.anno.engine.ui.render.RenderState
@@ -122,7 +123,8 @@ class PointLight : LightComponent(LightType.POINT) {
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        drawBox(entity, JomlPools.vec3d.borrow().set(near.toDouble()))
+        val halfExtents = near.toDouble()
+        drawBox(entity, LineShapes.defaultColor, halfExtents, halfExtents, halfExtents)
         drawSphere(entity, 1.0)
     }
 

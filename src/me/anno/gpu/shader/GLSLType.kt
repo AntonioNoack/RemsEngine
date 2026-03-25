@@ -49,6 +49,9 @@ enum class GLSLType(val glslName: String, val id: Int, val components: Int) {
 
     val isNativeInt = id in 0..7
     val isSampler = glslName.startsWith("sampler")
+    val isShadowSampler = "Shadow" in glslName
+    val isCubeMap = "Cube" in glslName
+    val isSamplerArray = isSampler && "Array" in glslName
     val isSpecialLayoutType = glslName.startsWith("image") || glslName == "buffer"
 
     override fun toString(): String = glslName

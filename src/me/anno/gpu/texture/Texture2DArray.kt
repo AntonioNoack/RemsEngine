@@ -336,8 +336,8 @@ open class Texture2DArray(
         return create(if (lowQuality) TargetType.DEPTH16 else TargetType.DEPTH32F)
     }
 
-    fun ensureFiltering(nearest: Filtering, clamping: Clamping): Texture2DArray {
-        if (nearest != filtering) filtering(nearest)
+    fun ensureFiltering(filtering: Filtering, clamping: Clamping): Texture2DArray {
+        if (filtering != this.filtering) filtering(filtering)
         if (clamping != this.clamping) clamping(clamping)
         return this
     }

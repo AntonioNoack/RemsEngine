@@ -122,6 +122,8 @@ class RenderForwardPlusNode : RenderViewNode(
                             Variable(GLSLType.S2DAShadow, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
                             // - point lights
                             Variable(GLSLType.SCubeShadow, "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
+                            // - textured rectangle lights
+                            Variable(GLSLType.S2D, "lightColorMap"),
 
                             // reflection plane for rivers or perfect mirrors
                             Variable(GLSLType.V1B, "hasReflectionPlane"),

@@ -247,13 +247,13 @@ class Framebuffer3D(
         depthTexture?.destroy()
     }
 
-    override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
-        textures[index].bind(offset, nearest, clamping)
+    override fun bindTextureI(index: Int, offset: Int, filtering: Filtering, clamping: Clamping) {
+        textures[index].bind(offset, filtering, clamping)
     }
 
-    override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
+    override fun bindTextures(offset: Int, filtering: Filtering, clamping: Clamping) {
         for (index in textures.indices) {
-            textures[index].bind(index + offset, nearest, clamping)
+            textures[index].bind(index + offset, filtering, clamping)
         }
     }
 

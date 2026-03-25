@@ -54,11 +54,11 @@ object NullFramebuffer : IFramebuffer {
 
     override fun checkSession() {}
 
-    override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
+    override fun bindTextureI(index: Int, offset: Int, filtering: Filtering, clamping: Clamping) {
         throw UnsupportedOperationException()
     }
 
-    override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
+    override fun bindTextures(offset: Int, filtering: Filtering, clamping: Clamping) {
         throw UnsupportedOperationException()
     }
 

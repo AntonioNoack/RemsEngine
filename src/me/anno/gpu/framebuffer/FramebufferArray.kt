@@ -222,15 +222,15 @@ class FramebufferArray(
         }
     }
 
-    override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
+    override fun bindTextureI(index: Int, offset: Int, filtering: Filtering, clamping: Clamping) {
         checkSession()
-        textures[index].bind(offset, nearest, clamping)
+        textures[index].bind(offset, filtering, clamping)
     }
 
-    override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
+    override fun bindTextures(offset: Int, filtering: Filtering, clamping: Clamping) {
         checkSession()
         for (textureIndex in textures.indices) {
-            textures[textureIndex].bind(offset + textureIndex, nearest, clamping)
+            textures[textureIndex].bind(offset + textureIndex, filtering, clamping)
         }
     }
 

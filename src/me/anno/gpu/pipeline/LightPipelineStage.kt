@@ -5,7 +5,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightType
-import me.anno.ecs.components.light.PointLight
+import me.anno.ecs.components.light.TexturedLight
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
@@ -24,13 +24,16 @@ import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShader
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShaderInstanced
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindTransformUniforms
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
+import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib
+import me.anno.io.files.InvalidRef
 import me.anno.maths.MinMax.min
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.structures.lists.SmallestKList
@@ -53,7 +56,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
     val instanced = LightData()
     val nonInstanced = LightData()
 
-    fun bindDraw(pipeline: Pipeline, source: IFramebuffer, depthTexture: Texture2D, depthMask: Vector4f, ) {
+    fun bindDraw(pipeline: Pipeline, source: IFramebuffer, depthTexture: Texture2D, depthMask: Vector4f) {
         bind {
             source.bindTrulyNearestMS(0)
             draw(pipeline, ::getShader, depthTexture, depthMask)
@@ -119,6 +122,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
             val maxTextureIndex = 31
             val planarIndex0 = shader.getTextureIndex("shadowMapPlanar0")
             val cubicIndex0 = shader.getTextureIndex("shadowMapCubic0")
+            val colorIndex = shader.getTextureIndex("lightColorMap")
             val supportsPlanarShadows = planarIndex0 in 0..maxTextureIndex
             val supportsCubicShadows = cubicIndex0 in 0..maxTextureIndex
 
@@ -145,23 +149,36 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                 if (textures != null) {
                     var texture = textures.depthTexture ?: textures.getTexture0()
                     if (!texture.isCreated()) {
-                        texture = TextureLib.depthTexture
-                    }
-                    if (light is PointLight) {
-                        if (supportsCubicShadows) {
-                            // bind the texture, and don't you dare to use mipmapping ^^
-                            // (at least without variance shadow maps)
-                            texture.bind(cubicIndex0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-                            endIndex = 1
-                        }
-                    } else {
-                        if (supportsPlanarShadows) {
-                            // bind the texture, and don't you dare to use mipmapping ^^
-                            // (at least without variance shadow maps)
-                            texture.bind(planarIndex0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-                            endIndex = (texture as Texture2DArray).layers
+                        texture = when (light.lightType.shadowMapType) {
+                            GLSLType.SCubeShadow -> TextureLib.depthCube
+                            GLSLType.S2D, GLSLType.S2DA -> TextureLib.whiteTexture
+                            else -> TextureLib.depthTexture
                         }
                     }
+                    when (light.lightType.shadowMapType) {
+                        GLSLType.SCubeShadow -> {
+                            if (supportsCubicShadows) {
+                                // bind the texture, and don't you dare to use mipmapping ^^
+                                // (at least without variance shadow maps)
+                                texture.bind(cubicIndex0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
+                                endIndex = 1
+                            }
+                        }
+                        GLSLType.S2DShadow, GLSLType.S2DAShadow -> {
+                            if (supportsPlanarShadows) {
+                                // bind the texture, and don't you dare to use mipmapping ^^
+                                // (at least without variance shadow maps)
+                                texture.bind(planarIndex0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
+                                endIndex = (texture as Texture2DArray).layers
+                            }
+                        }
+                        else -> {}
+                    }
+                }
+
+                if (colorIndex >= 0 && light is TexturedLight) {
+                    val texture = TextureCache[light.texture].value?.createdOrNull() ?: TextureLib.whiteTexture
+                    texture.bind(colorIndex, light.filtering, light.clamping)
                 }
 
                 shader.v4f("data2", 0f, endIndex.toFloat(), 0f, 0f)
@@ -200,6 +217,8 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         val buffer = lightInstanceBuffer
         val nioBuffer = buffer.getOrCreateNioBuffer()
         val stride = buffer.stride
+
+        TextureLib.whiteTexture.bindTrulyLinear(shader, "lightColorMap")
 
         // draw them in batches of size <= batchSize
         // converted from for(.. step ..) to while to avoid allocation
@@ -262,7 +281,9 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
     }
 
     fun add(light: LightComponent, transform: Transform) {
-        val group = if (light.hasShadow && light.shadowTextures != null) nonInstanced else instanced
+        val validShadows = light.hasShadow && light.shadowTextures != null
+        val validColors = light is TexturedLight && light.texture != InvalidRef
+        val group = if (validShadows || validColors) nonInstanced else instanced
         group.add(light, transform)
     }
 

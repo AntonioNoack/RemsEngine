@@ -324,8 +324,8 @@ open class Texture3D(
         return this
     }
 
-    fun ensureFiltering(nearest: Filtering, clamping: Clamping): Texture3D {
-        if (nearest != filtering) filtering(nearest)
+    fun ensureFiltering(filtering: Filtering, clamping: Clamping): Texture3D {
+        if (filtering != this.filtering) filtering(filtering)
         if (clamping != this.clamping) clamping(clamping)
         return this
     }

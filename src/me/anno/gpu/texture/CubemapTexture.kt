@@ -192,13 +192,13 @@ open class CubemapTexture(
         return Texture2D.boundTextures[slot] == pointer
     }
 
-    fun bind(index: Int, nearest: Filtering): Boolean {
+    fun bind(index: Int, filtering: Filtering): Boolean {
         if (isPointerValid(pointer) && wasCreated) {
             if (isBoundToSlot(index)) return false
             Texture2D.activeSlot(index)
             val result = Texture2D.bindTexture(target, pointer)
-            ensureFilterAndClamping(nearest)
-            if (needsMipmaps && nearest.needsMipmap && (width > 1 || height > 1)) {
+            ensureFilterAndClamping(filtering)
+            if (needsMipmaps && filtering.needsMipmap && (width > 1 || height > 1)) {
                 needsMipmaps = false
                 glGenerateMipmap(target)
             }
@@ -223,8 +223,8 @@ open class CubemapTexture(
 
     var autoUpdateMipmaps = true
 
-    private fun filtering(nearest: Filtering) {
-        if (!hasMipmap && nearest.needsMipmap && samples <= 1) {
+    private fun filtering(filtering: Filtering) {
+        if (!hasMipmap && filtering.needsMipmap && samples <= 1) {
             // todo use a better algorithm for these mipmaps:
             //  the native algorithm generates blocky artefacts, we need gaussian blur, or similar,
             //  also ideally in pow(color,2.2) space
@@ -237,15 +237,15 @@ open class CubemapTexture(
             }
             // automatic mipmap updates are not supported
             needsMipmaps = true
-        } else if (!nearest.needsMipmap) needsMipmaps = false
-        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, nearest.min)
-        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, nearest.mag)
-        this.filtering = nearest
+        } else if (!filtering.needsMipmap) needsMipmaps = false
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering.min)
+        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filtering.mag)
+        this.filtering = filtering
     }
 
-    private fun ensureFilterAndClamping(nearest: Filtering) {
+    private fun ensureFilterAndClamping(filtering: Filtering) {
         // ensure being bound?
-        if (nearest != this.filtering) filtering(nearest)
+        if (filtering != this.filtering) filtering(filtering)
     }
 
     override var depthFunc: DepthMode? = null

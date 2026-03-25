@@ -40,6 +40,19 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
 
+// todo use bindless textures...
+//  cpu:
+//    GLuint64 handle = glGetTextureHandleARB(textureID);
+//    glMakeTextureHandleResidentARB(handle);
+//  gpu:
+//    #version 450
+//    #extension GL_ARB_bindless_texture : require
+//    layout(std430, binding = 0) buffer TexBuffer {
+//      sampler2D textures[];
+//    };
+//    vec4 color = texture(textures[index], uv);
+//  -> but which GPUs support this? hopefully all...
+
 object LightShaders {
 
     val translucencyNdotL = 0.5f
@@ -231,6 +244,9 @@ object LightShaders {
                 Variable(GLSLType.S2DAShadow, "shadowMapPlanar", 1),
                 // - point lights
                 Variable(GLSLType.SCubeShadow, "shadowMapCubic", 1),
+                // - textured rectangle lights
+                Variable(GLSLType.S2D, "lightColorMap"),
+
                 Variable(GLSLType.V1B, "receiveShadows"),
                 Variable(GLSLType.V1B, "canHaveShadows"),
                 Variable(GLSLType.V3F, "finalPosition"),

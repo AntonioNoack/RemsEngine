@@ -22,7 +22,7 @@ import org.joml.Vector3f
 import kotlin.math.atan
 import kotlin.math.tan
 
-class SpotLight : LightComponent(LightType.SPOT) {
+class SpotLight : TexturedLight(LightType.SPOT) {
 
     @Range(0.0, 179.0)
     var innerConeAngleDegrees = 70f
@@ -122,6 +122,13 @@ class SpotLight : LightComponent(LightType.SPOT) {
 
                     "float ringFalloff = dot(shadowDir,shadowDir);\n" +
                     (if (cutoffContinue != null) "if(ringFalloff >= 1.0) $cutoffContinue;\n" else "") + // outside of light
+
+                    "ivec2 colorSize = textureSize(lightColorMap,0);\n" +
+                    "vec2 colorUV = shadowDir * float(max(colorSize.x,colorSize.y)) / vec2(colorSize) * 0.5 + 0.5;\n" +
+                    // choose mipmap based on distance?... we would be special mipmaps though...
+                    "vec4 color = texture(lightColorMap, colorUV);\n" +
+                    "lightColor *= color.rgb;\n" +
+
                     // when we are close to the edge, we blend in
                     "float coneAngleRatio = shaderV3;\n" +
                     "lightColor *= 1.0-smoothstep(coneAngleRatio,1.0,ringFalloff);\n" +

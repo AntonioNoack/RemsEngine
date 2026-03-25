@@ -116,7 +116,7 @@ object DebugRendering {
             is LightComponent -> {
                 val tex = light.shadowTextures
                 texture = tex?.depthTexture ?: tex?.getTexture0()
-                isDepth = true
+                isDepth = light.lightType.shadowMapType.isShadowSampler
             }
             is EnvironmentMap -> texture = light.texture?.textures?.firstOrNull()
             is PlanarReflection -> texture = light.framebuffer?.getTexture0()

@@ -14,12 +14,13 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 
-class CircleLight : LightComponent(LightType.CIRCLE) {
+class CircleLight : TexturedLight(LightType.CIRCLE) {
 
     @Range(0.0, 1.0)
     var radius = 0.1f
 
     override fun getShaderV0(): Float = radius
+    override fun getShaderV2(): Float = textureSize
 
     override fun updateShadowMap(
         cascadeScale: Float,
@@ -46,15 +47,20 @@ class CircleLight : LightComponent(LightType.CIRCLE) {
     }
 
     companion object {
+
         // todo calculate how much light shines by reflections
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
             return "" +
+                    "vec2 lightPos0 = lightPos.xy;\n" +
                     "lightPos.z *= pow(1.0+shaderV0, 2.0);\n" +
                     "float lightDistXY = length(lightPos.xy);\n" +
                     "lightPos.xy *= max(lightDistXY-shaderV0, 0.001) / lightDistXY;\n" +
                     (if (cutoffContinue != null) "if(dot(lightPos,lightPos)>1.0) $cutoffContinue;\n" else "") + // outside
                     "lightDir = normalize(-lightPos);\n" +
                     "NdotL = dot(lightDir, lightNor);\n" +
+
+                    lightColorCode +
+
                     "effectiveDiffuse = lightColor * $falloff;\n" +
                     effectiveSpecular
         }

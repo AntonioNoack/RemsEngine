@@ -67,12 +67,11 @@ fun spotLightTest() {
         scene.add(sphere)
     }
 
-    val spot = Entity("Spot")
-    spot.add(SpotLight().apply { color.set(10f); shadowMapCascades = 1 })
-    spot.setPosition(0.0, 0.5, 0.5)
-    spot.setRotation(-PIf * 0.3f, 0f, 0f)
-    spot.setScale(5f)
-    scene.add(spot)
+    val spot = Entity("Spot", scene)
+        .add(SpotLight().apply { color.set(10f); shadowMapCascades = 1 })
+        .setPosition(0.0, 0.5, 0.5)
+        .setRotation(-PIf * 0.3f, 0f, 0f)
+        .setScale(5f)
     placeTruck(spot)
 
     testSceneWithUI("Spot Light", scene)

@@ -29,7 +29,6 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.query.GPUClockNanos
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.io.files.InvalidRef
@@ -124,8 +123,8 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         if (hasShadow) {
             // only a single one is supported for PointLights,
             // because more makes no sense
-            val isPointLight = lightType == LightType.POINT
-            if (isPointLight) shadowMapCascades = 1
+            if (!lightType.shadowMapType.isSamplerArray) shadowMapCascades = 1
+
             val shadowTextures = shadowTextures
             val targetSize = shadowMapCascades
             val resolution = shadowMapResolution
@@ -137,18 +136,29 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
                 // we currently use a depth bias of 0.005,
                 // which is equal to ~ 1/255,
                 // so an 8 bit depth buffer would be enough
+                val isShadowType = lightType.shadowMapType.isShadowSampler
                 val depthBufferType =
-                    if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE_16 else DepthBufferType.INTERNAL
-                val targets = if (GFX.supportsDepthTextures) emptyList() else listOf(TargetType.Float16x1)
-                this.shadowTextures = if (lightType.shadowMapType == GLSLType.SCubeShadow) {
-                    CubemapFramebuffer("ShadowCubemap", resolution, 1, targets, depthBufferType).apply {
-                        ensure()
-                        val depthTexture = depthTexture
-                        if (depthTexture != null) {
-                            depthTexture.filtering = Filtering.TRULY_LINEAR
-                            depthTexture.depthFunc = depthFunc
+                    if (isShadowType) {
+                        if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE_16
+                        else DepthBufferType.INTERNAL
+                    } else DepthBufferType.NONE
+
+                val targets =
+                    if (isShadowType) {
+                        if (GFX.supportsDepthTextures) emptyList()
+                        else listOf(TargetType.Float16x1)
+                    } else listOf(TargetType.UInt8x4)
+
+                this.shadowTextures = if (lightType.shadowMapType.isCubeMap) {
+                    CubemapFramebuffer("ShadowCubemap", resolution, 1, targets, depthBufferType)
+                        .apply {
+                            ensure()
+                            val depthTexture = depthTexture
+                            if (depthTexture != null && isShadowType) {
+                                depthTexture.filtering = Filtering.TRULY_LINEAR
+                                depthTexture.depthFunc = depthFunc
+                            }
                         }
-                    }
                 } else {
                     FramebufferArray(
                         "Shadow", resolution, resolution,
@@ -156,7 +166,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
                     ).apply {
                         ensure()
                         val depthTexture = depthTexture
-                        if (depthTexture != null) {
+                        if (depthTexture != null && isShadowType) {
                             depthTexture.filtering = Filtering.TRULY_LINEAR
                             depthTexture.depthFunc = depthFunc
                         }

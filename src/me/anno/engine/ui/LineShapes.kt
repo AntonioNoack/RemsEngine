@@ -23,7 +23,7 @@ object LineShapes {
 
     val tmpVec3f = createArrayList(16) { Vector3f() }
     val tmpVec3d = createArrayList(16) { Vector3d() }
-    private val defaultColor = 0x77ffff or black
+    val defaultColor = 0x77ffff or black
 
     fun getDrawMatrix(entity: Entity?): Matrix4x3? {
         val entity1 = entity ?: return null
@@ -220,7 +220,6 @@ object LineShapes {
         addLine(positions[2], positions[3], color)
         addLine(positions[4], positions[5], color)
     }
-
 
     fun drawBox(entity: Entity?, halfExtents: Vector3d?) {
         drawBox(entity, defaultColor, halfExtents)

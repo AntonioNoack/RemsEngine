@@ -38,10 +38,10 @@ interface ITexture2D : ICacheData {
 
     fun bind(index: Int): Boolean = bind(index, filtering, clamping)
     fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean
-    fun bind(shader: GPUShader, texName: String, nearest: Filtering, clamping: Clamping): Boolean {
+    fun bind(shader: GPUShader, texName: String, filtering: Filtering, clamping: Clamping): Boolean {
         val index = shader.getTextureIndex(texName)
         return if (index >= 0) {
-            bind(index, nearest, clamping)
+            bind(index, filtering, clamping)
         } else false
     }
 

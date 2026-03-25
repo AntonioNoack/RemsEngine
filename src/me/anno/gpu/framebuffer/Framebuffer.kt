@@ -388,27 +388,27 @@ class Framebuffer(
         }
     }
 
-    override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
+    override fun bindTextureI(index: Int, offset: Int, filtering: Filtering, clamping: Clamping) {
         checkSession()
         val ssBuffer = ssBuffer
         if (ssBuffer != null) {
             copyIfNeeded(ssBuffer, 1 shl index)
-            ssBuffer.bindTextureI(index, offset, nearest, clamping)
+            ssBuffer.bindTextureI(index, offset, filtering, clamping)
         } else {
-            textures[index].bind(offset, nearest, clamping)
+            textures[index].bind(offset, filtering, clamping)
         }
     }
 
-    override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
+    override fun bindTextures(offset: Int, filtering: Filtering, clamping: Clamping) {
         GFX.check()
         val ssBuffer = ssBuffer
         if (ssBuffer != null) {
             copyIfNeeded(ssBuffer, (1 shl targets.size) - 1)
-            ssBuffer.bindTextures(offset, nearest, clamping)
+            ssBuffer.bindTextures(offset, filtering, clamping)
         } else {
             val textures = textures
             for (i in textures.indices) {
-                textures[i].bind(offset + i, nearest, clamping)
+                textures[i].bind(offset + i, filtering, clamping)
             }
         }
         GFX.check()

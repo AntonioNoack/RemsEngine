@@ -67,25 +67,25 @@ interface IFramebuffer {
 
     fun getTargetType(slot: Int): TargetType
 
-    fun bindTexture0(shader: Shader, texName: String, nearest: Filtering, clamping: Clamping) {
+    fun bindTexture0(shader: Shader, texName: String, filtering: Filtering, clamping: Clamping) {
         val index = shader.getTextureIndex(texName)
         if (index >= 0) {
             checkSession()
-            bindTextureI(index, 0, nearest, clamping)
+            bindTextureI(index, 0, filtering, clamping)
         }
     }
 
-    fun bindTexture0(offset: Int = 0, nearest: Filtering, clamping: Clamping) {
-        bindTextureI(0, offset, nearest, clamping)
+    fun bindTexture0(offset: Int = 0, filtering: Filtering, clamping: Clamping) {
+        bindTextureI(0, offset, filtering, clamping)
     }
 
     fun bindTextureI(index: Int, offset: Int) {
         bindTextureI(index, offset, Filtering.TRULY_NEAREST, Clamping.CLAMP)
     }
 
-    fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping)
+    fun bindTextureI(index: Int, offset: Int, filtering: Filtering, clamping: Clamping)
 
-    fun bindTextures(offset: Int = 0, nearest: Filtering, clamping: Clamping)
+    fun bindTextures(offset: Int = 0, filtering: Filtering, clamping: Clamping)
 
     fun getTexture0() = getTextureI(0)
     fun getTexture0MS() = getTextureIMS(0)

@@ -747,9 +747,9 @@ open class Texture2D(
     /**
      * texture must be bound!
      * */
-    fun ensureFilterAndClamping(nearest: Filtering, clamping: Clamping) {
+    fun ensureFilterAndClamping(filtering: Filtering, clamping: Clamping) {
         // ensure being bound?
-        if (nearest != this.filtering) filtering(nearest)
+        if (filtering != this.filtering) filtering(filtering)
         if (clamping != this.clamping) clamping(clamping, false)
     }
 

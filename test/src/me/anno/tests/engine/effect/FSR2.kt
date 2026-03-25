@@ -7,7 +7,5 @@ import me.anno.utils.OS.res
 
 fun main() {
     RenderDoc.forceLoadRenderDoc()
-    testSceneWithUI("FSR2", res.getChild("icon.obj")) {
-        it.renderView.renderMode = RenderMode.FSR2_X2
-    }
+    testSceneWithUI("FSR2", res.getChild("meshes/CuteGhost.fbx"), RenderMode.FSR2_X8)
 }

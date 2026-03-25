@@ -98,14 +98,14 @@ class MultiFramebuffer(
         else targetsI[index / div].getTextureILazy(index % div)
     }
 
-    override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
-        getTextureI(index).bind(offset, nearest, clamping)
+    override fun bindTextureI(index: Int, offset: Int, filtering: Filtering, clamping: Clamping) {
+        getTextureI(index).bind(offset, filtering, clamping)
     }
 
-    override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
+    override fun bindTextures(offset: Int, filtering: Filtering, clamping: Clamping) {
         var delta = offset
         for (target in targetsI) {
-            target.bindTextures(delta, nearest, clamping)
+            target.bindTextures(delta, filtering, clamping)
             delta += div
         }
     }
