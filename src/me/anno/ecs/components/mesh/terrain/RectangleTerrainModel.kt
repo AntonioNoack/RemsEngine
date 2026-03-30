@@ -22,16 +22,16 @@ object RectangleTerrainModel {
         return mesh
     }
 
-    fun fillInYAndNormals(width: Int, height: Int, heightMap: HeightMap, normalMap: NormalMap, mesh: Mesh) {
+    fun fillInYAndNormals(numPointsX: Int, numPointsZ: Int, heightMap: HeightMap, normalMap: NormalMap, mesh: Mesh) {
         val positions = mesh.positions!!
         val normals = mesh.normals!!
-        fillInYAndNormals(width, height, positions, heightMap, normals, normalMap)
+        fillInYAndNormals(numPointsX, numPointsZ, positions, heightMap, normals, normalMap)
     }
 
-    fun fillInColor(width: Int, height: Int, colorMap: ColorMap, mesh: Mesh) {
-        val colors = mesh.color0.resize(width * height)
+    fun fillInColor(numPointsX: Int, numPointsZ: Int, colorMap: ColorMap, mesh: Mesh) {
+        val colors = mesh.color0.resize(numPointsX * numPointsZ)
         fillInColor(
-            width, height,
+            numPointsX, numPointsZ,
             mesh.positions!!, mesh.normals!!,
             colors, colorMap
         )
@@ -39,53 +39,52 @@ object RectangleTerrainModel {
     }
 
     fun fillInY(
-        width: Int, height: Int,
+        numPointsX: Int, numPointsZ: Int,
         positions: FloatArray, heightMap: HeightMap,
     ) {
         var j = 0
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                positions[j + 1] += heightMap[x, y]
+        for (zi in 0 until numPointsZ) {
+            for (xi in 0 until numPointsX) {
+                positions[j + 1] += heightMap[xi, zi]
                 j += 3
             }
         }
     }
 
     fun fillInNormals(
-        width: Int, height: Int,
+        numPointsX: Int, numPointsZ: Int,
         normals: FloatArray, normalMap: NormalMap
     ) {
         var j = 0
         val normal = JomlPools.vec3f.create()
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                normalMap.get(x, y, normal)
-                normals[j++] = normal.x
-                normals[j++] = normal.y
-                normals[j++] = normal.z
+        for (zi in 0 until numPointsZ) {
+            for (xi in 0 until numPointsX) {
+                normalMap.get(xi, zi, normal)
+                normal.get(normals, j)
+                j += 3
             }
         }
         JomlPools.vec3f.sub(1)
     }
 
     fun fillInYAndNormals(
-        width: Int, height: Int,
+        numPointsX: Int, numPointsZ: Int,
         positions: FloatArray, heightMap: HeightMap,
         normals: FloatArray, normalMap: NormalMap
     ) {
-        fillInY(width, height, positions, heightMap)
-        fillInNormals(width, height, normals, normalMap)
+        fillInY(numPointsX, numPointsZ, positions, heightMap)
+        fillInNormals(numPointsX, numPointsZ, normals, normalMap)
     }
 
     fun fillInColor(
-        width: Int, height: Int,
+        numPointsX: Int, numPointsZ: Int,
         positions: FloatArray, normals: FloatArray,
         colors: IntArray, colorMap: ColorMap
     ) {
         var l = 0
         val normal = JomlPools.vec3f.create()
-        for (yi in 0 until height) {
-            for (xi in 0 until width) {
+        for (yi in 0 until numPointsZ) {
+            for (xi in 0 until numPointsX) {
                 val h = positions[l * 3 + 1]
                 normal.get(normals, l * 3)
                 colors[l++] = colorMap[xi, yi, h, normal]

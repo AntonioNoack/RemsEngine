@@ -27,8 +27,11 @@ import kotlin.math.max
 fun main() {
 
     // todo find good-looking parameters
-    // todo color the terrain like in https://www.shadertoy.com/view/sf23W1
-    val base = PerlinNoise(1234, 2, 0.5f, 0f, 1f)
+    // color the terrain like in https://www.shadertoy.com/view/sf23W1
+    // todo why is there no grass between the rocks and the water? water height seems really high, too
+    //  -> too steep? no, now it's flat, and still missing...
+
+    val base = PerlinNoise(1234, 3, 0.4f, 0.4f, 0.7f)
     val noise = object : ErosionNoise(PhacelleNoise(PhacelleHash())) {
         val tmp1 = Vector2f()
         val tmp2 = Vector2f()
@@ -37,6 +40,8 @@ fun main() {
             return dst.set(h, tmp2.x, tmp2.y)
         }
     }
+    noise.waterHeight = 0.42f
+    noise.grassHeight = noise.waterHeight
     // noise.cellSize *= 0.1f
     // noise.scale *= 0.1f
 
@@ -49,6 +54,7 @@ fun main() {
     }
     val tmpColor = Vector3f()
     val data = Vector4f()
+    // todo generation is quite slow... can we do it in parallel?
     val mesh = RectangleTerrainModel.generateRegularQuadHeightMesh(
         512, 512,
         false, cellSize, Mesh(), heightMap,
@@ -70,6 +76,9 @@ fun main() {
         color.toRGB()
     }
     mesh.calculateNormals(false) // this should not be necessary
+
+    // todo generate skirt with strato-colors?
+
     testSceneWithUI("ErosionNoise", mesh)
 }
 
