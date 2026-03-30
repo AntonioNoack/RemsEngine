@@ -32,7 +32,7 @@ fun createSampleTerrain(w: Int, h: Int): Mesh {
     val noise = PerlinNoise(2145, 8, 0.5f, -30f, 30f, Vector4f(0.03f))
     val heightMap = HeightMap { x, y -> noise.getSmooth(x.toFloat(), y.toFloat()) }
     val normalMap = DefaultNormalMap(heightMap, 1f, false)
-    val colorMap = ColorMap { x, y ->
+    val colorMap = ColorMap { x, y, _, _ ->
         val numGroups = 3
         val group = flattenFraction(y, numGroups, h, 51)
         val numBlends = 3

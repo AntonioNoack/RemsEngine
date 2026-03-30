@@ -34,7 +34,8 @@ fun main() {
 
     generateQuadVertices(sx, sy, cellSize, lod0, true)
     val heightMap = HeightMap { x, y -> noise[x.toFloat(), y.toFloat()] }
-    fillInYAndNormals(sx, sy, heightMap, DefaultNormalMap(heightMap, cellSize, flip, 0, 0), lod0)
+    val normalMap = DefaultNormalMap(heightMap, cellSize, flip, 0, 0)
+    fillInYAndNormals(sx, sy, heightMap, normalMap, lod0)
     generateQuadIndices(sx, sy, flip, lod0)
     lods.add(lod0)
 

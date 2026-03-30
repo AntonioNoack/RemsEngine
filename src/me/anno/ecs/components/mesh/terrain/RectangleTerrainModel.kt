@@ -26,19 +26,33 @@ object RectangleTerrainModel {
         val positions = mesh.positions!!
         val normals = mesh.normals!!
         fillInYAndNormals(width, height, positions, heightMap, normals, normalMap)
-        mesh.positions = positions
-        mesh.normals = normals
     }
 
     fun fillInColor(width: Int, height: Int, colorMap: ColorMap, mesh: Mesh) {
         val colors = mesh.color0.resize(width * height)
-        fillInColor(width, height, colors, colorMap)
+        fillInColor(
+            width, height,
+            mesh.positions!!, mesh.normals!!,
+            colors, colorMap
+        )
         mesh.color0 = colors
     }
 
-    fun fillInYAndNormals(
+    fun fillInY(
         width: Int, height: Int,
         positions: FloatArray, heightMap: HeightMap,
+    ) {
+        var j = 0
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                positions[j + 1] += heightMap[x, y]
+                j += 3
+            }
+        }
+    }
+
+    fun fillInNormals(
+        width: Int, height: Int,
         normals: FloatArray, normalMap: NormalMap
     ) {
         var j = 0
@@ -46,7 +60,6 @@ object RectangleTerrainModel {
         for (y in 0 until height) {
             for (x in 0 until width) {
                 normalMap.get(x, y, normal)
-                positions[j + 1] += heightMap[x, y]
                 normals[j++] = normal.x
                 normals[j++] = normal.y
                 normals[j++] = normal.z
@@ -55,13 +68,30 @@ object RectangleTerrainModel {
         JomlPools.vec3f.sub(1)
     }
 
-    fun fillInColor(width: Int, height: Int, colors: IntArray, colorMap: ColorMap) {
+    fun fillInYAndNormals(
+        width: Int, height: Int,
+        positions: FloatArray, heightMap: HeightMap,
+        normals: FloatArray, normalMap: NormalMap
+    ) {
+        fillInY(width, height, positions, heightMap)
+        fillInNormals(width, height, normals, normalMap)
+    }
+
+    fun fillInColor(
+        width: Int, height: Int,
+        positions: FloatArray, normals: FloatArray,
+        colors: IntArray, colorMap: ColorMap
+    ) {
         var l = 0
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                colors[l++] = colorMap[x, y]
+        val normal = JomlPools.vec3f.create()
+        for (yi in 0 until height) {
+            for (xi in 0 until width) {
+                val h = positions[l * 3 + 1]
+                normal.get(normals, l * 3)
+                colors[l++] = colorMap[xi, yi, h, normal]
             }
         }
+        JomlPools.vec3f.sub(1)
     }
 
     fun generateQuadIndices(numPointsX: Int, numPointsZ: Int, flipY: Boolean, mesh: Mesh) {
@@ -118,45 +148,23 @@ object RectangleTerrainModel {
     ): Mesh {
 
         generateQuadIndices(numPointsX, numPointsZ, flipY, mesh)
+        generateQuadVertices(numPointsX, numPointsZ, cellSize, mesh, true)
 
-        ///////////////////////
-        // generate vertices //
-        ///////////////////////
+        val positions = mesh.positions!!
+        fillInY(numPointsX, numPointsZ, positions, heightMap)
 
-        val vertexCount = numPointsX * numPointsZ
-        val numCoords = vertexCount * 3
-        val positions = mesh.positions.resize(numCoords)
-        val normals = mesh.normals.resize(numCoords)
-        val colors = if (colorMap != null) mesh.color0.resize(vertexCount)
-        else null
+        if (colorMap != null) {
+            mesh.invalidateGeometry()
+            mesh.calculateNormals(false)
 
-        mesh.positions = positions
-        mesh.normals = normals
-        mesh.color0 = colors
-
-        normals.fill(0f)
-
-        // center mesh
-        val centerX = numPointsX * 0.5f
-        val centerY = numPointsZ * 0.5f
-
-        // define mesh positions
-        var j = 0
-        for (zi in 0 until numPointsZ) {
-            for (xi in 0 until numPointsX) {
-                positions[j++] = (xi - centerX) * cellSize
-                positions[j++] = heightMap[xi, zi]
-                positions[j++] = (zi - centerY) * cellSize
-            }
-        }
-
-        if (colorMap != null && colors != null) {
-            var l = 0
-            for (zi in 0 until numPointsZ) {
-                for (xi in 0 until numPointsX) {
-                    colors[l++] = colorMap[xi, zi]
-                }
-            }
+            val numVertices = numPointsX * numPointsZ
+            val colors = mesh.color0.resize(numVertices)
+            mesh.color0 = colors
+            fillInColor(
+                numPointsX, numPointsZ,
+                positions, mesh.normals!!,
+                colors, colorMap
+            )
         }
 
         mesh.invalidateGeometry()

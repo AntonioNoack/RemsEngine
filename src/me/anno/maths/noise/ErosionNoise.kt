@@ -251,7 +251,7 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
      * Applies erosion onto baseline heightmap,
      *  x: eroded height
      *  y: erosion delta, [0,1]
-     *  z: right-map [0,1]
+     *  z: ridge-map [0,1]
      *  w: trees [0,1]
      * */
     operator fun get(px: Float, py: Float, dst: Vector4f): Vector4f {
