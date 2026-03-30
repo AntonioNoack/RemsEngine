@@ -276,6 +276,9 @@ class PerlinNoise(
         return sum
     }
 
+    /**
+     * returns getSmooth(x,y)
+     * */
     fun getSmoothGradient(x: Float, y: Float, tmp: Vector2f, dst: Vector2f): Float {
         var sum = offset
         val generators = levels!!

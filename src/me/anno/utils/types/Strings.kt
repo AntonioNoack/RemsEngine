@@ -13,6 +13,7 @@ import me.anno.io.json.saveable.JsonWriterBase
 import me.anno.maths.Maths.fract
 import me.anno.maths.MinMax
 import me.anno.ui.base.text.TextPanel
+import me.anno.utils.Color.base36
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.LazyList
@@ -358,7 +359,15 @@ object Strings {
             val char = value[index]
             val esc = getEscapeChar(char, quotes)
             if (esc == DONT_ESCAPE) {
-                data.append(char)
+                val code = char.code
+                if (code < 0x20) {
+                    // control-character must be escaped
+                    data.append("\\u00")
+                        .append(base36[code shr 4])
+                        .append(base36[code and 15])
+                } else {
+                    data.append(char)
+                }
             } else {
                 data.append('\\')
                 data.append(esc)
