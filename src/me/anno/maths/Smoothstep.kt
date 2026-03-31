@@ -59,19 +59,23 @@ object Smoothstep {
         return mix(a, b, smoothstepFactorUnsafe(x))
     }
 
+    /**
+     * GLSL says that edgeA > edgeB is undefined behavior, but few devs know,
+     * and all GPU drivers just ignore that condition, and handle it business as usual
+     * */
     @JvmStatic
     fun smoothstep(edgeA: Float, edgeB: Float, x: Float): Float {
-        return if (edgeA < edgeB) {
-            val f = unmix(edgeA, edgeB, x)
-             smoothstepFactor(f)
-        } else 0f
+        val f = unmix(edgeA, edgeB, x)
+        return smoothstepFactor(f) // this part clamps it
     }
 
+    /**
+     * GLSL says that edgeA > edgeB is undefined behavior, but few devs know,
+     * and all GPU drivers just ignore that condition, and handle it business as usual
+     * */
     @JvmStatic
     fun smoothstep(edgeA: Double, edgeB: Double, x: Double): Double {
-        return if (edgeA < edgeB) {
-            val f = unmix(edgeA, edgeB, x)
-            smoothstepFactor(f)
-        } else 0.0
+        val f = unmix(edgeA, edgeB, x)
+        return smoothstepFactor(f) // this part clamps it
     }
 }

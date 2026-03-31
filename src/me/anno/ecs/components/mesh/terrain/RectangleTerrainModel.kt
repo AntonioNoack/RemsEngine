@@ -86,7 +86,7 @@ object RectangleTerrainModel {
         for (yi in 0 until numPointsZ) {
             for (xi in 0 until numPointsX) {
                 val h = positions[l * 3 + 1]
-                normal.get(normals, l * 3)
+                normal.set(normals, l * 3)
                 colors[l++] = colorMap[xi, yi, h, normal]
             }
         }

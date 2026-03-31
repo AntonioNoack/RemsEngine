@@ -151,7 +151,7 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
     /**
      * The gain controls the magnitude (the vertical scale) of each octave relative to the last.
      * */
-    var gain = 0.5f
+    var falloff = 0.5f
 
     /**
      * Control over whether the erosion effect raises or lowers the terrain.
@@ -270,7 +270,6 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
         // This Source Code Form is subject to the terms of the Mozilla Public
         // License, v. 2.0. If a copy of the MPL was not distributed with this
         // file, You can obtain one at https://mozilla.org/MPL/2.0/.
-        var strength = strength
         val gullyWeight = gullyWeight
         val detail = detail
         val rounding = rounding
@@ -279,18 +278,18 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
         val scale = scale
         val octaves = erosionOctaves
         val lacunarity = lacunarity
-        val gain = gain
+        val falloff = falloff
         val cellScale = cellSize
         val normalization = normalization
 
-        strength *= scale
+        var strength = strength * scale
         fadeTarget = clamp(fadeTarget, -1f, 1f)
 
-        val inputHeightAndSlopeX = heightAndSlope.x
+        val inputHeight = heightAndSlope.x
         var freq = 1f / (scale * cellScale)
         val slopeLength = max(hypot(heightAndSlope.y, heightAndSlope.z), 1e-10f)
         var magnitude = 0f
-        var roundingMult = 1f
+        var roundingMultiplier = 1f
 
         val roundingForInput = mix(rounding.y, rounding.x, clamp01(fadeTarget + 0.5f)) * rounding.z
         // The combined accumulating mask, based first on initial slope, and later on slope of each octave too.
@@ -300,7 +299,7 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
         var ridgeMapCombiMask = easeOut(slopeLength * onset.z)
         var ridgeMapFadeTarget = fadeTarget
 
-        // Deteriming the strength of the initial slope used for gully directions
+        // Determining the strength of the initial slope used for gully directions
         // based on the specified mix of the actual slope and an assumed slope.
         var gullySlopeX = mix(heightAndSlope.y, heightAndSlope.y / slopeLength * assumedSlope.x, assumedSlope.y)
         var gullySlopeY = mix(heightAndSlope.z, heightAndSlope.z / slopeLength * assumedSlope.x, assumedSlope.y)
@@ -351,7 +350,7 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
             fadeTarget = fadedGulliesX
 
             // Update the mask to include the new octave.
-            val roundingForOctave = mix(rounding.y, rounding.x, clamp01(phacelle.x + 0.5f)) * roundingMult
+            val roundingForOctave = mix(rounding.y, rounding.x, clamp01(phacelle.x + 0.5f)) * roundingMultiplier
             val newMask = easeOut(smoothStart(sloping * onset.y, roundingForOctave * onset.y))
             combiMask = powInv(combiMask, detail) * newMask
 
@@ -361,19 +360,19 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
             ridgeMapCombiMask *= newRidgeMapMask
 
             // Prepare the next octave.
-            strength *= gain
+            strength *= falloff
             freq *= lacunarity
-            roundingMult *= rounding.w
+            roundingMultiplier *= rounding.w
         }
 
         val ridgeMap = ridgeMapFadeTarget * (1f - ridgeMapCombiMask)
 
-        val hx = heightAndSlope.x - inputHeightAndSlopeX
-        val hw = magnitude
+        val deltaHeight = heightAndSlope.x - inputHeight
+        val erosion = deltaHeight / magnitude
 
         // Offset according to the height offset parameter by multiplying it with the magnitude.
-        val offset = mix(heightOffset.x, -fadeTarget, heightOffset.y) * hw
-        var eroded = heightAndSlope.x + hx + offset
+        val offset = mix(heightOffset.x, -fadeTarget, heightOffset.y) * magnitude
+        var eroded = heightAndSlope.x + offset
 
         // Add trees to terrain.
         var trees = -1f
@@ -381,7 +380,7 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
             val dx = heightAndSlope.y
             val dy = heightAndSlope.z
             val normalY = 1f / sqrt(1f + sq(dx, dy))
-            val treesAmount = calculateTreeCoverage(eroded, normalY, hx / hw + 0.5f, ridgeMap)
+            val treesAmount = calculateTreeCoverage(eroded, normalY, erosion + 0.5f, ridgeMap)
             trees = (1f - sq((noisedX(px + 0.5f, py + 0.5f) * 200.0f) * 0.5f + 0.5f) - 1f + treesAmount) * 1.5f
             if (trees > 0f) {
                 eroded += trees / 300f
@@ -393,7 +392,7 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
 
         return dst.set(
             eroded,
-            clamp01(hx / hw * 0.5f + 0.5f), // Erosion delta as [0, 1] value.
+            clamp01(erosion * 0.5f + 0.5f), // Erosion delta as [0, 1] value.
             clamp01(ridgeMap * 0.5f + 0.5f), // Ridge map as [0, 1] value.
             clamp01(trees * 0.5f + 0.5f), // Tree value as [0, 1] value.
         )

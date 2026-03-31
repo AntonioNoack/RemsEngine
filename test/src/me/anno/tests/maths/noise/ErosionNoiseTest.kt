@@ -31,21 +31,16 @@ fun main() {
     // todo why is there no grass between the rocks and the water? water height seems really high, too
     //  -> too steep? no, now it's flat, and still missing...
 
-    val base = PerlinNoise(1234, 3, 0.4f, 0.4f, 0.7f)
     val noise = object : ErosionNoise(PhacelleNoise(PhacelleHash())) {
+        val base = PerlinNoise(1234, 3, 0.4f, 0.3f, 0.7f)
         val tmp1 = Vector2f()
         val tmp2 = Vector2f()
         override fun sampleTerrain(px: Float, py: Float, dst: Vector3f): Vector3f {
-            val h = base.getSmoothGradient(px, py, tmp1, tmp2)
+            val steepness = 3f
+            val h = base.getSmoothGradient(px * steepness, py * steepness, tmp1, tmp2)
             return dst.set(h, tmp2.x, tmp2.y)
         }
     }
-    noise.waterHeight = 0.42f
-    noise.grassHeight = noise.waterHeight
-    // noise.cellSize *= 0.1f
-    // noise.scale *= 0.1f
-
-    // todo bug: the normals are all (0,1,0) :/
 
     val cellSize = 0.01f
     val heightMap = HeightMap { x, y ->
@@ -54,9 +49,10 @@ fun main() {
     }
     val tmpColor = Vector3f()
     val data = Vector4f()
+    val size = 128
     // todo generation is quite slow... can we do it in parallel?
     val mesh = RectangleTerrainModel.generateRegularQuadHeightMesh(
-        512, 512,
+        size, size,
         false, cellSize, Mesh(), heightMap,
         DefaultNormalMap(heightMap, cellSize, false)
     ) { x, y, height, normal ->
@@ -75,7 +71,6 @@ fun main() {
         }
         color.toRGB()
     }
-    mesh.calculateNormals(false) // this should not be necessary
 
     // todo generate skirt with strato-colors?
 
@@ -99,12 +94,12 @@ fun calculateSurfaceColor(
     // Cliffs / Dirt
     // -------------------------
     diffuseColor.set(CLIFF_COLOR)
-        .lerp(
+        .mix(
             DIRT_COLOR,
             smoothstep(0.6f, 0.0f, occlusion + breakup * 1.5f)
         )
 
-    diffuseColor.lerp(
+    diffuseColor.mix(
         CLIFF_COLOR,
         smoothstep(0.4f, 0.52f, posY)
     )
@@ -112,7 +107,7 @@ fun calculateSurfaceColor(
     // -------------------------
     // Snow
     // -------------------------
-    diffuseColor.lerp(
+    diffuseColor.mix(
         Vector3f(1f),
         smoothstep(0.53f, 0.6f, posY + breakup * 0.1f)
     )
@@ -121,7 +116,7 @@ fun calculateSurfaceColor(
     // Sand (if using water)
     // -------------------------
     val waterHeight = noise.waterHeight
-    diffuseColor.lerp(
+    diffuseColor.mix(
         SAND_COLOR,
         smoothstep(
             waterHeight + 0.005f,
@@ -133,23 +128,24 @@ fun calculateSurfaceColor(
     // -------------------------
     // Grass
     // -------------------------
-    val grassMix = Vector3f(GRASS_COLOR1).lerp(
+    val grassMix = GRASS_COLOR1.mix(
         GRASS_COLOR2,
-        smoothstep(0.4f, 0.6f, posY - erosion * 0.05f + breakup * 0.3f)
+        smoothstep(0.4f, 0.6f, posY - erosion * 0.05f + breakup * 0.3f),
+        Vector3f()
     )
 
-    val grassHeight = noise.grassHeight
     val grassMask =
         smoothstep(
-            grassHeight + 0.05f,
-            grassHeight + 0.02f,
+            noise.grassHeight + 0.05f,
+            noise.grassHeight + 0.02f,
             posY + 0.01f + (occlusion - 0.8f) * 0.05f - breakup * 0.02f
         ) * smoothstep(
             0.8f, 1.0f,
             1f - (1f - normal.y) * (1f - trees) + breakup * 0.1f
         )
 
-    diffuseColor.lerp(grassMix, grassMask)
+    // println("grassMask[$posY,$erosion->$occlusion,$breakup,${normal.y},$trees,${noise.grassHeight}]: $grassMask")
+    diffuseColor.mix(grassMix, grassMask)
 
     // -------------------------
     // Trees
@@ -157,7 +153,7 @@ fun calculateSurfaceColor(
     val treeFactor = clamp01(trees * 2.2f - 0.8f) * 0.6f
     val treeColor = Vector3f(TREE_COLOR).mul(pow(trees, 8f))
 
-    diffuseColor.lerp(treeColor, treeFactor)
+    diffuseColor.mix(treeColor, treeFactor)
 
     // -------------------------
     // Breakup noise
@@ -169,7 +165,7 @@ fun calculateSurfaceColor(
     // -------------------------
     val drainageWidth = 0.3f
     val drainage = clamp01((1f - clamp01(ridgeMap / drainageWidth)) * 1.5f)
-    diffuseColor.lerp(Vector3f(1f), drainage)
+    diffuseColor.mix(Vector3f(1f), drainage)
 
     return diffuseColor
 }
@@ -189,9 +185,9 @@ fun calculateStrataColor(posY: Float, diffuseColor: Vector3f): Vector3f {
 
     diffuseColor.set(0.3f)
 
-    diffuseColor.lerp(Vector3f(0.50f), strata.x)
-    diffuseColor.lerp(Vector3f(0.55f), strata.y)
-    diffuseColor.lerp(Vector3f(0.60f), strata.z)
+    diffuseColor.mix(Vector3f(0.50f), strata.x)
+    diffuseColor.mix(Vector3f(0.55f), strata.y)
+    diffuseColor.mix(Vector3f(0.60f), strata.z)
 
     return diffuseColor.mul(
         exp(posY * 10f),
@@ -212,7 +208,7 @@ fun calculateWaterColor(
     else 0f
 
     WATER_COLOR.mix(WATER_SHORE_COLOR, shore, diffuseColor)
-    return diffuseColor.lerp(Vector3f(1f), foam)
+    return diffuseColor.mix(Vector3f(1f), foam)
 }
 
 
