@@ -1,4 +1,4 @@
-package me.anno.tests.engine.effect
+package me.anno.tests.gfx.effect
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.PrefabCache

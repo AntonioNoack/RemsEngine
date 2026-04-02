@@ -10,6 +10,7 @@ import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.isZWMapping
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import org.joml.Matrix4f
 
 /**
  * Node for Screen-Space Global Illumination
@@ -25,6 +26,11 @@ class SSGINode : TimedRenderingNode(
         "Texture", "Illuminated"
     )
 ) {
+    companion object {
+        private val cameraMatrix = Matrix4f()
+        private val cameraMatrixInv = Matrix4f()
+    }
+
     init {
         description = "Screen-Space Global Illumination"
     }
@@ -56,10 +62,14 @@ class SSGINode : TimedRenderingNode(
         val data = ScreenSpaceAmbientOcclusion.SSGIData(illumTT, colorTT, reflectTT, reflectTM)
 
         timeRendering(name, timer) {
-            val transform = RenderState.cameraMatrix
+            cameraMatrix.set(RenderState.cameraMatrix)
+            TAANode.unjitter(cameraMatrix)
+            cameraMatrix.invert(cameraMatrixInv)
+
             val result = ScreenSpaceAmbientOcclusion.compute(
                 data, depthTT, depthT.mask1Index, normalT, normalZW,
-                transform, strength, radiusScale, ssaoSamples, blur, false
+                cameraMatrix, cameraMatrixInv,
+                strength, radiusScale, ssaoSamples, blur, false
             )
             finish(Texture.texture(result, 0, "rgb", null))
         }

@@ -41,7 +41,7 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.mesh.Shapes
 import me.anno.tests.ui.UITests
-import me.anno.tests.utils.TestWorld
+import me.anno.tests.utils.TestVoxelWorld
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS.desktop
@@ -134,7 +134,7 @@ class CompileTest {
         // needs clone, because it modifies the mesh by setting procedural length
         // todo calling .clone() on flatCube isn't enough to prevent RaycastMeshTest from failing, we need .scaled()???
         scene.add(FurMeshComponent(Shapes.flatCube.scaled(1f).front))
-        val testWorld = TestWorld()
+        val testWorld = TestVoxelWorld()
         scene.add(testWorld.createRaytracingMesh(0, 0, 0, 8, 8, 8))
         scene.add(testWorld.createRaytracingMeshV2(0, 0, 0, 8, 8, 8))
         scene.add(MeshComponent(flatCube, Material().apply { pipelineStage = GLASS_PASS }))

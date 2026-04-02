@@ -8,14 +8,13 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.input.Key
 import me.anno.maths.Maths.posMod
 import me.anno.tests.mesh.unique.ItemPanel.Companion.inHandBlock
-import me.anno.tests.utils.TestWorld
-import org.joml.Vector3d
+import me.anno.tests.utils.TestVoxelWorld
 import org.joml.Vector3i
 import java.lang.Math.floorDiv
 import kotlin.math.floor
 
 class CreativeControls(
-    renderView: RenderView, val scene: Entity, val world: TestWorld,
+    renderView: RenderView, val scene: Entity, val world: TestVoxelWorld,
     val saveSystem: SaveLoadSystem, val chunkLoader: ChunkLoader
 ) : DraggingControls(renderView) {
 
@@ -40,7 +39,7 @@ class CreativeControls(
             posMod(positions.z, csz),
         )
         // when we're on the edge, and we remove a block (set a transparent one), we need to invalidate our neighbors, too
-        if (block == TestWorld.air) {
+        if (block == TestVoxelWorld.air) {
             if (localCoords.x == 0) invalidateChunkAt(Vector3i(chunkId).sub(1, 0, 0))
             if (localCoords.y == 0) invalidateChunkAt(Vector3i(chunkId).sub(0, 1, 0))
             if (localCoords.z == 0) invalidateChunkAt(Vector3i(chunkId).sub(0, 0, 1))

@@ -41,7 +41,6 @@ object RenderState {
     val prevCameraRotation = Quaterniond()
 
     var isPerspective = true
-        private set
 
     var fovXRadians = 1.57f
     var fovYRadians = 1.57f

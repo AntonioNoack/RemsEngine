@@ -32,10 +32,10 @@ abstract class VRRendering {
         val prevCamPosition = Vector3d()
 
         fun loadPrevMatrix(rv: RenderView) {
-            rv.prevCamMatrix.set(prevCamMatrix)
-            rv.prevCamMatrixInv.set(prevCamMatrixInv)
-            rv.prevCamPosition.set(prevCamPosition)
-            rv.prevCamRotation.set(prevCamRotation)
+            rv.prevCameraMatrix.set(prevCamMatrix)
+            rv.prevCameraMatrixInv.set(prevCamMatrixInv)
+            rv.prevCameraPosition.set(prevCamPosition)
+            rv.prevCameraRotation.set(prevCamRotation)
         }
 
         fun storePrevMatrix(rv: RenderView) {

@@ -14,9 +14,7 @@ import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
-import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
@@ -29,11 +27,10 @@ import me.anno.maths.paths.PathFindingAccelerator
 import me.anno.mesh.Shapes
 import me.anno.tests.LOGGER
 import me.anno.tests.engine.light.setTranslateScaleInverse
-import me.anno.tests.utils.TestWorld
+import me.anno.tests.utils.TestVoxelWorld
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -65,7 +62,7 @@ fun main() {
     // slightly better, ~2x more expensive
     val useSecondaryHops = false
 
-    val world = TestWorld()
+    val world = TestVoxelWorld()
 
     // if you use raytracing, make these smaller :D
     val sx = if (rayTracing) 128 else 256

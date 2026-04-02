@@ -9,6 +9,7 @@ import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.isZWMapping
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
+import org.joml.Matrix4f
 
 class SSAONode : TimedRenderingNode(
     "SSAO",
@@ -19,6 +20,11 @@ class SSAONode : TimedRenderingNode(
         "Texture", "Depth",
     ), listOf("Texture", "Ambient Occlusion")
 ) {
+
+    companion object {
+        private val cameraMatrix = Matrix4f()
+        private val cameraMatrixInv = Matrix4f()
+    }
 
     init {
         description = "Screen Space Ambient Occlusion"
@@ -39,9 +45,8 @@ class SSAONode : TimedRenderingNode(
         val depthTT = depthT.texMSOrNull ?: return finish()
 
         val settings = GlobalSettings[SSAOSettings::class]
-        if (!(settings.strength > 0f && settings.numSamples > 0 && settings.radiusScale > 0f)) {
-            return finish()
-        }
+        val isValid = settings.strength > 0f && settings.numSamples > 0 && settings.radiusScale > 0f
+        if (!isValid) return finish()
 
         val normalMSAA = normalT.samples > 1
         val depthMSAA = depthTT.samples > 1
@@ -50,10 +55,15 @@ class SSAONode : TimedRenderingNode(
         }
 
         timeRendering(name, timer) {
-            val transform = RenderState.cameraMatrix
+
+            cameraMatrix.set(RenderState.cameraMatrix)
+            TAANode.unjitter(cameraMatrix)
+            cameraMatrix.invert(cameraMatrixInv)
+
             val result = ScreenSpaceAmbientOcclusion.compute(
                 null, depthTT, depthT.mask1Index, normalT, normalZW,
-                transform, settings.strength, settings.radiusScale, settings.numSamples, blur, inverse
+                cameraMatrix, cameraMatrixInv,
+                settings.strength, settings.radiusScale, settings.numSamples, blur, inverse
             )
             setOutput(1, Texture.texture(result, 0, "r", null))
         }

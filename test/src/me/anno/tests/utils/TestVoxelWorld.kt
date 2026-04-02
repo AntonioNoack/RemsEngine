@@ -22,7 +22,7 @@ import org.joml.Vector3f
 /**
  * a voxel test world, that can be used for testing
  * */
-open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
+open class TestVoxelWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
     companion object {
 
         val air = 0.toByte()

@@ -575,4 +575,17 @@ object Maths {
             else -> 0
         }
     }
+
+    @JvmStatic
+    fun halton(index: Int, base: Int): Float {
+        var f = 1f
+        var r = 0f
+        var i = index
+        while (i > 0) {
+            f /= base
+            r += f * (i % base)
+            i /= base
+        }
+        return r
+    }
 }

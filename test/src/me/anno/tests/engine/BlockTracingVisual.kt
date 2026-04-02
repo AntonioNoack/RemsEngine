@@ -18,7 +18,7 @@ import me.anno.tests.rtrt.engine.createControls
 import me.anno.tests.rtrt.engine.pipeline
 import me.anno.tests.rtrt.engine.sky0BGR
 import me.anno.tests.rtrt.engine.sky1BGR
-import me.anno.tests.utils.TestWorld
+import me.anno.tests.utils.TestVoxelWorld
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.TestDrawPanel
@@ -59,8 +59,8 @@ fun main() {
         ), main
     )
 
-    val world = TestWorld()
-    val bgrPalette = TestWorld.palette.copyOf()
+    val world = TestVoxelWorld()
+    val bgrPalette = TestVoxelWorld.palette.copyOf()
     for (i in bgrPalette.indices) {
         bgrPalette[i] = convertABGR2ARGB(bgrPalette[i])
     }

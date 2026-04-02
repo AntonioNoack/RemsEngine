@@ -16,11 +16,11 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.io.files.FileReference
-import me.anno.tests.utils.TestWorld
+import me.anno.tests.utils.TestVoxelWorld
 import me.anno.utils.Color.convertABGR2ARGB
 import org.joml.Vector3i
 
-class ChunkRenderer(val material: Material, val world: TestWorld) :
+class ChunkRenderer(val material: Material, val world: TestVoxelWorld) :
     UniqueMeshRendererImpl<Vector3i, Mesh>(attributes, blockVertexData, false, DrawMode.TRIANGLES) {
 
     companion object {

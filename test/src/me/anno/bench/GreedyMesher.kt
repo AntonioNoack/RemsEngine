@@ -2,12 +2,12 @@ package me.anno.bench
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.mesh.vox.model.VoxelModel
-import me.anno.tests.utils.TestWorld
+import me.anno.tests.utils.TestVoxelWorld
 import me.anno.utils.Clock
 
 fun main() {
     val clock = Clock("GreedyMesher")
-    val world = TestWorld()
+    val world = TestVoxelWorld()
     val mesh = Mesh()
     val chunk = world.getChunk(0, 0, 0, true)!!.waitFor()!!
     val model = object : VoxelModel(world.sizeX, world.sizeY, world.sizeZ) {

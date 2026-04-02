@@ -1,4 +1,4 @@
-package me.anno.tests.engine.effect
+package me.anno.tests.gfx.effect
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity

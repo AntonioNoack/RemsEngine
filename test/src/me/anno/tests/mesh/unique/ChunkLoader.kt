@@ -7,12 +7,12 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.maths.patterns.SpiralPattern.spiral2d
 import me.anno.mesh.vox.model.VoxelModel
-import me.anno.tests.utils.TestWorld
+import me.anno.tests.utils.TestVoxelWorld
 import me.anno.utils.hpc.ProcessingQueue
 import org.joml.AABBf
 import org.joml.Vector3i
 
-class ChunkLoader(val chunkRenderer: ChunkRenderer, val world: TestWorld) : Component(), OnUpdate {
+class ChunkLoader(val chunkRenderer: ChunkRenderer, val world: TestVoxelWorld) : Component(), OnUpdate {
 
     val csx = world.sizeX
     val csy = world.sizeY
@@ -40,7 +40,7 @@ class ChunkLoader(val chunkRenderer: ChunkRenderer, val world: TestWorld) : Comp
             }
         }
         model.center0()
-        val mesh = model.createMesh(TestWorld.palette, { x, y, z ->
+        val mesh = model.createMesh(TestVoxelWorld.palette, { x, y, z ->
             world.getElementAt(x0 + x, y0 + y, z0 + z).toInt()
         }, null)
 

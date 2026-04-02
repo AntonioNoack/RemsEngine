@@ -1,4 +1,4 @@
-package me.anno.tests.engine.effect
+package me.anno.tests.gfx.effect
 
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderMode.Companion.thenBloomAndExposure

@@ -8,7 +8,7 @@ import me.anno.input.Key
 import me.anno.io.files.InvalidRef
 import me.anno.maths.MinMax.min
 import me.anno.mesh.Shapes.flatCube
-import me.anno.tests.utils.TestWorld
+import me.anno.tests.utils.TestVoxelWorld
 import me.anno.ui.base.buttons.TextButton.Companion.drawButtonBorder
 import me.anno.ui.utils.ThumbnailPanel
 import me.anno.utils.Color.black
@@ -17,11 +17,11 @@ import me.anno.utils.Color.white
 
 class ItemPanel(val slot: ItemSlot) : ThumbnailPanel(InvalidRef, style) {
     companion object {
-        var inHandBlock = TestWorld.dirt
-        val previewBlockIds = TestWorld.palette.withIndex()
+        var inHandBlock = TestVoxelWorld.dirt
+        val previewBlockIds = TestVoxelWorld.palette.withIndex()
             .filter { it.value != 0 }.map { it.index.toByte() }
         val previewBlocks = previewBlockIds.associateWith { id ->
-            val color = TestWorld.colors[id]!!
+            val color = TestVoxelWorld.colors[id]!!
             val material = Material.diffuse(color)
             MeshComponent(flatCube.front, material)
         }

@@ -11,7 +11,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.createSceneUI
 import me.anno.maths.Maths.posMod
 import me.anno.tests.mesh.unique.ItemPanel.Companion.previewBlockIds
-import me.anno.tests.utils.TestWorld
+import me.anno.tests.utils.TestVoxelWorld
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.base.groups.PanelListX
@@ -46,7 +46,7 @@ fun main() {
     val inventory = Inventory(9)
 
     val saveSystem = SaveLoadSystem("VoxelWorld")
-    val world = object : TestWorld() {
+    val world = object : TestVoxelWorld() {
         override fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: ByteArray) {
             super.generateChunk(chunkX, chunkY, chunkZ, chunk)
             var hasAnswer = false
@@ -129,7 +129,7 @@ fun main() {
 
         for ((index, slot) in inventory.slots.withIndex()) {
             val panel = ItemPanel(slot)
-            panel.setTooltip(TestWorld.blockNames[slot.type]?.name ?: "")
+            panel.setTooltip(TestVoxelWorld.blockNames[slot.type]?.name ?: "")
             if (index.hasFlag(1)) {
                 panel.background.color = mixARGB(panel.background.color, white, 0.05f)
             }

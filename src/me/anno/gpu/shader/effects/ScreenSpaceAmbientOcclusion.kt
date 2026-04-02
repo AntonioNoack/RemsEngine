@@ -1,6 +1,7 @@
 package me.anno.gpu.shader.effects
 
 import me.anno.config.DefaultConfig
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
@@ -287,7 +288,10 @@ object ScreenSpaceAmbientOcclusion {
         depthMask: Int,
         normalTex: ITexture2D,
         normalZW: Boolean,
+
         cameraMatrix: Matrix4f,
+        cameraMatrixInv: Matrix4f,
+
         strength: Float,
         radiusScale: Float,
         samples: Int,
@@ -311,7 +315,13 @@ object ScreenSpaceAmbientOcclusion {
             val shader = occlusionShaders[base + normalZW.toInt() + depthMask.shl(1)]
             shader.use()
 
-            DepthTransforms.bindDepthUniforms(shader)
+            DepthTransforms.bindDepthUniforms(
+                shader,
+                RenderState.cameraDirection,
+                RenderState.cameraRotation,
+                cameraMatrixInv
+            )
+
             // bind all textures
             sampleKernel[samples].bindTrulyNearest(shader, "sampleKernel")
             random4x4.bindTrulyNearest(shader, "random4x4")
@@ -375,18 +385,22 @@ object ScreenSpaceAmbientOcclusion {
         depthMaskI: Int,
         normal: ITexture2D,
         normalZW: Boolean,
+
         cameraMatrix: Matrix4f,
+        cameraMatrixInv: Matrix4f,
+
         strength: Float,
         radiusScale: Float,
         samples: Int,
         enableBlur: Boolean,
         inverse: Boolean
     ): IFramebuffer {
+        val samples = min(samples, MAX_SAMPLES)
         return GFXState.renderPurely {
             val ssao = calculate(
                 ssgi, depth, depthMaskI, normal, normalZW,
-                cameraMatrix, strength, radiusScale,
-                min(samples, MAX_SAMPLES), enableBlur,
+                cameraMatrix, cameraMatrixInv,
+                strength, radiusScale, samples, enableBlur,
             )
             if (enableBlur || ssgi != null) {
                 average(

@@ -78,7 +78,6 @@ import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.hex24
 import me.anno.utils.GFXFeatures
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.types.Booleans.toFloat
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
@@ -455,6 +454,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             setOrthographicCamera(fov, aspectRatio)
         }
 
+        // needed for TAA
+        RenderState.cameraPosition.set(cameraPosition)
+        RenderState.prevCameraPosition.set(prevCameraPosition)
+        RenderState.isPerspective = isPerspective
+
         if (renderMode.renderGraph?.nodes?.any2 { it is FSR2Node } == true) {
             fsr22.jitter(cameraMatrix, width, height)
         } else if (renderMode.renderGraph?.nodes?.any2 { it is TAANode } == true) {
@@ -809,16 +813,16 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     val mousePosition = Vector3d()
     val mouseDirection = Vector3f()
 
-    val prevCamMatrix = Matrix4f()
-    val prevCamMatrixInv = Matrix4f()
-    val prevCamPosition = Vector3d()
-    val prevCamRotation = Quaternionf()
+    val prevCameraMatrix = Matrix4f()
+    val prevCameraMatrixInv = Matrix4f()
+    val prevCameraPosition = Vector3d()
+    val prevCameraRotation = Quaternionf()
 
     fun updatePrevState() {
-        prevCamMatrix.set(cameraMatrix)
-        prevCamMatrixInv.set(cameraMatrixInv)
-        prevCamPosition.set(cameraPosition)
-        prevCamRotation.set(cameraRotation)
+        prevCameraMatrix.set(cameraMatrix)
+        prevCameraMatrixInv.set(cameraMatrixInv)
+        prevCameraPosition.set(cameraPosition)
+        prevCameraRotation.set(cameraRotation)
     }
 
     fun setRenderState() {
@@ -830,9 +834,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         RenderState.cameraRotation.set(cameraRotation)
         RenderState.calculateDirections(isPerspective, false)
 
-        RenderState.prevCameraMatrix.set(prevCamMatrix)
-        RenderState.prevCameraPosition.set(prevCamPosition)
-        RenderState.prevCameraRotation.set(prevCamRotation)
+        RenderState.prevCameraMatrix.set(prevCameraMatrix)
+        RenderState.prevCameraPosition.set(prevCameraPosition)
+        RenderState.prevCameraRotation.set(prevCameraRotation)
 
         RenderState.fovXRadians = fovXRadians
         RenderState.fovYRadians = fovYRadians
