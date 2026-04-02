@@ -14,7 +14,7 @@ fun main() {
     LogManager.define("BlenderMaterialConverter", Level.DEBUG)
     OfficialExtensions.initForTests()
 
-    val file = getReference("/media/antonio/58CE075ECE0733B2/Users/Antonio/Documents/Blender/AbbeanumFlur.blend")
+    val file = getReference("/mnt/Windows/Users/Antonio/Documents/Blender/AbbeanumFlur.blend")
     val mesh = MeshCache.getEntry(file).waitFor() as Mesh
     for (materialRef in mesh.materials) {
         val material = MaterialCache.getEntry(materialRef).waitFor() ?: continue

@@ -23,7 +23,7 @@ fun main() {
     println(getReference("/media").listChildren())
     println(getReference("/media").isDirectory)
     println(getReference("/media/antonio").listChildren())
-    println(getReference("/media/antonio/58CE075ECE0733B2").listChildren())
+    println(getReference("/mnt/Windows").listChildren())
 
     println("\nNormalized folders")
     println(getReference("mnt").listChildren())
