@@ -6,14 +6,15 @@ import me.anno.ecs.EntityQuery.getComponentInChildren
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.light.sky.SkyboxBase
-import me.anno.ecs.components.mesh.material.MaterialOverride
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshIterators.forEachPointIndex
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndexV2
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
+import me.anno.ecs.components.mesh.material.MaterialOverride
 import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.shapes.CubemapModel
@@ -392,7 +393,7 @@ fun rasterizeMeshOntoUVs(component: MeshComponent, dst: RaytracingInput, resolut
     val c = Vector2f()
 
     val materials = Array(mesh.numMaterials) {
-        val src = Materials.getMaterial(component.materials, mesh.materials, it)
+        val src = Materials.getMaterial(component.materials, mesh.materials, it) as Material
         SimpleMaterial(
             ImageCache[src.diffuseMap].waitFor() ?: whiteImage, Vector3f(src.diffuseBase),
             ImageCache[src.emissiveMap].waitFor() ?: whiteImage, src.emissiveBase,

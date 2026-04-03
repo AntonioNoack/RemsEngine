@@ -13,17 +13,18 @@ import me.anno.ui.utils.ThumbnailPanel
 // todo menus have a weird padding on the right, again
 fun main() {
     disableRenderDoc()
-    testUI3("TooWideMenu", TextButton(NameDesc("Click Me"), style)
-        .addLeftClickListener {
-            openMenuByPanels(
-                it.windowStack, NameDesc("TooWide"),
-                listOf(object : ThumbnailPanel(Material().ref, style) {
-                    override fun calculateSize(w: Int, h: Int) {
-                        super.calculateSize(w, h)
-                        minW = 100
-                        minH = 100
-                    }
-                })
-            )
-        })
+    testUI3(
+        "TooWideMenu", TextButton(NameDesc("Click Me"), style)
+            .addLeftClickListener {
+                openMenuByPanels(
+                    it.windowStack, NameDesc("TooWide"),
+                    listOf(object : ThumbnailPanel(Material().ref, style) {
+                        override fun calculateSize(w: Int, h: Int) {
+                            super.calculateSize(w, h)
+                            minW = 100
+                            minH = 100
+                        }
+                    })
+                )
+            })
 }

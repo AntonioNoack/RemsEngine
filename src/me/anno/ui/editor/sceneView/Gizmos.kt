@@ -2,7 +2,7 @@ package me.anno.ui.editor.sceneView
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -135,7 +135,7 @@ object Gizmos {
     fun drawMesh(
         pipeline: Pipeline?, cameraTransform: Matrix4f,
         position: Vector3d, rotation: Quaternionf, scale: Float,
-        material: Material, color: Int, mesh: Mesh, mouseDirection: Vector3f
+        material: BaseMaterial, color: Int, mesh: Mesh, mouseDirection: Vector3f
     ): Boolean {
 
         val localTransform = local
@@ -163,7 +163,7 @@ object Gizmos {
 
     fun drawMesh(
         pipeline: Pipeline?, cameraTransform: Matrix4f, localTransform: Matrix4x3?,
-        material: Material, color: Int, mesh: Mesh
+        material: BaseMaterial, color: Int, mesh: Mesh
     ) {
         val shader = (material.shader ?: pbrModelShader).value
         shader.use()

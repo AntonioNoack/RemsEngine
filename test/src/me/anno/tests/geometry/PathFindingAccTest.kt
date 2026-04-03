@@ -11,6 +11,7 @@ import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
@@ -226,7 +227,7 @@ fun main() {
         var count2 = 0
         val cubeMesh = Shapes.flatCube.scaled(0.4f).front
         val debugCubeSpawner = object : MeshSpawner() {
-            override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
+            override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, BaseMaterial?, Transform) -> Boolean) {
                 for (index in 0 until count0) {
                     if (callback(cubeMesh, mat0, getTransform(index))) return
                 }
@@ -252,7 +253,12 @@ fun main() {
                         val (drawMatrix, invMatrix) = getTransform(index - count1)
                         val src = debugCubeSpawner.getTransform(index)
                         drawMatrix.set(src.getDrawMatrix()).scale(scale)
-                        invMatrix.setTranslateScaleInverse(drawMatrix.m30, drawMatrix.m31, drawMatrix.m32, scale.toDouble())
+                        invMatrix.setTranslateScaleInverse(
+                            drawMatrix.m30,
+                            drawMatrix.m31,
+                            drawMatrix.m32,
+                            scale.toDouble()
+                        )
                         dst.add(light, drawMatrix, invMatrix)
                     }
                 }

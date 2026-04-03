@@ -7,7 +7,6 @@ import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib
-import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f
 import kotlin.math.max

@@ -15,6 +15,7 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
@@ -116,7 +117,8 @@ fun main() {
         val player = playerMap[p.name]
         if (player != null && p.name != selfName) {
             val mesh = player.getComponent(MeshComponent::class)!!
-            (p.color or black).toVecRGBA(MaterialCache.getEntry(mesh.materials[0]).waitFor()!!.diffuseBase)
+            val material0 = MaterialCache.getEntry(mesh.materials[0]).waitFor() as Material
+            (p.color or black).toVecRGBA(material0.diffuseBase)
             val rb = player.getComponent(DynamicBody::class)!!
             player.position = player.position.set(p.position)
             player.rotation = player.rotation.set(p.rotation)

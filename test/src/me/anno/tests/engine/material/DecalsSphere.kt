@@ -37,9 +37,7 @@ fun main() {
     }
     scene.setRotation(0f, PIf, 0f)
     scene.add(MeshComponent(getReference("meshes/UVSphere.json")).apply {
-        materials = listOf(Material().apply {
-            diffuseBase.set(1f, 0.7f, 0.3f, 1f)
-        }.ref)
+        materials = listOf(Material.diffuse(0xffb24c).ref)
     })
     testSceneWithUI("Decal Sphere", scene)
 }

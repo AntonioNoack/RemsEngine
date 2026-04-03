@@ -5,7 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -76,7 +76,7 @@ fun main() {
             globalAABB.set(dstUnion)
         }
 
-        override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
+        override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, BaseMaterial?, Transform) -> Boolean) {
             for (i in 0 until count) {
                 val tr = getTransform(i)
                 tr.setLocalPosition(0.0, 0.0, i * space)

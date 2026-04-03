@@ -1,7 +1,7 @@
 package me.anno.tests.engine
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.OfficialExtensions
 import me.anno.io.files.Reference.getReference
@@ -27,7 +27,7 @@ class DefaultAssetsTest {
     @Test
     fun testMaterialsExist() {
         for (name in listOf("Default", "Mirror", "Golden", "Glass", "Black", "Emissive", "UVDebug")) {
-            assertIs(Material::class, PrefabCache[getReference("materials/$name.json")].waitFor()?.sample!!)
+            assertIs(BaseMaterial::class, PrefabCache[getReference("materials/$name.json")].waitFor()?.sample!!)
         }
     }
 

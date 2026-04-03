@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.WindowRenderFlags
@@ -133,7 +133,7 @@ class BoidV3(val n: Int) : MeshSpawner(), OnUpdate, OnDrawGUI {
         invalidateBounds()
     }
 
-    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
+    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, BaseMaterial?, Transform) -> Boolean) {
         val mesh = birdMesh
         for (i in 0 until n) {
             val transform = getTransform(i)
@@ -143,7 +143,7 @@ class BoidV3(val n: Int) : MeshSpawner(), OnUpdate, OnDrawGUI {
         }
     }
 
-    override fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, Material?) -> FloatArrayList): Boolean {
+    override fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, BaseMaterial?) -> FloatArrayList): Boolean {
         val list = callback(birdMesh, null)
         list.ensureExtra(8 * n)
         for (i in 0 until n) {

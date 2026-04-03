@@ -2,7 +2,7 @@ package me.anno.games.roadcraft
 
 import me.anno.Time
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.games.roadcraft.FallingSandShader.optY
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.GPUShader
@@ -12,7 +12,7 @@ import org.joml.Vector3f
 import org.joml.Vector3i
 import kotlin.math.max
 
-class FallingSandMaterial : Material() {
+class FallingSandMaterial : BaseMaterial() {
 
     val size = Vector3i(70, (70 / optY).toInt(), 70)
 

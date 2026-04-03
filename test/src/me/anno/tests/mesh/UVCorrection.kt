@@ -1,8 +1,9 @@
 package me.anno.tests.mesh
 
-import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.engine.OfficialExtensions
 import me.anno.image.Image
 import me.anno.image.ImageCache
@@ -66,7 +67,7 @@ object UVCorrection {
             val mesh = meshFile.prefab.getSampleInstance() as Mesh
             val pos = mesh.positions
             val uvs = mesh.uvs
-            val materials = mesh.materials.mapNotNull { MaterialCache.getEntry(it).waitFor() }
+            val materials = mesh.materials.mapNotNull { MaterialCache.getEntry(it).waitFor() as? Material }
             val textures = materials.mapNotNull { ImageCache[it.diffuseMap].waitFor() }
             if (pos != null && uvs != null && textures.isNotEmpty()) {
                 val image = textures.maxByOrNull { it.width * it.height }!!

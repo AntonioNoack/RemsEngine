@@ -50,7 +50,7 @@ fun mergeMaterials(mesh: Mesh): Mesh {
     val clone = mesh.shallowClone()
     val materials = (0 until n).map {
         MaterialCache.getEntry(mesh.materials.getOrNull(it))
-            .waitFor() ?: Material.defaultMaterial
+            .waitFor() as? Material ?: Material.defaultMaterial
     }
     val materialToTint = materials.map { it.diffuseBase }
     val colors = IntArray(mesh.positions!!.size / 3)

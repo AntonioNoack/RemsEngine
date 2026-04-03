@@ -1,6 +1,5 @@
 package me.anno.tests.utils
 
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.Renderers

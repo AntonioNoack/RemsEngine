@@ -8,7 +8,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Materials.getMaterial
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.systems.OnUpdate
@@ -30,7 +30,7 @@ import org.joml.AABBd
 // todo this probably has undefined behaviour, because its RenderDocCaptures crash RenderDoc
 class StaticMeshManager : System(), Renderable, OnUpdate {
 
-    val managers = HashMap<Material, SMMMeshRenderer>()
+    val managers = HashMap<BaseMaterial, SMMMeshRenderer>()
     val meshes = HashSet<MeshComponent>(1024)
 
     override fun fill(pipeline: Pipeline, transform: Transform) {

@@ -114,7 +114,7 @@ object ShaderToyExport {
 
         for (index in 0 until max(materials.size, 1)) {
             if (needsSwitch) builder.append("case ").append(index).append(":\n")
-            val material = materials.getOrNull(index) ?: Material.defaultMaterial
+            val material = materials.getOrNull(index) as? Material ?: Material.defaultMaterial
             builder.append("finalColor = vec3(${material.diffuseBase.x},${material.diffuseBase.y},${material.diffuseBase.z});\n")
             builder.append("finalAlpha = ${material.diffuseBase.w};\n")
             builder.append("finalMetallic = ${material.metallicMinMax.y};\n")

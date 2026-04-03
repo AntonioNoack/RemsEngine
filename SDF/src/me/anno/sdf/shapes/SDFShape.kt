@@ -1,6 +1,6 @@
 package me.anno.sdf.shapes
 
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.control.DCPaintable
@@ -84,7 +84,7 @@ abstract class SDFShape : SDFComponent(), DCPaintable {
         sdfTransPool.destroy(trans)
     }
 
-    override fun paint(self: DraggingControls, color: Material, file: FileReference) {
+    override fun paint(self: DraggingControls, color: BaseMaterial, file: FileReference) {
         val materialId = materialId
         val root = getRoot(SDFComponent::class) ?: this
         val oldList = root.sdfMaterials

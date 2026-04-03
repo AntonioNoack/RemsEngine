@@ -2,6 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.anim.BoneData.maxBones
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.ECSMeshShader.Companion.animCode0
 import me.anno.engine.ui.render.ECSMeshShader.Companion.baseColorCalculation
@@ -19,7 +20,6 @@ import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.input.Input
 import me.anno.io.files.InvalidRef
 import me.anno.utils.types.Booleans.hasFlag
 
@@ -30,13 +30,14 @@ import me.anno.utils.types.Booleans.hasFlag
 open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), "") {
 
     companion object {
-        fun Material.canUseLightShader(): Boolean {
+        fun BaseMaterial.canUseLightShader(): Boolean {
             return shader == null && shaderOverrides.isEmpty() &&
+                    this is Material &&
                     emissiveBase.is000() && emissiveMap == InvalidRef &&
                     normalMap == InvalidRef && sheen == 0f && pipelineStage == PipelineStage.OPAQUE &&
                     roughnessMap == InvalidRef && roughnessMinMax.y > 0.7f &&
                     metallicMap == InvalidRef && metallicMinMax.x == 0f &&
-                    occlusionMap == InvalidRef && !Input.isShiftDown
+                    occlusionMap == InvalidRef
         }
 
         private val randomIdStage = ShaderStage(

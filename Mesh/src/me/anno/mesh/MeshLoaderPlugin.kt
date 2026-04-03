@@ -63,7 +63,7 @@ class MeshLoaderPlugin : Plugin() {
             } else {
                 // just an empty material to symbolize, that the file is empty
                 // we maybe could do better with some kind of texture...
-                AssetThumbnails.generateMaterialFrame(srcFile, dstFile, Material(), size, callback)
+                AssetThumbnails.generateMaterialFrame(srcFile, dstFile, Material.defaultMaterial, size, callback)
             }
         }
     }

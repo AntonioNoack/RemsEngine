@@ -13,7 +13,7 @@ import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
@@ -486,7 +486,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
             element is MeshSpawner -> "🏗"
             element is CollidingComponent -> "📦"
             element is Component -> "🧩" // puzzle piece
-            element is Material -> "🎨"
+            element is BaseMaterial -> "🎨"
             else -> "⚪"
         }
     }
@@ -711,7 +711,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                 sample is LightComponentBase || sample is Skybox -> "Light"
                 clazz.startsWith("Text") -> "Text"
                 sample is MeshComponentBase -> "Mesh"
-                sample is Material -> "Material"
+                sample is BaseMaterial -> "Material"
                 sample is CollidingComponent -> "Collider"
                 clazz.endsWith("Constraint") -> "Constraint"
                 sample is Physics<*, *> -> "Physics"

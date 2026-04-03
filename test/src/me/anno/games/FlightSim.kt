@@ -4,8 +4,8 @@ import me.anno.Time
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.bodies.DynamicBody
 import me.anno.bullet.bodies.StaticBody
-import me.anno.cache.Promise
 import me.anno.cache.ICacheData
+import me.anno.cache.Promise
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
@@ -40,7 +40,6 @@ import me.anno.utils.OS
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Quaternionf
-import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -90,7 +89,7 @@ fun createTerrain(player: LocalPlayer): Entity {
     val cellSize = 50f
     val chunkSize = (cellSize * cellsPerChunk).toDouble()
 
-    class Chunk(val entity: Entity): ICacheData {
+    class Chunk(val entity: Entity) : ICacheData {
         override fun destroy() {
             entity.removeFromParent()
             entity.destroy()

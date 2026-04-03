@@ -45,9 +45,9 @@ import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.sq
 import me.anno.maths.MinMax.max
 import me.anno.maths.MinMax.min
-import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes
 import me.anno.parser.SimpleExpressionParser
 import me.anno.sdf.arrays.SDFGroupArray

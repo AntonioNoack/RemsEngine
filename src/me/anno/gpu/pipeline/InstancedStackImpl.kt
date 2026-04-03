@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
@@ -41,7 +41,7 @@ import java.nio.ByteBuffer
 
 class InstancedStackImpl(capacity: Int = 512) : DrawableStack(MeshInstanceData.DEFAULT_INSTANCED) {
 
-    val data = KeyTripleMap<IMesh, Material, Int, InstancedStack>(capacity)
+    val data = KeyTripleMap<IMesh, BaseMaterial, Int, InstancedStack>(capacity)
 
     override fun isEmpty(): Boolean {
         return data.values.values.all { it.isEmpty() }
@@ -78,7 +78,7 @@ class InstancedStackImpl(capacity: Int = 512) : DrawableStack(MeshInstanceData.D
     }
 
     private fun drawInstances(
-        mesh: IMesh, material: Material, materialIndex: Int,
+        mesh: IMesh, material: BaseMaterial, materialIndex: Int,
         pipeline: Pipeline, stage: PipelineStageImpl, needsLightUpdateForEveryMesh: Boolean,
         instances: InstancedStack, depth: Boolean
     ): Int {
@@ -179,7 +179,7 @@ class InstancedStackImpl(capacity: Int = 512) : DrawableStack(MeshInstanceData.D
         motionVectors: Boolean, needsLightUpdateForEveryMesh: Boolean,
         mesh: IMesh, aabb: AABBd, localAABB: AABBf,
         pipeline: Pipeline, stage: PipelineStageImpl, shader: Shader,
-        material: Material, materialIndex: Int,
+        material: BaseMaterial, materialIndex: Int,
     ): Int {
         // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
         val nioBuffer = buffer.getOrCreateNioBuffer()

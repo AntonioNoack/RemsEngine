@@ -21,7 +21,7 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.interfaces.Renderable
@@ -380,7 +380,7 @@ object AssetThumbnails {
     @JvmStatic
     fun generateMaterialFrame(
         srcFile: FileReference, dstFile: HDBKey,
-        material: Material, size: Int, callback: Callback<ITexture2D>
+        material: BaseMaterial, size: Int, callback: Callback<ITexture2D>
     ) {
         waitForTextures(material, srcFile) {
             ThumbsRendering.renderToImage(
@@ -569,7 +569,7 @@ object AssetThumbnails {
     ) {
         when (asset) {
             is Mesh -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
-            is Material -> generateMaterialFrame(srcFile, dstFile, asset, size, callback)
+            is BaseMaterial -> generateMaterialFrame(srcFile, dstFile, asset, size, callback)
             is Skeleton -> generateSkeletonFrame(srcFile, dstFile, asset, size, callback)
             is Animation -> generateAnimationFrame(srcFile, dstFile, asset, size, callback)
             is Entity -> generateEntityFrame(srcFile, dstFile, size, asset, callback)

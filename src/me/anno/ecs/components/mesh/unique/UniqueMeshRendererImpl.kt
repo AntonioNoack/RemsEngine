@@ -2,7 +2,7 @@ package me.anno.ecs.components.mesh.unique
 
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.ui.render.Frustum
 import me.anno.gpu.buffer.CompactAttributeLayout
@@ -41,7 +41,7 @@ abstract class UniqueMeshRendererImpl<Key, Mesh2>(
      * defines what the world looks like for Raycasting,
      * and for AABBs
      * */
-    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
+    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, BaseMaterial?, Transform) -> Boolean) {
         var i = 0
         for ((key, entry) in umrVertexData.entries) {
             val transform = getTransform(i++)

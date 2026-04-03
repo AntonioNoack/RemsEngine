@@ -9,9 +9,10 @@ import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.MaterialOverride
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialOverride
 import me.anno.ecs.components.mesh.material.Materials.getMaterial
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.interfaces.Renderable
@@ -59,7 +60,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
     var ignoredEntity: Entity? = null // e.g. for environment maps
     var ignoredComponent: Component? = null
-    var superMaterial: Material? = null
+    var superMaterial: BaseMaterial? = null
 
     val stages = ArrayList<PipelineStageImpl>()
 
@@ -116,7 +117,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         reflectionCullingPlane.set(0.0, 0.0, 0.0, 0.0)
     }
 
-    fun findStage(material: Material): PipelineStageImpl {
+    fun findStage(material: BaseMaterial): PipelineStageImpl {
         val stage0 = material.pipelineStage.id
         for (i in stages.size..stage0) {
             stages.add(

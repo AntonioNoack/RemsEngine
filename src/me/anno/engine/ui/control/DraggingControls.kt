@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.grid.DropPositionAdjuster
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
@@ -228,6 +228,10 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         drawRectangleSelection()
         drawStats()
         drawModeName()
+        if (settings.drawInspected) {
+            // redraw children if we drew over everything
+            drawChildren(x0, y0, x1, y1)
+        }
     }
 
     private fun getModeName(): String {
@@ -739,7 +743,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     ) {
         val prefab = PrefabCache[file].waitFor()?.prefab ?: return
         when (val sampleInstance = prefab.getSampleInstance()) {
-            is Material -> {
+            is BaseMaterial -> {
                 pasteMaterial(file, hovComponent, sampleInstance)
             }
             is Entity -> {
@@ -766,7 +770,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     fun pasteMaterial(
         file: FileReference, hovComponent: Component?,
-        sampleInstance: Material,
+        sampleInstance: BaseMaterial,
     ) {
         when (hovComponent) {
             is DCPaintable -> hovComponent.paint(this, sampleInstance, file)

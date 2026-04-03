@@ -17,8 +17,10 @@ fun main() {
     val file = getReference("/mnt/Windows/Users/Antonio/Documents/Blender/AbbeanumFlur.blend")
     val mesh = MeshCache.getEntry(file).waitFor() as Mesh
     for (materialRef in mesh.materials) {
-        val material = MaterialCache.getEntry(materialRef).waitFor() ?: continue
-        println("Material: roughness: ${material.roughnessMinMax}, metallic: ${material.metallicMinMax}, " +
-                "diffuse: ${material.diffuseMap}, emissive: ${material.emissiveMap}")
+        val material = MaterialCache.getEntry(materialRef).waitFor() as? Material ?: continue
+        println(
+            "Material: roughness: ${material.roughnessMinMax}, metallic: ${material.metallicMinMax}, " +
+                    "diffuse: ${material.diffuseMap}, emissive: ${material.emissiveMap}"
+        )
     }
 }

@@ -11,6 +11,7 @@ import org.joml.Matrix4x3f
 
 class SimpleMeshJoiner(val joinMaterials: Boolean, hasColors: Boolean, hasUVs: Boolean, hasBones: Boolean) :
     MeshJoiner<Mesh>(hasColors, hasUVs, hasBones) {
+
     override fun getMesh(element: Mesh): Mesh = element
     override fun getMaterials(element: Mesh): List<FileReference> {
         return if (joinMaterials) emptyList() else element.materials
@@ -19,7 +20,7 @@ class SimpleMeshJoiner(val joinMaterials: Boolean, hasColors: Boolean, hasUVs: B
     override fun getVertexColor(element: Mesh): Int {
         return if (joinMaterials) {
             val materialRef = element.materials.firstOrNull() ?: InvalidRef
-            val material = MaterialCache.getEntry(materialRef).waitFor() ?: Material.defaultMaterial
+            val material = MaterialCache.getEntry(materialRef).waitFor() as? Material ?: Material.defaultMaterial
             material.diffuseBase.toARGB()
         } else white
     }

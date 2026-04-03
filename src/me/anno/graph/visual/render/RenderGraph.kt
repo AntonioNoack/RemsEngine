@@ -1,6 +1,5 @@
 package me.anno.graph.visual.render
 
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Materials
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFXState.renderPurely
@@ -27,7 +26,6 @@ import me.anno.graph.visual.render.effects.OutlineNode
 import me.anno.graph.visual.render.effects.SSAONode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.effects.ShapedBlurNode
-import me.anno.graph.visual.render.effects.TAANode
 import me.anno.graph.visual.render.effects.ToneMappingNode
 import me.anno.graph.visual.render.scene.BoxCullingNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode

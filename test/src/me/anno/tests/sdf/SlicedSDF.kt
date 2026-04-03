@@ -31,8 +31,6 @@ import me.anno.sdf.shapes.SDFTorus
 import me.anno.utils.OS.documents
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.toRadians
-import org.joml.AABBd
-import org.joml.Matrix4x3
 import kotlin.math.ceil
 import kotlin.math.log2
 import kotlin.math.max

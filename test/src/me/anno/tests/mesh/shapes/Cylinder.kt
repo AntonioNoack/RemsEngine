@@ -1,7 +1,7 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.shapes
 
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.ui.UIColors.axisXColor

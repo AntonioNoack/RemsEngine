@@ -6,6 +6,7 @@ import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ECSRegistry
 import me.anno.engine.WindowRenderFlags

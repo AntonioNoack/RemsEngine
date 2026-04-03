@@ -1,5 +1,6 @@
 package me.anno.sdf
 
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.material.MaterialCache
@@ -273,7 +274,7 @@ object SDFComposer {
         }
     }
 
-    fun collectMaterialsUsingTextures(tree: SDFComponent, materials: List<Material?>): BooleanArrayList {
+    fun collectMaterialsUsingTextures(tree: SDFComponent, materials: List<BaseMaterial?>): BooleanArrayList {
         val flags = BooleanArrayList(max(materials.size, 1))
         if (materials.isNotEmpty()) {
             Recursion.processRecursive(tree) { it, remaining ->
@@ -298,7 +299,7 @@ object SDFComposer {
     }
 
     fun buildMaterialCode(
-        tree: SDFComponent, materials: List<Material?>,
+        tree: SDFComponent, materials: List<BaseMaterial?>,
         uniforms: HashMap<String, TypeValue>
     ): CharSequence {
         val materialsUsingTextures = collectMaterialsUsingTextures(tree, materials)
@@ -306,7 +307,7 @@ object SDFComposer {
     }
 
     fun buildMaterialCode(
-        materials: List<Material?>, materialsUsingTextures: BooleanArrayList,
+        materials: List<BaseMaterial?>, materialsUsingTextures: BooleanArrayList,
         uniforms: HashMap<String, TypeValue>
     ): CharSequence {
         val builder = StringBuilder(max(1, materials.size) * 128)
@@ -317,7 +318,7 @@ object SDFComposer {
             .append(")){\n")
         for (index in 0 until max(materials.size, 1)) {
             if (needsSwitch) builder.append("case ").append(index).append(": {\n")
-            val material = materials.getOrNull(index) ?: defaultMaterial
+            val material = materials.getOrNull(index) as? Material ?: defaultMaterial
             // todo support shading functions, textures and material interpolation
             // define all properties as uniforms, so they can be changed without recompilation
             // todo this is pretty limited by the total number of textures :/

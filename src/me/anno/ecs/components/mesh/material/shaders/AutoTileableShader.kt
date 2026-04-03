@@ -1,6 +1,5 @@
 package me.anno.ecs.components.mesh.material.shaders
 
-import me.anno.cache.CacheSection
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
 import me.anno.gpu.shader.GLSLType
@@ -10,9 +9,7 @@ import me.anno.gpu.shader.YUVHelper.rgb2yuv
 import me.anno.gpu.shader.YUVHelper.yuv2rgb
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
-import me.anno.io.files.FileKey
 import me.anno.maths.Maths
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g

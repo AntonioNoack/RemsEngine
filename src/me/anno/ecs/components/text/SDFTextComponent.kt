@@ -4,6 +4,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.text.TextComponent.Companion.defaultFont
 import me.anno.ecs.prefab.PrefabSaveable
@@ -152,7 +153,7 @@ class SDFTextComponent(
         return materials[i]
     }
 
-    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, Material?, Transform) -> Boolean) {
+    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, BaseMaterial?, Transform) -> Boolean) {
 
         var partIndex = 0
         val group = getOrCreateMeshGroup()

@@ -3,7 +3,6 @@ package me.anno.engine
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.material.Material.Companion.noVertexColors
 import me.anno.ecs.components.mesh.shapes.CircleModel
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
@@ -47,18 +46,19 @@ object DefaultAssets {
     val iconTexture = res.getChild("icon.png")
 
     // materials
-    val whiteMaterial = Material().noVertexColors()
-    val mirrorMaterial = Material.metallic(white, 0f).noVertexColors()
-    val silverMaterial = Material.metallic(0xe5e5e5, 0f).noVertexColors()
-    val steelMaterial = Material.metallic(0x4c4c4c, 0.2f).noVertexColors()
-    val goldenMaterial = Material.metallic(0xf5ba6c, 0.2f).noVertexColors()
-    val glassMaterial = Material.metallic(white, 0f).noVertexColors().apply {
+    val whiteMaterial = Material().apply { noVertexColors() }
+    val mirrorMaterial = Material.metallic(white, 0f).apply { noVertexColors() }
+    val silverMaterial = Material.metallic(0xe5e5e5, 0f).apply { noVertexColors() }
+    val steelMaterial = Material.metallic(0x4c4c4c, 0.2f).apply { noVertexColors() }
+    val goldenMaterial = Material.metallic(0xf5ba6c, 0.2f).apply { noVertexColors() }
+    val glassMaterial = Material.metallic(white, 0f).apply {
         diffuseBase.w = 0.5f
         pipelineStage = PipelineStage.GLASS
+        noVertexColors()
     }
     val blackMaterial = Material.diffuse(0)
-    val emissiveMaterial = Material().noVertexColors().apply { emissiveBase.set(10f) }
-    val uvDebugMaterial = Material().noVertexColors().apply { diffuseMap = uvCheckerTexture }
+    val emissiveMaterial = Material().apply { emissiveBase.set(10f); noVertexColors() }
+    val uvDebugMaterial = Material().apply { diffuseMap = uvCheckerTexture; noVertexColors() }
 
     fun init() {}
 

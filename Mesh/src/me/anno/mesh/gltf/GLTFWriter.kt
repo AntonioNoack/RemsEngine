@@ -625,7 +625,8 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                 } else null
 
                 fun getMaterial(i: Int): Material {
-                    return Materials.getMaterial(materialOverrides, mesh.materials, i)
+                    val material0 = Materials.getMaterial(materialOverrides, mesh.materials, i)
+                    return material0 as? Material ?: Material.defaultMaterial
                 }
 
                 if (helpers != null) {

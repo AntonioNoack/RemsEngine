@@ -2,7 +2,7 @@ package me.anno.ecs.components.mesh.terrain.v2
 
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.unique.UniqueMeshRendererImpl
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.gpu.buffer.Attribute
@@ -17,7 +17,7 @@ class TriTerrainRenderer :
     UniqueMeshRendererImpl<Mesh, Mesh>(attributes, MeshVertexData.DEFAULT, false, DrawMode.TRIANGLES) {
 
     val terrain = TriTerrainChunk(this)
-    var material: Material? = null
+    var material: BaseMaterial? = null
 
     override val materials: List<FileReference>
         get() = material?.ref.wrap()
@@ -39,7 +39,7 @@ class TriTerrainRenderer :
         return buffer to null
     }
 
-    override fun getTransformAndMaterial(key: Mesh, transform: Transform): Material? {
+    override fun getTransformAndMaterial(key: Mesh, transform: Transform): BaseMaterial? {
         return material
     }
 

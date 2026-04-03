@@ -10,7 +10,6 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.PIf
 import me.anno.utils.OS.documents
-import kotlin.math.PI
 
 fun main() {
     // todo bug: reflection disappears on shallow angles

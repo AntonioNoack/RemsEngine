@@ -7,6 +7,7 @@ import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
@@ -14,26 +15,22 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.CullMode
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.length
-import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.pow
 import me.anno.maths.Maths.sq
-import me.anno.mesh.FindLines.makeLineMesh
+import me.anno.maths.MinMax.max
 import me.anno.mesh.Shapes.flatCube
 import me.anno.recast.CrowdUpdateComponent
 import me.anno.recast.NavMeshAgent
 import me.anno.recast.NavMeshBuilder
-import me.anno.recast.NavMeshDebug.toMesh
 import me.anno.recast.NavMeshDebugComponent
 import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
-import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4x3
 import org.joml.Vector3d
@@ -112,7 +109,7 @@ val spiderBody = lazy {
     val spider = Entity("Spider")
     val xs = listOf(-1, +1)
 
-    fun add(target: Entity, offset: Vector3f, scale: Vector3f, material: Material) {
+    fun add(target: Entity, offset: Vector3f, scale: Vector3f, material: BaseMaterial) {
         target.add(MeshComponent(flatCube.linear(offset, scale).front, material))
     }
 
