@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.grid.DropPositionAdjuster
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
@@ -743,7 +743,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     ) {
         val prefab = PrefabCache[file].waitFor()?.prefab ?: return
         when (val sampleInstance = prefab.getSampleInstance()) {
-            is BaseMaterial -> {
+            is MaterialBase -> {
                 pasteMaterial(file, hovComponent, sampleInstance)
             }
             is Entity -> {
@@ -770,7 +770,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     fun pasteMaterial(
         file: FileReference, hovComponent: Component?,
-        sampleInstance: BaseMaterial,
+        sampleInstance: MaterialBase,
     ) {
         when (hovComponent) {
             is DCPaintable -> hovComponent.paint(this, sampleInstance, file)

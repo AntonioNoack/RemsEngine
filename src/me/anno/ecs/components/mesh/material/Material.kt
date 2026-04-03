@@ -16,7 +16,7 @@ import org.joml.Vector4f
 
 // todo clear-coat and sheen are very specific ->
 //  render them as a base, and later render over them, when light-levels are known???
-open class Material : BaseMaterial() {
+open class Material : MaterialBase() {
 
     @Docs("Color and transparency as far as it's supported")
     @Range(0.0, 1.0)
@@ -208,7 +208,7 @@ open class Material : BaseMaterial() {
         return equalProperties(other)
     }
 
-    override fun equalProperties(other: BaseMaterial): Boolean {
+    override fun equalProperties(other: MaterialBase): Boolean {
         if (!super.equalProperties(other)) return false
         if (other !is Material) return false
 

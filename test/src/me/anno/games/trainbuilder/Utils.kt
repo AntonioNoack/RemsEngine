@@ -3,7 +3,7 @@ package me.anno.games.trainbuilder
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.gpu.CullMode
@@ -17,7 +17,7 @@ fun List<String>.mapChildren(folder: FileReference): List<FileReference> {
 
 private val flippedMaterials = LazyMap<FileReference, FileReference> { src ->
     val original = MaterialCache.getEntry(src).waitFor() ?: defaultMaterial
-    val flipped = original.clone() as BaseMaterial
+    val flipped = original.clone() as MaterialBase
     flipped.cullMode = CullMode.BACK
     flipped.ref
 }

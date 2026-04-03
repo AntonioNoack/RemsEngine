@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.WindowRenderFlags
@@ -207,7 +207,7 @@ fun main() {
     val shader = ParticleShader(sim)
     val newMaterials = materials.map {
         // println(MaterialCache.getEntry(it).waitFor()!!.run { "$name: $diffuseBase, $this" })
-        val material = MaterialCache.getEntry(it).waitFor()!!.clone() as BaseMaterial
+        val material = MaterialCache.getEntry(it).waitFor()!!.clone() as MaterialBase
         material.shader = shader
         material.ref
     }

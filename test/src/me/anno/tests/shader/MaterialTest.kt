@@ -1,6 +1,6 @@
 package me.anno.tests.shader
 
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.OfficialExtensions
 import me.anno.utils.OS
@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager
 fun main() {
     OfficialExtensions.initForTests()
     val prefab = PrefabCache[OS.documents.getChild("cube bricks.glb")].waitFor()!!.prefab!!
-    val logger = LogManager.getLogger(BaseMaterial::class)
+    val logger = LogManager.getLogger(MaterialBase::class)
     for (change in prefab.adds) {
         logger.info(change)
     }

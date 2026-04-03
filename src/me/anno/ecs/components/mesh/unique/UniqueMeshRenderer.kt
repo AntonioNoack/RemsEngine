@@ -5,7 +5,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.Frustum
@@ -52,7 +52,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
      * - transform must be encoded in the buffer somehow
      * - material is taken from UniqueMeshRender.materials
      * */
-    open fun getTransformAndMaterial(key: Key, transform: Transform): BaseMaterial? = null
+    open fun getTransformAndMaterial(key: Key, transform: Transform): MaterialBase? = null
 
     val umrIndexData = if (indexedRendering) UMRIndexData(this) else null
     val umrVertexData = UMRVertexData(this)

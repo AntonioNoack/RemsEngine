@@ -11,7 +11,6 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshIterators.forEachPointIndex
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndexV2
-import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.material.MaterialOverride

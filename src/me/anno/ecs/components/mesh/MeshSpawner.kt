@@ -5,7 +5,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.collider.CollidingComponent
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.components.mesh.material.utils.TypeValue
@@ -200,7 +200,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * iterates over each mesh, which is actively visible; caller shall call transform.validate() if he needs the transform;
      * will (probably) stop, if you return true
      * */
-    abstract fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, BaseMaterial?, Transform) -> Boolean)
+    abstract fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, MaterialBase?, Transform) -> Boolean)
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
@@ -208,7 +208,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * useful, if there are thousands of pre-grouped meshes with the same material; reduced overhead
      * */
-    open fun forEachMeshGroup(pipeline: Pipeline, callback: (IMesh, BaseMaterial?) -> InstancedStack) = false
+    open fun forEachMeshGroup(pipeline: Pipeline, callback: (IMesh, MaterialBase?) -> InstancedStack) = false
 
     /**
      * iterates over each mesh group, which is actively visible;
@@ -218,7 +218,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * useful, if there are thousands of pre-grouped meshes with the same material; and just P+R+S, no shearing, only uniform scaling; reduced overhead
      * */
-    open fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, BaseMaterial?) -> FloatArrayList) = false
+    open fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, MaterialBase?) -> FloatArrayList) = false
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
@@ -234,13 +234,13 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * */
     open fun forEachInstancedGroup(
         pipeline: Pipeline,
-        callback: (IMesh, BaseMaterial?, StaticBuffer, Map<String, TypeValue>) -> Unit
+        callback: (IMesh, MaterialBase?, StaticBuffer, Map<String, TypeValue>) -> Unit
     ) = false
 
     fun <V : InstancedI32Stack> getOrPutI32Stack(
         pipeline: Pipeline,
         mesh: IMesh,
-        material: BaseMaterial,
+        material: MaterialBase,
         clazz: KClass<V>,
         newInstance: () -> V = { clazz.createInstance() }
     ): InstancedI32Stack.Data {

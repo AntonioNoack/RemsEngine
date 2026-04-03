@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.engine.DefaultAssets
@@ -215,7 +215,7 @@ fun main() {
         return entity
     }
 
-    fun add(pos: Vector3d, mesh: Mesh, material: BaseMaterial, y: Int, name: String, parent: Entity): Entity {
+    fun add(pos: Vector3d, mesh: Mesh, material: MaterialBase, y: Int, name: String, parent: Entity): Entity {
         val entity = add(pos, mesh, y, name, parent)
         entity.getComponent(MeshComponent::class)!!.materials = listOf(material.ref)
         return entity

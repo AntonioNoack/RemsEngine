@@ -23,7 +23,7 @@ import me.anno.gpu.texture.TextureCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 
-open class BaseMaterial : PrefabSaveable(), Renderable {
+open class MaterialBase : PrefabSaveable(), Renderable {
 
     // to do most properties here could be defined by the shader, not this class
     // to do we then somehow would need to display them dynamically
@@ -122,14 +122,14 @@ open class BaseMaterial : PrefabSaveable(), Renderable {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         // if you have a customized Material class, you must implement your own equals function
-        if (this::class != BaseMaterial::class || other !is BaseMaterial ||
-            other::class != BaseMaterial::class
+        if (this::class != MaterialBase::class || other !is MaterialBase ||
+            other::class != MaterialBase::class
         ) return false
 
         return equalProperties(other)
     }
 
-    open fun equalProperties(other: BaseMaterial): Boolean {
+    open fun equalProperties(other: MaterialBase): Boolean {
         if (pipelineStage != other.pipelineStage) return false
         if (shader !== other.shader) return false
         if (shaderOverrides != other.shaderOverrides) return false
@@ -141,7 +141,7 @@ open class BaseMaterial : PrefabSaveable(), Renderable {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        if (dst !is BaseMaterial) return
+        if (dst !is MaterialBase) return
         dst.shaderOverrides.clear()
         dst.shaderOverrides.putAll(shaderOverrides)
         dst.shader = shader
@@ -151,7 +151,7 @@ open class BaseMaterial : PrefabSaveable(), Renderable {
         dst.clamping = clamping
     }
 
-    fun noVertexColors(): BaseMaterial {
+    fun noVertexColors(): MaterialBase {
         enableVertexColors = false
         return this
     }

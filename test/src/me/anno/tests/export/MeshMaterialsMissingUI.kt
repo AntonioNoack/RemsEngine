@@ -2,7 +2,7 @@ package me.anno.tests.export
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.DefaultAssets
 import me.anno.engine.ui.input.AnyArrayPanel
@@ -13,7 +13,7 @@ import me.anno.utils.structures.lists.Lists.any2
 
 fun main() {
     registerCustomClass(Mesh::class)
-    registerCustomClass(BaseMaterial::class)
+    registerCustomClass(MaterialBase::class)
     val sample = DefaultAssets.flatCube
     val pi = PrefabInspector(sample.ref)
     val list = PanelListY(style)

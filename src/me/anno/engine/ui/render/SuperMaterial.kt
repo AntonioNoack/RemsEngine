@@ -1,7 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.annotations.ExtendableEnum
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.engine.DefaultAssets
 import me.anno.language.translation.NameDesc
 
@@ -10,10 +10,10 @@ import me.anno.language.translation.NameDesc
  * */
 class SuperMaterial(
     override val nameDesc: NameDesc,
-    val material: BaseMaterial?
+    val material: MaterialBase?
 ) : ExtendableEnum {
 
-    constructor(name: String, material: BaseMaterial?) :
+    constructor(name: String, material: MaterialBase?) :
             this(NameDesc(name), material)
 
     init {

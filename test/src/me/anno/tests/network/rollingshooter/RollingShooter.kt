@@ -15,7 +15,6 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.material.BaseMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel

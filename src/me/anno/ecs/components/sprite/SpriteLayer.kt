@@ -4,7 +4,7 @@ import me.anno.cache.FileCacheList
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.EditorField
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.components.mesh.unique.UniqueMeshRendererImpl
 import me.anno.ecs.components.mesh.utils.MeshVertexData
@@ -183,7 +183,7 @@ class SpriteLayer :
             }
         }
 
-    override val materials: FileCacheList<BaseMaterial> =
+    override val materials: FileCacheList<MaterialBase> =
         FileCacheList.of(material)
 
     // todo define clusters:

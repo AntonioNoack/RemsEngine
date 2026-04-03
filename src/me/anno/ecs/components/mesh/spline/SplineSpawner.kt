@@ -7,7 +7,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.spline.Splines.generateSplinePoints
 import me.anno.gpu.pipeline.Pipeline
@@ -86,7 +86,7 @@ class SplineSpawner : MeshSpawner() {
         return dt / length
     }
 
-    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, BaseMaterial?, Transform) -> Boolean) {
+    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, MaterialBase?, Transform) -> Boolean) {
 
         val entity = entity ?: return
         val material = MaterialCache.getEntry(materialOverride)

@@ -16,6 +16,7 @@ import me.anno.ecs.annotations.ScaleType
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.material.utils.TypeValueV2
@@ -144,7 +145,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
             }
         }
 
-    val material = Material()
+    var material: MaterialBase = Material()
 
     @Type("List<Material/Reference>")
     @SerializedProperty

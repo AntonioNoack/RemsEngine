@@ -206,7 +206,7 @@ object ImageAsFolder {
     fun readImage(file: FileReference, forGPU: Boolean, result: Promise<Image>) {
         if (file is ImageReadable) {
             result.value = if (forGPU) file.readGPUImage() else file.readCPUImage()
-        } else if (file is BundledRef || (file !is SignatureFile && file.length() < 10_000_000L)) { // < 10MB -> read directly
+        } else if (readDirectlyFromBytes(file)) {
             file.readBytes { bytes, exc ->
                 exc?.printStackTrace()
                 if (bytes != null) {
@@ -218,6 +218,11 @@ object ImageAsFolder {
         } else SignatureCache[file].waitFor { signature ->
             readImageWithSignature(file, result, signature?.name, forGPU)
         }
+    }
+
+    private fun readDirectlyFromBytes(file: FileReference): Boolean {
+        // < 10MB -> read directly
+        return file is BundledRef || (file !is SignatureFile && file.length() < 10_000_000L)
     }
 
     private fun readImageFromBytes(file: FileReference, data: Promise<Image>, bytes: ByteArray, forGPU: Boolean) {

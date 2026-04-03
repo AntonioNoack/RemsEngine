@@ -11,7 +11,7 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.engine.ui.render.ECSMeshShaderLight.Companion.canUseLightShader
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShaderLight
@@ -77,20 +77,20 @@ class PipelineStageImpl(
 
         var instancedToNonInstancedThreshold = 4
 
-        val lastMaterial = HashMap<Shader, BaseMaterial>(64)
+        val lastMaterial = HashMap<Shader, MaterialBase>(64)
         private val tmp4x3 = Matrix4x3f()
 
         private val tmpComponents = LazyList(65536) { MeshComponent() }
 
         val tmpAABBd = AABBd()
 
-        fun KeyTripleMap<IMesh, BaseMaterial, Int, InstancedStack>.getStack(
-            mesh: IMesh, material: BaseMaterial, matIndex: Int
+        fun KeyTripleMap<IMesh, MaterialBase, Int, InstancedStack>.getStack(
+            mesh: IMesh, material: MaterialBase, matIndex: Int
         ): InstancedStack {
             return getOrPut(mesh, material, matIndex, stackCreator)
         }
 
-        private val stackCreator = { meshI: IMesh, _: BaseMaterial, _: Int ->
+        private val stackCreator = { meshI: IMesh, _: MaterialBase, _: Int ->
             if (meshI.hasBonesInBuffer) {
                 InstancedStack.newAnimStack()
             } else {
@@ -206,7 +206,7 @@ class PipelineStageImpl(
         }
 
         fun bindUtilityUniforms(
-            shader: GPUShader, material: BaseMaterial, mesh: IMesh,
+            shader: GPUShader, material: MaterialBase, mesh: IMesh,
             renderer: Component
         ) {
             shader.v4f("tint", 1f)
@@ -497,7 +497,7 @@ class PipelineStageImpl(
     }
 
     var lastReceiveShadows = false
-    var previousMaterialInScene: BaseMaterial? = null
+    var previousMaterialInScene: MaterialBase? = null
     var hasLights = false
     var needsLightUpdateForEveryMesh = false
 
@@ -600,7 +600,7 @@ class PipelineStageImpl(
         pipeline: Pipeline,
         transform: Transform,
         renderer: Component,
-        material: BaseMaterial,
+        material: MaterialBase,
         materialIndex: Int,
         mesh: IMesh
     ) {
@@ -685,7 +685,7 @@ class PipelineStageImpl(
         }
     }
 
-    fun add(component: Component, mesh: IMesh, transform: Transform, material: BaseMaterial, materialIndex: Int) {
+    fun add(component: Component, mesh: IMesh, transform: Transform, material: MaterialBase, materialIndex: Int) {
         val nextInsertIndex = nextInsertIndex++
         if (nextInsertIndex >= drawRequests.size) {
             drawRequests.add(DrawRequest(mesh, component, transform, material, materialIndex))
@@ -701,7 +701,7 @@ class PipelineStageImpl(
 
     fun addInstanced(
         mesh: IMesh, component: Component, transform: Transform,
-        material: BaseMaterial, materialIndex: Int
+        material: MaterialBase, materialIndex: Int
     ) {
         val stack = instanced.data.getStack(mesh, material, materialIndex)
         addToStack(stack, component, transform, mesh)
@@ -718,18 +718,18 @@ class PipelineStageImpl(
         } else stack.add(transform, component.gfxId)
     }
 
-    fun getShader(material: BaseMaterial): Shader {
+    fun getShader(material: MaterialBase): Shader {
         val customShader = material.shader
         if (customShader != null) return customShader.value
         // no shader defined -> use the default shader
         return getDefaultShader(material)
     }
 
-    fun getDefaultShader(material: BaseMaterial): Shader {
+    fun getDefaultShader(material: MaterialBase): Shader {
         return (if (canUseLightShader(material)) pbrModelShaderLight else defaultShader).value
     }
 
-    fun canUseLightShader(material: BaseMaterial): Boolean {
+    fun canUseLightShader(material: MaterialBase): Boolean {
         return defaultShader == pbrModelShader && material.canUseLightShader()
     }
 

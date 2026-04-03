@@ -13,12 +13,15 @@ import me.anno.io.files.FileReference
 import me.anno.utils.OS.res
 
 /**
- * https://learn.foundry.com/modo/content/help/pages/shading_lighting/shader_items/matcap.html
- * https://github.com/nidorx/matcaps
+ * MatCap material: a cheap-to-calculate, pre-illuminated material that only looks plausible on non-trivial geometry.
+ *
+ * Continue reading: https://learn.foundry.com/modo/content/help/pages/shading_lighting/shader_items/matcap.html
+ * Get textures for this material type: https://github.com/nidorx/matcaps
+ * For testing, you can also use the bundled examples in res://textures/matcap
  *
  * todo support these for SDFs
  * */
-class MatCapMaterial : BaseMaterial() {
+class MatCapMaterial : MaterialBase() {
 
     init {
         shader = MatCapShader
@@ -53,7 +56,7 @@ class MatCapMaterial : BaseMaterial() {
         return equalProperties(other)
     }
 
-    override fun equalProperties(other: BaseMaterial): Boolean {
+    override fun equalProperties(other: MaterialBase): Boolean {
         if (!super.equalProperties(other)) return false
         if (other !is MatCapMaterial) return false
         if (matCapMap != other.matCapMap) return false

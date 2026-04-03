@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
@@ -158,7 +158,7 @@ class MeshGrid : MeshSpawner(), OnDrawGUI, DropPositionAdjuster {
         transform?.transformPosition(position)
     }
 
-    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, BaseMaterial?, Transform) -> Boolean) {
+    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, MaterialBase?, Transform) -> Boolean) {
         var i = 0
         val tmp = JomlPools.vec2d.create()
         for ((key, mesh) in grid) {

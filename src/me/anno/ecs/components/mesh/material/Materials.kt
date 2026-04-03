@@ -20,44 +20,44 @@ object Materials {
     fun getMaterial(
         materialOverrides: List<FileReference>?,
         materials: List<FileReference>, index: Int
-    ): BaseMaterial = getMaterialOrNull(materialOverrides, materials, index) ?: defaultMaterial
+    ): MaterialBase = getMaterialOrNull(materialOverrides, materials, index) ?: defaultMaterial
 
     fun getMaterial(
         materials: List<FileReference>, index: Int
-    ): BaseMaterial = getMaterialOrNull(materials, index) ?: defaultMaterial
+    ): MaterialBase = getMaterialOrNull(materials, index) ?: defaultMaterial
 
     fun getMaterialOrNull(
         materialOverrides: List<FileReference>?,
         materials: List<FileReference>, index: Int
-    ): BaseMaterial? {
+    ): MaterialBase? {
         return getMaterialOrNull(materialOverrides, index)
             ?: getMaterialOrNull(materials, index)
     }
 
-    fun getMaterialOrNull(materials: List<FileReference>?, index: Int): BaseMaterial? {
+    fun getMaterialOrNull(materials: List<FileReference>?, index: Int): MaterialBase? {
         val ref = materials?.getOrNull(index) ?: return null
         return when {
             index !in materials.indices -> null
-            materials is FileCacheList<*> -> materials.getValue(index) as? BaseMaterial
+            materials is FileCacheList<*> -> materials.getValue(index) as? MaterialBase
             FinalRendering.isFinalRendering -> MaterialCache.getEntry(ref).waitFor()
             else -> MaterialCache[ref]
         }
     }
 
     fun getMaterial(
-        superMaterialIfShaderNull: BaseMaterial?,
+        superMaterialIfShaderNull: MaterialBase?,
         materialOverrides: List<FileReference>?,
         materials: List<FileReference>,
         index: Int
-    ): BaseMaterial {
+    ): MaterialBase {
         val mat1 = getMaterial(materialOverrides, materials, index)
         return getMaterial(superMaterialIfShaderNull, mat1)
     }
 
     fun getMaterial(
-        superMaterialIfShaderNull: BaseMaterial?,
-        material: BaseMaterial,
-    ): BaseMaterial {
+        superMaterialIfShaderNull: MaterialBase?,
+        material: MaterialBase,
+    ): MaterialBase {
         return if (superMaterialIfShaderNull != null && material.shader == null) superMaterialIfShaderNull
         else material
     }

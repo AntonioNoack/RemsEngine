@@ -203,6 +203,7 @@ object Strings {
 
     @JvmStatic
     fun Double.formatTime(fractions: Int = 0): String {
+        if (!isFinite()) return toString()
         val fractionString = if (fractions > 0) {
             NumberFormatter.formatFloat(fract(this), fractions, false).substring(1)
         } else ""

@@ -1,9 +1,10 @@
 package me.anno.sdf
 
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MatCapMaterial
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.MaterialCache
+import me.anno.ecs.components.mesh.material.shaders.MatCapShader
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.ECSMeshShader.Companion.discardByCullingPlane
@@ -31,13 +32,12 @@ import me.anno.sdf.uv.UVMapper
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.BooleanArrayList
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings.iff
 import org.joml.Vector2f
 import org.joml.Vector3f
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.math.max
 
 /**
@@ -238,6 +238,7 @@ object SDFComposer {
                 functions.add(depthToPosition)
                 functions.add(costShadingFunc)
                 functions.add(RendererLib.getReflectivity)
+                functions.add(MatCapShader.matcap)
                 stage.add(build(functions, shapeDependentShader))
                 return listOf(stage)
             }
@@ -269,19 +270,21 @@ object SDFComposer {
 
             shader.v1b("perspectiveCamera", RenderState.isPerspective)
             shader.v2f("renderSize", target.width.toFloat(), target.height.toFloat())
+            MatCapShader.bindCameraRotation(shader)
 
             bindDepthUniforms(shader)
         }
     }
 
-    fun collectMaterialsUsingTextures(tree: SDFComponent, materials: List<BaseMaterial?>): BooleanArrayList {
+    fun collectMaterialsUsingTextures(tree: SDFComponent, materials: List<MaterialBase?>): BooleanArrayList {
         val flags = BooleanArrayList(max(materials.size, 1))
         if (materials.isNotEmpty()) {
-            Recursion.processRecursive(tree) { it, remaining ->
-                if (it.isEnabled) {
-                    val needsUVs = it.positionMappers.firstInstanceOrNull2(UVMapper::class) != null
-                    if (needsUVs) {
-                        it.simpleTraversal(false) { c ->
+            Recursion.processRecursive(tree) { sdfChild, remaining ->
+                if (sdfChild.isEnabled) {
+                    val usesTexture = sdfChild.positionMappers.firstInstanceOrNull2(UVMapper::class) != null ||
+                            sdfChild.sdfMaterials.any2 { MaterialCache.getEntry(it).waitFor() is MatCapMaterial }
+                    if (usesTexture) {
+                        sdfChild.simpleTraversal(false) { c ->
                             if (c is SDFShape) {
                                 if (c.materialId < flags.size) {
                                     flags.set(c.materialId)
@@ -289,8 +292,8 @@ object SDFComposer {
                             }
                             false
                         }
-                    } else if (it is SDFGroup) {
-                        remaining.addAll(it.children)
+                    } else if (sdfChild is SDFGroup) {
+                        remaining.addAll(sdfChild.children)
                     }
                 }
             }
@@ -299,7 +302,7 @@ object SDFComposer {
     }
 
     fun buildMaterialCode(
-        tree: SDFComponent, materials: List<BaseMaterial?>,
+        tree: SDFComponent, materials: List<MaterialBase?>,
         uniforms: HashMap<String, TypeValue>
     ): CharSequence {
         val materialsUsingTextures = collectMaterialsUsingTextures(tree, materials)
@@ -307,7 +310,7 @@ object SDFComposer {
     }
 
     fun buildMaterialCode(
-        materials: List<BaseMaterial?>, materialsUsingTextures: BooleanArrayList,
+        materials: List<MaterialBase?>, materialsUsingTextures: BooleanArrayList,
         uniforms: HashMap<String, TypeValue>
     ): CharSequence {
         val builder = StringBuilder(max(1, materials.size) * 128)
@@ -316,28 +319,67 @@ object SDFComposer {
             .append("switch(clamp(int(ray.y),0,")
             .append(materials.lastIndex)
             .append(")){\n")
+
+        val hasMatCap = materials.any2 { it is MatCapMaterial }
+        if (hasMatCap) builder.append(
+            "vec3 relNormal = quatRotInv(finalNormal, cameraRotationXZ);\n" +
+                    "vec2 matcapUV = matcap(relNormal);\n"
+        )
+
         for (index in 0 until max(materials.size, 1)) {
             if (needsSwitch) builder.append("case ").append(index).append(": {\n")
-            val material = materials.getOrNull(index) as? Material ?: defaultMaterial
+
             // todo support shading functions, textures and material interpolation
             // define all properties as uniforms, so they can be changed without recompilation
             // todo this is pretty limited by the total number of textures :/
+
+            val material = materials.getOrNull(index)
             val canUseTextures = materialsUsingTextures[index]
-            val color = defineUniform(uniforms, material.diffuseBase)
-            if (canUseTextures && material.diffuseMap.exists) {
-                builder.append("vec4 color = texture(")
-                    .append(defineUniform(uniforms, GLSLType.S2D) { material.diffuseMap })
-                    .append(",finalUV) * ").append(color).append(";\n")
-                builder.append("finalColor = color.rgb;\n")
-                builder.append("finalAlpha = color.w;\n")
-            } else {
-                builder.append("finalColor = ").append(color).append(".rgb;\n")
-                builder.append("finalAlpha = ").append(color).append(".w;\n")
+            when (material) {
+                is Material -> {
+                    val color = defineUniform(uniforms, material.diffuseBase)
+                    if (canUseTextures && material.diffuseMap.exists) {
+                        builder.append("vec4 color = texture(")
+                            .append(defineUniform(uniforms, GLSLType.S2D) { material.diffuseMap })
+                            .append(",finalUV) * ").append(color).append(";\n")
+                        builder.append("finalColor = color.rgb;\n")
+                        builder.append("finalAlpha = color.w;\n")
+                    } else {
+                        builder.append("finalColor = ").append(color).append(".rgb;\n")
+                        builder.append("finalAlpha = ").append(color).append(".w;\n")
+                    }
+                    // todo create textures for these
+                    builder.append("finalMetallic = ")
+                        .appendUniform(uniforms, material.metallicMinMax).append(".y;\n")
+                    builder.append("finalRoughness = ")
+                        .appendUniform(uniforms, material.roughnessMinMax).append(".y;\n")
+                    builder.append("finalEmissive = ")
+                        .appendUniform(uniforms, material.emissiveBase).append(";\n")
+                }
+                is MatCapMaterial -> {
+
+                    builder.append("finalColor = vec3(0.0);\n")
+                    builder.append("finalAlpha = 1.0;\n")
+                    builder.append("finalMetallic = 0.0;\n")
+                    builder.append("finalRoughness = 1.0;\n")
+
+                    if (canUseTextures && material.matCapMap.exists) {
+                        builder.append("vec3 color = texture(")
+                            .append(defineUniform(uniforms, GLSLType.S2D) { material.matCapMap })
+                            .append(",matcapUV).rgb").append(";\n")
+                        builder.append("finalEmissive = color / (${1f + 1f / MatCapShader.maxBrightness} - color);\n") // SDR -> HDR
+                    } else {
+                        builder.append("finalEmissive = vec3(${MatCapShader.maxBrightness});\n")
+                    }
+                }
+                else -> {
+                    builder.append("finalColor = vec3(1.0);\n")
+                    builder.append("finalAlpha = 1.0;\n")
+                    builder.append("finalMetallic = 0.0;\n")
+                    builder.append("finalRoughness = 1.0;\n")
+                    builder.append("finalEmissive = vec3(0.0);\n")
+                }
             }
-            // todo create textures for these
-            builder.append("finalMetallic = ").appendUniform(uniforms, material.metallicMinMax).append(".y;\n")
-            builder.append("finalRoughness = ").appendUniform(uniforms, material.roughnessMinMax).append(".y;\n")
-            builder.append("finalEmissive = ").appendUniform(uniforms, material.emissiveBase).append(";\n")
             if (needsSwitch) builder.append("break; }\n")
         }
         if (needsSwitch) builder.append("}\n")
@@ -415,6 +457,7 @@ object SDFComposer {
         Variable(GLSLType.V1F, "sdfReliability"),
         Variable(GLSLType.V1F, "sdfNormalEpsilon"),
         Variable(GLSLType.V1F, "sdfMaxRelativeError"),
+        Variable(GLSLType.V4F, "cameraRotationXZ"),
         // is used to prevent inlining of huge functions
         Variable(GLSLType.V1I, "ZERO"),
         // input varyings

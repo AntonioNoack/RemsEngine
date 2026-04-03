@@ -4,7 +4,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.unique.StaticMeshManager.Companion.attributes
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.gpu.buffer.DrawMode
@@ -21,7 +21,7 @@ import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector3f
 import java.nio.ByteBuffer
 
-class SMMMeshRenderer(material: BaseMaterial) :
+class SMMMeshRenderer(material: MaterialBase) :
     UniqueMeshRendererImpl<SMMKey, Mesh>(attributes, MeshVertexData.DEFAULT, false, DrawMode.TRIANGLES) {
 
     override val hasVertexColors: Int get() = 1
@@ -164,7 +164,7 @@ class SMMMeshRenderer(material: BaseMaterial) :
         } else return null
     }
 
-    override fun getTransformAndMaterial(key: SMMKey, transform: Transform): BaseMaterial? {
+    override fun getTransformAndMaterial(key: SMMKey, transform: Transform): MaterialBase? {
         transform.setGlobal(key.comp.transform!!.globalTransform)
         transform.teleportUpdate()
         return null
@@ -181,7 +181,7 @@ class SMMMeshRenderer(material: BaseMaterial) :
         return data to null
     }
 
-    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, BaseMaterial?, Transform) -> Boolean) {
+    override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, MaterialBase?, Transform) -> Boolean) {
         // shall we implement this?
     }
 }

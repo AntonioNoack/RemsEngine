@@ -2,7 +2,7 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
@@ -27,7 +27,7 @@ open class InstancedTRSStack(instanceData: MeshInstanceData, capacity: Int = 64)
 
     constructor() : this(MeshInstanceData.TRS)
 
-    val data = KeyPairMap<IMesh, BaseMaterial, Data>(capacity)
+    val data = KeyPairMap<IMesh, MaterialBase, Data>(capacity)
 
     class Data {
 
@@ -74,7 +74,7 @@ open class InstancedTRSStack(instanceData: MeshInstanceData, capacity: Int = 64)
     fun draw(
         stage: PipelineStageImpl,
         mesh: IMesh,
-        material: BaseMaterial,
+        material: MaterialBase,
         pipeline: Pipeline,
         instances: Data,
         depth: Boolean

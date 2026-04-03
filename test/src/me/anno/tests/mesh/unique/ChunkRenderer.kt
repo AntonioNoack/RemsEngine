@@ -3,7 +3,7 @@ package me.anno.tests.mesh.unique
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.unique.UniqueMeshRendererImpl
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.gpu.buffer.Attribute
@@ -20,7 +20,7 @@ import me.anno.tests.utils.TestVoxelWorld
 import me.anno.utils.Color.convertABGR2ARGB
 import org.joml.Vector3i
 
-class ChunkRenderer(val material: BaseMaterial, val world: TestVoxelWorld) :
+class ChunkRenderer(val material: MaterialBase, val world: TestVoxelWorld) :
     UniqueMeshRendererImpl<Vector3i, Mesh>(attributes, blockVertexData, false, DrawMode.TRIANGLES) {
 
     companion object {
@@ -67,7 +67,7 @@ class ChunkRenderer(val material: BaseMaterial, val world: TestVoxelWorld) :
     override val materials: List<FileReference> = listOf(material.ref)
     override val numMaterials: Int get() = 1
 
-    override fun getTransformAndMaterial(key: Vector3i, transform: Transform): BaseMaterial {
+    override fun getTransformAndMaterial(key: Vector3i, transform: Transform): MaterialBase {
         transform.setLocalPosition(
             (key.x * csx).toDouble(),
             (key.y * csy).toDouble(),

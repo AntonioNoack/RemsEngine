@@ -3,7 +3,7 @@ package me.anno.tests.mesh.hexagons
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.components.mesh.unique.UniqueMeshRendererImpl
 import me.anno.ecs.components.mesh.utils.MeshVertexData
@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 // todo why is this still lagging soo much? shouldn't it be smooth???
 class HSChunkLoader(
     val sphere: HexagonSphere, val world: HexagonSphereMCWorld,
-    val transparent: Boolean?, val material: BaseMaterial
+    val transparent: Boolean?, val material: MaterialBase
 ) : UniqueMeshRendererImpl<HexagonSphere.Chunk, Mesh>(attributes, hexVertexData, false, DrawMode.TRIANGLES), OnUpdate {
 
     companion object {
@@ -89,7 +89,7 @@ class HSChunkLoader(
         return buffer to null
     }
 
-    override fun getTransformAndMaterial(key: HexagonSphere.Chunk, transform: Transform): BaseMaterial {
+    override fun getTransformAndMaterial(key: HexagonSphere.Chunk, transform: Transform): MaterialBase {
         // transform can stay identity
         return material
     }

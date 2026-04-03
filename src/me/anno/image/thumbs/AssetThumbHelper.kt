@@ -7,7 +7,7 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.material.Materials
@@ -206,7 +206,7 @@ object AssetThumbHelper {
         LOGGER.warn("Missing material '{}'", materialReference)
     }
 
-    fun waitForTextures(material: BaseMaterial, srcFile: FileReference, callback: () -> Unit) {
+    fun waitForTextures(material: MaterialBase, srcFile: FileReference, callback: () -> Unit) {
         // listing all textures
         // does not include personal materials / shaders...
         val textures = material.listTextures().toHashSet()

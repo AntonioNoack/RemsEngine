@@ -3,7 +3,7 @@ package me.anno.tests.utils
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Texture3DBTMaterial
 import me.anno.ecs.components.mesh.material.Texture3DBTv2Material
 import me.anno.gpu.texture.Clamping
@@ -161,7 +161,7 @@ open class TestVoxelWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         return createCube(sx, sy, sz, material)
     }
 
-    private fun createCube(sx: Int, sy: Int, sz: Int, material: BaseMaterial): MeshComponentBase {
+    private fun createCube(sx: Int, sy: Int, sz: Int, material: MaterialBase): MeshComponentBase {
         val mesh = flatCube.scaled(Vector3f(sx, sy, sz)).back
         val comp = MeshComponent()
         comp.materials = listOf(material.ref)

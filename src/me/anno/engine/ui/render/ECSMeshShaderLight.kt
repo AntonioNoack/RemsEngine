@@ -2,7 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.anim.BoneData.maxBones
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.ECSMeshShader.Companion.animCode0
 import me.anno.engine.ui.render.ECSMeshShader.Companion.baseColorCalculation
@@ -30,7 +30,7 @@ import me.anno.utils.types.Booleans.hasFlag
 open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), "") {
 
     companion object {
-        fun BaseMaterial.canUseLightShader(): Boolean {
+        fun MaterialBase.canUseLightShader(): Boolean {
             return shader == null && shaderOverrides.isEmpty() &&
                     this is Material &&
                     emissiveBase.is000() && emissiveMap == InvalidRef &&

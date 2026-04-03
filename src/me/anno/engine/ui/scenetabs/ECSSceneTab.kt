@@ -11,7 +11,7 @@ import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
@@ -86,7 +86,7 @@ class ECSSceneTab(
                 resetCamera2(root.getMesh() ?: return)
             }
             is IMesh -> resetCamera2(root)
-            is BaseMaterial, is LightComponentBase -> {
+            is MaterialBase, is LightComponentBase -> {
                 radius = 2f
             }
             is Entity -> {

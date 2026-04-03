@@ -2,7 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.cache.FileCacheList
 import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
@@ -35,7 +35,7 @@ class LineMesh(var meshFile: FileReference) : PrefabSaveable(), IMesh {
 
     @InternalAPI
     @NotSerializedProperty
-    var cachedMaterialOverrides = FileCacheList.empty<BaseMaterial>()
+    var cachedMaterialOverrides = FileCacheList.empty<MaterialBase>()
 
     val mesh: IMesh?
         get() = MeshCache.getEntry(meshFile).waitFor()

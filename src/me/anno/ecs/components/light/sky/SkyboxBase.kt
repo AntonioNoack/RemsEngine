@@ -6,7 +6,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.sky.shaders.SkyShaderBase
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
@@ -35,7 +35,7 @@ open class SkyboxBase : CollidingComponent(), Renderable {
         }
 
     @NotSerializedProperty
-    val material: BaseMaterial = BaseMaterial()
+    val material: MaterialBase = MaterialBase()
 
     @Type("Color3HDR")
     @SerializedProperty
@@ -50,7 +50,7 @@ open class SkyboxBase : CollidingComponent(), Renderable {
             field.set(value)
         }
 
-    val materials: FileCacheList<BaseMaterial>
+    val materials: FileCacheList<MaterialBase>
 
     init {
         // rendering properties

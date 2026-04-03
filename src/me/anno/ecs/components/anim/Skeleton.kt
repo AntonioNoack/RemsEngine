@@ -2,7 +2,7 @@ package me.anno.ecs.components.anim
 
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
@@ -84,7 +84,7 @@ class Skeleton : PrefabSaveable(), Renderable {
         fill(pipeline, defaultMaterial)
     }
 
-    fun fill(pipeline: Pipeline, material: BaseMaterial) {
+    fun fill(pipeline: Pipeline, material: MaterialBase) {
         val bones = bones
         if (bones.isEmpty()) return
         if (previewData == null) {

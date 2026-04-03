@@ -7,7 +7,7 @@ import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.material.BaseMaterial
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
@@ -109,7 +109,7 @@ val spiderBody = lazy {
     val spider = Entity("Spider")
     val xs = listOf(-1, +1)
 
-    fun add(target: Entity, offset: Vector3f, scale: Vector3f, material: BaseMaterial) {
+    fun add(target: Entity, offset: Vector3f, scale: Vector3f, material: MaterialBase) {
         target.add(MeshComponent(flatCube.linear(offset, scale).front, material))
     }
 
