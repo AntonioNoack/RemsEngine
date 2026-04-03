@@ -18,8 +18,6 @@ import me.anno.utils.OS.res
  * Continue reading: https://learn.foundry.com/modo/content/help/pages/shading_lighting/shader_items/matcap.html
  * Get textures for this material type: https://github.com/nidorx/matcaps
  * For testing, you can also use the bundled examples in res://textures/matcap
- *
- * todo support these for SDFs
  * */
 class MatCapMaterial : MaterialBase() {
 
@@ -27,7 +25,7 @@ class MatCapMaterial : MaterialBase() {
         shader = MatCapShader
     }
 
-    @Docs("Diffuse Texture")
+    @Docs("MatCap Texture")
     @Type("Texture/Reference")
     var matCapMap: FileReference = defaultTexture
 
