@@ -126,8 +126,6 @@ open class SDFGroup : SDFComponent() {
             field.set(value)
         }
 
-    private val numActiveChildren: Int get() = children.count2 { it.isEnabled }
-
     override fun calculateBaseBounds(dst: AABBf) {
         // for now, just use the worst case
         calculateBaseBounds(dst, children)
@@ -440,7 +438,8 @@ open class SDFGroup : SDFComponent() {
             1 -> {
                 val pw = pos.w
                 pos.w = 0f
-                return (children.first { it.isEnabled }.computeSDF(pos, seeds) + pw) * scale
+                val enabled = children.first { it.isEnabled }
+                (enabled.computeSDF(pos, seeds) + pw) * scale
             }
             else -> {
                 val pw = pos.w
@@ -474,7 +473,7 @@ open class SDFGroup : SDFComponent() {
                         else combinationMode.combine(d0, d1, k, this)
                     }
                 }
-                return (d0 + pw) * scale
+                (d0 + pw) * scale
             }
         }
     }
@@ -509,13 +508,13 @@ open class SDFGroup : SDFComponent() {
                                 abs(it.computeSDF(pos, seeds))
                             }!!
                         pos.set(px, py, pz, 0f)
-                        return bestChild.findClosestComponent(pos, seeds)
+                        bestChild.findClosestComponent(pos, seeds)
                     }
                     CombinationMode.INTERPOLATION -> {
                         // child with the largest weight
                         pos.set(px, py, pz, 0f)
                         val enabled = children.filter { it.isEnabled }
-                        return enabled[clamp(progress.roundToIntOr(), 0, enabled.lastIndex)]
+                        enabled[clamp(progress.roundToIntOr(), 0, enabled.lastIndex)]
                             .findClosestComponent(pos, seeds)
                     }
                     CombinationMode.ENGRAVE,
@@ -534,7 +533,7 @@ open class SDFGroup : SDFComponent() {
                                 }
                             }
                         }
-                        return bestComp!!
+                        bestComp!!
                     }
                 }
             }

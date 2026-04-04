@@ -29,11 +29,11 @@ fun main() {
     //  one is 2x bigger, the other is 2²x bigger
     val scene = Entity("Scene")
         .add(scaledEntity)
-        .add(
-            Entity("MeshCache-Scaled")
-                .setPosition(-12.0, 0.0, 0.0)
-                .add(MeshComponent(scaledMesh, blueMaterial))
-        )
+
+    Entity("MeshCache-Scaled", scene)
+        .setPosition(-12.0, 0.0, 0.0)
+        .add(MeshComponent(scaledMesh, blueMaterial))
+
     // fixed AABB of scene is incorrect
     testSceneWithUI("MeshCache broken", scene)
 }

@@ -47,7 +47,7 @@ open class SDFHexPrism : SDFSmoothShape() {
     override fun calculateBaseBounds(dst: AABBf) {
         val h = halfHeight
         val rz = radius
-        val rx = rz * 1.12f //  why is it slightly larger???
+        val rx = rz * 1.16f
         dst.setMin(-rx, -h, -rz)
         dst.setMax(+rx, +h, +rz)
     }
@@ -78,7 +78,7 @@ open class SDFHexPrism : SDFSmoothShape() {
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         // todo looks slightly off
         val h = params
-        val magic = SDFHexPrism.magic
+        val magic = magic
         val k0 = smoothness * min(h.x, h.y)
         val hx = h.x - k0
         val hy = h.y - k0
