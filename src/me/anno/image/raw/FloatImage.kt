@@ -113,9 +113,8 @@ class FloatImage(
                 if (v > max) max = v
             }
         }
-        if (min < 0f || max > 0f) {
-            mul(1f / max(-min, max))
-        }
+        val scale = 1f / max(-min, max)
+        if (scale != 1f && scale.isFinite()) mul(scale)
         return this
     }
 
@@ -128,28 +127,13 @@ class FloatImage(
     }
 
     fun normalize01(): FloatImage {
-        var min = Float.POSITIVE_INFINITY
-        var max = Float.NEGATIVE_INFINITY
-        for (v in data) {
-            if (v.isFinite()) {
-                if (v < min) min = v
-                if (v > max) max = v
-            }
-        }
-        if (min < max) {
-            val scale = 1f / max(max, -min)
-            for (i in data.indices) {
-                data[i] *= scale
-            }
-        }
-        return this
+        return normalize()
     }
 
     fun mul(s: Float): FloatImage {
-        if (s != 1f) {
-            for (i in data.indices) {
-                data[i] *= s
-            }
+        if (s == 1f) return this
+        for (i in data.indices) {
+            data[i] *= s
         }
         return this
     }
