@@ -6,7 +6,7 @@ import java.net.Socket
 class RTSServerClientThread(
     private val socket: Socket,
     private val server: RTSServer,
-    private val clientId: Int,
+    val clientId: Int,
 ) : Thread() {
 
     private val input = socket.getInputStream()

@@ -12,12 +12,12 @@ sealed class RTSMessage(val frameIndex: Int) {
     /**
      * C->S after a frame calculation has finished
      * */
-    class Hash(frameIndex: Int, val hash: Int) : RTSMessage(frameIndex)
+    class Hash(frameIndex: Int, val clientId: Int, val hash: Int) : RTSMessage(frameIndex)
 
     /**
      * C->S, what happened within the last frame
      * */
-    class ClientInput(frameIndex: Int, val clientId: Int, val commands: List<RTSPlayerAction>) : RTSMessage(frameIndex)
+    class ClientInput(frameIndex: Int, val clientId: Int, val commands: List<RTSAction>) : RTSMessage(frameIndex)
 
     /**
      * S->C, which actions were accepted by the server; for each player
@@ -63,14 +63,14 @@ sealed class RTSMessage(val frameIndex: Int) {
         out.flush()
     }
 
-    private fun write(out: OutputStream, commands: List<RTSPlayerAction>) {
+    private fun write(out: OutputStream, commands: List<RTSAction>) {
         out.writeLE32(commands.size)
         for (command in commands) {
             write(out, command)
         }
     }
 
-    private fun write(out: OutputStream, command: RTSPlayerAction) {
+    private fun write(out: OutputStream, command: RTSAction) {
         out.writeLE32(command.actionType)
         out.writeLE32(command.payload.size)
         out.write(command.payload)
@@ -80,7 +80,7 @@ sealed class RTSMessage(val frameIndex: Int) {
         fun read(input: InputStream, clientId: Int): RTSMessage {
             val frameIndex = input.readLE32()
             return when (val type = input.read()) {
-                1 -> Hash(frameIndex, input.readLE32())
+                1 -> Hash(frameIndex, clientId, input.readLE32())
                 2 -> readCommands(input, frameIndex, clientId)
                 3 -> {
                     val commandsByPlayers = List(input.readLE32()) {
@@ -100,11 +100,11 @@ sealed class RTSMessage(val frameIndex: Int) {
             return ClientInput(frameIndex, clientId, commands)
         }
 
-        private fun readCommand(input: InputStream): RTSPlayerAction {
+        private fun readCommand(input: InputStream): RTSAction {
             val commandType = input.read()
             val payload = ByteArray(input.readLE32())
             input.readNBytes2(payload.size, payload, true)
-            return RTSPlayerAction(commandType, payload)
+            return RTSAction(commandType, payload)
         }
     }
 }

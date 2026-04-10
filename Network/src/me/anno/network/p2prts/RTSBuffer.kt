@@ -8,7 +8,7 @@ class RTSBuffer(initial: RTSState) {
         current.copyInto(previous)
     }
 
-    fun apply(inputs: List<RTSPlayerAction>) {
+    fun apply(inputs: List<RTSAction>) {
         current.applyInputs(inputs)
     }
 }
