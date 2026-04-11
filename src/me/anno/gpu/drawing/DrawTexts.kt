@@ -3,6 +3,7 @@ package me.anno.gpu.drawing
 import me.anno.fonts.Font
 import me.anno.fonts.FontImpl.Companion.heightLimitToMaxNumLines
 import me.anno.fonts.FontManager
+import me.anno.fonts.GlyphStyle
 import me.anno.fonts.IGlyphLayout
 import me.anno.fonts.keys.CharCacheKey
 import me.anno.gpu.GFX
@@ -24,9 +25,11 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_BUFFER_UPDATE_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER_BARRIER_BIT
@@ -100,12 +103,16 @@ object DrawTexts {
         var lineHeight = 1
         var mod2 = 0
 
+        var color = 0
+        var bgColor = 0
+
         lateinit var font: Font
         lateinit var shader: GPUShader
 
         override fun add(
             codepoint: Int, x0: Int, x1: Int,
-            lineIndex: Int, fontIndex: Int
+            lineIndex: Int, fontIndex: Int,
+            style: Long
         ) {
             val index = size++
             if (mod2 >= 0) {
@@ -118,7 +125,10 @@ object DrawTexts {
                 .waitFor("drawTextCharByChar")
             if (texture != null && texture.wasCreated) {
                 texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
-                drawChar(shader, texture, x + x0, y + y0, codepoint)
+                drawChar(
+                    shader, texture, x + x0, x + x1, y + y0, codepoint, style,
+                    color, bgColor
+                )
             }
         }
 
@@ -158,6 +168,8 @@ object DrawTexts {
         drawHelper.lineHeight = font.lineSpacingI
         drawHelper.x = x + getOffset(totalWidth, alignX)
         drawHelper.y = y + getOffset(totalHeight, alignY)
+        drawHelper.color = textColor
+        drawHelper.bgColor = backgroundColor
 
         if (backgroundColor.a() != 0) {
             DrawRectangles.drawRect(
@@ -214,8 +226,6 @@ object DrawTexts {
         } else ShaderLib.subpixelCorrectTextGraphicsShader[instanced].value
         shader.use()
         GFX.check()
-        shader.v4f("textColor", textColor)
-        shader.v4f("backgroundColor", backgroundColor)
         shader.v1b("disableSubpixelRendering", disableSubpixelRendering)
         shader.v1b("enableTrueBlending", enableTrueBlending)
         GFX.check()
@@ -228,23 +238,49 @@ object DrawTexts {
 
     private fun drawChar(
         shader: GPUShader, texture: ITexture2D?,
-        x2: Int, y2: Int, txt: Int
+        x2: Int, x3: Int, y2: Int, codepoint: Int, style: Long,
+        color: Int, bgColor: Int,
     ) {
-        if (texture != null && texture.isCreated()) {
+        val texture0 = texture
+        val isStrikethrough = codepoint == GlyphStyle.STRIKETHROUGH_CHAR.code
+        val isUnderline = codepoint == GlyphStyle.UNDERLINE_CHAR.code
+        val isJustALine = isStrikethrough or isUnderline
+
+        var texture = texture
+        if (isJustALine) {
+            texture = TextureLib.whiteTexture
+        }
+
+        if (texture0 != null && texture != null && texture.isCreated()) {
             texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
             shader.use()
+
+            shader.v4f("textColor", GlyphStyle.getColor(color, style))
+            shader.v4f("backgroundColor", GlyphStyle.getBgColor(bgColor, style))
+
+            // todo why is underline not showing up???
+            val width = if (isJustALine) x3 - x2 else texture.width
+            val height = if (isJustALine) 1 else texture.height
+
+            var y2 = y2
+            if (isJustALine) {
+                val dy = if (isStrikethrough) 0.5f else 0.8f
+                y2 += (texture0.height * dy).roundToIntOr()
+            }
+
             when (shader) {
                 is Shader -> {
-                    posSize(shader, x2, y2, texture.width, texture.height, true)
+                    posSize(shader, x2, y2, width, height, true)
                     flat01.draw(shader)
                 }
                 is ComputeShader -> {
-                    posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
+                    // todo the shader doesn't expect stretching :(, somehow add an exception for this case
+                    posSizeDraw(shader, x2, y2, width, height, 1)
                 }
             }
         } else {
             LOGGER.warn(
-                "Texture for #$txt is ${
+                "Texture for #$codepoint is ${
                     if (texture == null) "null"
                     else if (texture.isDestroyed) "destroyed"
                     else "not created"

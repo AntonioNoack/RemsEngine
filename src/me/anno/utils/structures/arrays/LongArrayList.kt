@@ -80,4 +80,14 @@ open class LongArrayList(initCapacity: Int = 16) : NativeArrayList {
     fun contains(value: Long): Boolean {
         return indexOf(value) >= 0
     }
+
+    fun toLongArray(canReturnSelf: Boolean = true, exact: Boolean = true) = toLongArray(size, canReturnSelf, exact)
+    fun toLongArray(size1: Int, canReturnSelf: Boolean = true, exact: Boolean = true): LongArray {
+        val values = values
+        return if (canReturnSelf && (size1 == values.size || (!exact && size1 <= values.size))) {
+            values
+        } else {
+            values.copyOf(size1)
+        }
+    }
 }

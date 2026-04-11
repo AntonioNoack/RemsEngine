@@ -1,4 +1,4 @@
-package me.anno.experiments
+package me.anno.tests.utils.terminal
 
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager

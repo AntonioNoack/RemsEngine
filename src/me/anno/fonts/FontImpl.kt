@@ -20,6 +20,7 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank
+import org.apache.logging.log4j.PrintColor.ESC_CHAR
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -244,7 +245,27 @@ abstract class FontImpl<FallbackFonts> {
     }
 
     fun fillGlyphLayout(
-        font: Font, text: CharSequence,
+        font: Font,
+        text: CharSequence,
+        result: IGlyphLayout,
+        relativeWidthLimit: Float,
+        maxNumLines: Int,
+    ) {
+        val text = text.codepoints()
+        if (ESC_CHAR.code in text) {
+            val (text1, style) = GlyphStyle.extractStyle(text)
+            fillGlyphLayout(font, text1, style, result, relativeWidthLimit, maxNumLines)
+        } else {
+            fillGlyphLayout(font, text, null, result, relativeWidthLimit, maxNumLines)
+        }
+    }
+
+    fun fillGlyphLayout(
+        font: Font,
+
+        codepoints: IntArray,
+        styles: LongArray?,
+
         result: IGlyphLayout,
         relativeWidthLimit: Float,
         maxNumLines: Int,
@@ -252,7 +273,6 @@ abstract class FontImpl<FallbackFonts> {
 
         val offsetCache = getOffsetCache(font)
         val fonts = getFallbackFonts(font)
-        val codepoints = text.codepoints()
 
         val widthLimit = relativeWidthLimit * font.size
         val hasAutomaticLineBreak = widthLimit > 0f
@@ -288,7 +308,18 @@ abstract class FontImpl<FallbackFonts> {
                 val deltaX = offsetCache.getOffset(currCodepoint, nextCodepoint)
                 val nextX = currentX + deltaX
                 if (!currCodepoint.isBlank()) {
-                    result.add(currCodepoint, currentX, nextX, result.numLines, fontIndex)
+                    val style = if (styles != null) styles[index] else 0L
+                    // todo if style says so, choose bold/italic font instead
+                    result.add(currCodepoint, currentX, nextX, result.numLines, fontIndex, style)
+                    if (GlyphStyle.isStrikeThrough(style)) {
+                        // todo we should collect where strike-through starts and ends...
+                        val codepoint = GlyphStyle.STRIKETHROUGH_CHAR.code
+                        result.add(codepoint, currentX, nextX, result.numLines, fontIndex, style)
+                    }
+                    if (GlyphStyle.isUnderline(style)) {
+                        val codepoint = GlyphStyle.UNDERLINE_CHAR.code
+                        result.add(codepoint, currentX, nextX, result.numLines, fontIndex, style)
+                    }
                 }
                 currentX = nextX + charSpacing
             }
@@ -415,7 +446,7 @@ abstract class FontImpl<FallbackFonts> {
     }
 
     private fun getSupportLevelEx(fonts: FallbackFonts, codepoint: Int, lastSupportLevel: Int): Int {
-        if (Codepoints.isEmoji(codepoint) || (codepoint < 0xffff && codepoint.toChar() in " \t\r\n")) {
+        if (Codepoints.isEmoji(codepoint) || (codepoint < 0xffff && codepoint.toChar() in " \t\r\n${ESC_CHAR}")) {
             return -1
         }
         return getSupportLevel(fonts, codepoint, lastSupportLevel)

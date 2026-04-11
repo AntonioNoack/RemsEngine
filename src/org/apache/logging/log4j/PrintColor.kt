@@ -13,7 +13,8 @@ import me.anno.utils.Color.r
  *   remove all styles, and then try to open the link
  * */
 object PrintColor {
-    const val ESC = "\u001B["
+    const val ESC_CHAR = '\u001B'
+    const val ESC = "$ESC_CHAR["
 
     const val RESET = "${ESC}0m"
 
@@ -27,6 +28,9 @@ object PrintColor {
     const val UNDERLINE_OFF = "${ESC}24m"
     const val BLINK = "${ESC}5m"
     const val BLINK_OFF = "${ESC}25m"
+
+    const val COLOR_OFF = "${ESC}39m"
+    const val BG_COLOR_OFF = "${ESC}49m"
 
     /**
      * changes text and background color

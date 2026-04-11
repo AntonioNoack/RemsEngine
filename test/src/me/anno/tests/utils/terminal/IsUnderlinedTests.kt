@@ -1,37 +1,36 @@
-package me.anno.tests.utils
+package me.anno.tests.utils.terminal
 
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
-import org.apache.logging.log4j.PrintColor.ESC
-import org.apache.logging.log4j.UnderlineDetector.getUnderlinedRegions
-import org.apache.logging.log4j.UnderlineDetector.isUnderlined
+import org.apache.logging.log4j.PrintColor
+import org.apache.logging.log4j.UnderlineDetector
 import org.junit.jupiter.api.Test
 
 class IsUnderlinedTests {
 
     @Test
     fun testIsUnderlinedSimple() {
-        val text = "${ESC}4mHELLO${ESC}0m"
+        val text = "${PrintColor.ESC}4mHELLO${PrintColor.ESC}0m"
 
         for (i in text.indices) {
             if (text[i] in 'A'..'Z') {
-                assertTrue(isUnderlined(text, i), "Expected underlined at index $i")
+                assertTrue(UnderlineDetector.isUnderlined(text, i), "Expected underlined at index $i")
             }
         }
     }
 
     @Test
     fun testIsUnderlinedReset() {
-        val text = "${ESC}4mHELLO${ESC}0m WORLD"
+        val text = "${PrintColor.ESC}4mHELLO${PrintColor.ESC}0m WORLD"
         val split = text.indexOf(" ")
 
         for (i in text.indices) {
             if (text[i] in 'A'..'Z') {
                 if (i < split) {
-                    assertTrue(isUnderlined(text, i), "Expected underlined at $i")
+                    assertTrue(UnderlineDetector.isUnderlined(text, i), "Expected underlined at $i")
                 } else {
-                    assertFalse(isUnderlined(text, i), "Expected NOT underlined at $i")
+                    assertFalse(UnderlineDetector.isUnderlined(text, i), "Expected NOT underlined at $i")
                 }
             }
         }
@@ -39,25 +38,25 @@ class IsUnderlinedTests {
 
     @Test
     fun testIsUnderlinedNestedStyles() {
-        val text = "${ESC}31;4mSTYLED${ESC}0m"
+        val text = "${PrintColor.ESC}31;4mSTYLED${PrintColor.ESC}0m"
 
         for (i in text.indices) {
             if (text[i] in 'A'..'Z') {
-                assertTrue(isUnderlined(text, i))
+                assertTrue(UnderlineDetector.isUnderlined(text, i))
             }
         }
     }
 
     @Test
     fun testIsUnderlinedUnderlineOff() {
-        val text = "${ESC}4mHELLO${ESC}24m WORLD"
+        val text = "${PrintColor.ESC}4mHELLO${PrintColor.ESC}24m WORLD"
         val offIndex = text.indexOf(" WORLD")
         for (i in text.indices) {
             if (text[i] in 'A'..'Z') {
                 if (i < offIndex) {
-                    assertTrue(isUnderlined(text, i))
+                    assertTrue(UnderlineDetector.isUnderlined(text, i))
                 } else {
-                    assertFalse(isUnderlined(text, i))
+                    assertFalse(UnderlineDetector.isUnderlined(text, i))
                 }
             }
         }
@@ -65,8 +64,8 @@ class IsUnderlinedTests {
 
     @Test
     fun testGetUnderlinedRegionsSimple() {
-        val text = "${ESC}4mhello${ESC}0m"
-        val regions = getUnderlinedRegions(text)
+        val text = "${PrintColor.ESC}4mhello${PrintColor.ESC}0m"
+        val regions = UnderlineDetector.getUnderlinedRegions(text)
 
         assertEquals(1, regions.size)
 
@@ -77,11 +76,11 @@ class IsUnderlinedTests {
     @Test
     fun testGetUnderlinedRegionsMultiple() {
         val text = buildString {
-            append("${ESC}4mhello${ESC}0m ")
-            append("${ESC}4mworld${ESC}0m")
+            append("${PrintColor.ESC}4mhello${PrintColor.ESC}0m ")
+            append("${PrintColor.ESC}4mworld${PrintColor.ESC}0m")
         }
 
-        val regions = getUnderlinedRegions(text)
+        val regions = UnderlineDetector.getUnderlinedRegions(text)
         assertEquals(2, regions.size)
         assertEquals("hello", text.substring(regions[0]))
         assertEquals("world", text.substring(regions[1]))
@@ -91,11 +90,11 @@ class IsUnderlinedTests {
     fun testGetUnderlinedRegionsMixed() {
         val text = buildString {
             append("normal ")
-            append("${ESC}4mlink${ESC}0m ")
+            append("${PrintColor.ESC}4mlink${PrintColor.ESC}0m ")
             append("text")
         }
 
-        val regions = getUnderlinedRegions(text)
+        val regions = UnderlineDetector.getUnderlinedRegions(text)
 
         assertEquals(1, regions.size)
         assertEquals("link", text.substring(regions[0]))
@@ -103,8 +102,8 @@ class IsUnderlinedTests {
 
     @Test
     fun testGetUnderlinedRegionsUnderlineOff() {
-        val text = "${ESC}4mhello${ESC}24mworld"
-        val regions = getUnderlinedRegions(text)
+        val text = "${PrintColor.ESC}4mhello${PrintColor.ESC}24mworld"
+        val regions = UnderlineDetector.getUnderlinedRegions(text)
 
         assertEquals(1, regions.size)
         assertEquals("hello", text.substring(regions[0]))
@@ -112,8 +111,8 @@ class IsUnderlinedTests {
 
     @Test
     fun testGetUnderlinedRegionsCombinedCodes() {
-        val text = "${ESC}1;4;31mhello${ESC}0m"
-        val regions = getUnderlinedRegions(text)
+        val text = "${PrintColor.ESC}1;4;31mhello${PrintColor.ESC}0m"
+        val regions = UnderlineDetector.getUnderlinedRegions(text)
 
         assertEquals(1, regions.size)
         assertEquals("hello", text.substring(regions[0]))
