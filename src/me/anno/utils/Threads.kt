@@ -6,6 +6,8 @@ import me.anno.engine.NamedTask
 import me.anno.gpu.GFX
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.PrintColor.BOLD
+import org.apache.logging.log4j.PrintColor.style
 import speiger.primitivecollections.LongHashSet
 import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -151,7 +153,7 @@ object Threads {
             if (synchronized(knownThreads) {
                     knownThreads.put(thread, Unit)
                 } == null) {
-                LOGGER.info("Found primary thread: \"${thread.name}\"")
+                LOGGER.info("Found primary thread: ${style(thread.name, BOLD)}")
             }
         }
     }

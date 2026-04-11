@@ -8,6 +8,8 @@ import kotlin.reflect.KClass
  */
 object LogManager {
 
+    var enableColors = true
+
     @JvmStatic
     private val logLevels = HashMap<String?, Level?>()
 

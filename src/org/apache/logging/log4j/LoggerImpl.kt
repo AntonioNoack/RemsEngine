@@ -10,6 +10,13 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.OSFeatures
 import me.anno.utils.types.Strings.indexOf2
 import org.apache.commons.logging.Log
+import org.apache.logging.log4j.PrintColor.BG_BLACK
+import org.apache.logging.log4j.PrintColor.BOLD
+import org.apache.logging.log4j.PrintColor.ITALIC
+import org.apache.logging.log4j.PrintColor.UNDERLINE
+import org.apache.logging.log4j.PrintColor.bgColor
+import org.apache.logging.log4j.PrintColor.color
+import org.apache.logging.log4j.PrintColor.style
 import java.io.IOException
 import java.io.OutputStream
 import java.util.Calendar
@@ -58,16 +65,27 @@ open class LoggerImpl(val name: String) : Logger, Log {
         } else msg
     }
 
+    private fun isErrorPrefix(prefix: String): Boolean {
+        return "ERR!" in prefix ||
+                "WARN" in prefix ||
+                "SEVERE" in prefix ||
+                "FATAL" in prefix
+    }
+
     private fun printRaw(prefix: String, line2: String) {
-        if (prefix == "ERR!" || prefix == "WARN") {
+        if (useErrorStream && isErrorPrefix(prefix)) {
             System.err.println(line2)
         } else {
             println(line2)
         }
     }
 
-    private fun printLine(prefix: String, time: CharSequence, line: String, logFile: OutputStream?) {
-        val line2 = "[$time,$prefix:$name] $line"
+    private fun printLine(prefix: String, time: CharSequence, line: String, style: String, logFile: OutputStream?) {
+        val line2 = if ((TIME_STYLE.isNotEmpty() || style.isNotEmpty()) && LogManager.enableColors) {
+            "[${style(time, TIME_STYLE)},${style(prefix, style)}:$name] ${style(line, style)}"
+        } else {
+            "[$time,$prefix:$name] $line"
+        }
         printRaw(prefix, line2)
         if (logFile != null) {
             try {
@@ -78,7 +96,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
         }
     }
 
-    private fun print(prefix: String, msg: String) {
+    private fun print(prefix: String, msg: String, style: String) {
         // should not be synchronized!
         val logFile = getLogFileStream()
         val time = getTimeStamp()
@@ -87,7 +105,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
             var i = 0
             while (i < msg.length) {
                 val ni = msg.indexOf2('\n', i)
-                printLine(prefix, time, msg.substring(i, ni), logFile)
+                printLine(prefix, time, msg.substring(i, ni), style, logFile)
                 i = ni + 1
             }
             try {
@@ -99,7 +117,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
 
     override fun info(msg: String) {
         if (isInfoEnabled()) {
-            print("INFO", msg)
+            print("INFO", msg, INFO_STYLE)
         }
     }
 
@@ -120,15 +138,28 @@ open class LoggerImpl(val name: String) : Logger, Log {
         }
     }
 
+    override fun info(msg: Any?) {
+        if (isInfoEnabled()) {
+            info(msg.toString())
+        }
+    }
+
+    override fun info(o: Any?, throwable: Throwable?) {
+        if (isInfoEnabled()) {
+            if (throwable == null) info(o)
+            else info(o.toString(), throwable)
+        }
+    }
+
     override fun debug(msg: String) {
         if (isDebugEnabled()) {
-            print("DEBUG", msg)
+            print("DEBUG", msg, DEBUG_STYLE)
         }
     }
 
     override fun debug(msg: String, e: Throwable) {
         if (isDebugEnabled()) {
-            print("DEBUG", msg)
+            debug(msg)
             e.printStackTrace()
         }
     }
@@ -160,7 +191,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
 
     override fun error(msg: String) {
         if (isErrorEnabled()) {
-            print("ERR!", msg)
+            print("ERR!", msg, ERROR_STYLE)
         }
     }
 
@@ -192,26 +223,26 @@ open class LoggerImpl(val name: String) : Logger, Log {
 
     override fun severe(msg: String) {
         if (isSevereEnabled()) {
-            print("SEVERE", msg)
+            print("SEVERE", msg, SEVERE_STYLE)
         }
     }
 
     override fun severe(msg: String, vararg obj: Any?) {
         if (isSevereEnabled()) {
-            error(interleave(msg, obj))
+            severe(interleave(msg, obj))
         }
     }
 
     override fun severe(msg: String, thrown: Throwable) {
         if (isSevereEnabled()) {
-            error(msg)
+            severe(msg)
             thrown.printStackTrace()
         }
     }
 
     override fun fatal(msg: String) {
         if (isFatalEnabled()) {
-            print("FATAL", msg)
+            print("FATAL", msg, FATAL_STYLE)
         }
     }
 
@@ -228,12 +259,6 @@ open class LoggerImpl(val name: String) : Logger, Log {
         }
     }
 
-    override fun warn(msg: String) {
-        if (isWarnEnabled() && shouldWarnAgain(msg)) {
-            print("WARN", msg)
-        }
-    }
-
     private fun shouldWarnAgain(msg: String): Boolean {
         val lastWarned = lastWarned
         synchronized(lastWarned) {
@@ -243,6 +268,12 @@ open class LoggerImpl(val name: String) : Logger, Log {
                 lastWarned[msg] = time
                 return true
             } else return false
+        }
+    }
+
+    override fun warn(msg: String) {
+        if (isWarnEnabled() && shouldWarnAgain(msg)) {
+            print("WARN", msg, WARN_STYLE)
         }
     }
 
@@ -290,29 +321,23 @@ open class LoggerImpl(val name: String) : Logger, Log {
         }
     }
 
-    override fun info(msg: Any?) {
-        if (isInfoEnabled()) {
-            info(msg.toString())
-        }
-    }
-
-    override fun info(o: Any?, throwable: Throwable?) {
-        if (isInfoEnabled()) {
-            if (throwable == null) info(o)
-            else info(o.toString(), throwable)
-        }
-    }
-
     override fun trace(o: Any?) {
-        error(o)
+        if (isTraceEnabled()) {
+            print("TRACE", o.toString(), TRACE_STYLE)
+        }
     }
 
     override fun trace(o: Any?, throwable: Throwable?) {
-        error(o, throwable)
+        trace(o)
+        throwable?.printStackTrace()
     }
 
     override fun isLoggable(level: Level): Boolean {
         return LogManager.isEnabled(this, level.intValue())
+    }
+
+    fun enable(level: org.apache.logging.log4j.Level) {
+        LogManager.define(name, level)
     }
 
     override fun isTraceEnabled(): Boolean {
@@ -350,6 +375,19 @@ open class LoggerImpl(val name: String) : Logger, Log {
 
         private val lastWarned = HashMap<String, Long>()
 
+        var backgroundColor = 0x2b2b2b
+
+        var FATAL_STYLE = color(0xff0000) + BOLD + BG_BLACK
+        var SEVERE_STYLE = color(0xff1111) + BOLD
+        var ERROR_STYLE = color(0xff2222) + BOLD
+        var WARN_STYLE = color(0xffc900)// + BOLD
+        var INFO_STYLE = ""
+        var DEBUG_STYLE = color(0x999999) + bgColor(backgroundColor)
+        var TRACE_STYLE = color(0x888888) + bgColor(backgroundColor) + ITALIC
+        var TIME_STYLE = TRACE_STYLE
+
+        var useErrorStream = false
+
         private var lastTime = 0L
         private val lastTimeStr = StringBuilder(16).append("hh:mm:ss.sss")
         private var logFileStream: OutputStream? = null
@@ -380,13 +418,21 @@ open class LoggerImpl(val name: String) : Logger, Log {
             logFileStream = try {
                 logFile.outputStream(true).apply {
                     // must use println, or we would create an infinite loop
-                    println("[${getTimeStamp()},INFO:Logger] Writing log to $logFile")
+                    println(
+                        "[${style(getTimeStamp(), TIME_STYLE)}," +
+                                "${style("INFO", INFO_STYLE)}:Logger] " +
+                                style("Writing logs to ${style(logFile.toString(), UNDERLINE)}", INFO_STYLE)
+                    )
                     // register this as the last action to take
                     Engine.registerForShutdown(1000_000_000) { flush() }
                 }
             } catch (e: IOException) {
                 VoidOutputStream.apply {
-                    println("[${getTimeStamp()},ERR:Logger] Failed creating log file, $e")
+                    println(
+                        "[${style(getTimeStamp(), TIME_STYLE)}," +
+                                "${style("ERR!", ERROR_STYLE)}:Logger] " +
+                                style("Failed creating log file, $e", ERROR_STYLE)
+                    )
                 }
             }
             return logFileStream
