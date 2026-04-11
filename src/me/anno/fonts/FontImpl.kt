@@ -16,6 +16,7 @@ import me.anno.image.raw.IntImage
 import me.anno.utils.Color.undoPremultiply
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.incrementTab
@@ -253,7 +254,7 @@ abstract class FontImpl<FallbackFonts> {
     ) {
         val text = text.codepoints()
         if (ESC_CHAR.code in text) {
-            val (text1, style) = GlyphStyle.extractStyle(text)
+            val (text1, style) = GlyphStyle.extractStyle(text, font)
             fillGlyphLayout(font, text1, style, result, relativeWidthLimit, maxNumLines)
         } else {
             fillGlyphLayout(font, text, null, result, relativeWidthLimit, maxNumLines)
@@ -309,9 +310,12 @@ abstract class FontImpl<FallbackFonts> {
                 val nextX = currentX + deltaX
                 if (!currCodepoint.isBlank()) {
                     val style = if (styles != null) styles[index] else 0L
+                    val fontIndex = fontIndex.shl(2) +
+                            GlyphStyle.isBold(style).toInt(GlyphStyle.BOLD) +
+                            GlyphStyle.isItalic(style).toInt(GlyphStyle.ITALIC)
                     // todo if style says so, choose bold/italic font instead
                     result.add(currCodepoint, currentX, nextX, result.numLines, fontIndex, style)
-                    if (GlyphStyle.isStrikeThrough(style)) {
+                    if (GlyphStyle.isStrikethrough(style)) {
                         // todo we should collect where strike-through starts and ends...
                         val codepoint = GlyphStyle.STRIKETHROUGH_CHAR.code
                         result.add(codepoint, currentX, nextX, result.numLines, fontIndex, style)

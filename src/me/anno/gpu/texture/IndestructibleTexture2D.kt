@@ -4,7 +4,11 @@ import me.anno.cache.CacheSection
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.utils.Color.a
+import me.anno.utils.Color.b
 import me.anno.utils.Color.black
+import me.anno.utils.Color.g
+import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import org.joml.Vector4f
 
@@ -67,6 +71,15 @@ class IndestructibleTexture2D(
                     } else {
                         createRGBA(creationData, false)
                     }
+                }
+                is Int -> {
+                    val data = byteArrayOf(
+                        creationData.r().toByte(),
+                        creationData.g().toByte(),
+                        creationData.b().toByte(),
+                        creationData.a().toByte()
+                    )
+                    createRGBA(data, false)
                 }
                 is FloatArray -> createRGBA(creationData, false)
                 is IntArray -> createBGRA(

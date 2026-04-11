@@ -19,6 +19,7 @@ object TextureLib {
     val invisibleTexture = IndestructibleTexture2D("invisible", 1, 1, transparent)
     val invisibleTex3d = IndestructibleTexture3D("invisible", 1, 1, 1, transparent)
     val whiteTexture = IndestructibleTexture2D("white", 1, 1, white1)
+    val whiteTransparent = IndestructibleTexture2D("whiteTransparent", 1, 1, 0xffffff)
     val grayTexture = IndestructibleTexture2D("gray", 1, 1, 0x999999 or black)
     val blackTexture = IndestructibleTexture2D("black", 1, 1, black1)
     val normalTexture = IndestructibleTexture2D("normal", 1, 1, normal1)

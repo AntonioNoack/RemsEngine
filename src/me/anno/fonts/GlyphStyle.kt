@@ -8,6 +8,7 @@ import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.arrays.LongArrayList
 import me.anno.utils.types.Arrays.indexOf
 import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.PrintColor.ESC_CHAR
 
@@ -15,25 +16,27 @@ object GlyphStyle {
 
     private const val QUANT_MASK = (3 shl 24).inv()
 
-    const val STRIKETHROUGH = 1
-    const val BOLD = 2
-    const val ITALIC = 4
+    const val BOLD = 1
+    const val ITALIC = 2
+    const val STRIKETHROUGH = 4
     const val UNDERLINE = 8
 
     const val STRIKETHROUGH_CHAR = '\u0336'
     const val UNDERLINE_CHAR = '\u035f'
 
-    private const val STRIKETHROUGH_FLAG = STRIKETHROUGH.toLong() shl (24 + 32)
     private const val BOLD_FLAG = BOLD.toLong() shl (24 + 32)
-    private const val ITALIC_FLAG = ITALIC.toLong() shl (24 - 2)
+    private const val ITALIC_FLAG = ITALIC.toLong() shl (24 + 32)
+    private const val STRIKETHROUGH_FLAG = STRIKETHROUGH.toLong() shl (24 - 2)
     private const val UNDERLINE_FLAG = UNDERLINE.toLong() shl (24 - 2)
 
     fun encode(
         color: Int, bgColor: Int,
         flags: Int
     ): Long {
-        val high = quantizeColor(color) or flags.and(3).shl(24)
-        val low = quantizeColor(bgColor) or flags.shr(2).and(3).shl(8)
+        val flagsHigh = flags.and(3).and(3)
+        val flagsLow = flags.shr(2)
+        val high = quantizeColor(color) or flagsHigh.shl(24)
+        val low = quantizeColor(bgColor) or flagsLow.shl(24)
         return pack64(high, low)
     }
 
@@ -61,7 +64,7 @@ object GlyphStyle {
         return dequantizeColor(style.toInt())
     }
 
-    fun isStrikeThrough(style: Long): Boolean = style.hasFlag(STRIKETHROUGH_FLAG)
+    fun isStrikethrough(style: Long): Boolean = style.hasFlag(STRIKETHROUGH_FLAG)
     fun isBold(style: Long): Boolean = style.hasFlag(BOLD_FLAG)
     fun isItalic(style: Long): Boolean = style.hasFlag(ITALIC_FLAG)
     fun isUnderline(style: Long): Boolean = style.hasFlag(UNDERLINE_FLAG)
@@ -81,22 +84,23 @@ object GlyphStyle {
         else byStyle.withAlpha(color.a())
     }
 
-    fun extractStyle(text: IntArray): Pair<IntArray, LongArray> {
+    fun extractStyle(text: IntArray, style0: Font): Pair<IntArray, LongArray> {
         val codepoints = IntArrayList(text.size)
         val styles = LongArrayList(text.size)
 
         var color = 0
         var bgColor = 0
-        var flags = 0
-        var style = 0L
+        var flags = style0.isBold.toInt(BOLD) + style0.isItalic.toInt(ITALIC)
+        var style = encode(0, 0, flags)
 
         var i = 0
         while (i < text.size) {
-            if (text[i] == ESC_CHAR.code && i + 1 < text.size && text[i + 1] == '['.code) {
+            val codepoint = text[i++]
+            if (codepoint == ESC_CHAR.code && i < text.size && text[i] == '['.code) {
                 val end = text.indexOf('m'.code, i)
                 if (end == -1) break
 
-                val codes = text.joinChars(i + 2, end)
+                val codes = text.joinChars(i + 1, end)
                     .split(';')
                     .mapNotNull { it.toIntOrNull() }
 
@@ -139,11 +143,13 @@ object GlyphStyle {
 
                 style = encode(color, bgColor, flags)
                 i = end + 1
+            } else if (codepoints.isNotEmpty() && (codepoint == STRIKETHROUGH_CHAR.code || codepoint == UNDERLINE_CHAR.code)) {
+                // handle STRIKETHROUGH_CHAR AND UNDERLINE_CHAR properly -> convert them into styles for the prev charcode!
+                val flag = if (codepoint == STRIKETHROUGH_CHAR.code) STRIKETHROUGH_FLAG else UNDERLINE_FLAG
+                styles[styles.lastIndex] = styles[styles.lastIndex] or flag
             } else {
-                // todo handle STRIKETHROUGH_CHAR AND UNDERLINE_CHAR properly -> convert them into styles for the prev charcode!
-                codepoints.add(text[i])
+                codepoints.add(codepoint)
                 styles.add(style)
-                i++
             }
         }
 

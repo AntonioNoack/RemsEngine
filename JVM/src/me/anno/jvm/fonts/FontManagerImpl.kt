@@ -7,9 +7,9 @@ import me.anno.maths.Maths
 import me.anno.utils.Clock
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Threads.runOnNonGFXThread
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
-import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
@@ -18,7 +18,6 @@ import java.awt.Toolkit
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.util.Locale
-import kotlin.math.ceil
 
 object FontManagerImpl {
 
@@ -38,7 +37,7 @@ object FontManagerImpl {
 
     fun getAWTFont(font: me.anno.fonts.Font): FontData {
         val name = font.name
-        return synchronized(awtFonts) {
+        val result = synchronized(awtFonts) {
             awtFonts.getOrPut(font) {
                 val style = font.isItalic.toInt(Font.ITALIC) or
                         font.isBold.toInt(Font.BOLD)
@@ -46,6 +45,9 @@ object FontManagerImpl {
                     ?: throw RuntimeException("Font $name was not found")
             }
         }
+        assertEquals(font.isBold, result.awtFont.isBold)
+        assertEquals(font.isItalic, result.awtFont.isItalic)
+        return result
     }
 
     private fun getInstalledFonts(): List<String> {

@@ -3,9 +3,13 @@ package me.anno.jvm.fonts
 import me.anno.config.DefaultConfig
 import me.anno.fonts.Font
 import me.anno.fonts.FontImpl
+import me.anno.fonts.GlyphStyle
 import me.anno.image.raw.IntImage
 import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.Color.g
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Strings.iff
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
@@ -14,15 +18,25 @@ import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import kotlin.math.max
 
-object AWTFont : FontImpl<List<FontData>>() {
+object AWTFont : FontImpl<List<FontMatrix>>() {
 
     override fun getBaselineY(font: Font): Float {
         return FontManagerImpl.getAWTFont(font).baselineY
     }
 
-    override fun getFallbackFonts(font: Font): List<FontData> {
+    override fun getFallbackFonts(font: Font): List<FontMatrix> {
         return (listOf(font.name) + fallbackFontList).map { newName ->
-            FontManagerImpl.getAWTFont(font.withName(newName))
+            val named = font.withName(newName)
+            createMatrix(named)
+        }
+    }
+
+    private fun createMatrix(font: Font): FontMatrix {
+        return List(4) { flags ->
+            val isBold = flags.hasFlag(GlyphStyle.BOLD)
+            val isItalic = flags.hasFlag(GlyphStyle.ITALIC)
+            val subFont = font.withBold(isBold).withItalic(isItalic)
+            FontManagerImpl.getAWTFont(subFont)
         }
     }
 
@@ -41,14 +55,18 @@ object AWTFont : FontImpl<List<FontData>>() {
     override fun drawGlyph(
         image: IntImage,
         x0: Int, x1: Int, y0: Int, y1: Int, strictBounds: Boolean,
-        font: Font, fallbackFonts: List<FontData>, fontIndex: Int,
+        font: Font, fallbackFonts: List<FontMatrix>, fontIndex: Int,
         codepoint: Int, textColor: Int, backgroundColor: Int,
         portableImages: Boolean
     ) {
 
         // todo cache the value if it makes sense... discretize fract(x0) and fract(y0) reasonably
 
-        val fontData = fallbackFonts[fontIndex]
+        val fonts = fallbackFonts[fontIndex.shr(2)]
+        val fontData = fonts[fontIndex.and(3)]
+        assertEquals(fontIndex.hasFlag(GlyphStyle.BOLD), fontData.awtFont.isBold)
+        assertEquals(fontIndex.hasFlag(GlyphStyle.ITALIC), fontData.awtFont.isItalic)
+
         val tmp = BufferedImage(max(x1 - x0 + 1, 1), y1 - y0, BI_FORMAT)
         val gfx = tmp.graphics as Graphics2D
         gfx.prepareGraphics(portableImages)
@@ -70,9 +88,9 @@ object AWTFont : FontImpl<List<FontData>>() {
         }
     }
 
-    override fun getSupportLevel(fonts: List<FontData>, codepoint: Int, lastSupportLevel: Int): Int {
+    override fun getSupportLevel(fonts: List<FontMatrix>, codepoint: Int, lastSupportLevel: Int): Int {
         for (index in fonts.indices) {
-            val font = fonts[index]
+            val font = fonts[index][0]
             if (font.awtFont.canDisplay(codepoint)) {
                 return index
             }

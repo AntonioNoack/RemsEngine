@@ -29,6 +29,7 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_BUFFER_UPDATE_BARRIER_BIT
@@ -238,7 +239,7 @@ object DrawTexts {
 
     private fun drawChar(
         shader: GPUShader, texture: ITexture2D?,
-        x2: Int, x3: Int, y2: Int, codepoint: Int, style: Long,
+        x0: Int, x1: Int, y: Int, codepoint: Int, style: Long,
         color: Int, bgColor: Int,
     ) {
         val texture0 = texture
@@ -248,7 +249,7 @@ object DrawTexts {
 
         var texture = texture
         if (isJustALine) {
-            texture = TextureLib.whiteTexture
+            texture = TextureLib.whiteTransparent
         }
 
         if (texture0 != null && texture != null && texture.isCreated()) {
@@ -258,24 +259,23 @@ object DrawTexts {
             shader.v4f("textColor", GlyphStyle.getColor(color, style))
             shader.v4f("backgroundColor", GlyphStyle.getBgColor(bgColor, style))
 
-            // todo why is underline not showing up???
-            val width = if (isJustALine) x3 - x2 else texture.width
+            val width = if (isJustALine) x1 - x0 + 2 else texture.width
             val height = if (isJustALine) 1 else texture.height
 
-            var y2 = y2
+            var y = y
             if (isJustALine) {
                 val dy = if (isStrikethrough) 0.5f else 0.8f
-                y2 += (texture0.height * dy).roundToIntOr()
+                y += (texture0.height * dy).roundToIntOr()
             }
 
             when (shader) {
                 is Shader -> {
-                    posSize(shader, x2, y2, width, height, true)
+                    posSize(shader, x0, y, width, height, true)
                     flat01.draw(shader)
                 }
                 is ComputeShader -> {
                     // todo the shader doesn't expect stretching :(, somehow add an exception for this case
-                    posSizeDraw(shader, x2, y2, width, height, 1)
+                    posSizeDraw(shader, x0, y, width, height, 1)
                 }
             }
         } else {

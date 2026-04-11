@@ -6,11 +6,20 @@ import me.anno.utils.Color.r
 
 /**
  * different colors and styles that can be applied to printing in the terminal
- * not yet supported for rendering text -> todo support this somehow...
+ *
+ * https://en.wikipedia.org/wiki/ANSI_escape_code
  *
  * todo when printing a file name in the logs, underline it;
- * todo when clicking on a log message, check if it is underlined, if so extract that section,
- *   remove all styles, and then try to open the link
+ * todo when clicking on a log message, check if it is underlined, if so
+ *   - extract that section,
+ *   - remove all styles,
+ *   - then try to open the link
+ *
+ * todo rich-text text editor UI:
+ *   make selected text bold/italic/underline/strikethrough/colored/bg-colored
+ *   - a button each
+ *   - when all properties match already, delete them
+ *   - remember recently used colors
  * */
 object PrintColor {
     const val ESC_CHAR = '\u001B'
