@@ -65,14 +65,25 @@ open class GlyphList(capacity: Int) : IGlyphLayout() {
     /**
      * returns index into fallback fonts list, 0 = user-defined font
      * */
+    @Suppress("unused")
     fun getTrueFontIndex(glyphIndex: Int) = getFontIndex(glyphIndex) shr 2
 
     fun isBold(glyphIndex: Int) = getFontIndex(glyphIndex).hasFlag(GlyphStyle.BOLD)
     fun isItalic(glyphIndex: Int) = getFontIndex(glyphIndex).hasFlag(GlyphStyle.ITALIC)
     fun isUnderline(glyphIndex: Int) = getCodepoint(glyphIndex) == GlyphStyle.UNDERLINE_CHAR.code
     fun isStrikethrough(glyphIndex: Int) = getCodepoint(glyphIndex) == GlyphStyle.STRIKETHROUGH_CHAR.code
-    fun isDecoration(glyphIndex: Int): Boolean = isUnderline(glyphIndex) || isStrikethrough(glyphIndex)
 
+    /**
+     * whether the glyph was added just for visuals, not for reading the words
+     * */
+    @Suppress("unused")
+    fun isSynthetic(glyphIndex: Int): Boolean = isUnderline(glyphIndex) || isStrikethrough(glyphIndex)
+
+    /**
+     * Contains text color and background color overrides, and isBold, isItalic, isUnderline & isStrikethrough.
+     * Underline and strikethrough generate additional, overlayed glyphs. Yan can skip them by filtering for !isDecoration().
+     * */
+    @Suppress("unused")
     fun getStyle(glyphIndex: Int): Long {
         val high = values[glyphIndex * NUM_INTS + ATTR_STYLE_0]
         val low = values[glyphIndex * NUM_INTS + ATTR_STYLE_1]
