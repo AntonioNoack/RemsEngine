@@ -59,7 +59,7 @@ object ImageAsFolder {
         createSwizzle(file, folder, "b.png", 'b', false)
         createSwizzle(file, folder, "a.png", 'a', false)
 
-        // bgra
+        // bgra (swapped R and B channels)
         createSwizzle(file, folder, "bgra.png") {
             if (it is BGRAImage) it.src // bgra.bgra = argb
             else BGRAImage(it)

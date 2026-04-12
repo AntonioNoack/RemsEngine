@@ -125,7 +125,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
         GFX.checkIsGFXThread()
         if (texture.pointer == 0) {
             texture.create(TargetType.UInt8xI[numChannels - 1])
-            texture.channels = numChannels
+            texture.numChannels = numChannels
         }
         GFXState.useFrame(texture) {
             GFXState.renderPurely {

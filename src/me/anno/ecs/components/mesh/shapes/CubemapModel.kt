@@ -11,7 +11,7 @@ import org.joml.Vector3f
  * */
 object CubemapModel {
 
-    val model = createMesh()
+    val mesh = createMesh()
 
     private fun createMesh(): Shapes.FBBMesh {
         val numVertices = 36

@@ -25,7 +25,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
     }
 
     constructor(texture: ITexture2D, numChannels: Int) : this(texture, numChannels, numChannels > 3)
-    constructor(texture: ITexture2D) : this(texture, max(texture.channels, 1))
+    constructor(texture: ITexture2D) : this(texture, max(texture.numChannels, 1))
 
     override fun getRGB(index: Int): Int {
         return if (texture is IndestructibleTexture2D) {

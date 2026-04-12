@@ -153,7 +153,7 @@ object FSR {
             posSize(shader, x, y, w, h, true)
             shader.v3f("background", backgroundColor)
             shader.v1f("applyToneMapping", applyToneMapping)
-            shader.v1i("numChannels", min(if (withAlpha) 4 else 3, source.channels))
+            shader.v1i("numChannels", min(if (withAlpha) 4 else 3, source.numChannels))
             flat01.draw(shader)
         } else {
             source.bindTrulyLinear(0)

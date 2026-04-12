@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.material
 
 import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
@@ -18,6 +19,12 @@ import org.joml.Vector4f
 //  render them as a base, and later render over them, when light-levels are known???
 open class Material : MaterialBase() {
 
+    @Type("Tiling")
+    @Group("Color")
+    @Docs("uv = uv * tiling.xy + tiling.zw")
+    var diffuseTiling = Vector4f(1f, 1f, 0f, 0f)
+
+    @Group("Color")
     @Docs("Color and transparency as far as it's supported")
     @Range(0.0, 1.0)
     @Type("Color4")
@@ -26,25 +33,40 @@ open class Material : MaterialBase() {
             field.set(value)
         }
 
+    @Group("Color")
     @Docs("Diffuse Texture")
     @Type("Texture/Reference")
     var diffuseMap: FileReference = InvalidRef
 
+    @Type("Tiling")
+    @Group("Normals")
+    @Docs("uv = uv * tiling.xy + tiling.zw")
+    var normalTiling = Vector4f(1f, 1f, 0f, 0f)
+
+    @Group("Normals")
     @Docs("Strength for normal map. Negative values flip the map inside out.")
     @Range(-100.0, 100.0)
     var normalStrength = 1f
 
+    @Group("Normals")
     @Docs("Typically cyan colored with patterns; bump maps (grayscale height) work, too")
     @Type("Texture/Reference")
     var normalMap: FileReference = InvalidRef
 
     // translucency:
     // only little light directionality
+    @Group("Glass")
     @Docs("Internal diffuse refractions. The higher, the less the material cares about light directions.")
     @Range(0.0, 1.0)
     var translucency = 0f
 
+    @Type("Tiling")
+    @Group("Lighting")
+    @Docs("uv = uv * tiling.xy + tiling.zw")
+    var emissiveTiling = Vector4f(1f, 1f, 0f, 0f)
+
     // base * map
+    @Group("Lighting")
     @Docs("How much light is emitted by the surface")
     @Range(0.0, 100.0)
     @Type("Color3HDR")
@@ -53,34 +75,52 @@ open class Material : MaterialBase() {
             field.set(value)
         }
 
+    @Group("Lighting")
     @Docs("How much light is emitted by the surface, texture")
     @Type("Texture/Reference")
     var emissiveMap: FileReference = InvalidRef
 
+    @Type("Tiling")
+    @Group("PBR")
+    @Docs("uv = uv * tiling.xy + tiling.zw")
+    var roughnessTiling = Vector4f(1f, 1f, 0f, 0f)
+
     // mix(min,max,value(uv)) or 1 if undefined)
+    @Group("PBR")
     @Range(0.0, 1.0)
     var roughnessMinMax = Vector2f(0f, 1f)
 
+    @Group("PBR")
     @Docs("Texture for roughness. Black gets mapped to roughnessMinMax.x, white to roughnessMinMax.y.")
     @Type("Texture/Reference")
     var roughnessMap: FileReference = InvalidRef
 
+    @Type("Tiling")
+    @Group("PBR")
+    @Docs("uv = uv * tiling.xy + tiling.zw")
+    var metallicTiling = Vector4f(1f, 1f, 0f, 0f)
+
     // mix(min,max,map(uv)) or 1 if undefined)
+    @Group("PBR")
     @Range(0.0, 1.0)
     var metallicMinMax = Vector2f(0f, 0f)
 
+    @Group("PBR")
     @Docs("Texture for metallic. Black gets mapped to metallicMinMax.x, white to metallicMinMax.y.")
     @Type("Texture/Reference")
     var metallicMap: FileReference = InvalidRef
 
-    @Docs("Future bump map for maybe tesselation, maybe parallax mapping; not yet supported.")
-    @Type("Texture/Reference")
-    var displacementMap: FileReference = InvalidRef
+    @Type("Tiling")
+    @Group("PBR")
+    @Docs("uv = uv * tiling.xy + tiling.zw")
+    var occlusionTiling = Vector4f(1f, 1f, 0f, 0f)
 
+    @Group("Lighting")
     @Docs("Constant factor for baked ambient occlusion: light *= 1-(1-occlusion) * strength")
     @Range(0.0, 100.0)
     var occlusionStrength = 1f
 
+    @Group("Lighting")
     @Docs("UV-based factor for baked ambient occlusion: light *= 1-(1-occlusion) * strength")
     @Type("Texture/Reference")
     var occlusionMap: FileReference = InvalidRef
@@ -91,31 +131,43 @@ open class Material : MaterialBase() {
     // and is only seen at steep angles
     // this is typically seen on cars
     // if you don't like the monotonicity, you can add your own fresnel effect in the shader
+    @Group("Metals")
     @Type("Color3")
     var clearCoatColor = Vector3f(1f, 1f, 1f)
         set(value) {
             field.set(value)
         }
 
+    @Group("Metals")
     @Range(0.0, 1.0)
     var clearCoatStrength = 0f
 
+    @Group("Metals")
     @Range(0.0, 1.0)
     var clearCoatMetallic = 1f
 
+    @Group("Metals")
     @Range(0.0, 1.0)
     var clearCoatRoughness = 0f
 
+    @Type("Tiling")
+    @Group("Fabric")
+    @Docs("uv = uv * tiling.xy + tiling.zw")
+    var sheenTiling = Vector4f(1f, 1f, 0f, 0f)
+
     // adds soft diffuse light capture on steep angles,
     // can be used for clothing, where the fibers catch the light
+    @Group("Fabric")
     @Range(0.0, 1.0)
     var sheen = 0f
 
     // e.g. for patterns, e.g. stroking over some clothes leaves patterns
+    @Group("Fabric")
     @Type("Texture/Reference")
     var sheenNormalMap: FileReference = InvalidRef
 
     // todo bug: input is allowing values < 1
+    @Group("Glass")
     @Docs("Defines refraction/reflection strength for transparent materials")
     @Range(1.0, 5.0)
     var indexOfRefraction = 1.5f
@@ -155,6 +207,13 @@ open class Material : MaterialBase() {
         shader.v1f("sheen", sheen)
         shader.v1f("IOR", indexOfRefraction)
 
+        shader.v4f("diffuseTiling", diffuseTiling)
+        shader.v4f("emissiveTiling", emissiveTiling)
+        shader.v4f("normalTiling", normalTiling)
+        shader.v4f("roughnessTiling", roughnessTiling)
+        shader.v4f("metallicTiling", metallicTiling)
+        shader.v4f("sheenTiling", sheenTiling)
+
         // GFX.check()
 
         if (clearCoatStrength > 0f) {
@@ -175,7 +234,15 @@ open class Material : MaterialBase() {
         roughnessMap,
         metallicMap,
         occlusionMap,
-        displacementMap,
+    )
+
+    override fun listTiling() = listOf(
+        diffuseTiling,
+        emissiveTiling,
+        normalTiling,
+        roughnessTiling,
+        metallicTiling,
+        occlusionTiling
     )
 
     override fun hashCode(): Int {
@@ -191,10 +258,10 @@ open class Material : MaterialBase() {
         result = 31 * result + roughnessMap.hashCode()
         result = 31 * result + metallicMinMax.hashCode()
         result = 31 * result + metallicMap.hashCode()
-        result = 31 * result + displacementMap.hashCode()
         result = 31 * result + occlusionStrength.hashCode()
         result = 31 * result + occlusionMap.hashCode()
         result = 31 * result + translucency.hashCode()
+        result = 31 * result + diffuseTiling.hashCode()
         return result
     }
 
@@ -222,10 +289,10 @@ open class Material : MaterialBase() {
         if (roughnessMap != other.roughnessMap) return false
         if (metallicMinMax != other.metallicMinMax) return false
         if (metallicMap != other.metallicMap) return false
-        if (displacementMap != other.displacementMap) return false
         if (occlusionStrength != other.occlusionStrength) return false
         if (occlusionMap != other.occlusionMap) return false
         if (translucency != other.translucency) return false
+        if (diffuseTiling != other.diffuseTiling) return false
 
         return true
     }
@@ -251,6 +318,7 @@ open class Material : MaterialBase() {
         dst.clearCoatStrength = clearCoatStrength
         dst.clearCoatRoughness = clearCoatRoughness
         dst.clearCoatMetallic = clearCoatMetallic
+        dst.diffuseTiling.set(diffuseTiling)
     }
 
     companion object {

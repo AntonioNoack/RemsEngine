@@ -53,9 +53,10 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
         try {
             this.rv = rv
             instance = OpenXRRendering(window, rv, framebuffer, leftTexture, rightTexture, depthTexture)
+            LOGGER.info("Started VR")
             return true
         } catch (e: Exception) {
-            e.printStackTrace()
+            LOGGER.warn("Failed OpenXR initialization", e)
             return false
         }
     }

@@ -70,7 +70,7 @@ open class Texture3D(
     override var clamping = Clamping.CLAMP
 
     // todo set this when the texture is created
-    override var channels: Int = 3
+    override var numChannels: Int = 3
 
     override var locallyAllocated = 0L
     override var internalFormat = 0

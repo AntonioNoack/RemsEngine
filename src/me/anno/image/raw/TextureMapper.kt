@@ -15,7 +15,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
-import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
 import me.anno.utils.structures.maps.LazyMap
 import org.apache.logging.log4j.LogManager
@@ -35,22 +34,25 @@ object TextureMapper {
             ), "" +
                     "void main(){\n" +
                     "   vec4 source = texture(srcTex, uv);\n" +
-                    (if ('l' in mapping) {
-                        "float luminance = dot(source.rgb, vec3(0.2126, 0.7152, 0.0722));\n"
-                    } else "") +
-                    "   result = vec4(${
-                        mapping.map {
-                            when (it) {
-                                in "RGBA" -> "1.0-source.${it.lowercaseChar()}"
-                                in "rgba" -> "source.$it"
-                                '0' -> "0.0"
-                                '1' -> "1.0"
-                                'l' -> "luminance"
-                                else -> throw IllegalArgumentException("Unknown map '$it'")
-                            }
-                        }.joinToString()
-                    });\n" +
-                    "}\n"
+                    if (mapping.all { it in "rgba" } || "*" in mapping) {
+                        "result = source.$mapping;\n"
+                    } else {
+                        (if ('l' in mapping) {
+                            "float luminance = dot(source.rgb, vec3(0.2126, 0.7152, 0.0722));\n"
+                        } else "") +
+                        "result = vec4(${
+                            mapping.map { channel ->
+                                when (channel) {
+                                    in "RGBA" -> "1.0-source.${channel.lowercaseChar()}"
+                                    in "rgba" -> "source.$channel"
+                                    '0' -> "0.0"
+                                    '1' -> "1.0"
+                                    'l' -> "luminance"
+                                    else -> throw IllegalArgumentException("Unknown channel '$channel'")
+                                }
+                            }.joinToString()
+                        });\n"
+                    } + "}\n"
         )
     }
 
@@ -59,7 +61,7 @@ object TextureMapper {
         callback: Callback<ITexture2D>
     ) {
         LOGGER.debug("Mapping {} to {}/{} via {}", src, dst, type, mapping)
-        assertEquals(4, mapping.length)
+        // assertEquals(4, mapping.length)
         if (GFX.isGFXThread()) {
             if (src.isCreated()) {
                 dst.create(type)

@@ -6,6 +6,7 @@ import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.applyTiling
 import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.gamma
 import me.anno.gpu.shader.ShaderLib.gammaInv
@@ -78,7 +79,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "if (sheen > 0.0) {\n" +
                 "   vec3 sheenNormal = finalNormal;\n" +
                 "   if(finalSheen * normalStrength.y > 0.0){\n" +
-                "      vec3 normalFromTex = texture(sheenNormalMap, uv).rgb * 2.0 - 1.0;\n" +
+                "      vec3 normalFromTex = texture(sheenNormalMap, applyTiling(uv, sheenTiling)).rgb * 2.0 - 1.0;\n" +
                 "           normalFromTex = normalize(normalFromTex);\n" +
                 "           normalFromTex = matMul(tbn, normalFromTex);\n" +
                 // original or transformed "finalNormal"? mmh...
@@ -173,7 +174,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val normalMapBumpMapSupport = "" +
                 "   if((normalColor.x == normalColor.y && normalColor.y == normalColor.z) ||" +
                 "      (normalColor.y == 0.0 && normalColor.z == 0.0)){\n" +
-                "       vec2 suv = uv * vec2(textureSize(normalMap,0));\n" +
+                "       vec2 suv = uv * normalTiling.xy * vec2(textureSize(normalMap,0));\n" +
                 "       float divisor = (length(dFdx(suv)) + length(dFdy(suv)))*0.25;\n" +
                 "       normalFromTex = normalize(vec3(dFdx(normalColor.x), dFdy(normalColor.x), max(divisor, 1e-6)));\n" +
                 "   } else "
@@ -189,14 +190,14 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 // and a shader with light from top/bottom
                 "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
                 "if(abs(normalStrength.x) > 0.0){\n" +
-                "   vec3 normalColor = texture(normalMap, uv, lodBias).rgb;\n" +
+                "   vec3 normalColor = texture(normalMap, applyTiling(uv, normalTiling), lodBias).rgb;\n" +
                 "   vec3 normalFromTex;\n" +
                 normalMapBumpMapSupport + "normalFromTex = normalColor * 2.0 - 1.0;\n" + // after else
                 normalMapMixing +
                 "}\n"
 
         val baseColorCalculation = "" +
-                "vec4 texDiffuseMap = texture(diffuseMap, uv, lodBias);\n" +
+                "vec4 texDiffuseMap = texture(diffuseMap, applyTiling(uv, diffuseTiling), lodBias);\n" +
                 "vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
                 "if(color.a < ${1f / 255f}) discard;\n" +
                 "finalColor = color.rgb;\n" +
@@ -211,14 +212,15 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "finalBitangent = cross(finalNormal, finalTangent) * tangent.w;\n" +
                 "if(dot(finalBitangent,finalBitangent) > 0.0) finalBitangent = normalize(finalBitangent);\n"
 
-        val emissiveCalculation = "finalEmissive  = texture(emissiveMap, uv, lodBias).rgb * emissiveBase;\n"
+        val emissiveCalculation =
+            "finalEmissive  = texture(emissiveMap, applyTiling(uv, emissiveTiling), lodBias).rgb * emissiveBase;\n"
         val occlusionCalculation =
-            "finalOcclusion = (1.0 - texture(occlusionMap, uv, lodBias).r) * occlusionStrength;\n"
+            "finalOcclusion = (1.0 - texture(occlusionMap, applyTiling(uv, occlusionTiling), lodBias).r) * occlusionStrength;\n"
         val metallicCalculation =
-            "finalMetallic  = clamp(mix(metallicMinMax.x, metallicMinMax.y, texture(metallicMap, uv, lodBias).r), 0.0, 1.0);\n"
+            "finalMetallic  = clamp(mix(metallicMinMax.x, metallicMinMax.y, texture(metallicMap, applyTiling(uv, metallicTiling), lodBias).r), 0.0, 1.0);\n"
         val roughnessCalculation =
             "#define HAS_ROUGHNESS\n" +
-                    "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv, lodBias).r), 0.0, 1.0);\n"
+                    "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, applyTiling(uv, roughnessTiling), lodBias).r), 0.0, 1.0);\n"
         val finalMotionCalculation = "" +
                 "#ifdef MOTION_VECTORS\n" +
                 "   finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n" +
@@ -443,12 +445,20 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val list = arrayListOf(
             // input textures
             Variable(GLSLType.S2D, "diffuseMap"),
-            Variable(GLSLType.S2D, "normalMap"),
             Variable(GLSLType.S2D, "emissiveMap"),
+            Variable(GLSLType.S2D, "normalMap"),
             Variable(GLSLType.S2D, "roughnessMap"),
             Variable(GLSLType.S2D, "metallicMap"),
             Variable(GLSLType.S2D, "occlusionMap"),
             Variable(GLSLType.S2D, "sheenNormalMap"),
+            // texture tiling
+            Variable(GLSLType.V4F, "diffuseTiling"),
+            Variable(GLSLType.V4F, "emissiveTiling"),
+            Variable(GLSLType.V4F, "normalTiling"),
+            Variable(GLSLType.V4F, "roughnessTiling"),
+            Variable(GLSLType.V4F, "metallicTiling"),
+            Variable(GLSLType.V4F, "occlusionTiling"),
+            Variable(GLSLType.V4F, "sheenTiling"),
             // input varyings
             Variable(GLSLType.V2F, "uv", VariableMode.INOUT),
             Variable(GLSLType.V3F, "normal"),
@@ -505,21 +515,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return list
     }
 
-    // Parallax-Try:
-    // to do weak devices like phones shouldn't use this
-    // to do this only should be enabled for when the normal map is grayscale
-    // todo doesn't look right yet (movement too extreme... why??)
-    /*"#define parallaxMap normalMap\n" +
-    "if(textureSize(parallaxMap,0).x > 1){\n" +
-    "   finalTangent   = normalize(tangent.xyz);\n" + // for debugging
-    "   finalNormal    = normalize(gl_FrontFacing ? normal : -normal);\n" +
-    "   finalBitangent = cross(finalNormal, finalTangent) * tangent.w;\n" +
-    "   if(dot(finalBitangent,finalBitangent) > 0.0) finalBitangent = normalize(finalBitangent);\n" +
-    "   mat3 TBN = transpose(mat3(finalTangent.xyz,finalBitangent,finalNormal));\n" +
-    "   vec3 viewDir = TBN * normalize(quatRot(finalPosition, cameraRotation));\n" + // is this right???
-    "   uv = parallaxMapUVs(parallaxMap, uv, viewDir * vec3(-1,-1,1), 0.05);\n" +
-    "}\n" +*/
-
     // just like the gltf pbr shader define all material properties
     open fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return key.vertexData.onFragmentShader + key.instanceData.onFragmentShader + listOf(
@@ -534,7 +529,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                             createColorFragmentStage()
                         } else "") +
                         finalMotionCalculation
-            ).add(quatRot).add(brightness).add(parallaxMapping).add(getReflectivity)
+            ).add(quatRot)
+                .add(brightness)
+                .add(parallaxMapping)
+                .add(getReflectivity)
+                .add(applyTiling)
         )
     }
 

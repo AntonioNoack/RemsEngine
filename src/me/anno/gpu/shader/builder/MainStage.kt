@@ -14,8 +14,8 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib
-import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.sq
+import me.anno.maths.MinMax.min
 import me.anno.utils.GFXFeatures
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.arrays.BooleanArrayList
@@ -387,10 +387,13 @@ class MainStage {
                         }
                         bridgeVariables2.add(variable)
                         // define helper function
+                        code.append("#ifndef GET_").append(variable.name).append('\n')
+                            .append("#define GET_").append(variable.name).append('\n')
                         code.append(variable.type.glslName)
                             .append(" get_").append(variable.name)
                             .append("(){ return ").append(variable.name)
                             .append("; }\n")
+                        code.append("#endif\n")
                     }
                 }
             }

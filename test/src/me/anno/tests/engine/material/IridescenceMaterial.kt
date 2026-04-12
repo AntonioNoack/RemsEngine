@@ -68,7 +68,7 @@ object IridescenceShader : ECSMeshShader("Iridescence") {
                                     reflectionCalculation
                         } else "") +
                         finalMotionCalculation
-            ).add(quatRot).add(brightness).add(parallaxMapping).add(getReflectivity)
+            ).add(quatRot).add(brightness).add(getReflectivity)
         )
     }
 }

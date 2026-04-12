@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh.material
 
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.interfaces.Renderable
@@ -22,6 +23,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import org.joml.Vector4f
 
 open class MaterialBase : PrefabSaveable(), Renderable {
 
@@ -110,6 +112,18 @@ open class MaterialBase : PrefabSaveable(), Renderable {
     }
 
     open fun listTextures(): List<FileReference> = emptyList()
+    open fun listTiling(): List<Vector4f> = emptyList()
+
+    @Type("Tiling")
+    @Docs("Change all tiling values at once")
+    @NotSerializedProperty
+    var tiling: Vector4f
+        get() = listTiling().firstOrNull() ?: Vector4f(1f, 1f, 0f, 0f)
+        set(value) {
+            for (dst in listTiling()) {
+                dst.set(value)
+            }
+        }
 
     override fun hashCode(): Int {
         // only hash common properties?

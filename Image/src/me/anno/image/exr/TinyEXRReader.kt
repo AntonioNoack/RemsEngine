@@ -38,14 +38,14 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
 /**
- * Uses TinyEXR to read EXR files; only some are supported, so try every single file before shipping!
+ * Uses TinyEXR to read EXR files; only some are supported, so try every single file before shipping, ideally export them to another format!
+ *
+ * info about the format:
+ * https://openexr.readthedocs.io/en/latest/OpenEXRFileLayout.html
  * */
 object TinyEXRReader {
 
     private val LOGGER = LogManager.getLogger(TinyEXRReader::class)
-
-    // info about the format:
-    // https://openexr.readthedocs.io/en/latest/OpenEXRFileLayout.html
 
     private fun check(ret: Int, cleanup: () -> Unit = {}) {
         if (ret == TINYEXR_SUCCESS) return
@@ -176,7 +176,6 @@ object TinyEXRReader {
             TODO()
         } else {
             val header = EXRHeader.create()
-            // InitEXRHeader(header)
             check(ParseEXRHeaderFromMemory(header, version, memory, err)) {
                 LOGGER.debug("Error, v${version.version()}, multi? ${version.multipart()}, tiled? ${version.tiled()}")
                 header.free()
@@ -262,7 +261,6 @@ object TinyEXRReader {
             }
             dst
         } // BGR it seems
-
 
         // these sometimes crashed it...
         // image.free()

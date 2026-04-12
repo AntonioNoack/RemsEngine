@@ -10,7 +10,7 @@ class LazyTexture(
     override val width: Int get() = texMS.width
     override val height: Int get() = texMS.height
     override val samples: Int get() = 1
-    override val channels: Int get() = texMS.channels
+    override val numChannels: Int get() = texMS.numChannels
     override val isHDR: Boolean get() = texMS.isHDR
     override val wasCreated: Boolean get() = texMS.wasCreated
     override val isDestroyed: Boolean get() = texMS.isDestroyed

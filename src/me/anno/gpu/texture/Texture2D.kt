@@ -58,6 +58,7 @@ import me.anno.utils.async.Callback
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Buffers.skip
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -120,6 +121,7 @@ import java.nio.ByteOrder
 import java.nio.DoubleBuffer
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
+import java.nio.LongBuffer
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicLong
 
@@ -141,7 +143,7 @@ open class Texture2D(
     // if you know a use-case for this, please tell me; otherwise I might remove it one day; must be black on mobile
     var border = 0
 
-    override var channels: Int = 0
+    override var numChannels: Int = 0
 
     override fun toString() =
         "Texture2D(\"$name\"@$pointer, $width x $height x $samples, ${GLNames.getName(internalFormat)})"
@@ -382,7 +384,7 @@ open class Texture2D(
     fun create(type: TargetType): Texture2D {
         beforeUpload(0, 0)
         upload(type, null as ByteArray?)
-        afterUpload(type.isHDR, type.bytesPerPixel, type.channels)
+        afterUpload(type.isHDR, type.bytesPerPixel, type.numChannels)
         return this
     }
 
@@ -391,9 +393,10 @@ open class Texture2D(
     }
 
     fun create(creationType: TargetType, uploadType: TargetType, data: Any?): Texture2D {
-        beforeUpload(0, 0)
+        if (data == null) beforeUpload(0, 0)
+        else beforeUpload(creationType.bytesPerPixel, getSizeInBytes(data))
         upload(creationType.internalFormat, uploadType.uploadFormat, uploadType.fillType, data)
-        afterUpload(creationType.isHDR, creationType.bytesPerPixel, uploadType.channels)
+        afterUpload(creationType.isHDR, creationType.bytesPerPixel, uploadType.numChannels)
         return this
     }
 
@@ -424,20 +427,20 @@ open class Texture2D(
         check()
     }
 
-    fun beforeUpload(channels: Int, size: Int) {
+    fun beforeUpload(numChannels: Int, size: Int) {
         assertFalse(isDestroyed, "Texture is already destroyed, call reset() if you want to stream it")
-        checkSize(channels, size)
+        checkSize(numChannels, size)
         check()
         ensurePointer()
         bindBeforeUpload()
     }
 
-    fun afterUpload(isHDR: Boolean, bytesPerPixel: Int, channels: Int) {
+    fun afterUpload(isHDR: Boolean, bytesPerPixel: Int, numChannels: Int) {
         locallyAllocated = allocate(locallyAllocated, width * height * bytesPerPixel.toLong())
         wasCreated = true
         hasMipmap = false
         this.isHDR = isHDR
-        this.channels = channels
+        this.numChannels = numChannels
         check()
         filtering(filtering)
         check()
@@ -528,7 +531,7 @@ open class Texture2D(
             addGPUTask("IntImage.createTiled[0]", width, height) {
                 if (!isDestroyed) {
                     create(creationType)
-                    this.channels = numChannels
+                    this.numChannels = numChannels
                     wasCreated = false // mark as non-finished
                 } else LOGGER.warn("Image was already destroyed")
             }
@@ -873,9 +876,9 @@ open class Texture2D(
         this.pointer = INVALID_POINTER
     }
 
-    private fun checkSize(channels: Int, size: Int) {
-        if (size < width * height * channels) throw IllegalArgumentException("Incorrect size, $width*$height*$channels vs ${size}!")
-        if (size > width * height * channels) LOGGER.warn("$size != $width*$height*$channels")
+    private fun checkSize(sizePerPixel: Int, size: Int) {
+        if (size < width * height * sizePerPixel) throw IllegalArgumentException("Incorrect size, $width*$height*$sizePerPixel vs ${size}!")
+        if (size > width * height * sizePerPixel) LOGGER.warn("$size != $width*$height*$sizePerPixel")
     }
 
     fun reset() {
@@ -892,12 +895,12 @@ open class Texture2D(
         check()
         val image = if (isHDR) {
             // for float textures, create float images
-            val image = FloatImage(width, height, channels)
+            val image = FloatImage(width, height, numChannels)
             readFloatPixels(0, 0, width, height, image.data)
             image
         } else {
             // for standard textures, create byte images
-            val image = ByteImage(width, height, ByteImageFormat.getRGBAFormat(channels))
+            val image = ByteImage(width, height, ByteImageFormat.getRGBAFormat(numChannels))
             readBytePixels(0, 0, width, height, image.data)
             image
         }
@@ -913,7 +916,7 @@ open class Texture2D(
      * dst shall be ByteArray, IntArray or ByteBuffer
      * */
     fun readBytePixels(x: Int, y: Int, w: Int, h: Int, dst: Any) {
-        setReadAlignment(w * channels)
+        setReadAlignment(w * numChannels)
         callReadPixels(x, y, w, h, GL_UNSIGNED_BYTE, dst)
     }
 
@@ -922,14 +925,14 @@ open class Texture2D(
      * otherwise, the OpenGL function compresses channel data into the start of dst
      * */
     fun readIntPixels(x: Int, y: Int, w: Int, h: Int, dst: IntArray) {
-        assertEquals(4, channels)
-        setReadAlignment(w * channels) // I'd guess * 4, but then it complains about not enough space 🤔
+        assertEquals(4, numChannels)
+        setReadAlignment(w * numChannels) // I'd guess * 4, but then it complains about not enough space 🤔
         callReadPixels(x, y, w, h, GL_UNSIGNED_BYTE, dst)
         convertABGR2ARGB(dst) // data from OpenGL is little-endian-RGBA, and we expect ARGB
     }
 
     fun readFloatPixels(x: Int, y: Int, w: Int, h: Int, dst: FloatArray) {
-        setReadAlignment(w * channels * 4)
+        setReadAlignment(w * numChannels * 4)
         callReadPixels(x, y, w, h, GL_FLOAT, dst)
     }
 
@@ -943,7 +946,7 @@ open class Texture2D(
         assertLessThanEquals(x + w, createdW)
         assertLessThanEquals(y + h, createdH)
         useFrame(this) {
-            val format = getFormatByChannels(channels)
+            val format = getFormatByChannels(numChannels)
             when (dst) {
                 is ByteBuffer -> glReadPixels(x, y, w, h, format, type, dst)
                 is IntArray -> glReadPixels(x, y, w, h, format, type, dst)
@@ -961,8 +964,8 @@ open class Texture2D(
         }
     }
 
-    private fun getFormatByChannels(channels: Int): Int {
-        return when (channels) {
+    private fun getFormatByChannels(numChannels: Int): Int {
+        return when (numChannels) {
             1 -> GL_RED
             2 -> GL_RG
             3 -> GL_RGB
@@ -1179,6 +1182,25 @@ open class Texture2D(
         @JvmStatic
         fun setWriteAlignment(w: Int) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, getAlignment(w))
+        }
+
+        @JvmStatic
+        fun getSizeInBytes(data: Any): Int {
+            return when (data) {
+                is ByteArray -> data.size
+                is ByteBuffer -> data.remaining()
+                is ShortArray -> data.size * 2
+                is ShortBuffer -> data.remaining() * 2
+                is IntArray -> data.size * 4
+                is IntBuffer -> data.remaining() * 4
+                is LongArray -> data.size * 8
+                is LongBuffer -> data.remaining() * 8
+                is FloatArray -> data.size * 4
+                is FloatBuffer -> data.remaining() * 4
+                is DoubleArray -> data.size * 8
+                is DoubleBuffer -> data.remaining() * 8
+                else -> throw NotImplementedError("What is the size of ${data.javaClass.simpleName}?")
+            }
         }
     }
 }

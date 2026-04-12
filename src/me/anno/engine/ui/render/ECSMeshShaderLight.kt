@@ -16,6 +16,7 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.applyTiling
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -207,6 +208,7 @@ open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), 
         val list = arrayListOf(
             // input textures
             Variable(GLSLType.S2D, "diffuseMap"),
+            Variable(GLSLType.V4F, "diffuseTiling"),
             // input varyings
             Variable(GLSLType.V2F, "uv", VariableMode.INOUT),
             Variable(GLSLType.V3F, "normal"),
@@ -252,7 +254,7 @@ open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), 
                                 normalCalculation
                             } else "") +
                             finalMotionCalculation
-                )
+                ).add(applyTiling)
     }
 
     override fun createForwardShader(key: ShaderKey): Shader {

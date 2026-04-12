@@ -28,7 +28,7 @@ abstract class ImagePanel(style: Style) : ImagePanelBase(style) {
     }
 
     open fun drawTexture(texture: ITexture2D) {
-        if (showAlpha && texture.channels == 4) {
+        if (showAlpha && texture.numChannels == 4) {
             DrawTextures.drawTransparentBackground(
                 lix, liy, liw, lih,
                 (5f * (1 shl log2(max(1f, zoom)).toInt()))

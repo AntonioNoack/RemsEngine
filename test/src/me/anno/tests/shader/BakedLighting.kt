@@ -159,7 +159,7 @@ object BakedLightingShader : ECSMeshShader("BakedLighting") {
                                     reflectionCalculation
                         } else "") +
                         finalMotionCalculation
-            ).add(quatRot).add(brightness).add(parallaxMapping).add(getReflectivity)
+            ).add(quatRot).add(brightness).add(getReflectivity)
         )
     }
 
@@ -184,7 +184,7 @@ fun createSampleScene(): Entity {
         .add(MeshComponent(DefaultAssets.plane, floorMaterial))
         .setScale(50f)
 
-    val cubeMesh = CubemapModel.model.front
+    val cubeMesh = CubemapModel.mesh.front
 
     val floorMaterial1 = Material()
     floorMaterial1.shader = BakedLightingShader

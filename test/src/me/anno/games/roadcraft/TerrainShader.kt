@@ -6,7 +6,6 @@ import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.brightness
-import me.anno.gpu.shader.ShaderLib.parallaxMapping
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -93,7 +92,7 @@ object TerrainShader : ECSMeshShader("Terrain") {
                                     reflectionCalculation
                         } else "") +
                         finalMotionCalculation
-            ).add(quatRot).add(brightness).add(parallaxMapping).add(getReflectivity)
+            ).add(quatRot).add(brightness).add(getReflectivity)
                 .add(
                     "" +
                             "float texWeight(float x) {\n" +

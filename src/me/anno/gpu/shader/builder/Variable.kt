@@ -121,15 +121,15 @@ class Variable(
         return this
     }
 
-    fun defineImageFormatByEnums(channels: Int, numberType: Int, numBits: Int): Variable {
+    fun defineImageFormatByEnums(numChannels: Int, numberType: Int, numBits: Int): Variable {
         val channelMask = 3 shl CHANNEL_OFFSET
         val numberMask = 3 shl NUMBER_OFFSET
         val bitsMask = 3 shl NUM_BITS_OFFSET
-        assertEquals(0, channels and channelMask.inv())
+        assertEquals(0, numChannels and channelMask.inv())
         assertEquals(0, numberType and numberMask.inv())
         assertEquals(0, numBits and bitsMask.inv())
         val joinedMask = channelMask or numberMask or bitsMask
-        flags = (flags and joinedMask.inv()) or (channels or numberType or numBits)
+        flags = (flags and joinedMask.inv()) or (numChannels or numberType or numBits)
         return this
     }
 

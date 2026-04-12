@@ -15,7 +15,7 @@ interface ITexture2D : ICacheData {
     val width: Int
     val height: Int
     val samples: Int
-    val channels: Int
+    val numChannels: Int
 
     val isHDR: Boolean
     val wasCreated: Boolean

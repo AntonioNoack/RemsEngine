@@ -10,7 +10,7 @@ class FakeWhiteTexture(override var width: Int, override var height: Int, overri
     override val name: String
         get() = "FakeWhite"
 
-    override val channels: Int get() = 3
+    override val numChannels: Int get() = 3
     override val wasCreated: Boolean get() = true
     override val isDestroyed: Boolean get() = false
     override val filtering: Filtering get() = Filtering.TRULY_NEAREST

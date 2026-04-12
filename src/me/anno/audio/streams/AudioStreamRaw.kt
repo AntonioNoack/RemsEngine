@@ -97,7 +97,7 @@ class AudioStreamRaw(
             val index = repeat[index0, maxSampleIndex]
             if (file is AudioReadable) {
                 val time = index.toDouble() / sampleRate
-                if (file.channels >= 2) {
+                if (file.numChannels >= 2) {
                     dst.set(file.sample(time, 0), file.sample(time, 1))
                 } else {
                     val v = file.sample(time, 0)

@@ -2,7 +2,6 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.FlatShaders.depthArrayShader
 import me.anno.gpu.shader.FlatShaders.depthShader
@@ -99,7 +98,7 @@ object DrawTextures {
         if (w == 0 || h == 0) return
         GFX.check()
         val shader = flatShaderTexture[texture.samples > 1].value
-        val mono = texture.channels == 1
+        val mono = texture.numChannels == 1
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)

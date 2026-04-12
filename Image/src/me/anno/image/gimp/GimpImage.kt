@@ -311,7 +311,7 @@ class GimpImage {
     }
 
     fun createImage(width: Int, height: Int, imageType: ImageType, format: DataType, hasAlpha: Boolean): Any {
-        val channels = imageType.channels + hasAlpha.toInt(1)
+        val channels = imageType.numChannels + hasAlpha.toInt(1)
         return when (format) {
             DataType.U8_LINEAR,
             DataType.U8_NON_LINEAR,
@@ -476,7 +476,7 @@ class GimpImage {
     }
 
     private fun getBpp(dataType: DataType, imageType: ImageType, hasAlpha: Boolean): Int {
-        return dataType.bpp * (imageType.channels + hasAlpha.toInt(1))
+        return dataType.bpp * (imageType.numChannels + hasAlpha.toInt(1))
     }
 
     private fun loadTile(

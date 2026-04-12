@@ -737,7 +737,7 @@ object DebugRendering {
         texture: ITexture2D, xii: Int, yii: Int,
     ) {
         val fontSize = monospaceFont.sizeInt
-        val numChannels = texture.channels
+        val numChannels = texture.numChannels
         val numLines = numChannels + 3
         val tileSize = fontSize * 2 / 5
         val x2 = view.x

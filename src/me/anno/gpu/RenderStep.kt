@@ -19,8 +19,11 @@ import me.anno.utils.OSFeatures
 import me.anno.utils.Sleep
 import me.anno.utils.pooling.Pools
 import me.anno.utils.pooling.Stack
+import org.apache.logging.log4j.LogManager
 
 object RenderStep {
+
+    private val LOGGER = LogManager.getLogger(RenderStep::class)
 
     @JvmStatic
     private fun clearState() {
@@ -76,7 +79,7 @@ object RenderStep {
         try {
             inst.onGameLoop(window, window.width, window.height)
         } catch (e: Exception) {
-            e.printStackTrace()
+            LOGGER.warn("Failed onGameLoop", e)
             if (OSFeatures.canSleep) Thread.sleep(250)
         }
     }

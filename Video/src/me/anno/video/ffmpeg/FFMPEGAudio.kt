@@ -21,7 +21,7 @@ import java.nio.ByteOrder
 import java.nio.ShortBuffer
 
 class FFMPEGAudio(
-    file: FileReference?, val channels: Int, val sampleRate: Int, val duration: Double,
+    file: FileReference?, val numChannels: Int, val sampleRate: Int, val duration: Double,
     val result: Promise<SoundBuffer>
 ) : FFMPEGStream(file, false) {
     // audio should be fast -> not limited
@@ -31,7 +31,7 @@ class FFMPEGAudio(
     }
 
     init {
-        if (channels !in 1..2) throw IllegalStateException("Unsupported number of audio channels: $channels")
+        if (numChannels !in 1..2) throw IllegalStateException("Unsupported number of audio channels: $numChannels")
     }
 
     override fun process(process: Process, arguments: List<String>, callback: () -> Unit) {
@@ -54,7 +54,7 @@ class FFMPEGAudio(
             val frameCount = (sampleRate * duration).toInt()
             val buffer = SoundBuffer()
             result.value = try {
-                val (bytes, shorts, stereo) = readRAW(input, channels, frameCount)
+                val (bytes, shorts, stereo) = readRAW(input, numChannels, frameCount)
                 if (bytes.limit() == 0) { // EOF
                     ByteBufferPool.free(bytes)
                     LOGGER.warn("No data was available for $file")
@@ -73,18 +73,17 @@ class FFMPEGAudio(
         }
     }
 
-    fun readRAW(input: InputStream, channels: Int, frameCount: Int): Triple<ByteBuffer, ShortBuffer, Boolean> {
-        val sampleCount = frameCount * channels
+    fun readRAW(input: InputStream, numChannels: Int, frameCount: Int): Triple<ByteBuffer, ShortBuffer, Boolean> {
+        val sampleCount = frameCount * numChannels
         val size = sampleCount * 2
         val bytes = AudioStream.byteBufferPool.get(size, clear = false, exactMatchesOnly = false)
-        val ex = input.readNBytes2(size, bytes, false)
-        if (ex is Exception) throw ex
+        input.readNBytes2(size, bytes, false)
         if (bytes.position() > 0) bytes.flip()
         val shorts = bytes.asShortBuffer()
         if (shorts.order() == ByteOrder.BIG_ENDIAN) {
             bytes.flip16()
         }
-        return Triple(bytes, shorts, channels == 2)
+        return Triple(bytes, shorts, numChannels == 2)
     }
 
     override fun destroy() {}

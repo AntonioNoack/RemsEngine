@@ -189,7 +189,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
             registerHandler(100, "audio-readable") { file, dst, _ ->
                 if (file is AudioReadable) {
                     dst.hasAudio = true
-                    dst.audioChannels = file.channels
+                    dst.audioChannels = file.numChannels
                     dst.audioSampleRate = file.sampleRate
                     dst.audioSampleCount = file.sampleCount
                     dst.audioDuration = file.duration

@@ -96,7 +96,7 @@ object FBStack {
     private data class FBKey1(
         val width: Int,
         val height: Int,
-        val channels: Int,
+        val numChannels: Int,
         val quality: BufferQuality,
         val samples: Int,
         val depthBufferType: DepthBufferType
@@ -105,8 +105,8 @@ object FBStack {
     private class FBStackData1(val key: FBKey1) :
         FBStackData(
             key.width, key.height, key.samples,
-            if (key.channels < 1) emptyList()
-            else listOf(getTargetType(key.channels, key.quality)),
+            if (key.numChannels < 1) emptyList()
+            else listOf(getTargetType(key.numChannels, key.quality)),
             key.depthBufferType
         ) {
         override fun printDestroyed(size: Int) {
@@ -151,11 +151,11 @@ object FBStack {
     }
 
     private fun getValue(
-        width: Int, height: Int, channels: Int,
+        width: Int, height: Int, numChannels: Int,
         quality: BufferQuality, samples: Int,
         depthBufferType: DepthBufferType
     ): FBStackData {
-        val key = FBKey1(width, height, channels, quality, clamp(samples, 1, GFX.maxSamples), depthBufferType)
+        val key = FBKey1(width, height, numChannels, quality, clamp(samples, 1, GFX.maxSamples), depthBufferType)
         return cache1.getEntry(key) { key, result -> result.value = FBStackData1(key) }.waitFor()!!
     }
 
@@ -176,22 +176,22 @@ object FBStack {
     }
 
     operator fun get(
-        name: String, w: Int, h: Int, channels: Int,
+        name: String, w: Int, h: Int, numChannels: Int,
         quality: BufferQuality, samples: Int,
         depthBufferType: DepthBufferType
     ): IFramebuffer {
-        val value = getValue(w, h, channels, quality, samples, depthBufferType)
+        val value = getValue(w, h, numChannels, quality, samples, depthBufferType)
         synchronized(value) {
             return value.getFrame(name)
         }
     }
 
     operator fun get(
-        name: String, w: Int, h: Int, channels: Int,
+        name: String, w: Int, h: Int, numChannels: Int,
         fp: Boolean, samples: Int, depthBufferType: DepthBufferType
     ): IFramebuffer {
         val quality = if (fp) BufferQuality.FP_32 else BufferQuality.UINT_8
-        return get(name, w, h, channels, quality, samples, depthBufferType)
+        return get(name, w, h, numChannels, quality, samples, depthBufferType)
     }
 
     operator fun get(
@@ -216,13 +216,13 @@ object FBStack {
         }
     }
 
-    fun getTargetType(channels: Int, quality: BufferQuality): TargetType {
+    fun getTargetType(numChannels: Int, quality: BufferQuality): TargetType {
         return when (quality) {
             BufferQuality.UINT_8 -> TargetType.UInt8xI
             BufferQuality.UINT_16 -> TargetType.UInt16xI
             BufferQuality.FP_16 -> TargetType.Float16xI
             BufferQuality.DEPTH_U32, BufferQuality.FP_32 -> TargetType.Float32xI
-        }[channels - 1]
+        }[numChannels - 1]
     }
 
     fun reset(w: Int, h: Int) {

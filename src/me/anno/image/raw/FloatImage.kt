@@ -11,6 +11,7 @@ import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
 import org.joml.Vector4f
 import kotlin.math.max
@@ -20,26 +21,26 @@ import kotlin.math.max
  * r = 0, g = 1, b = 2, a = 3
  * */
 class FloatImage(
-    width: Int, height: Int, channels: Int,
-    val data: FloatArray = FloatArray(width * height * channels),
+    width: Int, height: Int, numChannels: Int,
+    val data: FloatArray = FloatArray(width * height * numChannels),
     map: ColorMap, offset: Int, stride: Int
-) : IFloatImage(width, height, channels, map, offset, stride) {
+) : IFloatImage(width, height, numChannels, map, offset, stride) {
 
-    constructor(width: Int, height: Int, channels: Int) :
-            this(width, height, channels, LinearColorMap.default)
+    constructor(width: Int, height: Int, numChannels: Int) :
+            this(width, height, numChannels, LinearColorMap.default)
 
-    constructor(width: Int, height: Int, channels: Int, data: FloatArray) : this(
-        width, height, channels, data, LinearColorMap.default,
+    constructor(width: Int, height: Int, numChannels: Int, data: FloatArray) : this(
+        width, height, numChannels, data, LinearColorMap.default,
         0, width
     )
 
-    constructor(width: Int, height: Int, channels: Int, map: ColorMap) : this(
-        width, height, channels, FloatArray(width * height * channels), map,
+    constructor(width: Int, height: Int, numChannels: Int, map: ColorMap) : this(
+        width, height, numChannels, FloatArray(width * height * numChannels), map,
         0, width
     )
 
-    constructor(width: Int, height: Int, channels: Int, data: FloatArray, offset: Int, stride: Int) :
-            this(width, height, channels, data, LinearColorMap.default, offset, stride)
+    constructor(width: Int, height: Int, numChannels: Int, data: FloatArray, offset: Int, stride: Int) :
+            this(width, height, numChannels, data, LinearColorMap.default, offset, stride)
 
     /**
      * gets the value on the field
@@ -90,6 +91,8 @@ class FloatImage(
     }
 
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
+        val tt = TargetType.Float32xI[numChannels - 1]
+        assertEquals(numChannels, tt.numChannels)
         val lineLength = width * numChannels
         val tmp = FloatArray(height * lineLength)
         repeat(height) { y ->
@@ -98,7 +101,7 @@ class FloatImage(
             val dstI = y * lineLength
             data.copyInto(tmp, dstI, src0, src1)
         }
-        texture.create(TargetType.Float32xI[numChannels - 1], tmp)
+        texture.create(tt, tmp)
         callback.ok(texture)
     }
 

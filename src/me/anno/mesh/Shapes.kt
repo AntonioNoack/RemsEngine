@@ -99,15 +99,44 @@ object Shapes {
             }
         }
 
+        fun generateNormals(): FloatArray {
+            front.ensureNorTanUVs()
+            val n = front.normals!!
+            back.normals = n
+            both.normals = n
+            return n
+        }
+
         fun withUVs(): FBBMesh {
             val bounds = front.getBounds()
-            val su = 1f / (bounds.maxX - bounds.minX)
-            val sv = 1f / (bounds.maxY - bounds.minY)
+            val sx = 1f / bounds.deltaX
+            val sy = 1f / bounds.deltaY
+            val sz = 1f / bounds.deltaZ
             val uvs = FloatArray(positions.size / 3 * 2)
+            val normals = normals ?: generateNormals()
             forLoopSafely(positions.size, 3) { i ->
                 val j = i / 3 * 2
-                uvs[j] = (positions[i] - bounds.minX) * su
-                uvs[j + 1] = (positions[i + 1] - bounds.minY) * sv
+                val nx = normals[i]
+                val ny = normals[i + 1]
+                val nz = normals[i + 2]
+                val anx = abs(nx)
+                val any = abs(ny)
+                val anz = abs(nz)
+                when {
+                    // todo flip where necessary...
+                    anz >= anx && anz >= any -> { // z -> normal
+                        uvs[j] = (positions[i] - bounds.minX) * sx
+                        uvs[j + 1] = (positions[i + 1] - bounds.minY) * sy
+                    }
+                    anx >= any -> { // x-side
+                        uvs[j] = (positions[i + 2] - bounds.minZ) * sz
+                        uvs[j + 1] = (positions[i + 1] - bounds.minY) * sy
+                    }
+                    else -> { // y-side
+                        uvs[j] = (positions[i] - bounds.minX) * sx
+                        uvs[j + 1] = (positions[i + 2] - bounds.minZ) * sz
+                    }
+                }
             }
             front.uvs = uvs
             back.uvs = uvs
@@ -150,6 +179,7 @@ object Shapes {
     )
 
     val flatCube = FBBMesh("flatCube", getFlatShadedPositions(smoothCube.front), null)
+        .withUVs()
 
     /**
      * cube with half extents 1, full extents 2; front only

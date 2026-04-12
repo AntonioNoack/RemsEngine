@@ -12,6 +12,7 @@ import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
 import me.anno.utils.types.Floats.float16ToFloat32
 import me.anno.utils.types.Floats.float32ToFloat16
@@ -25,26 +26,26 @@ import kotlin.math.max
  * r = 0, g = 1, b = 2, a = 3
  * */
 class HalfImage(
-    width: Int, height: Int, channels: Int,
-    val data: ShortArray = ShortArray(width * height * channels),
+    width: Int, height: Int, numChannels: Int,
+    val data: ShortArray = ShortArray(width * height * numChannels),
     map: ColorMap, offset: Int, stride: Int
-) : IFloatImage(width, height, channels, map, offset, stride) {
+) : IFloatImage(width, height, numChannels, map, offset, stride) {
 
-    constructor(width: Int, height: Int, channels: Int) :
-            this(width, height, channels, LinearColorMap.default)
+    constructor(width: Int, height: Int, numChannels: Int) :
+            this(width, height, numChannels, LinearColorMap.default)
 
-    constructor(width: Int, height: Int, channels: Int, data: ShortArray) : this(
-        width, height, channels, data, LinearColorMap.default,
+    constructor(width: Int, height: Int, numChannels: Int, data: ShortArray) : this(
+        width, height, numChannels, data, LinearColorMap.default,
         0, width
     )
 
-    constructor(width: Int, height: Int, channels: Int, map: ColorMap) : this(
-        width, height, channels, ShortArray(width * height * channels), map,
+    constructor(width: Int, height: Int, numChannels: Int, map: ColorMap) : this(
+        width, height, numChannels, ShortArray(width * height * numChannels), map,
         0, width
     )
 
-    constructor(width: Int, height: Int, channels: Int, data: ShortArray, offset: Int, stride: Int) :
-            this(width, height, channels, data, LinearColorMap.default, offset, stride)
+    constructor(width: Int, height: Int, numChannels: Int, data: ShortArray, offset: Int, stride: Int) :
+            this(width, height, numChannels, data, LinearColorMap.default, offset, stride)
 
     private fun getRaw(index: Int): Float = float16ToFloat32(data[index].toInt())
 
@@ -56,7 +57,7 @@ class HalfImage(
      * gets the value on the field
      * */
     override fun getValue(index: Int, channel: Int): Float {
-        return getRaw(index * numChannels + channel)
+        return getRaw(index * this@HalfImage.numChannels + channel)
     }
 
     /**
@@ -70,24 +71,24 @@ class HalfImage(
     }
 
     override fun setRGB(index: Int, value: Vector4f) {
-        val index = index * numChannels
+        val index = index * this@HalfImage.numChannels
         setValue(index, 0, value.x)
-        if (numChannels > 1) setValue(index, 1, value.y)
-        if (numChannels > 2) setValue(index, 2, value.z)
-        if (numChannels > 3) setValue(index, 3, value.w)
+        if (this@HalfImage.numChannels > 1) setValue(index, 1, value.y)
+        if (this@HalfImage.numChannels > 2) setValue(index, 2, value.z)
+        if (this@HalfImage.numChannels > 3) setValue(index, 3, value.w)
     }
 
     override fun setRGB(index: Int, value: Int) {
-        val index = index * numChannels
+        val index = index * this@HalfImage.numChannels
         setValue(index, 0, value.r01())
-        if (numChannels > 1) setValue(index, 1, value.g01())
-        if (numChannels > 2) setValue(index, 2, value.b01())
-        if (numChannels > 3) setValue(index, 3, value.a01())
+        if (this@HalfImage.numChannels > 1) setValue(index, 1, value.g01())
+        if (this@HalfImage.numChannels > 2) setValue(index, 2, value.b01())
+        if (this@HalfImage.numChannels > 3) setValue(index, 3, value.a01())
     }
 
     override fun getRGB(index: Int): Int {
-        val index = index * numChannels
-        val numChannels = numChannels
+        val index = index * this@HalfImage.numChannels
+        val numChannels = this@HalfImage.numChannels
         return if (numChannels == 1) {
             map.getColor(getRaw(index))
         } else {
@@ -101,25 +102,51 @@ class HalfImage(
     }
 
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
-        val lineLength = width * numChannels
+        val srcLineLength = width * numChannels
         if (supportsF16Targets) {
-            val tmp = ShortArray(height * lineLength)
+            val tt = TargetType.Float16xI[numChannels - 1]
+            val dstLineLength = width * tt.numChannels
+            val tmp = ShortArray(width * height * tt.numChannels)
+            if (srcLineLength != dstLineLength) tmp.fill(float32ToFloat16(1f).toShort()) // set alpha 1
             repeat(height) { y ->
-                val src0 = getIndex(0, height - 1 - y) * numChannels
-                val src1 = src0 + lineLength
-                val dstI = y * lineLength
-                data.copyInto(tmp, dstI, src0, src1)
+                val srcY = height - 1 - y
+                if (srcLineLength == dstLineLength) {
+                    val src0 = getIndex(0, srcY) * numChannels
+                    val src1 = src0 + srcLineLength
+                    val dstI = y * dstLineLength
+                    data.copyInto(tmp, dstI, src0, src1)
+                } else {
+                    repeat(width) { x ->
+                        val src0 = getIndex(x, srcY) * numChannels
+                        val src1 = src0 + numChannels
+                        val dstI = y * dstLineLength + x * tt.numChannels
+                        data.copyInto(tmp, dstI, src0, src1)
+                    }
+                }
             }
-            texture.create(TargetType.Float16xI[numChannels - 1], tmp)
+            texture.create(tt, tmp)
         } else {
-            val tmp = FloatArray(height * lineLength)
+            val tt = TargetType.Float32xI[numChannels - 1]
+            val dstLineLength = width * tt.numChannels
+            val tmp = FloatArray(width * height * tt.numChannels)
+            if (srcLineLength != dstLineLength) tmp.fill(1f) // set alpha 1
             repeat(height) { y ->
-                val src0 = getIndex(0, height - 1 - y) * numChannels
-                val src1 = src0 + lineLength
-                val dstI = y * lineLength
-                copyIntoX(tmp, dstI, src0, src1)
+                val srcY = height - 1 - y
+                if (srcLineLength == dstLineLength) {
+                    val src0 = getIndex(0, srcY) * numChannels
+                    val src1 = src0 + srcLineLength
+                    val dstI = y * dstLineLength
+                    copyIntoX(tmp, dstI, src0, src1)
+                } else {
+                    repeat(width) { x ->
+                        val src0 = getIndex(x, srcY) * numChannels
+                        val src1 = src0 + numChannels
+                        val dstI = y * dstLineLength + x * tt.numChannels
+                        copyIntoX(tmp, dstI, src0, src1)
+                    }
+                }
             }
-            texture.create(TargetType.Float32xI[numChannels - 1], tmp)
+            texture.create(tt, tmp)
         }
         callback.ok(texture)
     }

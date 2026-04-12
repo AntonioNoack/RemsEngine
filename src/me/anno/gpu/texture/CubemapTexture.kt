@@ -58,7 +58,7 @@ open class CubemapTexture(
     var createdSize = 0
 
     // todo set this property when the texture was created
-    override var channels = 3
+    override var numChannels = 3
 
     override var locallyAllocated = 0L
     override var internalFormat = 0
@@ -111,13 +111,13 @@ open class CubemapTexture(
         Texture2D.bindTexture(target, pointer)
     }
 
-    private fun checkSize(channels: Int, size0: Int) {
-        if (size0 < size * size * channels) throw IllegalArgumentException("Incorrect size, ${size * size * channels} vs ${size0}!")
+    private fun checkSize(numChannels: Int, size0: Int) {
+        if (size0 < size * size * numChannels) throw IllegalArgumentException("Incorrect size, ${size * size * numChannels} vs ${size0}!")
     }
 
-    private fun beforeUpload(channels: Int, size: Int) {
+    private fun beforeUpload(numChannels: Int, size: Int) {
         if (isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
-        checkSize(channels, size)
+        checkSize(numChannels, size)
         GFX.check()
         ensurePointer()
         bindBeforeUpload()

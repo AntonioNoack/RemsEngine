@@ -28,7 +28,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.anisotropic16
 import me.anno.gpu.shader.ShaderLib.brightness
-import me.anno.gpu.shader.ShaderLib.parallaxMapping
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -90,7 +89,7 @@ object WaterShader : ECSMeshShader("Water") {
                                     v0 + reflectionCalculation
                         } else "") +
                         finalMotionCalculation
-            ).add(quatRot).add(brightness).add(parallaxMapping).add(getReflectivity).add(rawToDepth)
+            ).add(quatRot).add(brightness).add(getReflectivity).add(rawToDepth)
                 .add(sampleTileNoLUT).add(getTextureNoLUT)
                 .add(anisotropic16).add(randomGLSL)
         )

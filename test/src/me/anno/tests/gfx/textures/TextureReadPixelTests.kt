@@ -8,7 +8,6 @@ import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.tests.image.raw.ByteImageFormatTest.Companion.supportedMask
-import me.anno.utils.Color.toHexColor
 import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
@@ -162,7 +161,7 @@ class TextureReadPixelTests {
         val texture = Texture2D("textureReadText$format", w, h, 1)
         image.createTexture(texture, false, Callback.printError())
         Sleep.waitUntil(true) { texture.isCreated() }
-        assertEquals(format.numChannels, texture.channels)
+        assertEquals(format.numChannels, texture.numChannels)
         return texture
     }
 

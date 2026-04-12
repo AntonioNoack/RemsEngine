@@ -40,13 +40,13 @@ class TargetType(
     val uploadFormat: Int,
     val fillType: Int,
     val bytesPerPixel: Int,
-    val channels: Int,
+    val numChannels: Int,
     val isHDR: Boolean
 ) {
 
     override fun toString(): String {
         return "TargetType($name, internalFormat=${getName(internalFormat)}, uploadFormat=${getName(uploadFormat)}, " +
-                "fillType=${getName(fillType)}, bytesPerPixel=$bytesPerPixel, channels=$channels, isHDR=$isHDR)"
+                "fillType=${getName(fillType)}, bytesPerPixel=$bytesPerPixel, channels=$numChannels, isHDR=$isHDR)"
     }
 
     /**

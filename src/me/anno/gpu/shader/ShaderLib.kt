@@ -49,9 +49,15 @@ object ShaderLib {
     val coordsList = listOf(Variable(GLSLType.V2F, "positions", VariableMode.ATTR))
 
     const val applyTiling = "" +
+            "#ifndef APPLY_TILING\n" +
+            "#define APPLY_TILING\n" +
             "vec2 applyTiling(vec2 uv, vec4 tiling) {\n" +
-            "   return (uv-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
-            "}\n"
+            "   return (uv - 0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+            "}\n" +
+            "vec2 undoTiling(vec2 uv, vec4 tiling) {\n" +
+            "   return (uv - 0.5 + tiling.zw) / tiling.xy + 0.5;\n" +
+            "}\n" +
+            "#endif\n"
 
     const val coordsVertexShader = "" +
             "void main(){\n" +
@@ -476,36 +482,39 @@ object ShaderLib {
     // from https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
     // https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/5.3.parallax_occlusion_mapping/5.3.parallax_mapping.fs
     val parallaxMapping = "" +
-            "vec2 parallaxMapUVs(sampler2D depthMap, vec2 texCoords, vec3 viewDir, float heightScale) { \n" +
+            "vec2 parallaxMapUVs(sampler2D depthMap, vec2 texCoords, vec3 viewDir, vec2 heightScale," +
+            "   vec2 minMaxLayers) { \n" +
             // clamping? repeating? out-of-bounds-pixel-access?... -> repeating :)
             // number of depth layers
-            "    const float minLayers = 8.0;\n" +
-            "    const float maxLayers = 32.0;\n" +
+            "    float minLayers = minMaxLayers.x;\n" +
+            "    float maxLayers = minMaxLayers.y;\n" +
             "    float numLayers = mix(maxLayers, minLayers, abs(viewDir.z));\n" +
             "    vec2 texSize = vec2(textureSize(depthMap,0));\n" +
             // calculate the size of each layer
             "    float layerDepth = 1.0 / numLayers;\n" +
             "    float currentLayerDepth = -0.5;\n" +
             // the amount to shift the texture coordinates per layer (from vector P)
-            "    vec2 P = viewDir.xy / viewDir.z * heightScale; \n" +
+            "    vec2 P = viewDir.xy / viewDir.z * heightScale.x; \n" +
             "    vec2 deltaTexCoords = texSize * P / numLayers;\n" +
             // get initial values
             "    vec2  currentTexCoords     = texSize * texCoords;\n" +
-            "    float currentDepthMapValue = 0.5 - texelFetch(depthMap, ivec2(mod(currentTexCoords, texSize)), 0).r;\n" +
-            "    while(currentLayerDepth < currentDepthMapValue) {\n" +
+            "    float currentDepthMapValue = heightScale.y - texelFetch(depthMap, ivec2(mod(currentTexCoords, texSize)), 0).r;\n" +
+            "    int i = int(maxLayers * 2.0);\n" +
+            "    while(currentLayerDepth < currentDepthMapValue && i >= 0) {\n" +
             // shift texture coordinates along direction of P
-            "        currentTexCoords -= deltaTexCoords;\n" +
+            "       currentTexCoords -= deltaTexCoords;\n" +
             // get depth map value at current texture coordinates
-            "        currentDepthMapValue = 0.5 - texelFetch(depthMap, ivec2(mod(currentTexCoords, texSize)), 0).r;  \n" +
+            "       currentDepthMapValue = heightScale.y - texelFetch(depthMap, ivec2(mod(currentTexCoords, texSize)), 0).r;  \n" +
             // get depth of next layer
-            "        currentLayerDepth += layerDepth;\n" +
+            "       currentLayerDepth += layerDepth;\n" +
+            "       i--;\n" +
             "    }\n" +
             // get texture coordinates before collision (reverse operations)
             "    vec2 prevTexCoords = currentTexCoords + deltaTexCoords;\n" +
 
             // get depth after and before collision for linear interpolation
             "    float afterDepth  = currentDepthMapValue - currentLayerDepth;\n" +
-            "    float beforeDepth = 0.5 - texelFetch(depthMap, ivec2(mod(prevTexCoords, texSize)), 0).r - currentLayerDepth + layerDepth;\n" +
+            "    float beforeDepth = heightScale.y - texelFetch(depthMap, ivec2(mod(prevTexCoords, texSize)), 0).r - currentLayerDepth + layerDepth;\n" +
 
             // interpolation of texture coordinates
             "    float weight = afterDepth / (afterDepth - beforeDepth);\n" +

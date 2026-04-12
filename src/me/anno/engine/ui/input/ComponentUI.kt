@@ -527,6 +527,7 @@ object ComponentUI {
             // todo ranges for vectors
             "Vector2f" -> return createVector2fInput(title, visibilityKey, value, default, property, style)
             "Vector3f" -> return createVector3fInput(title, visibilityKey, value, default, property, style)
+            "Tiling", // todo better UI for tiling, separate XY and ZW into scale and offset; maybe preview on some placeholder texture?
             "Vector4f" -> return createVector4fInput(title, visibilityKey, value, default, property, style)
             "Planef" -> {
                 val type = NumberType.PLANE4.withDefault(default as? Planef ?: Planef())

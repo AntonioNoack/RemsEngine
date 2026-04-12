@@ -66,9 +66,6 @@ interface VRRenderingRoutine {
 
             val started = vrRoutine.startSession(window, rv)
             shallRenderVR = started
-
-            if (started) LOGGER.info("Started VR")
-            else LOGGER.warn("Failed to initialize VR")
         }
     }
 }

@@ -23,7 +23,6 @@ import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib.brightness
-import me.anno.gpu.shader.ShaderLib.parallaxMapping
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -56,7 +55,7 @@ object TrackShader : ECSMeshShader("Track") {
                             createColorFragmentStage()
                         } else "") +
                         finalMotionCalculation
-            ).add(quatRot).add(brightness).add(parallaxMapping).add(getReflectivity)
+            ).add(quatRot).add(brightness).add(getReflectivity)
         )
     }
 }
