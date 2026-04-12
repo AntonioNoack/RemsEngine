@@ -17,8 +17,7 @@ abstract class IGlyphLayout {
     abstract fun add(
         codepoint: Int,
         x0: Int, x1: Int,
-        lineIndex: Int, fontIndex: Int,
-        style: Long
+        lineIndex: Int, fontIndex: Int
     )
 
     abstract fun move(dx: Int, deltaLineWidth: Int)

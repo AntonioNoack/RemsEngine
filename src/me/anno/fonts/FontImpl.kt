@@ -310,19 +310,20 @@ abstract class FontImpl<FallbackFonts> {
                 val nextX = currentX + deltaX
                 if (!currCodepoint.isBlank()) {
                     val style = if (styles != null) styles[index] else 0L
+
+                    // if style says so, choose bold/italic font instead
                     val fontIndex = fontIndex.shl(2) +
                             GlyphStyle.isBold(style).toInt(GlyphStyle.BOLD) +
                             GlyphStyle.isItalic(style).toInt(GlyphStyle.ITALIC)
-                    // todo if style says so, choose bold/italic font instead
-                    result.add(currCodepoint, currentX, nextX, result.numLines, fontIndex, style)
+
+                    result.add(currCodepoint, currentX, nextX, result.numLines, fontIndex)
                     if (GlyphStyle.isStrikethrough(style)) {
-                        // todo we should collect where strike-through starts and ends...
                         val codepoint = GlyphStyle.STRIKETHROUGH_CHAR.code
-                        result.add(codepoint, currentX, nextX, result.numLines, fontIndex, style)
+                        result.add(codepoint, currentX, nextX, result.numLines, fontIndex)
                     }
                     if (GlyphStyle.isUnderline(style)) {
                         val codepoint = GlyphStyle.UNDERLINE_CHAR.code
-                        result.add(codepoint, currentX, nextX, result.numLines, fontIndex, style)
+                        result.add(codepoint, currentX, nextX, result.numLines, fontIndex)
                     }
                 }
                 currentX = nextX + charSpacing
