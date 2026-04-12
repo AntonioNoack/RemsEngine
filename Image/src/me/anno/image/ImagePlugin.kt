@@ -3,6 +3,8 @@ package me.anno.image
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.texture.TextureReader
 import me.anno.image.aseprite.AsepriteReader
+import me.anno.image.exr.OpenEXRReader
+import me.anno.image.exr.OpenEXRStatsReader
 import me.anno.image.exr.TinyEXRReader
 import me.anno.image.gimp.GimpImage
 import me.anno.image.jpg.ExifOrientation
@@ -16,6 +18,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
+import me.anno.utils.OS
 import me.anno.utils.types.Ints.toIntOrDefault
 import net.sf.image4j.codec.bmp.BMPDecoder
 import net.sf.image4j.codec.ico.ICOReader
@@ -35,7 +38,9 @@ class ImagePlugin : Plugin() {
     private fun registerImageLoading() {
         ImageCache.registerDirectStreamReader("tga", TGAReader::read)
         ImageCache.registerDirectStreamReader("gimp", GimpImage::read)
-        ImageCache.registerDirectStreamReader("exr", TinyEXRReader::read)
+        // can we somehow check whether the library is loaded properly?
+        if (OS.isLinux) ImageCache.registerByteArrayReader("exr", OpenEXRReader::readImage)
+        else ImageCache.registerDirectStreamReader("exr", TinyEXRReader::read)
         ImageCache.registerDirectStreamReader("qoi", QOIReader::read)
         ImageCache.registerDirectStreamReader("ico", ICOReader::read)
         ImageImpl.register()
@@ -62,6 +67,11 @@ class ImagePlugin : Plugin() {
                     dst.isReady = true
                 }
                 true
+            } else false
+        }
+        MediaMetadata.registerSignatureHandler(100, "exr") { _, signature, dst, ri ->
+            if (signature == "exr") {
+                dst.setImageByStream(OpenEXRStatsReader::findSize, ri)
             } else false
         }
         MediaMetadata.registerSignatureHandler(100, "qoi") { _, signature, dst, ri ->
@@ -125,6 +135,7 @@ class ImagePlugin : Plugin() {
         ThumbnailCache.registerFileExtensions("tga", ImageThumbnailsImpl::generateTGAFrame)
         ThumbnailCache.registerFileExtensions("ico", ImageThumbnailsImpl::generateICOFrame)
         ThumbnailCache.registerFileExtensions("svg", ImageThumbnailsImpl::generateSVGFrame)
+        ThumbnailCache.registerFileExtensions("exr", ImageThumbnailsImpl::generateEXRFrame)
         ThumbnailCache.registerSignatures("aseprite", ImageThumbnailsImpl::generateAsepriteFrame)
         ImageAsFolder.readIcoLayers = ICOReader::readAllLayers
         ImageAsFolder.readJPGThumbnail = JPGThumbnails::readThumbnail

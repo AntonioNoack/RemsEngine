@@ -1,8 +1,10 @@
 package me.anno.tests.image.exr
 
+import me.anno.image.Image
 import me.anno.image.exr.OpenEXRReader
 import me.anno.image.exr.TinyEXRReader
 import me.anno.io.files.Signature
+import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
 import org.apache.logging.log4j.LogManager
 
@@ -23,10 +25,14 @@ fun main() {
         LOGGER.warn("TinyEXR-Failure", e)
     }
 
+    println("bytes: ${sourceBytes.take(10)}")
+
     try {
+        LogManager.logAll()
         // try our OpenEXR sample
-        val exrImage = OpenEXRReader.readImage(sourceBytes.inputStream())
+        val exrImage = OpenEXRReader.readImage(sourceBytes) as Image
         LOGGER.info("OpenEXR-Success: $exrImage")
+        exrImage.write(desktop.getChild("exr.jpg"))
     } catch (e: Exception) {
         LOGGER.warn("OpenEXR-Failure", e)
     }

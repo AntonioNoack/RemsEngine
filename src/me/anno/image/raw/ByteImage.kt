@@ -45,6 +45,7 @@ open class ByteImage(
             ByteImageFormat.ARGB -> texture.createARGB(buffer, checkRedundancy)
             ByteImageFormat.RGBA -> texture.createRGBA(buffer, checkRedundancy)
             ByteImageFormat.BGRA -> texture.createBGRA(buffer, checkRedundancy)
+            ByteImageFormat.ABGR -> texture.createABGR(buffer, checkRedundancy)
         }
         callback.ok(texture)
     }

@@ -349,6 +349,22 @@ object Streams {
     }
 
     /**
+     * read a zero-terminated string, as they are commonly used in C
+     * */
+    @JvmStatic
+    fun InputStream.read0String(c0: Int): String {
+        if (c0 == 0) return ""
+        val builder = StringBuilder()
+        builder.append(c0.toChar())
+        while (true) {
+            val n = read()
+            if (n <= 0) break
+            builder.append(n.toChar())
+        }
+        return builder.toString()
+    }
+
+    /**
      * read constant-size string
      * */
     @JvmStatic

@@ -83,7 +83,18 @@ object TinyEXRReader {
     }
 
     fun read(input: InputStream): IFloatImage {
-        val bytes = input.readBytes()
+        return read(input.readBytes())
+    }
+
+    fun readImage(bytes: ByteArray): Any {
+        return try {
+            read(bytes)
+        } catch (e: Exception) {
+            e
+        }
+    }
+
+    fun read(bytes: ByteArray): IFloatImage {
         val buffer = ByteBufferPool.allocateDirect(bytes.size)
         buffer.put(bytes).flip()
         return read(buffer)

@@ -9,6 +9,9 @@ import me.anno.graph.hdb.HDBKey
 import me.anno.image.aseprite.AseSprite
 import me.anno.image.aseprite.AsepriteReader
 import me.anno.image.aseprite.AsepriteToImage.frameToImage
+import me.anno.image.exr.OpenEXRReader
+import me.anno.image.exr.OpenEXRStatsReader
+import me.anno.image.exr.TinyEXRReader
 import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.svg.DrawSVGs
 import me.anno.image.svg.SVGMeshCache
@@ -127,4 +130,20 @@ object ImageThumbnailsImpl {
                 } else callback.err(null)
             })
     }
+
+    fun generateEXRFrame(
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        callback: Callback<ITexture2D>
+    ) {
+        srcFile.readBytes { bytes, exc ->
+            if (bytes != null) {
+                val image = OpenEXRStatsReader.findThumbnail(bytes.inputStream())
+                    ?: run { OpenEXRReader.readImage(bytes) as? Image }
+                    ?: run { TinyEXRReader.readImage(bytes) }
+                if (image is Image) ThumbnailCache.transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
+                else callback.err(image as? Exception)
+            } else exc?.printStackTrace()
+        }
+    }
+
 }

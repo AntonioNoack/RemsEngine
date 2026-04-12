@@ -23,7 +23,8 @@ enum class ByteImageFormat(val numChannels: Int) {
     // rgba
     RGBA(4),
     ARGB(4),
-    BGRA(4);
+    BGRA(4),
+    ABGR(4);
 
     fun fromBytes(src: ByteArray, i: Int, hasAlphaChannel: Boolean): Int {
         return when (this) {
@@ -45,6 +46,13 @@ enum class ByteImageFormat(val numChannels: Int) {
                 val g = src[i + 1]
                 val r = src[i + 2]
                 val a = if (hasAlphaChannel) src[i + 3] else -1
+                argb(a, r, g, b)
+            }
+            ABGR -> {
+                val a = if (hasAlphaChannel) src[i] else -1
+                val b = src[i + 1]
+                val g = src[i + 2]
+                val r = src[i + 3]
                 argb(a, r, g, b)
             }
         }
@@ -88,6 +96,12 @@ enum class ByteImageFormat(val numChannels: Int) {
                 dst[i + 1] = g
                 dst[i + 2] = r
                 dst[i + 3] = a
+            }
+            ABGR -> {
+                dst[i] = a
+                dst[i + 1] = b
+                dst[i + 2] = g
+                dst[i + 3] = r
             }
         }
     }

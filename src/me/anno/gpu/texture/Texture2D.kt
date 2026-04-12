@@ -724,6 +724,23 @@ open class Texture2D(
         return createRGBA(data, false)
     }
 
+    fun createABGR(data: ByteBuffer, checkRedundancy: Boolean): Texture2D {
+        checkSize(4, data.remaining())
+        if (checkRedundancy) checkRedundancyX4(data)
+        for (i in 0 until width * height * 4 step 4) {
+            val a = data[i]
+            val b = data[i + 1]
+            val g = data[i + 2]
+            val r = data[i + 3]
+            data.put(r)
+            data.put(g)
+            data.put(b)
+            data.put(a)
+        }
+        data.flip()
+        return createRGBA(data, false)
+    }
+
     /** creates the texture, and returns the buffer */
     fun createRGBA(data: ByteBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(4, data.remaining())
