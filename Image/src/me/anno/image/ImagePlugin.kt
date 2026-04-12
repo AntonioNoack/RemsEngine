@@ -3,7 +3,7 @@ package me.anno.image
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.texture.TextureReader
 import me.anno.image.aseprite.AsepriteReader
-import me.anno.image.exr.EXRReader
+import me.anno.image.exr.TinyEXRReader
 import me.anno.image.gimp.GimpImage
 import me.anno.image.jpg.ExifOrientation
 import me.anno.image.jpg.JPGThumbnails
@@ -35,7 +35,7 @@ class ImagePlugin : Plugin() {
     private fun registerImageLoading() {
         ImageCache.registerDirectStreamReader("tga", TGAReader::read)
         ImageCache.registerDirectStreamReader("gimp", GimpImage::read)
-        ImageCache.registerDirectStreamReader("exr", EXRReader::read)
+        ImageCache.registerDirectStreamReader("exr", TinyEXRReader::read)
         ImageCache.registerDirectStreamReader("qoi", QOIReader::read)
         ImageCache.registerDirectStreamReader("ico", ICOReader::read)
         ImageImpl.register()

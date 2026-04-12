@@ -32,7 +32,7 @@ import kotlin.math.PI
 // todo support flat texture format, too
 //  https://harpingtonbear.artstation.com/projects/581r9O
 
-class ParallaxMaterial : Material() {
+class ParallaxRoomMaterial : Material() {
     init {
         shader = ParallaxRoomShader
     }
@@ -192,7 +192,7 @@ fun main() {
     }
     window.indices = window.indices!! + window.indices!!
     window.materialIds = intArrayOf(0, 0, 1, 1)
-    window.materials = listOf(ParallaxMaterial().apply {
+    window.materials = listOf(ParallaxRoomMaterial().apply {
         diffuseMap = documents.getChild("ParallaxRoom.png")
         roomDepth.set(0.05f, 0.2f, 0.5f, 1f)
     }.ref, Material().apply {

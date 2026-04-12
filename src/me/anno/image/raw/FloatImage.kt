@@ -15,6 +15,10 @@ import me.anno.utils.async.Callback
 import org.joml.Vector4f
 import kotlin.math.max
 
+/**
+ * channel layout:
+ * r = 0, g = 1, b = 2, a = 3
+ * */
 class FloatImage(
     width: Int, height: Int, channels: Int,
     val data: FloatArray = FloatArray(width * height * channels),

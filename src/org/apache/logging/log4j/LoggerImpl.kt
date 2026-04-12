@@ -19,6 +19,8 @@ import org.apache.logging.log4j.PrintColor.color
 import org.apache.logging.log4j.PrintColor.style
 import java.io.IOException
 import java.io.OutputStream
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.util.Calendar
 import java.util.Locale
 import java.util.logging.Level
@@ -133,8 +135,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
 
     override fun info(msg: String, thrown: Throwable) {
         if (isInfoEnabled()) {
-            info(msg)
-            thrown.printStackTrace()
+            printStackTrace("INFO", msg, thrown, INFO_STYLE)
         }
     }
 
@@ -235,8 +236,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
 
     override fun severe(msg: String, thrown: Throwable) {
         if (isSevereEnabled()) {
-            severe(msg)
-            thrown.printStackTrace()
+            printStackTrace("SEVERE", msg, thrown, SEVERE_STYLE)
         }
     }
 
@@ -254,8 +254,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
 
     override fun fatal(msg: String, thrown: Throwable) {
         if (isFatalEnabled()) {
-            fatal(msg)
-            thrown.printStackTrace()
+            printStackTrace("FATAL", msg, thrown, FATAL_STYLE)
         }
     }
 
@@ -285,8 +284,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
 
     override fun warn(msg: String, thrown: Throwable) {
         if (isWarnEnabled()) {
-            warn(msg)
-            thrown.printStackTrace()
+            printStackTrace("WARN", msg, thrown, WARN_STYLE)
         }
     }
 
@@ -328,8 +326,9 @@ open class LoggerImpl(val name: String) : Logger, Log {
     }
 
     override fun trace(o: Any?, throwable: Throwable?) {
-        trace(o)
-        throwable?.printStackTrace()
+        if (isTraceEnabled()) {
+            printStackTrace("TRACE", o.toString(), throwable, TRACE_STYLE)
+        }
     }
 
     override fun isLoggable(level: Level): Boolean {
@@ -366,6 +365,16 @@ open class LoggerImpl(val name: String) : Logger, Log {
 
     fun isSevereEnabled(): Boolean {
         return LogManager.isEnabled(this, org.apache.logging.log4j.Level.SEVERE)
+    }
+
+    fun printStackTrace(prefix: String, msg: String, e: Throwable?, style: String) {
+        if (e == null) return print(prefix, msg, style)
+
+        val tmp0 = StringWriter(msg.length + 200)
+        tmp0.append(msg).append(": ")
+        val tmp = PrintWriter(tmp0)
+        e.printStackTrace(tmp)
+        print(prefix, tmp0.toString(), style)
     }
 
     // override fun warn(marker: Marker, msg: String, vararg obj: java.lang.Object): Unit = warn(msg, obj)

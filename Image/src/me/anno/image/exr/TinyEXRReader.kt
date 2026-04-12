@@ -40,9 +40,9 @@ import java.nio.FloatBuffer
 /**
  * Uses TinyEXR to read EXR files; only some are supported, so try every single file before shipping!
  * */
-object EXRReader {
+object TinyEXRReader {
 
-    private val LOGGER = LogManager.getLogger(EXRReader::class)
+    private val LOGGER = LogManager.getLogger(TinyEXRReader::class)
 
     // info about the format:
     // https://openexr.readthedocs.io/en/latest/OpenEXRFileLayout.html
@@ -50,18 +50,7 @@ object EXRReader {
     private fun check(ret: Int, cleanup: () -> Unit = {}) {
         if (ret == TINYEXR_SUCCESS) return
         cleanup()
-        val msg = when (ret) {
-            TINYEXR_ERROR_INVALID_MAGIC_NUMBER -> "Invalid magic"
-            TINYEXR_ERROR_INVALID_EXR_VERSION -> "Invalid version"
-            TINYEXR_ERROR_INVALID_ARGUMENT -> "Invalid argument"
-            TINYEXR_ERROR_INVALID_DATA -> "Invalid data"
-            TINYEXR_ERROR_INVALID_PARAMETER -> "Invalid parameter"
-            TINYEXR_ERROR_UNSUPPORTED_FORMAT -> "Unsupported format"
-            TINYEXR_ERROR_INVALID_HEADER -> "Invalid header"
-            TINYEXR_ERROR_UNSUPPORTED_FEATURE -> "Unsupported feature"
-            else -> "Invalid EXR File, #$ret"
-        }
-        throw IOException(msg)
+        throw IOException(getErrorMessage(ret))
     }
 
     private fun check(ret: Int, err: PointerBuffer, cleanup: () -> Unit = {}) {
@@ -69,7 +58,11 @@ object EXRReader {
         LOGGER.debug(MemoryUtil.memASCIISafe(err[0]) ?: "null")
         cleanup()
         nFreeEXRErrorMessage(err[0])
-        val msg = when (ret) {
+        throw IOException(getErrorMessage(ret))
+    }
+
+    fun getErrorMessage(ret: Int): String {
+        return when (ret) {
             TINYEXR_ERROR_INVALID_MAGIC_NUMBER -> "Invalid magic"
             TINYEXR_ERROR_INVALID_EXR_VERSION -> "Invalid version"
             TINYEXR_ERROR_INVALID_ARGUMENT -> "Invalid argument"
@@ -80,7 +73,6 @@ object EXRReader {
             TINYEXR_ERROR_UNSUPPORTED_FEATURE -> "Unsupported feature"
             else -> "Invalid EXR File, #$ret"
         }
-        throw IOException(msg)
     }
 
     private fun <V> mapChannels(channels: List<V>, src: List<String>, dst: String): List<V> {

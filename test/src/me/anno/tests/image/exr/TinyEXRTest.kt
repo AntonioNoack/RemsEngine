@@ -1,7 +1,7 @@
-package me.anno.tests.image
+package me.anno.tests.image.exr
 
 import me.anno.engine.OfficialExtensions
-import me.anno.image.exr.EXRReader
+import me.anno.image.exr.TinyEXRReader
 import me.anno.utils.OS
 import java.io.IOException
 
@@ -14,7 +14,7 @@ fun main() {
         .filter { it.lcExtension == "exr" }
         .forEach {
             try {
-                EXRReader.read(it.readByteBufferSync(true))
+                TinyEXRReader.read(it.readByteBufferSync(true))
                     .reinhard()
                     .write(dst.getChild("${it.nameWithoutExtension}.png"))
             } catch (e: IOException) {
