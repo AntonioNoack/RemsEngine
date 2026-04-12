@@ -483,7 +483,7 @@ object ShaderLib {
     // https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/5.3.parallax_occlusion_mapping/5.3.parallax_mapping.fs
     val parallaxMapping = "" +
             "vec2 parallaxMapUVs(sampler2D depthMap, vec2 texCoords, vec3 viewDir, vec2 heightScale," +
-            "   vec2 minMaxLayers) { \n" +
+            "   vec2 minMaxLayers, out float depthOffset) { \n" +
             // clamping? repeating? out-of-bounds-pixel-access?... -> repeating :)
             // number of depth layers
             "    float minLayers = minMaxLayers.x;\n" +
@@ -518,6 +518,7 @@ object ShaderLib {
 
             // interpolation of texture coordinates
             "    float weight = afterDepth / (afterDepth - beforeDepth);\n" +
+            "    depthOffset = (currentLayerDepth + 0.5 - weight * layerDepth) * heightScale.x;\n" +
             "    return mix(currentTexCoords, prevTexCoords, weight) / texSize;\n" +
             "}\n"
 

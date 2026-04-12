@@ -49,7 +49,11 @@ class ParallaxMaterial : Material() {
     @Type("Tiling")
     @Group("PBR")
     @Docs("uv = uv * tiling.xy + tiling.zw")
+    @SerializedProperty
     var parallaxTiling = Vector4f(1f, 1f, 0f, 0f)
+
+    @SerializedProperty
+    var parallaxSilhouette = true
 
     override fun listTextures(): List<FileReference> {
         return super.listTextures() + parallaxMap
@@ -78,6 +82,7 @@ class ParallaxMaterial : Material() {
 
         shader.v1f("parallaxBias", parallaxBias)
         shader.v4f("parallaxTiling", parallaxTiling)
+        shader.v1b("parallaxSilhouette", parallaxSilhouette)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

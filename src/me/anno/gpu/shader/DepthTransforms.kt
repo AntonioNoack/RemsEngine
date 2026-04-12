@@ -5,9 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
-import org.joml.Quaterniond
 import org.joml.Quaternionf
-import org.joml.Vector3d
 import org.joml.Vector3f
 
 /**

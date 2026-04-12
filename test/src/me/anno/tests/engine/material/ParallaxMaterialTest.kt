@@ -10,9 +10,7 @@ import me.anno.ecs.components.mesh.material.shaders.ParallaxShader
 import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.tests.network.rollingshooter.createLighting
 import me.anno.utils.OS.pictures
-import me.anno.utils.types.Floats.toRadians
 
 fun main() {
 
@@ -26,26 +24,41 @@ fun main() {
         roughnessMinMax.set(0f, 1f)
     }
 
-    val parallaxMaterial = ParallaxMaterial().apply {
+    val parallaxMaterial0 = ParallaxMaterial().apply {
         parallaxMap = folder.getChild("marble_cliff_01_disp_4k.png")
         parallaxScale = 0.2f
     }
-    baselineMaterial.copyInto(parallaxMaterial)
-    parallaxMaterial.shader = ParallaxShader
+    baselineMaterial.copyInto(parallaxMaterial0)
+    parallaxMaterial0.shader = ParallaxShader
 
-    val mesh = DefaultAssets.flatCube
+    val parallaxMaterial1 = ParallaxMaterial().apply {
+        parallaxMaterial0.copyInto(this)
+        parallaxSilhouette = false
+    }
+
+    val mesh0 = DefaultAssets.flatCube
+    val mesh1 = DefaultAssets.uvSphere
+
     val scene = Entity("Scene")
-    Entity("Parallax", scene)
-        .add(MeshComponent(mesh, parallaxMaterial))
-        .setPosition(1.4, 0.0, 0.0)
-    Entity("Baseline", scene)
-        .add(MeshComponent(mesh, baselineMaterial))
-        .setPosition(-1.4, 0.0, 0.0)
+
+    Entity("Parallax0", scene)
+        .add(MeshComponent(mesh0, parallaxMaterial0))
+        .setPosition(1.4, 0.0, +1.9)
+    Entity("Baseline0", scene)
+        .add(MeshComponent(mesh0, baselineMaterial))
+        .setPosition(-1.4, 0.0, +1.9)
+
+    Entity("Parallax1", scene)
+        .add(MeshComponent(mesh1, parallaxMaterial1))
+        .setPosition(1.4, 0.0, -1.9)
+    Entity("Baseline1", scene)
+        .add(MeshComponent(mesh1, baselineMaterial))
+        .setPosition(-1.4, 0.0, -1.9)
 
     Entity("Floor", scene)
         .add(MeshComponent(DefaultAssets.plane))
         .setPosition(0.0, -1.0, 0.0)
-        .setScale(3f)
+        .setScale(4f)
 
     // add sun and shadows to the scene
     val sky = Skybox()
@@ -56,7 +69,7 @@ fun main() {
     sun.shadowMapResolution = 1024
     sun.autoUpdate = 1
     val sunE = Entity(scene)
-    sunE.setScale(3f) // covering the map
+    sunE.setScale(4f) // covering the map
     sunE.setRotation(sky.sunRotation)
     sunE.add(sun)
 
