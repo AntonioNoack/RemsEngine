@@ -316,14 +316,14 @@ abstract class FontImpl<FallbackFonts> {
                             GlyphStyle.isBold(style).toInt(GlyphStyle.BOLD) +
                             GlyphStyle.isItalic(style).toInt(GlyphStyle.ITALIC)
 
-                    result.add(currCodepoint, currentX, nextX, result.numLines, fontIndex)
+                    result.add(currCodepoint, currentX, nextX, result.numLines, fontIndex, style)
                     if (GlyphStyle.isStrikethrough(style)) {
                         val codepoint = GlyphStyle.STRIKETHROUGH_CHAR.code
-                        result.add(codepoint, currentX, nextX, result.numLines, fontIndex)
+                        result.add(codepoint, currentX, nextX, result.numLines, fontIndex, style)
                     }
                     if (GlyphStyle.isUnderline(style)) {
                         val codepoint = GlyphStyle.UNDERLINE_CHAR.code
-                        result.add(codepoint, currentX, nextX, result.numLines, fontIndex)
+                        result.add(codepoint, currentX, nextX, result.numLines, fontIndex, style)
                     }
                 }
                 currentX = nextX + charSpacing

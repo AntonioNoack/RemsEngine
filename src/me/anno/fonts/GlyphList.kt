@@ -1,18 +1,23 @@
 package me.anno.fonts
 
+import me.anno.maths.Packing.pack64
+import me.anno.maths.Packing.unpackHighFrom64
+import me.anno.maths.Packing.unpackLowFrom64
 import me.anno.utils.types.Booleans.hasFlag
 import kotlin.math.max
 
 open class GlyphList(capacity: Int) : IGlyphLayout() {
 
     companion object {
-        private const val NUM_INTS = 6
+        private const val NUM_INTS = 8
         private const val ATTR_CODEPOINT = 0
         private const val ATTR_LINE_INDEX = 1
         private const val ATTR_FONT_INDEX = 2
         private const val ATTR_X0 = 3
         private const val ATTR_X1 = 4
         private const val ATTR_LINE_WIDTH = 5
+        private const val ATTR_STYLE_0 = 6
+        private const val ATTR_STYLE_1 = 7
     }
 
     val indices get() = 0 until size
@@ -21,7 +26,7 @@ open class GlyphList(capacity: Int) : IGlyphLayout() {
 
     private var values = IntArray(capacity * NUM_INTS)
 
-    override fun add(codepoint: Int, x0: Int, x1: Int, lineIndex: Int, fontIndex: Int) {
+    override fun add(codepoint: Int, x0: Int, x1: Int, lineIndex: Int, fontIndex: Int, style: Long) {
         val glyphIndex = size++
         if (glyphIndex * NUM_INTS >= values.size) {
             val newSize = max(16, glyphIndex * NUM_INTS)
@@ -35,6 +40,8 @@ open class GlyphList(capacity: Int) : IGlyphLayout() {
         values[di + ATTR_FONT_INDEX] = fontIndex
         values[di + ATTR_X0] = x0
         values[di + ATTR_X1] = x1
+        values[di + ATTR_STYLE_0] = unpackHighFrom64(style)
+        values[di + ATTR_STYLE_1] = unpackLowFrom64(style)
     }
 
     fun getX0(glyphIndex: Int) = values[glyphIndex * NUM_INTS + ATTR_X0]
@@ -65,6 +72,12 @@ open class GlyphList(capacity: Int) : IGlyphLayout() {
     fun isUnderline(glyphIndex: Int) = getCodepoint(glyphIndex) == GlyphStyle.UNDERLINE_CHAR.code
     fun isStrikethrough(glyphIndex: Int) = getCodepoint(glyphIndex) == GlyphStyle.STRIKETHROUGH_CHAR.code
     fun isDecoration(glyphIndex: Int): Boolean = isUnderline(glyphIndex) || isStrikethrough(glyphIndex)
+
+    fun getStyle(glyphIndex: Int): Long {
+        val high = values[glyphIndex * NUM_INTS + ATTR_STYLE_0]
+        val low = values[glyphIndex * NUM_INTS + ATTR_STYLE_1]
+        return pack64(high, low)
+    }
 
     override fun move(dx: Int, deltaLineWidth: Int) {
         val ints = values
