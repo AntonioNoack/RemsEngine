@@ -23,8 +23,10 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputPanel
 import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.reflect.safeCast
 
 abstract class ArrayPanel<EntryType, PanelType : Panel>(
     nameDesc: NameDesc,
@@ -34,6 +36,61 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
 
     companion object {
         private val LOGGER = LogManager.getLogger(ArrayPanel::class)
+
+        fun <EntryType> parseAllFromClipboard(
+            clipboard: Any?,
+            newValue: () -> EntryType,
+            logger: Logger = LOGGER
+        ): List<EntryType> {
+            if (clipboard == null) return emptyList()
+            val sample = try {
+                newValue()
+            } catch (e: Exception) {
+                logger.warn("Cannot create sample value for paste", e)
+                return emptyList()
+            }
+            return try {
+                @Suppress("unchecked_cast")
+                when (sample) {
+                    is String -> when (clipboard) {
+                        is List<*> -> clipboard.mapNotNull { it?.toString() as? EntryType }
+                        else -> listOf(clipboard.toString() as EntryType)
+                    }
+                    is FileReference -> {
+                        val refs = when (clipboard) {
+                            is FileReference -> listOf(clipboard)
+                            is List<*> -> clipboard.filterIsInstance<FileReference>()
+                            else -> {
+                                val text = clipboard.toString()
+                                val lines = text
+                                    .split('\n')
+                                    .map { it.trim() }
+                                    .filter { it.isNotEmpty() }
+                                if (lines.size > 1) lines.map { Reference.getReference(it) }
+                                else listOf(Reference.getReference(text))
+                            }
+                        }.filter { it != InvalidRef }
+                        refs.map { it as EntryType }
+                    }
+                    is Saveable -> {
+                        val clazz = sample::class
+                        when (clipboard) {
+                            is Saveable -> listOfNotNull(clazz.safeCast(clipboard) as? EntryType)
+                            is List<*> -> clipboard.mapNotNull { clazz.safeCast(it) as? EntryType }
+                            else -> {
+                                val text = clipboard.toString()
+                                val parsed = JsonStringReader.read(text, InvalidRef, true)
+                                parsed.mapNotNull { clazz.safeCast(it) as? EntryType }
+                            }
+                        }
+                    }
+                    else -> emptyList()
+                }
+            } catch (e: Exception) {
+                logger.warn("Failed to parse clipboard for paste", e)
+                emptyList()
+            }
+        }
     }
 
     // todo when there is a lot of values, unfold them like in Chrome Dev Console:
@@ -161,60 +218,9 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
         // todo parse, then insert
         // todo when working, add paste options into general + item options
         val clipboard = getClipboardContent()
-        val parsed = parseAllFromClipboard(clipboard)
+        val parsed = parseAllFromClipboard(clipboard, newValue, LOGGER)
         if (parsed.isEmpty()) return
         insertAll(index, parsed)
-    }
-
-    private fun parseAllFromClipboard(clipboard: Any?): List<EntryType> {
-        if (clipboard == null) return emptyList()
-        val sample = try {
-            newValue()
-        } catch (e: Exception) {
-            LOGGER.warn("Cannot create sample value for paste", e)
-            return emptyList()
-        }
-        return try {
-            @Suppress("unchecked_cast")
-            when (sample) {
-                is String -> when (clipboard) {
-                    is List<*> -> clipboard.mapNotNull { it?.toString() as? EntryType }
-                    else -> listOf(clipboard.toString() as EntryType)
-                }
-                is FileReference -> {
-                    val refs = when (clipboard) {
-                        is FileReference -> listOf(clipboard)
-                        is List<*> -> clipboard.filterIsInstance<FileReference>()
-                        else -> {
-                            val text = clipboard.toString()
-                            val lines = text
-                                .split('\n')
-                                .map { it.trim() }
-                                .filter { it.isNotEmpty() }
-                            if (lines.size > 1) lines.map { Reference.getReference(it) }
-                            else listOf(Reference.getReference(text))
-                        }
-                    }.filter { it != InvalidRef }
-                    refs.map { it as EntryType }
-                }
-                is Saveable -> {
-                    val clazz = sample::class
-                    when (clipboard) {
-                        is Saveable -> listOfNotNull(clazz.safeCast(clipboard) as? EntryType)
-                        is List<*> -> clipboard.mapNotNull { clazz.safeCast(it) as? EntryType }
-                        else -> {
-                            val text = clipboard.toString()
-                            val parsed = JsonStringReader.read(text, InvalidRef, true)
-                            parsed.mapNotNull { clazz.safeCast(it) as? EntryType }
-                        }
-                    }
-                }
-                else -> emptyList()
-            }
-        } catch (e: Exception) {
-            LOGGER.warn("Failed to parse clipboard for paste", e)
-            emptyList()
-        }
     }
 
     private fun insertAll(index: Int, values: List<EntryType>) {

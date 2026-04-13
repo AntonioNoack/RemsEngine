@@ -300,8 +300,16 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
         // todo parse, then insert
         // todo when working, add paste options into general + item options
         val clipboard = getClipboardContent()
-        val parsed = TODO()
-        insert(index, parsed)
+        val parsed = ArrayPanel.parseAllFromClipboard(clipboard, newValue, LOGGER)
+        if (parsed.isEmpty()) return
+        insertAll(index, parsed)
+    }
+
+    private fun insertAll(index: Int, values: List<EntryType>) {
+        var idx = index
+        for (v in values) {
+            insert(idx++, v)
+        }
     }
 
     fun insert(index: Int, value: EntryType) {
