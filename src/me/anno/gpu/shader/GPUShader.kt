@@ -272,7 +272,13 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
         GFX.check()
         if (program == 0 || session != GFXState.session) {
             clearState()
-            compile()
+            failedCompilation = false
+            try {
+                compile()
+            } catch (e: Exception) {
+                failedCompilation = true
+                throw e
+            }
         }
         if (program == 0) throw IllegalStateException("Program is 0 after compilation")
         return if (program != lastProgram) {
