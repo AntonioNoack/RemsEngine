@@ -17,16 +17,22 @@ fun main() {
     OfficialExtensions.initForTests()
     val folder = pictures.getChild("Textures/marble_cliff_01_4k.blend/textures")
 
+    val testShadows = true
+
     val baselineMaterial = Material().apply {
-        diffuseMap = folder.getChild("marble_cliff_01_diff_4k.jpg")
-        normalMap = folder.getChild("marble_cliff_01_nor_gl_4k.exr/bgra.png")
-        roughnessMap = folder.getChild("marble_cliff_01_rough_4k.exr")
-        roughnessMinMax.set(0f, 1f)
+        if (!testShadows) {
+            diffuseMap = folder.getChild("marble_cliff_01_diff_4k.jpg")
+            normalMap = folder.getChild("marble_cliff_01_nor_gl_4k.exr/bgra.png")
+            roughnessMap = folder.getChild("marble_cliff_01_rough_4k.exr")
+            roughnessMinMax.set(0f, 1f)
+        }
     }
 
     val parallaxMaterial0 = ParallaxMaterial().apply {
-        parallaxMap = folder.getChild("marble_cliff_01_disp_4k.png")
-        parallaxScale = 0.2f
+        parallaxMap =
+            if (testShadows) pictures.getChild("Textures/Circle.webp")
+            else folder.getChild("marble_cliff_01_disp_4k.png")
+        parallaxScale = if (testShadows) 0.05f else 0.2f
     }
     baselineMaterial.copyInto(parallaxMaterial0)
     parallaxMaterial0.shader = ParallaxShader

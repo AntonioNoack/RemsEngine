@@ -59,7 +59,7 @@ object ParallaxShader : ECSMeshShader("parallax") {
                         discardByCullingPlane +
                         normalTanBitanCalculation +
                         "if (parallaxScale != 0.0) {\n" +
-                        // todo this is incorrect for directional lights :(
+                        // todo this is slightly incorrect for directional lights :(
                         "   vec3 wsViewDir = rawCameraDirection(gl_FragCoord.xy / renderSize);\n" +
                         "   wsViewDir = normalize(wsViewDir);\n" +
                         "   vec3 texSpaceViewDir = normalize(vec3(\n" +
@@ -79,7 +79,7 @@ object ParallaxShader : ECSMeshShader("parallax") {
 
                         // depth adjustments
                         "   if (!(abs(depthOffset) < 10.0 * scale.x)) depthOffset = 0.0;\n" +
-                        "   vec4 newVertex = vec4(finalPosition - finalNormal * depthOffset, 1.0);\n" +
+                        "   vec4 newVertex = vec4(finalPosition + finalNormal * depthOffset, 1.0);\n" +
                         "   newVertex = matMul(transform, newVertex);\n" +
                         "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
                         "}\n" +

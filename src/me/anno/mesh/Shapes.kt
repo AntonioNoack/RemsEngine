@@ -123,18 +123,17 @@ object Shapes {
                 val any = abs(ny)
                 val anz = abs(nz)
                 when {
-                    // todo flip where necessary...
                     anz >= anx && anz >= any -> { // z -> normal
-                        uvs[j] = (positions[i] - bounds.minX) * sx
+                        uvs[j] = flipIf((positions[i] - bounds.minX) * sx, nz < 0f)
                         uvs[j + 1] = (positions[i + 1] - bounds.minY) * sy
                     }
                     anx >= any -> { // x-side
-                        uvs[j] = (positions[i + 2] - bounds.minZ) * sz
+                        uvs[j] = flipIf((positions[i + 2] - bounds.minZ) * sz, nx > 0f)
                         uvs[j + 1] = (positions[i + 1] - bounds.minY) * sy
                     }
                     else -> { // y-side
                         uvs[j] = (positions[i] - bounds.minX) * sx
-                        uvs[j + 1] = (positions[i + 2] - bounds.minZ) * sz
+                        uvs[j + 1] = flipIf((positions[i + 2] - bounds.minZ) * sz, ny > 0f)
                     }
                 }
             }
@@ -143,6 +142,10 @@ object Shapes {
             both.uvs = uvs
             return this
         }
+    }
+
+    fun flipIf(v: Float, flip: Boolean): Float {
+        return if (flip) 1f - v else v
     }
 
     val flat11 = FBBMesh(
