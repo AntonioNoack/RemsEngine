@@ -26,6 +26,7 @@ import me.anno.ui.editor.treeView.ITreeViewEntryPanel
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.editor.treeView.TreeViewEntryPanel
 import me.anno.utils.structures.Collections.setContains
+import me.anno.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -225,7 +226,13 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     }
 
     override fun addChild(element: IntRange, child: Any, type: Char, index: Int): Boolean {
-        TODO("Not yet implemented")
+        @Suppress("unchecked_cast")
+        val value = child as? EntryType ?: return false
+        val insertAt = clamp(element.first + index, 0, values.size)
+        values.add(insertAt, value)
+        needsTreeUpdate = true
+        onChange()
+        return true
     }
 
     override fun removeChild(parent: IntRange, child: IntRange) {
