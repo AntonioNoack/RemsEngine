@@ -64,10 +64,9 @@ class FavouritePanel(
                                 windowStack, NameDesc("Name"), name,
                                 NameDesc("Rename"), { -1 }
                             ) { newName ->
-                                // todo rename without reordering!!
                                 name = newName
                                 titlePanel.text = newName
-                                Favourites.addFavouriteFiles(listOf(Favourite(name, file)))
+                                Favourites.renameFavourite(file, newName)
                             }
                         },
                         MenuOption(NameDesc(Dict["Remove from favourites", "ui.fileExplorer.removeFromFavourites"])) {
