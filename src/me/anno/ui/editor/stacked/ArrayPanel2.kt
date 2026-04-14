@@ -142,10 +142,9 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
         return if (size > base * base) {
             val base = base.toDouble()
             val step = base.pow(floor(log(size - 1.0, base))).toInt()
-            val ret = ((element.first..last) step step).map {
+            ((element.first..last) step step).map {
                 it until min(last + 1, it + step)
             }
-            return ret
         } else if (size > 1) {
             // list all children
             (element.first..last).map { it..it }
@@ -287,8 +286,6 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
         values[index1.first] = value as EntryType
         onChange()
     }
-
-    fun getValues(): List<EntryType> = values
 
     fun copy(index: Int) {
         // hopefully good enough...

@@ -189,7 +189,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
     fun set(panel: Panel, value: Any?) {
         var index = children.indexOf(panel) - 1
         if (index !in values.indices) {
-            LOGGER.warn("Invalid index!!", index)
+            LOGGER.warn("Invalid index $index !in ${values.indices}!")
             index = 0
         }
         @Suppress("unchecked_cast")

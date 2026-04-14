@@ -29,7 +29,6 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
-import me.anno.utils.Color.toHexColor
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_BUFFER_UPDATE_BARRIER_BIT
@@ -220,7 +219,6 @@ object DrawTexts {
                 )
                 shader
             } catch (e: Exception) {
-                shader.failedCompilation = true
                 LOGGER.warn("Failed to compile subpixel blending shader", e)
                 ShaderLib.subpixelCorrectTextGraphicsShader[instanced].value
             }

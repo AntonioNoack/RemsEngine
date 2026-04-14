@@ -260,9 +260,7 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
     var program = INVALID_POINTER
     var session = INVALID_SESSION
 
-    // todo this should be set automatically
     var failedCompilation = false
-
     var hasPrinting = false
 
     /**
@@ -272,9 +270,9 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
         GFX.check()
         if (program == 0 || session != GFXState.session) {
             clearState()
-            failedCompilation = false
             try {
                 compile()
+                failedCompilation = false
             } catch (e: Exception) {
                 failedCompilation = true
                 throw e

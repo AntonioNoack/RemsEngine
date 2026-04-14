@@ -1,6 +1,5 @@
 package me.anno.graph.visual.function
 
-import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.CalculationNode
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -10,17 +9,14 @@ import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.editor.graph.GraphPanel
 import me.anno.ui.input.FileInput
-import org.apache.logging.log4j.LogManager
 
+/**
+ * A node, which calls an expression graph
+ * todo test using these & saving & loading graphs from files...
+ * */
 class ExpressionGraphNode : CalculationNode {
 
-    companion object {
-        private val LOGGER = LogManager.getLogger(ExpressionGraphNode::class)
-    }
-
-    @Suppress("unused")
     constructor() : super("Expression Graph", emptyList(), listOf("Any?", "Result"))
-
     constructor(name: String) : super(name, emptyList(), listOf("Any?", "Result"))
 
     var file: FileReference = InvalidRef
@@ -46,7 +42,7 @@ class ExpressionGraphNode : CalculationNode {
         val template = FunctionGraphUtils.getTemplate(file)?.graph
             ?: throw IllegalStateException("Missing graph template for $file")
         val instance = FunctionGraphUtils.cloneForCall(template)
-        val args = inputs.mapIndexed { index, _ -> getInput(index) }
+        val args = List(inputs.size) { index -> getInput(index) }
         val (retNode, _) = FunctionGraphUtils.call(instance, args)
         val retCount = outputs.size
         if (retNode != null && retCount > 0) {

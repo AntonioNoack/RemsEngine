@@ -1,6 +1,5 @@
 package me.anno.graph.visual.function
 
-import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -10,17 +9,15 @@ import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.editor.graph.GraphPanel
 import me.anno.ui.input.FileInput
-import org.apache.logging.log4j.LogManager
 
+/**
+ * A node, which calls an action graph.
+ * todo test using these & saving & loading graphs from files...
+ * */
 class ActionGraphNode : ActionNode {
-
-    companion object {
-        private val LOGGER = LogManager.getLogger(ActionGraphNode::class)
-    }
 
     @Suppress("unused")
     constructor() : super("Action Graph")
-
     constructor(name: String) : super(name)
 
     var file: FileReference = InvalidRef
@@ -41,7 +38,7 @@ class ActionGraphNode : ActionNode {
         val template = FunctionGraphUtils.getTemplate(file)?.graph
             ?: throw IllegalStateException("Missing graph template for $file")
         val instance = FunctionGraphUtils.cloneForCall(template)
-        val args = FunctionGraphUtils.extractInputPairs(this).mapIndexed { index, _ -> getInput(index + 1) }
+        val args = List(FunctionGraphUtils.extractInputPairs(this).size) { index -> getInput(index + 1) }
         val (retNode, _) = FunctionGraphUtils.call(instance, args)
         if (retNode != null) {
             val outPairs = FunctionGraphUtils.extractOutputPairs(this)
