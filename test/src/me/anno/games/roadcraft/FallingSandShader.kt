@@ -2,6 +2,7 @@ package me.anno.games.roadcraft
 
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib.getReflectivity
+import me.anno.engine.ui.render.Renderers.numStepsRenderer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderFuncLib.costShadingFunc
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
@@ -21,7 +22,7 @@ object FallingSandShader : ECSMeshShader("Falling Sand") {
     // todo properly set start and end using depth information
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        val showCost = key.renderer.nameDesc.englishName == "Num SDF Steps"
+        val showCost = key.renderer == numStepsRenderer
         return listOf(
             ShaderStage(
                 "block-traced shader", createFragmentVariables(key) + listOf(
@@ -134,7 +135,7 @@ object FallingSandShader : ECSMeshShader("Falling Sand") {
 
                         ("" +
                                 "finalColor = vec3(0.0);\n" +
-                                "finalEmissive = costShadingFunc(min(float(i)*0.02,1.0));\n").iff(showCost) +
+                                "finalEmissive = costShadingFunc(float(i) * 0.02);\n").iff(showCost) +
 
                         v0
             ).add(getReflectivity).add(costShadingFunc).add(randomGLSL)

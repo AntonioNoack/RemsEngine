@@ -2,7 +2,6 @@ package me.anno.ecs.components.mesh.material
 
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Docs
-import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.interfaces.Renderable
@@ -33,6 +32,9 @@ open class MaterialBase : PrefabSaveable(), Renderable {
     @Docs("Whether linear filtering shall be applied to textures. If you need to mix, bind those textures yourself.")
     @SerializedProperty
     var linearFiltering = true
+
+    @NotSerializedProperty
+    val filtering get() = if (linearFiltering) Filtering.LINEAR else Filtering.NEAREST
 
     @Docs("How UVs outside the standard square are handled")
     @SerializedProperty
@@ -169,6 +171,11 @@ open class MaterialBase : PrefabSaveable(), Renderable {
         enableVertexColors = false
         return this
     }
+
+    fun bindTexture(
+        shader: GPUShader, name: String,
+        file: FileReference, default: ITexture2D,
+    ) = bindTexture(shader, name, file, default, filtering, clamping)
 
     companion object {
 

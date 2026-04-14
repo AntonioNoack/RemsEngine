@@ -10,6 +10,7 @@ import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.ECSMeshShader.Companion.discardByCullingPlane
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RendererLib
+import me.anno.engine.ui.render.Renderers.numStepsRenderer
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
@@ -189,7 +190,7 @@ object SDFComposer {
                                         "   vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
                                         "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
                                         "}\n"
-                                SDFPlugin.NumStepsRenderer -> showNumberOfSteps
+                                numStepsRenderer -> showNumberOfSteps
                                 else -> {
                                     "" +
                                             "float distOnY = -localPos.y / localDir.y;\n" +
