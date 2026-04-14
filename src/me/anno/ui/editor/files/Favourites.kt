@@ -46,6 +46,18 @@ object Favourites {
     fun updateFavouriteFiles(removed: List<FileReference>, added: List<Favourite>) {
         val newFavourites = getFavouriteFiles().filter { it.file !in removed } + added
         DefaultConfig[CONFIG_KEY] = newFavourites
+        validateInAllExplorers(newFavourites)
+    }
+
+    fun renameFavourite(file: FileReference, newName: String) {
+        val newFavourites = getFavouriteFiles().map {
+            if (it.file == file) Favourite(newName, file) else it
+        }
+        DefaultConfig[CONFIG_KEY] = newFavourites
+        validateInAllExplorers(newFavourites)
+    }
+
+    private fun validateInAllExplorers(newFavourites: List<Favourite>) {
         for (window in GFX.windows) {
             for (window1 in window.windowStack) {
                 window1.panel.forAllPanels { fe ->
