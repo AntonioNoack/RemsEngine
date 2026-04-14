@@ -12,6 +12,7 @@ import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeInput
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.io.files.FileFileRef
+import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.assertions.assertEquals
@@ -83,7 +84,7 @@ class FunctionGraphNodesTest {
         assertTrue(in0 !in out0.others)
     }
 
-    private fun createIdentityCalleeFile(): FileFileRef {
+    private fun createIdentityCalleeFile(): FileReference {
         val callee = FlowGraph()
         val start = StartNode(listOf("Int", "A"))
         val ret = ReturnNode(listOf("Int", "B"))
