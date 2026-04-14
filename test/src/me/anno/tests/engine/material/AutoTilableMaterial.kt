@@ -6,6 +6,6 @@ import me.anno.utils.OS.pictures
 
 fun main() {
     val material = AutoTileableMaterial()
-    material.diffuseMap = pictures.getChild("textures/grass.jpg")
+    material.diffuseMap = pictures.getChild("Textures/grass.jpg")
     testSceneWithUI("AutoTileable Material", material)
 }

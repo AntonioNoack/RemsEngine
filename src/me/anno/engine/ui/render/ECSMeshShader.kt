@@ -78,7 +78,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 // sheen calculation
                 "if (sheen > 0.0) {\n" +
                 "   vec3 sheenNormal = finalNormal;\n" +
-                "   if(finalSheen * normalStrength.y > 0.0){\n" +
+                "   if (finalSheen * normalStrength.y > 0.0) {\n" +
                 "      vec3 normalFromTex = texture(sheenNormalMap, applyTiling(uv, sheenTiling)).rgb * 2.0 - 1.0;\n" +
                 "           normalFromTex = normalize(normalFromTex);\n" +
                 "           normalFromTex = matMul(tbn, normalFromTex);\n" +
@@ -104,7 +104,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "}\n"
 
         val reflectivityCalculation = "" +
-                "finalReflectivity = getReflectivity(finalRoughness,finalMetallic);\n"
+                "finalReflectivity = getReflectivity(finalRoughness,finalMetallic,dot(V0,finalNormal));\n"
 
         val reflectionPlaneCalculation = "" +
                 // reflections
@@ -218,9 +218,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             "finalOcclusion = (1.0 - texture(occlusionMap, applyTiling(uv, occlusionTiling), lodBias).r) * occlusionStrength;\n"
         val metallicCalculation =
             "finalMetallic  = clamp(mix(metallicMinMax.x, metallicMinMax.y, texture(metallicMap, applyTiling(uv, metallicTiling), lodBias).r), 0.0, 1.0);\n"
-        val roughnessCalculation =
-            "#define HAS_ROUGHNESS\n" +
-                    "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, applyTiling(uv, roughnessTiling), lodBias).r), 0.0, 1.0);\n"
+        val roughnessCalculation = "" +
+                "#define HAS_ROUGHNESS\n" +
+                "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, applyTiling(uv, roughnessTiling), lodBias).r), 0.0, 1.0);\n"
+
         val finalMotionCalculation = "" +
                 "#ifdef MOTION_VECTORS\n" +
                 "   finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n" +

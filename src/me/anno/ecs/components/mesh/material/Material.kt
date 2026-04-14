@@ -180,15 +180,13 @@ open class Material : MaterialBase() {
         val white = TextureLib.whiteTexture
         val n001 = TextureLib.normalTexture
 
-        val f = if (linearFiltering) Filtering.LINEAR else Filtering.NEAREST
-        val c = clamping
-        bindTexture(shader, "occlusionMap", occlusionMap, white, f, c)
-        bindTexture(shader, "metallicMap", metallicMap, white, f, c)
-        bindTexture(shader, "roughnessMap", roughnessMap, white, f, c)
-        bindTexture(shader, "emissiveMap", emissiveMap, white, f, c)
-        val sheenNormalTex = bindTexture(shader, "sheenNormalMap", sheenNormalMap, n001, f, c)
-        val normalTex = bindTexture(shader, "normalMap", normalMap, n001, f, c)
-        bindTexture(shader, "diffuseMap", diffuseMap, white, f, c)
+        bindTexture(shader, "occlusionMap", occlusionMap, white)
+        bindTexture(shader, "metallicMap", metallicMap, white)
+        bindTexture(shader, "roughnessMap", roughnessMap, white)
+        bindTexture(shader, "emissiveMap", emissiveMap, white)
+        val sheenNormalTex = bindTexture(shader, "sheenNormalMap", sheenNormalMap, n001)
+        val normalTex = bindTexture(shader, "normalMap", normalMap, n001)
+        bindTexture(shader, "diffuseMap", diffuseMap, white)
 
         // GFX.check()
 

@@ -32,7 +32,7 @@ import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.input.Input
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.documents
-import me.anno.utils.OS.pictures
+import me.anno.utils.OS.res
 import org.joml.Vector3f
 import kotlin.math.sin
 
@@ -92,9 +92,10 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
                         roughnessCalculation +
                         // sheenCalculation +
                         // clearCoatCalculation +
-                        reflectionCalculation +
+                        v0 + reflectionCalculation +
                         finalMotionCalculation
             ).add(ShaderLib.brightness).add(rawToDepth).add(RendererLib.getReflectivity)
+                .add(ShaderLib.applyTiling)
         )
     }
 }
@@ -104,7 +105,7 @@ class ForceFieldMaterial : Material() {
         pipelineStage = GLASS_PASS
         // roughnessMinMax.set(0.01f)
         // metallicMinMax.set(1f)
-        diffuseMap = pictures.getChild("HexagonalGrid2.png")
+        diffuseMap = res.getChild("textures/BlurryHexagons.webp")
         diffuseBase.set(0.3f, .9f, 1f)
         emissiveBase.set(60f)
         shader = ForceFieldShader

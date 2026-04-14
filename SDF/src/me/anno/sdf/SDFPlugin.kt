@@ -50,8 +50,6 @@ import me.anno.sdf.shapes.SDFTriangle
 
 class SDFPlugin : Plugin() {
     companion object {
-        val NumStepsRenderer = InheritedRenderer("Num SDF Steps", Renderers.previewRenderer)
-        val NumStepsRenderMode = RenderMode(NumStepsRenderer)
         val SDFOnYRenderer = InheritedRenderer("SDF on Y", Renderers.previewRenderer)
         val SDFOnYRenderMode = RenderMode(SDFOnYRenderer)
     }

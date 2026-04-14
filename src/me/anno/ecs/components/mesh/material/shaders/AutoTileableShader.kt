@@ -2,9 +2,11 @@ package me.anno.ecs.components.mesh.material.shaders
 
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
+import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderFuncLib
-import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
+import me.anno.gpu.shader.ShaderLib.anisotropic16
+import me.anno.gpu.shader.ShaderLib.applyTiling
 import me.anno.gpu.shader.YUVHelper.rgb2yuv
 import me.anno.gpu.shader.YUVHelper.yuv2rgb
 import me.anno.gpu.shader.builder.ShaderStage
@@ -154,12 +156,12 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         "#define HAS_ROUGHNESS\n" +
                         "finalMetallic  = metallicMinMax.y;//clamp(mix(metallicMinMax.x, metallicMinMax.y, sampleAutoTileableTexture(metallicMap, invLUTTex, uv).r), 0.0, 1.0);\n" +
                         "finalRoughness = roughnessMinMax.y;//clamp(mix(roughnessMinMax.x, roughnessMinMax.y, sampleAutoTileableTexture(roughnessMap, invLUTTex, uv).r), 0.0, 1.0);\n" +
-                        reflectionCalculation +
-                        v0 + sheenCalculation +
+                        v0 + reflectionCalculation +
+                        sheenCalculation +
                         clearCoatCalculation +
                         finalMotionCalculation
-            ).add(rgb2yuv).add(yuv2rgb).add(ShaderLib.anisotropic16).add(ShaderFuncLib.randomGLSL)
-                .add(getTexture).add(sampleTile).add(RendererLib.getReflectivity)
+            ).add(rgb2yuv).add(yuv2rgb).add(anisotropic16).add(randomGLSL)
+                .add(getTexture).add(sampleTile).add(getReflectivity).add(applyTiling)
         )
     }
 

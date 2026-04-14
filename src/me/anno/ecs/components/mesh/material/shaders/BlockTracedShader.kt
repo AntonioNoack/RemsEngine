@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh.material.shaders
 
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
+import me.anno.engine.ui.render.Renderers.numStepsRenderer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderFuncLib
 import me.anno.gpu.shader.builder.ShaderStage
@@ -37,7 +38,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val flags = key.flags
-        val showCost = key.renderer.nameDesc.englishName == "Num SDF Steps"
+        val showCost = key.renderer == numStepsRenderer
         val isOutOfBounds = "any(lessThan(blockPosition, vec3(0.0))) || any(greaterThan(blockPosition, bounds1))"
         return listOf(
             ShaderStage(
@@ -124,7 +125,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         computeMaterialProperties(flags.hasFlag(IS_INSTANCED)) +
                         ("" +
                                 "finalColor = vec3(0.0);\n" +
-                                "finalEmissive = costShadingFunc(min(float(i)*0.02,1.0));\n").iff(showCost) +
+                                "finalEmissive = costShadingFunc(float(i)*0.02);\n").iff(showCost) +
                         v0 + sheenCalculation +
                         clearCoatCalculation +
                         reflectionCalculation +

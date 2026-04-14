@@ -88,7 +88,8 @@ object ShaderFuncLib {
 
     // from https://www.shadertoy.com/view/WdVyDW
     const val costShadingFunc = "" +
-            "vec3 costShadingFunc(float t){\n" +
+            "vec3 costShadingFunc(float t) {\n" +
+            "   t = clamp(t, 0.0, 1.0);\n" +
             "   const vec3 a = vec3(97, 130, 234) / vec3(255.0);\n" +
             "   const vec3 b = vec3(220, 94, 75) / vec3(255.0);\n" +
             "   const vec3 c = vec3(221, 220, 219) / vec3(255.0);\n" +

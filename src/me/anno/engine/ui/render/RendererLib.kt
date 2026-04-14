@@ -30,9 +30,16 @@ object RendererLib {
     val getReflectivity = "" +
             "#ifndef GET_REFLECTIVITY\n" +
             "#define GET_REFLECTIVITY\n" +
-            "float getReflectivity(float roughness, float metallic){\n" +
-            "   float result = mix(mix(0.1, 1.0, metallic), 0.0, roughness);\n" +
-            "   return result > 0.0 ? min(result,1.0) : 0.0;\n" + // clamping incl. handling for NaN
+            // cosTheta = dot(finalNormal,V0)
+            // todo for metals, F0 is actually color-dependent, can we do that?
+            "float getReflectivity(float roughness, float metallic, float cosTheta) {\n" +
+            // Base reflectivity at normal incidence
+            "    float F0 = mix(0.04, 1.0, metallic);\n" +
+            // Schlick Fresnel approximation
+            "    float F = F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);\n" +
+            // reduce reflectivity with roughness (energy spread)
+            "    float roughnessFactor = 1.0 - roughness * roughness;\n" +
+            "    return F * roughnessFactor;\n" +
             "}\n" +
             "#endif\n"
 

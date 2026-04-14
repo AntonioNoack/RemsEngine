@@ -115,7 +115,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
                     "finalMetallic = clamp(2.0-2.0*color.a,0.0,1.0);\n" +
                     "finalRoughness = clamp(color.a*2.0-1.0,0.0,1.0);\n" +
                     normalTanBitanCalculation +
-                    reflectionCalculation +
+                    v0 + reflectionCalculation +
                     finalMotionCalculation
         ).add(dither2x2).add(RendererLib.getReflectivity))
     }

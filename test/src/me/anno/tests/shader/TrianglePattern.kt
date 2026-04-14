@@ -41,9 +41,9 @@ fun main() {
                                 // occlusionCalculation +
                                 // metallicCalculation +
                                 // roughnessCalculation +
-                                // v0 + sheenCalculation +
+                                // sheenCalculation +
                                 // clearCoatCalculation +
-                                reflectionCalculation +
+                                v0 + reflectionCalculation +
                                 finalMotionCalculation
                     ).add(RendererLib.getReflectivity)
                 )

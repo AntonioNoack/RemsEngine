@@ -66,9 +66,7 @@ class ParallaxMaterial : Material() {
     override fun bind(shader: GPUShader) {
         super.bind(shader)
 
-        val f = if (linearFiltering) Filtering.LINEAR else Filtering.NEAREST
-        val c = clamping
-        val bound = bindTexture(shader, "parallaxMap", parallaxMap, grayTexture, f, c)
+        val bound = bindTexture(shader, "parallaxMap", parallaxMap, grayTexture)
         if (bound != null) {
             shader.v1f("parallaxScale", parallaxScale)
             shader.v1i("minParallaxSteps", max(parallaxMinSteps, 1))

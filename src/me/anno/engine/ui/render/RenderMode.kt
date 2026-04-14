@@ -9,6 +9,7 @@ import me.anno.engine.ui.render.Renderers.frontBackRenderer
 import me.anno.engine.ui.render.Renderers.isIndexedRenderer
 import me.anno.engine.ui.render.Renderers.isInstancedRenderer
 import me.anno.engine.ui.render.Renderers.normalMapRenderer
+import me.anno.engine.ui.render.Renderers.numStepsRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleRenderer
 import me.anno.gpu.deferred.DeferredLayerType
@@ -719,5 +720,7 @@ class RenderMode private constructor(
 
         val DIFF_FROM_NORMAL = RenderMode("Diff From Normal", diffFromNormalRenderer)
         val NORMAL_MAP = RenderMode("Normal Map", normalMapRenderer)
+
+        val NUM_STEPS = RenderMode(numStepsRenderer)
     }
 }

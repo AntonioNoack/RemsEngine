@@ -32,6 +32,7 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.InheritedRenderer
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.language.translation.NameDesc
@@ -550,6 +551,8 @@ object Renderers {
                 )
             } else null
         }, DeferredLayerType.values.size)
+
+    val numStepsRenderer = InheritedRenderer("Num Steps", previewRenderer)
 
     @JvmField
     var MAX_PLANAR_LIGHTS = max(GFX.maxBoundTextures / 4, 1)

@@ -17,7 +17,7 @@ fun main() {
     OfficialExtensions.initForTests()
     val folder = pictures.getChild("Textures/marble_cliff_01_4k.blend/textures")
 
-    val testShadows = true
+    val testShadows = false
 
     val baselineMaterial = Material().apply {
         if (!testShadows) {
@@ -32,7 +32,7 @@ fun main() {
         parallaxMap =
             if (testShadows) pictures.getChild("Textures/Circle.webp")
             else folder.getChild("marble_cliff_01_disp_4k.png")
-        parallaxScale = if (testShadows) 0.05f else 0.2f
+        parallaxScale = 0.2f
     }
     baselineMaterial.copyInto(parallaxMaterial0)
     parallaxMaterial0.shader = ParallaxShader
@@ -58,7 +58,10 @@ fun main() {
         .add(MeshComponent(mesh1, parallaxMaterial1))
         .setPosition(1.4, 0.0, -1.9)
     Entity("Baseline1", scene)
-        .add(MeshComponent(mesh1, baselineMaterial))
+        .add(MeshComponent(mesh1, Material().apply {
+            metallicMinMax.set(0f)
+            roughnessMinMax.set(0f)
+        }))
         .setPosition(-1.4, 0.0, -1.9)
 
     Entity("Floor", scene)

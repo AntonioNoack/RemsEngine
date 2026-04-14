@@ -31,7 +31,6 @@ class SpriteMaterial : Material() {
 
     override fun bind(shader: GPUShader) {
         super.bind(shader)
-        val filtering = if (linearFiltering) Filtering.LINEAR else Filtering.NEAREST
         bindTextureArray(shader, "diffuseMapArray", diffuseMap, filtering, whiteTex2da)
         bindTextureArray(shader, "emissiveMapArray", emissiveMap, filtering, blackTex2da)
         bindTextureArray(shader, "normalMapArray", normalMap, filtering, normalTex2da)

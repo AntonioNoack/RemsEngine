@@ -1,6 +1,7 @@
 package me.anno.gpu.shader.renderer
 
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
@@ -167,5 +168,6 @@ open class Renderer(val nameDesc: NameDesc, val deferredSettings: DeferredSettin
         }
 
         val motionVectorRenderer get() = Renderers.attributeRenderers[DeferredLayerType.MOTION]
+
     }
 }
