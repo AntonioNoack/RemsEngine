@@ -15,14 +15,10 @@ class USDReader(val src: FileReference) {
 
     companion object {
         fun readAsFolder(src: FileReference, callback: Callback<InnerFolder>) {
-            src.readText { text, err ->
-                if (text != null) {
-                    try {
-                        val reader = USDReader(src)
-                        callback.ok(reader.read(text, src.absolutePath))
-                    } catch (e: Exception) {
-                        callback.err(e)
-                    }
+            src.readBytes { bytes, err ->
+                if (bytes != null) {
+                    val reader = USDReader(src)
+                    callback.ok(reader.read(bytes, src.absolutePath))
                 } else callback.err(err)
             }
         }
@@ -36,11 +32,9 @@ class USDReader(val src: FileReference) {
     private val resolvedRefCache = HashMap<USDReference, USDPrim>()
     private lateinit var rootStage: USDPrim
 
-    fun read(text: String, path: String): InnerFolder {
+    fun read(bytes: ByteArray, path: String): InnerFolder {
 
-        println("Reading $text")
-
-        val parsed = USDAParser(text, path).parse()
+        val parsed = readAnyUSD(bytes, path)
         rootStage = applySubLayers(parsed)
         indexPrims(rootStage)
 

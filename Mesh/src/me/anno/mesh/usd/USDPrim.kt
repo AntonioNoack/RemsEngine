@@ -11,4 +11,6 @@ data class USDPrim(
     val relationships: HashMap<String, String?> = HashMap(),
     var references: ArrayList<USDReference> = ArrayList(),
     var isInstance: Boolean = false
-)
+) {
+    var typeName: String? = null
+}

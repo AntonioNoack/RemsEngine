@@ -14,5 +14,7 @@
     <orderEntry type="library" name="LWJGL-323" level="project" />
     <orderEntry type="library" name="LWJGL-323-Assimp" level="project" />
     <orderEntry type="library" name="ZstdJNI" level="project" />
+    <orderEntry type="library" name="lz4-java-1.11.0" level="project" />
+    <orderEntry type="library" name="LZ4Java" level="project" />
   </component>
 </module>

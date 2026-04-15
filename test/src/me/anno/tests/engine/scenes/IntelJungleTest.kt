@@ -22,7 +22,7 @@ fun main() {
     val folder = getReference("/media/antonio/4TB WDRed/Assets/SampleScenes/JungleRuins_1_0_1b")
     val sceneRef = folder.getChild("USD/JungleRuins_Karma.usda")
 
-    if (false) {
+    if (true) {
         USDReader.readAsFolder(sceneRef) { scene, thrown ->
             println(scene)
             thrown?.printStackTrace()
