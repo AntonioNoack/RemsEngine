@@ -9,10 +9,10 @@ abstract class PanelList(style: Style) : PanelGroup(style) {
 
     override val children = ArrayList<Panel>()
     var spacing = style.getSize("spacer.width", 0)
-    var disableConstantSpaceForWeightedChildren = false
 
     val padding = Padding(0)
     var allChildrenHaveSameSize = false
+    var onlyUseWeights = false
 
     open fun clear() {
         children.clear()
@@ -85,6 +85,6 @@ abstract class PanelList(style: Style) : PanelGroup(style) {
         dst.padding.set(padding)
         dst.spacing = spacing
         dst.allChildrenHaveSameSize = allChildrenHaveSameSize
-        dst.disableConstantSpaceForWeightedChildren = disableConstantSpaceForWeightedChildren
+        dst.onlyUseWeights = onlyUseWeights
     }
 }

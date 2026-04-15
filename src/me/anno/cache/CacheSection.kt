@@ -273,9 +273,9 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
             } catch (e: FileNotFoundException) {
                 warnFileMissing(e)
             } catch (e: Error) {
-                LOGGER.error(e)
+                LOGGER.error("Failed loading", e)
             } catch (e: Throwable) {
-                LOGGER.warn(e)
+                LOGGER.warn("Failed loading", e)
             }
         }
 

@@ -3,6 +3,7 @@ package me.anno.tests.engine.material
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.light.sky.SunRotationUpdater
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.ParallaxMaterial
@@ -69,18 +70,25 @@ fun main() {
         .setPosition(0.0, -1.0, 0.0)
         .setScale(4f)
 
-    // add sun and shadows to the scene
-    val sky = Skybox()
-    scene.add(sky)
-    val sun = DirectionalLight()
-    sun.color.set(10f)
-    sun.shadowMapCascades = 1
-    sun.shadowMapResolution = 1024
-    sun.autoUpdate = 1
-    val sunE = Entity(scene)
-    sunE.setScale(4f) // covering the map
-    sunE.setRotation(sky.sunRotation)
-    sunE.add(sun)
+    createLighting(scene, 4f)
 
     testSceneWithUI("Parallax Test", scene)
+}
+
+fun createLighting(scene: Entity, scale: Float) {
+    // add sun and shadows to the scene
+    val sky = Skybox()
+    val sun = DirectionalLight().apply {
+        color.set(10f)
+        shadowMapCascades = 1
+        shadowMapResolution = 1024
+        autoUpdate = 1
+    }
+
+    Entity("Lighting", scene)
+        .setScale(scale) // covering the map
+        .setRotation(sky.sunRotation)
+        .add(sun)
+        .add(sky)
+        .add(SunRotationUpdater())
 }

@@ -23,14 +23,14 @@ interface Logger {
     fun severe(msg: String, vararg obj: Any?)
     fun severe(msg: String, thrown: Throwable)
     fun fine(msg: String) = info(msg)
-    fun fine(msg: String, e: Throwable) = info(msg, e)
+    fun fine(msg: String, thrown: Throwable) = info(msg, thrown)
     fun debug(msg: String)
-    fun debug(msg: String, e: Throwable)
+    fun debug(msg: String, thrown: Throwable)
     fun debug(msg: String, vararg obj: Any?)
     fun finer(msg: String) = info(msg)
-    fun finer(msg: String, e: Throwable) = info(msg, e)
+    fun finer(msg: String, thrown: Throwable) = info(msg, thrown)
     fun finest(msg: String) = info(msg)
-    fun finest(msg: String, e: Throwable) = info(msg, e)
+    fun finest(msg: String, thrown: Throwable) = info(msg, thrown)
     fun isLoggable(level: Level) = true
     fun log(level: Level, msg: String) = when(level){
         Level.FINE, Level.FINER, Level.FINEST -> fine(msg)
@@ -38,10 +38,10 @@ interface Logger {
         Level.SEVERE -> severe(msg)
         else -> info("$level: $msg")
     }
-    fun log(level: Level, msg: String, e: Throwable) = when(level){
-        Level.FINE, Level.FINER, Level.FINEST -> fine(msg, e)
-        Level.WARNING -> warn(msg, e)
-        Level.SEVERE -> severe(msg, e)
-        else -> info("$level: $msg", e)
+    fun log(level: Level, msg: String, thrown: Throwable) = when(level){
+        Level.FINE, Level.FINER, Level.FINEST -> fine(msg, thrown)
+        Level.WARNING -> warn(msg, thrown)
+        Level.SEVERE -> severe(msg, thrown)
+        else -> info("$level: $msg", thrown)
     }
 }

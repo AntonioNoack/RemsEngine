@@ -20,7 +20,7 @@ open class TitledListY(val title: NameDesc, val visibilityKey: String, style: St
                 InputVisibility.toggle(visibilityKey)
             }
         }
-        disableConstantSpaceForWeightedChildren = true
+        onlyUseWeights = true
     }
 
     override var textColor: Int

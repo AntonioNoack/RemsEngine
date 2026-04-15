@@ -14,6 +14,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.VectorInputList
+import me.anno.ui.input.components.VectorInputList.Companion.modifyTextColor
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToDouble.getDouble
@@ -177,6 +178,7 @@ open class FloatVectorInput(
         component.inputPanel.indexInProperty = index
         component.inputPanel.tooltip = title
         component.setChangeListener { onChange(1 shl index) }
+        modifyTextColor(component, index)
         component.weight = 1f
         component.setResetListener {
             when (val vector = type.defaultValue) {

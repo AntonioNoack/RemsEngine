@@ -156,7 +156,7 @@ class OutlineEffectNode : RenderViewNode(
                         "   vec2 dx = dFdx(uv);\n" +
                         "   vec2 dy = dFdy(uv);\n" +
                         "   float sum = 0.0;\n" +
-                        "   vec3 color = textureLod(colorTex,uv,0.0).rgb;\n" +
+                        "   vec3 color = texture(colorTex,uv,0.0).rgb;\n" +
                         (if (useMS) {
                             "" +
                                     "ivec2 size = textureSize(idTex);\n" +

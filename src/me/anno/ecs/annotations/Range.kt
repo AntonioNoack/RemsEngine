@@ -1,5 +1,7 @@
 package me.anno.ecs.annotations
 
+import me.anno.maths.Maths
+
 annotation class Range(val min: Double, val max: Double) {
 
     companion object {
@@ -49,7 +51,24 @@ annotation class Range(val min: Double, val max: Double) {
 
         fun Range?.maxDouble(): Double =
             this?.max ?: Double.POSITIVE_INFINITY
-    }
 
+        fun Range?.clamp(v: Byte) =
+            if (this != null) Maths.clamp(v, minByte(), maxByte()) else v
+
+        fun Range?.clamp(v: Short) =
+            if (this != null) Maths.clamp(v, minShort(), maxShort()) else v
+
+        fun Range?.clamp(v: Int) =
+            if (this != null) Maths.clamp(v, minInt(), maxInt()) else v
+
+        fun Range?.clamp(v: Long) =
+            if (this != null) Maths.clamp(v, minLong(), maxLong()) else v
+
+        fun Range?.clamp(v: Float) =
+            if (this != null) Maths.clamp(v, minFloat(), maxFloat()) else v
+
+        fun Range?.clamp(v: Double) =
+            if (this != null) Maths.clamp(v, minDouble(), maxDouble()) else v
+    }
 
 }

@@ -111,7 +111,7 @@ open class Material : MaterialBase() {
     var metallicMap: FileReference = InvalidRef
 
     @Type("Tiling")
-    @Group("PBR")
+    @Group("Lighting")
     @Docs("uv = uv * tiling.xy + tiling.zw")
     var occlusionTiling = Vector4f(1f, 1f, 0f, 0f)
 

@@ -26,10 +26,14 @@ import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 
 /**
+ * @Deprecated: Meshes are rarely inherited, so just use Saveable instances directly
+ *  Instead, we should implement all diff & inheritance & import logic on Saveable instances directly
+ *
  * like in Unity: blueprint for any PrefabSaveable (Entities, Components, Materials, ...) ;
  * is serialized as a set of changes (adding instances, changing properties) ;
  * can inherit from other Prefabs, and added instances can do that, too, so you can make your world truly modular
  * */
+@Deprecated("Use instances directly")
 class Prefab : Saveable {
 
     constructor() : this("Entity")

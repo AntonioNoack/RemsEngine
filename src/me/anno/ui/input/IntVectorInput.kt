@@ -8,9 +8,11 @@ import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.VectorInputList
+import me.anno.ui.input.components.VectorInputList.Companion.modifyTextColor
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
+import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.r
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToInt.getInt
@@ -36,6 +38,7 @@ open class IntVectorInput(
     constructor(nameDesc: NameDesc, visibilityKey: String, type: NumberType, style: Style) :
             this(nameDesc, visibilityKey, type, style, { IntInput(NameDesc.EMPTY, visibilityKey, type, style) })
 
+    @Suppress("unused")
     constructor(style: Style) : this(NameDesc.EMPTY, "", NumberType.LONG, style)
 
     constructor(nameDesc: NameDesc, visibilityKey: String, value: Vector2i, type: NumberType, style: Style) :
@@ -112,6 +115,7 @@ open class IntVectorInput(
         component.inputPanel.indexInProperty = index
         component.inputPanel.tooltip = title
         component.setChangeListener { onChange(1 shl index) }
+        modifyTextColor(component, index)
         component.weight = 1f
         component.setResetListener {
             getInt(type.defaultValue, index, 0).toString()

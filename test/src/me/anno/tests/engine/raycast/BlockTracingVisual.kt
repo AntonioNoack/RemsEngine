@@ -1,4 +1,4 @@
-package me.anno.tests.engine
+package me.anno.tests.engine.raycast
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style

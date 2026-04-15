@@ -1,4 +1,4 @@
-package me.anno.tests.engine
+package me.anno.tests.engine.ui
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity

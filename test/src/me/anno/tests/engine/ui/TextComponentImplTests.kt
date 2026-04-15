@@ -1,4 +1,4 @@
-package me.anno.tests.engine
+package me.anno.tests.engine.ui
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style

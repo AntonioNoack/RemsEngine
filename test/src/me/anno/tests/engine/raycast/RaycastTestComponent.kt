@@ -1,11 +1,11 @@
-package me.anno.tests.engine
+package me.anno.tests.engine.raycast
 
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes.showDebugLine
+import me.anno.engine.debug.DebugShapes
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.serialization.SerializedProperty
@@ -45,9 +45,9 @@ class RaycastTestComponent : Component(), OnUpdate {
             typeMask, colliderMask, false, emptySet(),
         )
         if (Raycast.raycast(entity, query)) {
-            showDebugLine(DebugLine(start, query.result.positionWS, -1))
+            DebugShapes.showDebugLine(DebugLine(start, query.result.positionWS, -1))
         } else {
-            showDebugLine(DebugLine(start, Vector3d(direction).add(start), 0xff0000))
+            DebugShapes.showDebugLine(DebugLine(start, Vector3d(direction).add(start), 0xff0000))
         }
     }
 

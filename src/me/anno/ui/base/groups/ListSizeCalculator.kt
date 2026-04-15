@@ -5,6 +5,7 @@ import me.anno.utils.pooling.Stack
 import kotlin.math.max
 
 class ListSizeCalculator {
+
     companion object {
         private val stack = Stack(ListSizeCalculator::class)
         fun push() = stack.create()
@@ -20,6 +21,8 @@ class ListSizeCalculator {
     var availableW = 0
     var availableH = 0
 
+    var onlyUseWeights = false
+
     fun init(panel: PanelList, w: Int, h: Int) {
         constantSum = 0
         constantSumWW = 0
@@ -28,6 +31,7 @@ class ListSizeCalculator {
         maxY = panel.y
         availableW = w - panel.padding.width
         availableH = h - panel.padding.height
+        onlyUseWeights = panel.onlyUseWeights
     }
 
     fun addChildSizeX(child: Panel, childCount: Int) {
@@ -56,12 +60,12 @@ class ListSizeCalculator {
         }
     }
 
-    private fun addWeight(weight: Float, childCount: Int, dy: Int) {
-        constantSum += dy
+    private fun addWeight(weight: Float, childCount: Int, childSize: Int) {
+        constantSum += childSize
         if (weight > 0f) {
             weightSum += weight * childCount
         } else {
-            constantSumWW += dy
+            constantSumWW += childSize
         }
     }
 

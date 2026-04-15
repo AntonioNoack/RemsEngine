@@ -3,8 +3,6 @@ package me.anno.engine.ui.input
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.ExtendableEnum
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.annotations.Range.Companion.maxLong
-import me.anno.ecs.annotations.Range.Companion.minLong
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.DefaultAssets
@@ -18,21 +16,35 @@ import me.anno.engine.ui.input.ComponentUIImpl.createAABBfInput
 import me.anno.engine.ui.input.ComponentUIImpl.createBooleanInput
 import me.anno.engine.ui.input.ComponentUIImpl.createByteArrayInput
 import me.anno.engine.ui.input.ComponentUIImpl.createByteInput
+import me.anno.engine.ui.input.ComponentUIImpl.createColor3HDRInput
+import me.anno.engine.ui.input.ComponentUIImpl.createColor3Input
+import me.anno.engine.ui.input.ComponentUIImpl.createColor4Input
 import me.anno.engine.ui.input.ComponentUIImpl.createDoubleArrayInput
 import me.anno.engine.ui.input.ComponentUIImpl.createDoubleInput
+import me.anno.engine.ui.input.ComponentUIImpl.createFileReferenceInput
 import me.anno.engine.ui.input.ComponentUIImpl.createFloatArrayInput
 import me.anno.engine.ui.input.ComponentUIImpl.createFloatInput
 import me.anno.engine.ui.input.ComponentUIImpl.createIntArrayInput
 import me.anno.engine.ui.input.ComponentUIImpl.createIntInput
 import me.anno.engine.ui.input.ComponentUIImpl.createLongArrayInput
+import me.anno.engine.ui.input.ComponentUIImpl.createLongInput
+import me.anno.engine.ui.input.ComponentUIImpl.createMatrix4fInput
+import me.anno.engine.ui.input.ComponentUIImpl.createPlanedInput
+import me.anno.engine.ui.input.ComponentUIImpl.createPlanefInput
+import me.anno.engine.ui.input.ComponentUIImpl.createQuaterniondInput
+import me.anno.engine.ui.input.ComponentUIImpl.createQuaternionfInput
 import me.anno.engine.ui.input.ComponentUIImpl.createShortArrayInput
 import me.anno.engine.ui.input.ComponentUIImpl.createShortInput
+import me.anno.engine.ui.input.ComponentUIImpl.createTilingInput
 import me.anno.engine.ui.input.ComponentUIImpl.createVector2dInput
 import me.anno.engine.ui.input.ComponentUIImpl.createVector2fInput
+import me.anno.engine.ui.input.ComponentUIImpl.createVector2iInput
 import me.anno.engine.ui.input.ComponentUIImpl.createVector3dInput
 import me.anno.engine.ui.input.ComponentUIImpl.createVector3fInput
+import me.anno.engine.ui.input.ComponentUIImpl.createVector3iInput
 import me.anno.engine.ui.input.ComponentUIImpl.createVector4dInput
 import me.anno.engine.ui.input.ComponentUIImpl.createVector4fInput
+import me.anno.engine.ui.input.ComponentUIImpl.createVector4iInput
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.input.Input
@@ -53,7 +65,6 @@ import me.anno.maths.MinMax.max
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.SizeLimitingContainer
@@ -65,20 +76,13 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
-import me.anno.ui.input.ColorInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.EnumInput.Companion.enumToNameDesc
 import me.anno.ui.input.FileInput
-import me.anno.ui.input.FloatVectorInput
 import me.anno.ui.input.InputPanel
-import me.anno.ui.input.IntInput
-import me.anno.ui.input.IntVectorInput
 import me.anno.ui.input.NullableInput
-import me.anno.ui.input.NumberType
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.TextInputML
-import me.anno.utils.Color
-import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS
 import me.anno.utils.Reflections.getParentClasses
 import me.anno.utils.algorithms.Recursion
@@ -86,10 +90,6 @@ import me.anno.utils.files.LinkCreator
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.structures.tuples.MutablePair
-import me.anno.utils.types.AnyToLong
-import me.anno.utils.types.AnyToVector
-import me.anno.utils.types.Booleans.hasFlag
-import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -119,7 +119,6 @@ import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
 import java.io.Serializable
-import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.reflect.KClass
 
@@ -437,6 +436,59 @@ object ComponentUI {
         LOGGER.warn("Could not detect type of $name")
     }
 
+    val typeNameUIInputs = HashMap<String, InputCreator>()
+
+    init {
+        typeNameUIInputs["Bool"] = createBooleanInput
+        typeNameUIInputs["Boolean"] = createBooleanInput
+        typeNameUIInputs["Byte"] = createByteInput
+        typeNameUIInputs["Short"] = createShortInput
+        typeNameUIInputs["Int"] = createIntInput
+        typeNameUIInputs["Integer"] = createIntInput
+        typeNameUIInputs["Long"] = createLongInput
+        typeNameUIInputs["Float"] = createFloatInput
+        typeNameUIInputs["Double"] = createDoubleInput
+
+        typeNameUIInputs["Vector2f"] = createVector2fInput
+        typeNameUIInputs["Vector3f"] = createVector3fInput
+        typeNameUIInputs["Vector4f"] = createVector4fInput
+
+        typeNameUIInputs["Vector2i"] = createVector2iInput
+        typeNameUIInputs["Vector3i"] = createVector3iInput
+        typeNameUIInputs["Vector4i"] = createVector4iInput
+
+        typeNameUIInputs["Vector2d"] = createVector2dInput
+        typeNameUIInputs["Vector3d"] = createVector3dInput
+        typeNameUIInputs["Vector4d"] = createVector4dInput
+
+        typeNameUIInputs["Tiling"] = createTilingInput
+        typeNameUIInputs["Planef"] = createPlanefInput
+        typeNameUIInputs["Planed"] = createPlanedInput
+
+        typeNameUIInputs["Quaternionf"] = createQuaternionfInput
+        typeNameUIInputs["Quaterniond"] = createQuaterniondInput
+
+        typeNameUIInputs["Color3"] = createColor3Input
+        typeNameUIInputs["Color3HDR"] = createColor3HDRInput
+        typeNameUIInputs["Color4"] = createColor4Input
+        typeNameUIInputs["Color4HDR"] = createColor4Input
+
+        typeNameUIInputs["Matrix4f"] = createMatrix4fInput
+
+        typeNameUIInputs["AABBf"] = createAABBfInput
+        typeNameUIInputs["AABBd"] = createAABBdInput
+
+        typeNameUIInputs["ByteArray"] = createByteArrayInput
+        typeNameUIInputs["ShortArray"] = createShortArrayInput
+        typeNameUIInputs["IntArray"] = createIntArrayInput
+        typeNameUIInputs["LongArray"] = createLongArrayInput
+        typeNameUIInputs["FloatArray"] = createFloatArrayInput
+        typeNameUIInputs["DoubleArray"] = createDoubleArrayInput
+
+        typeNameUIInputs["FileReference"] = createFileReferenceInput
+
+    }
+
     fun createUIByTypeName(
         name: String?, visibilityKey: String, property: IProperty<Any?>,
         type0: String, range: Range?, style: Style
@@ -455,51 +507,23 @@ object ComponentUI {
         val ttt = property.annotations
             .firstInstanceOrNull2(Docs::class)
             ?.description ?: ""
-        val title = if (name != null || !ttt.isBlank2()) {
+        val nameDesc = if (name != null || !ttt.isBlank2()) {
             NameDesc(name?.camelCaseToTitle() ?: "", ttt, "")
         } else NameDesc.EMPTY
         val value = property.get()
         val default = property.getDefault()
 
+        val creator = typeNameUIInputs[type0]
+        if (creator != null) {
+            return creator.createInput(nameDesc, visibilityKey, value, default, property, range, style)
+        }
+
         when (type0) {
             // native types
-            "Bool", "Boolean" -> return createBooleanInput(title, value, default, property, style)
-            "Byte" -> return createByteInput(title, visibilityKey, value, default, property, range, style)
-            "Short" -> return createShortInput(title, visibilityKey, value, default, property, range, style)
-            "Int", "Integer" -> {
-                return if (title.englishName.endsWith("color", true)) {
-                    ColorInput(title, visibilityKey, (value as? Int ?: 0).toVecRGBA(), true, style).apply {
-                        alignmentX = AxisAlignment.FILL
-                        property.init(this)
-                        askForReset(property) { it as Int; setValue(it.toVecRGBA(), -1, false) }
-                        setResetListener { (property.reset(this) as Int).toVecRGBA() }
-                        setChangeListener { r, g, b, a, mask ->
-                            property.set(this, Color.rgba(r, g, b, a), mask)
-                        }
-                    }
-                } else createIntInput(title, visibilityKey, value, default, property, range, style)
-            }
-            "Long" -> {
-                val type = NumberType(
-                    default as? Long ?: 0L,
-                    { clamp(AnyToLong.getLong(it, 0), range.minLong(), range.maxLong()) }, { it })
-                return IntInput(title, visibilityKey, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setValue(value as Long, false)
-                    askForReset(property) { setValue(it as Long, false) }
-                    setResetListener { property.reset(this).toString() }
-                    setChangeListener {
-                        property.set(this, it)
-                    }
-                }
-            }
             // todo slider-style? maybe in background for everything with a reasonable range?
-            "Float" -> return createFloatInput(title, visibilityKey, value, default, property, range, style)
-            "Double" -> return createDoubleInput(title, visibilityKey, value, default, property, range, style)
             "Char" -> {
-                return TitledListY(title, visibilityKey, style).add(
-                    TextInput(title, visibilityKey, value.toString(), style.getChild("deep")).apply {
+                return TitledListY(nameDesc, visibilityKey, style).add(
+                    TextInput(nameDesc, visibilityKey, value.toString(), style.getChild("deep")).apply {
                         base.lengthLimit = 1
                         property.init(this)
                         setResetListener { property.reset(this).toString() }
@@ -511,8 +535,8 @@ object ComponentUI {
                 )
             }
             "String" -> {
-                return TitledListY(title, visibilityKey, style).add(
-                    TextInput(title, visibilityKey, value as? String ?: "", style.getChild("deep")).apply {
+                return TitledListY(nameDesc, visibilityKey, style).add(
+                    TextInput(nameDesc, visibilityKey, value as? String ?: "", style.getChild("deep")).apply {
                         property.init(this)
                         setResetListener { property.reset(this).toString() }
                         askForReset(property) { setValue(it as String, false) }
@@ -523,236 +547,13 @@ object ComponentUI {
                 )
             }
 
-            // float vectors
-            // todo ranges for vectors
-            "Vector2f" -> return createVector2fInput(title, visibilityKey, value, default, property, style)
-            "Vector3f" -> return createVector3fInput(title, visibilityKey, value, default, property, style)
-            "Tiling", // todo better UI for tiling, separate XY and ZW into scale and offset; maybe preview on some placeholder texture?
-            "Vector4f" -> return createVector4fInput(title, visibilityKey, value, default, property, style)
-            "Planef" -> {
-                val type = NumberType.PLANE4.withDefault(default as? Planef ?: Planef())
-                return FloatVectorInput(title, visibilityKey, value as Planef, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Planef, false) }
-                    addChangeListener { x, y, z, w, mask ->
-                        property.set(this, Planef(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()), mask)
-                    }
-                }
-            }
-            "Vector2d" -> return createVector2dInput(title, visibilityKey, value, default, property, style)
-            "Vector3d" -> return createVector3dInput(title, visibilityKey, value, default, property, style)
-            "Vector4d" -> return createVector4dInput(title, visibilityKey, value, default, property, style)
-            "Planed" -> {
-                val type = NumberType.PLANE4D.withDefault(default as? Planed ?: Planed())
-                return FloatVectorInput(title, visibilityKey, value as Planed, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Planed, false) }
-                    addChangeListener { x, y, z, w, mask ->
-                        property.set(this, Planed(x, y, z, w), mask)
-                    }
-                }
-            }
-            // int vectors
-            "Vector2i" -> {
-                val type = NumberType(default as? Vector2i ?: Vector2i(), 2)
-                return IntVectorInput(title, visibilityKey, value as Vector2i, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Vector2i, false) }
-                    addChangeListener { x, y, _, _, mask ->
-                        property.set(this, Vector2i(x.toInt(), y.toInt()), mask)
-                    }
-                }
-            }
-            "Vector3i" -> {
-                val type = NumberType(default as? Vector3i ?: Vector3i(), 3)
-                return IntVectorInput(title, visibilityKey, value as Vector3i, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Vector3i, false) }
-                    addChangeListener { x, y, z, _, mask ->
-                        property.set(this, Vector3i(x.toInt(), y.toInt(), z.toInt()), mask)
-                    }
-                }
-            }
-            "Vector4i" -> {
-                val type = NumberType(default as? Vector4i ?: Vector4i(), 4)
-                return IntVectorInput(title, visibilityKey, value as Vector4i, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Vector4i, -1, false) }
-                    addChangeListener { x, y, z, w, mask ->
-                        property.set(this, Vector4i(x.toInt(), y.toInt(), z.toInt(), w.toInt()), mask)
-                    }
-                }
-            }
-
-            // quaternions
-            // entered using yxz angle, because that's much more intuitive
-            "Quaternionf" -> {
-                value as Quaternionf
-                val type = NumberType.ROT_YXZ.withDefault((default as Quaternionf).toEulerAnglesDegrees())
-                return FloatVectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    askForReset(property) { setValue((it as Quaternionf).toEulerAnglesDegrees(), false) }
-                    setResetListener { property.reset(this) }
-                    addChangeListener { x, y, z, _, mask ->
-                        val q = Vector3f(x.toFloat(), y.toFloat(), z.toFloat()).toQuaternionDegrees()
-                        property.set(this, q, mask)
-                    }
-                }
-            }
-            "Quaterniond" -> {
-                value as Quaterniond
-                val type = NumberType.ROT_YXZ64.withDefault((default as Quaterniond).toEulerAnglesDegrees())
-                return FloatVectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue((it as Quaterniond).toEulerAnglesDegrees(), false) }
-                    addChangeListener { x, y, z, _, mask ->
-                        property.set(this, Vector3d(x, y, z).toQuaternionDegrees(), mask)
-                    }
-                }
-            }
-
-            // colors, e.g. for materials
-            "Color3" -> {
-                val value0 = AnyToVector.getVector4f(value)
-                return ColorInput(title, visibilityKey, value0, false, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { AnyToVector.getVector4f(property.reset(this)) }
-                    askForReset(property) {
-                        setValue(AnyToVector.getVector4f(value), -1, false)
-                    }
-                    setChangeListener { r, g, b, _, mask ->
-                        property.set(this, Vector3f(r, g, b), mask)
-                    }
-                }
-            }
-            "Color3HDR" -> {
-                value as Vector3f
-                val maxPower = 1e3f
-
-                // logarithmic brightness scale
-                fun b2l(b: Vector3f): Vector4f {
-                    var length = b.length()
-                    if (length == 0f) length = 1f
-                    val power = clamp(ln(length) / ln(maxPower) * 0.5f + 0.5f, 0f, 1f)
-                    val scale = maxPower.pow(power * 2f - 1f)
-                    return Vector4f(b.x / scale, b.y / scale, b.z / scale, power)
-                }
-
-                fun l2b(l: Vector4f): Vector3f {
-                    val power = maxPower.pow(l.w * 2f - 1f)
-                    return Vector3f(l.x, l.y, l.z).mul(power)
-                }
-                return object : ColorInput(title, visibilityKey, b2l(value), true, style) {
-                    override fun onCopyRequested(x: Float, y: Float): String {
-                        val v = l2b(this.value)
-                        return "vec3(${v.x},${v.y},${v.z})"
-                    }
-                }.apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    // todo brightness should have different background than alpha
-                    setResetListener { b2l(property.reset(this) as Vector3f) }
-                    askForReset(property) { setValue(b2l(it as Vector3f), -1, false) }
-                    setChangeListener { r, g, b, a, mask ->
-                        val rgbMask = mask.and(7) or mask.hasFlag(8).toInt(7)
-                        property.set(this, l2b(Vector4f(r, g, b, a)), rgbMask)
-                    }
-                }
-            }
-            "Color4", "Color4HDR" -> {
-                value as Vector4f
-                // todo hdr colors per color amplitude
-                return ColorInput(title, visibilityKey, value, true, style)
-                    .apply {
-                        alignmentX = AxisAlignment.FILL
-                        property.init(this)
-                        setResetListener { property.reset(this) as Vector4f }
-                        askForReset(property) { setValue(it as Vector4f, -1, false) }
-                        setChangeListener { r, g, b, a, mask ->
-                            property.set(this, Vector4f(r, g, b, a), mask)
-                        }
-                    }
-            }
-
-            // matrices
-            "Matrix4f" -> {
-                value as Matrix4f
-                default as Matrix4f
-                val panel = TitledListY(title, visibilityKey, style)
-                property.init(panel)
-                // todo special types
-                // todo operations: translate, rotate, scale
-                for (i in 0 until 4) {
-                    panel.add(
-                        FloatVectorInput(
-                            NameDesc.EMPTY,
-                            visibilityKey,
-                            value.getRow(i, Vector4f()),
-                            NumberType.VEC4,
-                            style
-                        )
-                            .addChangeListener { x, y, z, w, _ ->// todo correct change listener
-                                value.setRow(i, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
-                            }
-                    )
-                }
-                // todo reset listener
-                panel.askForReset(property) {
-                    it as Matrix4f
-                    for (i in 0 until 4) {
-                        (panel.children[i + 1] as FloatVectorInput)
-                            .setValue(it.getRow(i, Vector4f()), false)
-                    }
-                }
-                return panel
-            }
-
-            // AABBf/AABBd
-            "AABBf" -> return createAABBfInput(title, visibilityKey, value, default, property, style)
-            "AABBd" -> return createAABBdInput(title, visibilityKey, value, default, property, style)
-
             // todo smaller matrices, and for double
             // todo when editing a matrix, maybe add a second mode for translation x rotation x scale
 
             // todo edit native arrays (byte/short/int/float/...) as images
 
             // native arrays
-            // todo char array?
-            "ByteArray" -> return createByteArrayInput(title, visibilityKey, value, property, style)
-            "ShortArray" -> return createShortArrayInput(title, visibilityKey, value, property, style)
-            "IntArray" -> return createIntArrayInput(title, visibilityKey, value, property, style)
-            "LongArray" -> return createLongArrayInput(title, visibilityKey, value, property, style)
-            "FloatArray" -> return createFloatArrayInput(title, visibilityKey, value, property, style)
-            "DoubleArray" -> return createDoubleArrayInput(title, visibilityKey, value, property, style)
-            "FileReference" -> {
-                value as FileReference
-                // todo if resource is located here, and we support the type, allow editing here directly
-                //  (Materials), #fileInputRightClickOptions
-                return FileInput(title, style, value, fileInputRightClickOptions).apply {
-                    property.init(this)
-                    setResetListener {
-                        property.reset(this) as? FileReference
-                            ?: InvalidRef
-                    }
-                    addChangeListener {
-                        property.set(this, it)
-                    }
-                }
-            }
+            // todo char array
             "Inspectable" -> {
                 value as Inspectable
                 val list = PanelListY(style)
@@ -773,7 +574,7 @@ object ComponentUI {
                         when (mainType) {
                             "List" -> {
                                 value as List<*>
-                                return object : AnyArrayPanel(title, visibilityKey, generics, style) {
+                                return object : AnyArrayPanel(nameDesc, visibilityKey, generics, style) {
                                     override fun onChange() {
                                         // todo why is the changing sdf materials not visible until refresh??
                                         property.set(this, values)
@@ -785,7 +586,7 @@ object ComponentUI {
                             }
                             "Set" -> {
                                 value as Set<*>
-                                return object : AnyArrayPanel(title, visibilityKey, generics, style) {
+                                return object : AnyArrayPanel(nameDesc, visibilityKey, generics, style) {
                                     override fun onChange() {
                                         property.set(this, HashSet(values))
                                     }
@@ -797,7 +598,7 @@ object ComponentUI {
                             "Map" -> {
                                 val (genericKey, genericValue) = generics.split(',').map { it.trim() }
                                 value as Map<*, *>
-                                return object : AnyMapPanel(title, visibilityKey, genericKey, genericValue, style) {
+                                return object : AnyMapPanel(nameDesc, visibilityKey, genericKey, genericValue, style) {
                                     override fun onChange() {
                                         property.set(this, HashMap(values.associate { it.first to it.second }))
                                     }
@@ -815,7 +616,7 @@ object ComponentUI {
 
                         val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         val value0 = value as? FileReference ?: InvalidRef
-                        val fi = FileInput(title, style, value0, fileInputRightClickOptions).apply {
+                        val fi = FileInput(nameDesc, style, value0, fileInputRightClickOptions).apply {
                             property.init(this)
                             setResetListener {
                                 property.reset(this) as? FileReference ?: InvalidRef
@@ -834,7 +635,7 @@ object ComponentUI {
 
                         val list = PanelListY(style)
                         if (!name.isNullOrBlank()) {
-                            list.add(TextPanel(title, style))
+                            list.add(TextPanel(nameDesc, style))
                         }
                         list.add(fi)
 
@@ -866,7 +667,7 @@ object ComponentUI {
                         value as PrefabSaveable?
                         val clazz = Saveable.getClass(type1)
                         if (clazz != UnknownSaveable::class) {
-                            return SameSceneRefInput(title, visibilityKey, clazz, value, style)
+                            return SameSceneRefInput(nameDesc, visibilityKey, clazz, value, style)
                                 .apply {
                                     property.init(this)
                                     setResetListener {
@@ -882,7 +683,7 @@ object ComponentUI {
                         // todo debugging info & such
                         val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         if (!type1.equals("lua", true)) LOGGER.warn("Currently only Lua is supported")
-                        return TitledListY(title, visibilityKey, style).apply {
+                        return TitledListY(nameDesc, visibilityKey, style).apply {
                             add(CodeEditor(style).apply {
                                 setText(value.toString(), false)
                                 setOnChangeListener { ce, seq ->
@@ -908,12 +709,12 @@ object ComponentUI {
                     value is Saveable && Saveable.getClass(type0) != UnknownSaveable::class -> {
                         // todo we're currently wasting quite a lot of space... fix that somehow...
                         //  example: SnapSettings
-                        return createISaveableInput(title, value, style, property)
+                        return createISaveableInput(nameDesc, value, style, property)
                     }
                 }
-                LOGGER.warn("Missing knowledge to edit $type0, '${title.name}'")
+                LOGGER.warn("Missing knowledge to edit $type0, '${nameDesc.name}'")
                 return TextPanel(
-                    "?? ${title.name} : ${if (value != null) value::class.simpleName else null}, type $type0",
+                    "?? ${nameDesc.name} : ${if (value != null) value::class.simpleName else null}, type $type0",
                     style
                 )
             }

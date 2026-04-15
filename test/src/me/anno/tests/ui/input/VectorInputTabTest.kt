@@ -7,6 +7,7 @@ import me.anno.input.Key
 import me.anno.language.translation.NameDesc
 import me.anno.tests.ui.UITests
 import me.anno.ui.debug.TestEngine.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.input.FloatVectorInput
 import me.anno.ui.input.NumberType
 import me.anno.ui.input.components.PureTextInputML

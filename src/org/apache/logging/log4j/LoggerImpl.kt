@@ -158,10 +158,9 @@ open class LoggerImpl(val name: String) : Logger, Log {
         }
     }
 
-    override fun debug(msg: String, e: Throwable) {
+    override fun debug(msg: String, thrown: Throwable) {
         if (isDebugEnabled()) {
-            debug(msg)
-            e.printStackTrace()
+            printStackTrace("DEBUG", msg, thrown, DEBUG_STYLE)
         }
     }
 
@@ -204,8 +203,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
 
     override fun error(msg: String, thrown: Throwable) {
         if (isErrorEnabled()) {
-            error(msg)
-            thrown.printStackTrace()
+            printStackTrace("ERR!", msg, thrown, ERROR_STYLE)
         }
     }
 
@@ -367,13 +365,13 @@ open class LoggerImpl(val name: String) : Logger, Log {
         return LogManager.isEnabled(this, org.apache.logging.log4j.Level.SEVERE)
     }
 
-    fun printStackTrace(prefix: String, msg: String, e: Throwable?, style: String) {
-        if (e == null) return print(prefix, msg, style)
+    fun printStackTrace(prefix: String, msg: String, thrown: Throwable?, style: String) {
+        if (thrown == null) return print(prefix, msg, style)
 
         val tmp0 = StringWriter(msg.length + 200)
         tmp0.append(msg).append(": ")
         val tmp = PrintWriter(tmp0)
-        e.printStackTrace(tmp)
+        thrown.printStackTrace(tmp)
         print(prefix, tmp0.toString(), style)
     }
 
@@ -435,12 +433,12 @@ open class LoggerImpl(val name: String) : Logger, Log {
                     // register this as the last action to take
                     Engine.registerForShutdown(1000_000_000) { flush() }
                 }
-            } catch (e: IOException) {
+            } catch (thrown: IOException) {
                 VoidOutputStream.apply {
                     println(
                         "[${style(getTimeStamp(), TIME_STYLE)}," +
                                 "${style("ERR!", ERROR_STYLE)}:Logger] " +
-                                style("Failed creating log file, $e", ERROR_STYLE)
+                                style("Failed creating log file, $thrown", ERROR_STYLE)
                     )
                 }
             }

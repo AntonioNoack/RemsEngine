@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.gltf.reader
+package me.anno.tests.mesh.formats.gltf.reader
 
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI

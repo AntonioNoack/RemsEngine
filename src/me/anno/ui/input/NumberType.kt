@@ -1,5 +1,7 @@
 package me.anno.ui.input
 
+import me.anno.ecs.annotations.Range
+import me.anno.ecs.annotations.Range.Companion.clamp
 import me.anno.maths.Maths
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.types.Casting
@@ -15,6 +17,7 @@ import org.joml.Vector3f
 import org.joml.Vector4d
 import org.joml.Vector4f
 import kotlin.math.max
+import kotlin.math.min
 
 class NumberType(
     defaultValue: Any,
@@ -43,6 +46,28 @@ class NumberType(
     )
 
     fun withDefault(defaultValue: Any): NumberType = withDefaultValue(defaultValue)
+    fun withRange(range: Range?): NumberType {
+        if (range == null) return this
+        val clampFunc = { value: Any? ->
+            when (value) {
+                is Byte -> range.clamp(value)
+                is Short -> range.clamp(value)
+                is Int -> range.clamp(value)
+                is Long -> range.clamp(value)
+                is Float -> range.clamp(value)
+                is Double -> range.clamp(value)
+                is Vector -> {
+                    val n = min(value.numComponents, numComponents)
+                    for (i in 0 until n) {
+                        value.setComp(i, range.clamp(value.getComp(i)))
+                    }
+                    value
+                }
+                else -> value ?: 0.0
+            }
+        }
+        return NumberType(defaultValue, numComponents, unitScale, hasLinear, hasExponential, clampFunc, acceptOrNull)
+    }
 
     fun clamp(value: Any): Any = clampFunc?.invoke(value) ?: value
 

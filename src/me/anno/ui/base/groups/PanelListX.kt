@@ -103,7 +103,7 @@ open class PanelListX(style: Style) : PanelList2(style) {
         } else {
             var perWeight = 0f
             var shrinkingFactor = 1f
-            if (availableW > sumConst && sumWeight > 1e-7f) {
+            if ((availableW > sumConst || onlyUseWeights) && sumWeight > 1e-7f) {
                 val availableForWeighted = availableW - sumConstWW
                 perWeight = availableForWeighted / sumWeight
             } else if (availableW < sumConstWW) {
