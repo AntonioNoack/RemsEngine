@@ -366,6 +366,8 @@ class GLTFReader(val src: FileReference) {
     }
 
     private fun readAnimations() {
+        if (skins.isEmpty()) return
+
         val usedNames = HashSet<String>()
         val animationFolder = InnerFolder(innerFolder, "animations")
 
