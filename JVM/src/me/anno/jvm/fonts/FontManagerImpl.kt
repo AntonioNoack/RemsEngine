@@ -18,6 +18,7 @@ import java.awt.Toolkit
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.util.Locale
+import kotlin.math.sqrt
 
 object FontManagerImpl {
 
@@ -32,7 +33,8 @@ object FontManagerImpl {
     }
 
     private fun getDefaultFontSize(): Int {
-        return Maths.clamp(Toolkit.getDefaultToolkit().screenSize.height / 72, 15, 60)
+        val size0 = Toolkit.getDefaultToolkit().screenSize.height / 1080f
+        return Maths.clamp((sqrt(size0) * 15f).toInt(), 15, 60)
     }
 
     fun getAWTFont(font: me.anno.fonts.Font): FontData {
