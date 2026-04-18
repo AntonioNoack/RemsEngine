@@ -3,6 +3,7 @@ package me.anno.graph.visual.render.effects
 import me.anno.ecs.systems.GlobalSettings
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
@@ -39,7 +40,7 @@ class BloomNode : TimedRenderingNode(
             useFrame(result) {
                 Bloom.bloom(colorTT, colorMT, settings.offset, settings.strength, applyToneMapping)
             }
-            finish(result.getTexture0MS())
+            finish(Texture.texture(result, 0, "rgb", DeferredLayerType.COLOR))
         }
     }
 }

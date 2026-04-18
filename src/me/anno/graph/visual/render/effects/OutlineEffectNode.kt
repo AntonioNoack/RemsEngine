@@ -17,6 +17,7 @@ import me.anno.graph.visual.render.Texture.Companion.mask
 import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.types.Booleans.toInt
@@ -102,7 +103,7 @@ class OutlineEffectNode : RenderViewNode(
             color: Texture, ids: Texture, numGroups: Int, radius: Int,
             groupIds: IntArray, fillColors: List<Vector4f>, lineColors: List<Vector4f>
         ) {
-            val samples = min(color.texMS.samples, ids.texMS.samples)
+            val samples = ids.texMS.samples
             val useMS = samples > 1
             val numGroupsI = min(numGroups, MAX_NUM_GROUPS)
             GFXState.renderPurely {
@@ -125,7 +126,10 @@ class OutlineEffectNode : RenderViewNode(
                 shader.v1i("numGroups", numGroupsI)
                 shader.v1i("samples", samples)
                 shader.v4f("groupTexMask", ids.mask)
-                getTex(color, useMS).bindTrulyNearest(shader, "colorTex")
+                val colorTex = color.texOrNull ?: blackTexture
+                colorTex.bindTrulyNearest(shader, "colorTex")
+                assertEquals(1, colorTex.samples) { "$colorTex has too many samples" }
+
                 getTex(ids, useMS).bindTrulyNearest(shader, "idTex")
                 SimpleBuffer.flat01.draw(shader)
             }
@@ -148,7 +152,7 @@ class OutlineEffectNode : RenderViewNode(
                     Variable(GLSLType.V4F, "lineColors", MAX_NUM_GROUPS),
                     Variable(GLSLType.V4F, "fillColors", MAX_NUM_GROUPS),
                     Variable(if (useMS) GLSLType.S2DMS else GLSLType.S2D, "idTex"),
-                    Variable(if (useMS) GLSLType.S2DMS else GLSLType.S2D, "colorTex"),
+                    Variable(GLSLType.S2D, "colorTex"),
                     Variable(GLSLType.V4F, "groupTexMask"),
                     Variable(GLSLType.V4F, "result", VariableMode.OUT)
                 ), "" +

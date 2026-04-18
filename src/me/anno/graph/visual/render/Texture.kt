@@ -12,6 +12,7 @@ import me.anno.gpu.texture.LazyTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFail
 import org.joml.Vector4f
 import kotlin.math.max
@@ -26,6 +27,12 @@ class Texture(
     constructor(v: ITexture2D) : this(v, v, "", null)
     constructor(v: Vector4f) : this(IndestructibleTexture2D.getColorTexture(v))
 
+    init {
+        assertEquals(1, tex.samples) {
+            "tex must always have a single sample, create a lazy-texture if necessary"
+        }
+    }
+
     val texMS = texMS ?: tex
     val isDestroyed get() = tex.isDestroyed
 
@@ -39,9 +46,9 @@ class Texture(
                 val hasMap = mapping.isNotEmpty()
                 val hasEnc = encoding != null && encoding.dataToWork.isNotEmpty()
                 when {
-                    hasMap && hasEnc -> "$base.$mapping/${encoding!!.name}"
+                    hasMap && hasEnc -> "$base.$mapping/${encoding.name}"
                     hasMap -> "$base.$mapping"
-                    hasEnc -> "$base/${encoding!!.name}"
+                    hasEnc -> "$base/${encoding.name}"
                     else -> base
                 }
             }
