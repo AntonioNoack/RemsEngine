@@ -6,8 +6,8 @@ import me.anno.engine.NamedTask
 import me.anno.gpu.GFX
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.PrintColor.BOLD
-import org.apache.logging.log4j.PrintColor.style
+import me.anno.utils.StringStyles.BOLD
+import me.anno.utils.StringStyles.style
 import speiger.primitivecollections.LongHashSet
 import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentLinkedQueue

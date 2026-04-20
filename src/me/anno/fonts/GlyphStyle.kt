@@ -10,7 +10,7 @@ import me.anno.utils.types.Arrays.indexOf
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.joinChars
-import org.apache.logging.log4j.PrintColor.ESC_CHAR
+import me.anno.utils.StringStyles.ESC_CHAR
 
 object GlyphStyle {
 

@@ -1,4 +1,4 @@
-package org.apache.logging.log4j
+package me.anno.utils
 
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -21,7 +21,7 @@ import me.anno.utils.Color.r
  *   - when all properties match already, delete them
  *   - remember recently used colors
  * */
-object PrintColor {
+object StringStyles {
     const val ESC_CHAR = '\u001B'
     const val ESC = "$ESC_CHAR["
 

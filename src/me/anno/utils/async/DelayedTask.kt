@@ -1,6 +1,6 @@
-package me.anno.utils.process
+package me.anno.utils.async
 
-import me.anno.engine.Events.addEvent
+import me.anno.engine.Events
 
 /**
  * this class represents a task, that should run only a few times, and not necessarily immediately,
@@ -21,7 +21,7 @@ class DelayedTask(
             if (isWorking) return
             isWorking = true
         }
-        addEvent("DelayedTask", delayMillis) {
+        Events.addEvent("DelayedTask", delayMillis) {
             runTask()
             isWorking = false
         }

@@ -2,10 +2,10 @@ package me.anno.tests.utils.terminal
 
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.PrintColor
+import me.anno.utils.StringStyles
 
 fun main() {
-    PrintColor.apply {
+    StringStyles.apply {
         // test some simple messages
         println(style("This is normal output", GREEN, UNDERLINE))
         println(style("This is an error message", RED, BOLD))

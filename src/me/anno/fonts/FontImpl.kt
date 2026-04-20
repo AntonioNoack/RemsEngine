@@ -21,7 +21,7 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank
-import org.apache.logging.log4j.PrintColor.ESC_CHAR
+import me.anno.utils.StringStyles.ESC_CHAR
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max

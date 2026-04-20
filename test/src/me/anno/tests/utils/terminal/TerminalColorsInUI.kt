@@ -4,11 +4,11 @@ import me.anno.config.DefaultConfig
 import me.anno.fonts.GlyphStyle.UNDERLINE_CHAR
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI
-import org.apache.logging.log4j.PrintColor
+import me.anno.utils.StringStyles
 
 fun main() {
     // test whether drawing text properly consumes terminal-style-sequences
-    val text = PrintColor.run {
+    val text = StringStyles.run {
         val gold = 0xffc900
         // why is underline and strike-through white?? -> it was using the emoji-mode, because alpha = 1 :D
         "\n".repeat(5) + style(

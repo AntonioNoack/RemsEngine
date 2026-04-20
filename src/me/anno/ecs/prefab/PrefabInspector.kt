@@ -47,7 +47,7 @@ import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.hex32
 import me.anno.utils.Logging.hash32
-import me.anno.utils.process.DelayedTask
+import me.anno.utils.async.DelayedTask
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.camelCaseToTitle
