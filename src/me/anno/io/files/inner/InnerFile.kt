@@ -69,6 +69,10 @@ abstract class InnerFile(
 
     @Deprecated(message = ASYNC_WARNING)
     override fun getChildImpl(name: String): FileReference {
+        return getChildByFileCache(name)
+    }
+
+    fun getChildByFileCache(name: String): FileReference {
         val asFolder = InnerFolderCache.readAsFolder(this).waitFor()
         return asFolder?.getChild(name) ?: InvalidRef
     }

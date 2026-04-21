@@ -4,7 +4,6 @@ import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolder
-import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 
 object FileCacheSection {
@@ -19,8 +18,7 @@ object FileCacheSection {
         file: FileReference, allowDirectories: Boolean, timeoutMillis: Long,
         generator: (FileKey, Promise<V>) -> Unit
     ): Promise<V> {
-        val validFile = getValidFile(file, allowDirectories)
-        if (validFile == null) return Promise.empty()
+        val validFile = getValidFile(file, allowDirectories) ?: return Promise.empty()
         return getEntry(validFile.getFileKey(), timeoutMillis, generator)
     }
 
@@ -29,7 +27,7 @@ object FileCacheSection {
         allowDirectories: Boolean
     ): FileReference? {
         return when {
-            !allowDirectories && file is InnerFolder -> {
+            !allowDirectories && file is InnerFolder && file.isDirectory -> {
                 val alias = file.alias ?: return null
                 getValidFile(alias, false)
             }

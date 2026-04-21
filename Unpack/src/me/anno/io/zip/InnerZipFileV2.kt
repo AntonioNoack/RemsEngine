@@ -182,7 +182,7 @@ class InnerZipFileV2(
     override fun getChildImpl(name: String): FileReference {
         val child =
             if (!exists || isDirectory) getChildByName(name)
-            else super.getChildImpl(name)
+            else getChildByFileCache(name)
         return child
     }
 

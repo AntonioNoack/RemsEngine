@@ -103,34 +103,33 @@ object AnimatedMeshesLoader {
         loadFile(file, DEFAULT_ASSIMP_FLAGS) { result, e ->
             if (result != null) {
                 val (aiScene1, isFBX1) = result
-                callback.ok(readAsFolder2(file, aiScene1, isFBX1, name))
+                callback.ok(readAsFolderImpl(file, aiScene1, isFBX1, name))
             } else if (e?.message?.contains("FBX-DOM unsupported") == true) {
                 FBX6000.readBinaryFBX6000AsFolder(file, callback)
             } else callback.err(e)
         }
     }
 
-    private fun readAsFolder2(file: FileReference, aiScene: AIScene, isFBX: Boolean, name: String): InnerFolder {
+    private fun readAsFolderImpl(file: FileReference, aiScene: AIScene, isFBX: Boolean, name: String): InnerFolder {
 
         val resources = file.getParent()
         val root = InnerFolder(file)
         val rootNode = aiScene.mRootNode()!!
+
         val loadedTextures = if (aiScene.mNumTextures() > 0) {
             val texFolder = root.createChild("textures", null) as InnerFolder
             loadTextures(aiScene, texFolder)
         } else emptyList()
-        val missingFilesLookup: Map<String, FileReference> = when (file) {
-            is InnerFolder -> {
-                var innerFolder: InnerFolder = file
-                while (true) {
-                    innerFolder = file.getParent() as? InnerFolder ?: break
-                }
-                innerFolder.lookup ?: emptyMap() // good?
+
+        val missingFilesLookup: Map<String, FileReference> = if (file is InnerFolder && file.isDirectory) {
+            var innerFolder: InnerFolder = file
+            while (true) {
+                innerFolder = file.getParent() as? InnerFolder ?: break
             }
-            else -> {
-                // todo fill this by folder, /tex, /textures
-                emptyMap()
-            }
+            innerFolder.lookup ?: emptyMap() // good?
+        } else {
+            // todo fill this by folder, /tex, /textures
+            emptyMap()
         }
 
         val materialList = loadMaterialPrefabs(aiScene, resources, loadedTextures, missingFilesLookup).toList()

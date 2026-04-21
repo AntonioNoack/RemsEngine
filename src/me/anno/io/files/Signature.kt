@@ -106,7 +106,12 @@ class Signature(
         }
     }
 
-    override fun toString() = "Signature { \"$name\" by [${pattern.joinToString { hex8(it.toInt()) }}] + $offset }"
+    override fun toString() = "Signature { \"$name\" by [${
+        pattern.joinToString { byte ->
+            if (byte in 32..126) "'${byte.toInt().toChar()}'"
+            else hex8(byte.toInt())
+        }
+    }] + $offset }"
 
     companion object {
 

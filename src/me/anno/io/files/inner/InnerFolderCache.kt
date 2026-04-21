@@ -61,21 +61,21 @@ object InnerFolderCache : CacheSection<FileKey, InnerFolder>("InnerFolderCache")
     }
 
     private fun generate(
-        file1: FileReference, data: Promise<InnerFolder>,
+        file: FileReference, data: Promise<InnerFolder>,
         generators: List<InnerFolderReader>, gi: Int
     ) {
         if (gi < generators.size) {
             val reader = generators[gi]
-            reader(file1) { folder, err ->
+            reader(file) { folder, err ->
                 err?.printStackTrace()
                 if (folder != null) {
-                    if (file1 is InnerFile) {
-                        file1.folder = folder
+                    if (file is InnerFile) {
+                        file.folder = folder
                     }
                     data.value = folder
                     // todo remove watch dog when unloading it?
-                    FileWatch.addWatchDog(file1)
-                } else generate(file1, data, generators, gi + 1)
+                    FileWatch.addWatchDog(file)
+                } else generate(file, data, generators, gi + 1)
             }
         } else data.value = null
     }
