@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.fbx
+package me.anno.tests.mesh.formats.fbx
 
 import me.anno.Engine
 import me.anno.ecs.Entity

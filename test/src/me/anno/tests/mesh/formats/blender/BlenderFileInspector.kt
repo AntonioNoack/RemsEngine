@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.blender
+package me.anno.tests.mesh.formats.blender
 
 import me.anno.cache.Promise.Companion.loadSync
 import me.anno.ecs.components.mesh.Mesh

@@ -214,6 +214,10 @@ class Signature(
             Signature("exr", IMAGE, 0, 0x76, 0x2f, 0x31, 0x01), // HDR image format, can be exported from Blender
             Signature("webp", IMAGE, 8, "WEBP"), // after RIFF header
             Signature("aseprite", VIDEO, 4, 0xE0, 0xA5), // magic comes after size
+            Signature("tif", IMAGE, 0, 0x49, 0x49, 0x2A, 0x00), // II*\0
+            Signature("tif", IMAGE, 0, 0x4d, 0x4d, 0x00, 0x2A), // MM\0*
+            Signature("tif", IMAGE, 0, 0x49, 0x49, 0x2B, 0x00), // II+\0
+            Signature("tif", IMAGE, 0, 0x4d, 0x4d, 0x00, 0x2B), // MM\0+
             // tga has header at the end of the file, and only sometimes...
             // other
             Signature("xml", METADATA, 0, "<?xml"), // plus other variations with UTF16, UTF32, ...

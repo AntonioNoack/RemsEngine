@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.blender
+package me.anno.tests.mesh.formats.blender
 
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI

@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.assimp
+package me.anno.tests.mesh.formats.assimp
 
 import me.anno.Engine
 import me.anno.ecs.components.anim.Bone

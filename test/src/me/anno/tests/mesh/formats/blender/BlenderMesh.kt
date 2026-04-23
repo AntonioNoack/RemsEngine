@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.blender
+package me.anno.tests.mesh.formats.blender
 
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.utils.OS

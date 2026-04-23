@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.dae
+package me.anno.tests.mesh.formats.dae
 
 import me.anno.Engine
 import me.anno.ecs.prefab.PrefabCache

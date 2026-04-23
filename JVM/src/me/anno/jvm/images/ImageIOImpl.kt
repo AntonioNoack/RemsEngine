@@ -10,7 +10,7 @@ import javax.imageio.ImageIO
 object ImageIOImpl {
 
     fun register() {
-        ImageCache.registerStreamReader("png,jpg,gif,bmp,webp") { _, stream, callback ->
+        ImageCache.registerStreamReader("png,jpg,gif,bmp,webp,tif") { _, stream, callback ->
             tryImageIO(stream, callback)
         }
     }
