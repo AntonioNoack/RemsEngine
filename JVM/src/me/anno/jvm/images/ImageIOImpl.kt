@@ -15,11 +15,11 @@ object ImageIOImpl {
         }
     }
 
-    private fun tryImageIO(it: InputStream, callback: Callback<Image>) {
+    private fun tryImageIO(stream: InputStream, callback: Callback<Image>) {
         try {
-            val img = ImageIO.read(it)
-            if (img != null) {
-                callback.ok(img.toImage())
+            val image = ImageIO.read(stream)
+            if (image != null) {
+                callback.ok(image.toImage())
             } else callback.err(null)
         } catch (e: Exception) {
             callback.err(e)

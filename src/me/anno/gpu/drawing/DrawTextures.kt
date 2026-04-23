@@ -100,7 +100,7 @@ object DrawTextures {
         val shader = flatShaderTexture[texture.samples > 1].value
         val mono = texture.numChannels == 1
         shader.use()
-        posSize(shader, x, y, w, h)
+        posSize(shader, x, y, w, h, true)
         shader.v4f("color", color)
         shader.v1i("alphaMode", if (mono) 2 else ignoreAlpha.toInt())
         shader.v1f("applyToneMapping", applyToneMapping)

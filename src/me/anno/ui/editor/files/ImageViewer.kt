@@ -10,6 +10,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.image.thumbs.ThumbnailCache
+import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.maths.MinMax.max

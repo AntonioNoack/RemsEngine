@@ -145,7 +145,7 @@ object RenderGraph {
         val x = dst.x + (dst.width - w).shr(1)
         val y = dst.y
         val applyToneMapping = endNode.getFloatInput(6)
-        drawTexture(x, y + h, w, -h, texture, true, white4, null, applyToneMapping)
+        drawTexture(x, y, w, h, texture, true, white4, null, applyToneMapping)
     }
 
     // todo sample sky (tex) node

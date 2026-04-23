@@ -35,9 +35,8 @@ abstract class ImagePanel(style: Style) : ImagePanelBase(style) {
             )
         }
         texture.bind(0, filtering, Clamping.CLAMP)
-        // todo should we put flipY into liy and lih? sounds reasonable...
         DrawTextures.drawTexture(
-            lix, if (flipY) liy + lih else liy, liw, if (flipY) -lih else lih, texture,
+            lix, liy, liw, lih, texture,
             false, white4, null,
             applyToneMapping = 0f
         )
