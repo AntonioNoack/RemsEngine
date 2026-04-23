@@ -514,7 +514,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         val progress = GFX.someWindow.addProgressBar("Copying", "Bytes", files.sumOf { it.length() }.toDouble())
         for (srcFile in files) {
             if (progress.isCancelled) break
-            val dstFile = findNextFile(folder, srcFile, 1, '-', 1)
+            val dstFile = findNextFile2(folder, srcFile, 1, '-', 1)
             dstFile.writeFile(srcFile, { delta, _ -> progress.progress += delta }, { it?.printStackTrace() })
         }
         progress.finish()
@@ -526,11 +526,24 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         for (srcFile in files) {
             if (progress.isCancelled) break
             if (folder == srcFile.getParent()) continue
-            val dstFile = findNextFile(folder, srcFile, 1, '-', 1)
+            val dstFile = findNextFile2(folder, srcFile, 1, '-', 1)
             srcFile.renameTo(dstFile)
         }
         progress.finish()
         invalidate()
+    }
+
+    private fun findNextFile2(
+        parent: FileReference,
+        name: FileReference,
+        digitsLength: Int,
+        colonSymbol: Char,
+        startingNumber: Long = 1
+    ): FileReference {
+        val ideal = parent.getChild(name.name)
+        if (!ideal.exists) return ideal
+
+        return findNextFile(parent, name, digitsLength, colonSymbol, startingNumber)
     }
 
     fun createLinksInto(files: List<FileReference>, folder: FileReference) {

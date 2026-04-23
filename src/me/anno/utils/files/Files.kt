@@ -28,8 +28,6 @@ object Files {
         colonSymbol: Char,
         startingNumber: Long = 1
     ): String {
-        val ideal = parent.getChild("$nameWithoutExtension.$extension")
-        if (!ideal.exists) return ideal.name
 
         // format: name-1.json
         // -, because the usual name may contain numbers itself
