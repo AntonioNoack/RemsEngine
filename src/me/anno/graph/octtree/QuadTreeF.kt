@@ -36,4 +36,10 @@ abstract class QuadTreeF<Data>(maxNumChildren: Int) :
         val dy = max.y - min.y
         return getMaxComponent(dx.toDouble(), dy.toDouble())
     }
+
+    override fun clear() {
+        super.clear()
+        min.set(Float.POSITIVE_INFINITY)
+        max.set(Float.NEGATIVE_INFINITY)
+    }
 }

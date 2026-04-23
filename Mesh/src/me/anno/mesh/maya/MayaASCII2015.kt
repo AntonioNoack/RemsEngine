@@ -8,10 +8,10 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.utils.NormalCalculator.makeFlatShaded
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.utils.async.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
@@ -369,13 +369,15 @@ object MayaASCII2015 {
                                     }
                                     val dst = node.uvs!!
                                     val colon = key.indexOf(':')
-                                    val start = key.substring(".uvst[0].uvsp[".length, colon).toInt()
-                                    val end = key.substring(colon + 1, key.length - 1).toInt() + 1
-                                    assertEquals((end - start) * 2, arguments.size - 2, key.toString())
-                                    val offset = start * 2 - 2
-                                    for (i in 2 until arguments.size) {
-                                        dst[i + offset] = arguments[i].toFloat()
-                                    }
+                                    if (colon >= 0) {
+                                        val start = key.substring(".uvst[0].uvsp[".length, colon).toInt()
+                                        val end = key.substring(colon + 1, key.length - 1).toInt() + 1
+                                        assertEquals((end - start) * 2, arguments.size - 2, key.toString())
+                                        val offset = start * 2 - 2
+                                        for (i in 2 until arguments.size) {
+                                            dst[i + offset] = arguments[i].toFloat()
+                                        }
+                                    } else LOGGER.warn("Expected colon in property '$key' to set the range")
                                 } else LOGGER.warn("Expected mesh")
                             }
                         }

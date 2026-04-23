@@ -509,6 +509,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         )
     }
 
+    // todo bug: when selecting files, sometimes the files may refresh, and then you loose your selection
     fun copyInto(files: List<FileReference>, folder: FileReference) {
         val progress = GFX.someWindow.addProgressBar("Copying", "Bytes", files.sumOf { it.length() }.toDouble())
         for (srcFile in files) {

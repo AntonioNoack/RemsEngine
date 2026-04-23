@@ -2,7 +2,6 @@ package me.anno.utils.files
 
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
-import me.anno.utils.OS
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.f2
 import me.anno.utils.types.Strings.ifBlank2
@@ -29,6 +28,9 @@ object Files {
         colonSymbol: Char,
         startingNumber: Long = 1
     ): String {
+        val ideal = parent.getChild("$nameWithoutExtension.$extension")
+        if (!ideal.exists) return ideal.name
+
         // format: name-1.json
         // -, because the usual name may contain numbers itself
         // find all files matching the description, and then use the max+1

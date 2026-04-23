@@ -518,7 +518,7 @@ abstract class KdTree<Point, Value>(
         src.size = 0
     }
 
-    fun clear() {
+    open fun clear() {
         values?.clear()
         size = 0
 

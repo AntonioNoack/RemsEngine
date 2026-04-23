@@ -36,4 +36,10 @@ abstract class QuadTree<Data>(maxNumChildren: Int) :
         val dy = max.y - min.y
         return getMaxComponent(dx, dy)
     }
+
+    override fun clear() {
+        super.clear()
+        min.set(Double.POSITIVE_INFINITY)
+        max.set(Double.NEGATIVE_INFINITY)
+    }
 }

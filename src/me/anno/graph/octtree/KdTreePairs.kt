@@ -95,14 +95,16 @@ object KdTreePairs {
                 val left = left ?: return false
                 val right = right ?: return false
 
+                // LL, LR, RR
                 remaining.addPair(left, other.left)
                 remaining.addPair(left, other.right)
                 remaining.addPair(right, other.right)
 
                 if (!sameNode) {
-                    // we also need to handle this fourth case:
-                    remaining.addPair(right, other.right)
-                }
+                    // LL, LR, RL, RR
+                    // we also need to handle this fourth case RL:
+                    remaining.addPair(right, other.left)
+                }// else LR = RL
             }
         }
         return false

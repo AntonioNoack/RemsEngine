@@ -39,4 +39,10 @@ abstract class OctTreeF<Data>(maxNumChildren: Int) :
         val dz = max.z - min.z
         return getMaxComponent(dx.toDouble(), dy.toDouble(), dz.toDouble())
     }
+
+    override fun clear() {
+        super.clear()
+        min.set(Float.POSITIVE_INFINITY)
+        max.set(Float.NEGATIVE_INFINITY)
+    }
 }
