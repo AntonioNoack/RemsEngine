@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.terrain.DefaultNormalMap
 import me.anno.ecs.components.mesh.terrain.HeightMap
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.maths.Maths.clamp01
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.maths.Smoothstep.smoothstep
 import me.anno.maths.noise.ErosionNoise
@@ -88,7 +88,7 @@ fun calculateSurfaceColor(
     diffuseColor: Vector3f
 ): Vector3f {
 
-    val occlusion = clamp01(erosion + 0.5f)
+    val occlusion = clamp(erosion + 0.5f)
 
     // -------------------------
     // Cliffs / Dirt
@@ -150,7 +150,7 @@ fun calculateSurfaceColor(
     // -------------------------
     // Trees
     // -------------------------
-    val treeFactor = clamp01(trees * 2.2f - 0.8f) * 0.6f
+    val treeFactor = clamp(trees * 2.2f - 0.8f) * 0.6f
     val treeColor = Vector3f(TREE_COLOR).mul(pow(trees, 8f))
 
     diffuseColor.mix(treeColor, treeFactor)
@@ -164,7 +164,7 @@ fun calculateSurfaceColor(
     // Drainage
     // -------------------------
     val drainageWidth = 0.3f
-    val drainage = clamp01((1f - clamp01(ridgeMap / drainageWidth)) * 1.5f)
+    val drainage = clamp((1f - clamp(ridgeMap / drainageWidth)) * 1.5f)
     diffuseColor.mix(Vector3f(1f), drainage)
 
     return diffuseColor

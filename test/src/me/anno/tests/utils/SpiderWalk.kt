@@ -7,8 +7,8 @@ import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery
@@ -16,6 +16,7 @@ import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Key
+import me.anno.maths.Maths.absClamp
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.fract
@@ -209,7 +210,7 @@ class SpiderLegLogic(
             upperLeg.position.z - localTarget.z,
             -x * (upperLeg.position.x - localTarget.x)
         )
-        val rotY1 = clamp(-rotY, -1.2, 1.2) + (if (x > 0) PI else 0.0)
+        val rotY1 = absClamp(-rotY, 1.2) + (if (x > 0) PI else 0.0)
         angles.x = mix(angles.x, alpha, dtMix)
         angles.y = mix(angles.y, rotY1, dtMix)
         upperLeg.setRotation(0f, angles.y.toFloat(), angles.x.toFloat())

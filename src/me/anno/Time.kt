@@ -1,7 +1,7 @@
 package me.anno
 
 import me.anno.maths.Maths.SECONDS_TO_NANOS
-import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.absClamp
 import me.anno.maths.MinMax.max
 import me.anno.ui.debug.FrameTimings
 import kotlin.math.abs
@@ -117,6 +117,20 @@ object Time {
     @JvmStatic
     var timeSpeed: Double = 1.0
 
+    /**
+     * maximum allowed timestep;
+     * must be carefully tuned, if you want to use timeSpeed,
+     * and depend on onUpdate(dt <- this value is clamped)
+     * */
+    @JvmStatic
+    var maxDeltaTime: Double = 0.1
+
+    /**
+     * maximum allowed timestep for UI
+     * */
+    @JvmStatic
+    var maxUIDeltaTime: Double = 0.1
+
     @JvmStatic
     fun updateTime() {
         updateTime(nanoTime, frameTimeNanos)
@@ -132,8 +146,8 @@ object Time {
     fun updateTime(dt: Double, thisTime: Long) {
 
         rawDeltaTime = dt
-        uiDeltaTime = min(dt, 0.1)
-        deltaTime = clamp(dt * timeSpeed, -0.1, 0.1) // clamping before or after timeSpeed???
+        uiDeltaTime = min(dt, maxUIDeltaTime)
+        deltaTime = absClamp(dt * timeSpeed, maxDeltaTime)
         FrameTimings.putTime(dt.toFloat())
 
         updateFPS(thisTime)

@@ -81,31 +81,43 @@ object Maths {
     fun sq(x: Double, y: Double, z: Double) = x * x + y * y + z * z
 
     @JvmStatic
-    fun clamp(x: Byte, min: Byte, max: Byte) = if (x < min) min else if (x < max) x else max
+    fun clamp(x: Byte, min: Byte, max: Byte): Byte = if (x < min) min else if (x < max) x else max
 
     @JvmStatic
-    fun clamp(x: Char, min: Char, max: Char) = if (x < min) min else if (x < max) x else max
+    fun clamp(x: Char, min: Char, max: Char): Char = if (x < min) min else if (x < max) x else max
 
     @JvmStatic
-    fun clamp(x: Short, min: Short, max: Short) = if (x < min) min else if (x < max) x else max
+    fun clamp(x: Short, min: Short, max: Short): Short = if (x < min) min else if (x < max) x else max
 
     @JvmStatic
-    fun clamp(x: Int, min: Int, max: Int) = if (x < min) min else if (x < max) x else max
+    fun clamp(x: Int, min: Int, max: Int): Int = if (x < min) min else if (x < max) x else max
 
     @JvmStatic
-    fun clamp(x: Long, min: Long, max: Long) = if (x < min) min else if (x < max) x else max
+    fun clamp(x: Long, min: Long, max: Long): Long = if (x < min) min else if (x < max) x else max
 
     @JvmStatic
-    fun clamp(x: Float, min: Float, max: Float) = if (x < min) min else if (x < max) x else max
+    fun clamp(x: Float, min: Float, max: Float): Float = if (x < min) min else if (x < max) x else max
 
     @JvmStatic
-    fun clamp(x: Double, min: Double, max: Double) = if (x < min) min else if (x < max) x else max
+    fun clamp(x: Double, min: Double, max: Double): Double = if (x < min) min else if (x < max) x else max
 
     @JvmStatic
     fun clamp(x: Double) = if (x < 0.0) 0.0 else if (x < 1.0) x else 1.0
 
     @JvmStatic
     fun clamp(x: Float) = if (x < 0f) 0f else if (x < 1f) x else 1f
+
+    @JvmStatic
+    fun absClamp(x: Int, max: Int): Int = clamp(x, -max, max)
+
+    @JvmStatic
+    fun absClamp(x: Long, max: Long): Long = clamp(x, -max, max)
+
+    @JvmStatic
+    fun absClamp(x: Float, max: Float): Float = clamp(x, -max, max)
+
+    @JvmStatic
+    fun absClamp(x: Double, max: Double): Double = clamp(x, -max, max)
 
     private val randomImpl = threadLocal { Random(System.nanoTime() xor Thread.currentThread().id) }
 
@@ -156,9 +168,6 @@ object Maths {
      * */
     @JvmStatic
     fun dtTo10(x: Double) = exp(-x)
-
-    @JvmStatic
-    fun clamp01(x: Float) = clamp(x, 0f, 1f)
 
     @JvmStatic
     fun pow(base: Double, power: Double) = base.pow(power)

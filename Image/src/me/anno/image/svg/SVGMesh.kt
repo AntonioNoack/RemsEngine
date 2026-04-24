@@ -22,6 +22,7 @@ import me.anno.io.xml.generic.XMLReader
 import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
+import me.anno.maths.Maths.absClamp
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.utils.async.Callback
@@ -347,7 +348,7 @@ class SVGMesh(xml: XMLNode) {
     fun angle(ux: Float, uy: Float, vx: Float, vy: Float): Float {
         val sign = if (ux * vy - uy * vx > 0f) 1f else -1f
         val dotTerm = (ux * vx + uy * vy) / sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy))
-        return sign * acos(clamp(dotTerm, -1f, 1f))
+        return sign * acos(absClamp(dotTerm, 1f))
     }
 
     fun addPolylineBody(xml: XMLNode) {

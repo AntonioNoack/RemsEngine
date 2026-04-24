@@ -1,7 +1,7 @@
 package me.anno.maths.noise
 
+import me.anno.maths.Maths.absClamp
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.clamp01
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.pow
 import me.anno.maths.Maths.sq
@@ -283,7 +283,7 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
         val normalization = normalization
 
         var strength = strength * scale
-        fadeTarget = clamp(fadeTarget, -1f, 1f)
+        fadeTarget = absClamp(fadeTarget, 1f)
 
         val inputHeight = heightAndSlope.x
         var freq = 1f / (scale * cellScale)
@@ -291,7 +291,7 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
         var magnitude = 0f
         var roundingMultiplier = 1f
 
-        val roundingForInput = mix(rounding.y, rounding.x, clamp01(fadeTarget + 0.5f)) * rounding.z
+        val roundingForInput = mix(rounding.y, rounding.x, clamp(fadeTarget + 0.5f)) * rounding.z
         // The combined accumulating mask, based first on initial slope, and later on slope of each octave too.
         var combiMask = easeOut(smoothStart(slopeLength * onset.x, roundingForInput * onset.x))
 
@@ -350,7 +350,7 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
             fadeTarget = fadedGulliesX
 
             // Update the mask to include the new octave.
-            val roundingForOctave = mix(rounding.y, rounding.x, clamp01(phacelle.x + 0.5f)) * roundingMultiplier
+            val roundingForOctave = mix(rounding.y, rounding.x, clamp(phacelle.x + 0.5f)) * roundingMultiplier
             val newMask = easeOut(smoothStart(sloping * onset.y, roundingForOctave * onset.y))
             combiMask = powInv(combiMask, detail) * newMask
 
@@ -392,9 +392,9 @@ abstract class ErosionNoise(val baseNoise: PhacelleNoise) {
 
         return dst.set(
             eroded,
-            clamp01(erosion * 0.5f + 0.5f), // Erosion delta as [0, 1] value.
-            clamp01(ridgeMap * 0.5f + 0.5f), // Ridge map as [0, 1] value.
-            clamp01(trees * 0.5f + 0.5f), // Tree value as [0, 1] value.
+            clamp(erosion * 0.5f + 0.5f), // Erosion delta as [0, 1] value.
+            clamp(ridgeMap * 0.5f + 0.5f), // Ridge map as [0, 1] value.
+            clamp(trees * 0.5f + 0.5f), // Tree value as [0, 1] value.
         )
     }
 }

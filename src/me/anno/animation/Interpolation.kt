@@ -79,7 +79,7 @@ enum class Interpolation(val id: Int, val nameDesc: NameDesc) {
     EASE_IN(5, "Ease-In") {
         override fun getReversedType(): Interpolation = EASE_OUT
         override fun getIn(x: Double): Double {
-            val time = 1.0 - clamp(x, 0.0, 1.0)
+            val time = 1.0 - clamp(x)
             val expM2 = exp(-3.0)
             return (exp(-time * 3.0) - expM2) / (1.0 - expM2)
         }
@@ -94,13 +94,13 @@ enum class Interpolation(val id: Int, val nameDesc: NameDesc) {
     SWING(7, "Swinging") {
         override fun getReversedType(): Interpolation = SWING_REV
         override fun getIn(x: Double): Double {
-            val time = 1.0 - clamp(x, 0.0, 1.0)
+            val time = 1.0 - clamp(x)
             val expFactor = 7.0
             val expM2 = exp(-expFactor)
             return (exp(-time * expFactor) - expM2) / (1.0 - expM2) * mix(
                 1.0,
                 3.0 * cos(time * PI * 5.0),
-                clamp(2.0 * time, 0.0, 1.0)
+                clamp(2.0 * time)
             )
         }
     },
