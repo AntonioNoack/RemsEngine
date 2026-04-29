@@ -361,7 +361,7 @@ open class Vector4f(
     fun normalize(length: Float, dst: Vector4f = this) = mul(length / length(), dst)
 
     @JvmOverloads
-    fun normalize3(dst: Vector4f = this) = mul(1f / length3(), dst)
+    fun normalizeByXYZ(dst: Vector4f = this) = mul(1f / lengthXYZ(), dst)
 
     @JvmOverloads
     fun safeNormalize(length: Float = 1f): Vector4f {
@@ -370,7 +370,7 @@ open class Vector4f(
         return this
     }
 
-    fun length3() = sqrt(x * x + y * y + z * z)
+    fun lengthXYZ() = sqrt(x * x + y * y + z * z)
 
     fun distance(v: Vector4f): Float = distance(v.x, v.y, v.z, v.w)
     fun distance(vx: Float, vy: Float, vz: Float, vw: Float): Float = distance(x, y, z, w, vx, vy, vz, vw)

@@ -15,6 +15,7 @@ import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.GPUShader
@@ -36,6 +37,9 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable, MaterialOve
 
     @SerializedProperty
     var castShadows = true
+
+    @SerializedProperty
+    var castReflections = true
 
     // idk... good for large scenes, bad for accurate lighting in forward rendering
     // automatic instancing based on if shader is default??...
@@ -106,6 +110,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable, MaterialOve
     override fun fill(pipeline: Pipeline, transform: Transform) {
         if (manager != null) return // already handled
         if (!castShadows && pipeline === LightComponent.pipeline) return // shouldn't be drawn
+        if (!castReflections && RenderState.isRenderingReflections) return // shouldn't be drawn
 
         val mesh = getMeshOrNull() ?: return // mesh hasn't been loaded yet :/
         clickId = pipeline.getClickId(this)

@@ -355,9 +355,9 @@ open class Vector4d(
         return dst.set(x, y, z, w)
     }
 
-    fun lengthSquared(): Double = Companion.lengthSquared(x, y, z, w)
-    fun length(): Double = Companion.length(x, y, z, w)
-    fun length3(): Double = sqrt(x * x + y * y + z * z)
+    fun lengthSquared(): Double = lengthSquared(x, y, z, w)
+    fun length(): Double = length(x, y, z, w)
+    fun lengthXYZ(): Double = sqrt(x * x + y * y + z * z)
 
     @JvmOverloads
     fun normalize(dst: Vector4d = this) = div(length(), dst)
@@ -366,7 +366,7 @@ open class Vector4d(
     fun normalize(length: Double, dst: Vector4d = this) = mul(length / length(), dst)
 
     @JvmOverloads
-    fun normalize3(dst: Vector4d = this) = div(length3(), dst)
+    fun normalizeByXYZ(dst: Vector4d = this) = div(lengthXYZ(), dst)
 
     @JvmOverloads
     fun safeNormalize(length: Double = 1.0): Vector4d {

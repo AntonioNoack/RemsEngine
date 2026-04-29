@@ -1,6 +1,8 @@
 package me.anno.engine.ui.render
 
-import me.anno.gpu.buffer.LineBuffer
+import me.anno.Time
+import me.anno.engine.debug.DebugLine
+import me.anno.engine.debug.DebugShapes
 import me.anno.maths.Maths.sq
 import me.anno.utils.Color.black
 import org.joml.AABBd
@@ -107,6 +109,17 @@ class Frustum {
         }
         this.cameraPosition.set(cameraPosition)
         this.cameraRotation.set(cameraRotation)
+    }
+
+    fun transform(cameraPosition: Vector3d) {
+        val positions = positions
+        val normals = normals
+        val planes = planes
+        for (i in 0 until numPlanes) {
+            val position = positions[i].add(cameraPosition)
+            planes[i].set(position, normals[i])
+        }
+        this.cameraPosition.set(cameraPosition)
     }
 
     fun transform2(cameraPosition: Vector3d, cameraRotation: Quaternionf) {
@@ -254,7 +267,8 @@ class Frustum {
     fun defineGenerally(
         cameraMatrix: Matrix4f,
         cameraPosition: Vector3d,
-        cameraRotation: Quaternionf
+        cameraRotation: Quaternionf,
+        cameraMatrixContainsRotation: Boolean,
     ) {
 
         // unknown
@@ -266,8 +280,14 @@ class Frustum {
             planes[i].set(tmp.x, tmp.y, tmp.z, tmp.w.toDouble())
         }
 
+        if (cameraMatrixContainsRotation) {
+            transform(cameraPosition)
+            this.cameraRotation.set(cameraRotation)
+        } else {
+            transform(cameraPosition, cameraRotation)
+        }
+
         numPlanes = 6
-        transform(cameraPosition, cameraRotation)
         isPerspective = cameraMatrix.m30 != 1f // mmh
     }
 
@@ -277,12 +297,17 @@ class Frustum {
             val s = 1.0
             val p = positions[i]
             val n = normals[i]
-            val color = 0x00ff00 or black
-            LineBuffer.addLine(p, Vector3d(n).normalize(length).add(p), color)
-            LineBuffer.addLine(Vector3d(p).add(-s, 0.0, 0.0), Vector3d(p).add(+s, 0.0, 0.0), color)
-            LineBuffer.addLine(Vector3d(p).add(0.0, -s, 0.0), Vector3d(p).add(0.0, +s, 0.0), color)
-            LineBuffer.addLine(Vector3d(p).add(0.0, 0.0, -s), Vector3d(p).add(0.0, 0.0, +s), color)
+            showDebugLine(p, Vector3d(n).normalize(length).add(p))
+            showDebugLine(Vector3d(p).add(-s, 0.0, 0.0), Vector3d(p).add(+s, 0.0, 0.0))
+            showDebugLine(Vector3d(p).add(0.0, -s, 0.0), Vector3d(p).add(0.0, +s, 0.0))
+            showDebugLine(Vector3d(p).add(0.0, 0.0, -s), Vector3d(p).add(0.0, 0.0, +s))
         }
+    }
+
+    private fun showDebugLine(p0: Vector3d, p1: Vector3d) {
+        val color = 0x00ff00 or black
+        val dt = Time.deltaTime.toFloat() * 2f
+        DebugShapes.debugLines.add(DebugLine(p0, p1, color, dt))
     }
 
     /**

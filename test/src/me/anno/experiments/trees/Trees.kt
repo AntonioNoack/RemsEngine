@@ -15,6 +15,7 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.DitherMode
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderLib.applyTiling
 import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.dither2x2
 import me.anno.gpu.shader.ShaderLib.parallaxMapping
@@ -82,7 +83,7 @@ object LeavesShader : ECSMeshShader("Leaves") {
                         } else "") +
                         finalMotionCalculation
             ).add(quatRot).add(brightness).add(parallaxMapping).add(getReflectivity)
-                .add(dither2x2)
+                .add(dither2x2).add(applyTiling)
         )
     }
 }

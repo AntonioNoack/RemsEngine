@@ -60,6 +60,8 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
     val timer = GPUClockNanos()
 
     // todo everything lags behind 1 frame -> this needs to be calculated after the camera position has been calculated!!!
+    override fun priority(): Int = 10000
+
     override fun onUpdate() {
 
         lastDrawn = Time.gameTimeN
@@ -126,12 +128,16 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
         val root = getRoot(Entity::class)
         pipeline.clear()
-        // todo check that this is correct...
-        pipeline.frustum.defineGenerally(cameraMatrix1, reflectedCameraPosition, reflectedCameraRotation)
-        pipeline.frustum.showPlanes()
+        // looks correct now :)
+        pipeline.frustum.defineGenerally(
+            cameraMatrix1, reflectedCameraPosition, reflectedCameraRotation,
+            cameraMatrixContainsRotation = true
+        )
+        // pipeline.frustum.showPlanes()
 
         // define last frustum plane
         pipeline.frustum.planes[pipeline.frustum.numPlanes++].set(mirrorPos, mirrorNormal)
+        RenderState.isRenderingReflections = true
 
         if (root != null) pipeline.fill(root)
         addDefaultLightsIfRequired(pipeline, root, null)

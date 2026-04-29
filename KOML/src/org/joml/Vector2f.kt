@@ -340,6 +340,9 @@ open class Vector2f(
         )
     }
 
+    fun fract(dst: Vector2f = this): Vector2f =
+        dst.set(Runtime.fract(x), Runtime.fract(y))
+
     companion object {
 
         @JvmStatic

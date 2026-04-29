@@ -818,6 +818,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     val prevCameraPosition = Vector3d()
     val prevCameraRotation = Quaternionf()
 
+    var isRenderingReflections = false
+
     fun updatePrevState() {
         prevCameraMatrix.set(cameraMatrix)
         prevCameraMatrixInv.set(cameraMatrixInv)
@@ -846,6 +848,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         RenderState.far = far
 
         pipeline.superMaterial = superMaterial.material
+        RenderState.isRenderingReflections = false
     }
 
     companion object {

@@ -22,6 +22,8 @@ object RenderState {
     val cameraDirectionUp = Vector3f() // = cameraRotation.transform([0,1,0])
     val cameraDirection = Vector3f() // = cameraRotation.transform([0,0,-1])
 
+    var isRenderingReflections = false
+
     fun calculateDirections(isPerspective: Boolean, needsInversion: Boolean) {
         cameraDirection
             .set(0.0, 0.0, -1.0)

@@ -80,7 +80,7 @@ class SDFTwist : PositionMapper() {
     private fun calcSourceParams() {
         val w = sourceParams.w
         sourceParams.set(source, 0f)
-        sourceParams.mul(strength / sourceParams.length3())
+        sourceParams.mul(strength / sourceParams.lengthXYZ())
         sourceParams.w = w
     }
 

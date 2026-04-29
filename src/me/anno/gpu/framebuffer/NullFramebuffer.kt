@@ -11,6 +11,7 @@ import me.anno.gpu.OSWindow
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.TextureLib
 import org.lwjgl.opengl.GL46C
 
 /**
@@ -67,7 +68,7 @@ object NullFramebuffer : IFramebuffer {
     }
 
     override val depthTexture
-        get() = throw UnsupportedOperationException()
+        get() = TextureLib.depthTexture
     override val depthMask: Int
         get() = 0
 

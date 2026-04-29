@@ -17,6 +17,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.GLASS_PASS
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthVars
@@ -50,13 +51,8 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
         super.bind(shader, renderer, instanced)
         shader.v1f("uvScroll", (Time.gameTime * 0.17) % 1.0)
         bindDepthUniforms(shader)
-        var depth = findDepthTexture(GFXState.framebuffer.currentValue)
-        if (depth == null) println("no depth was found!")
-        if (Input.isShiftDown && depth is Framebuffer) { // todo we probably need to do this in some environments, don't we?
-            val tmp = FBStack["depth", depth.width, depth.height, 0, true, 1, DepthBufferType.TEXTURE]
-            depth.copyTo(tmp, false, true)
-            depth = tmp
-        }
+
+        val depth = findDepthTexture(GFXState.framebuffer.currentValue)
         (depth?.depthTexture ?: depthTexture).bindTrulyNearest(shader, "depthTex")
     }
 
@@ -92,7 +88,8 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
                         roughnessCalculation +
                         // sheenCalculation +
                         // clearCoatCalculation +
-                        v0 + reflectionCalculation +
+                        // v0 +
+                        reflectionCalculation +
                         finalMotionCalculation
             ).add(ShaderLib.brightness).add(rawToDepth).add(RendererLib.getReflectivity)
                 .add(ShaderLib.applyTiling)
@@ -102,9 +99,10 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
 
 class ForceFieldMaterial : Material() {
     init {
-        pipelineStage = GLASS_PASS
-        // roughnessMinMax.set(0.01f)
-        // metallicMinMax.set(1f)
+        // todo why does this only work properly with transparent???
+        pipelineStage = PipelineStage.TRANSPARENT
+        roughnessMinMax.set(0.01f)
+        metallicMinMax.set(1f)
         diffuseMap = res.getChild("textures/BlurryHexagons.webp")
         diffuseBase.set(0.3f, .9f, 1f)
         emissiveBase.set(60f)

@@ -57,7 +57,7 @@ class Vector4fTests {
         assertEquals(sqrt(expected), Vector4f(3f, 2f, 4f, -1f).length())
         assertEquals(expected, Vector4f(3f, 2f, 4f, -1f).lengthSquared())
         val expected3 = 3f * 3f + 2f * 2f + 4f * 4f
-        assertEquals(sqrt(expected3), Vector4f(3f, 2f, 4f, -1f).length3())
+        assertEquals(sqrt(expected3), Vector4f(3f, 2f, 4f, -1f).lengthXYZ())
     }
 
     @Test

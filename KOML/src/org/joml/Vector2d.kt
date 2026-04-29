@@ -367,6 +367,9 @@ open class Vector2d(
         )
     }
 
+    fun fract(dst: Vector2d = this): Vector2d =
+        dst.set(Runtime.fract(x), Runtime.fract(y))
+
     companion object {
         @JvmStatic
         fun lengthSquared(x: Double, y: Double) = x * x + y * y

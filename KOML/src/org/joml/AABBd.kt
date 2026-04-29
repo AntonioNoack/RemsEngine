@@ -75,6 +75,14 @@ class AABBd(
         return setMin(x, y, z).setMax(x, y, z)
     }
 
+    fun set(
+        minX: Double, minY: Double, minZ: Double,
+        maxX: Double, maxY: Double, maxZ: Double,
+    ) {
+        setMin(minX, minY, minZ)
+        setMax(maxX, maxY, maxZ)
+    }
+
     fun getMin(dim: Int) =
         if (dim == 0) minX
         else (if (dim == 1) minY else minZ)

@@ -27,6 +27,7 @@ import org.joml.Planef
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector2i
+import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector3i
 import org.joml.Vector4f
@@ -75,7 +76,11 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                 else -> warnUnknownType("V1F", value)
             }
             GLSLType.V2F -> shader.v2f(location, value as Vector2f)
-            GLSLType.V3F -> shader.v3f(location, value as Vector3f)
+            GLSLType.V3F -> when (value) {
+                is Vector3f -> shader.v3f(location, value)
+                is Vector3d -> shader.v3f(location, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
+                else -> warnUnknownType("V3F", value)
+            }
             GLSLType.V4F -> when (value) {
                 is Quaternionf -> shader.v4f(location, value)
                 is Vector4f -> shader.v4f(location, value)

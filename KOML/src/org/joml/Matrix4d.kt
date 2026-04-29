@@ -5430,13 +5430,13 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
 
     fun frustumPlane(plane: Int, dst: Vector4d): Vector4d {
         when (plane) {
-            0 -> dst.set(m03 + m00, m13 + m10, m23 + m20, m33 + m30).normalize3()
-            1 -> dst.set(m03 - m00, m13 - m10, m23 - m20, m33 - m30).normalize3()
-            2 -> dst.set(m03 + m01, m13 + m11, m23 + m21, m33 + m31).normalize3()
-            3 -> dst.set(m03 - m01, m13 - m11, m23 - m21, m33 - m31).normalize3()
-            4 -> dst.set(m03 + m02, m13 + m12, m23 + m22, m33 + m32).normalize3()
-            else -> dst.set(m03 - m02, m13 - m12, m23 - m22, m33 - m32).normalize3()
-        }
+            0 -> dst.set(m03 + m00, m13 + m10, m23 + m20, m33 + m30)
+            1 -> dst.set(m03 - m00, m13 - m10, m23 - m20, m33 - m30)
+            2 -> dst.set(m03 + m01, m13 + m11, m23 + m21, m33 + m31)
+            3 -> dst.set(m03 - m01, m13 - m11, m23 - m21, m33 - m31)
+            4 -> dst.set(m03 + m02, m13 + m12, m23 + m22, m33 + m32)
+            else -> dst.set(m03 - m02, m13 - m12, m23 - m22, m33 - m32)
+        }.normalizeByXYZ()
         return dst
     }
 

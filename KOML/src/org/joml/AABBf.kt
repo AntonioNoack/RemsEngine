@@ -173,6 +173,14 @@ class AABBf(
         return this
     }
 
+    fun set(
+        minX: Float, minY: Float, minZ: Float,
+        maxX: Float, maxY: Float, maxZ: Float,
+    ) {
+        setMin(minX, minY, minZ)
+        setMax(maxX, maxY, maxZ)
+    }
+
     fun clear(): AABBf {
         minX = Float.POSITIVE_INFINITY
         minY = Float.POSITIVE_INFINITY
