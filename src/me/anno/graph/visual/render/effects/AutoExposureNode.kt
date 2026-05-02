@@ -52,8 +52,8 @@ class AutoExposureNode : TimedRenderingNode(
 ) {
 
     init {
-        setInput(1, 60f)
-        setInput(2, 1f)
+        setInput(1, 50f)
+        setInput(2, 2f)
     }
 
     var exposure = 1f
