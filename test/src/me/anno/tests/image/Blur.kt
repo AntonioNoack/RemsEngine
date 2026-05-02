@@ -4,9 +4,9 @@ import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageCache
 import me.anno.image.raw.FloatImage
-import me.anno.image.utils.BoxBlur.boxBlurX
-import me.anno.image.utils.BoxBlur.boxBlurY
-import me.anno.image.utils.BoxBlur.multiply
+import me.anno.image.utils.ImageBoxBlur.boxBlurX
+import me.anno.image.utils.ImageBoxBlur.boxBlurY
+import me.anno.image.utils.ImageBoxBlur.multiply
 import me.anno.utils.Color.g01
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures

@@ -1,6 +1,9 @@
 package me.anno.image.utils
 
-object BoxBlur {
+import me.anno.maths.Maths.clamp
+import me.anno.maths.MinMax.min
+
+object ImageBoxBlur {
 
     @JvmStatic
     fun boxBlurX(

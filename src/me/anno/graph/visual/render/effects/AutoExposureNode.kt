@@ -20,6 +20,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.posMod
+import me.anno.utils.search.Histogram.boxBlur
 import me.anno.utils.search.Histogram.getHistogramIndex
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
@@ -113,9 +114,17 @@ class AutoExposureNode : TimedRenderingNode(
         exposure = mix(exposure, targetExposure, adaption)
     }
 
-    private fun findPercentile(values: IntArray, percentile: Float): Float {
+    private fun findPercentile(values1: IntArray, percentile: Float): Float {
+        // we have a bloom-step, that runs after -> blur the histogram
+        // (this fixes the scenario, where you have a few bright spots, and the rest is dark:
+        //  without this, the bloom would blind you)
+        val radius = numBins / 3
+        boxBlur(values1, values2, radius)
+        boxBlur(values2, values1, radius)
+        boxBlur(values1, values2, radius)
+
         val numStops = log2(maxBrightness) - log2(minBrightness)
-        val relativeStops = getHistogramIndex(values, percentile) / numBins * numStops
+        val relativeStops = getHistogramIndex(values2, percentile) / numBins * numStops
         return minBrightness * 2f.pow(relativeStops)
     }
 
@@ -133,6 +142,7 @@ class AutoExposureNode : TimedRenderingNode(
         // no reason to change this
         private val numBins = 256
         private val tmpBins = IntArray(numBins)
+        private val values2 = IntArray(numBins)
 
         // could be application-dependent
         var minBrightness = 1e-6f

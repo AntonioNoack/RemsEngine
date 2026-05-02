@@ -42,7 +42,7 @@ interface AllocationManager<Instance, Array, ArrayDelta> {
         if (space > 0) holes.add(IntRange(start, endExcl - 1))
     }
 
-    fun add(addedInstance: Instance, addedData: ArrayDelta): Insertion? {
+    fun addData(addedInstance: Instance, addedData: ArrayDelta): Insertion? {
         synchronized(this) {
             // find hole with enough space
             val insertRange = getRange(addedInstance)
@@ -176,7 +176,7 @@ interface AllocationManager<Instance, Array, ArrayDelta> {
         addHole(newStart, newSize)
     }
 
-    fun remove(element: Instance): Boolean {
+    fun removeData(element: Instance): Boolean {
         synchronized(this) {
             val searchedRange = getRange(element)
             if (searchedRange.isEmpty()) return false

@@ -86,7 +86,7 @@ class AllocationManagerTest {
         val key = TestData(originalPosition, 100)
         val newData = -1 - i
         val oldStorage = manager.storage
-        manager.add(key, newData)
+        manager.addData(key, newData)
         val newStorage = manager.storage!!
 
         // we need two copy operations:
@@ -134,7 +134,7 @@ class AllocationManagerTest {
 
     fun testRemoval(manager: TestManager, i: Int, n: Int) {
         val toRemove = manager.instances[i]
-        assertTrue(manager.remove(toRemove))
+        assertTrue(manager.removeData(toRemove))
         assertTrue(manager.allocationSizes.isEmpty())
         assertTrue(manager.copyOperations.isEmpty())
         assertTrue(toRemove !in manager.instances) {
@@ -152,7 +152,7 @@ class AllocationManagerTest {
         testRemoval(manager, 2, 5)
         // insert replacement value
         val newData = TestData(55, 100)
-        val type = manager.add(newData, -17)?.type
+        val type = manager.addData(newData, -17)?.type
         val storage1 = manager.storage!!
         // check insertion
         val insertCopy = CopyOperation(
@@ -193,7 +193,7 @@ class AllocationManagerTest {
         testRemoval(manager, 2, 4)
         // insert replacement value
         val newData = TestData(55, 150)
-        val type = manager.add(newData, -17)?.type
+        val type = manager.addData(newData, -17)?.type
         val storage1 = manager.storage!!
         // check insertion
         val insertCopy = CopyOperation(
@@ -220,7 +220,7 @@ class AllocationManagerTest {
         testRemoval(manager, 2, 5)
         // insert replacement value
         val newData = TestData(55, 150)
-        manager.add(newData, -17)
+        manager.addData(newData, -17)
         val storage1 = manager.storage!!
         // check insertion
         val insertCopy = CopyOperation(

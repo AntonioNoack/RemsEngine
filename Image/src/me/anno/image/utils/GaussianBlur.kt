@@ -98,19 +98,19 @@ object GaussianBlur {
         // we could use the image itself as buffer; (but only we waste space in the first place ->
         // don't optimize that case)
         if (f0 > 1) {
-            BoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp1)
-            BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp1, tmp2)
-            BoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp1)
-            BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp1, tmp2)
+            ImageBoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp1)
+            ImageBoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp1, tmp2)
+            ImageBoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp1)
+            ImageBoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp1, tmp2)
             x = Maths.sq(min(w, f0) * min(h, f0))
         }
         if (f1 > 1) {
-            BoxBlur.boxBlurX(image, w, h, i0, stride, f1, false, tmp1)
-            BoxBlur.boxBlurY(image, w, h, i0, stride, f1, false, tmp1, tmp2)
+            ImageBoxBlur.boxBlurX(image, w, h, i0, stride, f1, false, tmp1)
+            ImageBoxBlur.boxBlurY(image, w, h, i0, stride, f1, false, tmp1, tmp2)
             x *= min(w, f1) * min(h, f1)
         }
         if (normalize) {
-            BoxBlur.multiply(image, w, h, i0, stride, 1f / x)
+            ImageBoxBlur.multiply(image, w, h, i0, stride, 1f / x)
         }
         return true
     }

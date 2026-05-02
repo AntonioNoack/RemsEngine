@@ -45,7 +45,7 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
         val b0 = buffer0
         val b1 = buffer1
         clock.start()
-        val invalid = add(mesh, mesh) == null
+        val invalid = addData(mesh, mesh) == null
         if (invalid) return false
         val bx = storage
         clock.stop("Insert", 0.01)
@@ -58,8 +58,8 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
 
     fun remove(key: Key, destroyMesh: Boolean): Mesh? {
         val entry = entries.remove(key) ?: return null
-        zero(entry)
-        remove(entry)
+        zeroMesh(entry)
+        removeData(entry)
         if (destroyMesh && entry is ICacheData) {
             entry.destroy()
         }
@@ -68,11 +68,11 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
 
     fun zero(key: Key): Boolean {
         val entry = entries[key] ?: return false
-        zero(entry)
+        zeroMesh(entry)
         return true
     }
 
-    fun zero(entry: Mesh) {
+    fun zeroMesh(entry: Mesh) {
         val range = getRange(entry)
         buffer.zeroElements(range.first, range.size)
     }

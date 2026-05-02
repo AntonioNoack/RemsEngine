@@ -1,6 +1,7 @@
 package me.anno.utils.search
 
 import me.anno.maths.Maths.clamp
+import me.anno.maths.MinMax.min
 import me.anno.utils.types.Booleans.toInt
 
 object Histogram {
@@ -33,6 +34,25 @@ object Histogram {
             }
         }
         return values.size
+    }
+
+    fun boxBlur(src: IntArray, dst: IntArray, radius: Int) {
+        val size = src.size
+        val windowSize = radius * 2 + 1
+
+        var sum = radius.toLong() // for blurring
+        for (i in 0 until size) {
+            if (i == 0) {
+                sum += src[0] * (radius + 1L)
+                for (j in 1..radius) {
+                    sum += src[min(j, size - 1)]
+                }
+            } else {
+                sum += src[clamp(i + radius, 0, size - 1)]
+                sum -= src[clamp(i - radius - 1, 0, size - 1)]
+            }
+            dst[i] = (sum / windowSize).toInt()
+        }
     }
 
 }

@@ -308,7 +308,7 @@ class HierarchicalDatabase(
 
         val storage1 = sf.ensureStorage()
         storage1.storage = oldData
-        val type = storage1.add(file, value.bytes)?.type
+        val type = storage1.addData(file, value.bytes)?.type
         val data = storage1.storage!!
         synchronized(files) { folder.files[hash] = file }
 
