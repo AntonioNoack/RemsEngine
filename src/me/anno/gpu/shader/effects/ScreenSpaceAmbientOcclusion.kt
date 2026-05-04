@@ -83,7 +83,7 @@ object ScreenSpaceAmbientOcclusion {
     private fun generateRandomTexture(random: Random): IndestructibleTexture2D {
         var j = 0
         val data = ByteArray(64)
-        for (i in 0 until 16) {
+        repeat( 16) {
             val nx = random.nextFloat() * 2 - 1
             val ny = random.nextFloat() * 2 - 1
             val nz = random.nextFloat() * 2 - 1
@@ -135,11 +135,11 @@ object ScreenSpaceAmbientOcclusion {
                     (if (multisampling) "" +
                             "   ivec2 texSizeI = textureSize(finalDepth);\n" +
                             "   #define getPixel(tex,uv) texelFetch(tex,clamp(ivec2(uv*vec2(texSizeI)),ivec2(0),texSizeI-1),0)\n"
-                    else "#define getPixel(tex,uv) textureLod(tex,uv,0.0)\n") +
+                    else "#define getPixel(tex,uv) texture(tex,uv,0.0)\n") +
                     "   float depth0 = getPixel(finalDepth, uv).$depthMask;\n" +
                     "   vec3 origin = rawDepthToPosition(uv, depth0);\n" +
                     "   float radius = length(origin);\n" +
-                    "   if(radius < 1e18){\n" + // sky and such can be skipped automatically
+                    "   if (radius < 1e18){\n" + // sky and such can be skipped automatically
                     "       radius *= radiusScale;\n" +
                     "       vec3 normal = UnpackNormal(getPixel(finalNormal, uv).$normalZW);\n" +
                     // reverse back sides, e.g., for plants
@@ -167,7 +167,7 @@ object ScreenSpaceAmbientOcclusion {
                     "           vec3 dir1 = matMul(tbn, dir0);\n" +
                     "           vec3 position = dir1 * radius + origin;\n" +
                     // project sample position
-                    "           vec4 offset = matMul(cameraMatrix, vec4(position, 0.0));\n" +
+                    "           vec4 offset = matMul(cameraMatrix, vec4(position, 1.0));\n" +
                     "           offset.xy /= offset.w;\n" +
                     "           offset.xy = offset.xy * 0.5 + 0.5;\n" +
                     "           bool isInside = offset.x >= 0.0 && offset.x <= 1.0 && offset.y >= 0.0 && offset.y <= 1.0;\n" +

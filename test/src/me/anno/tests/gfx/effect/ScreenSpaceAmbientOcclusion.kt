@@ -2,10 +2,9 @@ package me.anno.tests.gfx.effect
 
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.utils.OS.documents
+import me.anno.utils.OS.res
 
 fun main() {
-    testSceneWithUI("SSAO", documents.getChild("Assets School Classroom.blend")) {
-        it.renderView.renderMode = RenderMode.SSAO
-    }
+    val source = res.getChild("meshes/NavMesh.fbx")
+    testSceneWithUI("SSAO", source, RenderMode.SSAO)
 }

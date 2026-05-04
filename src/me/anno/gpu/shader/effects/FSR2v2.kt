@@ -110,7 +110,6 @@ class FSR2v2 : ICacheData {
     class PerViewData {
         var data0 = IFramebuffer.createFramebuffer("fsr2-0", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
         var data1 = IFramebuffer.createFramebuffer("fsr2-1", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
-        val tmpM = Matrix4f()
     }
 
     val views = LazyMap { _: Int -> PerViewData() }
@@ -145,14 +144,14 @@ class FSR2v2 : ICacheData {
         jy = (si / scaleX + 0.5f) / scaleY - 0.5f
         val renderSizeX = pw / scaleX
         val renderSizeY = ph / scaleY
-        views[RenderState.viewIndex].tmpM.set(m)
+        TAANode.views[RenderState.viewIndex].set(m)
         val dx = jx * 2f / renderSizeX
         val dy = jy * 2f / renderSizeY
         TAANode.jitter(m, dx, dy)
     }
 
     fun unjitter(m: Matrix4f) {
-        m.set(views[RenderState.viewIndex].tmpM)
+        m.set(TAANode.views[RenderState.viewIndex])
             .rotateInv(RenderState.cameraRotation)
     }
 

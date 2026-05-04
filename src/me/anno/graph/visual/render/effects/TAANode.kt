@@ -133,12 +133,15 @@ class TAANode : TimedRenderingNode(
             return getPattern(dt1, dst).sub(getPattern(dt0, tmp))
         }
 
-        fun jitterAndStore(m: Matrix4f, pw: Int, ph: Int) {
+        fun jitter(m: Matrix4f, pw: Int, ph: Int) {
             val pattern = getPattern(0, tmp0)
             val jx = pattern.x
             val jy = pattern.y
-            views[RenderState.viewIndex].set(m)
             jitter(m, jx, jy, 1f, pw, ph)
+        }
+
+        fun store(m: Matrix4f) {
+            views[RenderState.viewIndex].set(m)
         }
 
         fun jitter(m: Matrix4f, jx: Float, jy: Float, amplitude: Float, pw: Int, ph: Int) {

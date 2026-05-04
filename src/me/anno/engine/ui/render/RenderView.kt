@@ -459,10 +459,14 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         RenderState.prevCameraPosition.set(prevCameraPosition)
         RenderState.isPerspective = isPerspective
 
-        if (renderMode.renderGraph?.nodes?.any2 { it is FSR2Node } == true) {
+        TAANode.store(cameraMatrix)
+
+        val usesFSR2Jitter = renderMode.renderGraph?.nodes?.any2 { it is FSR2Node } == true
+        val usesTAAJitter = renderMode.renderGraph?.nodes?.any2 { it is TAANode } == true
+        if (usesFSR2Jitter) {
             fsr22.jitter(cameraMatrix, width, height)
-        } else if (renderMode.renderGraph?.nodes?.any2 { it is TAANode } == true) {
-            TAANode.jitterAndStore(cameraMatrix, width, height)
+        } else if (usesTAAJitter) {
+            TAANode.jitter(cameraMatrix, width, height)
         }
 
         if (!cameraMatrix.isFinite) {
