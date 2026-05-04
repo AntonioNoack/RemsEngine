@@ -64,17 +64,19 @@ class AutoExposureNode : TimedRenderingNode(
         val scale = getFloatInput(2)
         if (scale <= 0f) return setOutput(1, 0f)
 
-        val percentile = clamp(getFloatInput(1) * 0.01f)
+        if (enabled) {
+            val percentile = clamp(getFloatInput(1) * 0.01f)
 
-        val colorT = getInput(3) as? Texture
-        val colorMT = colorT?.texMSOrNull ?: colorT?.texOrNull
+            val colorT = getInput(3) as? Texture
+            val colorMT = colorT?.texMSOrNull ?: colorT?.texOrNull
 
-        if (colorMT != null) {
-            timeRendering(name, timer) {
-                countPixels(colorMT)
-                evaluateBrightness(percentile, scale)
+            if (colorMT != null) {
+                timeRendering(name, timer) {
+                    countPixels(colorMT)
+                    evaluateBrightness(percentile, scale)
+                }
             }
-        }
+        } else exposure = 1f
 
         setOutput(1, exposure)
     }
@@ -147,6 +149,11 @@ class AutoExposureNode : TimedRenderingNode(
         // could be application-dependent
         var minBrightness = 1e-6f
         var maxBrightness = 1e6f
+        var enabled = true
+
+        fun disableAutoExposure() {
+            enabled = false
+        }
 
         private const val BARRIER_BITS =
             GL_SHADER_STORAGE_BARRIER_BIT or
