@@ -33,8 +33,6 @@ import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-// todo this is too dark on some regions on curved region on flat angles
-//  - maybe the normals are close to being backwards?
 object ScreenSpaceAmbientOcclusion {
 
     class SSGIData(
@@ -83,7 +81,7 @@ object ScreenSpaceAmbientOcclusion {
     private fun generateRandomTexture(random: Random): IndestructibleTexture2D {
         var j = 0
         val data = ByteArray(64)
-        repeat( 16) {
+        repeat(16) {
             val nx = random.nextFloat() * 2 - 1
             val ny = random.nextFloat() * 2 - 1
             val nz = random.nextFloat() * 2 - 1
@@ -139,9 +137,16 @@ object ScreenSpaceAmbientOcclusion {
                     "   float depth0 = getPixel(finalDepth, uv).$depthMask;\n" +
                     "   vec3 origin = rawDepthToPosition(uv, depth0);\n" +
                     "   float radius = length(origin);\n" +
+                    "   vec3 viewDir = origin / radius;\n" +
                     "   if (radius < 1e18){\n" + // sky and such can be skipped automatically
                     "       radius *= radiusScale;\n" +
-                    "       vec3 normal = UnpackNormal(getPixel(finalNormal, uv).$normalZW);\n" +
+
+                    // texture normal is unreliable, we need the actual geometry normal:
+                    "       vec3 p  = rawDepthToPosition(uv, depth0);\n" +
+                    "       vec3 px = rawDepthToPosition(uv + vec2(dFdx(uv.x), 0.0), getPixel(finalDepth, uv + vec2(dFdx(uv.x), 0.0)).x);\n" +
+                    "       vec3 py = rawDepthToPosition(uv + vec2(0.0, dFdy(uv.y)), getPixel(finalDepth, uv + vec2(0.0, dFdy(uv.y))).x);\n" +
+                    "       vec3 normal = normalize(cross(px - p, py - p));\n" +
+
                     // reverse back sides, e.g., for plants
                     // could be done by the material as well...
                     "       if(dot(origin,normal) > 0.0) normal = -normal;\n" +
@@ -177,7 +182,7 @@ object ScreenSpaceAmbientOcclusion {
                     // without it, the result looks approx. the same :)
                     "           if(isInside){\n" +
                     "               float depth1 = getPixel(finalDepth, offset.xy).$depthMask;\n" +
-                    "               float sampleDepthSq = dot2(rawDepthToPosition(offset.xy, depth1));\n" +
+                    "               float sampleDepth = length(rawDepthToPosition(offset.xy, depth1));\n" +
                     (if (ssgi) {
                         "" +
                                 // add light from that surface
@@ -188,8 +193,10 @@ object ScreenSpaceAmbientOcclusion {
                                 "   lightSum += alignmentStrength * color1;\n"
                     } else {
                         "" +
-                                "   float sampleTheoDepth = dot2(position);\n" +
-                                "   occlusion += step(sampleDepthSq, sampleTheoDepth);\n"
+                                "   float sampleTheoDepth = length(position);\n" +
+                                // bias for shallow angles
+                                "   float bias = 0.01 * radius * (1.0 - dot(normal, viewDir));\n" +
+                                "   occlusion += step(sampleDepth + bias, sampleTheoDepth);\n"
                     }) +
                     "           }\n" +
                     "       }\n" +

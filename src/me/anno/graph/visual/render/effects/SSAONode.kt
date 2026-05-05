@@ -16,7 +16,7 @@ class SSAONode : TimedRenderingNode(
     listOf(
         "Bool", "Blur",
         "Bool", "Inverse",
-        "Texture", "Normal", // optional
+        "Texture", "Normal",
         "Texture", "Depth",
     ), listOf("Texture", "Ambient Occlusion")
 ) {

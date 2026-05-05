@@ -120,7 +120,7 @@ class AutoExposureNode : TimedRenderingNode(
         // we have a bloom-step, that runs after -> blur the histogram
         // (this fixes the scenario, where you have a few bright spots, and the rest is dark:
         //  without this, the bloom would blind you)
-        val radius = numBins / 3
+        val radius = 32
         boxBlur(values1, values2, radius)
         boxBlur(values2, values1, radius)
         boxBlur(values1, values2, radius)
