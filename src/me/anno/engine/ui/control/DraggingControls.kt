@@ -671,7 +671,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         position: Any?, rotation: Any?, scale: Any?,
         results: MutableCollection<PrefabSaveable>
     ) {
-        val ci = PrefabInspector.currentInspector!!
+        val ci = PrefabInspector.currentInspector ?: return
         val path = ci.addNewChild(root, type, prefab)!!
         setTransform(ci, path, position, rotation, scale)
         val sample = Hierarchy.getInstanceAt(ci.root, path)
@@ -719,13 +719,13 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
+        val ci = PrefabInspector.currentInspector ?: return
         val hovered by lazy { // get hovered element
             renderView.resolveClick(x, y)
         }
         val hovEntity = hovered.first
         val hovComponent = hovered.second
         val results = ArrayList<PrefabSaveable>()
-        val ci = PrefabInspector.currentInspector!!
         val dropPosition = findDropPosition(Vector3d())
         for (file in files) {
             pasteFromFile(file, ci, hovEntity, hovComponent, dropPosition, results)
