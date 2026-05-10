@@ -422,6 +422,20 @@ object Renderers {
     }
 
     @JvmField
+    val vertexColorRenderer = object : Renderer("showVertexColor") {
+        override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
+            return listOf(
+                ShaderStage(
+                    "showVertexColor", listOf(
+                        Variable(GLSLType.V4F, "vertexColor0"),
+                        Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                    ), "finalResult = vec4(vertexColor0.rgb,1.0);\n"
+                )
+            )
+        }
+    }
+
+    @JvmField
     val boneIndicesRenderer = object : Renderer("bone-indices") {
         override fun getVertexPostProcessing(flags: Int): List<ShaderStage> {
             return listOf(

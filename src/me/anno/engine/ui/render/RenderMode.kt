@@ -12,6 +12,7 @@ import me.anno.engine.ui.render.Renderers.normalMapRenderer
 import me.anno.engine.ui.render.Renderers.numStepsRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleRenderer
+import me.anno.engine.ui.render.Renderers.vertexColorRenderer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.renderer.Renderer
@@ -720,6 +721,7 @@ class RenderMode private constructor(
 
         val DIFF_FROM_NORMAL = RenderMode("Diff From Normal", diffFromNormalRenderer)
         val NORMAL_MAP = RenderMode("Normal Map", normalMapRenderer)
+        val VERTEX_COLOR = RenderMode("Vertex Color", vertexColorRenderer)
 
         val NUM_STEPS = RenderMode(numStepsRenderer)
     }
