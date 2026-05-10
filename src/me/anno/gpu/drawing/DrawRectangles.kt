@@ -103,7 +103,7 @@ object DrawRectangles {
     }
 
     fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Vector4f) {
-        if (batch.active) {
+        if (batch.isActive) {
             this.color.set(color)
             addRect(x, y, w, h, color)
         } else {

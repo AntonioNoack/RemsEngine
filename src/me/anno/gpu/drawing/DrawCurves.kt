@@ -189,7 +189,7 @@ object DrawCurves {
         flatEnds: Boolean,
         smoothness: Float = 1f
     ) {
-        if (lineBatch.active) {
+        if (lineBatch.isActive) {
             val data = lineBatch.data
             data.putFloat(x0).putFloat(y0)
             data.putFloat(x1).putFloat(y1)

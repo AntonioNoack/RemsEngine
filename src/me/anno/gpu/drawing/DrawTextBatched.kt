@@ -86,6 +86,10 @@ object DrawTextBatched {
         alignY: AxisAlignment = AxisAlignment.MIN,
     ): Int {
 
+        check(simpleBatch.isActive) {
+            "You must start a batch before you can use DrawTextBatched.draw()"
+        }
+
         val font = monospaceFont
         val charWidth = font.sampleWidth
         val size = text.length

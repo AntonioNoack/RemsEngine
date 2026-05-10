@@ -11,7 +11,7 @@ import me.anno.gpu.shader.Shader
  * */
 abstract class Batch(name: String, val base: StaticBuffer, val attributes: AttributeLayout, val batchSize: Int = 65536) {
 
-    var active = false
+    var isActive = false
         private set
 
     private var shader: Shader? = null
@@ -35,8 +35,8 @@ abstract class Batch(name: String, val base: StaticBuffer, val attributes: Attri
     }
 
     fun start(): Int {
-        if (active) return 1
-        active = true
+        if (isActive) return 1
+        isActive = true
         return 0
     }
 
@@ -57,7 +57,7 @@ abstract class Batch(name: String, val base: StaticBuffer, val attributes: Attri
         if (batchCount > 0) {
             draw()
         }
-        active = false
+        isActive = false
         shader = null
     }
 
