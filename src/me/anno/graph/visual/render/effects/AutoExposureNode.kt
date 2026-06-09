@@ -142,13 +142,13 @@ class AutoExposureNode : TimedRenderingNode(
     companion object {
 
         // no reason to change this
-        private val numBins = 256
+        private val numBins = 64
         private val tmpBins = IntArray(numBins)
         private val values2 = IntArray(numBins)
 
         // could be application-dependent
-        var minBrightness = 1e-6f
-        var maxBrightness = 1e6f
+        var minBrightness = 1e-3f
+        var maxBrightness = 1e3f
         var enabled = true
 
         fun disableAutoExposure() {
