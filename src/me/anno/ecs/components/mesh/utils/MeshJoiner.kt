@@ -295,7 +295,7 @@ abstract class MeshJoiner<V>(
             val k0 = i0 / 3
             val s0 = k0 + min(srcNormals.size / 3, srcColor.size)
             for (k in k0 until s0) {
-                dstColors[k] = srcColor[k - k0].mulARGB(color)
+                dstColors[k] = mixColors(srcColor[k - k0], color)
             }
             // fill rest
             dstColors.fill(color, s0, k0 + srcNormals.size / 3)
@@ -303,6 +303,10 @@ abstract class MeshJoiner<V>(
             // override color
             dstColors.fill(color, i0 / 3, (i0 + srcNormals.size) / 3)
         }
+    }
+
+    open fun mixColors(color0: Int, color1: Int): Int {
+        return color0.mulARGB(color1)
     }
 
     private fun fillIndices(dstIndices: IntArray, srcMesh: Mesh, srcPositions: FloatArray, i0: Int, j0: Int): Int {
