@@ -103,7 +103,7 @@ class FSR2Node : RenderViewNode(
                 .then(RenderTransparentNode())
                 .thenBloomAndExposure()
                 .then(OutlineEffectSelectNode())
-                .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
+                .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f(0f)), "Radius" to 1))
                 .then(FSR2Node())
                 .then(GizmoNode())
                 .then(FXAANode())
