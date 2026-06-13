@@ -131,9 +131,8 @@ open class FloatArrayList(initCapacity: Int = 16, val pool: FloatArrayPool? = nu
         }
     }
 
-    fun fill(s: Float) {
-        val array = values
-        array.fill(s, 0, size)
+    fun fill(value: Float, index0: Int = 0, index1: Int = size) {
+        values.fill(value, index0, index1)
     }
 
     fun toList(): List<Float> = toFloatArray().toList()

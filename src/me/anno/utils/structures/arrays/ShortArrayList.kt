@@ -24,6 +24,10 @@ open class ShortArrayList(initCapacity: Int) : NativeArrayList {
         values[index] = value
     }
 
+    fun fill(value: Short, index0: Int = 0, index1: Int = size) {
+        values.fill(value, index0, index1)
+    }
+
     fun toShortArray(): ShortArray = values.copyOf(size)
 
     override fun resize(newSize: Int) {

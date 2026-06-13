@@ -266,6 +266,10 @@ open class IntArrayList(
         values.sort(0, size)
     }
 
+    fun fill(value: Int, index0: Int = 0, index1: Int = size) {
+        values.fill(value, index0, index1)
+    }
+
     fun removeDuplicatesSorted() {
         if (size < 2) return // already unique
         var writeIndex = 1

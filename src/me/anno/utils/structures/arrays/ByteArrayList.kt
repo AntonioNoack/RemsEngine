@@ -74,6 +74,10 @@ open class ByteArrayList(initialCapacity: Int) {
         size += delta
     }
 
+    fun fill(value: Byte, index0: Int = 0, index1: Int = size) {
+        values.fill(value, index0, index1)
+    }
+
     fun toByteArray(dstSize: Int = size): ByteArray {
         val array = values
         if (size == array.size) return array

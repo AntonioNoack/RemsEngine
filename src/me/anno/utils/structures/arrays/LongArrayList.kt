@@ -81,6 +81,10 @@ open class LongArrayList(initCapacity: Int = 16) : NativeArrayList {
         return indexOf(value) >= 0
     }
 
+    fun fill(value: Long, index0: Int = 0, index1: Int = size) {
+        values.fill(value, index0, index1)
+    }
+
     fun toLongArray(canReturnSelf: Boolean = true, exact: Boolean = true) = toLongArray(size, canReturnSelf, exact)
     fun toLongArray(size1: Int, canReturnSelf: Boolean = true, exact: Boolean = true): LongArray {
         val values = values
