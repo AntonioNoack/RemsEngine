@@ -133,11 +133,12 @@ class GlassPass : TransparentPass() {
                         (if (multisampled) ");\n" else ",0);\n") +
                         (if (multisampled) "" +
                                 "ivec2 uvi = ivec2(uv*resolution);\n" else "") +
-                        "   vec4 diffuseData = getTex(diffuseGlassTex);\n" +
+                        "   vec4 diffuseData = max(getTex(diffuseGlassTex), vec4(0.0));\n" +
                         // skip all calculations, if we don't look at glass
                         "   if(diffuseData.a <= 0.0){\n" +
                         "       result = getTex(diffuseSrcTex);\n" +
                         "   } else {\n" +
+                        // todo issue: emissiveData can be negative (loafborn, looking against the sun)... why/how?
                         "       vec4 emissiveData = getTex(emissiveGlassTex);\n" +
                         "       float tr = min(diffuseData.a,1.0);\n" +
                         "       vec3 tint = exp(-diffuseData.rgb);\n" +
@@ -154,7 +155,7 @@ class GlassPass : TransparentPass() {
                         // todo sum in linear space, too...
                         // mix in linear space
                         "       vec3 gamma = vec3(2.0);\n" +
-                        "       diffuse = mix(pow(diffuse * tint,gamma), tint * tint + emissiveData.rgb * normFactor, tr);\n" +
+                        "       diffuse = mix(pow(diffuse * tint,gamma), tint * tint + max(emissiveData.rgb,vec3(0.0)) * normFactor, tr);\n" +
                         "       result = vec4(sqrt(max(diffuse, vec3(0.0))), 1.0);\n" +
                         "   }\n" +
                         "}\n"
