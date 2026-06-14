@@ -183,7 +183,6 @@ abstract class GPUBuffer(
 
         GFX.checkIsGFXThread()
 
-        assertTrue(newLimitInBytes > 0)
         if (isPointerValid(pointer)) {
             glDeleteBuffers(pointer)
             pointer = 0
@@ -193,7 +192,7 @@ abstract class GPUBuffer(
         bindBuffer(target, pointer)
         elementCount = (newLimitInBytes / stride).toInt()
 
-        glBufferStorage(target, newLimitInBytes, GL_DYNAMIC_STORAGE_BIT)
+        glBufferStorage(target, max(newLimitInBytes, 16), GL_DYNAMIC_STORAGE_BIT)
         // GL46C.glBufferData(type, newLimit, usage.id)
         locallyAllocated = allocate(locallyAllocated, newLimitInBytes)
 
@@ -629,19 +628,27 @@ abstract class GPUBuffer(
         startIndex: Long, length: Long, destroyTmpBuffer: Boolean,
         callback: (tmpBuffer: GPUBuffer) -> Unit
     ) {
+        check(length >= 0) { "Length must be non-negative, got $length" }
+
         val tmpBuffer = StaticBuffer("asyncCopy", attributes, 0, BufferUsage.STREAM)
         tmpBuffer.uploadEmpty(length)
-        copyBytesTo(tmpBuffer, startIndex, 0L, length)
 
-        val fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0)
-        Sleep.waitUntil(true, {
-            val status = glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0)
-            status == GL_CONDITION_SATISFIED || status == GL_ALREADY_SIGNALED
-        }, {
+        if (length > 0) {
+            copyBytesTo(tmpBuffer, startIndex, 0L, length)
+
+            val fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0)
+            Sleep.waitUntil(true, {
+                val status = glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0)
+                status == GL_CONDITION_SATISFIED || status == GL_ALREADY_SIGNALED
+            }, {
+                callback(tmpBuffer)
+                if (destroyTmpBuffer) tmpBuffer.destroy()
+                glDeleteSync(fence)
+            })
+        } else {
             callback(tmpBuffer)
             if (destroyTmpBuffer) tmpBuffer.destroy()
-            glDeleteSync(fence)
-        })
+        }
     }
 
     fun zeroElements(first: Int, length: Int) {
