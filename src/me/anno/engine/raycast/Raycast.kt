@@ -31,6 +31,7 @@ object Raycast {
         scene.validateTransform()
         val originalDistance = query.result.distance
         Recursion.processRecursive(scene) { entity, remaining ->
+            entity.transform.validate() // necessary!
             raycastComponents(entity, query)
             raycastAddChildren(entity, query, remaining)
         }

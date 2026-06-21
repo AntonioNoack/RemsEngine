@@ -170,21 +170,21 @@ class Variable(
     fun declareSpecialLayout(code: StringBuilder) {
         // define buffer or image
         code.append("layout(")
+        val formatI = flags.and(3 shl NUMBER_OFFSET)
         when (type) {
             GLSLType.BUFFER -> code.append("std430")
             GLSLType.IMAGE1D, GLSLType.IMAGE2D, GLSLType.IMAGE3D, GLSLType.IMAGE_CUBE -> {
                 code.append("rgba", 0, numImageChannels)
                 code.append(numImageChannelBits)
-                val formatI = flags.and(3 shl NUMBER_OFFSET)
-                val format = when (formatI) {
+                val suffix = when (formatI) {
                     NUMBER_FLOAT01 -> ""
                     NUMBER_FLOAT -> "f"
                     NUMBER_INT -> "i"
                     else -> "ui"
                 }
-                code.append(format)
+                code.append(suffix)
             }
-            else -> throw IllegalArgumentException()
+            else -> error("Special layout is undefined for $type")
         }
 
         val binding = flags shr BINDING_OFFSET
@@ -197,6 +197,7 @@ class Variable(
         if (flags.hasFlag(FLAG_COHERENT)) code.append("coherent ")
 
         if (type != GLSLType.BUFFER) {
+            code.append("uniform ")
             // special type-prefixes are needed for int-images
             when (flags and (3 shl NUMBER_OFFSET)) {
                 NUMBER_INT -> code.append("i")
@@ -204,7 +205,6 @@ class Variable(
             }
         }
 
-        if (type != GLSLType.BUFFER) code.append("uniform ")
         code.append(type.glslName).append(' ').append(name)
         if (type == GLSLType.BUFFER) code.append(" {").append(structType).append("};\n")
         else code.append(";\n")
