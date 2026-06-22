@@ -1,9 +1,5 @@
 package me.anno.engine.ui.render
 
-import me.anno.ecs.components.light.sky.shaders.FixedSkyShader.fixedSkyCode
-import me.anno.ecs.components.light.sky.shaders.SkyShader.Companion.funcFBM
-import me.anno.ecs.components.light.sky.shaders.SkyShader.Companion.funcHash
-import me.anno.ecs.components.light.sky.shaders.SkyShader.Companion.funcNoise
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.combineLightCode
@@ -14,9 +10,6 @@ import me.anno.engine.ui.render.RendererLib.skyMapCode
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
-import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
-import me.anno.gpu.shader.BaseShader.Companion.DRAWING_SKY
 import me.anno.gpu.shader.BaseShader.Companion.IS_DEFERRED
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -248,73 +241,7 @@ object Renderers {
 
     // pbr rendering with a few fake lights (which have no falloff)
     @JvmField
-    val previewRenderer = object : Renderer("preview") {
-
-        override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
-            return listOf(
-                ShaderStage(
-                    "previewRenderer", listOf(
-                        Variable(GLSLType.V3F, "finalColor", VariableMode.INMOD),
-                        Variable(GLSLType.V1F, "finalAlpha"),
-                        Variable(GLSLType.V3F, "finalPosition"),
-                        Variable(GLSLType.V1F, "finalReflectivity"),
-                        Variable(GLSLType.V1F, "finalSheen"),
-                        Variable(GLSLType.V3F, "finalSheenNormal"),
-                        Variable(GLSLType.V4F, "finalClearCoat"),
-                        Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
-                        Variable(GLSLType.V3F, "finalNormal"),
-                        Variable(GLSLType.V3F, "finalEmissive"),
-                        Variable(GLSLType.V1F, "finalOcclusion"),
-                        Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
-                    ), "" +
-                            colorToLinear +
-
-                            // shared pbr data
-                            "vec3 V = normalize(-finalPosition);\n" +
-
-                            // light calculations
-                            "float NdotV = abs(dot(finalNormal,V));\n" +
-
-                            // precalculate sheen
-                            "float sheenFresnel = 1.0 - abs(dot(finalSheenNormal,V));\n" +
-                            "float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
-
-                            // light calculation
-                            // model ambient light using simple sky model
-                            "float reflectivity = finalReflectivity;\n" +
-                            "vec3 diffuseColor  = finalColor * (1.0-reflectivity);\n" +
-                            "vec3 specularColor = finalColor * reflectivity;\n" +
-                            "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +
-                            "vec3 baseAmbient = vec3(exp(dot(finalNormal,vec3(0.4,0.7,0.2))) * 3.0);\n" +
-
-                            "#ifndef DRAWING_SKY\n" +
-                            "   vec3 ambientLight = hasSpecular ? getSkyColor(finalNormal) : baseAmbient;\n" +
-                            "#else\n" +
-                            "   vec3 ambientLight = baseAmbient;\n" +
-                            "#endif\n" +
-
-                            "ambientLight = mix(baseAmbient, ambientLight, reflectivity);\n" +
-                            "vec3 diffuseLight = ambientLight, specularLight = ambientLight;\n" +
-                            "if (hasSpecular) {\n" +
-                            "   vec3 reflectedV = -reflect(V,finalNormal);\n" +
-                            "   specularLight = mix(specularLight, getSkyColor(reflectedV), reflectivity);\n" +
-                            "}\n" +
-
-                            specularBRDFv2NoDivInlined2Start +
-                            specularBRDFv2NoDivInlined2End +
-                            "finalColor = diffuseColor * diffuseLight + specularLight * specularColor;\n" +
-                            "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
-                            "finalColor = tonemapLinear(finalColor);\n" +
-                            colorToSRGB +
-                            "finalResult = vec4(finalColor, finalAlpha);\n"
-                ).add(randomGLSL).add(tonemapGLSL).add(getReflectivity).apply {
-                    if (!flags.hasFlag(DRAWING_SKY)) {
-                        add(fixedSkyCode).add(funcHash).add(funcNoise).add(funcFBM)
-                    }
-                }, finalResultStage
-            )
-        }
-    }
+    val previewRenderer = PreviewRenderer
 
     @JvmField
     val simpleRenderer = object : Renderer("simple-color") {
