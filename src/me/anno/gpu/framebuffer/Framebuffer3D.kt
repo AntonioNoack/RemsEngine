@@ -71,7 +71,7 @@ class Framebuffer3D(
             textures = targets.mapIndexed { index, target ->
                 val texture = Texture3D("$name-tex[$index]", w, h, d)
                 // texture.autoUpdateMipmaps = autoUpdateMipmaps
-                texture.create(target)
+                texture.create(target, null)
                 GFX.check()
                 texture
             }

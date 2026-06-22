@@ -282,6 +282,16 @@ open class Texture3D(
         return this
     }
 
+    fun create(type: TargetType, data: IntArray): Texture3D {
+        beforeUpload(width)
+        glTexImage3D(
+            target, 0, type.internalFormat, width, height, depth, 0,
+            type.uploadFormat, type.fillType, data
+        )
+        afterUpload(type.internalFormat, type.bytesPerPixel, type.isHDR)
+        return this
+    }
+
     fun createRGBA(data: FloatArray): Texture3D {
         assertEquals(width * height * depth * 4, data.size, "expected 4 bpp")
         val byteBuffer = byteBufferPool[data.size * 4, false, false]
