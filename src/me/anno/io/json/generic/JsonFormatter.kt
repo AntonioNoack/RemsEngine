@@ -162,7 +162,7 @@ object JsonFormatter {
         builder.append(']')
     }
 
-    fun appendEscapedString(str: String, builder: StringBuilder) {
+    fun appendEscapedString(str: CharSequence, builder: StringBuilder) {
         builder.ensureCapacity(builder.length + str.length + 2)
         builder.append('"')
         for (c in str) {
