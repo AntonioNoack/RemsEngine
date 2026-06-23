@@ -63,9 +63,10 @@ object BlockTracing {
         val ds0Z = dirSignZ * .5 + .5
 
         val e = 0.0001
-        val dtf3X = ((if (dir.x > 0.0) bounds.minX + e else bounds.maxX - e) - localStart.x) * invDirX
-        val dtf3Y = ((if (dir.y > 0.0) bounds.minY + e else bounds.maxY - e) - localStart.y) * invDirY
-        val dtf3Z = ((if (dir.z > 0.0) bounds.minZ + e else bounds.maxZ - e) - localStart.z) * invDirZ
+        val f = 1.0 - e
+        val dtf3X = ((if (dir.x > 0.0) bounds.minX + e else bounds.maxX + f) - localStart.x) * invDirX
+        val dtf3Y = ((if (dir.y > 0.0) bounds.minY + e else bounds.maxY + f) - localStart.y) * invDirY
+        val dtf3Z = ((if (dir.z > 0.0) bounds.minZ + e else bounds.maxZ + f) - localStart.z) * invDirZ
 
         val dtf1 = max1(dtf3X, max1(dtf3Y, dtf3Z))
         var dist = max(dtf1, 0.0)

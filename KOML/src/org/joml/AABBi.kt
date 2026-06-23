@@ -6,6 +6,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
+/**
+ * integer bounds; min and max are inclusive;
+ * empty bounds can be represented by min > max
+ * */
 @Suppress("unused")
 class AABBi(
     var minX: Int, var minY: Int, var minZ: Int,
