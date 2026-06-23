@@ -136,5 +136,40 @@ class MeshInstanceData(
                 )
             ), emptyList()
         )
+
+        val TRC = MeshInstanceData(
+            listOf(
+                ShaderStage(
+                    "trs-pos",
+                    listOf(
+                        Variable(GLSLType.V4F, "instancePosSize", VariableMode.ATTR),
+                        Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR),
+                        Variable(GLSLType.V3F, "localPosition"),
+                        Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
+                    ),
+                    "finalPosition = quatRot(localPosition, instanceRot) + instancePosSize.xyz;\n" +
+                            "vertexColor0 = unpackNumber(instancePosSize.w);\n"
+                ).add(ShaderLib.quatRot).add(ShaderLib.unpackNumber)
+            ),
+            listOf(
+                ShaderStage(
+                    "trs-nor", listOf(
+                        Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR),
+                        Variable(GLSLType.V3F, "normal", VariableMode.INOUT),
+                        Variable(GLSLType.V4F, "tangent", VariableMode.INOUT)
+                    ), "normal = quatRot(normal, instanceRot);\n" +
+                            "tangent.xyz = quatRot(tangent.xyz, instanceRot);\n"
+                ).add(ShaderLib.quatRot)
+            ),
+            emptyList(), // colors aren't changed
+            listOf(
+                ShaderStage(
+                    "trs-mov", listOf(
+                        Variable(GLSLType.V3F, "finalPosition"),
+                        Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
+                    ), "prevPosition = vec4(finalPosition,1.0);\n"
+                )
+            ), emptyList()
+        )
     }
 }

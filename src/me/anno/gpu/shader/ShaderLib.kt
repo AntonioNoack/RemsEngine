@@ -181,6 +181,18 @@ object ShaderLib {
             "   return textureBicubic(tex, uv);\n" +
             "}\n"
 
+    const val unpackNumber = "" +
+            "vec4 unpackNumber(int color) {\n" +
+            "   int r = (color >> 16) & 255;\n" +
+            "   int g = (color >> 8) & 255;\n" +
+            "   int b = (color) & 255;\n" +
+            "   int a = (color >> 24) & 255;\n" +
+            "   return vec4(r,g,b,a) * ${1.0 / 255.0};\n" +
+            "}\n" +
+            "vec4 unpackNumber(float color) {\n" +
+            "   return unpackNumber(floatBitsToInt(color));\n" +
+            "}\n"
+
     const val anisotropic16 = "" +
             // anisotropic filtering from https://www.shadertoy.com/view/4lXfzn
             "vec4 textureAnisotropic(sampler2D T, vec2 p, mat2 J) {\n" +

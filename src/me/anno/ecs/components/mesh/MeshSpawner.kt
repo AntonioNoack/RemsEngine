@@ -5,8 +5,8 @@ import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.collider.CollidingComponent
-import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.interfaces.Renderable
@@ -40,12 +40,13 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     /**
      * calls instancedGroupFill, instancedTRSFill, instancedMeshGroupFill, instancedFill,
      * until the first one of them returns true;
-     * if you need different behaviour, just override this method :)
+     * if you need different behavior, just override this method :)
      * */
     override fun fill(pipeline: Pipeline, transform: Transform) {
         clickId = pipeline.getClickId(this)
         instancedGroupFill(pipeline) ||
                 instancedTRSFill(pipeline) ||
+                instancedTRCFill(pipeline) ||
                 instancedMeshGroupFill(pipeline) ||
                 instancedFill(pipeline)
     }
@@ -106,6 +107,16 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         }
     }
 
+    fun instancedTRCFill(pipeline: Pipeline): Boolean {
+        return forEachMeshGroupTRC(pipeline) { mesh, material ->
+            val material2 = material ?: Material.defaultMaterial
+            val stage = pipeline.findStage(material2)
+            val stack = stage.instancedTRC.data.getOrPut(mesh, material2) { _, _ -> InstancedTRSStack.Data() }
+            stack.pushGfxId(gfxId)
+            stack.posSizeRot
+        }
+    }
+
     fun instancedGroupFill(pipeline: Pipeline): Boolean {
         return forEachInstancedGroup(pipeline) { mesh, material, group, overrides ->
             val material2 = material ?: Material.defaultMaterial
@@ -144,7 +155,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * */
     fun ensureTransforms(count: Int) {
         val entity = entity
-        for (i in transforms.size until count) {
+        repeat(count - transforms.size) {
             val tr = Transform()
             tr.parentEntity = entity
             transforms.add(tr)
@@ -219,6 +230,16 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * useful, if there are thousands of pre-grouped meshes with the same material; and just P+R+S, no shearing, only uniform scaling; reduced overhead
      * */
     open fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, MaterialBase?) -> FloatArrayList) = false
+
+    /**
+     * iterates over each mesh group, which is actively visible;
+     * if this is implemented, return true; and forEachMeshGroup just will be a fallback;
+     *
+     * each element must be added as position (translation; x,y,z), color (ARGB int -> float), rotation (quaternion; x,y,z,w)
+     *
+     * useful, if there are thousands of pre-grouped meshes with the same material, but different colors; and just P+R, no shearing, no scaling, reduced overhead
+     * */
+    open fun forEachMeshGroupTRC(pipeline: Pipeline, callback: (IMesh, MaterialBase?) -> FloatArrayList) = false
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
