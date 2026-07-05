@@ -1,5 +1,6 @@
 package me.anno.maths
 
+import me.anno.Time
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.types.Floats.roundToIntOr
@@ -119,7 +120,7 @@ object Maths {
     @JvmStatic
     fun absClamp(x: Double, max: Double): Double = clamp(x, -max, max)
 
-    private val randomImpl = threadLocal { Random(System.nanoTime() xor Thread.currentThread().id) }
+    private val randomImpl = threadLocal { Random(Time.nanoTime xor Thread.currentThread().id) }
 
     @JvmStatic
     fun getRandom(): Random = randomImpl.get()

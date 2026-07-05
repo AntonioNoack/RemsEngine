@@ -18,7 +18,7 @@ open class PacmanLogic {
     // todo define ghosts
 
     val size = Vector2i(10, 10)
-    val random = Random(System.nanoTime())
+    val random = Random(Time.nanoTime)
 
     val nodePositions = (0 until size.x).toList()
         .crossMap((0 until size.y).toList(), ArrayList()) { x, y ->

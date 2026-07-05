@@ -59,7 +59,7 @@ class Matrix4dArrayList : Matrix4d() {
      * @return this
      */
     fun popMatrix(): Matrix4dArrayList {
-        assert(currentIndex > 0) { "already at the bottom of the stack" }
+        check(currentIndex > 0) { "already at the bottom of the stack" }
         set(matrices[--currentIndex])
         return this
     }

@@ -5,7 +5,7 @@ import me.anno.maths.noise.RandomBySeed
 import me.anno.maths.noise.RandomUtils.nextGaussian
 import me.anno.maths.noise.RandomUtils.nextGaussianF
 import me.anno.utils.Clock
-import java.util.Random
+import kotlin.random.Random
 
 fun main() {
     val n = 100_000_000

@@ -17,6 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import me.anno.Time
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
@@ -30,12 +31,12 @@ class Telemetry {
     private val accumulator = ConcurrentHashMap<TelemetryType, AtomicLong>()
 
     fun startTimer(type: TelemetryType) {
-        startTimes.get()[type] = System.nanoTime()
+        startTimes.get()[type] = Time.nanoTime
     }
 
     fun stopTimer(type: TelemetryType) {
         accumulator.computeIfAbsent(type) { AtomicLong() }
-            .addAndGet(System.nanoTime() - startTimes.get()[type]!!)
+            .addAndGet(Time.nanoTime - startTimes.get()[type]!!)
     }
 
     fun warn(string: String?) {

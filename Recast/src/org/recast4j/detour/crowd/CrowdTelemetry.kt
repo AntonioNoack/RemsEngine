@@ -17,6 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.crowd
 
+import me.anno.Time
 import org.recast4j.LongArrayList
 import kotlin.math.max
 
@@ -46,12 +47,12 @@ class CrowdTelemetry {
     }
 
     fun start(type: CrowdTelemetryType) {
-        executionTimings[type.ordinal] = System.nanoTime()
+        executionTimings[type.ordinal] = Time.nanoTime
     }
 
     fun stop(type: CrowdTelemetryType) {
         val id = type.ordinal
-        val duration = System.nanoTime() - executionTimings[id]
+        val duration = Time.nanoTime - executionTimings[id]
         val s = executionTimingSamples[id]
         if (s.size == TIMING_SAMPLES) {
             s.removeAt(0)

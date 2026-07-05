@@ -1,5 +1,6 @@
 package me.anno.experiments
 
+import me.anno.Time
 import me.anno.utils.types.Floats.f2
 import org.joml.Vector2d
 import org.lwjgl.glfw.GLFW.glfwCreateWindow
@@ -38,7 +39,7 @@ fun main() {
     var eventCount = 0
 
     glfwSetCursorPosCallback(window, { _, x, y ->
-        val now = System.nanoTime()
+        val now = Time.nanoTime
         if (x != mousePosition.x || y != mousePosition.y) {
             if (eventCount == 0) {
                 movementStartTime = now

@@ -10,7 +10,6 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.PairArrayList
-import java.lang.Math.floorDiv
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
@@ -34,7 +33,7 @@ abstract class AudioStream(
         @JvmStatic
         fun getIndex(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
             val progressedSamples = ((globalTime / speed) * playbackSampleRate).toLong()
-            return floorDiv(progressedSamples, bufferSize.toLong())
+            return progressedSamples.floorDiv(bufferSize.toLong())
         }
 
         @JvmStatic

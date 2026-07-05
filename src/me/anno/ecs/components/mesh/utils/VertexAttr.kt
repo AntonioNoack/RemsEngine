@@ -92,7 +92,7 @@ fun interface VertexAttr {
                 }
                 else -> {}
             }
-            LOGGER.warn("Unknown attr-data ${srcData?.javaClass} -> $dstType")
+            LOGGER.warn("Unknown attr-data ${if (srcData != null) srcData::class else null} -> $dstType")
             return VertexAttr { _, _ -> }
         }
 

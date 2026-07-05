@@ -1,5 +1,6 @@
 package me.anno.maths.bvh
 
+import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
@@ -199,10 +200,10 @@ object BVHBuilder {
         }
 
         // bounds of center of primitives for efficient split dimension
-        val t0 = System.nanoTime()
+        val t0 = Time.nanoTime
         val centroidBoundsX3 = JomlPools.aabbf.create()
         calculateCentroidX3(positions, indices, start, end, centroidBoundsX3)
-        val t1 = System.nanoTime()
+        val t1 = Time.nanoTime
         centroidTime.addAndGet(t1 - t0)
 
         // split dimension
@@ -222,7 +223,7 @@ object BVHBuilder {
         }
         JomlPools.aabbf.sub(1)
 
-        val t2 = System.nanoTime()
+        val t2 = Time.nanoTime
         splitTime.addAndGet(t2 - t1)
 
         val usingThreading = max(mid - start, mid - end) > 4000

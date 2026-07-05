@@ -611,7 +611,7 @@ open class FileExplorerEntry(
         remainingW: Int, remainingH: Int
     ) {
 
-        val t0 = System.nanoTime()
+        val t0 = Time.nanoTime
 
         val font0 = titlePanel.font
         val fontSize = font0.size
@@ -621,7 +621,7 @@ open class FileExplorerEntry(
         val textH = (lines * fontSize).toInt()
         val imageH = remainingH - textH
 
-        val t1 = System.nanoTime()
+        val t1 = Time.nanoTime
 
         Clipping.clip2Dual(
             x0, y0, x1, y1,
@@ -632,7 +632,7 @@ open class FileExplorerEntry(
             ::drawThumb
         )
 
-        val t2 = System.nanoTime()
+        val t2 = Time.nanoTime
 
         if (showTitle) Clipping.clip2Dual(
             x0, y0, x1, y1,
@@ -643,7 +643,7 @@ open class FileExplorerEntry(
             ::drawTitle
         )
 
-        val t3 = System.nanoTime()
+        val t3 = Time.nanoTime
         if (t3 - t0 > 30 * MILLIS_TO_NANOS) {
             LOGGER.warn("Drawing too slowly! ${(t1 - t0) / 1e6f}, ${(t2 - t1) / 1e6f}, ${(t3 - t2) / 1e6f} for $fileName")
         }

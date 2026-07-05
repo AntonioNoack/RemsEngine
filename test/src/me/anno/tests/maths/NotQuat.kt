@@ -1,13 +1,13 @@
 package me.anno.tests.maths
 
-import me.anno.utils.types.Vectors.normalToQuaternionY
+import me.anno.Time
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.math.atan2
 import kotlin.random.Random
 
 fun main() {
-    val rnd = Random(System.nanoTime())
+    val rnd = Random(Time.nanoTime)
     val quat = Quaternionf()
     val test = Vector3f()
     val normal = Vector3f()

@@ -1,5 +1,6 @@
 package me.anno.tests.image
 
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.image.Image
 import me.anno.image.ImageCache
@@ -154,7 +155,7 @@ fun main() {
 }
 
 fun testYUV2RGB() {
-    val rnd = Random(System.nanoTime())
+    val rnd = Random(Time.nanoTime)
     var maxDist = 0f
     val bdx = AABBf()
     for (i in 0 until 1_000_000) {

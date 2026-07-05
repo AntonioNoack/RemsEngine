@@ -10,7 +10,6 @@ import me.anno.maths.Maths.posMod
 import me.anno.tests.mesh.unique.ItemPanel.Companion.inHandBlock
 import me.anno.tests.utils.TestVoxelWorld
 import org.joml.Vector3i
-import java.lang.Math.floorDiv
 import kotlin.math.floor
 
 class CreativeControls(
@@ -55,9 +54,9 @@ class CreativeControls(
 
     fun coordsToChunkId(positions: Vector3i): Vector3i {
         return Vector3i(
-            floorDiv(positions.x, csx),
-            floorDiv(positions.y, csy),
-            floorDiv(positions.z, csz)
+            positions.x.floorDiv(csx),
+            positions.y.floorDiv(csy),
+            positions.z.floorDiv(csz)
         )
     }
 

@@ -179,7 +179,7 @@ object Sleep {
     @InternalAPI
     private var workingThread: Thread? = null
     fun work(canBeKilled: Boolean) {
-        synchronized(Sleep) {
+        synchronized(this) {
             val prevThread = workingThread
             val thisThread = Thread.currentThread()
             workingThread = thisThread

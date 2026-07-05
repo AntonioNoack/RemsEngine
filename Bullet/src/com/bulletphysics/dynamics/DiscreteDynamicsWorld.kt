@@ -24,6 +24,7 @@ import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.TransformUtil
 import cz.advel.stack.Stack
+import me.anno.Time
 import me.anno.ecs.components.collider.CollisionFilters
 import me.anno.ecs.components.collider.CollisionFilters.createFilter
 import me.anno.graph.octtree.KdTreePairs.FLAG_SWAPPED_PAIRS
@@ -130,7 +131,7 @@ class DiscreteDynamicsWorld(
         var fixedTimeStep = fixedTimeStep
         // startProfiling() // resets the profiling counters
 
-        val t0 = System.nanoTime()
+        val t0 = Time.nanoTime
 
         var numSimulationSubSteps = 0
         profile("stepSimulation") {

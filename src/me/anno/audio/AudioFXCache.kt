@@ -6,9 +6,9 @@ import me.anno.audio.AudioPools.SAPool
 import me.anno.audio.streams.AudioFileStream
 import me.anno.audio.streams.AudioStreamRaw
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
-import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
+import me.anno.cache.Promise
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
@@ -18,7 +18,6 @@ import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.types.Floats.roundToLongOr
 import me.anno.utils.types.Ints.isPowerOf2
 import org.apache.logging.log4j.LogManager
-import java.lang.Math.floorDiv
 import java.util.concurrent.Semaphore
 import kotlin.math.max
 import kotlin.math.min
@@ -169,7 +168,7 @@ object AudioFXCache : CacheSection<PipelineKey, AudioData>("AudioFX0") {
             val index1i = index0 + WorkSplitter.partition(split + 1, deltaIndex, SPLITS)
             for (i in index0i until index1i) {
 
-                val bufferIndex = floorDiv(i, bufferSize.toLong())
+                val bufferIndex = i.floorDiv(bufferSize.toLong())
                 if (i == index0 || lastBufferIndex != bufferIndex) {
                     val time0 = getTime(bufferIndex)
                     val time1 = getTime(bufferIndex + 1)
