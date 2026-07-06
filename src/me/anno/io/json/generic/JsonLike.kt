@@ -148,7 +148,7 @@ object JsonLike {
     }
 
     fun validateJsonProperty(type: String, value: Any?): Any? {
-        println("Validating json property $type,$value,${value?.javaClass}")
+        println("Validating json property $type,$value,${if (value != null) value::class.simpleName else "null"}")
         return when {
             isFloatType(type) -> AnyToDouble.getDouble(value, 0.0)
             isIntType(type) -> AnyToLong.getLong(value, 0L)

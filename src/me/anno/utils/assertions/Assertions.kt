@@ -317,6 +317,6 @@ inline fun <V> assertNotNull(v: V?, message: () -> String): V {
 
 fun <V : Any> assertIs(expectedClass: KClass<V>, actualInstance: Any?): V {
     val instance = expectedClass.safeCast(actualInstance)
-    assertNotNull(instance) { "Expected instance to be ${expectedClass.simpleName}, was ${actualInstance?.javaClass?.simpleName}" }
+    assertNotNull(instance) { "Expected instance to be ${expectedClass.simpleName}, was ${if (actualInstance != null) actualInstance::class.simpleName else null}" }
     return instance!!
 }

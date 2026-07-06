@@ -18,6 +18,7 @@ import org.joml.Vector3d
 import org.joml.Vector4i
 import speiger.primitivecollections.LongToObjectHashMap
 import speiger.primitivecollections.ObjectToIntHashMap
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.cos
@@ -602,7 +603,7 @@ class ConvexHulls {
 
         /** close enough to consider two numbers to be 'the same'. */
         private const val EPSILON = 0.000001
-        private const val RADS_PER_DEG: Double = Math.PI * 180.0
+        private const val RADS_PER_DEG: Double = PI * 180.0
 
         /**
          * Finds the convex hull without filtering vertices.

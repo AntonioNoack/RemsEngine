@@ -29,7 +29,6 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector3f
 import org.joml.Vector3i
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL46C.GL_DRAW_INDIRECT_BUFFER
 import org.lwjgl.opengl.GL46C.glDrawArraysIndirect
 import org.lwjgl.opengl.GL46C.glDrawElementsIndirect

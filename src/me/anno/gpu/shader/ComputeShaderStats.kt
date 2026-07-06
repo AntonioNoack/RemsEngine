@@ -1,7 +1,7 @@
 package me.anno.gpu.shader
 
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL43C.GL_MAX_COMPUTE_SHARED_MEMORY_SIZE
+import org.lwjgl.opengl.GL46C.GL_MAX_COMPUTE_SHARED_MEMORY_SIZE
 import org.lwjgl.opengl.GL46C.GL_MAX_COMPUTE_WORK_GROUP_COUNT
 import org.lwjgl.opengl.GL46C.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS
 import org.lwjgl.opengl.GL46C.glGetInteger

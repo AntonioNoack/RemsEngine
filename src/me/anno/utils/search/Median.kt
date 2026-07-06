@@ -54,7 +54,7 @@ object Median {
         var rnd: V? = null
 
         val compareToPivot = CompareToPivot { idx ->
-            comparator.compare(rnd, getElement[idx]) > 0
+            comparator.compare(rnd!!, getElement[idx]) > 0
         }
 
         while (true) {

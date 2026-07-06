@@ -87,7 +87,7 @@ object FileRootRef : FileReference("/") {
             bytes.readLE16(it * 2).toChar()
         }
 
-        val wslInstanceNames = String(chars).splitLines()
+        val wslInstanceNames = chars.concatToString().splitLines()
             .filter { it.isNotBlank2() }.map { it.trim() }
 
         val prefix = "//wsl.localhost/"

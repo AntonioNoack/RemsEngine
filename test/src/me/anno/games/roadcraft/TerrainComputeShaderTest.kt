@@ -18,8 +18,8 @@ import me.anno.input.Input
 import me.anno.maths.Maths.sq
 import org.joml.Vector3d
 import org.joml.Vector3i
-import org.lwjgl.opengl.GL42C.glMemoryBarrier
-import org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.glMemoryBarrier
+import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BARRIER_BIT
 
 /**
  * Implements our first terrain-painting as a compute shader.

@@ -196,7 +196,7 @@ object Color {
             val idx = (value shr shift).toInt()
             chars[prefixLength + i] = base36[idx and 15]
         }
-        return String(chars)
+        return chars.concatToString()
     }
 
     @JvmStatic

@@ -1,6 +1,5 @@
 package me.anno.ui.debug
 
-import com.sun.java.swing.plaf.motif.resources.motif
 import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray

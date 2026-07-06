@@ -33,6 +33,9 @@ private fun copyTo(src: File, dst: File) {
                         .replace("@JvmField", "")
                         .replace("clazz.java.newInstance()", "clazz.createInstance()")
                         .replace("override fun removeIf(", "fun removeIf(")
+                        .replace("::class.name", "::class.simpleName!!")
+                        .replace("const val BARRIER_BITS", "val BARRIER_BITS")
+                        .replace(".java", "")
                 }
                 .joinToString("\n")
             dst.writeText(content)

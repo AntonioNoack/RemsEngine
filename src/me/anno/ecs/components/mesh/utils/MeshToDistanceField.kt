@@ -118,7 +118,7 @@ object MeshToDistanceField {
     }
 
     fun smoothField(fieldSize: Vector3i, field: FloatArray) {
-        val clone = field.clone()
+        val clone = field.copyOf()
         for (z in 1 until fieldSize.z - 1) {
             for (y in 1 until fieldSize.y - 1) {
                 for (x in 1 until fieldSize.x - 1) {
