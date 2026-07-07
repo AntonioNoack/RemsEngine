@@ -8,6 +8,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.length
 import me.anno.maths.MinMax.min
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
@@ -56,7 +57,7 @@ open class SDFBoundingBox : SDFBox() {
         builder.append(',')
         val dynamicThickness = dynamicThickness || globalDynamic
         if (dynamicThickness) builder.appendUniform(uniforms, GLSLType.V1F) { thickness }
-        else builder.append(thickness)
+        else builder.appendFloat(thickness)
         appendSmoothnessParameter(builder, uniforms)
         builder.append(')')
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)

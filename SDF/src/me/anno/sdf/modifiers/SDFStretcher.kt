@@ -11,6 +11,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.MinMax.max
 import me.anno.maths.MinMax.min
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -92,7 +93,7 @@ class SDFStretcher() : PositionMapper() {
                 builder.append("float ")
                 builder.append(name)
                 builder.append("=")
-                builder.append(min(0f, max(h.x, max(h.y, h.z))))
+                builder.appendFloat(min(0f, max(h.x, max(h.y, h.z))))
                 builder.append(";\n")
                 name
             } else null

@@ -98,8 +98,8 @@ fun appendRawPolygon(builder: StringBuilder, color: String, line: List<Vector2f>
     builder.append("  <polygon fill=\"$color\" points=\"")
     for (vertex in line) {
         builder
-            .append1(vertex.x).append(',')
-            .append1(vertex.y).append(' ')
+            .appendShortNum(vertex.x).append(',')
+            .appendShortNum(vertex.y).append(' ')
     }
     builder.setLength(builder.length - 1)
     builder.append("\"/>\n")
@@ -120,21 +120,21 @@ fun appendSimpleOptimization(builder: StringBuilder, color: String, line: List<V
     builder.append("  <path fill=\"$color\" d=\"")
     var v0 = line.last()
     var v1 = v0
-    builder.append('M').append1(v0.x).append(' ').append1(v0.y)
+    builder.append('M').appendShortNum(v0.x).append(' ').appendShortNum(v0.y)
     for (v2 in line) {
         if (isLinear(v0, v1, v2)) {
             v1 = v2
         } else {
             when {
                 v0.x == v1.x -> {
-                    builder.append('v').append1(v1.y - v0.y)
+                    builder.append('v').appendShortNum(v1.y - v0.y)
                 }
                 v0.y == v1.y -> {
-                    builder.append('h').append1(v1.x - v0.x)
+                    builder.append('h').appendShortNum(v1.x - v0.x)
                 }
                 else -> {
-                    builder.append('l').append1(v1.x - v0.x)
-                        .append(' ').append1(v1.y - v0.y)
+                    builder.append('l').appendShortNum(v1.x - v0.x)
+                        .append(' ').appendShortNum(v1.y - v0.y)
                 }
             }
             v0 = v1
@@ -148,7 +148,7 @@ fun appendSimpleOptimization(builder: StringBuilder, color: String, line: List<V
 fun appendWithLinearMatching(builder: StringBuilder, color: String, line: List<Vector2f>) {
     builder.append("  <path fill=\"$color\" d=\"")
     var last = line.first()
-    builder.append('M').append1(last.x).append(',').append1(last.y)
+    builder.append('M').appendShortNum(last.x).append(',').appendShortNum(last.y)
     var i0 = 0
     loop@ while (i0 < line.size) {
         fun next(i: Int) {
@@ -156,8 +156,8 @@ fun appendWithLinearMatching(builder: StringBuilder, color: String, line: List<V
             val vertex = line[i]
             builder
                 .append('l')
-                .append1(vertex.x - last.x).append(',')
-                .append1(vertex.y - last.y)
+                .appendShortNum(vertex.x - last.x).append(',')
+                .appendShortNum(vertex.y - last.y)
             last = vertex
         }
 
@@ -178,7 +178,7 @@ fun appendWithLinearMatching(builder: StringBuilder, color: String, line: List<V
     builder.append("\"/>\n")
 }
 
-fun StringBuilder.append1(v: Float): StringBuilder {
+fun StringBuilder.appendShortNum(v: Float): StringBuilder {
     append(v)
     if (endsWith(".0")) {
         setLength(length - 2)
@@ -198,33 +198,33 @@ fun appendOptimizedPolygon(builder: StringBuilder, color: String, line: List<Edg
     builder.append("  <path fill=\"$color\" d=\"")
     val s0 = line[0]
     val p0 = p0(s0)
-    builder.append('M').append1(p0.x).append(' ').append1(p0.y)
+    builder.append('M').appendShortNum(p0.x).append(' ').appendShortNum(p0.y)
     for (i in line.indices) {
         when (val segment = line[i]) {
             is LinearSegment -> {
                 when {
                     segment.p0.x == segment.p1.x -> {
                         builder.append('v')
-                            .append1(segment.p1.y - segment.p0.y)
+                            .appendShortNum(segment.p1.y - segment.p0.y)
                     }
                     segment.p0.y == segment.p1.y -> {
                         builder.append('h')
-                            .append1(segment.p1.x - segment.p0.x)
+                            .appendShortNum(segment.p1.x - segment.p0.x)
                     }
                     else -> {
                         builder.append('l')
-                            .append1(segment.p1.x - segment.p0.x).append(' ')
-                            .append1(segment.p1.y - segment.p0.y)
+                            .appendShortNum(segment.p1.x - segment.p0.x).append(' ')
+                            .appendShortNum(segment.p1.y - segment.p0.y)
                     }
                 }
                 segment.p1
             }
             is QuadraticSegment -> {
                 builder.append('q')
-                    .append1(segment.p1.x - segment.p0.x).append(' ')
-                    .append1(segment.p1.y - segment.p0.y).append(',')
-                    .append1(segment.p2.x - segment.p0.x).append(' ')
-                    .append1(segment.p2.y - segment.p0.y)
+                    .appendShortNum(segment.p1.x - segment.p0.x).append(' ')
+                    .appendShortNum(segment.p1.y - segment.p0.y).append(',')
+                    .appendShortNum(segment.p2.x - segment.p0.x).append(' ')
+                    .appendShortNum(segment.p2.y - segment.p0.y)
                 segment.p2
             }
             else -> throw NotImplementedError()

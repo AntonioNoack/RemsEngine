@@ -436,9 +436,9 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
 
     fun mul(other: Matrix4x3): Matrix4f {
         return mul(
-            other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), 0f,
-            other.m10.toFloat(), other.m11.toFloat(), other.m12.toFloat(), 0f,
-            other.m20.toFloat(), other.m21.toFloat(), other.m22.toFloat(), 0f,
+            other.m00, other.m01, other.m02, 0f,
+            other.m10, other.m11, other.m12, 0f,
+            other.m20, other.m21, other.m22, 0f,
             other.m30.toFloat(), other.m31.toFloat(), other.m32.toFloat(), 1f
         )
     }

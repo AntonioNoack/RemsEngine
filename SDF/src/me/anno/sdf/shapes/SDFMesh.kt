@@ -27,6 +27,7 @@ import me.anno.sdf.shapes.SDFTriangle.Companion.calculateDistSq
 import me.anno.sdf.shapes.SDFTriangle.Companion.udTriangle
 import me.anno.utils.Color.toHexString
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.AABBf
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -185,12 +186,12 @@ open class SDFMesh : SDFSmoothShape() {
                     fun build(node: BLASNode) {
                         val bounds = node.bounds
                         builder1.append("if(intersectAABB(p,i,vec3(")
-                            .append(bounds.minX).append(',')
-                            .append(bounds.minY).append(',')
-                            .append(bounds.minZ).append("),vec3(")
-                            .append(bounds.maxX).append(',')
-                            .append(bounds.maxY).append(',')
-                            .append(bounds.maxZ).append("),s,r)){\n")
+                            .appendFloat(bounds.minX).append(',')
+                            .appendFloat(bounds.minY).append(',')
+                            .appendFloat(bounds.minZ).append("),vec3(")
+                            .appendFloat(bounds.maxX).append(',')
+                            .appendFloat(bounds.maxY).append(',')
+                            .appendFloat(bounds.maxZ).append("),s,r)){\n")
                         when (node) {
                             is BLASBranch -> {
                                 build(node.n0)
@@ -204,9 +205,9 @@ open class SDFMesh : SDFSmoothShape() {
                                     for (i in 0 until 3) {
                                         val i3 = indices[j * 3 + i] * 3
                                         builder1.append(",vec3(")
-                                            .append(positions[i3]).append(',')
-                                            .append(positions[i3 + 1]).append(',')
-                                            .append(positions[i3 + 2]).append(')')
+                                            .appendFloat(positions[i3]).append(',')
+                                            .appendFloat(positions[i3 + 1]).append(',')
+                                            .appendFloat(positions[i3 + 2]).append(')')
                                     }
                                     builder1.append("));\n")
                                 }
@@ -238,14 +239,14 @@ open class SDFMesh : SDFSmoothShape() {
                         .append("](")
                     fillBLAS(listOf(blas), 3) { v0, v1, bounds ->
                         dataBuilder.append("vec4(")
-                            .append(bounds.minX).append(',')
-                            .append(bounds.minY).append(',')
-                            .append(bounds.minZ).append(',')
-                            .append(Float.fromBits(v0)).append("),vec4(")
-                            .append(bounds.maxX).append(',')
-                            .append(bounds.maxY).append(',')
-                            .append(bounds.maxZ).append(',')
-                            .append(Float.fromBits(v1)).append("),")
+                            .appendFloat(bounds.minX).append(',')
+                            .appendFloat(bounds.minY).append(',')
+                            .appendFloat(bounds.minZ).append(',')
+                            .appendFloat(Float.fromBits(v0)).append("),vec4(")
+                            .appendFloat(bounds.maxX).append(',')
+                            .appendFloat(bounds.maxY).append(',')
+                            .appendFloat(bounds.maxZ).append(',')
+                            .appendFloat(Float.fromBits(v1)).append("),")
                     }
                     dataBuilder.setLength(dataBuilder.length - 1)
                     dataBuilder.append(");\n")
@@ -261,9 +262,9 @@ open class SDFMesh : SDFSmoothShape() {
                         val positions = geometry.positions
                         val k = vertexIndex * 3
                         dataBuilder.append("vec3(")
-                            .append(positions[k]).append(',')
-                            .append(positions[k + 1]).append(',')
-                            .append(positions[k + 2]).append("),")
+                            .appendFloat(positions[k]).append(',')
+                            .appendFloat(positions[k + 1]).append(',')
+                            .appendFloat(positions[k + 2]).append("),")
                     }
                     dataBuilder.setLength(dataBuilder.length - 1)
                     dataBuilder.append(");\n")
@@ -298,7 +299,7 @@ open class SDFMesh : SDFSmoothShape() {
             builder.append("dir").append(trans.posIndex).append(',')
             val dynamicSmoothness = dynamicSmoothness || globalDynamic
             if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
-            else builder.append(smoothness)
+            else builder.appendFloat(smoothness)
             builder.append(")")
         }
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)

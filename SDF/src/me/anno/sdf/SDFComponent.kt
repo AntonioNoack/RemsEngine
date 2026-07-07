@@ -61,6 +61,7 @@ import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Strings.appendFloat
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -819,10 +820,10 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
             } else {
                 val invScale = 1f / scale
                 builder.append("*")
-                builder.append(invScale)
+                builder.appendFloat(invScale)
                 builder.append(";\n")
                 builder.append("float sca").append(currIndex)
-                    .append("=sca").append(prevIndex).append("*").append(invScale).append(";\n")
+                    .append("=sca").append(prevIndex).append("*").appendFloat(invScale).append(";\n")
                 scale.toString()
             }
         } else null
@@ -1032,10 +1033,10 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
 
         fun StringBuilder.appendVec(v: Vector2f): StringBuilder {
             append("vec2(")
-            append(v.x)
+            appendFloat(v.x)
             if (v.x != v.y) {
                 append(',')
-                append(v.y)
+                appendFloat(v.y)
             }
             append(')')
             return this
@@ -1043,12 +1044,12 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
 
         fun StringBuilder.appendVec(v: Vector3f): StringBuilder {
             append("vec3(")
-            append(v.x)
+            appendFloat(v.x)
             if (v.x != v.y || v.y != v.z) {
                 append(',')
-                append(v.y)
+                appendFloat(v.y)
                 append(',')
-                append(v.z)
+                appendFloat(v.z)
             }
             append(')')
             return this
@@ -1069,14 +1070,14 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
 
         fun StringBuilder.appendVec(v: Vector4f): StringBuilder {
             append("vec4(")
-            append(v.x)
+            appendFloat(v.x)
             if (v.x != v.y || v.x != v.z || v.x != v.w) {
                 append(',')
-                append(v.y)
+                appendFloat(v.y)
                 append(',')
-                append(v.z)
+                appendFloat(v.z)
                 append(',')
-                append(v.w)
+                appendFloat(v.w)
             }
             append(')')
             return this
@@ -1084,26 +1085,26 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
 
         fun StringBuilder.appendVec(v: Quaternionf): StringBuilder {
             append("vec4(")
-            append(v.x)
+            appendFloat(v.x)
             append(',')
-            append(v.y)
+            appendFloat(v.y)
             append(',')
-            append(v.z)
+            appendFloat(v.z)
             append(',')
-            append(v.w)
+            appendFloat(v.w)
             append(')')
             return this
         }
 
         fun StringBuilder.appendVec(v: Planef): StringBuilder {
             append("vec4(")
-            append(v.dirX)
+            appendFloat(v.dirX)
             append(',')
-            append(v.dirY)
+            appendFloat(v.dirY)
             append(',')
-            append(v.dirZ)
+            appendFloat(v.dirZ)
             append(',')
-            append(v.distance)
+            appendFloat(v.distance)
             append(')')
             return this
         }

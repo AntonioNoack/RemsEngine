@@ -7,6 +7,7 @@ import me.anno.maths.Maths.PHIf
 import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.pow
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -55,7 +56,7 @@ class SDFRegular : SDFSmoothShape() {
         val dynamic = dynamicSmoothness || globalDynamic
         if (dynamic || smoothness > 0f) {
             if (dynamic) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
-            else builder.append(smoothness)
+            else builder.appendFloat(smoothness)
             builder.append(',')
         }
         builder.append(type.start).append(',')

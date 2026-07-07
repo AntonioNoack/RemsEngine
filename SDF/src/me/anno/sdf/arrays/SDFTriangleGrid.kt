@@ -12,6 +12,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.MinMax.max
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
@@ -71,8 +72,8 @@ class SDFTriangleGrid : PositionMapper() {
                 .append(uniform)
         } else {
             builder.append("*vec2(")
-            builder.append(1f / cellSize.x).append(',')
-            builder.append(1f / cellSize.y)
+            builder.appendFloat(1f / cellSize.x).append(',')
+            builder.appendFloat(1f / cellSize.y)
             builder.append("),tmp").append(rnd).append("))*")
             builder.appendVec(cellSize)
         }

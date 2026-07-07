@@ -10,6 +10,7 @@ import me.anno.sdf.random.SDFRandom.Companion.randLib
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector3i
@@ -143,7 +144,7 @@ class SDFArrayMapper : PositionMapper() {
                 builder.append("pos").append(posIndex).append(".").append(component)
                 builder.append(if (mirror) "=mod2M(pos" else "=mod2(pos")
                 builder.append(posIndex).append(".").append(component).append(",")
-                builder.append(size).append(",tmp")
+                builder.appendFloat(size).append(",tmp")
                     .append(nameIdx).append(".").append(component).append(");\n")
                 // todo adjust dir if mirrored
             }
@@ -151,9 +152,9 @@ class SDFArrayMapper : PositionMapper() {
                 builder.append("pos").append(posIndex).append(".").append(component)
                 builder.append(if (mirror) "=mod2M(pos" else "=mod2(pos")
                 builder.append(posIndex).append(".").append(component).append(",")
-                builder.append(size).append(",")
-                builder.append((count - 1) * 0.5f).append(",")
-                builder.append(count.and(1) * 0.5f).append(",tmp")
+                builder.appendFloat(size).append(",")
+                builder.appendFloat((count - 1) * 0.5f).append(",")
+                builder.appendFloat(count.and(1) * 0.5f).append(",tmp")
                     .append(nameIdx).append(".").append(component).append(");\n")
                 // todo adjust dir if mirrored
             }

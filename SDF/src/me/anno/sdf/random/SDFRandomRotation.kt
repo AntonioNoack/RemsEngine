@@ -10,6 +10,8 @@ import me.anno.sdf.VariableCounter
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.piF180d
 import me.anno.utils.types.Floats.toRadians
+import me.anno.utils.types.Strings.appendDouble
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -41,7 +43,7 @@ class SDFRandomRotation : SDFRandom() {
     ): String? {
         val tmp = nextVariableId.next()
         builder.append("vec3 tmp").append(tmp).append("=")
-            .append(piF180d).append("*mix(")
+            .appendDouble(piF180d).append("*mix(")
         if (dynamic || globalDynamic) {
             builder.appendUniform(uniforms, minAngleDegrees).append(',')
                 .appendUniform(uniforms, maxAngleDegrees)

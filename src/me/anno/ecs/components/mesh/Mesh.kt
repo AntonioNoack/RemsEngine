@@ -112,7 +112,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     @Docs("Position in local space, packed (x,y,z)")
     @NotSerializedProperty
-    var positions: FloatArray? // todo change "positions" to "positions" everywhere
+    var positions: FloatArray?
         get() = getAttr("positions", FloatArray::class)
         set(value) = setAttr("positions", value, coordsType)
 
@@ -294,7 +294,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     fun calculateNormals(smooth: Boolean) {
         if (smooth && indices == null) generateIndices()
-        val positions = positions ?: return
+        val positions = positions ?: FloatArray(0)
         var normals = normals.resize(positions.size)
         if (normals === positions) normals = FloatArray(positions.size)
         else normals.fill(0f)
@@ -360,7 +360,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     fun ensureNorTanUVs() {
 
         // not the safest, but well...
-        val positions = positions ?: return
+        val positions = positions ?: FloatArray(0)
 
         // if normals are null or have length 0, compute them
         if (normals == null)

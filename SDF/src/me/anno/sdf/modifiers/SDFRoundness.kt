@@ -6,6 +6,7 @@ import me.anno.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.AABBf
 import org.joml.Vector4f
 
@@ -48,7 +49,7 @@ class SDFRoundness : DistanceMapper() {
         builder.append("res").append(dstIndex).append(".x-=")
         val dynamic = dynamic || globalDynamic
         if (dynamic) builder.appendUniform(uniforms, GLSLType.V1F) { roundness }
-        else builder.append(roundness)
+        else builder.appendFloat(roundness)
         builder.append(";\n")
     }
 

@@ -8,6 +8,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.Vector2f
 import org.joml.Vector4f
 import kotlin.math.PI
@@ -65,9 +66,9 @@ class SDFStar : SDF2DShape() {
             val m = mix(2f, n, params.y)
             val an = (PI / n).toFloat()
             val en = (PI / m).toFloat()
-            builder.append(an).append(',')
-            builder.append("vec2(").append(cos(an)).append(',').append(sin(an)).append("),")
-            builder.append("vec2(").append(cos(en)).append(',').append(sin(en)).append(')')
+            builder.appendFloat(an).append(',')
+            builder.append("vec2(").appendFloat(cos(an)).append(',').appendFloat(sin(an)).append("),")
+            builder.append("vec2(").appendFloat(cos(en)).append(',').appendFloat(sin(en)).append(')')
         }
         builder.append(')')
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)

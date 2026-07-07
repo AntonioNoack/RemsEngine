@@ -5,6 +5,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.utils.Color.black4
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.structures.maps.LazyMap
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.Vector4f
 
 class DeferredLayerType(
@@ -50,27 +51,27 @@ class DeferredLayerType(
 
     fun appendDefaultValue(fragment: StringBuilder, workDims: Int = this.workDims) {
         when (workDims) {
-            1 -> fragment.append(defaultWorkValue.z)
+            1 -> fragment.appendFloat(defaultWorkValue.z)
             2 -> fragment.append("vec2(")
-                .append(defaultWorkValue.y)
+                .appendFloat(defaultWorkValue.y)
                 .append(", ")
-                .append(defaultWorkValue.z)
+                .appendFloat(defaultWorkValue.z)
                 .append(')')
             3 -> fragment.append("vec3(")
-                .append(defaultWorkValue.x)
+                .appendFloat(defaultWorkValue.x)
                 .append(", ")
-                .append(defaultWorkValue.y)
+                .appendFloat(defaultWorkValue.y)
                 .append(", ")
-                .append(defaultWorkValue.z)
+                .appendFloat(defaultWorkValue.z)
                 .append(')')
             4 -> fragment.append("vec4(")
-                .append(defaultWorkValue.x)
+                .appendFloat(defaultWorkValue.x)
                 .append(", ")
-                .append(defaultWorkValue.y)
+                .appendFloat(defaultWorkValue.y)
                 .append(", ")
-                .append(defaultWorkValue.z)
+                .appendFloat(defaultWorkValue.z)
                 .append(", ")
-                .append(defaultWorkValue.w)
+                .appendFloat(defaultWorkValue.w)
                 .append(')')
         }
     }

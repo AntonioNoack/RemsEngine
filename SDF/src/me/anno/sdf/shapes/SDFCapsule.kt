@@ -8,6 +8,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.sq
 import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -67,7 +68,7 @@ open class SDFCapsule : SDFShape() {
         else builder.appendVec(p1)
         builder.append(',')
         if (dynamicSize) builder.appendUniform(uniforms, GLSLType.V1F) { radius }
-        else builder.append(radius)
+        else builder.appendFloat(radius)
         builder.append(')')
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }

@@ -11,6 +11,7 @@ import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.modifiers.SDFMirror.Companion.normalize3
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.AABBf
 import org.joml.Planef
 import org.joml.Vector4f
@@ -71,7 +72,7 @@ class SDFHalfSpace : DistanceMapper() {
             else builder.appendVec(plane)
             builder.append("),")
             if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
-            else builder.append(smoothness)
+            else builder.appendFloat(smoothness)
             builder.append(");\n")
         } else {
             builder.append("res").append(dstIndex)

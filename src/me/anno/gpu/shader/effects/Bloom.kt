@@ -22,6 +22,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.appendFloat
 import kotlin.math.exp
 import kotlin.math.max
 
@@ -114,7 +115,7 @@ object Bloom {
         val blur = StringBuilder(halfSegments * 2 * 40)
         val factors = FloatArray(halfSegments + 1) { exp(factor0 * Maths.sq(it * f)) }
         val inv = factors.sum() * 2f - factors[0]
-        blur.append(factors[0] / inv)
+        blur.appendFloat(factors[0] / inv)
         if (offset) blur.append("*loadColor(texelFetch(tex,p,0).rgb)")
         else blur.append("*texelFetch(tex,p,0).rgb")
         blur.append('\n')
@@ -123,7 +124,7 @@ object Bloom {
             val dxi = dx * i
             val dyi = dy * i
             blur.append('+')
-            blur.append(factor)
+            blur.appendFloat(factor)
             if (offset) blur.append("*(loadColor(texelFetch(tex,p+ivec2(")
             else blur.append("*(texelFetch(tex,p+ivec2(")
             blur.append(dxi)

@@ -3,6 +3,7 @@ package me.anno.utils.types
 import me.anno.utils.InternalAPI
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.appendDouble
 import me.anno.utils.types.Strings.removeRange2
 import kotlin.math.abs
 import kotlin.math.max
@@ -79,8 +80,8 @@ object NumberFormatter {
                 // append remaining digits
                 append(digits, i0 + doneDigits, i0 + digitsLength)
                 removeRange2(i0, i0 + digitsLength)
-            } else append(v)
-        } else append(v)
+            } else appendDouble(v)
+        } else appendDouble(v)
     }
 
     @JvmStatic

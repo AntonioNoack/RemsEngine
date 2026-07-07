@@ -20,6 +20,7 @@ import me.anno.io.Streams.readNBytes2
 import me.anno.maths.Maths.TAUf
 import me.anno.utils.OS.res
 import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.ByteArrayInputStream
@@ -107,16 +108,17 @@ object ShapedBlur {
                 val px = tmp.x
                 val py = tmp.y
                 if (gaussian) {
-                    src.append("+pow(textureLod(tex,uv+duv*vec2(").append(px).append(',').append(py)
+                    src.append("+pow(textureLod(tex,uv+duv*vec2(").appendFloat(px).append(',').appendFloat(py)
                         .append("),0).rgb,inGamma)")
                 } else {
                     val weight = tmp.z
                     val sign = if (weight < 0f) '-' else '+'
-                    src.append(sign).append("pow(textureLod(tex,uv+duv*vec2(").append(px).append(',').append(py)
-                        .append("),0).rgb,inGamma)*").append(abs(weight))
+                    src.append(sign).append("pow(textureLod(tex,uv+duv*vec2(")
+                        .appendFloat(px).append(',').appendFloat(py)
+                        .append("),0).rgb,inGamma)*").appendFloat(abs(weight))
                 }
             }
-            if (gaussian) src.append(")*").append(1f / length).append(";break;\n")
+            if (gaussian) src.append(")*").appendFloat(1f / length).append(";break;\n")
             else src.append(");break;\n")
         }
         src.append(

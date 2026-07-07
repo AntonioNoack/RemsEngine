@@ -8,6 +8,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.Vector4f
 import kotlin.math.PI
 import kotlin.math.abs
@@ -50,8 +51,10 @@ class SDFPolygon : SDF2DShape() {
         else {
             // precompute the parameters for better performance
             val an = (PI / points).toFloat()
-            builder.append(an).append(',')
-            builder.append("vec2(").append(cos(an)).append(',').append(sin(an)).append(')')
+            builder.appendFloat(an).append(',')
+            builder.append("vec2(")
+                .appendFloat(cos(an)).append(',')
+                .appendFloat(sin(an)).append(')')
         }
         builder.append(')')
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)

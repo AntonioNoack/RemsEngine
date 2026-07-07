@@ -9,6 +9,7 @@ import me.anno.sdf.VariableCounter
 import me.anno.sdf.modifiers.PositionMapper
 import me.anno.ecs.components.collider.Axis
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.AABBf
 import org.joml.Vector4f
 import kotlin.math.floor
@@ -71,9 +72,9 @@ class SDFHexGrid : PositionMapper() {
                 builder.append(uniform)
             } else {
                 builder.append("*")
-                builder.append(1f / cellSize)
+                builder.appendFloat(1f / cellSize)
                 builder.append(",tmp").append(rnd).append(").xy*")
-                builder.append(cellSize)
+                builder.appendFloat(cellSize)
             }
             builder.append(";\n")
         } else {

@@ -2,6 +2,7 @@ package me.anno.io.json.saveable
 
 import me.anno.io.files.FileReference
 import me.anno.io.saveable.Saveable
+import me.anno.utils.types.Strings.appendDouble
 
 open class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : JsonWriterBase(workspace) {
 

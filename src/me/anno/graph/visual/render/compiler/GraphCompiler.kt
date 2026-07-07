@@ -36,6 +36,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
+import me.anno.utils.types.Strings.appendFloat
 import me.anno.video.VideoCache
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
@@ -196,8 +197,8 @@ abstract class GraphCompiler(val g: FlowGraph) {
     fun appendVector2f(v: Any?) {
         if (v is Vector2f) {
             builder.append("vec2(")
-                .append(v.x).append(',')
-                .append(v.y).append(')')
+                .appendFloat(v.x).append(',')
+                .appendFloat(v.y).append(')')
         } else {
             builder.append("vec2(0.0)")
         }
@@ -206,9 +207,9 @@ abstract class GraphCompiler(val g: FlowGraph) {
     fun appendVector3f(v: Any?) {
         if (v is Vector3f) {
             builder.append("vec3(")
-                .append(v.x).append(',')
-                .append(v.y).append(',')
-                .append(v.z).append(')')
+                .appendFloat(v.x).append(',')
+                .appendFloat(v.y).append(',')
+                .appendFloat(v.z).append(')')
         } else {
             builder.append("vec3(0.0)")
         }
@@ -217,10 +218,10 @@ abstract class GraphCompiler(val g: FlowGraph) {
     fun appendVector4f(v: Any?) {
         if (v is Vector4f) {
             builder.append("vec4(")
-                .append(v.x).append(',')
-                .append(v.y).append(',')
-                .append(v.z).append(',')
-                .append(v.w).append(')')
+                .appendFloat(v.x).append(',')
+                .appendFloat(v.y).append(',')
+                .appendFloat(v.z).append(',')
+                .appendFloat(v.w).append(')')
         } else {
             builder.append("vec4(0.0)")
         }
@@ -228,7 +229,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
 
     private fun appendSimple(type: String?, v: Any?, defaultValue: Any?) {
         when (type) {
-            "Float", "Double" -> builder.append(AnyToFloat.getFloat(v, 0, defaultValue as? Float ?: 0f))
+            "Float", "Double" -> builder.appendFloat(AnyToFloat.getFloat(v, 0, defaultValue as? Float ?: 0f))
             "Int", "Long" -> builder.append(AnyToLong.getLong(v, 0, defaultValue as? Long ?: 0L))
             "Vector2f" -> appendVector2f(v)
             "Vector3f" -> appendVector3f(v)

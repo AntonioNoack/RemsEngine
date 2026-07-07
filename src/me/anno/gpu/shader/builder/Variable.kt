@@ -234,15 +234,15 @@ class Variable(
 
     fun appendDefaultValue(code: StringBuilder) {
         when (type) {
-            GLSLType.V1B -> code.append("=false;\n")
-            GLSLType.V1F -> code.append("=0.0;\n")
-            GLSLType.V2F -> code.append("=vec2(0.0,0.0);\n")
-            GLSLType.V3F -> code.append("=vec3(0.0,0.0,0.0);\n")
-            GLSLType.V4F -> code.append("=vec4(0.0,0.0,0.0,0.0);\n")
-            GLSLType.V1I -> code.append("=0;\n")
-            GLSLType.V2I -> code.append("=ivec2(0,0);\n")
-            GLSLType.V3I -> code.append("=ivec3(0,0,0);\n")
-            GLSLType.V4I -> code.append("=ivec4(0,0,0,0);\n")
+            GLSLType.V1B -> code.append(" = false;\n")
+            GLSLType.V1F -> code.append(" = 0.0;\n")
+            GLSLType.V2F -> code.append(" = vec2(0.0,0.0);\n")
+            GLSLType.V3F -> code.append(" = vec3(0.0,0.0,0.0);\n")
+            GLSLType.V4F -> code.append(" = vec4(0.0,0.0,0.0,0.0);\n")
+            GLSLType.V1I -> code.append(" = 0 // $type -> ${type.glslName} $name;\n")
+            GLSLType.V2I -> code.append(" = ivec2(0,0);\n")
+            GLSLType.V3I -> code.append(" = ivec3(0,0,0);\n")
+            GLSLType.V4I -> code.append(" = ivec4(0,0,0,0);\n")
             else -> code.append(";\n")
         }
     }

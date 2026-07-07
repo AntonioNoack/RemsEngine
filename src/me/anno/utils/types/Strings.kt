@@ -825,4 +825,32 @@ object Strings {
         bytes.writeString(0, this)
         return bytes
     }
+
+    /**
+     * Kotlin Multiplatform on web just writes "0" instead of "0.0", and the GLSL compiler crashes on expecting floats, but getting ints.
+     * -> so we extend the method to always append a dot, when appropriate and missing
+     * */
+    @JvmStatic
+    fun StringBuilder.appendFloat(v: Float): StringBuilder {
+        val l0 = length
+        append(v)
+        if (v.isFinite() && indexOf('.', l0) < 0) {
+            append(".0")
+        }
+        return this
+    }
+
+    /**
+     * Kotlin Multiplatform on web just writes "0" instead of "0.0", and the GLSL compiler crashes on expecting floats, but getting ints.
+     * -> so we extend the method to always append a dot, when appropriate and missing
+     * */
+    @JvmStatic
+    fun StringBuilder.appendDouble(v: Double): StringBuilder {
+        val l0 = length
+        append(v)
+        if (v.isFinite() && indexOf('.', l0) < 0) {
+            append(".0")
+        }
+        return this
+    }
 }

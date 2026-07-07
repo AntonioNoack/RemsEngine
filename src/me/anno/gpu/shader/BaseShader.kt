@@ -114,12 +114,8 @@ open class BaseShader(
         val shader = deferred.createShader(
             name, key,
             flags.hasFlag(IS_INSTANCED),
-            vertexVariables,
-            vertexShader,
-            varyings,
-            fragmentVariables,
-            fragmentShader,
-            textures,
+            vertexVariables, vertexShader, varyings,
+            fragmentVariables, fragmentShader, textures,
             key.renderer.getVertexPostProcessing(flags),
             key.renderer.getPixelPostProcessing(flags),
             key.ditherMode

@@ -8,6 +8,7 @@ import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.fract
+import me.anno.utils.types.Strings.appendFloat
 import org.joml.Vector4f
 import kotlin.math.abs
 
@@ -71,7 +72,7 @@ class SDFOnion() : DistanceMapper() {
         builder.append("res").append(dstIndex).append(".x,")
         val dynamicThickness = dynamicThickness || globalDynamic
         if (dynamicThickness) builder.appendUniform(uniforms, GLSLType.V1F) { thickness }
-        else builder.append(thickness)
+        else builder.appendFloat(thickness)
         val dynamicRings = dynamicRings || globalDynamic
         if (dynamicRings || rings != 1) {
             builder.append(',')

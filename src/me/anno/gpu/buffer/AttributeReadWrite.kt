@@ -2,6 +2,7 @@ package me.anno.gpu.buffer
 
 import me.anno.gpu.shader.GLSLType
 import me.anno.utils.assertions.assertFalse
+import me.anno.utils.types.Strings.appendDouble
 import me.anno.utils.types.Strings.titlecase
 
 /**
@@ -242,7 +243,7 @@ object AttributeReadWrite {
         if (c > 2) result.append(", (value<<8)>>24")
         if (c > 3) result.append(", (value)>>24")
         result.append(")")
-        if (normalized) result.append("*").append(if (unsigned) INV255 else INV127)
+        if (normalized) result.append("*").appendDouble(if (unsigned) INV255 else INV127)
         result.append(";\n}\n")
         if (setters) {
             result.appendSetterHeader(type, name, name1).appendIdx(stride, offset)
@@ -301,7 +302,7 @@ object AttributeReadWrite {
         if (c > 2) result.append(", ").append("getU16").append(joined).append("(idx+2u)")
         if (c > 3) result.append(", ").append("getU16").append(joined).append("(idx+3u)")
         result.append(")")
-        if (normalized) result.append("*").append(if (unsigned) INV65535 else INV32767)
+        if (normalized) result.append("*").appendDouble(if (unsigned) INV65535 else INV32767)
         result.append(";\n}\n")
         if (setters) {
             result.appendSetterHeader(type, name, name1).appendIdx(stride, offset)

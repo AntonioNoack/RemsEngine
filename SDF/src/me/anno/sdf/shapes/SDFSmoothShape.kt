@@ -4,6 +4,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
+import me.anno.utils.types.Strings.appendFloat
 
 abstract class SDFSmoothShape : SDFShape() {
 
@@ -32,7 +33,7 @@ abstract class SDFSmoothShape : SDFShape() {
         if (dynamicSmoothness || smoothness > 0f) {
             builder.append(',')
             if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
-            else builder.append(smoothness)
+            else builder.appendFloat(smoothness)
         }
     }
 
