@@ -473,7 +473,7 @@ class MainStage {
                         param.declareForAssignment(code, null)
                         code.append('=')
                         dlt.appendDefaultValue(code)
-                        code.append(" // cc-param: $param;\n")
+                        code.append(";\n")
                     } else {
                         param.declare(code, null, true)
                     }
