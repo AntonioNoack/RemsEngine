@@ -140,7 +140,7 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 "float deTerm0 = pos.y + sunDir.y * 4.0;\n" +
                 "float deTerm3 = approxExp16(negPosY) + 0.1;\n" +
                 "float deTerm1 = deTerm3 * $inv80Br;\n" +
-                "vec3 deTerm2 = deTerm3 * ${KrBr.v};\n" +
+                "vec3 deTerm2 = vec3(deTerm3) * ${KrBr.v};\n" +
                 "vec3 day_extinction = exp(-exp(deTerm0 * deTerm1) * deTerm2) * approx1(negPosY) * approxExp2x4(negPosY);\n" +
                 "day_extinction = clamp(day_extinction, 0.0, 1.0);\n" +
                 "vec3 night_extinction = vec3(0.2 - exp(max(sunDir.y, 0.0)) * 0.2);\n" +

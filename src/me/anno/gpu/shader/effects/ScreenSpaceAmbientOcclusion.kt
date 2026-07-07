@@ -266,7 +266,8 @@ object ScreenSpaceAmbientOcclusion {
                                 "           ivec2 uv1 = uv0 + ij;\n" +
                                 "           float di = getDepth(uv1);\n" +
                                 "           vec3  ni = getNormal(uv1);\n" +
-                                "           float weight = max(1.0-abs(di-d0),0.0) * max(dot(n0,ni),0.0) / float(1 + dot(ij,ij));\n" +
+                                // dot(ivec2,ivec2) is not supported in WebGL :(
+                                "           float weight = max(1.0-abs(di-d0),0.0) * max(dot(n0,ni),0.0) / float(1 + i*i + j*j));\n" +
                                 // todo we need the correct depth & normal for that ssaoTex value
                                 "           ivec2 ssaoUV = clamp(ivec2((uv + duv * vec2(ij)) * vec2(ssaoSize)), ivec2(0), ssaoSize-1);\n" +
                                 "           valueSum += weight * texelFetch(ssaoTex,ssaoUV,0)" + (if (ssgi) ".xyz" else ".x") + ";\n" +
