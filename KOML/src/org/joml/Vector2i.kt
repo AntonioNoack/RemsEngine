@@ -72,9 +72,9 @@ open class Vector2i(
         return distanceSquared(x, y, vx, vy)
     }
 
-    fun gridDistance(v: Vector2i): Long = gridDistance(v.x, v.y)
-    fun gridDistance(x: Int, y: Int): Long {
-        return (abs(x - this.x) + abs(y - this.y)).toLong()
+    fun gridDistance(v: Vector2i): Int = gridDistance(v.x, v.y)
+    fun gridDistance(x: Int, y: Int): Int {
+        return abs(x - this.x) + abs(y - this.y)
     }
 
     fun dot(ox: Int, oy: Int): Long = x * ox.toLong() + y * oy.toLong()

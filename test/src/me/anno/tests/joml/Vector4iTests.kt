@@ -91,7 +91,7 @@ class Vector4iTests {
 
     @Test
     fun testGridDistance() {
-        assertEquals(1 + 2 + 3 + 4L, Vector4i(1).gridDistance(Vector4i(2, 3, 4, 5)))
+        assertEquals(1 + 2 + 3 + 4, Vector4i(1).gridDistance(Vector4i(2, 3, 4, 5)))
     }
 
     @Test

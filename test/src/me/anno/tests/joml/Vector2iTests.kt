@@ -73,7 +73,7 @@ class Vector2iTests {
 
     @Test
     fun testGridDistance() {
-        assertEquals(1 + 2L, Vector2i(1).gridDistance(Vector2i(2, 3)))
+        assertEquals(1 + 2, Vector2i(1).gridDistance(Vector2i(2, 3)))
     }
 
     @Test

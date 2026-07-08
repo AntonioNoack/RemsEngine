@@ -80,7 +80,7 @@ class Vector3iTests {
 
     @Test
     fun testGridDistance() {
-        assertEquals(1 + 2 + 3L, Vector3i(1).gridDistance(Vector3i(2, 3, 4)))
+        assertEquals(1 + 2 + 3, Vector3i(1).gridDistance(Vector3i(2, 3, 4)))
     }
 
     @Test

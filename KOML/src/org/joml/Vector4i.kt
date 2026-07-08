@@ -142,15 +142,15 @@ open class Vector4i(
         return distance(this.x, this.y, this.z, this.w, x, y, z, w)
     }
 
-    fun gridDistance(v: Vector4i): Long {
+    fun gridDistance(v: Vector4i): Int {
         return gridDistance(v.x, v.y, v.z, v.w)
     }
 
-    fun gridDistance(x: Int, y: Int, z: Int, w: Int): Long {
-        val dx = this.x - x.toLong()
-        val dy = this.y - y.toLong()
-        val dz = this.z - z.toLong()
-        val dw = this.w - w.toLong()
+    fun gridDistance(x: Int, y: Int, z: Int, w: Int): Int {
+        val dx = this.x - x
+        val dy = this.y - y
+        val dz = this.z - z
+        val dw = this.w - w
         return abs(dx) + abs(dy) + abs(dz) + abs(dw)
     }
 

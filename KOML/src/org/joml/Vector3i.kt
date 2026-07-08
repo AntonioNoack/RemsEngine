@@ -129,12 +129,12 @@ open class Vector3i(
     fun distance(v: Vector3i): Double = distance(v.x, v.y, v.z)
     fun distance(vx: Int, vy: Int, vz: Int): Double = distance(x, y, z, vx, vy, vz)
 
-    fun gridDistance(v: Vector3i): Long {
+    fun gridDistance(v: Vector3i): Int {
         return gridDistance(v.x, v.y, v.z)
     }
 
-    fun gridDistance(x: Int, y: Int, z: Int): Long {
-        return (abs(x - this.x) + abs(y - this.y) + abs(z - this.z)).toLong()
+    fun gridDistance(x: Int, y: Int, z: Int): Int {
+        return abs(x - this.x) + abs(y - this.y) + abs(z - this.z)
     }
 
     fun dot(ox: Int, oy: Int, oz: Int): Long = x * ox.toLong() + y * oy.toLong() + z * oz.toLong()
