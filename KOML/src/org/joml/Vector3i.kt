@@ -88,6 +88,7 @@ open class Vector3i(
         return add(v.x, v.y, v.z, dst)
     }
 
+    fun add(v: Int, dst: Vector3i = this) = add(v, v, v, dst)
     fun add(x: Int, y: Int, z: Int, dst: Vector3i = this): Vector3i {
         dst.x = this.x + x
         dst.y = this.y + y

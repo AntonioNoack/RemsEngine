@@ -18,6 +18,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
+import me.anno.utils.GFXFeatures
 import me.anno.utils.types.Booleans.hasFlag
 import kotlin.math.max
 
@@ -145,13 +146,21 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val reflectionMapCalculation = "" +
                 "#ifdef DEFERRED\n" +
                 "   float reflectivity = finalReflectivity;\n" +
-                "   if(reflectivity > 0.0){\n" +
+                "   if (reflectivity > 0.0) {\n" +
                 "       vec3 dir = $cubemapsAreLeftHanded * reflect(V0, finalNormal);\n" +
                 "       vec3 newColor = vec3(0.0);\n" +
                 // texture is SRGB -> convert to linear
                 // todo like planar reflections, blur LODs (?)
                 "       float lod = finalRoughness * 5.0;\n" +
-                "       vec3 skyEmissive = pow(textureLod(reflectionMap, dir, lod).rgb, vec3($gamma));\n" +
+                (if (GFXFeatures.hasWeakGPU) {
+                    "vec3 skyEmissive = pow(textureLod(reflectionMap, dir, lod).rgb, vec3($gamma));\n"
+                } else {
+                    "" +
+                            // real life metal has many levels of sharpness https://www.youtube.com/watch?v=r3bkGPobpTw ("Forgotten Metal Knowledge" by Lucas)
+                            "vec3 skyEmissiveBlurry = pow(textureLod(reflectionMap, dir, lod).rgb, vec3($gamma));\n" +
+                            "vec3 skyEmissiveSharp = pow(texture(reflectionMap, dir).rgb, vec3($gamma));\n" +
+                            "vec3 skyEmissive = mix(skyEmissiveSharp, skyEmissiveBlurry, finalRoughness);\n"
+                }) +
                 "       finalEmissive += finalColor * skyEmissive * reflectivity;\n" +
                 // doing this would make SSR reflect the incorrect color
                 // "       finalColor    *= 1.0 - reflectivity;\n" +
