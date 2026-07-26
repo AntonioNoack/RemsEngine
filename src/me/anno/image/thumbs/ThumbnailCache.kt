@@ -55,6 +55,7 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
 
     private val LOGGER = LogManager.getLogger(ThumbnailCache::class)
 
+    private val textures = CacheSection<ThumbnailKey, ITexture2D>("Thumbs")
     private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
     val worker = ProcessingQueue("Thumbnails")
 
@@ -64,7 +65,6 @@ object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistry
     )
 
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
-    private val textures = CacheSection<ThumbnailKey, ITexture2D>("Thumbs")
 
     private const val timeout = 5000L
 

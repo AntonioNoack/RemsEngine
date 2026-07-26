@@ -1,13 +1,16 @@
 package me.anno.tools
 
 import me.anno.cache.FileCacheSection.removeFileEntry
+import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageCache
 import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS.desktop
+import me.anno.utils.OS.downloads
 
 fun main() {
     // convertAllPNGToJPG()
-    scaleDownImages()
+    // scaleDownImages()
+    convertHDRToJPG()
 }
 
 /**
@@ -42,4 +45,14 @@ fun scaleDownImages() {
             .resized(image.width / 3, image.height / 3, false)
             .write(dst.getChild(child.name))
     }
+}
+
+/**
+ * convert a HDR file to a jpg file, tonemapping is automatically included
+ * */
+fun convertHDRToJPG() {
+    val src = downloads.getChild("autumn_hill_view_1k.hdr")
+    OfficialExtensions.initForTests()
+    val image = ImageCache[src].waitFor() ?: error("Missing $src")
+    image.write(src.getSiblingWithExtension("jpg"))
 }
