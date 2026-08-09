@@ -59,6 +59,7 @@ import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Floats.f1
+import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL46C.GL_BGR
@@ -445,7 +446,8 @@ open class Texture2D(
         check()
         clamping(clamping, true)
         check()
-        if (Build.isDebug) glObjectLabel(GL_TEXTURE, pointer, name)
+        val name = name
+        if (Build.isDebug && name.isNotBlank2()) glObjectLabel(GL_TEXTURE, pointer, name)
         if (isDestroyed) destroy()
     }
 

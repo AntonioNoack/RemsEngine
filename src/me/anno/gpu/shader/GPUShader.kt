@@ -15,12 +15,10 @@ import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.GFXFeatures
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Strings.countLines
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.isNotBlank2
-import me.anno.utils.types.Strings.splitLines
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix2f
 import org.joml.Matrix3f
@@ -39,16 +37,20 @@ import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
 import org.lwjgl.opengl.GL46C
+import org.lwjgl.opengl.GL46C.GL_COMPILE_STATUS
 import org.lwjgl.opengl.GL46C.GL_LINK_STATUS
 import org.lwjgl.opengl.GL46C.GL_PROGRAM
 import org.lwjgl.opengl.GL46C.GL_SHADER
+import org.lwjgl.opengl.GL46C.GL_TRUE
 import org.lwjgl.opengl.GL46C.glAttachShader
 import org.lwjgl.opengl.GL46C.glCompileShader
 import org.lwjgl.opengl.GL46C.glCreateShader
 import org.lwjgl.opengl.GL46C.glDeleteProgram
+import org.lwjgl.opengl.GL46C.glDeleteShader
 import org.lwjgl.opengl.GL46C.glGetProgramInfoLog
 import org.lwjgl.opengl.GL46C.glGetProgrami
 import org.lwjgl.opengl.GL46C.glGetShaderInfoLog
+import org.lwjgl.opengl.GL46C.glGetShaderi
 import org.lwjgl.opengl.GL46C.glGetUniformLocation
 import org.lwjgl.opengl.GL46C.glObjectLabel
 import org.lwjgl.opengl.GL46C.glShaderSource
@@ -119,7 +121,6 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
         fun formatVersion(version: Int): String {
             return when {
                 // ERROR: 0:1: '150' : client/version number not supported
-                // todo how do we find out which version is supported in WebGL?
                 OS.isWeb -> "#version 300 es\n" // WebGL is limited to exactly 300
                 GFXFeatures.isOpenGLES -> "#version $version es\n"
                 else -> "#version $version\n"
@@ -139,7 +140,6 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
                 compileShader(type, source, shaderName)
             }
             glAttachShader(program, shader)
-            postPossibleError(shaderName, shader, true, source)
             return shader
         }
 
@@ -147,7 +147,8 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
             val shader = glCreateShader(type)
             glShaderSource(shader, source)
             glCompileShader(shader)
-            if (Build.isDebug) glObjectLabel(GL_SHADER, shader, name)
+            checkStatusAndWarnings(name, shader, true, source)
+            if (Build.isDebug && name.isNotBlank2()) glObjectLabel(GL_SHADER, shader, name)
             return shader
         }
 
@@ -178,29 +179,32 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
             return idx
         }
 
-        fun postPossibleError(shaderName: String, shader: Int, isShader: Boolean, s0: String, s1: String = "") {
-            val log: String? = if (isShader) {
-                glGetShaderInfoLog(shader)
-            } else {
-                glGetProgramInfoLog(shader)
-            }
-            if (log != null && !log.isBlank2()) {
-                if (hasErrorMessages(log)) {
-                    LOGGER.warn(formatShader(shaderName, log, s0, s1))
-                } else {
-                    LOGGER.warn("$shaderName: $log")
-                }
-            }
-            if (!isShader) {
-                if (glGetProgrami(shader, GL_LINK_STATUS) == 0) {
-                    throw IllegalStateException("Linking $shader failed")
-                }
-            }
-        }
+        fun checkStatusAndWarnings(shaderName: String, shader: Int, isShader: Boolean, s0: String, s1: String = "") {
 
-        private fun hasErrorMessages(log: String): Boolean {
-            return log.splitLines().any2 { line ->
-                line.isNotBlank2() && ": warning " !in line
+            val log: String? =
+                if (isShader) glGetShaderInfoLog(shader)
+                else glGetProgramInfoLog(shader)
+
+            val status =
+                if (isShader) glGetShaderi(shader, GL_COMPILE_STATUS)
+                else glGetProgrami(shader, GL_LINK_STATUS)
+
+            if (status != GL_TRUE) {
+
+                if (log != null && !log.isBlank2()) {
+                    LOGGER.error(formatShader(shaderName, log, s0, s1))
+                }
+
+                if (isShader) glDeleteShader(shader)
+                else glDeleteProgram(shader)
+
+                throw IllegalStateException(
+                    if (isShader) "Compiling shader $shader failed"
+                    else "Linking program $shader failed"
+                )
+
+            } else if (log != null && !log.isBlank2()) {
+                LOGGER.warn("$shaderName: $log")
             }
         }
 
@@ -232,18 +236,14 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
         }
 
         fun logShader(shaderName: String, vertex: String, fragment: String) {
-            if (logShaders) {
-                val folder = getLogFolder()
-                print(shaderName, folder, "vert", vertex)
-                print(shaderName, folder, "frag", fragment)
-            }
+            val folder = getLogFolder()
+            print(shaderName, folder, "vert", vertex)
+            print(shaderName, folder, "frag", fragment)
         }
 
         fun logShader(shaderName: String, comp: String) {
-            if (logShaders) {
-                val folder = getLogFolder()
-                print(shaderName, folder, "comp", comp)
-            }
+            val folder = getLogFolder()
+            print(shaderName, folder, "comp", comp)
         }
     }
 
@@ -341,8 +341,9 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
         return textureNames.indexOf(name)
     }
 
-    fun compileSetDebugLabel() {
-        if (Build.isDebug) {
+    fun compileSetDebugLabel(program: Int) {
+        val name = name
+        if (Build.isDebug && name.isNotBlank()) {
             glObjectLabel(GL_PROGRAM, program, name)
         }
     }

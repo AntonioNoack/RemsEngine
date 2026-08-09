@@ -28,6 +28,7 @@ import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Booleans.withoutFlag
+import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
@@ -219,10 +220,12 @@ class Framebuffer(
         GFX.check()
         val pointer = glGenFramebuffers()
         if (!isPointerValid(pointer)) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
-        session = GFXState.session
         if (Build.isDebug) {
+            if (name.isNotBlank2()) glObjectLabel(GL_FRAMEBUFFER, pointer, name)
             DebugGPUStorage.fbs.add(this)
         }
+
+        session = GFXState.session
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
         val w = width
@@ -290,9 +293,6 @@ class Framebuffer(
         }
         GFX.check()
         checkIsComplete()
-        if (Build.isDebug) {
-            glObjectLabel(GL_FRAMEBUFFER, pointer, name)
-        }
         this.pointer = pointer
     }
 

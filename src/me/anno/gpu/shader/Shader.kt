@@ -1,6 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.ShaderPrinting.implementPrinting
@@ -219,6 +220,8 @@ open class Shader(
         builder.clear()
 
         val program = GL46C.glCreateProgram()
+        if (!isPointerValid(program)) throw OutOfMemoryError("Could not create program")
+
         GFX.check()
         updateSession()
         GFX.check()
@@ -247,18 +250,18 @@ open class Shader(
         // glDeleteShader(fragmentShader)
         // if (geometryShader >= 0) glDeleteShader(geometryShader)
 
-        logShader(name, vertexSource, fragmentSource)
+        if (logShaders) logShader(name, vertexSource, fragmentSource)
 
         GFX.check()
 
-        postPossibleError(name, program, false, vertexSource, fragmentSource)
+        checkStatusAndWarnings(name, program, false, vertexSource, fragmentSource)
         GFX.check()
 
         this.program = program // only assign the program, when no error happened
         this.session = GFXState.session
 
         compileBindTextureNames()
-        compileSetDebugLabel()
+        compileSetDebugLabel(program)
 
         // ^^
         use()

@@ -30,6 +30,7 @@ import me.anno.utils.callbacks.I3I
 import me.anno.utils.pooling.Pools.byteBufferPool
 import me.anno.utils.types.Booleans.toFloat
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.isNotBlank2
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL46C.GL_BGRA
 import org.lwjgl.opengl.GL46C.GL_COMPARE_REF_TO_TEXTURE
@@ -128,7 +129,7 @@ open class Texture2DArray(
         clamping(clamping)
         isHDR = hdr
         GFX.check()
-        if (Build.isDebug) glObjectLabel(GL_TEXTURE, pointer, name)
+        if (Build.isDebug && name.isNotBlank2()) glObjectLabel(GL_TEXTURE, pointer, name)
     }
 
     @Suppress("unused")

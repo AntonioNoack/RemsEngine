@@ -11,6 +11,7 @@ import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
+import me.anno.utils.types.Strings.isNotBlank2
 import org.lwjgl.opengl.GL46C.GL_BUFFER
 import org.lwjgl.opengl.GL46C.GL_ELEMENT_ARRAY_BUFFER
 import org.lwjgl.opengl.GL46C.glBufferData
@@ -57,9 +58,12 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         if (indices.isEmpty()) return
 
         val target = GL_ELEMENT_ARRAY_BUFFER
+        if (!isPointerValid(pointer)) {
+            pointer = glGenBuffers()
+            if (!isPointerValid(pointer)) throw OutOfMemoryError("Could not generate OpenGL buffer")
+            if (Build.isDebug && name.isNotBlank2()) glObjectLabel(GL_BUFFER, pointer, name)
+        }
 
-        if (!isPointerValid(pointer)) pointer = glGenBuffers()
-        if (!isPointerValid(pointer)) throw OutOfMemoryError("Could not generate OpenGL buffer")
         bindBuffer(target, pointer)
 
         if (isUpToDate) return
@@ -107,7 +111,6 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         elementCount = indices.size
         if (Build.isDebug) {
             DebugGPUStorage.buffers.add(this)
-            glObjectLabel(GL_BUFFER, pointer, name)
         }
         // GFX.check()
     }

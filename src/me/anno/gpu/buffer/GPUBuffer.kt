@@ -107,10 +107,6 @@ abstract class GPUBuffer(
 
     fun finishUpload() {
         isUpToDate = true
-        if (Build.isDebug) {
-            DebugGPUStorage.buffers.add(this)
-            GL46C.glObjectLabel(GL46C.GL_BUFFER, pointer, name)
-        }
     }
 
     fun keepBuffer(allowResize: Boolean, newLimit: Int, keepLarge: Boolean): Boolean {
@@ -185,7 +181,7 @@ abstract class GPUBuffer(
 
         if (isPointerValid(pointer)) {
             glDeleteBuffers(pointer)
-            pointer = 0
+            pointer = INVALID_POINTER
         }
 
         prepareUpload()

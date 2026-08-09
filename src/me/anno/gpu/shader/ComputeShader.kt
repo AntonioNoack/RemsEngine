@@ -1,6 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.GLNames
 import me.anno.gpu.shader.ComputeShaderStats.Companion.stats
@@ -66,17 +67,19 @@ class ComputeShader(
         updateSession()
 
         val program = GL46C.glCreateProgram()
+        if (!isPointerValid(program)) throw OutOfMemoryError("Could not create program")
+
         /*val shader = */compile(name, program, GL46C.GL_COMPUTE_SHADER, source)
         GL46C.glLinkProgram(program)
-        postPossibleError(name, program, false, source)
+        checkStatusAndWarnings(name, program, false, source)
         // glDeleteShader(shader)
-        logShader(name, source)
+        if (logShaders) logShader(name, source)
         GFX.check()
         this.program = program // only assign this value, when no error has occurred
         this.session = GFXState.session
 
         compileBindTextureNames()
-        compileSetDebugLabel()
+        compileSetDebugLabel(program)
     }
 
     override fun sourceContainsWord(word: String): Boolean {
