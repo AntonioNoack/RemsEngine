@@ -87,19 +87,19 @@ class SDFBezierCurve : SDFShape() {
                 tmp.set(p0).add(p1).mul(0.5f)
                 val r = sdBezier(pos, p0, tmp, p1)
                 JomlPools.vec4f.sub(1)
-                return r + pos.w
+                r + pos.w
             }
             else -> {
                 // proper Bézier curve, approximation through quadratic curves
                 var a = points[0]
                 var b = points[1]
                 var c = points[2]
-                var best = sdBezier(pos, a, b, c)
+                var best = sdBezier(pos, a, b /* todo extrapolate ... */, c)
                 for (i in 3 until points.size) {
                     a = b
                     b = c
                     c = points[i]
-                    best = min(best, sdBezier(pos, a, b, c))
+                    best = min(best, sdBezier(pos, a, b /* todo extrapolate ... */, c))
                 }
                 best + pos.w
             }
@@ -173,14 +173,16 @@ class SDFBezierCurve : SDFShape() {
                     for (i in 0 until n) builder.append(", vec4 b").append(i)
                     builder.append(
                         "){\n" +
-                                "vec4 a=b0,b=b1,c=b2,na,nb,nc;\n" +
-                                "float dist=sdBezier(p,a,b,c);\n"
+                                "vec4 a=b0,b=b1,c=b2;\n" +
+                                "float dist=sdBezier(p,a,b*2.0-(a+c)*0.5,c);\n"
                     )
                     for (i in 3 until n) {
-                        builder.append("na=c;nb=c+c-b;c=b").append(i).append(";\n")
-                        builder.append("a=na;b=nb;dist=min(dist,sdBezier(p,a,b,c));\n")
+                        builder.append("a=b;b=c;\n")
+                        builder.append("c=b").append(i).append(";\n")
+                        builder.append("dist=min(dist,sdBezier(p,a,b*2.0-(a+c)*0.5,c));\n")
                     }
                     builder.append("return dist;\n}\n")
+                    println("program: $builder")
                     builder.toString()
                 }
             }

@@ -201,6 +201,12 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     var maxRelativeError = 0.001f
 
     @Group("Tracing")
+    @Docs("How much the ray is allowed to deviate from a perfect hit")
+    @Range(0.0, 1.0)
+    @HideInInspector("isSDFChild")
+    var maxAbsoluteError = 0.001f
+
+    @Group("Tracing")
     @Docs("In relative units, from which distance the normals shall be sampled")
     @Range(0.0, 1e3)
     @HideInInspector("isSDFChild")

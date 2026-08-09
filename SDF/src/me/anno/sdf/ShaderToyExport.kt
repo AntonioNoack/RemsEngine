@@ -83,6 +83,7 @@ object ShaderToyExport {
         uniforms["sdfReliability"] = TypeValue(GLSLType.V1F, tree.globalReliability)
         uniforms["sdfNormalEpsilon"] = TypeValue(GLSLType.V1F, tree.normalEpsilon)
         uniforms["sdfMaxRelativeError"] = TypeValue(GLSLType.V1F, tree.maxRelativeError)
+        uniforms["sdfMaxAbsoluteError"] = TypeValue(GLSLType.V1F, tree.maxAbsoluteError)
         uniforms["maxSteps"] = TypeValue(GLSLType.V1I, tree.maxSteps)
         uniforms["distanceBounds"] = TypeValue(GLSLType.V2F, Vector2f(0.01f, 1000f))
 
@@ -176,8 +177,8 @@ object ShaderToyExport {
         res.append("   vec4 res0; vec3 dir0=rd; float sca0=1.0/t; vec2 uv=vec2(0.0);\n")
         res.append(shapeDependentShader)
         res.append("   return res0;\n}\n")
-        res.append(SDFComposer.raycasting)
-        res.append(SDFComposer.normal)
+        res.append(SDFComposer.raycast4)
+        res.append(SDFComposer.calcNormalN)
 
         val skyColor = "" +
                 "#define sunDir normalize(vec3(0.0, 0.7, 0.7))\n" +

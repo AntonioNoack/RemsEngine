@@ -95,6 +95,7 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
             Variable(GLSLType.V1F, "sdfNormalEpsilon"),
             // [0,1.5], can be 1.0 in most cases; higher = faster convergence
             Variable(GLSLType.V1F, "sdfMaxRelativeError"),
+            Variable(GLSLType.V1F, "sdfMaxAbsoluteError"),
             // near, far, reversedZ
             Variable(GLSLType.V3F, "depthParams"),
         ) + uniforms.entries.map { (k, v) ->
@@ -109,8 +110,8 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
                 shapeDependentShader.toString() +
                 "   return res0;\n" +
                 "}\n" +
-                SDFComposer.raycasting +
-                SDFComposer.normal +
+                SDFComposer.raycast4 +
+                SDFComposer.calcNormalN +
                 "void main(){\n" +
                 // define ray origin and ray direction from projection matrix
                 "   vec3 dir = vec3((uv*2.0-1.0)*camScale, -1.0);\n" +
@@ -154,6 +155,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
             shader.v2f("distanceBounds", 0.01f, 1e3f)
             shader.v1i("maxSteps", 100)
             shader.v1f("sdfMaxRelativeError", fovFactor / it.height) // is this correct???
+            shader.v1f("sdfMaxAbsoluteError", 1e-6f)
             shader.v1f("sdfReliability", 0.7f)
             shader.v1f("sdfNormalEpsilon", 0.005f)
             shader.v3f("sunDir", 0.7f, 0f, 0.5f)

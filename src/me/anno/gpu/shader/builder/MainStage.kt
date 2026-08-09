@@ -410,8 +410,14 @@ class MainStage {
             }
         }
 
-        for (func in uniqueFunctions) code.append(func)
-        if (uniqueFunctions.isNotEmpty()) code.append('\n')
+        if (uniqueFunctions.isNotEmpty()) {
+            for (func in uniqueFunctions) {
+                code.append(func)
+                code.trimEnd()
+                code.append('\n')
+            }
+            code.append('\n')
+        }
 
         // for all uniforms, which are sampler arrays, define the appropriate access function
         for (uniform in uniforms) {

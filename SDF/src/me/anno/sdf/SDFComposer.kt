@@ -57,7 +57,27 @@ object SDFComposer {
             "#define PHI 1.618033988749895\n"
 
     // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
-    const val raycasting = "" +
+    @Suppress("unused")
+    const val raycast1 = "" +
+            // input: vec3 ray origin, vec3 ray direction
+            // output: vec2(distance, materialId)
+            "vec2 raycast(vec3 ro, vec3 rd, out int i){\n" +
+            // ray marching
+            "   float tMin = distanceBounds.x, tMax = distanceBounds.y;\n" +
+            "   float t = tMin;\n" +
+            "   for (i=0; i<maxSteps && t<tMax; i++){\n" +
+            "     float h = map(ro,rd,ro+rd*t,t);\n" +
+            // sdfReliability: sometimes, we need more steps, because the sdf is not reliable
+            "     t += sdfReliability * h.x;\n" +
+            "     t = max(distanceBounds.x, t);\n" +
+            "     if (abs(h) < (sdfMaxAbsoluteError + sdfMaxRelativeError * t)){\n" + // allowed error grows with distance
+            "       return vec2(t, 0.0);\n" +
+            "     }\n" +
+            "   }\n" +
+            "   return vec2(-1.0);\n" +
+            "}\n"
+
+    const val raycast4 = "" +
             // input: vec3 ray origin, vec3 ray direction
             // output: vec2(distance, materialId)
             "vec4 raycast(vec3 ro, vec3 rd, out int i){\n" +
@@ -67,18 +87,31 @@ object SDFComposer {
             "   float t = tMin;\n" +
             "   for(i=0; i<maxSteps && t<tMax; i++){\n" +
             "     vec4 h = map(ro,rd,ro+rd*t,t);\n" +
-            "     if(abs(h.x)<(sdfMaxRelativeError*t)){\n" + // allowed error grows with distance
-            "       res = vec4(t,h.yzw);\n" +
-            "       break;\n" +
-            "     }\n" +
             // sdfReliability: sometimes, we need more steps, because the sdf is not reliable
             "     t += sdfReliability * h.x;\n" +
+            "     t = max(distanceBounds.x, t);\n" +
+            "     if (abs(h.x) < (sdfMaxAbsoluteError + sdfMaxRelativeError * t)){\n" + // allowed error grows with distance
+            "       return vec4(t,h.yzw);\n" +
+            "     }\n" +
             "   }\n" +
-            "   return res;\n" +
+            "   return vec4(-1.0);\n" +
             "}\n"
 
     // http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
-    const val normal = "" +
+    @Suppress("unused")
+    const val calcNormal1 = "" +
+            "vec3 calcNormal(vec3 ro, vec3 rd, vec3 pos, float epsilon, float t) {\n" +
+            // inspired by tdhooper and klems - a way to prevent the compiler from inlining map() 4 times
+            "   vec3 n = vec3(0.0);vec2 uv;\n" +
+            "   for(int i=ZERO;i<4;i++) {\n" +
+            // 0.5773 is just a scalar factor
+            "      vec3 e = vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))*2.0-1.0;\n" +
+            "      n += e*map(ro,rd,pos+e*epsilon,t);\n" +
+            "   }\n" +
+            "   return sign(-dot(rd,n)) * normalize(n);\n" +
+            "}\n"
+
+    const val calcNormalN = "" +
             "vec3 calcNormal(vec3 ro, vec3 rd, vec3 pos, float epsilon, float t) {\n" +
             // inspired by tdhooper and klems - a way to prevent the compiler from inlining map() 4 times
             "   vec3 n = vec3(0.0);vec2 uv;\n" +
@@ -260,6 +293,7 @@ object SDFComposer {
             val target = GFXState.currentBuffer
             shader.v1f("sdfNormalEpsilon", tree.normalEpsilon / (target.width + target.height))
             shader.v1f("sdfMaxRelativeError", tree.maxRelativeError)
+            shader.v1f("sdfMaxAbsoluteError", tree.maxAbsoluteError)
 
             shader.v1i("maxSteps", tree.maxSteps)
             shader.v2f("distanceBounds", distanceBounds(tree, tmp2))
@@ -389,7 +423,7 @@ object SDFComposer {
 
     fun build(functions: Collection<String>, shapeDependentShader: CharSequence): String {
         val size0 =
-            shapeDependentShader.length + raycasting.length + normal.length + sdfConstants.length
+            shapeDependentShader.length + raycast4.length + calcNormalN.length + sdfConstants.length
         val size1 = 150 + functions.sumOf { it.length } + size0
         val builder2 = StringBuilder(size1)
         builder2.append(sdfConstants)
@@ -398,8 +432,8 @@ object SDFComposer {
         builder2.append("   vec4 res0; vec3 dir0 = rd; float sca0 = 1.0/t; vec2 uv = vec2(0.0);\n")
         builder2.append(shapeDependentShader)
         builder2.append("   return res0;\n}\n")
-        builder2.append(raycasting)
-        builder2.append(normal)
+        builder2.append(raycast4)
+        builder2.append(calcNormalN)
         return builder2.toString()
     }
 
@@ -458,6 +492,7 @@ object SDFComposer {
         Variable(GLSLType.V1F, "sdfReliability"),
         Variable(GLSLType.V1F, "sdfNormalEpsilon"),
         Variable(GLSLType.V1F, "sdfMaxRelativeError"),
+        Variable(GLSLType.V1F, "sdfMaxAbsoluteError"),
         Variable(GLSLType.V4F, "cameraRotationXZ"),
         // is used to prevent inlining of huge functions
         Variable(GLSLType.V1I, "ZERO"),
