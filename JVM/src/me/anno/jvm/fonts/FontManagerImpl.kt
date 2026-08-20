@@ -44,7 +44,7 @@ object FontManagerImpl {
                 val style = font.isItalic.toInt(Font.ITALIC) or
                         font.isBold.toInt(Font.BOLD)
                 getDefaultFont(name)?.deriveFont(style, font.size)
-                    ?: throw RuntimeException("Font $name was not found")
+                    ?: error("Font $name was not found")
             }
         }
         assertEquals(font.isBold, result.awtFont.isBold)
@@ -103,11 +103,11 @@ object FontManagerImpl {
     }
 
     private fun loadFont(ref: FileReference, callback: (Font?) -> Unit) {
-        ref.inputStream { it, _ ->
-            if (it != null) {
-                it.use {
+        ref.inputStream { stream0, _ ->
+            if (stream0 != null) {
+                stream0.use { stream ->
                     // what is type1_font?
-                    val font = Font.createFont(Font.TRUETYPE_FONT, it)
+                    val font = Font.createFont(Font.TRUETYPE_FONT, stream)
                     GraphicsEnvironment
                         .getLocalGraphicsEnvironment()
                         .registerFont(font)

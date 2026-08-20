@@ -200,6 +200,7 @@ object SDFCombiningFunctions {
             "float sdMin3(float a, float b, float c, float k){ return sMinCubic1(a,sMinCubic1(b,c,k),k); }\n" +
             "float sdMin(float d1, float d2){ return min(d1,d2); }\n" +
             "vec4 sdMin(vec4 d1, vec4 d2){ return d1.x < d2.x ? d1 : d2; }\n" +
+            "float sdMin(float d1, float d2, float k){ return sMinCubic1(d1,d2,k); }\n" +
             "vec4 sdMin(vec4 d1, vec4 d2, float k){ return sMinCubic2(d1,d2,k); }\n"
     const val sdMax = "" +
             "float sdMax(float d1, float d2){ return max(d1,d2); }\n" +

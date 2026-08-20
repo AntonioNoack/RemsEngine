@@ -82,7 +82,7 @@ object AWTFont : FontImpl<List<FontMatrix>>() {
         for (yi in 0 until tmp.height) {
             for (xi in 0 until tmp.width) {
                 val color = tmp.getRGB(xi, yi)
-                if (color.g() == 0) continue
+                if (color.g() == 0) continue // avoid overriding chars when having slightly overlapping text
                 image.setRGB(x0 + xi, y0 + yi, color)
             }
         }

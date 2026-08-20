@@ -65,11 +65,10 @@ object SDFComposer {
             // ray marching
             "   float tMin = distanceBounds.x, tMax = distanceBounds.y;\n" +
             "   float t = tMin;\n" +
-            "   for (i=0; i<maxSteps && t<tMax; i++){\n" +
+            "   for (i=0; i<maxSteps && t>=tMin && t<=tMax; i++){\n" +
             "     float h = map(ro,rd,ro+rd*t,t);\n" +
             // sdfReliability: sometimes, we need more steps, because the sdf is not reliable
-            "     t += sdfReliability * h.x;\n" +
-            "     t = max(distanceBounds.x, t);\n" +
+            "     t += sdfReliability * h;\n" +
             "     if (abs(h) < (sdfMaxAbsoluteError + sdfMaxRelativeError * t)){\n" + // allowed error grows with distance
             "       return vec2(t, 0.0);\n" +
             "     }\n" +
@@ -85,11 +84,10 @@ object SDFComposer {
             "   vec4 res = vec4(-1.0);\n" +
             "   float tMin = distanceBounds.x, tMax = distanceBounds.y;\n" +
             "   float t = tMin;\n" +
-            "   for(i=0; i<maxSteps && t<tMax; i++){\n" +
+            "   for(i=0; i<maxSteps && t>=tMin && t<=tMax; i++){\n" +
             "     vec4 h = map(ro,rd,ro+rd*t,t);\n" +
             // sdfReliability: sometimes, we need more steps, because the sdf is not reliable
             "     t += sdfReliability * h.x;\n" +
-            "     t = max(distanceBounds.x, t);\n" +
             "     if (abs(h.x) < (sdfMaxAbsoluteError + sdfMaxRelativeError * t)){\n" + // allowed error grows with distance
             "       return vec4(t,h.yzw);\n" +
             "     }\n" +

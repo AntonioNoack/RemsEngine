@@ -63,6 +63,32 @@ class PackedIntLists(
         }
     }
 
+    fun remove(index: Int, value: Int): Boolean {
+        val pos = posOf(index, value)
+        if (pos == -1) return false
+
+        val size = getSize(index)
+        val offset = offsets[index]
+        val endPos = offset + size - 1
+        values[pos] = values[endPos]
+        values[endPos] = invalidValue
+        return true
+    }
+
+    private fun posOf(index: Int, value: Int): Int {
+        var pos = offsets[index]
+        while (true) {
+            val valueI = values[pos]
+            if (valueI == invalidValue) return -1
+            if (valueI == value) return pos
+            pos++
+        }
+    }
+
+    fun contains(index: Int, value: Int): Boolean {
+        return posOf(index, value) != -1
+    }
+
     operator fun get(index: Int, index2: Int): Int {
         var pos = offsets[index]
         var count = 0
@@ -81,16 +107,6 @@ class PackedIntLists(
             val value = values[pos]
             if (value == invalidValue) return pos - pos0
             callback(value)
-            pos++
-        }
-    }
-
-    fun contains(index: Int, value: Int): Boolean {
-        var pos = offsets[index]
-        while (true) {
-            val valueI = values[pos]
-            if (valueI == invalidValue) return false
-            if (valueI == value) return true
             pos++
         }
     }
