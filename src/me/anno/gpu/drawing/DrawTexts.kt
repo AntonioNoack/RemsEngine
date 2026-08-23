@@ -235,6 +235,12 @@ object DrawTexts {
         return shader
     }
 
+    fun isJustALine(codepoint: Int): Boolean {
+        val isStrikethrough = codepoint == GlyphStyle.STRIKETHROUGH_CHAR.code
+        val isUnderline = codepoint == GlyphStyle.UNDERLINE_CHAR.code
+        return isStrikethrough or isUnderline
+    }
+
     private fun drawChar(
         shader: GPUShader, texture: ITexture2D?,
         x0: Int, x1: Int, y: Int, codepoint: Int, style: Long,
@@ -242,8 +248,7 @@ object DrawTexts {
     ) {
         val texture0 = texture
         val isStrikethrough = codepoint == GlyphStyle.STRIKETHROUGH_CHAR.code
-        val isUnderline = codepoint == GlyphStyle.UNDERLINE_CHAR.code
-        val isJustALine = isStrikethrough or isUnderline
+        val isJustALine = isJustALine(codepoint)
 
         var texture = texture
         if (isJustALine) {

@@ -3,7 +3,6 @@ package me.anno.ui.utils
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawCurves.lineBatch
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.maths.Maths.clamp
 import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
@@ -79,7 +78,7 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         for (i in i0 until i1) {
             val gridX = i * gridSize
             val windowX = coordsToWindowX(gridX).toInt()
-            if (mod10i != 0L || all) drawText(
+            if (mod10i != 0L || all) canvas.drawText(
                 windowX, textY, 1,
                 monospaceFont, formatNumber(i, pow, gridSize),
                 color, backgroundColor,
@@ -93,7 +92,7 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         for (j in j0 until j1) {
             val gridY = j * gridSize
             val windowY = coordsToWindowY(gridY).toInt()
-            if (mod10j != 0L || all) drawText(
+            if (mod10j != 0L || all) canvas.drawText(
                 textX, windowY, 1,
                 monospaceFont, formatNumber(-j, pow, gridSize),
                 color, backgroundColor,
@@ -112,7 +111,7 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
             drawCurve(canvas, funcIndex, lineColor, lineThickness)
         }
         if (isHovered) {
-            showValueAtCursor()
+            showValueAtCursor(canvas)
         }
     }
 
@@ -129,14 +128,14 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         draw2DGridNumbers(canvas, color.withAlpha(0.7f), s2, true)
     }
 
-    fun showValueAtCursor() {
+    fun showValueAtCursor(canvas: Canvas) {
         val window = window
         val funcName = functionName
         if (window != null && funcName != null) {
             val mx = window.mouseX.toDouble()
             val vx = windowToCoordsX(mx)
             val vy = (0 until getNumFunctions()).map { getValue(it, vx) }
-            drawText(x, y, 2, "$funcName($vx): $vy")
+            canvas.drawText(x, y, 2, "$funcName($vx): $vy")
         }
     }
 

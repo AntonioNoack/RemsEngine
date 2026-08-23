@@ -67,12 +67,12 @@ import me.anno.graph.visual.render.effects.TAANode
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.input.Input
 import me.anno.maths.Maths.clamp
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.UIColors
 import me.anno.ui.UIColors.paleGoldenRod
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.black
 import me.anno.utils.Color.convertABGR2ARGB
@@ -216,7 +216,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
 
         if (playMode == PlayMode.EDITING) {
-            DebugRendering.showShadowMapDebug(this)
+            DebugRendering.showShadowMapDebug(canvas, this)
             DebugRendering.showCameraRendering(canvas, this)
         }
 
@@ -736,7 +736,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         drawGrid(pipeline, drawGridMask)
 
-        if (drawDebugShapes) DebugRendering.drawDebugShapes(this, cameraMatrix)
+        if (drawDebugShapes) DebugRendering.drawDebugShapes( this, cameraMatrix)
         DebugShapes.removeExpired()
 
         LineBuffer.finish(cameraMatrix)

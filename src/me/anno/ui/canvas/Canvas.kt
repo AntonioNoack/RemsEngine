@@ -23,6 +23,7 @@ import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.transform
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -55,7 +56,8 @@ class Canvas {
             Attribute("instBounds", AttributeType.UINT16, 4), // 8 bytes, where to draw
             Attribute("instScissor", AttributeType.UINT16, 4), // 8 bytes, where to clip
             Attribute("instTexBounds", AttributeType.UINT16, 4), // 8 bytes,
-            Attribute("instTint", AttributeType.UINT8_NORM, 4), // 4 bytes,
+            Attribute("instFgColor", AttributeType.UINT8_NORM, 4), // 4 bytes,
+            Attribute("instBgColor", AttributeType.UINT8_NORM, 4), // 4 bytes,
             Attribute("instMode", AttributeType.UINT32, 1), // 4 bytes -> total 32 bytes (nice!)
             // todo we need a corner-radius and corner-flags(?)...
         )
@@ -155,11 +157,13 @@ class Canvas {
         if (nio.position() == 0) return
 
         shapeBuffer.cpuSideChanged()
-        val target = GFXState.framebuffer.last()
-        useFrame(0, 0, target.width, target.height) {
+        val fb = GFXState.framebuffer.last()
+        useFrame(0, 0, fb.width, fb.height) {
             val shader = CanvasShader
             shader.use()
-            shader.v2f("invRenderSize", 1f / target.width, 1f / target.height)
+            if (fb is Framebuffer) shader.v2i("dstOffset", fb.offsetX, fb.offsetY)
+            else shader.v2i("dstOffset", 0, 0)
+            shader.v2f("invRenderSize", 1f / fb.width, 1f / fb.height)
             shader.v2f("invAtlasSize", 1f / storage.width, 1f / storage.height)
             shader.m4x4("transform", transform)
             val texture = storage.createdOrNull() ?: TextureLib.whiteTexture
@@ -171,21 +175,21 @@ class Canvas {
         nio.limit(nio.capacity())
     }
 
-    private fun pushBounds(nio: ByteBuffer, x: Int, y: Int, width: Int, height: Int) {
+    fun pushBounds(nio: ByteBuffer, x: Int, y: Int, width: Int, height: Int) {
         nio.putShort(x.toShort())
         nio.putShort(y.toShort())
         nio.putShort((x + width).toShort())
         nio.putShort((y + height).toShort())
     }
 
-    private fun pushScissor(nio: ByteBuffer) {
+    fun pushScissor(nio: ByteBuffer) {
         nio.putShort(x0.toShort())
         nio.putShort(y0.toShort())
         nio.putShort(x1.toShort())
         nio.putShort(y1.toShort())
     }
 
-    private fun pushTexBounds(nio: ByteBuffer, bounds: Bounds) {
+    fun pushTexBounds(nio: ByteBuffer, bounds: Bounds) {
         // texBounds
         nio.putShort(bounds.x0.toShort())
         nio.putShort(bounds.y0.toShort())
@@ -194,19 +198,20 @@ class Canvas {
     }
 
     private fun skipTexBounds(nio: ByteBuffer) {
-        nio.position(nio.position() + 8)
+        nio.putLong(0)
     }
 
-    private fun pushTint(nio: ByteBuffer, tint: Int) {
+    fun pushColor(nio: ByteBuffer, color: Int) {
         // todo can be optimized, because we know it is Little Endian
-        nio.put(tint.r().toByte())
-        nio.put(tint.g().toByte())
-        nio.put(tint.b().toByte())
-        nio.put(tint.a().toByte())
+        nio.put(color.r().toByte())
+        nio.put(color.g().toByte())
+        nio.put(color.b().toByte())
+        nio.put(color.a().toByte())
     }
 
-    private fun pushMode(nio: ByteBuffer, mode: CanvasDrawMode) {
+    fun pushMode(nio: ByteBuffer, mode: CanvasDrawMode) {
         nio.putInt(mode.ordinal)
+        check(nio.position() % attr.stride == 0)
     }
 
     fun isFinished() = shapeBuffer.getOrCreateNioBuffer().position() == 0
@@ -237,7 +242,8 @@ class Canvas {
             pushBounds(nio, x, y, w, h)
             pushScissor(nio)
             pushTexBounds(nio, bounds)
-            pushTint(nio, tint)
+            pushColor(nio, tint)
+            pushColor(nio, 0)
             pushMode(nio, mode)
 
         } else custom {
@@ -259,7 +265,8 @@ class Canvas {
         pushBounds(nio, x, y, w, h)
         pushScissor(nio)
         skipTexBounds(nio)
-        pushTint(nio, color)
+        pushColor(nio, color)
+        pushColor(nio, 0)
         pushMode(nio, mode)
     }
 
@@ -284,7 +291,7 @@ class Canvas {
         drawRect(x0, y0, dx, dy, color)
     }
 
-    private fun getBounds(texture: ITexture2D): Bounds? {
+    fun getBounds(texture: ITexture2D): Bounds? {
         if (!texture.isCreated()) return null
         val w = texture.width
         val h = texture.height
@@ -321,7 +328,7 @@ class Canvas {
             useFrame(source) {
                 // copies framebuffer to texture; first coords are texture, second are framebuffer
                 storage.bind(0)
-                glCopyTexSubImage2D(storage.target, 0, x, storage.height - (y + h), 0, 0, w, h)
+                glCopyTexSubImage2D(storage.target, 0, x, y, 0, 0, w, h)
             }
         } else {
             useFrame(storage) {

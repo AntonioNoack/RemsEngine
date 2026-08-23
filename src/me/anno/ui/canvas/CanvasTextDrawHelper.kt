@@ -2,11 +2,14 @@ package me.anno.ui.canvas
 
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
+import me.anno.fonts.GlyphStyle
 import me.anno.fonts.IGlyphLayout
 import me.anno.fonts.keys.CharCacheKey
 import me.anno.gpu.drawing.DrawTexts.disableSubpixelRendering
+import me.anno.gpu.drawing.DrawTexts.isJustALine
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.utils.types.Floats.roundToIntOr
 
 object CanvasTextDrawHelper : IGlyphLayout() {
 
@@ -29,10 +32,36 @@ object CanvasTextDrawHelper : IGlyphLayout() {
         val key = CharCacheKey(font, codepoint, disableSubpixelRendering)
         val texture = FontManager.getTexture(key)
             .waitFor("drawTextCharByChar")
+        val isJustALine = isJustALine(codepoint)
         if (texture != null && texture.wasCreated) {
-            // todo somehow encode bgColor
-            texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
-            canvas.drawTexture(x + x0, y + y0, x1 - x0, texture.height, texture, color)
+
+            val x = x + x0
+            var y = y + y0
+            if (isJustALine) {
+                val dy = if (codepoint == GlyphStyle.STRIKETHROUGH_CHAR.code) 0.5f else 0.8f
+                y += (texture.height * dy).roundToIntOr()
+            }
+
+            val w = if (isJustALine) x1 - x0 + 2 else texture.width
+            val h = texture.height
+
+            val bounds = canvas.getBounds(texture)
+            if (bounds != null) {
+                val nio = canvas.getNioBuffer()
+                val mode = CanvasDrawMode.TEXT
+                canvas.pushBounds(nio, x, y, w, h)
+                canvas.pushScissor(nio)
+                canvas.pushTexBounds(nio, bounds)
+                canvas.pushColor(nio, color)
+                canvas.pushColor(nio, bgColor)
+                canvas.pushMode(nio, mode)
+            } else {
+                canvas.custom {
+                    // big text?? todo can we draw properly?
+                    texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
+                    canvas.drawTexture(x, y, w, h, texture, false, color)
+                }
+            }
         }
     }
 

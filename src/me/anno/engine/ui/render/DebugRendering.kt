@@ -21,6 +21,7 @@ import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.GLNames
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.TriangleBuffer
@@ -102,7 +103,7 @@ object DebugRendering {
             }
     }
 
-    fun showShadowMapDebug(view: RenderView) {
+    fun showShadowMapDebug(canvas: Canvas, view: RenderView) {
         // show the shadow map for debugging purposes
         val light = findInspectedLight() ?: return
 
@@ -125,7 +126,7 @@ object DebugRendering {
         // draw the texture
         if (texture != null && texture.isCreated()) {
             when (texture) {
-                is CubemapTexture -> {
+                is CubemapTexture -> canvas.custom {
                     DrawTextures.drawProjection(
                         x, y + h - s, s * 3 / 2, s, texture, true,
                         -1, 0f, isDepth
@@ -133,19 +134,21 @@ object DebugRendering {
                 }
                 is Texture2DArray -> {
                     val layer = floor(Time.gameTime % texture.layers).toFloat()
-                    if (Input.isShiftDown && light is PlanarReflection) {
-                        DrawTextures.drawTextureArray(
-                            x, y, w, h, texture, layer, true,
-                            white.withAlpha(0.7f), null, 1f
-                        )
-                    } else if (isDepth) {
-                        DrawTextures.drawDepthTextureArray(x, y + h - s, s, s, texture, layer)
-                    } else {
-                        DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
+                    canvas.custom {
+                        if (Input.isShiftDown && light is PlanarReflection) {
+                            DrawTextures.drawTextureArray(
+                                x, y, w, h, texture, layer, true,
+                                white.withAlpha(0.7f), null, 1f
+                            )
+                        } else if (isDepth) {
+                            DrawTextures.drawDepthTextureArray(x, y + h - s, s, s, texture, layer)
+                        } else {
+                            DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
+                        }
                     }
-                    DrawTexts.drawText(x, y + h - s, 2, "#${layer.toInt()}")
+                    canvas.drawText(x, y + h - s, 2, "#${layer.toInt()}")
                 }
-                else -> {
+                else -> canvas.custom {
                     if (Input.isShiftDown && light is PlanarReflection) {
                         DrawTextures.drawTexture(
                             x, y, w, h, texture, true,
@@ -219,7 +222,7 @@ object DebugRendering {
         debugBuilder.append(name).append(": ")
             .formatFloat(time / (1e6 * divisor), 3, false)
             .append(" ms")
-        DrawTexts.drawText(
+        canvas.drawText(
             rv.x + rv.width, y, 1,
             monospaceFont, debugBuilder,
             FrameTimings.textColor, FrameTimings.backgroundColor,
@@ -331,7 +334,7 @@ object DebugRendering {
             drawDebugTexts2(view, camPosition, v, x0, y0, sx, sy)
             DrawTexts.popBetterBlending(pbb)
         } else {
-            GFXState.blendMode.use(me.anno.gpu.blending.BlendMode.DEFAULT) {
+            GFXState.blendMode.use(BlendMode.DEFAULT) {
                 drawDebugTexts2(view, camPosition, v, x0, y0, sx, sy)
             }
         }
