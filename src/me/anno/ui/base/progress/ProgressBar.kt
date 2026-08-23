@@ -12,6 +12,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
 import me.anno.maths.MinMax.max
+import me.anno.ui.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
@@ -104,7 +105,10 @@ open class ProgressBar(
 
     var padding = 1
 
-    private fun drawIndeterminate(x: Int, y: Int, w: Int, h: Int, time: Long) {
+    private fun drawIndeterminate(
+        canvas: Canvas,
+        x: Int, y: Int, w: Int, h: Int, time: Long,
+    ) {
         val time1 = (time % 3_000_000_000L) * 0.666e-9f
         val dw = w / 3
         val x1r = x + (fract(1f - cos(time1 * PIf * 0.5f)) * (w + dw)).toInt() - dw
@@ -141,8 +145,8 @@ open class ProgressBar(
     }
 
     private fun drawDeterminate(
+        canvas: Canvas,
         x: Int, y: Int, w: Int, h: Int, percentage: Double,
-        x0: Int, y0: Int, x1: Int, y1: Int
     ) {
         val wx = (5 + percentage * (w - 5)).toFloat()
         val leftColor = textColor
@@ -159,10 +163,10 @@ open class ProgressBar(
         val xt = x + w.shr(1)
         val yt = y + (h - monospaceFont.sizeInt).shr(1)
         Clipping.clip2Save(
-            max(x0, x),
-            max(y0, y),
-            min(x1, x + mid),
-            min(y1, y + h)
+            max(canvas.x0, x),
+            max(canvas.y0, y),
+            min(canvas.x1, x + mid),
+            min(canvas.y1, y + h)
         ) {
             drawText(
                 xt, yt, padding,
@@ -172,10 +176,10 @@ open class ProgressBar(
             )
         }
         Clipping.clip2Save(
-            max(x0, x + mid),
-            max(y0, y),
-            min(x1, x + w),
-            min(y1, y + h)
+            max(canvas.x0, x + mid),
+            max(canvas.y0, y),
+            min(canvas.x1, x + w),
+            min(canvas.y1, y + h)
         ) {
             drawText(
                 xt, yt, padding,
@@ -187,8 +191,8 @@ open class ProgressBar(
     }
 
     open fun draw(
+        canvas: Canvas,
         x: Int, y: Int, w: Int, h: Int,
-        x0: Int, y0: Int, x1: Int, y1: Int,
         time: Long
     ) {
         val dt = Maths.dtTo01((time - lastDrawn) * 1e-9 * updateSpeed)
@@ -202,9 +206,9 @@ open class ProgressBar(
         }
 
         if (percentage.isNaN()) {
-            drawIndeterminate(x, y, w, h, time)
+            drawIndeterminate(canvas, x, y, w, h, time)
         } else {
-            drawDeterminate(x, y, w, h, percentage, x0, y0, x1, y1)
+            drawDeterminate(canvas, x, y, w, h, percentage)
         }
     }
 

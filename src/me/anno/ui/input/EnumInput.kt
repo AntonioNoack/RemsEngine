@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
@@ -97,7 +98,7 @@ open class EnumInput(
         val focused = titleView?.isInFocus == true || inputPanel.isInFocus
         if (focused) isSelectedListener?.invoke()
         super.draw(canvas)
-        if (isAnyChildInFocus) showIsInFocus()
+        if (isAnyChildInFocus) showIsInFocus(canvas)
     }
 
     init {

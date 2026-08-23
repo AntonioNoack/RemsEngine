@@ -3,6 +3,7 @@ package me.anno.engine.ui.input
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.TextureCache
 import me.anno.input.Key
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.text.TextPanel

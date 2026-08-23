@@ -32,6 +32,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
@@ -170,6 +171,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
 
     // todo this material always need glCullFace, or you see the back when it's transparent
     val material = Material()
+    val canvas = Canvas()
 
     private fun ensureFramebuffer(fb0: Framebuffer?, width: Int, height: Int): Framebuffer? {
         var fb = fb0
@@ -237,7 +239,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
                         rv.x, rv.y, rv.width, rv.height,
                         0, 0, width, height
                     )
-                    windowStack.draw(0, 0, width, height)
+                    windowStack.draw(canvas, 0, 0, width, height)
                 }
             }
         }

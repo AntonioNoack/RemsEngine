@@ -42,6 +42,7 @@ import me.anno.jvm.HiddenOpenGLContext
 import me.anno.mesh.Shapes
 import me.anno.tests.ui.UITests
 import me.anno.tests.utils.TestVoxelWorld
+import me.anno.ui.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS.desktop
@@ -163,18 +164,19 @@ class CompileTest {
         ui.prepareUI(rv)
         rv.setPosSize(0, 0, UITests.osWindow.width, UITests.osWindow.height)
         val tmp = Framebuffer("tmp", rv.width, rv.height, 1, TargetType.UInt8x4, DepthBufferType.NONE)
+        val canvas = Canvas()
         for (mode in RenderMode.values) {
             try {
                 LOGGER.info("Checking '${mode.nameDesc.name}'")
                 rv.renderMode = mode
                 if (printResults) {
                     useFrame(tmp) {
-                        rv.draw(0, 0, rv.width, rv.height)
+                        canvas.drawClipped(0, 0, rv.width, rv.height, rv)
                     }
                     val childName = "${mode.nameDesc.englishName.toAllowedFilename()}.png"
                     tmp.getTexture0().write(dst.getChild(childName), true)
                 } else {
-                    rv.draw(0, 0, rv.width, rv.height)
+                    canvas.drawClipped(0, 0, rv.width, rv.height, rv)
                 }
             } catch (e: Exception) {
                 throw Exception(mode.nameDesc.englishName, e)

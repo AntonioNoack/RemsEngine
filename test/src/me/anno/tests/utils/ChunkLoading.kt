@@ -1,8 +1,7 @@
 package me.anno.tests.utils
 
-import me.anno.cache.Promise
 import me.anno.cache.ICacheData
-import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.cache.Promise
 import me.anno.maths.chunks.PlayerLocation
 import me.anno.maths.chunks.cartesian.SingleChunkSystem
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
@@ -34,9 +33,9 @@ fun main() {
         }
     }
     val cellSize = 10
-    testDrawing("Chunk System") {
-        it.clear()
-        val window = it.window!!
+    testDrawing("Chunk System") { p, canvas ->
+        p.clear(canvas)
+        val window = p.window!!
         chunks.updateVisibility(
             5.0, 10.0, listOf(
                 PlayerLocation(window.mouseX.toDouble() / cellSize, window.mouseY.toDouble() / cellSize, 0.0)
@@ -45,7 +44,7 @@ fun main() {
         val color = white.withAlpha(70)
         synchronized(loadedChunks) {
             for (chunk in loadedChunks) {
-                drawRect(chunk.x * cellSize, chunk.y * cellSize, cellSize - 1, cellSize - 1, color)
+                canvas.drawRect(chunk.x * cellSize, chunk.y * cellSize, cellSize - 1, cellSize - 1, color)
             }
         }
     }

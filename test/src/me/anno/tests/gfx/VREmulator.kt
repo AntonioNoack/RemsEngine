@@ -11,12 +11,12 @@ import me.anno.engine.ui.vr.VRRenderingRoutine
 import me.anno.gpu.OSWindow
 import me.anno.gpu.RenderStep.callOnGameLoop
 import me.anno.gpu.WindowManagement
-import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input
 import me.anno.tests.engine.material.createMetallicScene
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.utils.Sleep
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
@@ -92,7 +92,7 @@ object VREmulator : VRRendering(), VRRenderingRoutine {
 
     override fun setupFramebuffer(
         viewIndex: Int, width: Int, height: Int,
-        colorTextureI: Int, depthTextureI: Int
+        colorTextureI: Int, depthTextureI: Int,
     ): Framebuffer {
         // nothing to do here
         return framebuffer
@@ -111,7 +111,7 @@ object VRViewPanel : Panel(style) {
     override fun draw(canvas: Canvas) {
         val texture = VREmulator.framebuffer.getTexture0()
         if (texture.isCreated()) {
-            DrawTextures.drawTexture(
+            canvas.drawTexture(
                 x, y, width, height, texture,
                 ignoreAlpha = true
             )

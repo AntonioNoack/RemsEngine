@@ -352,10 +352,10 @@ open class CodeEditor(style: Style) : Panel(style) {
             drawSelectionBackground(cn, bg0, bg1, selectedBGColor)
         }
 
-        val visibleX0 = getCharXiFloor(x0)
-        val visibleY0 = getCharYiFloor(y0)
-        val visibleX1 = ceilDiv(x1 - x, charWidth)
-        val visibleY1 = min(ceilDiv(y1 - y, lineHeight), codeBlockCollapser.countLines(content))
+        val visibleX0 = getCharXiFloor(canvas.x0)
+        val visibleY0 = getCharYiFloor(canvas.y0)
+        val visibleX1 = ceilDiv(canvas.x1 - x, charWidth)
+        val visibleY1 = min(ceilDiv(canvas.y1 - y, lineHeight), codeBlockCollapser.countLines(content))
 
         for (yi in visibleY0 until visibleY1) {
             val lineNumber0 = codeBlockCollapser.mapLine(yi)

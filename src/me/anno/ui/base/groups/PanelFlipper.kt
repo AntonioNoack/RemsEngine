@@ -135,7 +135,7 @@ open class PanelFlipper(style: Style) : PanelList(style) {
                 transform.scale(1f, aspect, 1f)
                 transform.rotateZ(child.weight2)
                 transform.scale(1f, 1f / aspect, 1f)
-                canvas.clip2(x02, y02, x12, y12, child)
+                canvas.drawClipped(x02, y02, x12, y12, child)
                 transform.popMatrix()
                 true
             } else false

@@ -3,12 +3,10 @@ package me.anno.tests.engine.raycast
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.raycast.BlockTracing
-import me.anno.engine.raycast.BlockTracing.SOLID_BLOCK
 import me.anno.engine.raycast.BlockTracing.AIR_BLOCK
+import me.anno.engine.raycast.BlockTracing.SOLID_BLOCK
 import me.anno.engine.raycast.RayQuery
 import me.anno.gpu.GPUTasks.addGPUTask
-import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
@@ -101,7 +99,7 @@ fun createCPUPanel(
     cameraRotation: Quaternionf,
     fovZFactor: Float,
     randomizePixels: Boolean,
-    renderer: PixelRenderer
+    renderer: PixelRenderer,
 ): Panel {
 
     var cpuSpeed = -1L
@@ -120,18 +118,18 @@ fun createCPUPanel(
     var isRendering = false
     var cpuBuffer: IntBuffer? = null
     var cpuBytes: ByteBuffer? = null
-    return TestDrawPanel {
+    return TestDrawPanel { p, canvas ->
 
-        it.clear()
+        p.clear(canvas)
 
         // render cpu side
         // render at lower resolution because of performance
-        val w = it.width / scale
-        val h = it.height / scale
+        val w = p.width / scale
+        val h = p.height / scale
 
-        val parent = it.uiParent!!
+        val parent = p.uiParent!!
         val rs = if (randomizePixels) 1f else 0f
-        val cx = (Maths.random().toFloat() - 0.5f) * rs + (parent.width * 0.5f - it.x) / scale
+        val cx = (Maths.random().toFloat() - 0.5f) * rs + (parent.width * 0.5f - p.x) / scale
         val cy = (Maths.random().toFloat() - 0.5f) * rs + (parent.height * 0.5f) / scale
         val fovZ = -parent.height * fovZFactor / scale
 
@@ -184,13 +182,12 @@ fun createCPUPanel(
 
         nextFrame()
 
-        DrawTextures.drawTexture(it.x, it.y, it.width, it.height, cpuTexture, true, -1, null)
-        DrawTexts.drawText(
-            it.x + 4,
-            it.y + it.height - 50,
+        canvas.drawTexture(p.x, p.y, p.width, p.height, cpuTexture)
+        canvas.drawText(
+            p.x + 4,
+            p.y + p.height - 50,
             2,
             "$cpuSpeed ns/e, $cpuFPS fps"
         )
-
     }
 }

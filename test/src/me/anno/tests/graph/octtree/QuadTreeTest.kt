@@ -6,21 +6,20 @@ import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawLine
-import me.anno.gpu.drawing.DrawRectangles
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.QuadTreeF
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.sq
+import me.anno.maths.MinMax.max
 import me.anno.ui.UIColors
 import me.anno.ui.debug.FrameTimings
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.types.Floats.toIntOr
 import org.joml.Vector2f
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -105,8 +104,8 @@ fun main() {
         "|  Alt  | Dynamic Rebuilding  |",
         " ----------------------------- ",
     )
-    testDrawing("QuadTree") {
-        it.clear()
+    testDrawing("QuadTree") { p, canvas ->
+        p.clear(canvas)
 
         val dt = Time.deltaTime.toFloat()
 
@@ -126,9 +125,9 @@ fun main() {
             useParallelization = !useParallelization
         }
 
-        val ds = min(it.width, it.height)
-        val x0 = it.x + (it.width - ds) / 2
-        val y0 = it.y + (it.height - ds) / 2
+        val ds = min(p.width, p.height)
+        val x0 = p.x + (p.width - ds) / 2
+        val y0 = p.y + (p.height - ds) / 2
 
         // update all agents
         // (1)
@@ -139,7 +138,7 @@ fun main() {
         //  - update tree
 
         var ctr = 0
-        val bg = it.background.color.withAlpha(0)
+        val bg = p.background.color.withAlpha(0)
         val lineColor = (-1).withAlpha(16)
 
         fun accelerateAgent(i: Int) {
@@ -188,42 +187,44 @@ fun main() {
             }
         }
 
-        val batch0 = DrawCurves.lineBatch.start()
-        val t0 = Time.nanoTime
-        if (useParallelization) {
-            workers.processBalanced(0, agents.size, 16) { i0, i1 ->
-                for (i in i0 until i1) {
+        canvas.custom {
+            val batch0 = DrawCurves.lineBatch.start()
+            val t0 = Time.nanoTime
+            if (useParallelization) {
+                workers.processBalanced(0, agents.size, 16) { i0, i1 ->
+                    for (i in i0 until i1) {
+                        accelerateAgent(i)
+                    }
+                }
+            } else {
+                for (i in agents.indices) {
                     accelerateAgent(i)
                 }
             }
-        } else {
-            for (i in agents.indices) {
-                accelerateAgent(i)
+            val t1 = Time.nanoTime
+            FrameTimings.add(t1 - t0, UIColors.midOrange)
+
+            // visualize quadTree
+            val lineColor1 = UIColors.midOrange.withAlpha(12)
+            fun drawQuadTree(node: AgentNode) {
+
+                val x2 = x0 + node.min.x * ds
+                val y2 = y0 + node.min.y * ds
+                val x3 = x0 + node.max.x * ds
+                val y3 = y0 + node.max.y * ds
+
+                drawLine(x2, y2, x3, y2, 0.5f, lineColor1, bg, true)
+                drawLine(x3, y2, x3, y3, 0.5f, lineColor1, bg, true)
+                drawLine(x3, y3, x2, y3, 0.5f, lineColor1, bg, true)
+                drawLine(x2, y3, x2, y2, 0.5f, lineColor1, bg, true)
+
+                val left = node.left as? AgentNode ?: return
+                drawQuadTree(left)
+                drawQuadTree(node.right as AgentNode)
             }
+            if (showQuadtree) drawQuadTree(quadTree)
+            DrawCurves.lineBatch.finish(batch0)
         }
-        val t1 = Time.nanoTime
-        FrameTimings.add(t1 - t0, UIColors.midOrange)
-
-        // visualize quadTree
-        val lineColor1 = UIColors.midOrange.withAlpha(12)
-        fun drawQuadTree(node: AgentNode) {
-
-            val x2 = x0 + node.min.x * ds
-            val y2 = y0 + node.min.y * ds
-            val x3 = x0 + node.max.x * ds
-            val y3 = y0 + node.max.y * ds
-
-            drawLine(x2, y2, x3, y2, 0.5f, lineColor1, bg, true)
-            drawLine(x3, y2, x3, y3, 0.5f, lineColor1, bg, true)
-            drawLine(x3, y3, x2, y3, 0.5f, lineColor1, bg, true)
-            drawLine(x2, y3, x2, y2, 0.5f, lineColor1, bg, true)
-
-            val left = node.left as? AgentNode ?: return
-            drawQuadTree(left)
-            drawQuadTree(node.right as AgentNode)
-        }
-        if (showQuadtree) drawQuadTree(quadTree)
-        DrawCurves.lineBatch.finish(batch0)
 
         fun isOnEdge(oldPos: Vector2f, newPos: Vector2f, min: Vector2f, max: Vector2f): Boolean {
             return min(oldPos.x, newPos.x) <= min.x || max(oldPos.x, newPos.x) >= max.x ||
@@ -264,24 +265,22 @@ fun main() {
         FrameTimings.add(t4 - t3, UIColors.paleGoldenRod)
 
         // draw all agents
-        val batch = DrawRectangles.startBatch()
         for (i in agents.indices) {
             val agent = agents[i]
-            val x = x0 + agent.position.x * ds
-            val y = y0 + agent.position.y * ds
-            drawRect(x, y, 1f, 1f, -1)
+            val x = (x0 + agent.position.x * ds).toIntOr()
+            val y = (y0 + agent.position.y * ds).toIntOr()
+            canvas.drawRect(x, y, 1, 1, -1)
         }
-        DrawRectangles.finishBatch(batch)
 
         // draw statistics
         val lineHeight = monospaceFont.lineHeightI
-        drawText(it.x, it.y, 2, if (useQuadtree) "QuadTree" else "Naive")
-        drawText(it.x, it.y + lineHeight, 2, "$ctr Interactions")
+        drawText(p.x, p.y, 2, if (useQuadtree) "QuadTree" else "Naive")
+        drawText(p.x, p.y + lineHeight, 2, "$ctr Interactions")
 
         // draw help
         for (i in controlsText.indices) {
-            val y = it.y + it.height + (i - controlsText.size) * lineHeight
-            drawText(it.x, y, 2, controlsText[i])
+            val y = p.y + p.height + (i - controlsText.size) * lineHeight
+            drawText(p.x, y, 2, controlsText[i])
         }
     }
 }

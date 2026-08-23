@@ -8,7 +8,7 @@ import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 fun main() {
     disableRenderDoc()
     addEvent { showFPS = false }
-    testDrawing("Show in focus") {
-        it.showIsInFocus(canvas)
+    testDrawing("Show in focus") { p, canvas ->
+        p.showIsInFocus(canvas)
     }
 }

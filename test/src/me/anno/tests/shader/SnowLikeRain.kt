@@ -6,7 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
-import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
@@ -55,11 +55,13 @@ fun main() {
                     "   result = vec4(mix(vec3(0.1,0.2,0.3),vec3(1),c),1);\n" +
                     "}"
         )
-        list.add(TestDrawPanel {
-            shader.use()
-            shader.v1f("time", Time.gameTime)
-            shader.v2f("uvScale", it.width.toFloat() / it.height, 1f)
-            SimpleBuffer.flat01.draw(shader)
+        list.add(TestDrawPanel { p, canvas ->
+            canvas.custom {
+                shader.use()
+                shader.v1f("time", Time.gameTime)
+                shader.v2f("uvScale", p.width.toFloat() / p.height, 1f)
+                flat01.draw(shader)
+            }
         }, 1f)
 
         // 3d

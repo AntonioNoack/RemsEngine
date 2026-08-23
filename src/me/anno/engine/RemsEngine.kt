@@ -35,6 +35,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -190,7 +191,7 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
                         Perspective.setPerspective(
                             cameraMatrix,
                             0.7f,
-                            (x1 - x0) * 1f / (y1 - y0),
+                            canvas.dx.toFloat() / canvas.dy.toFloat(),
                             0.001f, 10f, 0f, 0f
                         )
                         AssetThumbHelper.bindShader(shader, cameraMatrix, modelMatrix)

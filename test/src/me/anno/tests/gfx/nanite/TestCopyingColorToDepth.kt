@@ -22,7 +22,7 @@ fun testCopyColorToDepth() {
     val h = 256
     val depthDst = Framebuffer("dd", w, h, 1, emptyList(), DepthBufferType.TEXTURE)
     val colorDst = Framebuffer("cd", w, h, TargetType.UInt8x4, DepthBufferType.NONE)
-    testDrawing("Copy Depth") {
+    testDrawing("Copy Depth") { p, canvas ->
         val depthSrc = TextureCache[res.getChild("icon.png")].waitFor()
         if (depthSrc != null) {
             useFrame(depthDst) {
@@ -31,7 +31,9 @@ fun testCopyColorToDepth() {
                     Blitting.copyColorAndDepth(whiteTexture, depthSrc, 0, false)
                 }
             }
-            drawDepthTexture(it.x, it.y + h, w, -h, depthDst.depthTexture!!)
+            canvas.custom {
+                drawDepthTexture(p.x, p.y + h, w, -h, depthDst.depthTexture!!)
+            }
             useFrame(colorDst) {
                 colorDst.clearColor(0, false)
                 if (Input.isShiftDown) {
@@ -40,7 +42,9 @@ fun testCopyColorToDepth() {
                     Blitting.copyColorAndDepth(depthDst.depthTexture!!, whiteTexture, 0, false)
                 }
             }
-            drawTexture(it.x + w, it.y, w, h, colorDst.getTexture0())
+            canvas.custom {
+                drawTexture(p.x + w, p.y, w, h, colorDst.getTexture0())
+            }
         }
     }
 }

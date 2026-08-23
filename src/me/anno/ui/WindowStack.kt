@@ -148,7 +148,7 @@ class WindowStack(val osWindow: OSWindow? = null) : SimpleList<Window>() {
         window: OSWindow,
         transform: Matrix4f,
         x0: Int, y0: Int, w0: Int, h0: Int,
-        x1: Int, y1: Int, w1: Int, h1: Int
+        x1: Int, y1: Int, w1: Int, h1: Int,
     ) {
 
         viewTransform.set(transform)
@@ -187,12 +187,12 @@ class WindowStack(val osWindow: OSWindow? = null) : SimpleList<Window>() {
         JomlPools.vec3f.sub(1)
     }
 
-    fun draw(dx: Int, dy: Int, windowW: Int, windowH: Int) {
+    fun draw(canvas: Canvas, dx: Int, dy: Int, windowW: Int, windowH: Int) {
         val windowStack = this
         val lastFullscreenIndex = max(windowStack.indexOfLast { it.isFullscreen && !it.isTransparent }, 0)
         for (index in lastFullscreenIndex until windowStack.size) {
             val window = windowStack.getOrNull(index) ?: break
-            window.draw(dx, dy, windowW, windowH)
+            window.draw(canvas, dx, dy, windowW, windowH)
         }
     }
 

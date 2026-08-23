@@ -14,6 +14,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.maths.MinMax.max
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.image.ImagePanel

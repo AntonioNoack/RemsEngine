@@ -9,12 +9,12 @@ import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawText
-import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.sq
 import me.anno.maths.MinMax.max
+import me.anno.ui.Canvas
 import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
@@ -60,7 +60,7 @@ fun main() {
     // create dependency graph between folders and files
     fun traverse(
         folder: FileReference,
-        pkg: Package
+        pkg: Package,
     ) {
         for (file in folder.listChildren()) {
             if (file.isDirectory) {
@@ -185,19 +185,19 @@ fun main() {
                 }
             }
 
-            fun drawPackage(pck: Package, font: Font) {
+            fun drawPackage(canvas: Canvas, pck: Package, font: Font) {
                 val r0 = pck.r
                 val x = pck.px
                 val y = pck.py
                 // draw circle
                 val radius = r0 * 0.5f
                 if (radius < 1f) return
-                drawCircle(x, y, radius, radius, 0f, 0f, 0f, circleColor)
+                canvas.drawCircle(x, y, radius, radius, 0f, 0f, 0f, circleColor)
                 // draw name into it
                 val rx = radius * 3f
                 if (x + rx > this.x && y + rx > this.y && x - rx < this.x + width && y - rx < this.y + height) {
                     if (font.sizeInt in 5..(height / 3)) {
-                        DrawTexts.drawText(
+                        canvas.drawText(
                             x.toInt(), y.toInt(), font, pck.name,
                             if (pck == hoveredPck) cornFlowerBlue or black else textColor, backgroundColor.withAlpha(0),
                             -1, -1, AxisAlignment.CENTER, AxisAlignment.CENTER
@@ -208,7 +208,7 @@ fun main() {
                         val r1 = children.maxOf { it.r }
                         val font1 = Font("Verdana", r1 * 0.3f)
                         for (ci in children.indices) {
-                            drawPackage(children[ci], font1)
+                            drawPackage(canvas, children[ci], font1)
                         }
                     }
                 }
@@ -243,15 +243,18 @@ fun main() {
                 // draw all connections
                 val pck = hoveredPck
                 if (pck != null) {
-                    val v = DrawCurves.lineBatch.start()
-                    for ((dep, _) in pck.dependencies2) {
-                        drawLine(pck.px, pck.py, backgroundColor, dep.px, dep.py, tc, 1f, bc, true)
+                    canvas.custom {
+                        val v = DrawCurves.lineBatch.start()
+                        for ((dep, _) in pck.dependencies2) {
+                            drawLine(pck.px, pck.py, backgroundColor, dep.px, dep.py, tc, 1f, bc, true)
+                        }
+                        DrawCurves.lineBatch.finish(v)
                     }
-                    DrawCurves.lineBatch.finish(v)
                 }
+
                 // draw circles with names
                 val pbb = DrawTexts.pushBetterBlending(true)
-                drawPackage(root, Font("Verdana", size * 0.3f))
+                drawPackage(canvas, root, Font("Verdana", size * 0.3f))
                 if (pck != null) {
                     x += 2
                     y += 2
@@ -261,7 +264,7 @@ fun main() {
                     for ((dep, times) in pck.dependencies2.entries
                         .sortedBy { it.key.path }
                         .sortedByDescending { it.value.size }) {
-                        drawText(
+                        canvas.drawText(
                             x, y, 1, monospaceFont,
                             if (times.size == 1) {
                                 times.first().path

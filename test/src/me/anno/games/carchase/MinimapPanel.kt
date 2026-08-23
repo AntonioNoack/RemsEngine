@@ -6,10 +6,8 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.disableSubpixelRendering
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -24,6 +22,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths.PIf
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.black
@@ -87,15 +86,18 @@ class MinimapPanel : Panel(style) {
         RenderState.cameraRotation.set(rot)
         RenderState.calculateDirections(isPerspective = true, needsInversion = true)
 
+        val r = size * 0.5f
         // render scene from top onto FB
         rv.drawScene(
             size, size, colorRenderer, fb,
             changeSize = true, 0f, sky = true
         )
 
-        val r = size * 0.5f
-        drawTextureCircle(x, y, width, height, fb.getTexture0())
-        drawCircle(
+        canvas.custom {
+            drawTextureCircle(x, y, width, height, fb.getTexture0())
+        }
+
+        canvas.drawCircle(
             x + r, y + r, r, r,
             0.9f, 0f, 360f, white
         )
@@ -106,7 +108,7 @@ class MinimapPanel : Panel(style) {
         for (i in dirs.indices) {
             val f = r * 0.93f
             val angleI = angle + PIf * i * 0.5f
-            DrawTexts.drawText(
+            canvas.drawText(
                 (x + r - f * sin(angleI)).toInt(), (y + r + f * cos(angleI)).toInt(), 1,
                 monospaceFont, dirs[i].toString(),
                 black, white.withAlpha(0),

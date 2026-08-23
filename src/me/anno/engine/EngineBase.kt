@@ -5,15 +5,10 @@ import me.anno.Time
 import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
-import me.anno.ecs.Entity
-import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.ecs.systems.OnEnable
 import me.anno.ecs.systems.Systems
-import me.anno.engine.ui.EditorState
 import me.anno.extensions.ExtensionLoader
 import me.anno.extensions.events.EventBroadcasting.callEvent
 import me.anno.extensions.events.GameLoopStartEvent
-import me.anno.gpu.Clipping
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -199,7 +194,7 @@ abstract class EngineBase(
         if (!window.isMinimized) {
 
             windowStack.updateTransform(window, 0, 0, w, h)
-            windowStack.draw(0, dy, w, h)
+            windowStack.draw(window.canvas, 0, dy, w, h)
 
             if (isFirstFrame) tick("Window drawing")
 
@@ -253,7 +248,7 @@ abstract class EngineBase(
     open fun drawUIOverlay(window: OSWindow, w: Int, h: Int) {
 
         if (WindowRenderFlags.showFPS && window.showFPS) {
-            FrameTimings.showFPS(window)
+            FrameTimings.showFPS(window.canvas, window)
         }
 
         if (WindowRenderFlags.showTutorialKeys) {
@@ -268,21 +263,20 @@ abstract class EngineBase(
                 val progressBar = progressBars.getOrNull(index) ?: break
                 val x = 0
                 val y = ph * index
-                progressBar.draw(
-                    x, y, w, ph,
-                    x, y, x + w, y + ph,
-                    time
-                )
+                window.canvas.clip2(x, y, x + w, y + ph) {
+                    progressBar.draw(window.canvas, x, y, w, ph, time)
+                }
             }
             progressBars.removeAll { it.canBeRemoved(time) }
         }
 
         Tooltips.draw(window)
 
-        renderDragged(w, h, dragged)
+        renderDragged(window, w, h, dragged)
+        window.canvas.finish()
     }
 
-    private fun renderDragged(w: Int, h: Int, dragged: IDraggable?) {
+    private fun renderDragged(window: OSWindow, w: Int, h: Int, dragged: IDraggable?) {
         dragged ?: return
         // todo if base below is sensitive, draw this transparent
         //  (text is blocking view when dragging a scene item into DraggingControls/RenderView)
@@ -293,8 +287,8 @@ abstract class EngineBase(
         y = Maths.clamp(y, 0, h - rh)
         val xw = min(rw, w)
         val xh = min(rh, h)
-        Clipping.clip(x, y, xw, xh) {
-            dragged.draw(x, y, x + xw, y + xh)
+        window.canvas.clip2(x, y, x + xw, y + xh) {
+            dragged.draw(window.canvas)
         }
     }
 

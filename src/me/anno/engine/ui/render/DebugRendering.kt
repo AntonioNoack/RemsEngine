@@ -173,14 +173,14 @@ object DebugRendering {
         return camera as? Camera
     }
 
-    fun showCameraRendering(rv: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
+    fun showCameraRendering(canvas: Canvas, rv: RenderView) {
         val camera = findInspectedCamera() ?: return
         // save near,far
         val near = rv.near
         val far = rv.far
         // calculate size of sub camera
-        val w = (x1 - x0 + 1) / 3
-        val h = (y1 - y0 + 1) / 3
+        val w = (canvas.dx + 1) / 3
+        val h = (canvas.dy + 1) / 3
         val buffer = rv.buffers.base1Buffer
         val renderer = Renderers.pbrRenderer
         timeRendering("DrawScene", drawSceneTimer) {
@@ -190,8 +190,8 @@ object DebugRendering {
         // restore near,far
         rv.near = near
         rv.far = far
-        DrawTextures.drawTexture(
-            x1 - w, y1 - h, w, h,
+        canvas.drawTexture(
+            canvas.x1 - w, canvas.y1 - h, w, h,
             buffer.getTexture0(), true
         )
     }
@@ -339,7 +339,7 @@ object DebugRendering {
 
     private fun drawDebugTexts2(
         view: RenderView, camPosition: Vector3d, v: Vector4f,
-        x0: Float, y0: Float, sx: Float, sy: Float
+        x0: Float, y0: Float, sx: Float, sy: Float,
     ) {
         val texts = DebugShapes.debugTexts
         val cameraMatrix = view.cameraMatrix
@@ -374,7 +374,7 @@ object DebugRendering {
     fun drawLightCount(
         view: RenderView, w: Int, h: Int,
         x0: Int, y0: Int, x1: Int, y1: Int,
-        renderer: Renderer, buffer: IFramebuffer, lightBuffer: IFramebuffer, deferred: DeferredSettings
+        renderer: Renderer, buffer: IFramebuffer, lightBuffer: IFramebuffer, deferred: DeferredSettings,
     ) {
         GFXState.drawCall("LightCount") {
             // draw scene for depth
@@ -405,7 +405,7 @@ object DebugRendering {
     fun drawAllBuffers(
         view: RenderView, w: Int, h: Int,
         x0: Int, y0: Int, x1: Int, y1: Int,
-        renderer: Renderer, buffer: IFramebuffer, lightBuffer: IFramebuffer, deferred: DeferredSettings
+        renderer: Renderer, buffer: IFramebuffer, lightBuffer: IFramebuffer, deferred: DeferredSettings,
     ) {
         GFXState.pushDrawCallName("AllBuffers")
         val layers = deferred.storageLayers
@@ -482,7 +482,7 @@ object DebugRendering {
 
     fun drawAllLayers(
         view: RenderView, w: Int, h: Int, x0: Int, y0: Int, x1: Int, y1: Int,
-        renderer: Renderer, buffer: IFramebuffer, light: IFramebuffer, deferred: DeferredSettings
+        renderer: Renderer, buffer: IFramebuffer, light: IFramebuffer, deferred: DeferredSettings,
     ) {
         GFXState.pushDrawCallName("AllLayers")
         val size = deferred.layerTypes.size + 1 + GFX.supportsDepthTextures.toInt() /* 1 for light, 1 for depth */

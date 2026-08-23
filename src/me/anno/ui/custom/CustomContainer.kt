@@ -6,6 +6,7 @@ import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -45,7 +46,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         val x2 = x + width - (crossSize + 2)
         val y2 = y + 2
         val tint = 0x8f8f8f or black
-        drawTexture(x2, y2, crossSize, crossSize, icon, tint, null)
+        canvas.drawTexture(x2, y2, crossSize, crossSize, icon, tint)
     }
 
     private fun addBefore(index: Int, parent: CustomList) {

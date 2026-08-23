@@ -56,6 +56,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -550,14 +551,14 @@ open class FileExplorerEntry(
         val remainingH = h - padding// * 2
 
         if (listMode) {
-            drawListMode(x0, y0, x1, y1, x, y, w, h)
+            drawListMode(canvas, x, y, w, h)
         } else {
-            drawTileMode(x0, y0, x1, y1, x, y, w, h, remainingW, remainingH)
+            drawTileMode(canvas, x, y, w, h, remainingW, remainingH)
         }
     }
 
     private fun drawListMode(
-        x0: Int, y0: Int, x1: Int, y1: Int,
+        canvas: Canvas,
         x: Int, y: Int, w: Int, h: Int
     ) {
 
@@ -570,7 +571,7 @@ open class FileExplorerEntry(
             lines = 1
 
             Clipping.clip2Dual(
-                x0, y0, x1, y1,
+                canvas.x0, canvas.y0, canvas.x1, canvas.y1,
                 x + padding,
                 y + padding,
                 x + padding + imgSize,
@@ -606,7 +607,7 @@ open class FileExplorerEntry(
     }
 
     private fun drawTileMode(
-        x0: Int, y0: Int, x1: Int, y1: Int,
+        canvas: Canvas,
         x: Int, y: Int, w: Int, h: Int,
         remainingW: Int, remainingH: Int
     ) {
@@ -624,7 +625,7 @@ open class FileExplorerEntry(
         val t1 = Time.nanoTime
 
         Clipping.clip2Dual(
-            x0, y0, x1, y1,
+            canvas.x0, canvas.y0, canvas.x1, canvas.y1,
             x + padding,
             y + padding,
             x + remainingW,
@@ -635,7 +636,7 @@ open class FileExplorerEntry(
         val t2 = Time.nanoTime
 
         if (showTitle) Clipping.clip2Dual(
-            x0, y0, x1, y1,
+            canvas.x0, canvas.y0, canvas.x1, canvas.y1,
             x + padding,
             y + h - padding - textH,
             x + remainingW,

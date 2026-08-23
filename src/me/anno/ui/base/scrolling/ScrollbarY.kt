@@ -2,6 +2,7 @@ package me.anno.ui.base.scrolling
 
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.mulAlpha
@@ -17,7 +18,7 @@ open class ScrollbarY(val scrollable: ScrollableY, style: Style) : Scrollbar(scr
         val barY = y + relativePosition * (height - barHeight)
 
         val color = scrollColor.mulAlpha(scrollColorAlpha + activeAlpha * alpha)
-        drawRect(x0, barY.toInt(), x1 - x0, barHeight.toInt(), color)
+        drawRect(canvas.x0, barY.toInt(), canvas.dx, barHeight.toInt(), color)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

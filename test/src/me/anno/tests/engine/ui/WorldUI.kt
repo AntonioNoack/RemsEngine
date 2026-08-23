@@ -17,6 +17,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.openxr.ecs.VRHandController
 import me.anno.openxr.ecs.VRHandPickup
 import me.anno.openxr.ecs.VRSocket
+import me.anno.ui.Canvas
 import me.anno.ui.base.buttons.TextButton
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.res
@@ -41,7 +42,7 @@ fun main() {
             super.draw(canvas)
             // draw cursor position
             val ws = windowStack
-            DrawRectangles.drawRect(ws.mouseXi, ws.mouseYi, 1, 1, -1)
+            canvas.drawRect(ws.mouseXi, ws.mouseYi, 1, 1, -1)
         }
     }
 

@@ -2,7 +2,6 @@ package me.anno.tests.shader
 
 import me.anno.Time
 import me.anno.ecs.components.mesh.shapes.CubemapModel
-import me.anno.gpu.Blitting
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -34,9 +33,9 @@ fun main() {
 private fun testShader() {
     val transform = Matrix4f()
     var angle = 0f
-    testDrawing("FXAA Test") {
-        val w = it.width / 8
-        val h = it.height / 8
+    testDrawing("FXAA Test") { p, canvas ->
+        val w = p.width / 8
+        val h = p.height / 8
         transform.identity()
         transform.perspective(1f, w.toFloat() / h, 0.01f, 100f)
         transform.translate(0f, 0f, -5f)
@@ -64,7 +63,7 @@ private fun testShader() {
             depth.bindTexture0(1, Filtering.NEAREST, Clamping.CLAMP)
             SimpleBuffer.flat01.draw(shader)
         }
-        Blitting.copyColor(result, true)
+        canvas.drawTexture(p.x, p.y, p.width, p.height, result.getTexture0())
     }
 }
 

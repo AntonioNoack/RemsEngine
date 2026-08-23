@@ -26,38 +26,40 @@ fun main() {
         sim.velocity.write to "VelocityW"
     )
 
-    TestDrawPanel.testDrawing("Fluid Sim") {
+    TestDrawPanel.testDrawing("Fluid Sim") { p, canvas ->
 
-        it.allowLeft = true
-        it.allowRight = false
+        p.allowLeft = true
+        p.allowRight = false
 
-        val window = it.window!!
+        val window = p.window!!
         init.value
         step(
-            it, (window.mouseX - it.x) / it.width,
-            (window.mouseY - it.y) / it.height, 0.2f, sim
+            p, (window.mouseX - p.x) / p.width,
+            (window.mouseY - p.y) / p.height, 0.2f, sim
         )
 
-        // draw
-        for (i in visuals.indices) {
-            val (tex, title) = visuals[i]
-            tex ?: continue
-            val j = i / 2
-            val k = i and 1
-            val x0 = it.x + j * it.width / 3
-            val x1 = it.x + (j + 1) * it.width / 3
-            val y0 = it.y + k * it.height / 2
-            val y1 = it.y + (k + 1) * it.height / 2
-            Clipping.clip(x0, y0, x1 - x0, y1 - y0) {
-                if (i < 4) {
-                    FluidDebug.displayTextureR(x0, y0, x1 - x0, y1 - y0, tex.getTexture0())
-                } else {
-                    FluidDebug.displayTextureRG(x0, y0, x1 - x0, y1 - y0, tex.getTexture0())
+        canvas.custom {
+            // draw
+            for (i in visuals.indices) {
+                val (tex, title) = visuals[i]
+                tex ?: continue
+                val j = i / 2
+                val k = i and 1
+                val x0 = p.x + j * p.width / 3
+                val x1 = p.x + (j + 1) * p.width / 3
+                val y0 = p.y + k * p.height / 2
+                val y1 = p.y + (k + 1) * p.height / 2
+                Clipping.clip(x0, y0, x1 - x0, y1 - y0) {
+                    if (i < 4) {
+                        FluidDebug.displayTextureR(x0, y0, x1 - x0, y1 - y0, tex.getTexture0())
+                    } else {
+                        FluidDebug.displayTextureRG(x0, y0, x1 - x0, y1 - y0, tex.getTexture0())
+                    }
+                    DrawTexts.drawText(
+                        (x0 + x1) / 2, (y0 + y1) / 2, 2, title,
+                        AxisAlignment.CENTER, AxisAlignment.CENTER
+                    )
                 }
-                DrawTexts.drawText(
-                    (x0 + x1) / 2, (y0 + y1) / 2, 2, title,
-                    AxisAlignment.CENTER, AxisAlignment.CENTER
-                )
             }
         }
 

@@ -116,7 +116,7 @@ open class WeightBasedTablePanel(sizeX: Int, sizeY: Int, style: Style) :
             val sb = scrollbarsX[xi]
             sb.isHovered = containsMouse(window, x0i - padding, canvas.y0, x1i + padding, canvas.y1)
             sb.updateAlpha()
-            canvas.clip2(x0i, canvas.y0, x1i, canvas.y1, sb)
+            canvas.drawClipped(x0i, canvas.y0, x1i, canvas.y1, sb)
         }
         for (yi in scrollbarsY.indices) {
             val yc = y + ys[yi + 1]
@@ -125,7 +125,7 @@ open class WeightBasedTablePanel(sizeX: Int, sizeY: Int, style: Style) :
             val sb = scrollbarsY[yi]
             sb.isHovered = containsMouse(window, canvas.x0 - padding, y0i, canvas.x1 + padding, y1i)
             sb.updateAlpha()
-            canvas.clip2(canvas.x0, y0i, canvas.x1, y1i, sb)
+            canvas.drawClipped(canvas.x0, y0i, canvas.x1, y1i, sb)
         }
     }
 

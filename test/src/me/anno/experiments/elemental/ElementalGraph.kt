@@ -251,7 +251,7 @@ fun main() {
         HSLuv.toRGB(Vector3f(it.toFloat() / numColors, 1f, 0.7f)).toRGB()
     }*/
 
-    testDrawing("Elemental Graph") {
+    testDrawing("Elemental Graph") { it, canvas ->
 
         it.allowLeft = true
 
@@ -266,7 +266,7 @@ fun main() {
         scale *= factor
         it.mz = 0f
 
-        it.clear()
+        it.clear(canvas)
 
         transform.identity()
         transform.translate(position)
@@ -302,7 +302,7 @@ fun main() {
             transform.transformPosition(p0.set(x, y0))
             transform.transformPosition(p1.set(x, y1))
 
-            DrawRectangles.drawRect(
+            canvas.drawRect(
                 p0.x.toInt(),
                 p0.y.toInt(), 1,
                 (p1.y - p0.y).toInt(),
@@ -324,7 +324,7 @@ fun main() {
             transform.transformPosition(p0.set(x0, y))
             transform.transformPosition(p1.set(x1, y))
 
-            DrawRectangles.drawRect(
+            canvas.drawRect(
                 p0.x.toInt(), p0.y.toInt(),
                 (p1.x - p0.x).toInt(), 1,
                 lineColor
@@ -357,7 +357,7 @@ fun main() {
             DrawRectangles.drawRect(p0.x - halfSize, p0.y - halfSize, size, size, dotColor)
             DrawRectangles.drawRect(p1.x - halfSize, p1.y - halfSize, size, size, dotColor)
 
-            DrawTexts.drawText(
+            canvas.drawText(
                 (p1.x + 1.5f * size).toInt(), p0.y.toInt(), 1, node.name,
                 AxisAlignment.MIN, AxisAlignment.CENTER
             )

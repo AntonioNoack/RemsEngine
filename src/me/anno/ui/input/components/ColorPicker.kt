@@ -10,6 +10,7 @@ import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.unmix
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.StretchModes
 import me.anno.ui.base.image.ImagePanel
@@ -84,8 +85,8 @@ class ColorPicker(
                     val x4 = x3 + generalPadding * 2 + xi * (pixelScale + pixelSpacing)
                     val mx = mouseX + xi - pixelCount / 2
                     val my = mouseY + yi - pixelCount / 2
-                    val x = Maths.clamp(mx, max(0, x0), min(x1, cpuData.width) - 1)
-                    val y = Maths.clamp(my, max(0, y0), min(y1, cpuData.height) - 1)
+                    val x = Maths.clamp(mx, max(0, canvas.x0), min(canvas.x1, cpuData.width) - 1)
+                    val y = Maths.clamp(my, max(0, canvas.y0), min(canvas.y1, cpuData.height) - 1)
                     DrawRectangles.drawRect(x4, y4, pixelScale, pixelScale, cpuData.getRGB(x, y))
                 }
             }

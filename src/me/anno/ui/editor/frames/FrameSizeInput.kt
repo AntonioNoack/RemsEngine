@@ -3,6 +3,7 @@ package me.anno.ui.editor.frames
 import me.anno.config.DefaultConfig
 import me.anno.language.translation.NameDesc
 import me.anno.parser.SimpleExpressionParser.parseDouble
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY

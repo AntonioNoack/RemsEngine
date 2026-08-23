@@ -2,16 +2,14 @@ package me.anno.games.creeperworld
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
-import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
+import me.anno.engine.WindowRenderFlags
 import me.anno.games.creeperworld.RockTypes.dissolved
 import me.anno.games.creeperworld.RockTypes.hardness
 import me.anno.games.creeperworld.RockTypes.rock
 import me.anno.games.creeperworld.RockTypes.stone
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
-import me.anno.gpu.drawing.DrawTexts.drawText
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageCache
 import me.anno.input.Input
@@ -20,6 +18,7 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.MinMax.max
 import me.anno.maths.noise.PerlinNoise
 import me.anno.tests.physics.fluid.RWState
+import me.anno.ui.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
@@ -84,7 +83,7 @@ fun interface RockShader {
     fun process(
         rockTypes: IntArray,
         src: RockFramebuffer, dst: RockFramebuffer,
-        properties: Map<String, FloatArray>
+        properties: Map<String, FloatArray>,
     )
 }
 
@@ -218,9 +217,9 @@ fun main() {
 
             override fun draw(canvas: Canvas) {
                 super.draw(canvas)
-                drawWorldTexture()
-                drawFluidAtCursor()
-                drawFluidTotals()
+                drawWorldTexture(canvas)
+                drawFluidAtCursor(canvas)
+                drawFluidTotals(canvas)
             }
 
             var downX = 0
@@ -272,17 +271,17 @@ fun main() {
                 }
             }
 
-            fun drawWorldTexture() {
+            fun drawWorldTexture(canvas: Canvas) {
                 if (texture.wasCreated) {
                     val xi = coordsToWindowX(0f).toInt()
                     val yi = coordsToWindowY(0f).toInt()
                     val wi = coordsToWindowDirX(texture.width.toDouble()).toInt()
                     val hi = coordsToWindowDirY(texture.height.toDouble()).toInt()
-                    drawTexture(xi, yi + hi, wi, -hi, texture)
+                    canvas.drawTexture(xi, yi + hi, wi, -hi, texture)
                 }
             }
 
-            fun drawFluidAtCursor() {
+            fun drawFluidAtCursor(canvas: Canvas) {
 
                 val window = window!!
                 val mx = floor(windowToCoordsX(window.mouseX)).toInt()
@@ -292,13 +291,13 @@ fun main() {
                     val mi = mx + my * w
                     val lineHeight = monospaceFont.lineHeightI
                     var yj = this.y + this.height - lineHeight * (world.fluidTypes.fluids.size + 1)
-                    drawText(
+                    canvas.drawText(
                         this.x, yj, 1,
                         "$mx, $my"
                     )
                     yj += lineHeight
                     for (fluid in world.fluidTypes.fluids) {
-                        drawText(
+                        canvas.drawText(
                             this.x, yj, 1,
                             "${fluid.id}: ${fluid.data.level.read[mi].f3()}, " +
                                     "vx: ${fluid.data.impulseX.read[mi].toInt()}, " +
@@ -309,10 +308,10 @@ fun main() {
                 }
             }
 
-            fun drawFluidTotals() {
+            fun drawFluidTotals(canvas: Canvas) {
                 var yj = this.y
                 for (fluid in world.fluidTypes.fluids) {
-                    drawText(
+                    canvas.drawText(
                         this.x + this.width, yj, 1,
                         "${fluid.id}: ${sumByType[fluid.id]}", AxisAlignment.MAX, AxisAlignment.MIN
                     )

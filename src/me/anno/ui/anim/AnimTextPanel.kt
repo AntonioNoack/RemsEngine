@@ -18,6 +18,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.PIf
 import me.anno.maths.MinMax.max
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.color.spaces.HSLuv
@@ -99,7 +100,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         return group2
     }
 
-    override fun drawText(color: Int) {
+    override fun drawText(canvas: Canvas, color: Int) {
         if (text != this.text) {
             drawText2(0, 0, text.cpList())
         } else {

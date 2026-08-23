@@ -1,16 +1,15 @@
 package me.anno.games.pacman
 
 import me.anno.config.DefaultConfig.style
+import me.anno.games.pacman.logic.PacmanLogic
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.gpu.drawing.DrawCurves.drawLine
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.maths.MinMax.min
-import me.anno.games.pacman.logic.PacmanLogic
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.mixARGB
@@ -48,7 +47,7 @@ class FlatPacmanGame : Panel(style) {
 
         // walls
         for ((start, end) in game.walls) {
-            drawLine(
+            canvas.drawLine(
                 x(start.x), y(start.y), x(end.x), y(end.y), 2f,
                 white, backgroundColor, false
             )
@@ -60,7 +59,7 @@ class FlatPacmanGame : Panel(style) {
             for (nei in node.neighbors) {
                 val end = nei.position
                 if (start.x > end.x || start.y > end.y) { // only draw each line once
-                    drawLine(
+                    canvas.drawLine(
                         x(start.x + 0.5f), y(start.y + 0.5f), x(end.x + 0.5f), y(end.y + 0.5f),
                         scale * 0.25f,
                         pathColor, backgroundColor, false
@@ -75,7 +74,7 @@ class FlatPacmanGame : Panel(style) {
             val x3 = x(pos.x + ix1).toInt()
             val y3 = y(pos.y + iy1).toInt()
             texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
-            drawTexture(x2, y2, x3 - x2, y3 - y2, texture)
+            canvas.drawTexture(x2, y2, x3 - x2, y3 - y2, texture)
         }
 
         fun drawTex(pos: Vector2f, i0: Float, texture: ITexture2D) {

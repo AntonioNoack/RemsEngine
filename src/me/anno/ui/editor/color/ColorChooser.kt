@@ -6,6 +6,7 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.input.Input
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel

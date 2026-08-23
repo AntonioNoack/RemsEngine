@@ -27,6 +27,7 @@ import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.maths.Maths.sq
+import me.anno.ui.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.r
 import me.anno.utils.OS
@@ -155,10 +156,12 @@ class TextComponentImplTests {
 
         // loop to render & wait on SDF
         Sleep.waitUntil(true) {
+            val canvas = Canvas()
             FinalRendering.runFinalRendering {
                 useFrame(fb) {
                     Systems.onUpdate()
-                    rv.draw(0, 0, w, h)
+                    canvas.drawClipped(0, 0, w, h, rv)
+                    canvas.finish()
                 }
                 Thread.sleep(10) // give SDF processing queue a little chance
             } == null

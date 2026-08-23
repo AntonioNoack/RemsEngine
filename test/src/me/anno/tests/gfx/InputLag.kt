@@ -1,7 +1,6 @@
 package me.anno.tests.gfx
 
 import me.anno.Time
-import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.engine.WindowRenderFlags
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color.black
@@ -36,21 +35,21 @@ fun main() {
     val vsync = true
     val delayNanos = (0.95 * 1e9 / measuredFps).toLong()
     var lastTime = Time.nanoTime
-    testDrawing("InputLag") {
+    testDrawing("InputLag") { p, canvas ->
         // with Vsync: 3 frames input lag (red ring)
         // without vsync (at 2000 fps): still 33ms lag (yellow ring)
         // without vsync, with glFinish() after glfwSwapBuffers(): 16-25ms lag (between green and yellow)
         // with Vsync and glFinish(): 2 frames input lag (yellow ring)
         WindowRenderFlags.enableVSync = vsync
-        it.clear()
-        val window = it.window!!
+        p.clear(canvas)
+        val window = p.window!!
         val mx = window.mouseX
         val my = window.mouseY
         for (i in previous.indices) {
             val v = previous[i]
             val r = max(v.distance(mx, my), 1f)
-            drawCircle(
-                mx.toInt(), my.toInt(), r, r, 1f - 2f / r,
+            canvas.drawCircle(
+                mx, my, r, r, 1f - 2f / r,
                 0f, 360f, colors[i] or black
             )
         }

@@ -67,6 +67,7 @@ import me.anno.graph.visual.render.effects.TAANode
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.input.Input
 import me.anno.maths.Maths.clamp
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.UIColors
@@ -203,7 +204,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         setRenderState()
         updatePipelineStages(renderMode)
 
-        render(x0, y0, x1, y1)
+        canvas.custom {
+            render(canvas.x0, canvas.y0, canvas.x1, canvas.y1)
+        }
 
         val t3 = Time.nanoTime
         FrameTimings.add(t3 - t1, UIColors.cornFlowerBlue)
@@ -214,11 +217,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         if (playMode == PlayMode.EDITING) {
             DebugRendering.showShadowMapDebug(this)
-            DebugRendering.showCameraRendering(this, x0, y0, x1, y1)
+            DebugRendering.showCameraRendering(canvas,this,)
         }
 
         if (world is Entity && playMode != PlayMode.EDITING) {
-            drawPrimaryCanvas(world, x0, y0, x1, y1)
+            drawPrimaryCanvas(canvas,world, )
         }
 
         if (update) {
@@ -301,14 +304,14 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         return aspect
     }
 
-    fun drawPrimaryCanvas(world: Entity, x0: Int, y0: Int, x1: Int, y1: Int) {
+    fun drawPrimaryCanvas(canvas: Canvas, world: Entity) {
         world.forAllComponentsInChildren(CanvasComponent::class, false) { comp ->
             if (comp.space == CanvasComponent.Space.CAMERA_SPACE) {
-                comp.width = x1 - x0
-                comp.height = y1 - y0
+                comp.width = canvas.dx
+                comp.height = canvas.dy
                 comp.render(this)
                 val texture = comp.framebuffer!!.getTexture0()
-                drawTexture(x0, y0, x1 - x0, y1 - y0, texture, -1, null)
+                canvas.drawTexture(canvas.x0, canvas.y0, canvas.dx, canvas.dy, texture)
             }
         }
     }
@@ -326,7 +329,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     fun drawScene(
         x0: Int, y0: Int, x1: Int, y1: Int,
-        renderer: Renderer, buffer: IFramebuffer
+        renderer: Renderer, buffer: IFramebuffer,
     ) {
 
         val w = renderSize.renderWidth
@@ -430,7 +433,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     fun prepareDrawScene(
         width: Int, height: Int, aspectRatio: Float, camera: Camera, update: Boolean,
-        fillPipeline: Boolean
+        fillPipeline: Boolean,
     ) {
 
         val world = getWorld()
@@ -554,7 +557,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     fun definePipeline(
         width: Int, height: Int, aspectRatio: Float,
-        fov: Float, world: PrefabSaveable?
+        fov: Float, world: PrefabSaveable?,
     ) {
         pipeline.clear()
         if (isPerspective) {
@@ -598,7 +601,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         dst: IFramebuffer,
         changeSize: Boolean,
         applyToneMapping: Float,
-        sky: Boolean = true
+        sky: Boolean = true,
     ) {
         GFX.check()
         pipeline.applyToneMapping = applyToneMapping
@@ -640,7 +643,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     fun drawGizmos(
         framebuffer: IFramebuffer,
         drawGridLines: Boolean,
-        drawDebug: Boolean = true
+        drawDebug: Boolean = true,
     ) {
         useFrame(framebuffer, simpleRenderer) {
             drawGizmos(drawGridLines, drawDebug)
@@ -657,7 +660,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     fun drawGizmos(
         drawGridLines: Boolean,
         drawDebug: Boolean = true,
-        drawAABBs: Boolean = false
+        drawAABBs: Boolean = false,
     ) {
         GFXState.blendMode.use(BlendMode.DEFAULT) {
             GFXState.depthMode.use(depthMode) {
@@ -670,7 +673,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     fun drawGizmos1(
         drawGridMask: Int,
         drawDebugShapes: Boolean,
-        drawAABBs: Boolean
+        drawAABBs: Boolean,
     ) {
 
         val cameraMatrix = RenderState.cameraMatrix
@@ -758,7 +761,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     fun getRelativeMouseRayDirection(
         rx: Double, // -1 .. 1
         ry: Double, // -1 .. 1
-        dst: Vector3f = Vector3f()
+        dst: Vector3f = Vector3f(),
     ): Vector3f {
         return if (isPerspective) {
             val z = if (depthMode.reversedDepth) 1f else -1f

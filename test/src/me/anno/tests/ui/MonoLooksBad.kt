@@ -1,7 +1,6 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
@@ -16,11 +15,11 @@ fun main() {
             "miim iimm\n" +
             "mmii immi"
     val font = TextPanel(style).font
-    testDrawing("Messed up spacing") {
-        it.clear()
-        drawText(
-            it.x + it.width / 2, it.y + it.height / 2, font, text, -1,
-            it.backgroundColor.withAlpha(0),
+    testDrawing("Messed up spacing") { p, canvas ->
+        p.clear(canvas)
+        canvas.drawText(
+            p.x + p.width / 2, p.y + p.height / 2, font, text, -1,
+            p.backgroundColor.withAlpha(0),
             AxisAlignment.CENTER, AxisAlignment.CENTER
         )
     }

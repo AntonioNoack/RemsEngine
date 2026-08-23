@@ -10,7 +10,6 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView1
-import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -22,6 +21,7 @@ import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.jvm.HiddenOpenGLContext
+import me.anno.ui.Canvas
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGB
 import me.anno.utils.assertions.assertEquals
@@ -141,8 +141,11 @@ class SpriteLayerTests {
         rv.orbitRotation.identity()
         rv.renderMode = RenderMode.COLOR
         val fb = Framebuffer("spriteTest", size, size, TargetType.UInt8x4, DepthBufferType.TEXTURE)
-        for (i in 0 until 3) useFrame(fb) { // todo why are three frames necessary???
-            rv.draw(0, 0, size, size)
+        for (i in 0 until 3) { // todo why are three frames necessary???
+            val canvas = Canvas()
+            useFrame(fb) {
+                canvas.drawClipped(0, 0, size, size, rv)
+            }
         }
         val asImage = fb.getTexture0()
             .createImage(flipY = false, withAlpha = false)

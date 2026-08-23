@@ -21,22 +21,25 @@ fun main() {
     var squircle = true
 
     val ui = PanelListY(style)
-    ui.add(TestDrawPanel {
-        if (squircle) {
-            drawSquircle(
-                it.x, it.y, it.width, it.height,
-                powerX, powerY, outline,
-                UIColors.axisWColor, UIColors.darkOrange, it.backgroundColor,
-                smoothness
-            )
-        } else {
-            val radius = (it.width / powerX + it.height / powerY) * 0.5f
-            drawRoundedRect(
-                it.x, it.y, it.width, it.height,
-                radius, radius, radius, radius, outline,
-                UIColors.axisWColor, UIColors.darkOrange, it.backgroundColor,
-                smoothness
-            )
+    ui.add(TestDrawPanel { p, canvas ->
+        canvas.custom {
+            // todo support squircle and rounded-rect in Canvas
+            if (squircle) {
+                drawSquircle(
+                    p.x, p.y, p.width, p.height,
+                    powerX, powerY, outline,
+                    UIColors.axisWColor, UIColors.darkOrange, p.backgroundColor,
+                    smoothness
+                )
+            } else {
+                val radius = (p.width / powerX + p.height / powerY) * 0.5f
+                drawRoundedRect(
+                    p.x, p.y, p.width, p.height,
+                    radius, radius, radius, radius, outline,
+                    UIColors.axisWColor, UIColors.darkOrange, p.backgroundColor,
+                    smoothness
+                )
+            }
         }
     }.fill(1f))
 

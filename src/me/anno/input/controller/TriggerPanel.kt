@@ -1,6 +1,6 @@
 package me.anno.input.controller
 
-import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import org.apache.logging.log4j.LogManager
 
@@ -42,7 +42,7 @@ class TriggerPanel(
         // -1 = start, +1 = end
         val v01 = controller.getRawAxis(axis0) * .5f + .5f
         val v0h = (v01 * height).toInt()
-        drawRect(x0, y + v0h, x1 - x0, 1, -1)
+        canvas.drawRect(canvas.x0, y + v0h, canvas.x1 - canvas.x0, 1, -1)
         // todo show bounds and dead spot
     }
 

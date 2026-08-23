@@ -2,8 +2,6 @@ package me.anno.ui.base.buttons
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
-import me.anno.gpu.drawing.DrawRectangles
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
@@ -32,12 +30,12 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
         }
 
         fun Panel.drawButtonBorder(
+            canvas: Canvas,
             leftColor: Int, topColor: Int, rightColor: Int, bottomColor: Int,
             isInputAllowed: Boolean, borderSize: Padding, mouseDown: Boolean,
         ) {
             val isHovered = isHovered && isInputAllowed
             val mouseDown1 = mouseDown && isInputAllowed
-            val bi = DrawRectangles.startBatch()
             var leftColor1 = leftColor
             var rightColor1 = rightColor
             var topColor1 = topColor
@@ -54,17 +52,22 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
                 bottomColor1 = mixARGB(bottomColor1, avgColor, f)
             }
             // draw button border
-            drawRect(
+            canvas.drawRect(
                 x + width - borderSize.right, y, borderSize.right, height,
                 getColor(isHovered, mouseDown1, rightColor1, leftColor1)
             ) // right
-            drawRect(
+            canvas.drawRect(
                 x, y + height - borderSize.bottom, width,
                 borderSize.bottom, getColor(isHovered, mouseDown1, bottomColor1, topColor1)
             ) // bottom
-            drawRect(x, y, borderSize.left, height, getColor(isHovered, mouseDown1, leftColor1, rightColor1)) // left
-            drawRect(x, y, width, borderSize.top, getColor(isHovered, mouseDown1, topColor1, bottomColor1)) // top
-            DrawRectangles.finishBatch(bi)
+            canvas.drawRect(
+                x, y, borderSize.left, height,
+                getColor(isHovered, mouseDown1, leftColor1, rightColor1)
+            ) // left
+            canvas.drawRect(
+                x, y, width, borderSize.top,
+                getColor(isHovered, mouseDown1, topColor1, bottomColor1)
+            ) // top
         }
     }
 
@@ -127,7 +130,7 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
         drawBackground(canvas)
         drawButtonText()
         drawButtonBorder(
-            leftColor, topColor, rightColor, bottomColor,
+            canvas, leftColor, topColor, rightColor, bottomColor,
             isInputAllowed, borderSize, isPressed
         )
         if (isInFocus) showIsInFocus(canvas, borderSize.left)

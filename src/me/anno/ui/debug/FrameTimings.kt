@@ -207,7 +207,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         setPosSize(x0, y0, width1, height1)
 
         canBeSeen = true
-        canvas.clip2(x, y, x + width, y + height, this)
+        canvas.drawClipped(x, y, x + width, y + height, this)
 
         formatNumber(text.value, 0, 6, Time.currentFPS.toFloat())
         formatNumber(text.value, 13, 6, Time.currentMinFPS.toFloat())

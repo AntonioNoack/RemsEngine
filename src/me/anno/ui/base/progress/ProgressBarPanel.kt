@@ -1,12 +1,14 @@
 package me.anno.ui.base.progress
 
 import me.anno.Time
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.a
 import kotlin.math.min
 
-open class ProgressBarPanel(name: String, unit: String, total: Double, val minHeight: Int, style: Style) : Panel(style) {
+open class ProgressBarPanel(name: String, unit: String, total: Double, val minHeight: Int, style: Style) :
+    Panel(style) {
 
     var progress
         get() = progressBar.progress
@@ -23,7 +25,7 @@ open class ProgressBarPanel(name: String, unit: String, total: Double, val minHe
     override fun draw(canvas: Canvas) {
         if (min(progressBar.textColor.a(), progressBar.backgroundColor.a()) < 255)
             super.draw(canvas) // else no background needed
-        progressBar.draw(x, y, width, minHeight, x0, y0, x1, y1, Time.nanoTime)
+        progressBar.draw(canvas, x, y, width, minHeight, Time.nanoTime)
     }
 
 }

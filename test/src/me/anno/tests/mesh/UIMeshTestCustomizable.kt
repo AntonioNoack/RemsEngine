@@ -26,6 +26,7 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.posMod
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestEngine.Companion.testUI3
@@ -138,7 +139,7 @@ class SimpleMeshTest(
         }
         if (msaa) {
             // if we changed the framebuffer, blit the result onto the target framebuffer
-            DrawTextures.drawTexture(x, y, this.width, this.height, buffer.getTexture0())
+            canvas.drawTexture(x, y, this.width, this.height, buffer.getTexture0())
         }
     }
 }

@@ -3,6 +3,7 @@ package me.anno.ui.base.menu
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.base.components.AxisAlignment

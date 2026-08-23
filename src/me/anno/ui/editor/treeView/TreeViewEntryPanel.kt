@@ -13,6 +13,7 @@ import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.sq
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX

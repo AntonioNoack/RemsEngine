@@ -4,11 +4,11 @@ import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input
 import me.anno.maths.Maths.mix
-import me.anno.maths.chunks.hexagon.HexagonGridMaths.getClosestHexagon
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.getCenter
 import me.anno.maths.chunks.hexagon.HexagonGridMaths.getClosestCorner
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.getClosestHexagon
 import me.anno.maths.chunks.hexagon.HexagonGridMaths.getClosestLine
 import me.anno.maths.chunks.hexagon.HexagonGridMaths.getCorner
-import me.anno.maths.chunks.hexagon.HexagonGridMaths.getCenter
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
@@ -21,17 +21,17 @@ import org.joml.Vector2i
  * drag with your right mouse button pressed to move around
  * */
 fun main() {
-    TestDrawPanel.testDrawing("Hexagon Grid") {
-        it.clear()
+    TestDrawPanel.testDrawing("Hexagon Grid") { p, canvas ->
+        p.clear(canvas)
 
         val dy = 10
-        val dx = it.width * dy / it.height
-        val scale = it.height.toDouble() * 0.5 / dy
+        val dx = p.width * dy / p.height
+        val scale = p.height.toDouble() * 0.5 / dy
 
-        val cx = it.x + it.width / 2 + it.mx.toInt()
-        val cy = it.y + it.height / 2 + it.my.toInt()
+        val cx = p.x + p.width / 2 + p.mx.toInt()
+        val cy = p.y + p.height / 2 + p.my.toInt()
 
-        val window = it.window!!
+        val window = p.window!!
         val mouseCoords = Vector2d((window.mouseX - cx) / scale, (window.mouseY - cy) / scale)
         val hovCell = getClosestHexagon(mouseCoords, Vector2i())
         val hovLine = getClosestLine(mouseCoords, Vector2d(), Vector2d(), Vector2i())
@@ -67,7 +67,7 @@ fun main() {
                         mix(a.y, y, f).toFloat() + cy,
                         mix(b.x, x, f).toFloat() + cx,
                         mix(b.y, y, f).toFloat() + cy,
-                        1f, color1, it.backgroundColor.withAlpha(0),
+                        1f, color1, p.backgroundColor.withAlpha(0),
                         false
                     )
 

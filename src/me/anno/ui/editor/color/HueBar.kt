@@ -1,6 +1,7 @@
 package me.anno.ui.editor.color
 
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.types.Floats.roundToIntOr
@@ -14,7 +15,7 @@ class HueBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
     }) {
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        val x = x0 + ((x1 - x0) * chooser.hue).roundToIntOr()
-        drawRect(x, y0, 1, y1 - y0, black)
+        val x = canvas.x0 + (canvas.dx * chooser.hue).roundToIntOr()
+        drawRect(x, canvas.y0, 1, canvas.dy, black)
     }
 }

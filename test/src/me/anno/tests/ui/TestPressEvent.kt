@@ -2,6 +2,7 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
 import me.anno.input.ActionManager
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
@@ -19,7 +20,7 @@ class TestPressingPanel : Panel(style) {
 
     override fun onGotAction(
         x: Float, y: Float, dx: Float, dy: Float,
-        action: String, isContinuous: Boolean
+        action: String, isContinuous: Boolean,
     ): Boolean {
         // this was broken
         pressed = true

@@ -62,11 +62,13 @@ fun main() {
                     "   result = vec4(mix(vec3(0.1,0.2,0.3),vec3(1),c),1);\n" +
                     "}"
         )
-        list.add(TestDrawPanel {
-            shader.use()
-            shader.v1f("time", Time.gameTime)
-            shader.v2f("uvScale", it.width.toFloat() / it.height, 1f)
-            flat01.draw(shader)
+        list.add(TestDrawPanel { p, canvas ->
+            canvas.custom {
+                shader.use()
+                shader.v1f("time", Time.gameTime)
+                shader.v2f("uvScale", p.width.toFloat() / p.height, 1f)
+                flat01.draw(shader)
+            }
         }, 1f)
 
         // 3d

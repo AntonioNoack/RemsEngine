@@ -4,6 +4,7 @@ import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.utils.Color.black
 import me.anno.maths.Maths.length
 import me.anno.maths.MinMax.max
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.utils.types.Floats.f3s
 import org.apache.logging.log4j.LogManager

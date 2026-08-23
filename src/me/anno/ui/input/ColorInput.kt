@@ -272,7 +272,7 @@ open class ColorInput(
             // - open (new?) window in fullscreen
             // - add controls on the bottom, or somewhere..., with a preview of the color
             // - select on click, or when dragging + enter then
-            val windowX = GFX.someWindow
+            val windowX = windowStack.osWindow ?: GFX.someWindow
             addGPUTask("ColorInput.pickColor()", 1) {// delay, so the original menu can disappear
                 val screenshot = Screenshots.takeSystemScreenshot()
                 val colorPicker = if (screenshot == null) {
@@ -283,7 +283,8 @@ open class ColorInput(
                     )
                     fb.ensure()
                     useFrame(fb) {
-                        windowStack.draw(0, 0, fb.width, fb.height)
+                        val canvas = windowX.canvas
+                        windowStack.draw(canvas, 0, 0, fb.width, fb.height)
                     }
                     val imageData = fb.createImage(flipY = true, withAlpha = false) ?: IntImage(1, 1, false)
                     ColorPicker(fb, fb.getTexture0() as Texture2D, imageData, true, flipTexture = false, style)

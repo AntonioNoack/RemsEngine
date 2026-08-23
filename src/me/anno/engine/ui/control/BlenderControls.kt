@@ -7,6 +7,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.Key
 import me.anno.maths.Maths.length
 import me.anno.parser.SimpleExpressionParser
+import me.anno.ui.Canvas
 import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f

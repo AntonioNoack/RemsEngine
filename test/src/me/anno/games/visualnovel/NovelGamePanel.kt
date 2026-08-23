@@ -8,7 +8,6 @@ import me.anno.games.visualnovel.VisualNovelState.questionNode
 import me.anno.games.visualnovel.VisualNovelState.secondary
 import me.anno.games.visualnovel.VisualNovelState.shownText
 import me.anno.games.visualnovel.VisualNovelState.textTime
-import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -18,6 +17,7 @@ import me.anno.image.ImageScale
 import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.MinMax.max
+import me.anno.ui.Canvas
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Color.mulARGB
@@ -66,10 +66,10 @@ class NovelGamePanel(val stateMachine: StateMachine) : PanelList(DefaultConfig.s
         shownTextPanel.setPosSize(x + (width - w) / 2, y + height - h, w, h)
     }
 
-    fun drawChar(image: ITexture2D, pos: Int, hasText: Boolean, w: Int) {
+    fun drawChar(canvas: Canvas, image: ITexture2D, pos: Int, hasText: Boolean, w: Int) {
         val h = image.height * w / image.width
         image.bind(0, Filtering.LINEAR, Clamping.CLAMP)
-        DrawTextures.drawTexture(
+        canvas.drawTexture(
             x + width * pos / 100 - w / 2,
             y + height * (if (hasText) 7 else 9) / 10 - h / 2, w, h, image
         )
@@ -88,7 +88,7 @@ class NovelGamePanel(val stateMachine: StateMachine) : PanelList(DefaultConfig.s
             // to do maybe foreground, too, based on cursor?
             val (w, h) = ImageScale.scaleMin(bgImage.width, bgImage.height, width, height)
             val yi = if (hasText) y + (height * 8 / 10 - h) / 2 else y + (height - h) / 2
-            DrawTextures.drawTexture(x + (width - w) / 2, yi, w, h, bgImage)
+            canvas.drawTexture(x + (width - w) / 2, yi, w, h, bgImage)
         } else drawBackground(canvas)
 
         val charWidth = (0.38f * max(width, height)).toInt()
@@ -97,24 +97,24 @@ class NovelGamePanel(val stateMachine: StateMachine) : PanelList(DefaultConfig.s
         val left = TextureCache[primary].value
         when {
             left != null && right != null -> {
-                drawChar(right, 75, hasText, charWidth)
-                drawChar(left, 25, hasText, charWidth)
+                drawChar(canvas, right, 75, hasText, charWidth)
+                drawChar(canvas, left, 25, hasText, charWidth)
             }
             left != null -> {
-                drawChar(left, 42, hasText, charWidth)
+                drawChar(canvas, left, 42, hasText, charWidth)
             }
             right != null -> {
-                drawChar(right, 58, hasText, charWidth)
+                drawChar(canvas, right, 58, hasText, charWidth)
             }
         }
 
         if (hasText) {
-            drawBackground(x, y + height * 8 / 10, x + width, y + height)
+            drawBackground(canvas)
 
             val progress = 10 * Maths.sq(1e-9 * (Time.nanoTime - textTime))
             shownTextPanel.text = shownText.substring(0, min(progress.toInt(), shownText.length))
 
-            drawChildren(x0, y0, x1, y1)
+            drawChildren(canvas)
         }
     }
 }

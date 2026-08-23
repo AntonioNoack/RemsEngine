@@ -11,6 +11,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
@@ -105,10 +106,12 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
         super.draw(canvas)
         val texture = stream.getFrame() ?: return
         calculateSizes(texture.width, texture.height)
-        DrawTextures.drawTexture(
-            lix, liy, liw, lih, texture,
-            filtering, Clamping.CLAMP, flipY
-        )
+        canvas.custom {
+            DrawTextures.drawTexture(
+                lix, liy, liw, lih, texture,
+                filtering, Clamping.CLAMP, flipY
+            )
+        }
     }
 
     override fun destroy() {

@@ -4,6 +4,7 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.graph.visual.render.NodeGroup
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -47,7 +48,7 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
 
     var textColor = -1
 
-    fun drawBackground(outline: Boolean, inner: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {
+    fun drawBackground(outline: Boolean, inner: Boolean, canvas: Canvas) {
         if (!outline && !inner) return
         // draw whether the node is in focus
         if (outline) {
@@ -72,7 +73,7 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
         if (group.color != 0) background.color = group.color
 
         val inFocus = isInFocus || (gp is GraphEditor && gp.overlapsSelection(this))
-        drawBackground(inFocus, true, x0, y0, x1, y1)
+        drawBackground(inFocus, true, canvas)
 
         val backgroundColor = Color.mixARGB(gp.background.color, background.color, background.color.a()) and 0xffffff
         val font = gp.font

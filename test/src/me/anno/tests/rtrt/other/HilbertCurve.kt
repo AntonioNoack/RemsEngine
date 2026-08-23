@@ -48,23 +48,23 @@ fun main() {
         var n = 4096
         val input = IntInput(NameDesc.EMPTY, "", n, NumberType.LONG_PLUS, style)
             .setChangeListener { n = it.toInt() }
-        val main = TestDrawPanel {
-            it.clear()
+        val main = TestDrawPanel { p, canvas ->
+            p.clear(canvas)
             // calculate size
             val padding = 10f
-            val size = min(it.width, it.height) - 2f * padding
-            val x = it.x + (it.width - size) * 0.5f
-            val y = it.y + (it.height - size) * 0.5f
+            val size = min(p.width, p.height) - 2f * padding
+            val x = p.x + (p.width - size) * 0.5f
+            val y = p.y + (p.height - size) * 0.5f
             // calculate first point
             val t0 = hilbert(fract(0, n), 15).mul(size).add(x, y)
             // draw background-of-lines without alpha for better blending of lines
-            val background = it.background.color and black.inv()
+            val background = p.background.color and black.inv()
             for (i in 1 until n) {
                 // calculate next point
                 val t1 = hilbert(fract(i, n), 15).mul(size).add(x, y)
                 // and then draw it
                 val color = getColor(i.toFloat() / n) or black
-                drawLine(t0.x, t0.y, t1.x, t1.y, 1f, color, background, false)
+                canvas.drawLine(t0.x, t0.y, t1.x, t1.y, 1f, color, background, false)
                 t0.set(t1) // advance the previous point
             }
         }

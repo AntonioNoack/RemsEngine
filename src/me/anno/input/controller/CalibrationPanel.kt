@@ -5,6 +5,7 @@ import me.anno.gpu.drawing.DrawCurves.drawQuadraticBezier
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths.length
 import me.anno.maths.MinMax.min
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import org.joml.AABBf
@@ -150,8 +151,6 @@ abstract class CalibrationPanel(
         size = min(width, height)
         cx = x + width / 2
         cy = y + height / 2
-
-
     }
 
 }

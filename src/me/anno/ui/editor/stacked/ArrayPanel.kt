@@ -4,7 +4,6 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Clipboard.getClipboardContent
 import me.anno.input.Input
 import me.anno.input.Key
@@ -15,6 +14,7 @@ import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
@@ -31,7 +31,7 @@ import kotlin.reflect.safeCast
 abstract class ArrayPanel<EntryType, PanelType : Panel>(
     nameDesc: NameDesc,
     visibilityKey: String,
-    val newValue: () -> EntryType, style: Style
+    val newValue: () -> EntryType, style: Style,
 ) : TitledListY(nameDesc, visibilityKey, style), InputPanel<List<EntryType>> {
 
     companion object {
@@ -40,7 +40,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
         fun <EntryType> parseAllFromClipboard(
             clipboard: Any?,
             newValue: () -> EntryType,
-            logger: Logger = LOGGER
+            logger: Logger = LOGGER,
         ): List<EntryType> {
             if (clipboard == null) return emptyList()
             val sample = try {
@@ -156,7 +156,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
             val y2 = max(child.y + buttonPadding, lastY)
             val y3 = child.y + child.height - buttonPadding
             if (y3 > y2) {
-                drawRect(buttonX, y2, buttonW, y3 - y2, -1)
+                canvas.drawRect(buttonX, y2, buttonW, y3 - y2, -1)
             }
             lastY = y2 + buttonPadding
         }

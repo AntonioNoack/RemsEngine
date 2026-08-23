@@ -3,10 +3,9 @@ package me.anno.games.snake
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.fonts.Font
-import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.input.Key
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.black
@@ -140,7 +139,7 @@ class SnakeGamePanel : Panel(style) {
                     value == food -> 0xff3333
                     else -> 0x333333
                 } or black
-                drawRect(x2, y2, x3 - x2, y3 - y2, color)
+                canvas.drawRect(x2, y2, x3 - x2, y3 - y2, color)
             }
         }
 
@@ -153,27 +152,27 @@ class SnakeGamePanel : Panel(style) {
             dy == +1 -> "V"
             else -> null
         }
-        if (snakeHeadChar != null) drawText(
+        if (snakeHeadChar != null) canvas.drawText(
             this.x + (headX * width + width / 2) / sx, this.y + (headY * height + height / 2) / sy,
             font, snakeHeadChar, black, -1, -1, -1,
             AxisAlignment.CENTER, AxisAlignment.CENTER
         )
 
         if (gameOver) {
-            drawText(
+            canvas.drawText(
                 x + width / 2, y + height / 2, font, "Game Over, Score: $snakeLength",
                 -1, black, -1, -1,
                 AxisAlignment.CENTER, AxisAlignment.CENTER
             )
         } else if (dx == 0 && dy == 0) {
             // draw instructions
-            drawText(
+            canvas.drawText(
                 x + width / 2, y + height / 2, font, "Press WASD to control the snake",
                 -1, black, -1, -1,
                 AxisAlignment.CENTER, AxisAlignment.CENTER
             )
         } else if (isPaused) {
-            drawText(
+            canvas.drawText(
                 x + width / 2, y + height / 2, font, "Press SPACE to continue",
                 -1, black, -1, -1,
                 AxisAlignment.CENTER, AxisAlignment.CENTER

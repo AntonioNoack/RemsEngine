@@ -31,6 +31,7 @@ import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.tests.FlakyTest
+import me.anno.ui.Canvas
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGB
 import me.anno.utils.OS.desktop
@@ -197,7 +198,7 @@ class ShadowRenderingTests {
 
     fun renderBaseline(
         scene: Entity,
-        getDirectionTowardsLight: (position: Vector3d, dst: Vector3f) -> Vector3f?
+        getDirectionTowardsLight: (position: Vector3d, dst: Vector3f) -> Vector3f?,
     ): IntImage {
 
         // given a pixel position, project it onto the plane/box, calculate the direction towards the light,
@@ -281,8 +282,9 @@ class ShadowRenderingTests {
         )
         view.renderMode = renderMode
 
+        val canvas = Canvas()
         useFrame(fb) {
-            view.draw(0, 0, resolution, resolution)
+            canvas.drawClipped(0, 0, resolution, resolution, view)
         }
 
         texture = fb.getTexture0()

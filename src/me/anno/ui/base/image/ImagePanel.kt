@@ -3,8 +3,8 @@ package me.anno.ui.base.image
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.ITexture2D
+import me.anno.ui.Canvas
 import me.anno.ui.Style
-import me.anno.utils.Color.white4
 import kotlin.math.log2
 import kotlin.math.max
 
@@ -18,16 +18,16 @@ abstract class ImagePanel(style: Style) : ImagePanelBase(style) {
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        drawImage()
+        drawImage(canvas)
     }
 
-    fun drawImage() {
+    fun drawImage(canvas: Canvas) {
         val texture = getTexture() ?: return
         calculateSizes(texture.width, texture.height)
-        drawTexture(texture)
+        drawTexture(canvas, texture)
     }
 
-    open fun drawTexture(texture: ITexture2D) {
+    open fun drawTexture(canvas: Canvas, texture: ITexture2D) {
         if (showAlpha && texture.numChannels == 4) {
             DrawTextures.drawTransparentBackground(
                 lix, liy, liw, lih,
@@ -35,10 +35,6 @@ abstract class ImagePanel(style: Style) : ImagePanelBase(style) {
             )
         }
         texture.bind(0, filtering, Clamping.CLAMP)
-        DrawTextures.drawTexture(
-            lix, liy, liw, lih, texture,
-            false, white4, null,
-            applyToneMapping = 0f
-        )
+        canvas.drawTexture(lix, liy, liw, lih, texture)
     }
 }

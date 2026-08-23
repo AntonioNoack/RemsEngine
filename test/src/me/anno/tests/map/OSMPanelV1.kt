@@ -5,6 +5,7 @@ import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.ui.Canvas
 import me.anno.ui.UIColors
 import me.anno.ui.base.groups.MapPanel
 import me.anno.utils.Color.withAlpha
@@ -27,47 +28,49 @@ class OSMPanelV1(val map: OSMap) : MapPanel(style) {
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        // draw all points
-        var v = DrawRectangles.startBatch()
-        val minLon = (windowToCoordsX(x0.toDouble()) / scaleX).toFloat()
-        val maxLon = (windowToCoordsX(x1.toDouble()) / scaleX).toFloat()
-        val minLat = windowToCoordsY(y0.toDouble()).toFloat()
-        val maxLat = windowToCoordsY(y1.toDouble()).toFloat()
-        map.nodes.forEach { _, node ->
-            drawNode(node, minLon, minLat, maxLon, maxLat, UIColors.axisWColor)
-        }
-        map.relations.forEach { _, relation ->
-            for (nodes2 in relation.nodesByType.values) {
-                // to do color by type
-                for (node in nodes2) {
-                    drawNode(node, minLon, minLat, maxLon, maxLat, UIColors.axisYColor)
+        canvas.custom {
+            // draw all points
+            var v = DrawRectangles.startBatch()
+            val minLon = (windowToCoordsX(canvas.x0.toDouble()) / scaleX).toFloat()
+            val maxLon = (windowToCoordsX(canvas.x1.toDouble()) / scaleX).toFloat()
+            val minLat = windowToCoordsY(canvas.y0.toDouble()).toFloat()
+            val maxLat = windowToCoordsY(canvas.y1.toDouble()).toFloat()
+            map.nodes.forEach { _, node ->
+                drawNode(node, minLon, minLat, maxLon, maxLat, UIColors.axisWColor)
+            }
+            map.relations.forEach { _, relation ->
+                for (nodes2 in relation.nodesByType.values) {
+                    // to do color by type
+                    for (node in nodes2) {
+                        drawNode(node, minLon, minLat, maxLon, maxLat, UIColors.axisYColor)
+                    }
                 }
             }
-        }
-        DrawRectangles.finishBatch(v)
-        v = DrawCurves.lineBatch.start()
-        // draw all lines
-        map.ways.forEach { _, way ->
-            drawWay(way, minLon, minLat, maxLon, maxLat, UIColors.axisXColor)
-        }
-        map.relations.forEach { _, relation ->
-            for (ways2 in relation.waysByType.values) {
-                // to do color by type
-                for (way in ways2) {
-                    drawWay(way, minLon, minLat, maxLon, maxLat, UIColors.axisZColor)
+            DrawRectangles.finishBatch(v)
+            v = DrawCurves.lineBatch.start()
+            // draw all lines
+            map.ways.forEach { _, way ->
+                drawWay(way, minLon, minLat, maxLon, maxLat, UIColors.axisXColor)
+            }
+            map.relations.forEach { _, relation ->
+                for (ways2 in relation.waysByType.values) {
+                    // to do color by type
+                    for (way in ways2) {
+                        drawWay(way, minLon, minLat, maxLon, maxLat, UIColors.axisZColor)
+                    }
                 }
             }
+            val x0f = coordsToWindowX(-scaleX).toFloat()
+            val x1f = coordsToWindowX(+scaleX).toFloat()
+            val y0f = coordsToWindowY(-1.0).toFloat()
+            val y1f = coordsToWindowY(+1.0).toFloat()
+            val bg = background.color.withAlpha(0)
+            drawLine(x0f, y0f, x1f, y0f, 1f, -1, bg, false)
+            drawLine(x1f, y0f, x1f, y1f, 1f, -1, bg, false)
+            drawLine(x1f, y1f, x0f, y1f, 1f, -1, bg, false)
+            drawLine(x0f, y1f, x0f, y0f, 1f, -1, bg, false)
+            DrawCurves.lineBatch.finish(v)
         }
-        val x0f = coordsToWindowX(-scaleX).toFloat()
-        val x1f = coordsToWindowX(+scaleX).toFloat()
-        val y0f = coordsToWindowY(-1.0).toFloat()
-        val y1f = coordsToWindowY(+1.0).toFloat()
-        val bg = background.color.withAlpha(0)
-        drawLine(x0f, y0f, x1f, y0f, 1f, -1, bg, false)
-        drawLine(x1f, y0f, x1f, y1f, 1f, -1, bg, false)
-        drawLine(x1f, y1f, x0f, y1f, 1f, -1, bg, false)
-        drawLine(x0f, y1f, x0f, y0f, 1f, -1, bg, false)
-        DrawCurves.lineBatch.finish(v)
     }
 
     fun drawNode(node: OSMNode, minLon: Float, minLat: Float, maxLon: Float, maxLat: Float, color: Int) {

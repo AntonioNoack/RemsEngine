@@ -10,6 +10,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -125,19 +126,19 @@ open class ScrollPanelY(child: Panel, padding: Padding, style: Style) :
         super.draw(canvas)
         val batch = DrawRectangles.startBatch()
         if (alwaysShowShadowY) {
-            drawShadowY(x0, y0, x1, y1, shadowRadius)
+            drawShadowY(canvas, shadowRadius)
         }
         if (hasScrollbar) {
             if (!alwaysShowShadowY) {
                 val shadowRadius = min(maxScrollPositionY, shadowRadius.toLong()).toInt()
-                drawShadowY(x0, y0, x1, y1, shadowRadius)
+                drawShadowY(canvas, shadowRadius)
             }
             val scrollbar = scrollbar
             scrollbar.x = x + width - scrollbarWidth - scrollbarPadding
             scrollbar.y = y + scrollbarPadding
             scrollbar.width = scrollbarWidth
             scrollbar.height = height - 2 * scrollbarPadding
-            drawChild(scrollbar, x0, y0, x1, y1)
+            drawChild(scrollbar, canvas)
         }
         DrawRectangles.finishBatch(batch)
     }

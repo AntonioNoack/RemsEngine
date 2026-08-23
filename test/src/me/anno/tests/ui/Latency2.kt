@@ -5,7 +5,6 @@ import me.anno.config.DefaultConfig.style
 import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
@@ -38,10 +37,10 @@ fun main() {
     var mode = LatencyTestMode.UNLIMITED
     TestEngine.testUI3("Input Latency") {
         val list = PanelListY(style)
-        list.add(TestDrawPanel {
+        list.add(TestDrawPanel { p, canvas ->
             WindowRenderFlags.enableVSync = mode == LatencyTestMode.VSYNC // with v-sync it's about 30ms worse
             WindowRenderFlags.maxFPS = if (mode == LatencyTestMode.LIMITED_60) 60 else 0
-            it.background.color = when {
+            p.background.color = when {
                 toBeChanged < 0f -> 0x336633 or black
                 else -> 0x773333 or black
             }
@@ -63,10 +62,10 @@ fun main() {
                 }
             }
             toBeChanged -= Time.deltaTime.toFloat()
-            it.clear()
-            DrawTexts.drawText(
-                it.x + it.width / 2, it.y + it.height / 2, 0,
-                monospaceFont, shownText, white, it.backgroundColor,
+            p.clear(canvas)
+            canvas.drawText(
+                p.x + p.width / 2, p.y + p.height / 2, 0,
+                monospaceFont, shownText, white, p.backgroundColor,
                 AxisAlignment.CENTER,
                 AxisAlignment.CENTER
             )

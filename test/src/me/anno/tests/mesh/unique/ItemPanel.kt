@@ -9,6 +9,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.maths.MinMax.min
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.utils.TestVoxelWorld
+import me.anno.ui.Canvas
 import me.anno.ui.base.buttons.TextButton.Companion.drawButtonBorder
 import me.anno.ui.utils.ThumbnailPanel
 import me.anno.utils.Color.black
@@ -66,7 +67,7 @@ class ItemPanel(val slot: ItemSlot) : ThumbnailPanel(InvalidRef, style) {
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
         drawButtonBorder(
-            leftColor, topColor, rightColor, bottomColor,
+            canvas, leftColor, topColor, rightColor, bottomColor,
             true, borderSize, isPressed
         )
     }

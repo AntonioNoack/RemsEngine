@@ -40,23 +40,21 @@ interface ITexture2D : ICacheData {
     fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean
     fun bind(shader: GPUShader, texName: String, filtering: Filtering, clamping: Clamping): Boolean {
         val index = shader.getTextureIndex(texName)
-        return if (index >= 0) {
-            bind(index, filtering, clamping)
-        } else false
+        return index >= 0 && bind(index, filtering, clamping)
     }
 
     fun bindTrulyNearest(index: Int) = bind(index, Filtering.TRULY_NEAREST, Clamping.CLAMP)
 
     fun bindTrulyNearest(shader: GPUShader, texName: String): Boolean {
         val index = shader.getTextureIndex(texName)
-        return if (index >= 0) bindTrulyNearest(index) else false
+        return index >= 0 && bindTrulyNearest(index)
     }
 
     fun bindTrulyLinear(index: Int) = bind(index, Filtering.TRULY_LINEAR, Clamping.CLAMP)
 
     fun bindTrulyLinear(shader: GPUShader, texName: String): Boolean {
         val index = shader.getTextureIndex(texName)
-        return if (index >= 0) bindTrulyLinear(index) else false
+        return index >= 0 && bindTrulyLinear(index)
     }
 
     fun write(dst: FileReference, flipY: Boolean = false, withAlpha: Boolean = false) {

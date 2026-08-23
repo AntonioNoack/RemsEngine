@@ -63,7 +63,7 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel, canvas: Canvas) -> Unit) :
         fun testDrawing(
             title: String,
             init: (p: TestDrawPanel) -> Unit,
-            draw: (p: TestDrawPanel, canvas: Canvas) -> Unit
+            draw: (p: TestDrawPanel, canvas: Canvas) -> Unit,
         ) {
             testUI3(title) {
                 val panel = TestDrawPanel(draw)
@@ -74,16 +74,17 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel, canvas: Canvas) -> Unit) :
 
         @JvmStatic
         fun testDrawingWithControls(
-            title: String, draw: (
+            title: String,
+            draw: (
                 p: TestDrawPanel, canvas: Canvas,
-                pos: Vector3f, rot: Quaternionf
-            ) -> Unit
+                pos: Vector3f, rot: Quaternionf,
+            ) -> Unit,
         ) {
             val cameraPosition = Vector3f(0f, 2f, -3f)
             val cameraRotation = Quaternionf()
             val accumulatedRotation = Vector2f()
             val velocity = Vector3f()
-            testDrawing(title) { p, _ ->
+            testDrawing(title) { p, canvas ->
                 val scale = 5f / p.height
                 accumulatedRotation.add(p.mx * scale, p.my * scale)
                 accumulatedRotation.y = clamp(accumulatedRotation.y, -1.57f, +1.57f)
@@ -100,7 +101,7 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel, canvas: Canvas) -> Unit) :
                 if (Input.isKeyDown(Key.KEY_Q)) velocity.y -= 1f
                 if (Input.isKeyDown(Key.KEY_E)) velocity.y += 1f
                 cameraPosition.add(velocity.mul(3f * Time.uiDeltaTime.toFloat()).rotate(cameraRotation))
-                draw(p, cameraPosition, cameraRotation)
+                draw(p, canvas, cameraPosition, cameraRotation)
             }
         }
     }

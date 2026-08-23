@@ -2,7 +2,6 @@ package me.anno.ui.base.scrolling
 
 import me.anno.Time.uiDeltaTime
 import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
@@ -10,7 +9,6 @@ import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.mulAlpha
-import kotlin.math.abs
 
 open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
 
@@ -37,11 +35,7 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
     }
 
     override fun draw(canvas: Canvas) {
-        drawRect(
-            canvas.x0, canvas.y0,
-            canvas.x1 - canvas.x0, canvas.y1 - canvas.y0,
-            scrollBackground.mulAlpha(activeAlpha * alpha)
-        )
+        canvas.fill(scrollBackground.mulAlpha(activeAlpha * alpha))
     }
 
     override fun clone(): Scrollbar {

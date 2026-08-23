@@ -14,26 +14,28 @@ fun main() {
     chain.addConsecutiveBone(Vec3f(0f, 1f, 0f), 1f)
     chain.addConsecutiveBone(Vec3f(0f, 1f, 0f), 1f)
 
-    testDrawing("FABRIK") {
+    testDrawing("FABRIK") { p, canvas ->
 
-        it.clear()
+        p.clear(canvas)
 
-        val sc = it.height / 10f
-        val dx = it.x + it.width / 2
-        val dy = it.y + it.height / 2
+        val sc = p.height / 10f
+        val dx = p.x + p.width / 2
+        val dy = p.y + p.height / 2
 
-        val bg = it.backgroundColor
-        val window = it.window!!
+        val bg = p.backgroundColor
+        val window = p.window!!
 
         chain.solveForTarget((window.mouseX - dx) / sc, (window.mouseY - dy) / sc, 0f)
-        for (i in 0 until chain.numBones) {
-            val bone = chain.getBone(i)
-            val p0 = bone.startLocation
-            val p1 = bone.endLocation
-            drawLine(
-                p0.x * sc + dx, p0.y * sc + dy, p1.x * sc + dx, p1.y * sc + dy,
-                1f, -1, bg, false
-            )
+        canvas.custom {
+            for (i in 0 until chain.numBones) {
+                val bone = chain.getBone(i)
+                val p0 = bone.startLocation
+                val p1 = bone.endLocation
+                drawLine(
+                    p0.x * sc + dx, p0.y * sc + dy, p1.x * sc + dx, p1.y * sc + dy,
+                    1f, -1, bg, false
+                )
+            }
         }
     }
 

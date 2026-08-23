@@ -19,8 +19,6 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
-import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -53,6 +51,7 @@ import me.anno.maths.bvh.TriangleBuffer.createTriangleBuffer
 import me.anno.maths.bvh.TriangleTexture.PIXELS_PER_TRIANGLE
 import me.anno.maths.bvh.TriangleTexture.PIXELS_PER_VERTEX
 import me.anno.maths.bvh.TriangleTexture.createTriangleTexture
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.groups.PanelGroup
@@ -130,7 +129,7 @@ fun createControls(
     cameraPosition: Vector3f,
     cameraRotation: Quaternionf,
     bvhBounds: AABBf,
-    main: PanelGroup
+    main: PanelGroup,
 ): OrbitControls {
 
     val controls = OrbitControls()
@@ -209,17 +208,17 @@ fun createCPUPanel(
     var cpuBuffer: IntBuffer? = null
     var cpuBytes: ByteBuffer? = null
     var dt = 0L
-    return TestDrawPanel {
+    return TestDrawPanel { p, canvas ->
 
-        it.clear()
+        p.clear(canvas)
 
         // render cpu side
         // render at lower resolution because of performance
-        val w = it.width / scale
-        val h = it.height / scale
+        val w = p.width / scale
+        val h = p.height / scale
 
-        val parent = it.uiParent!!
-        val cx = Maths.random().toFloat() - 0.5f + (parent.width * 0.5f - it.x) / scale
+        val parent = p.uiParent!!
+        val cx = Maths.random().toFloat() - 0.5f + (parent.width * 0.5f - p.x) / scale
         val cy = Maths.random().toFloat() - 0.5f + (parent.height * 0.5f) / scale
         val fovZ = -parent.height * fovZFactor / scale
 
@@ -305,14 +304,14 @@ fun createCPUPanel(
 
         nextFrame()
 
-        DrawTextures.drawTexture(it.x, it.y, it.width, it.height, cpuTexture, true, -1, null)
+        canvas.drawTexture(p.x, p.y, p.width, p.height, cpuTexture)
         val fontSize = monospaceFont.lineHeightI
-        DrawTexts.drawText(
-            it.x + 4, it.y + it.height - fontSize * 2, 1,
+        canvas.drawText(
+            p.x + 4, p.y + p.height - fontSize * 2, 1,
             "$cpuSpeed ns/e, $cpuFPS fps, $frameIndex spp"
         )
-        DrawTexts.drawText(
-            it.x + 4, it.y + it.height - fontSize, 1,
+        canvas.drawText(
+            p.x + 4, p.y + p.height - fontSize, 1,
             "CPU"
         )
     }
@@ -340,7 +339,7 @@ fun createGPUPanel(
     bvh: BVHNode,
     controls: OrbitControls,
     useComputeShader: Boolean,
-    useComputeBuffer: Boolean
+    useComputeBuffer: Boolean,
 ): Panel {
 
     val avgBuffer = Framebuffer("avg", 1, 1, 1, TargetType.Float32x4, DepthBufferType.NONE)
@@ -395,7 +394,7 @@ fun createGPUPanel(
         shader.v1f("alpha", 1f / (frameIndex + 1f))
     }
 
-    fun drawResult(it: Panel, prefix: String) {
+    fun drawResult(p: Panel, canvas: Canvas, prefix: String) {
 
         val tex = avgBuffer.getTexture0()
 
@@ -405,16 +404,18 @@ fun createGPUPanel(
         // draw with auto-exposure
         val brightness = if (enableAutoExposure)
             max(Reduction.reduce(tex, Reduction.MAX).x, 1e-7f) else 1f
-        drawShader.use()
-        drawShader.v1f("brightness", 0.2f * brightness)
-        drawShader.v1b("enableToneMapping", enableAutoExposure)
-        tex.bindTrulyNearest(0)
-        flat01.draw(drawShader)
+        canvas.custom {
+            drawShader.use()
+            drawShader.v1f("brightness", 0.2f * brightness)
+            drawShader.v1b("enableToneMapping", enableAutoExposure)
+            tex.bindTrulyNearest(0)
+            flat01.draw(drawShader)
+        }
 
         val gpuFPS = SECONDS_TO_NANOS / max(1, clockNanos.average)
         val fontSize = monospaceFont.sizeInt + 4
-        DrawTexts.drawText(it.x + 4, it.y + it.height - fontSize * 2, 2, "$gpuFPS fps, $frameIndex spp")
-        DrawTexts.drawText(it.x + 4, it.y + it.height - fontSize, 2, prefix)
+        canvas.drawText(p.x + 4, p.y + p.height - fontSize * 2, 2, "$gpuFPS fps, $frameIndex spp")
+        canvas.drawText(p.x + 4, p.y + p.height - fontSize, 2, prefix)
     }
 
     if (useComputeShader) {
@@ -442,8 +443,8 @@ fun createGPUPanel(
                 }
                 else -> throw IllegalStateException()
             }
-            return TestDrawPanel {
-                prepareShader(shader, it)
+            return TestDrawPanel { p, canvas ->
+                prepareShader(shader, p)
                 if (frameIndex < 256) {
                     val avgTexture = avgBuffer.getTexture0()
                     shader.bindBuffer(0, triangles)
@@ -456,7 +457,7 @@ fun createGPUPanel(
                     clockNanos.stop()
                     frameIndex++
                 }
-                drawResult(it, "Compute on Buffers")
+                drawResult(p, canvas, "Compute on Buffers")
             }
         } else {
             val triangles: Texture2D
@@ -478,8 +479,8 @@ fun createGPUPanel(
                 }
                 else -> throw IllegalStateException()
             }
-            return TestDrawPanel {
-                prepareShader(shader, it)
+            return TestDrawPanel { p, canvas ->
+                prepareShader(shader, p)
                 if (frameIndex < 256) {
                     val avgTexture = avgBuffer.getTexture0()
                     shader.bindTexture(0, triangles, ComputeTextureMode.READ)
@@ -491,7 +492,7 @@ fun createGPUPanel(
                     clockNanos.stop()
                     frameIndex++
                 }
-                drawResult(it, "Compute on Textures")
+                drawResult(p, canvas, "Compute on Textures")
             }
         }
     } else {
@@ -518,10 +519,10 @@ fun createGPUPanel(
             else -> throw IllegalStateException()
         }
 
-        return TestDrawPanel {
+        return TestDrawPanel { p, canvas ->
             useFrame(avgBuffer) {
                 blendMode.use(BlendMode.DEFAULT) {
-                    prepareShader(shader, it)
+                    prepareShader(shader, p)
                     if (frameIndex < 256) {
                         triangles.bindTrulyNearest(0)
                         blasNodes.bindTrulyNearest(1)
@@ -533,7 +534,7 @@ fun createGPUPanel(
                     }
                 }
             }
-            drawResult(it, "Gfx on Textures")
+            drawResult(p, canvas, "Gfx on Textures")
         }
     }
 }
@@ -542,7 +543,7 @@ fun main2(
     bvh: BLASNode,
     cameraPosition: Vector3f,
     cameraRotation: Quaternionf,
-    fovZFactor: Float
+    fovZFactor: Float,
 ) {
     LogManager.disableLogger("WorkSplitter")
     testUI3("BLAS - Realtime") {

@@ -301,28 +301,33 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         // it would make sense to implement multiple styles, so this could be used in a game in the future as well
         // -> split into multiple subroutines, so you can implement your own style :)
         val graph = graph ?: return
-        val nodes = graph.nodes
-        for (i0 in nodes.indices) {
-            val srcNode = nodes[i0]
-            val outputs = srcNode.outputs
-            for (i1 in outputs.indices) {
-                val nodeOutput = outputs[i1]
-                val outPosition = nodeOutput.position
-                val outColor = getTypeColor(nodeOutput)
-                val px0 = coordsToWindowX(outPosition.x).toFloat()
-                val py0 = coordsToWindowY(outPosition.y).toFloat()
-                val others = nodeOutput.others
-                for (i2 in others.indices) {
-                    val nodeInput = others[i2]
-                    if (nodeInput is NodeInput) {
-                        val pos = nodeInput.position
-                        val inNode = nodeInput.node
-                        val inIndex = max(inNode?.inputs?.indexOf(nodeInput) ?: 0, 0)
-                        val inColor = getTypeColor(nodeInput)
-                        val px1 = coordsToWindowX(pos.x).toFloat()
-                        val py1 = coordsToWindowY(pos.y).toFloat()
-                        if (Maths.distance(px0, py0, px1, py1) > 1f) {
-                            drawNodeConnection(px0, py0, px1, py1, inIndex, i1, outColor, inColor, nodeInput.type)
+        canvas.custom {
+            val nodes = graph.nodes
+            for (nodeIndex in nodes.indices) {
+                val srcNode = nodes[nodeIndex]
+                val outputs = srcNode.outputs
+                for (outIndex in outputs.indices) {
+                    val nodeOutput = outputs[outIndex]
+                    val outPosition = nodeOutput.position
+                    val outColor = getTypeColor(nodeOutput)
+                    val px0 = coordsToWindowX(outPosition.x).toFloat()
+                    val py0 = coordsToWindowY(outPosition.y).toFloat()
+                    val others = nodeOutput.others
+                    for (i2 in others.indices) {
+                        val nodeInput = others[i2]
+                        if (nodeInput is NodeInput) {
+                            val pos = nodeInput.position
+                            val inNode = nodeInput.node
+                            val inIndex = max(inNode?.inputs?.indexOf(nodeInput) ?: 0, 0)
+                            val inColor = getTypeColor(nodeInput)
+                            val px1 = coordsToWindowX(pos.x).toFloat()
+                            val py1 = coordsToWindowY(pos.y).toFloat()
+                            if (Maths.distance(px0, py0, px1, py1) > 1f) {
+                                drawNodeConnection(
+                                    px0, py0, px1, py1,
+                                    inIndex, outIndex, outColor, inColor, nodeInput.type
+                                )
+                            }
                         }
                     }
                 }
@@ -333,17 +338,17 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     open fun drawNodeConnection(
         x0: Float, y0: Float, x1: Float, y1: Float,
         inIndex: Int, outIndex: Int, c0: Int, c1: Int,
-        type: String
+        type: String,
     ) {
         // if you want other connection styles, just implement them here :)
-        drawCurvyNodeConnection(canvas, c0, c1, type)
+        drawCurvyNodeConnection(x0, y0, x1, y1, c0, c1, type)
         // e.g., straight connections
         // drawStraightNodeConnection(canvas, inIndex, outIndex, c0, c1, type)
     }
 
     fun drawCurvyNodeConnection(
         x0: Float, y0: Float, x1: Float, y1: Float,
-        c0: Int, c1: Int, type: String
+        c0: Int, c1: Int, type: String,
     ) {
         val yc = (y0 + y1) * 0.5f
         val d0 = 20f * scale.y.toFloat() + (abs(y1 - y0) + abs(x1 - x0)) / 8f
@@ -365,7 +370,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     fun drawStraightNodeConnection(
         x0: Float, y0: Float, x1: Float, y1: Float,
         inIndex: Int, outIndex: Int, c0: Int, c1: Int,
-        type: String
+        type: String,
     ) {
         val yc = (y0 + y1) * 0.5f
         val d0 = (30f + outIndex * 10f) * scale.y.toFloat()
@@ -427,7 +432,10 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                     x0.toInt() - lt2, y0.toInt() - lt2, (x1 - x0).toInt() + lt, lt,
                     c0, c1, true
                 )
-                else -> Grid.drawSmoothLine(canvas, c0, c0.a() / 255f)
+                else -> Grid.drawSmoothLine(
+                    x0, y0, x1, y1,
+                    c0, c0.a() / 255f
+                )
             }
         }
     }
@@ -522,7 +530,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                     .apply { makeBackgroundTransparent() }
             }
             "Vector2f", "Vector3f", "Vector4f",
-            "Vector2d", "Vector3d", "Vector4d" -> {
+            "Vector2d", "Vector3d", "Vector4d",
+                -> {
                 return null // would use too much space
                 /*return ComponentUI.createUIByTypeName(null, "", object : IProperty<Any?> {
                     override val annotations: List<Annotation> get() = emptyList()
@@ -613,11 +622,11 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         }
     }
 
-    override fun drawsOverlayOverChildren(canvas: Canvas): Boolean {
+    override fun drawsOverlayOverChildren(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
         return true
     }
 
-    override fun capturesChildEvents(canvas: Canvas): Boolean {
+    override fun capturesChildEvents(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
         return false
     }
 

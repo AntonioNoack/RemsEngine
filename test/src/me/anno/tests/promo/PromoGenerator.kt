@@ -27,6 +27,7 @@ import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.io.files.Reference.getReference
 import me.anno.sdf.shapes.SDFHyperBBox
 import me.anno.tests.LOGGER
+import me.anno.ui.Canvas
 import me.anno.ui.UIColors
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
@@ -144,10 +145,11 @@ fun renderScene(renderMode: RenderMode) {
         TextureCache[res.getChild("textures/UVChecker.png")].waitFor()
     }
 
+    val canvas = Canvas()
     for (i in 0 until times) {
         useFrame(framebuffer) {
             framebuffer.clearColor(UIColors.midOrange)
-            sceneView.renderView.draw(0, 0, width, height)
+            canvas.drawClipped(0, 0, width, height, sceneView.renderView)
         }
         Time.updateTime(1.0 / 30.0, Time.nanoTime)
     }

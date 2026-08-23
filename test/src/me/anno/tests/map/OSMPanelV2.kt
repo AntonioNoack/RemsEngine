@@ -5,6 +5,7 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.maths.Maths.mix
 import me.anno.tests.map.OSMMapCache.getMapData
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.UIColors
 import me.anno.ui.base.components.AxisAlignment
@@ -28,18 +29,18 @@ class OSMPanelV2(style: Style) : MapPanel(style) {
     val bounds = AABBd()
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        for (x in listOf(x0, x1)) {
-            for (y in listOf(y0, y1)) {
+        for (x in listOf(canvas.x0, canvas.x1)) {
+            for (y in listOf(canvas.y0, canvas.y1)) {
                 drawText(
                     x, y, 1, "${windowToCoordsY(y.toDouble())}/${windowToCoordsX(x.toDouble())}",
-                    if (x == x0) AxisAlignment.MIN else AxisAlignment.MAX,
-                    if (y == y0) AxisAlignment.MIN else AxisAlignment.MAX
+                    if (x == canvas.x0) AxisAlignment.MIN else AxisAlignment.MAX,
+                    if (y == canvas.y0) AxisAlignment.MIN else AxisAlignment.MAX
                 )
             }
         }
         bounds.clear()
-        bounds.union(windowToCoordsX(x0.toDouble()), windowToCoordsY(y0.toDouble()), 0.0)
-        bounds.union(windowToCoordsX(x1.toDouble()), windowToCoordsY(y1.toDouble()), 0.0)
+        bounds.union(windowToCoordsX(canvas.x0.toDouble()), windowToCoordsY(canvas.y0.toDouble()), 0.0)
+        bounds.union(windowToCoordsX(canvas.x1.toDouble()), windowToCoordsY(canvas.y1.toDouble()), 0.0)
         val batch = DrawCurves.lineBatch.start()
         val batch1 = DrawRectangles.startBatch()
         for ((bounds, piece) in getMapData(bounds, true)) {

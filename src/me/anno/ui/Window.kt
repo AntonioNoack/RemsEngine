@@ -125,7 +125,7 @@ open class Window(
         }
     }
 
-    fun draw(dx: Int, dy: Int, windowW: Int, windowH: Int) {
+    fun draw(canvas: Canvas, dx: Int, dy: Int, windowW: Int, windowH: Int) {
 
         update(dx, dy, windowW, windowH)
 
@@ -138,7 +138,7 @@ open class Window(
 
             useWindowXY(max(panel.x, 0), max(panel.y, 0), buffer) {
                 renderDefault {
-                    fullRedraw()
+                    fullRedraw(canvas)
                 }
             }
 
@@ -264,7 +264,7 @@ open class Window(
         }
     }
 
-    private fun fullRedraw() {
+    private fun fullRedraw(canvas: Canvas) {
 
         val panel = panel
         val x0 = max(panel.x, 0)
@@ -287,7 +287,7 @@ open class Window(
         useFrame(x0, y0, x1 - x0, y1 - y0, buffer, Renderer.colorRenderer) {
             buffer.clearColor(backgroundColor)
             panel.canBeSeen = true
-            panel.draw(x0, y0, x1, y1)
+            canvas.drawClipped(x0, y0, x1, y1, panel)
         }
     }
 

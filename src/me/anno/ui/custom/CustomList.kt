@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -213,7 +214,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     override fun draw(canvas: Canvas) {
         background.color = hoverColor
         drawBackground(canvas)
-        drawChildren(x0, y0, x1, y1)
+        drawChildren(canvas)
         ensureScrollbars()
         for (i in 0 until min(scrollbars.size, children.size - 1)) {
             val scrollbar = scrollbars[i]
@@ -230,7 +231,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
                 scrollbar.height = height
             }
             updateScrollbar(scrollbar, i)
-            drawChild(scrollbar, x0, y0, x1, y1)
+            drawChild(scrollbar, canvas)
         }
     }
 

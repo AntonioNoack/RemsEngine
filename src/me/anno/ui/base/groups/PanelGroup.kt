@@ -46,7 +46,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         val x12 = min(child.x + child.width, canvas.x1)
         val y12 = min(child.y + child.height, canvas.y1)
         return if (x12 > x02 && y12 > y02) {
-            canvas.clip2(x02, y02, x12, y12, child)
+            canvas.drawClipped(x02, y02, x12, y12, child)
             true
         } else false
     }

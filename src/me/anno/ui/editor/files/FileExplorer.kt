@@ -20,6 +20,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -469,7 +470,12 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
         if (loading != 0L) {
-            drawLoadingCircle((Time.nanoTime - loading) / 1e9f, x0, y0, x1, y1)
+            canvas.custom {
+                drawLoadingCircle(
+                    (Time.nanoTime - loading) / 1e9f,
+                    canvas.x0, canvas.y0, canvas.x1, canvas.y1
+                )
+            }
         }
     }
 
@@ -538,7 +544,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         name: FileReference,
         digitsLength: Int,
         colonSymbol: Char,
-        startingNumber: Long = 1
+        startingNumber: Long = 1,
     ): FileReference {
         val ideal = parent.getChild(name.name)
         if (!ideal.exists) return ideal
@@ -571,7 +577,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     override fun onGotAction(
         x: Float, y: Float, dx: Float, dy: Float,
-        action: String, isContinuous: Boolean
+        action: String, isContinuous: Boolean,
     ): Boolean {
         when (action) {
             "OpenOptions" -> {

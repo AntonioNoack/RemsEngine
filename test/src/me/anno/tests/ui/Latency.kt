@@ -2,7 +2,6 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultStyle
 import me.anno.engine.WindowRenderFlags
-import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.maths.Maths.length
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 
@@ -14,10 +13,10 @@ import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 fun main() {
     var lx = 0f
     var ly = 0f
-    testDrawing("Latency") {
+    testDrawing("Latency") { p, canvas ->
         WindowRenderFlags.enableVSync = true
-        it.clear()
-        val window = it.window!!
+        p.clear(canvas)
+        val window = p.window!!
         val radius1 = length(window.mouseX - lx, window.mouseY - ly)
         val colors = intArrayOf(
             DefaultStyle.greatGreen,
@@ -26,7 +25,7 @@ fun main() {
         )
         for (i in colors.indices) {
             val radiusI = radius1 * (i + 1)
-            drawCircle(
+            canvas.drawCircle(
                 window.mouseX, window.mouseY, radiusI, radiusI,
                 (radiusI - 1f) / radiusI, 0f, 0f, colors[i]
             )

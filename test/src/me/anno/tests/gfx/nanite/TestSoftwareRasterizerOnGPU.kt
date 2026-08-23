@@ -7,9 +7,9 @@ import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.gfx.nanite.ComputeShaderMesh.Companion.useTraditionalRendering
+import me.anno.ui.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
@@ -83,8 +83,8 @@ fun testSoftwareRasterizerOnGPU() {
         it.editControls = object : DraggingControls(it.renderView) {
             override fun draw(canvas: Canvas) {
                 super.draw(canvas)
-                DrawTexts.drawText(
-                    x1, y1, 2,
+                canvas.drawText(
+                    canvas.x1, canvas.y1, 2,
                     if (useTraditionalRendering()) "Baseline"
                     else "Software Rasterizer",
                     AxisAlignment.MAX, AxisAlignment.MAX

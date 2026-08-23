@@ -27,8 +27,10 @@ fun main() {
                 "   result = vec4(vec3(len), 1.0);\n" +
                 "}\n"
     )
-    testDrawing("Shader Printing Test") {
-        shader.use()
-        flat01.draw(shader)
+    testDrawing("Shader Printing Test") { _, canvas ->
+        canvas.custom {
+            shader.use()
+            flat01.draw(shader)
+        }
     }
 }

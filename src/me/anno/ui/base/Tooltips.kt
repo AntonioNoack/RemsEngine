@@ -55,7 +55,11 @@ object Tooltips {
             min(mouseY.toInt() - fontSize, h - panel.minH)
         }
         panel.setPosSize(x, y, panel.minW, panel.minH)
-        panel.draw(panel.x, panel.y, panel.x + panel.width, panel.y + panel.height)
+        window.canvas.drawClipped(
+            panel.x, panel.y,
+            panel.x + panel.width, panel.y + panel.height,
+            panel
+        )
     }
 
     fun draw(window: OSWindow) {

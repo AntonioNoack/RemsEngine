@@ -18,6 +18,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.input.Input
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.white4
@@ -48,11 +49,11 @@ fun main() {
             override fun draw(canvas: Canvas) {
                 super.draw(canvas)
 
-                val msaaBuffer = FBStack["svg", x1 - x0, y1 - y0, TargetType.UInt8x4, 8, DepthBufferType.NONE]
+                val msaaBuffer = FBStack["svg", canvas.dx, canvas.dy, TargetType.UInt8x4, 8, DepthBufferType.NONE]
                 msaaBuffer.clearColor(-1, false)
 
                 val transform = Matrix4fArrayList()
-                transform.scale((y1 - y0).toFloat() / (x1 - x0).toFloat(), 1f, 1f)
+                transform.scale(canvas.dy.toFloat() / canvas.dx.toFloat(), 1f, 1f)
                 if (Input.isControlDown) transform.scale(0.2f, 0.2f, 1f)
 
                 useFrame(msaaBuffer) {

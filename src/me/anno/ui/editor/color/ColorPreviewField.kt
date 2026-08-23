@@ -6,6 +6,7 @@ import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.YUVHelper
 import me.anno.maths.MinMax.min
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.a
@@ -33,7 +34,7 @@ class ColorPreviewField(private val refSize: Panel, val padding: Int, style: Sty
     override fun draw(canvas: Canvas) {
         val bgColor = if (YUVHelper.YUV_Y.dot(color.r01(), color.g01(), color.b01(), 0f) > 0.5f) black else white
         val size = min(width, height)
-        DrawRectangles.drawRect(
+        canvas.drawRect(
             x + padding - 1, y + padding - 1,
             size - 2, size - 2,
             mixARGB(backgroundColor, bgColor, 0.5f)
@@ -44,6 +45,6 @@ class ColorPreviewField(private val refSize: Panel, val padding: Int, style: Sty
         if (color.a() != 255) {
             drawTransparentBackground(xi, yi, si, si)
         }
-        DrawRectangles.drawRect(xi, yi, si, si, color)
+        canvas.drawRect(xi, yi, si, si, color)
     }
 }

@@ -21,6 +21,7 @@ import me.anno.input.Key
 import me.anno.language.translation.DefaultNames
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -178,7 +179,7 @@ class NodePanel(
 
     var textColor = -1
 
-    fun drawBackground(outline: Boolean, inner: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {
+    fun drawBackground(outline: Boolean, inner: Boolean, canvas: Canvas) {
         if (!outline && !inner) return
         // draw whether the node is in focus
         if (outline) {
@@ -203,12 +204,12 @@ class NodePanel(
             if (cachedTexture == null) {
                 // generate texture
                 cachedTexture = Framebuffer("NodePanel", width, height, TargetType.UInt8x4, DepthBufferType.NONE)
-                GFXState.useFrame(cachedTexture, ::doDrawAtZero)
+                GFXState.useFrame(cachedTexture) { doDrawAtZero(canvas) }
                 this.cachedTexture = cachedTexture
             } else if (cachedTexture.width * 2 + 3 < width) {// improve resolution
                 GFXState.useFrame(width, height, true, cachedTexture) {
-                    cachedTexture!!.clearColor(gp.backgroundColor.withAlpha(0), false)
-                    doDrawAtZero()
+                    cachedTexture.clearColor(gp.backgroundColor.withAlpha(0), false)
+                    doDrawAtZero(canvas)
                 }
                 this.cachedTexture = cachedTexture
             }
@@ -223,7 +224,7 @@ class NodePanel(
         } else {
             cachedTexture?.destroy()
             cachedTexture = null
-            doDraw(x0, y0, x1, y1)
+            doDraw(canvas)
         }
     }
 
@@ -232,20 +233,22 @@ class NodePanel(
         cachedTexture?.destroy()
     }
 
-    fun doDrawAtZero() {
+    fun doDrawAtZero(canvas: Canvas) {
         val ox = x
         val oy = y
         setPosition(0, 0)
-        doDraw(0, 0, width, height)
+        canvas.clip2(0, 0, width, height) {
+            doDraw(canvas)
+        }
         setPosition(ox, oy)
     }
 
-    fun doDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    fun doDraw(canvas: Canvas) {
 
         if (node.color != 0) background.color = node.color
 
         val inFocus = isInFocus || (gp is GraphEditor && gp.overlapsSelection(this))
-        drawBackground(inFocus, true, x0, y0, x1, y1)
+        drawBackground(inFocus, true, canvas)
 
         val backgroundColor = Color.mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
         val font = gp.font
@@ -282,7 +285,7 @@ class NodePanel(
             drawConnector(con, baseTextSize, mouseX, mouseY, -dxTxt, dyTxt, font, textColor)
         }
 
-        drawChildren(x0, y0, x1, y1)
+        drawChildren(canvas)
     }
 
     fun drawConnector(

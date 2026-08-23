@@ -16,7 +16,6 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -121,13 +120,13 @@ fun main() {
             .add(MeshComponent(p1))
         testSceneWithUI("WheelSplit", scene)
     } else {
-        testDrawing("Tracks") {
+        testDrawing("Tracks") { p, canvas ->
             render()
             val (w, h) = ImageScale.scaleMax(
                 fb.width, fb.height,
-                it.width, it.height
+                p.width, p.height
             )
-            drawTexture(it.x, it.y, w, h, fb.getTexture0())
+            canvas.drawTexture(p.x, p.y, w, h, fb.getTexture0())
         }
     }
 

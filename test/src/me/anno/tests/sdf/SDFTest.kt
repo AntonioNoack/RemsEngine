@@ -133,7 +133,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
     println(shaderBase.fragmentShader)
     val camRotation = Quaternionf()
     val camMatrix = Matrix3f()
-    testDrawing("SDFs on GPU") {
+    testDrawing("SDFs on GPU") { p, canvas ->
         val dt = Time.deltaTime.toFloat()
         val dt5 = 5f * dt
         val time = Time.gameTime.toFloat()
@@ -146,54 +146,56 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
         if (Input.isKeyDown('q')) camPosition.y -= dt5
         if (Input.isKeyDown('e')) camPosition.y += dt5
         camRotation.transform(camPosition)
-        Clipping.clip(it.x, it.y, it.width, it.height) {
-            it.clear()
-            val shader = shaderBase.value
-            shader.use()
-            shader.v2f("camScale", fovFactor * it.width.toFloat() / it.height, fovFactor)
-            shader.v3f("camPosition", camPosition)
-            shader.v2f("distanceBounds", 0.01f, 1e3f)
-            shader.v1i("maxSteps", 100)
-            shader.v1f("sdfMaxRelativeError", fovFactor / it.height) // is this correct???
-            shader.v1f("sdfMaxAbsoluteError", 1e-6f)
-            shader.v1f("sdfReliability", 0.7f)
-            shader.v1f("sdfNormalEpsilon", 0.005f)
-            shader.v3f("sunDir", 0.7f, 0f, 0.5f)
-            if (group1 is SDFGroup) {
-                for (mapper in group1.positionMappers) {
-                    if (mapper is SDFTwist) {
-                        // mapper.strength = 3f * sin(time * 3f)
-                        // mapper.source = mapper.source.rotateX(dt)
-                        // mapper.destination = mapper.destination.rotateX(dt)
+        Clipping.clip(p.x, p.y, p.width, p.height) {
+            p.clear(canvas)
+            canvas.custom {
+                val shader = shaderBase.value
+                shader.use()
+                shader.v2f("camScale", fovFactor * p.width.toFloat() / p.height, fovFactor)
+                shader.v3f("camPosition", camPosition)
+                shader.v2f("distanceBounds", 0.01f, 1e3f)
+                shader.v1i("maxSteps", 100)
+                shader.v1f("sdfMaxRelativeError", fovFactor / p.height) // is this correct???
+                shader.v1f("sdfMaxAbsoluteError", 1e-6f)
+                shader.v1f("sdfReliability", 0.7f)
+                shader.v1f("sdfNormalEpsilon", 0.005f)
+                shader.v3f("sunDir", 0.7f, 0f, 0.5f)
+                if (group1 is SDFGroup) {
+                    for (mapper in group1.positionMappers) {
+                        if (mapper is SDFTwist) {
+                            // mapper.strength = 3f * sin(time * 3f)
+                            // mapper.source = mapper.source.rotateX(dt)
+                            // mapper.destination = mapper.destination.rotateX(dt)
+                        }
+                    }
+                    /*group1.distanceMappers.filterIsInstance<SDFOnion>().forEach {
+                        it.rings = ((sin(time) * .5f + .5f) * 20 + 1).toInt()
+                    }*/
+                    group1.progress = (sin(progressTime) * .5f + .5f) * (group1.children.size - 1f)
+                    if (group1.dynamicRotation) group1.rotation.rotateY(dt)
+                    for (child in group1.children) {
+                        /*if (child is SDFSmoothShape && child !is SDFCylinder) {
+                            child.smoothness = sin(Engine.gameTimeF.toFloat()) * .5f + .5f
+                        }*/
+                        /*if (child is SDFHexPrism) {
+                            child.rotation.rotateY(-dt)
+                        }*/
                     }
                 }
-                /*group1.distanceMappers.filterIsInstance<SDFOnion>().forEach {
-                    it.rings = ((sin(time) * .5f + .5f) * 20 + 1).toInt()
-                }*/
-                group1.progress = (sin(progressTime) * .5f + .5f) * (group1.children.size - 1f)
-                if (group1.dynamicRotation) group1.rotation.rotateY(dt)
-                for (child in group1.children) {
-                    /*if (child is SDFSmoothShape && child !is SDFCylinder) {
-                        child.smoothness = sin(Engine.gameTimeF.toFloat()) * .5f + .5f
-                    }*/
-                    /*if (child is SDFHexPrism) {
-                        child.rotation.rotateY(-dt)
-                    }*/
+                if (group2 is SDFGroup) {
+                    group2.progress = (cos(progressTime) * .5f + .5f) * (group2.children.size - 1f)
+                    if (group2.dynamicRotation) group2.rotation.rotateY(-dt * 3f)
                 }
+                camRotation.identity()
+                    .rotateY(p.mx / p.height * 2f)
+                    .rotateX(p.my / p.height * 2f)
+                camMatrix.rotation(camRotation)
+                shader.m3x3("camMatrix", camMatrix)
+                for ((key, value) in uniforms) {
+                    value.bind(shader, key)
+                }
+                SimpleBuffer.flat01.draw(shader)
             }
-            if (group2 is SDFGroup) {
-                group2.progress = (cos(progressTime) * .5f + .5f) * (group2.children.size - 1f)
-                if (group2.dynamicRotation) group2.rotation.rotateY(-dt * 3f)
-            }
-            camRotation.identity()
-                .rotateY(it.mx / it.height * 2f)
-                .rotateX(it.my / it.height * 2f)
-            camMatrix.rotation(camRotation)
-            shader.m3x3("camMatrix", camMatrix)
-            for ((key, value) in uniforms) {
-                value.bind(shader, key)
-            }
-            SimpleBuffer.flat01.draw(shader)
         }
     }
 }

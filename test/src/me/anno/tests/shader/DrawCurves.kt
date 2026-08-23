@@ -9,6 +9,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Key
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.sq
+import me.anno.ui.Canvas
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
@@ -92,7 +93,9 @@ fun drawMovablePoints(title: String, np: Int, draw: (MapPanel, List<Vector2f>) -
                     val g = global[i]
                     local[i].set(coordsToWindowX(g.x.toDouble()), coordsToWindowY(g.y.toDouble()))
                 }
-                draw(this, local)
+                canvas.custom {
+                    draw(this, local)
+                }
             }
 
             override fun onKeyDown(x: Float, y: Float, key: Key) {
