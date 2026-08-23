@@ -8,7 +8,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.utils.types.Floats.roundToIntOr

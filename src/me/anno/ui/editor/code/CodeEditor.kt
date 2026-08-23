@@ -16,11 +16,11 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.maths.MinMax.min
-import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.editor.code.codemirror.LanguageTheme
 import me.anno.ui.editor.code.codemirror.LanguageThemeLib
 import me.anno.ui.editor.code.tokenizer.LanguageTokenizer
@@ -108,12 +108,12 @@ open class CodeEditor(style: Style) : Panel(style) {
         changeListener = listener
     }
 
-    open fun drawUnderline(x0: Int, x1: Int, y: Int, h: Int, color: Int) {
-        drawRect(x0, y + lineHeight - 1, x1 - x0, h, color)
+    open fun drawUnderline(canvas: Canvas, x0: Int, x1: Int, y: Int, h: Int, color: Int) {
+        canvas.drawRect(x0, y + lineHeight - 1, x1 - x0, h, color)
     }
 
-    open fun drawSquiggles(x0: Int, x1: Int, y: Int, h: Int, color: Int) {
-        drawSquiggles1(x0, x1, y, h, color)
+    open fun drawSquiggles(canvas: Canvas, x0: Int, x1: Int, y: Int, h: Int, color: Int) {
+        drawSquiggles1(canvas, x0, x1, y, h, color)
     }
 
     fun getText(): String {
@@ -141,7 +141,8 @@ open class CodeEditor(style: Style) : Panel(style) {
             when (token) {
                 TokenType.VARIABLE, TokenType.VARIABLE2, TokenType.VARIABLE3,
                 TokenType.STRING, TokenType.STRING2, TokenType.COMMENT,
-                TokenType.PROPERTY, TokenType.TAG, TokenType.ATTRIBUTE -> {
+                TokenType.PROPERTY, TokenType.TAG, TokenType.ATTRIBUTE,
+                    -> {
                     var s0 = stream.startIndex
                     var s1 = stream.index - 1
                     // remove quotes from spell check, because there is no reason
@@ -220,14 +221,14 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     override val canDrawOverBorders get() = true
 
-    fun drawLineNumber(yi: Int, lineNumber: Int, cn: Int) {
+    fun drawLineNumber(canvas: Canvas, yi: Int, lineNumber: Int, cn: Int) {
         var xi = cn - 2
         val textColor = theme.numbersColor
         val background = theme.numbersBGColor
         var remainingNumber = lineNumber
         do {
             val char = '0' + (remainingNumber % 10)
-            drawChar(xi, yi, char, textColor, background)
+            drawChar(canvas, xi, yi, char, textColor, background)
             xi--
             remainingNumber /= 10
         } while (remainingNumber > 0)
@@ -249,15 +250,16 @@ open class CodeEditor(style: Style) : Panel(style) {
     private fun getCharXiRound(x: Int): Int = getCharXiFloor(x - charWidth.shr(1))
 
     fun drawChar(
+        canvas: Canvas,
         xi: Int, yi: Int, char: Char,
         textColor: Int, backgroundColor: Int,
-        bold: Boolean = false, italic: Boolean = false
+        bold: Boolean = false, italic: Boolean = false,
     ) {
         val font = fonts[bold.toInt(1) + italic.toInt(2)]
         val x = getCharX(xi)
         val y = getCharY(yi)
-        drawRect(x, y, charWidth, lineHeight, backgroundColor or black)
-        drawText(
+        canvas.drawRect(x, y, charWidth, lineHeight, backgroundColor or black)
+        canvas.drawText(
             x + charWidth.shr(1), y, 0,
             font, char.toString(),
             textColor, backgroundColor.withAlpha(0),
@@ -271,7 +273,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     fun drawCharText(
         xi: Int, yi: Int, char: Int,
         textColor: Int, backgroundColor: Int,
-        bold: Boolean = false, italic: Boolean = false
+        bold: Boolean = false, italic: Boolean = false,
     ) {
         val font = fonts[bold.toInt(1) + italic.toInt(2)]
         val text = char.joinChars()
@@ -286,17 +288,17 @@ open class CodeEditor(style: Style) : Panel(style) {
     val minCursor get() = if (cursor0 < cursor1) cursor0 else cursor1
     val maxCursor get() = if (cursor0 > cursor1) cursor0 else cursor1
 
-    private fun drawLineNumberBackground(cn: Int, y0: Int, y1: Int, lineNumberBGColor: Int) {
+    private fun drawLineNumberBackground(canvas: Canvas, cn: Int, y0: Int, y1: Int, lineNumberBGColor: Int) {
         val nlb = this.x
         val nlb2 = cn * charWidth + padding.left - charWidth.shr(1)
-        drawRect(nlb, y0, nlb2, y1 - y0, lineNumberBGColor)
-        drawRect(nlb + nlb2, y0, 1, y1 - y0, theme.numbersLineColor.withAlpha(1f))
+        canvas.drawRect(nlb, y0, nlb2, y1 - y0, lineNumberBGColor)
+        canvas.drawRect(nlb + nlb2, y0, 1, y1 - y0, theme.numbersLineColor.withAlpha(1f))
     }
 
-    private fun drawSelectionBackground(cn: Int, x0: Int, x1: Int, selectedBGColor: Int) {
-        drawRect(getCharX(cn + minCursor.x), getCharY(minCursor.y), width, lineHeight, selectedBGColor)
+    private fun drawSelectionBackground(canvas: Canvas, cn: Int, x0: Int, x1: Int, selectedBGColor: Int) {
+        canvas.drawRect(getCharX(cn + minCursor.x), getCharY(minCursor.y), width, lineHeight, selectedBGColor)
         if (minCursor.y + 1 < maxCursor.y) {
-            drawRect(
+            canvas.drawRect(
                 x0, getCharY(minCursor.y + 1), x1 - x0,
                 (maxCursor.y - minCursor.y - 1) * lineHeight,
                 selectedBGColor
@@ -327,7 +329,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val lineNumberBGColor = theme.numbersBGColor or black
 
         // draw number line background color
-        drawLineNumberBackground(cn, canvas.y0, canvas.y1, lineNumberBGColor)
+        drawLineNumberBackground(canvas, cn, canvas.y0, canvas.y1, lineNumberBGColor)
 
         val selectedLineBGColor = theme.selectedLineBGColor.withAlpha(1f)
         val bg0 = max(canvas.x0, this.x + cn * charWidth + padding.left)
@@ -349,7 +351,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
         // draw selection background, which is wider than the text
         if (isInFocus && minCursor.y < maxCursor.y) {
-            drawSelectionBackground(cn, bg0, bg1, selectedBGColor)
+            drawSelectionBackground(canvas, cn, bg0, bg1, selectedBGColor)
         }
 
         val visibleX0 = getCharXiFloor(canvas.x0)
@@ -359,7 +361,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
         for (yi in visibleY0 until visibleY1) {
             val lineNumber0 = codeBlockCollapser.mapLine(yi)
-            drawLineNumber(yi, firstLineNumber + lineNumber0, cn)
+            drawLineNumber(canvas, yi, firstLineNumber + lineNumber0, cn)
         }
 
         var varIndex = 0
@@ -386,18 +388,20 @@ open class CodeEditor(style: Style) : Panel(style) {
             val xi = getCharX(cn + indexInLine)
             val yi = getCharY(lineIndex)
             if (style.squiggles) {
-                drawSquiggles(xi, xi + charWidth, yi + lineHeight * 5 / 6, squigglesHeight, textColor)
+                val yj = yi + lineHeight * 5 / 6
+                drawSquiggles(canvas, xi, xi + charWidth, yj, squigglesHeight, textColor)
             }
             if (isIncorrectlySpelled) {
-                drawSquiggles(xi, xi + charWidth, yi + lineHeight * 5 / 6 + 1, squigglesHeight, black or 0xffff55)
+                val yj = yi + lineHeight * 5 / 6 + 1
+                drawSquiggles(canvas, xi, xi + charWidth, yj, squigglesHeight, black or 0xffff55)
             }
             if (style.underlined) {
-                drawUnderline(xi, xi + charWidth, yi, underlineThickness, textColor)
+                drawUnderline(canvas, xi, xi + charWidth, yi, underlineThickness, textColor)
             }
         }
 
         // line after 80 chars
-        drawRect(x + recommendedLineLengthLimit * charWidth, y, 1, height - padding.height, selectedLineBGColor)
+        canvas.drawRect(x + recommendedLineLengthLimit * charWidth, y, 1, height - padding.height, selectedLineBGColor)
 
         codeBlockCollapser.forEachChar(
             visibleX0, visibleY0, visibleX1, visibleY1, content
@@ -415,16 +419,16 @@ open class CodeEditor(style: Style) : Panel(style) {
         for (yi in visibleY0 until visibleY1) {
             val lineNumber0 = codeBlockCollapser.mapLine(yi)
             if (codeBlockCollapser.isClosed(lineNumber0)) {
-                drawChar(cn - 1, yi, '+', theme.numbersColor, theme.numbersBGColor)
+                drawChar(canvas, cn - 1, yi, '+', theme.numbersColor, theme.numbersBGColor)
             } else if (codeBlocks.any2 { lineNumber0 == it.start && it.count > 0 }) {
-                drawChar(cn - 1, yi, '-', theme.numbersColor, theme.numbersBGColor)
+                drawChar(canvas, cn - 1, yi, '-', theme.numbersColor, theme.numbersBGColor)
             }
         }
 
         if (showCursor) {
             val cy = clamp(cursor1.y, 0, content.lineCount - 1)
             val cx = clamp(cursor1.x, 0, content.getLineLength(cy))
-            drawRect(// draw selected line background color
+            canvas.drawRect(// draw selected line background color
                 getCharX(cx + cn) - 1, getCharY(cy),
                 1, lineHeight, theme.cursorColor
             )
@@ -764,22 +768,26 @@ open class CodeEditor(style: Style) : Panel(style) {
     companion object {
 
         @JvmStatic
-        fun drawSquiggles1(x0: Int, x1: Int, y: Int, h: Int, color: Int) {
+        fun drawSquiggles1(canvas: Canvas, x0: Int, x1: Int, y: Int, h: Int, color: Int) {
             when (h) {
-                1 -> drawRect(x0, y, x1 - x0, h, color)
+                1 -> canvas.drawRect(x0, y, x1 - x0, h, color)
                 2 -> {
-                    drawRectStriped(x0, y + 0, x1 - x0, 1, 0, 2, color)
-                    drawRectStriped(x0, y + 1, x1 - x0, 1, 1, 2, color)
+                    canvas.custom {
+                        drawRectStriped(x0, y + 0, x1 - x0, 1, 0, 2, color)
+                        drawRectStriped(x0, y + 1, x1 - x0, 1, 1, 2, color)
+                    }
                 }
                 3 -> {
-                    drawRectStriped(x0, y + 0, x1 - x0, 1, 0, 4, color)
-                    drawRectStriped(x0, y + 1, x1 - x0, 1, 1, 2, color)
-                    drawRectStriped(x0, y + 2, x1 - x0, 1, 2, 4, color)
+                    canvas.custom {
+                        drawRectStriped(x0, y + 0, x1 - x0, 1, 0, 4, color)
+                        drawRectStriped(x0, y + 1, x1 - x0, 1, 1, 2, color)
+                        drawRectStriped(x0, y + 2, x1 - x0, 1, 2, 4, color)
+                    }
                 }
                 else -> {
                     // optimized shader for this instead of that many draw calls?
                     for (x in x0 until x1) {
-                        drawRect(x, y + wave(x, h), 1, 1, color)
+                        canvas.drawRect(x, y + wave(x, h), 1, 1, color)
                     }
                 }
             }

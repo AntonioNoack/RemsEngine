@@ -6,7 +6,7 @@ import me.anno.engine.WindowRenderFlags
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import org.joml.Quaternionf

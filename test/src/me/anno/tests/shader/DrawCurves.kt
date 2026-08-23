@@ -9,7 +9,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Key
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.sq
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black

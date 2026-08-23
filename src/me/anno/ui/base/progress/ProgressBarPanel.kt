@@ -1,7 +1,7 @@
 package me.anno.ui.base.progress
 
 import me.anno.Time
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.a

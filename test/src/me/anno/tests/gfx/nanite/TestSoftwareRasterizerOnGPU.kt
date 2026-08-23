@@ -9,7 +9,7 @@ import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.gfx.nanite.ComputeShaderMesh.Companion.useTraditionalRendering
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d

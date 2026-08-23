@@ -2,6 +2,7 @@ package me.anno.ui.input.components
 
 import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles
+import me.anno.gpu.drawing.DrawRectangles.drawBorder
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
@@ -10,7 +11,7 @@ import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.unmix
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.StretchModes
 import me.anno.ui.base.image.ImagePanel
@@ -70,9 +71,9 @@ class ColorPicker(
             val y3 = window.mouseYi - totalWidth / 2
             val color = cpuData.getRGB(mouseX, mouseY)
             // show zoomed-in view with maybe 5x5 pixels
-            DrawRectangles.drawRect(x3, y3, width + generalPadding * 4, width + generalPadding * 4, color)
-            DrawRectangles.drawRect(x3 + generalPadding * 2, y3 + generalPadding * 2, width, width, backgroundColor)
-            DrawRectangles.drawRect(
+            canvas.drawRect(x3, y3, width + generalPadding * 4, width + generalPadding * 4, color)
+            canvas.drawRect(x3 + generalPadding * 2, y3 + generalPadding * 2, width, width, backgroundColor)
+            canvas.drawRect(
                 x3 + generalPadding * 2 + (pixelCount / 2) * (pixelScale + pixelSpacing) - pixelSpacing,
                 y3 + generalPadding * 2 + (pixelCount / 2) * (pixelScale + pixelSpacing) - pixelSpacing,
                 pixelScale + pixelSpacing * 2,
@@ -87,7 +88,7 @@ class ColorPicker(
                     val my = mouseY + yi - pixelCount / 2
                     val x = Maths.clamp(mx, max(0, canvas.x0), min(canvas.x1, cpuData.width) - 1)
                     val y = Maths.clamp(my, max(0, canvas.y0), min(canvas.y1, cpuData.height) - 1)
-                    DrawRectangles.drawRect(x4, y4, pixelScale, pixelScale, cpuData.getRGB(x, y))
+                    canvas.drawRect(x4, y4, pixelScale, pixelScale, cpuData.getRGB(x, y))
                 }
             }
         } else {
@@ -99,7 +100,7 @@ class ColorPicker(
             val y2 = liy + mouseY * lih / gpuTexture.height
             val x3 = lix + (mouseX + 1) * liw / gpuTexture.width
             val y3 = liy + (mouseY + 1) * lih / gpuTexture.height
-            DrawRectangles.drawBorder(min(x2, x3), min(y2, y3), abs(x3 - x2), abs(y3 - y2), red, 2)
+            drawBorder(canvas, min(x2, x3), min(y2, y3), abs(x3 - x2), abs(y3 - y2), red, 2)
         }
     }
 

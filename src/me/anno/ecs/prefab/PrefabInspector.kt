@@ -32,7 +32,7 @@ import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
@@ -414,7 +414,7 @@ class PrefabInspector(var prefabSource: FileReference) {
 
             override fun draw(canvas: Canvas) {
                 super.draw(canvas)
-                DrawRectangles.drawBorder(x, y, width, height, borderColor, 2)
+                DrawRectangles.drawBorder(canvas, x, y, width, height, borderColor, 2)
             }
         }.addLeftClickListener {
             val editMode = EditorState.editMode

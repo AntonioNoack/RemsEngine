@@ -11,13 +11,12 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
-import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.language.translation.NameDesc
 import me.anno.openxr.ecs.VRHandController
 import me.anno.openxr.ecs.VRHandPickup
 import me.anno.openxr.ecs.VRSocket
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.base.buttons.TextButton
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.res

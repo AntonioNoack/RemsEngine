@@ -3,7 +3,7 @@ package me.anno.ui.input
 import me.anno.gpu.Cursor
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer

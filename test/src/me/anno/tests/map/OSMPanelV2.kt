@@ -5,7 +5,7 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.maths.Maths.mix
 import me.anno.tests.map.OSMMapCache.getMapData
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.ui.UIColors
 import me.anno.ui.base.components.AxisAlignment

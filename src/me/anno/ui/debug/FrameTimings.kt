@@ -8,7 +8,6 @@ import me.anno.gpu.OSWindow
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.GFXx2D.noTiling
@@ -20,8 +19,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.maths.Maths
-import me.anno.ui.Canvas
 import me.anno.ui.Panel
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.GFXFeatures
 import me.anno.utils.pooling.ByteBufferPool
@@ -214,7 +213,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
         val pad = 2
         val x = pushBetterBlending(true)
-        drawText(
+        canvas.drawText(
             x0 + pad, y0 + pad, pad,
             monospaceFont, text,
             textColor, backgroundColor.withAlpha(180)

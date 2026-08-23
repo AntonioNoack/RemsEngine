@@ -4,6 +4,7 @@ import me.anno.engine.EngineBase
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.input.Input
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.structures.lists.SimpleList

@@ -1,6 +1,6 @@
 package me.anno.ui.dragging
 
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import org.joml.Vector2i
 
 /**

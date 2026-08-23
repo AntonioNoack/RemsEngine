@@ -2,12 +2,11 @@ package me.anno.input.controller
 
 import me.anno.Time
 import me.anno.gpu.drawing.DrawCurves.drawQuadraticBezier
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths.length
 import me.anno.maths.MinMax.min
-import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.canvas.Canvas
 import org.joml.AABBf
 
 abstract class CalibrationPanel(
@@ -15,7 +14,7 @@ abstract class CalibrationPanel(
     val axis0: Int,
     val axis1: Int,
     val axis2: Int,
-    style: Style
+    style: Style,
 ) : Panel(style) {
 
     init {
@@ -106,13 +105,13 @@ abstract class CalibrationPanel(
     private fun getYf(y: Float) = (cy + y * size * 0.5f)
     private fun getDf(x: Float) = (x * size * 0.5f)
 
-    fun cross(x: Float, y: Float, r: Float, color: Int) {
+    fun cross(canvas: Canvas, x: Float, y: Float, r: Float, color: Int) {
         val x11 = getX(x)
         val y11 = getY(y)
         val dx = getD(r)
         val sz = dx * 2 - 1
-        drawRect(x11 - dx, y11, sz, 1, color)
-        drawRect(x11, y11 - dx, 1, sz, color)
+        canvas.drawRect(x11 - dx, y11, sz, 1, color)
+        canvas.drawRect(x11, y11 - dx, 1, sz, color)
     }
 
     fun circle(x: Float, y: Float, rx: Float, ry: Float, color: Int) {

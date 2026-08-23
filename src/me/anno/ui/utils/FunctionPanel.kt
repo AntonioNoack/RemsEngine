@@ -5,7 +5,7 @@ import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawCurves.lineBatch
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.maths.Maths.clamp
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel

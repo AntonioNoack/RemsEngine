@@ -17,7 +17,7 @@ import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.SaveableArray
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.UIColors

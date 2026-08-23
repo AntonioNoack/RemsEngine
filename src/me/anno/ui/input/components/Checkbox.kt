@@ -5,11 +5,10 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.input.InputPanel
@@ -58,10 +57,10 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         super.draw(canvas)
         val texture = getImage(value) ?: whiteTexture
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
-        drawTexture(
+        canvas.drawTexture(
             x + (width - size) / 2,
             y + (height - size) / 2,
-            size, size, texture, getColor(), null
+            size, size, texture, getColor()
         )
     }
 

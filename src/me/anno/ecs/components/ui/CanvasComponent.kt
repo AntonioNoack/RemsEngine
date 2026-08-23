@@ -32,7 +32,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.WindowStack

@@ -11,7 +11,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.saveable.SaveableArray
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu
@@ -228,6 +228,7 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
             val endX = window.mouseXi
             val endY = window.mouseYi
             DrawRectangles.drawBorder(
+                canvas,
                 min(staX, endX), min(staY, endY),
                 abs(endX - staX) + 1, abs(endY - staY) + 1,
                 gridColor.withAlpha(1f), lineThickness

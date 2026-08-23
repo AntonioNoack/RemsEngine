@@ -8,7 +8,7 @@ import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawsOverX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawsOverY

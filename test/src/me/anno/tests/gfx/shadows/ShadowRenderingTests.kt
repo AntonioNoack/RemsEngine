@@ -31,7 +31,7 @@ import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.tests.FlakyTest
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGB
 import me.anno.utils.OS.desktop

@@ -51,7 +51,7 @@ import me.anno.maths.bvh.TriangleBuffer.createTriangleBuffer
 import me.anno.maths.bvh.TriangleTexture.PIXELS_PER_TRIANGLE
 import me.anno.maths.bvh.TriangleTexture.PIXELS_PER_VERTEX
 import me.anno.maths.bvh.TriangleTexture.createTriangleTexture
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.groups.PanelGroup

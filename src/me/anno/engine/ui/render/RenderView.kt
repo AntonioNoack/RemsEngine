@@ -43,7 +43,7 @@ import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
-import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -67,7 +67,7 @@ import me.anno.graph.visual.render.effects.TAANode
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.input.Input
 import me.anno.maths.Maths.clamp
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.UIColors
@@ -217,11 +217,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         if (playMode == PlayMode.EDITING) {
             DebugRendering.showShadowMapDebug(this)
-            DebugRendering.showCameraRendering(canvas,this,)
+            DebugRendering.showCameraRendering(canvas, this)
         }
 
         if (world is Entity && playMode != PlayMode.EDITING) {
-            drawPrimaryCanvas(canvas,world, )
+            drawPrimaryCanvas(canvas, world)
         }
 
         if (update) {
@@ -364,7 +364,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                     drawGizmos(buffer, true)
                 }
                 timeRendering("Final", DebugRendering.drawFinalTimer) {
-                    drawTexture(x0, y0, x1 - x0, y1 - y0, buffer.getTexture0(), true, -1, null)
+                    DrawTextures.drawTexture(x0, y0, x1 - x0, y1 - y0, buffer.getTexture0(), true, -1, null)
                 }
             }
         }

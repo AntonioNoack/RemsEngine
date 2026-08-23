@@ -22,7 +22,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths.PIf
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.black

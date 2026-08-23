@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.fonts.Font
 import me.anno.input.Key
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.black

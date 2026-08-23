@@ -1,12 +1,10 @@
 package me.anno.ui.editor.color
 
 import me.anno.gpu.Cursor
-import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.YUVHelper
 import me.anno.maths.MinMax.min
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.a

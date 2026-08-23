@@ -2,7 +2,7 @@ package me.anno.ui.editor.color
 
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths.clamp
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.types.Floats.roundToIntOr

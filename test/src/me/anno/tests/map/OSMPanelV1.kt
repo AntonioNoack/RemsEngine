@@ -5,7 +5,7 @@ import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.UIColors
 import me.anno.ui.base.groups.MapPanel
 import me.anno.utils.Color.withAlpha

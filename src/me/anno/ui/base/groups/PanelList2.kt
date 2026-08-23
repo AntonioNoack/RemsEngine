@@ -1,6 +1,6 @@
 package me.anno.ui.base.groups
 
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 

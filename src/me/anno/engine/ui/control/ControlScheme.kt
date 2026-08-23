@@ -25,7 +25,6 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.input.Input
@@ -38,9 +37,9 @@ import me.anno.input.controller.ControllerType
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo10
-import me.anno.ui.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.debug.FrameTimings
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.Color.black
@@ -437,11 +436,9 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         }
     }
 
-    fun drawStats() {
-        renderView.apply {
-            drawDebugSteps(this)
-            drawDebugStats()
-        }
+    fun drawStats(canvas: Canvas) {
+        drawDebugSteps(canvas, renderView)
+        drawDebugStats(canvas)
     }
 
     open fun formatDebugStats() {
@@ -455,14 +452,14 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
             .formatIntTriplets(drawCalls).append(" calls")
     }
 
-    fun drawDebugStats() {
+    fun drawDebugStats(canvas: Canvas) {
 
         formatDebugStats()
         if (debugBuilder.isEmpty()) return
 
         val pbb = DrawTexts.pushBetterBlending(true)
         val usesBetterBlending = DrawTexts.canUseComputeShader()
-        drawText(
+        canvas.drawText(
             x + 2, y + height + 1,
             monospaceFont, debugBuilder,
             FrameTimings.textColor,

@@ -17,7 +17,7 @@ import me.anno.image.ImageScale
 import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.MinMax.max
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Color.mulARGB

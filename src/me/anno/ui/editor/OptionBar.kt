@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.ExtraKeyListeners

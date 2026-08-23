@@ -58,10 +58,10 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
-import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.UIColors
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.black
 import me.anno.utils.Color.r
@@ -580,11 +580,11 @@ object DebugRendering {
      * Some devices don't support RenderDoc well,
      * so show all steps on screen for immediate debugging
      * */
-    fun drawDebugSteps(view: RenderView) {
+    fun drawDebugSteps(canvas: Canvas, view: RenderView) {
         val enabled = view.controlScheme?.settings?.showDebugFrames
         if (enabled != true) return
         GFXState.drawCall("drawDebugSteps") {
-            drawDebugSteps1(view)
+            drawDebugSteps1(canvas, view)
         }
     }
 
@@ -650,7 +650,7 @@ object DebugRendering {
         }
     }
 
-    fun drawDebugSteps1(view: RenderView) {
+    fun drawDebugSteps1(canvas: Canvas, view: RenderView) {
 
         // show color under cursor in bigger in a corner
         // show color under cursor as numbers on a side
@@ -685,12 +685,12 @@ object DebugRendering {
             drawTextureInBig(view, slotName, texture)
         }
 
-        drawDebugSteps(view, relevantNodes, inspectedX, inspectedY)
-        drawInspectedPixelData(view, passName, inspectedValues, texture, mxi, myi)
+        drawDebugSteps(canvas, view, relevantNodes, inspectedX, inspectedY)
+        drawInspectedPixelData(canvas, view, passName, inspectedValues, texture, mxi, myi)
     }
 
     private fun drawDebugSteps(
-        view: RenderView,
+        canvas: Canvas, view: RenderView,
         relevantNodes: List<Pair<String, List<Pair<String, ITexture2D>>>>,
         inspectedX: Int, inspectedY: Int,
     ) {
@@ -709,23 +709,25 @@ object DebugRendering {
                 val x3 = x0 + WorkSplitter.partition(xi + 1, view.width, nx)
                 val y = y0 - sz * (outputs.size - yi)
                 val isInspected = inspectedX == xi && inspectedY == outputs.lastIndex - yi
-                if (isDepthFormat(texture.internalFormat) || slotName == "Depth") {
-                    // if is depth, draw display depth
-                    DrawTextures.drawDepthTexture(x2, y, x3 - x2, sz, texture)
-                } else {
-                    DrawTextures.drawTexture(
-                        x2, y, x3 - x2, sz, texture,
-                        true, white, null, texture.isHDR.toFloat()
-                    )
+                canvas.custom {
+                    if (isDepthFormat(texture.internalFormat) || slotName == "Depth") {
+                        // if is depth, draw display depth
+                        DrawTextures.drawDepthTexture(x2, y, x3 - x2, sz, texture)
+                    } else {
+                        DrawTextures.drawTexture(
+                            x2, y, x3 - x2, sz, texture,
+                            true, white, null, texture.isHDR.toFloat()
+                        )
+                    }
                 }
                 if (isInspected) {
-                    drawBorder(x2, y, x3 - x2, sz, black, 2)
-                    drawBorder(x2, y, x3 - x2, sz, UIColors.paleGoldenRod, 1)
+                    drawBorder(canvas, x2, y, x3 - x2, sz, black, 2)
+                    drawBorder(canvas, x2, y, x3 - x2, sz, UIColors.paleGoldenRod, 1)
                 }
             }
             val x = x0 + WorkSplitter.partition(xi, view.width, nx)
             val y = y0 - sz + 1
-            DrawTexts.drawText(
+            canvas.drawText(
                 x, y, 1, monospaceFont, name,
                 FrameTimings.textColor, view.background.color,
                 AxisAlignment.MIN, AxisAlignment.MAX
@@ -734,21 +736,21 @@ object DebugRendering {
     }
 
     private fun drawInspectedPixelData(
-        view: RenderView, passName: String, values: FloatArray,
+        canvas: Canvas, rv: RenderView, passName: String, values: FloatArray,
         texture: ITexture2D, xii: Int, yii: Int,
     ) {
         val fontSize = monospaceFont.sizeInt
         val numChannels = texture.numChannels
         val numLines = numChannels + 3
         val tileSize = fontSize * 2 / 5
-        val x2 = view.x
+        val x2 = rv.x
         val menuHeight = numLines * fontSize + tileSize * inspectorSize
-        val y2 = view.y + fontSize * 4
+        val y2 = rv.y + fontSize * 4
 
         fun drawLine(y: Int, text: String) {
             DrawTexts.drawText(
                 x2, y2 + y * fontSize, 1, monospaceFont,
-                text, FrameTimings.textColor, view.background.color,
+                text, FrameTimings.textColor, rv.background.color,
                 AxisAlignment.MIN, AxisAlignment.MAX
             )
         }
@@ -774,7 +776,7 @@ object DebugRendering {
                 drawRect(xj, yj, tileSize, tileSize, color)
                 if (xi == inspectorPadding && yi == inspectorPadding) {
                     val borderColor = if (color.r() > 150) black else white
-                    drawBorder(xj, yj, tileSize, tileSize, borderColor, 1)
+                    drawBorder(canvas, xj, yj, tileSize, tileSize, borderColor, 1)
                 }
             }
         }

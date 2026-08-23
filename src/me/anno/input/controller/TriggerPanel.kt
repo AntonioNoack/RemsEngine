@@ -1,6 +1,6 @@
 package me.anno.input.controller
 
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import org.apache.logging.log4j.LogManager
 

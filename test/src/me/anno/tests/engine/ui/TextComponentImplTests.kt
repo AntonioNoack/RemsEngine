@@ -27,7 +27,7 @@ import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.maths.Maths.sq
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.r
 import me.anno.utils.OS

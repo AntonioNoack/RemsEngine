@@ -1,11 +1,10 @@
 package me.anno.input.controller
 
-import me.anno.gpu.drawing.DrawTexts.drawText
-import me.anno.utils.Color.black
 import me.anno.maths.Maths.length
 import me.anno.maths.MinMax.max
-import me.anno.ui.Canvas
 import me.anno.ui.Style
+import me.anno.ui.canvas.Canvas
+import me.anno.utils.Color.black
 import me.anno.utils.types.Floats.f3s
 import org.apache.logging.log4j.LogManager
 
@@ -13,7 +12,7 @@ class StickPanel(
     controller: Controller,
     axis0: Int,
     axis1: Int,
-    style: Style
+    style: Style,
 ) : CalibrationPanel(controller, axis0, axis1, -1, style) {
 
     companion object {
@@ -48,13 +47,14 @@ class StickPanel(
         val vx = controller.getRawAxis(axis0)
         val vy = controller.getRawAxis(axis1)
 
-        drawText(x, y, 2, "${vx.f3s()}, ${vy.f3s()}")
+        canvas.drawText(x, y, 2, "${vx.f3s()}, ${vy.f3s()}")
 
-        cross(vx, vy, 0.3f, -1)
+        cross(canvas, vx, vy, 0.3f, -1)
 
-        showBounds(bounds, -1)
-        showBounds(dead, 0xff7777 or black)
-
+        canvas.custom {
+            showBounds(bounds, -1)
+            showBounds(dead, 0xff7777 or black)
+        }
     }
 
 }

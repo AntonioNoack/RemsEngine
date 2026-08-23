@@ -36,7 +36,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.pow
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.UIColors
 import me.anno.ui.base.buttons.TextButton
@@ -226,9 +226,9 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        drawRectangleSelection()
-        drawStats()
-        drawModeName()
+        drawRectangleSelection(canvas)
+        drawStats(canvas)
+        drawModeName(canvas)
         if (settings.drawInspected) {
             // redraw children if we drew over everything
             drawChildren(canvas)
@@ -244,21 +244,21 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }
     }
 
-    fun drawModeName() {
-        drawText(
+    fun drawModeName(canvas: Canvas) {
+        canvas.drawText(
             x + width, y + height, 2, getModeName(),
             AxisAlignment.MAX, AxisAlignment.MAX
         )
     }
 
-    fun drawRectangleSelection() {
+    fun drawRectangleSelection(canvas: Canvas) {
         if (!Input.isLeftDown || !Input.isShiftDown || !isAnyChildInFocus) return
         val window = window ?: return
         val x0 = max(min(window.mouseX, window.mouseDownX).toIntOr(), x)
         val x1 = min(max(window.mouseX, window.mouseDownX).toIntOr(), x + width)
         val y0 = max(min(window.mouseY, window.mouseDownY).toIntOr(), y)
         val y1 = min(max(window.mouseY, window.mouseDownY).toIntOr(), y + height)
-        drawBorder(x0, y0, x1 - x0, y1 - y0, UIColors.greenYellow, 2)
+        drawBorder(canvas, x0, y0, x1 - x0, y1 - y0, UIColors.greenYellow, 2)
     }
 
     override fun drawGizmos() {

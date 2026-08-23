@@ -201,6 +201,8 @@ abstract class EngineBase(
             GFXState.useFrame(0, 0, w, h, NullFramebuffer, Renderer.colorRenderer) {
                 drawUIOverlay(window, w, h)
             }
+
+            check(window.canvas.isFinished())
         }
 
         FBStack.reset()

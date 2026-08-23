@@ -3,7 +3,7 @@ package me.anno.ui.base.image
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.ITexture2D
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import kotlin.math.log2
 import kotlin.math.max

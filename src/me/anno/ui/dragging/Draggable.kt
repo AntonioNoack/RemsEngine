@@ -1,7 +1,7 @@
 package me.anno.ui.dragging
 
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel

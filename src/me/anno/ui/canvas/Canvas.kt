@@ -1,4 +1,4 @@
-package me.anno.ui
+package me.anno.ui.canvas
 
 import me.anno.fonts.Font
 import me.anno.fonts.FontImpl.Companion.heightLimitToMaxNumLines
@@ -16,8 +16,7 @@ import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawCurves
-import me.anno.gpu.drawing.DrawTexts.DrawLayoutHelper
-import me.anno.gpu.drawing.DrawTexts.chooseShader
+import me.anno.gpu.drawing.DrawRounded
 import me.anno.gpu.drawing.DrawTexts.getOffset
 import me.anno.gpu.drawing.DrawTexts.sizeLayoutHelper
 import me.anno.gpu.drawing.DrawTextures
@@ -25,16 +24,13 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.transform
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Packing.unpackHighFrom64
 import me.anno.maths.Packing.unpackLowFrom64
 import me.anno.maths.geometry.ShelfPacking
+import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
@@ -64,17 +60,14 @@ class Canvas {
             // todo we need a corner-radius and corner-flags(?)...
         )
 
-        val buffer = StaticBuffer("canvas", attr, 1024, BufferUsage.DYNAMIC)
-
-        class TexBounds(val x0: Int, val x1: Int, val y0: Int, val y1: Int)
-
-        private val cache = HashMap<ITexture2D, TexBounds?>()
+        private val shapeBuffer = StaticBuffer("canvas", attr, 1024, BufferUsage.DYNAMIC)
+        private val textureCache = HashMap<ITexture2D, Bounds?>()
         private val storage by lazy {
             val size = min(GFX.maxTextureSize, 4096)
             Texture2D("canvasCache", size, size, 1)
         }
 
-        private val packing by lazy {
+        private val texturePacking by lazy {
             ShelfPacking(storage.width, storage.height, 4)
         }
 
@@ -86,64 +79,6 @@ class Canvas {
                 Vector2f(1f, 0f)
             ), intArrayOf(0, 1, 2, 0, 2, 3), "positions"
         )
-
-        object CanvasUberShader : Shader(
-            "CanvasShader",
-            listOf(
-                Variable(GLSLType.V4I, "instBounds"),
-                Variable(GLSLType.V4I, "instScissor"),
-                Variable(GLSLType.V4I, "instTexBounds"),
-                Variable(GLSLType.V4F, "instTint"),
-                Variable(GLSLType.V1I, "instMode"),
-                Variable(GLSLType.V2F, "positions"),
-                Variable(GLSLType.V2F, "renderSize"),
-                Variable(GLSLType.M4x4, "transform"),
-            ), "" +
-                    // todo calculate UV
-                    // todo calculate proper positions based on bounds
-                    """
-                        void main() {
-                           bounds = instBounds;
-                           scissor = instScissor;
-                           texBounds = instTexBounds;
-                           tint = instTint;
-                           mode = instMode;
-                           vec2 pos = mix(vec2(instBounds.xy), vec2(instBounds.zw), positions) / renderSize * 2.0 - 1.0;
-                           gl_Position = matMul(transform, vec4(pos, 0.0, 1.0));
-                        }
-                    """.trimIndent(), listOf(
-                Variable(GLSLType.V4I, "bounds").flat(),
-                Variable(GLSLType.V4I, "scissor").flat(),
-                Variable(GLSLType.V4I, "texBounds").flat(),
-                Variable(GLSLType.V4F, "tint").flat(),
-                Variable(GLSLType.V1I, "mode").flat(),
-            ), listOf(
-                Variable(GLSLType.S2D, "atlasTexture"),
-                Variable(GLSLType.V4F, "result", VariableMode.OUT),
-            ), "" +
-                    """
-                        void main() {
-                            switch(mode) {
-                                default:
-                                    float c = float(int(dot(gl_FragCoord.xy,vec2(1.0))) & 1);
-                                    result = vec4(c,0.0,c,1.0);
-                                    break;
-                            }
-                        }
-                    """.trimIndent()
-        ) {
-        }
-    }
-
-    enum class DrawMode {
-        RECTANGLE,
-        TEXTURE,
-        TEXTURE_NO_ALPHA,
-        CIRCLE,
-        SQUIRCLE,
-        ROUNDED_RECT,
-        TEXT,
-        LINE
     }
 
     var x0 = 0
@@ -213,20 +148,24 @@ class Canvas {
     }
 
     fun finish() {
-        val nio = buffer.getOrCreateNioBuffer()
+        val nio = shapeBuffer.getOrCreateNioBuffer()
         if (nio.position() == 0) return
 
-        buffer.cpuSideChanged()
+        shapeBuffer.cpuSideChanged()
         val target = GFXState.framebuffer.last()
-        val shader = CanvasUberShader
-        shader.use()
-        shader.v2f("renderSize", target.width.toFloat(), target.height.toFloat())
-        shader.m4x4("transform", transform)
-        val texture = storage.createdOrNull() ?: TextureLib.whiteTexture
-        texture.bind(0)
-        flat01.drawInstanced(shader, buffer)
+        useFrame(0, 0, target.width, target.height) {
+            val shader = CanvasShader
+            shader.use()
+            shader.v2f("invRenderSize", 1f / target.width, 1f / target.height)
+            shader.v2f("invAtlasSize", 1f / storage.width, 1f / storage.height)
+            shader.m4x4("transform", transform)
+            val texture = storage.createdOrNull() ?: TextureLib.whiteTexture
+            texture.bind(0)
+            flat01.drawInstanced(shader, shapeBuffer)
+        }
 
         nio.position(0)
+        nio.limit(nio.capacity())
     }
 
     private fun pushBounds(nio: ByteBuffer, x: Int, y: Int, width: Int, height: Int) {
@@ -243,12 +182,16 @@ class Canvas {
         nio.putShort(y1.toShort())
     }
 
-    private fun pushTexBounds(nio: ByteBuffer, bounds: TexBounds) {
+    private fun pushTexBounds(nio: ByteBuffer, bounds: Bounds) {
         // texBounds
         nio.putShort(bounds.x0.toShort())
         nio.putShort(bounds.y0.toShort())
         nio.putShort(bounds.x1.toShort())
         nio.putShort(bounds.y1.toShort())
+    }
+
+    private fun skipTexBounds(nio: ByteBuffer) {
+        nio.position(nio.position() + 8)
     }
 
     private fun pushTint(nio: ByteBuffer, tint: Int) {
@@ -259,8 +202,17 @@ class Canvas {
         nio.put(tint.a().toByte())
     }
 
-    private fun pushMode(nio: ByteBuffer, mode: DrawMode) {
+    private fun pushMode(nio: ByteBuffer, mode: CanvasDrawMode) {
         nio.putInt(mode.ordinal)
+    }
+
+    fun isFinished() = shapeBuffer.getOrCreateNioBuffer().position() == 0
+
+    fun getNioBuffer(): ByteBuffer {
+        val nio = shapeBuffer.getOrCreateNioBuffer()
+        if (nio.position() == nio.capacity()) finish() // create some space for us
+        check(nio.position() < nio.capacity())
+        return nio
     }
 
     fun drawTexture(
@@ -274,11 +226,11 @@ class Canvas {
     ) {
         if (x >= x1 || y >= y1 || x + w <= x0 || y + h <= y0) return // invisible
         val bounds = getBounds(texture)
+        // println("Bounds for texture $texture at $x,$y += $w,$h: $bounds")
         if (bounds != null) {
-            val nio = buffer.getOrCreateNioBuffer()
-            if (nio.position() == nio.capacity()) finish() // create some space for us
 
-            val mode = if (ignoreAlpha) DrawMode.TEXTURE_NO_ALPHA else DrawMode.TEXTURE
+            val nio = getNioBuffer()
+            val mode = if (ignoreAlpha) CanvasDrawMode.TEXTURE_NO_ALPHA else CanvasDrawMode.TEXTURE
             pushBounds(nio, x, y, w, h)
             pushScissor(nio)
             pushTexBounds(nio, bounds)
@@ -299,11 +251,34 @@ class Canvas {
     }
 
     fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Int) {
-        drawTexture(x, y, w, h, TextureLib.whiteTexture, color)
+        val nio = getNioBuffer()
+        val mode = CanvasDrawMode.RECTANGLE
+        pushBounds(nio, x, y, w, h)
+        pushScissor(nio)
+        skipTexBounds(nio)
+        pushTint(nio, color)
+        pushMode(nio, mode)
+    }
+
+    fun drawRoundedRect(
+        x: Int, y: Int, w: Int, h: Int,
+        topRightRadius: Float, bottomRightRadius: Float,
+        topLeftRadius: Float, bottomLeftRadius: Float,
+        outlineThickness: Float,
+        centerColor: Int, outlineColor: Int, backgroundColor: Int,
+        smoothness: Float,
+    ) {
+        custom {
+            // todo support this
+            DrawRounded.drawRoundedRect(
+                x, y, w, h, topRightRadius, bottomRightRadius, topLeftRadius, bottomLeftRadius,
+                outlineThickness, centerColor, outlineColor, backgroundColor, smoothness
+            )
+        }
     }
 
     private fun clearCalls() {
-        buffer.getOrCreateNioBuffer().position(0)
+        shapeBuffer.getOrCreateNioBuffer().position(0)
     }
 
     fun fill(color: Int) {
@@ -311,21 +286,27 @@ class Canvas {
         drawTexture(x0, y0, dx, dy, TextureLib.whiteTexture, color)
     }
 
-    private fun getBounds(texture: ITexture2D): TexBounds? {
+    private fun getBounds(texture: ITexture2D): Bounds? {
         if (!texture.isCreated()) return null
         val w = texture.width
         val h = texture.height
         if (w <= 0 || h <= 0 || w > maxTexSize || h > maxTexSize) return null
-        return cache.getOrPut(texture) { insert(texture, w, h) }
+        return textureCache.getOrPut(texture) { insert(texture, w, h) }
     }
 
-    private fun insert(texture: ITexture2D, w: Int, h: Int): TexBounds {
-        var pos = packing.allocate(w, h)
+    private fun clearCache() {
+        texturePacking.clear()
+        textureCache.clear()
+    }
+
+    private fun insert(texture: ITexture2D, w: Int, h: Int): Bounds {
+        var pos = texturePacking.allocate(w, h)
         if (pos < 0) {
             // if cache is full, reset
             finish()
-            packing.clear()
-            pos = packing.allocate(w, h)
+            clearCache()
+            pos = texturePacking.allocate(w, h)
+            println("Inserted $texture at ${unpackHighFrom64(pos)},${unpackLowFrom64(pos)}")
             check(pos >= 0)
         }
 
@@ -334,7 +315,7 @@ class Canvas {
         return insertAt(texture, x, y, w, h)
     }
 
-    private fun insertAt(source: ITexture2D, x: Int, y: Int, w: Int, h: Int): TexBounds {
+    private fun insertAt(source: ITexture2D, x: Int, y: Int, w: Int, h: Int): Bounds {
         if (!storage.isCreated()) storage.create(TargetType.UInt8x4)
 
         // use glCopyTexSubImage2D, if the formats are compatible
@@ -353,7 +334,7 @@ class Canvas {
                 }
             }
         }
-        return TexBounds(x, y, x + w, y + h)
+        return Bounds(x, y, x + w, y + h)
     }
 
     private fun hasCompatibleFormat(format: Int): Boolean {
@@ -364,7 +345,6 @@ class Canvas {
             else -> false
         }
     }
-
 
     fun drawText(
         x: Int, y: Int,
@@ -438,12 +418,6 @@ class Canvas {
         alignY: AxisAlignment = AxisAlignment.MIN,
     ): Int {
 
-        println("Drawing '$text'")
-
-        // todo support this properly
-        val shader = chooseShader(textColor, backgroundColor)
-        GFX.check()
-
         val sizeHelper = sizeLayoutHelper
         val fontImpl = FontManager.getFontImpl()
         val relativeWidthLimit = widthLimit / font.size
@@ -457,30 +431,26 @@ class Canvas {
         val totalHeight = sizeHelper.height
         sizeHelper.clear()
 
-        val drawHelper = DrawLayoutHelper
+        val xi = x + getOffset(totalWidth, alignX)
+        val yi = y + getOffset(totalHeight, alignY)
+
+        val drawHelper = CanvasTextDrawHelper
         drawHelper.font = font
-        drawHelper.shader = shader
+        drawHelper.canvas = this
         drawHelper.lineHeight = font.lineSpacingI
-        drawHelper.x = x + getOffset(totalWidth, alignX)
-        drawHelper.y = y + getOffset(totalHeight, alignY)
+        drawHelper.x = xi
+        drawHelper.y = yi
         drawHelper.color = textColor
         drawHelper.bgColor = backgroundColor
 
         if (backgroundColor.a() != 0) {
-            drawRect(
-                drawHelper.x - padding, drawHelper.y - padding,
-                totalWidth + 2 * padding, totalHeight + 2 * padding,
-                backgroundColor
-            )
+            drawRect(xi - padding, yi - padding, totalWidth + 2 * padding, totalHeight + 2 * padding, backgroundColor)
         }
 
         GFX.loadTexturesSync.push(true)
 
-        custom {
-            drawHelper.mod2 = -1
-            fontImpl.fillGlyphLayout(font, text, DrawLayoutHelper, relativeWidthLimit, maxNumLines)
-            drawHelper.clear()
-        }
+        fontImpl.fillGlyphLayout(font, text, CanvasTextDrawHelper, relativeWidthLimit, maxNumLines)
+        drawHelper.clear()
 
         GFX.loadTexturesSync.pop()
 

@@ -18,7 +18,7 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.MinMax.max
 import me.anno.maths.noise.PerlinNoise
 import me.anno.tests.physics.fluid.RWState
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3

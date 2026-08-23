@@ -40,21 +40,24 @@ class ShelfPacking(
         shelves.add(0)
     }
 
-    fun allocate(rectWidth: Int, rectHeight: Int): Long {
-        if (rectWidth <= 0 || rectHeight <= 0) return 0L
-        if (rectWidth > width || rectHeight > height) return -1L
+    /**
+     * returns the (lower corner) position of the allocated slice
+     * */
+    fun allocate(sizeX: Int, sizeY: Int): Long {
+        if (sizeX <= 0 || sizeY <= 0) return 0L
+        if (sizeX > width || sizeY > height) return -1L
 
         // find first (best*) fitting shelf
         var i = 0
         while (i + STRIDE < shelves.size) {
             val shelfY = shelves[i + Y0]
-            if (shelfY + rectHeight > height) return -1L // impossible to find a spot
+            if (shelfY + sizeY > height) return -1L // impossible to find a spot
 
             val shelfHeight = shelves[i + Y1] - shelfY
             val shelfX = shelves[i + X0]
-            if (rectHeight <= shelfHeight &&
-                shelfX + rectWidth <= width
-            ) return findBestShelfAt(i, shelfHeight, rectWidth, rectHeight)
+            if (sizeY <= shelfHeight &&
+                shelfX + sizeX <= width
+            ) return findBestShelfAt(i, shelfHeight, sizeX, sizeY)
 
             i += STRIDE
         }
@@ -65,24 +68,24 @@ class ShelfPacking(
             val shelfY = shelves[i + Y0]
             val shelfHeight = shelves[i + Y1] - shelfY
             val shelfX = shelves[i + X0]
-            if (rectHeight <= shelfHeight + heightTolerance &&
-                rectHeight <= height - shelfY && // implicitly checked, too
-                shelfX + rectWidth <= width
+            if (sizeY <= shelfHeight + heightTolerance &&
+                sizeY <= height - shelfY && // implicitly checked, too
+                shelfX + sizeX <= width
             ) {
-                shelves[i + X0] = shelfX + rectWidth
-                shelves[i + Y1] = shelfY + rectHeight
+                shelves[i + X0] = shelfX + sizeX
+                shelves[i + Y1] = shelfY + sizeY
                 return pack64(shelfX, shelfY)
             }
         }
 
         // Create a new shelf.
         val y = shelves.last()
-        if (y + rectHeight > height) {
+        if (y + sizeY > height) {
             return -1L
         }
 
-        shelves.add(rectWidth) // x
-        shelves.add(y + rectHeight) // next y
+        shelves.add(sizeX) // x
+        shelves.add(y + sizeY) // next y
         return pack64(0, y)
     }
 

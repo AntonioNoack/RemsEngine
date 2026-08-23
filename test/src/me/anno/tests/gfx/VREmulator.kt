@@ -16,7 +16,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input
 import me.anno.tests.engine.material.createMetallicScene
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.utils.Sleep
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2

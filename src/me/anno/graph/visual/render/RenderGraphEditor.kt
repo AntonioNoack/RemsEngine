@@ -8,7 +8,7 @@ import me.anno.graph.visual.render.compiler.ShaderGraphNode
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.StartNode
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.editor.graph.GraphEditor
 import me.anno.ui.Style
 

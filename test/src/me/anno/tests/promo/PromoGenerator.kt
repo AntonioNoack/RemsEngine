@@ -27,7 +27,7 @@ import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.io.files.Reference.getReference
 import me.anno.sdf.shapes.SDFHyperBBox
 import me.anno.tests.LOGGER
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.UIColors
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileNames.toAllowedFilename

@@ -25,10 +25,14 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.WrapDirect.wrapDirect
 import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.lwjgl.opengl.GL15C.glGenBuffers
+import org.lwjgl.opengl.GL43C.GL_BUFFER
+import org.lwjgl.opengl.GL43C.glObjectLabel
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_ALREADY_SIGNALED
 import org.lwjgl.opengl.GL46C.GL_BUFFER_UPDATE_BARRIER_BIT
@@ -61,7 +65,7 @@ import kotlin.math.max
 abstract class GPUBuffer(
     val name: String, var target: Int,
     var attributes: AttributeLayout,
-    val usage: BufferUsage
+    val usage: BufferUsage,
 ) : ICacheData {
 
     /**
@@ -101,8 +105,11 @@ abstract class GPUBuffer(
         checkSession()
 
         GFX.check()
-        if (!isPointerValid(pointer)) pointer = GL46C.glGenBuffers()
-        if (!isPointerValid(pointer)) throw OutOfMemoryError("Could not generate OpenGL Buffer")
+        if (!isPointerValid(pointer)) {
+            pointer = glGenBuffers()
+            if (!isPointerValid(pointer)) throw OutOfMemoryError("Could not generate OpenGL Buffer")
+            if (Build.isDebug && name.isNotBlank2()) glObjectLabel(GL_BUFFER, pointer, name)
+        }
     }
 
     fun finishUpload() {
@@ -555,7 +562,7 @@ abstract class GPUBuffer(
 
     fun readAsFloatArray(
         startIndex: Long = 0L,
-        values: FloatArray = FloatArray(((elementCount - startIndex) * stride.shr(2)).toInt())
+        values: FloatArray = FloatArray(((elementCount - startIndex) * stride.shr(2)).toInt()),
     ): FloatArray {
         assertEquals(0, stride.and(3))
         ensureBuffer()
@@ -568,7 +575,7 @@ abstract class GPUBuffer(
 
     fun readAsIntArray(
         startIndex: Long = 0L,
-        values: IntArray = IntArray(((elementCount - startIndex) * stride.shr(2)).toInt())
+        values: IntArray = IntArray(((elementCount - startIndex) * stride.shr(2)).toInt()),
     ): IntArray {
         assertEquals(0, stride.and(3))
         ensureBuffer()
@@ -581,7 +588,7 @@ abstract class GPUBuffer(
 
     fun readAsByteBuffer(
         startIndex: Long = 0L,
-        values: ByteBuffer// = ByteBufferPool.allocateDirect(((elementCount - startIndex) * stride).toInt())
+        values: ByteBuffer,// = ByteBufferPool.allocateDirect(((elementCount - startIndex) * stride).toInt())
     ): ByteBuffer {
         ensureBuffer()
         bindBuffer(target, pointer)
@@ -593,7 +600,7 @@ abstract class GPUBuffer(
 
     fun readAsShortArray(
         startIndex: Long = 0L,
-        values: ShortArray = ShortArray(((elementCount - startIndex) * stride.shr(1)).toInt())
+        values: ShortArray = ShortArray(((elementCount - startIndex) * stride.shr(1)).toInt()),
     ): ShortArray {
         assertEquals(0, stride.and(1))
         ensureBuffer()
@@ -611,7 +618,7 @@ abstract class GPUBuffer(
     @Suppress("unused")
     fun readElementsAsync(
         startIndex: Long, length: Long, destroyTmpBuffer: Boolean,
-        callback: (tmpBuffer: GPUBuffer) -> Unit
+        callback: (tmpBuffer: GPUBuffer) -> Unit,
     ) = readBytesAsync(startIndex * stride, length * stride, destroyTmpBuffer, callback)
 
     /**
@@ -622,7 +629,7 @@ abstract class GPUBuffer(
      * */
     fun readBytesAsync(
         startIndex: Long, length: Long, destroyTmpBuffer: Boolean,
-        callback: (tmpBuffer: GPUBuffer) -> Unit
+        callback: (tmpBuffer: GPUBuffer) -> Unit,
     ) {
         check(length >= 0) { "Length must be non-negative, got $length" }
 

@@ -3,7 +3,7 @@ package me.anno.ui.input
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.language.translation.NameDesc
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
@@ -13,7 +13,6 @@ import me.anno.ui.input.components.VectorInputList.Companion.modifyTextColor
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
-import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.r
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToInt.getInt

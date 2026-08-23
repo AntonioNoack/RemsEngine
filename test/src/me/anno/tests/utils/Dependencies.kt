@@ -14,7 +14,7 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.sq
 import me.anno.maths.MinMax.max
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel

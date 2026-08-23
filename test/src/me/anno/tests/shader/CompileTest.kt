@@ -42,7 +42,7 @@ import me.anno.jvm.HiddenOpenGLContext
 import me.anno.mesh.Shapes
 import me.anno.tests.ui.UITests
 import me.anno.tests.utils.TestVoxelWorld
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS.desktop

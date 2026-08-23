@@ -2,8 +2,8 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.GFXx2D.transform
 import me.anno.gpu.shader.BaseShader
@@ -13,6 +13,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.a
 import me.anno.utils.Color.toVecRGBA
 import org.joml.Vector4f
@@ -125,18 +126,18 @@ object DrawRectangles {
     /**
      * coordinates are including border thickness
      * */
-    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, thickness: Int) {
-        drawBorder(x, y, w, h, color, thickness, thickness)
+    fun drawBorder(canvas: Canvas, x: Int, y: Int, w: Int, h: Int, color: Int, thickness: Int) {
+        drawBorder(canvas, x, y, w, h, color, thickness, thickness)
     }
 
     /**
      * coordinates are including border thickness
      * */
-    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, thicknessX: Int, thicknessY: Int) {
+    fun drawBorder(canvas: Canvas, x: Int, y: Int, w: Int, h: Int, color: Int, thicknessX: Int, thicknessY: Int) {
         if (color.a() == 0) return
-        drawRect(x, y, w, thicknessY, color)
-        drawRect(x, y + h - thicknessY, w, thicknessY, color)
-        drawRect(x, y, thicknessX, h, color)
-        drawRect(x + w - thicknessX, y, thicknessX, h, color)
+        canvas.drawRect(x, y, w, thicknessY, color)
+        canvas.drawRect(x, y + h - thicknessY, w, thicknessY, color)
+        canvas.drawRect(x, y, thicknessX, h, color)
+        canvas.drawRect(x + w - thicknessX, y, thicknessX, h, color)
     }
 }

@@ -21,7 +21,7 @@ import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.jvm.HiddenOpenGLContext
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGB
 import me.anno.utils.assertions.assertEquals

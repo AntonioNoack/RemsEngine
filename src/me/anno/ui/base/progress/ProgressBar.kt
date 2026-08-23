@@ -12,7 +12,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
 import me.anno.maths.MinMax.max
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB

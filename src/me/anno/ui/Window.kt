@@ -8,7 +8,6 @@ import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D.noTiling
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -27,6 +26,7 @@ import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.input.Key
 import me.anno.input.MouseLock.mouseLockPanel
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
@@ -41,7 +41,7 @@ open class Window(
     var isTransparent: Boolean,
     val isFullscreen: Boolean,
     val windowStack: WindowStack,
-    var x: Int, var y: Int
+    var x: Int, var y: Int,
 ) {
 
     constructor(panel: Panel, isTransparent: Boolean, windowStack: WindowStack) :
@@ -142,7 +142,7 @@ open class Window(
                 }
             }
 
-            drawCachedImage(panel)
+            drawCachedImage(panel, canvas)
 
             if (!isFullscreen && !isTransparent) {
                 drawWindowShadow()
@@ -291,7 +291,7 @@ open class Window(
         }
     }
 
-    private fun drawCachedImage(panel: Panel) {
+    private fun drawCachedImage(panel: Panel, canvas: Canvas) {
         val x0 = max(panel.x, 0)
         val y0 = max(panel.y, 0)
         // we don't need to draw more than is visible
@@ -302,7 +302,7 @@ open class Window(
         GFXState.depthMode.use(GFXState.alwaysDepthMode) {
             val blendMode = if (isTransparent) BlendMode.DEFAULT else null
             GFXState.blendMode.use(blendMode) {
-                drawTexture(x0, y0, x1 - x0, y1 - y0, texture)
+                canvas.drawTexture(x0, y0, x1 - x0, y1 - y0, texture)
             }
         }
     }

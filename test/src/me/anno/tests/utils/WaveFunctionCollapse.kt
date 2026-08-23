@@ -9,7 +9,7 @@ import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
 import me.anno.maths.geometry.WaveFunctionCollapse
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.a

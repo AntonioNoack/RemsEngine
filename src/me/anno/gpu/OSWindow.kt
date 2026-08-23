@@ -10,7 +10,7 @@ import me.anno.gpu.WindowManagement.glfwTasks
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.input.Input
 import me.anno.input.Output
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.progress.ProgressBar

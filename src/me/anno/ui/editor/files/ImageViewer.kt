@@ -1,8 +1,6 @@
 package me.anno.ui.editor.files
 
 import me.anno.config.DefaultStyle
-import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
@@ -10,14 +8,13 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.image.thumbs.ThumbnailCache
-import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.maths.MinMax.max
-import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.image.ImagePanel
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.withAlpha
 
 class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(style) {
@@ -57,12 +54,12 @@ class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(sty
         val textSize = getTextSize(font, title, widthLimit, -1)
         val textWidth = getSizeX(textSize) + padding
         val textHeight = getSizeY(textSize) + padding.shr(1)
-        drawRoundedRect(
+        canvas.drawRoundedRect(
             x + (width - textWidth) / 2, y + height - textHeight - padding.shr(2), textWidth, textHeight,
             radius, radius, radius, radius, 0f, backgroundColor, backgroundColor,
             backgroundColor.withAlpha(0), 1f
         )
-        drawText( // draw file name at bottom center
+        canvas.drawText( // draw file name at bottom center
             x + width / 2, y + height - padding.shr(1), font, title,
             textColor, backgroundColor, widthLimit, -1,
             AxisAlignment.CENTER, AxisAlignment.MAX

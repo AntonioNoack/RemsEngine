@@ -27,7 +27,7 @@ import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.editor.treeView.TreeViewEntryPanel
 import me.anno.utils.structures.Collections.setContains
 import me.anno.maths.Maths.clamp
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import org.apache.logging.log4j.LogManager
 import kotlin.math.ceil
 import kotlin.math.floor

@@ -3,7 +3,7 @@ package me.anno.ui.base.groups
 import me.anno.gpu.Cursor
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.base.scrolling.Scrollbar

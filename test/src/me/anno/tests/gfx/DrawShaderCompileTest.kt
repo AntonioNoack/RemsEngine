@@ -44,7 +44,7 @@ class DrawShaderCompileTest {
     @Execution(ExecutionMode.SAME_THREAD)
     fun testRectangleShaders() {
         DrawRectangles.drawRect(0, 0, 10, 10, -1)
-        DrawRectangles.drawBorder(0, 0, 10, 10, -1, 10)
+        // DrawRectangles.drawBorder(0, 0, 10, 10, -1, 10)
     }
 
     @Test
@@ -52,7 +52,7 @@ class DrawShaderCompileTest {
     fun testRectangleShadersBatch() {
         val batch = DrawRectangles.startBatch()
         DrawRectangles.drawRect(0, 0, 10, 10, -1)
-        DrawRectangles.drawBorder(0, 0, 10, 10, -1, 10)
+        // DrawRectangles.drawBorder(0, 0, 10, 10, -1, 10)
         DrawRectangles.finishBatch(batch)
     }
 

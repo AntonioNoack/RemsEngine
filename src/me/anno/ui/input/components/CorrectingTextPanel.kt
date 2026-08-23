@@ -6,11 +6,11 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
 import me.anno.language.translation.NameDesc
-import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.editor.code.CodeEditor.Companion.drawSquiggles1
 import me.anno.utils.Color.black
 import me.anno.utils.types.Strings.joinChars
@@ -49,7 +49,7 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
                 val s = suggestions[si]
                 val startX = max(canvas.x0, offset + getXOffset(s.start))
                 val endX = min(canvas.x1, offset + getXOffset(s.end))
-                drawSquiggles1(startX, endX, lineY, 3, color)
+                drawSquiggles1(canvas, startX, endX, lineY, 3, color)
             }
             val window = window
             if (isHovered && !isInFocus &&
@@ -89,7 +89,8 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
         val suggestion = lastSuggestion
         return if (suggestion != null && suggestion.improvements.isNotEmpty()) {
             if (suggestion.improvements.size > 1) {
-                Menu.openMenu(windowStack,
+                Menu.openMenu(
+                    windowStack,
                     suggestion.improvements.map {
                         MenuOption(NameDesc(it)) {
                             applySuggestion(suggestion, it)

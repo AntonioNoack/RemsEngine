@@ -23,6 +23,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.scrolling.ScrollableX
 import me.anno.ui.base.scrolling.ScrollableY
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white

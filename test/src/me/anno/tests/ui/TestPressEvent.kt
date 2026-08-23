@@ -2,7 +2,7 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
 import me.anno.input.ActionManager
-import me.anno.ui.Canvas
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
