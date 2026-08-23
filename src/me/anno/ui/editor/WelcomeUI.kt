@@ -54,7 +54,7 @@ interface WelcomeUI {
         return Panel(style).apply { background.color = black }
     }
 
-    fun create(studio: EngineBase) {
+    fun create(engine: EngineBase) {
 
         val window = GFX.someWindow
         val windowStack = window.windowStack
@@ -67,10 +67,10 @@ interface WelcomeUI {
         val style = DefaultConfig.style
         val welcome = PanelListY(style)
 
-        welcome += TextPanel(studio.nameDesc, style).apply { font = font.withSize(font.size * 3f) }
+        welcome += TextPanel(engine.nameDesc, style).apply { font = font.withSize(font.size * 3f) }
         welcome += TextPanel(
             NameDesc("Version %1", "Which version is running in this window", "ui.welcome.version")
-                .with("%1", studio.versionName), style
+                .with("%1", engine.versionName), style
         ).apply {
             textColor = textColor and 0x7fffffff
             disableFocusColors()
@@ -80,10 +80,10 @@ interface WelcomeUI {
 
         val recent = Projects.getRecentProjects()
 
-        welcome += createRecentProjectsUI(studio, style, recent)
+        welcome += createRecentProjectsUI(engine, style, recent)
         welcome += SpacerPanel(0, 1, style)
 
-        welcome += createNewProjectUI(studio, style)
+        welcome += createNewProjectUI(engine, style)
         welcome += SpacerPanel(0, 1, style)
 
         val quickSettings = SettingCategory(
@@ -96,7 +96,7 @@ interface WelcomeUI {
         welcome += quickSettings
 
         quickSettings += Dict.selectLanguage(style) {
-            create(studio)
+            create(engine)
         }
 
         val gfxNames = GFXSettings.entries.map { it.nameDesc }
@@ -107,10 +107,10 @@ interface WelcomeUI {
                 "Low disables UI MSAA",
                 "ui.settings.gfxQuality"
             ),
-            studio.gfxSettings.nameDesc, gfxNames, style
+            engine.gfxSettings.nameDesc, gfxNames, style
         ).setChangeListener { _, index, _ ->
             val value = GFXSettings.entries[index]
-            studio.gfxSettings = value
+            engine.gfxSettings = value
         }
 
         if (GFXFeatures.canToggleVSync) {
@@ -151,7 +151,7 @@ interface WelcomeUI {
         val mainWindow = Window(scroll, isTransparent = true, isFullscreen = false, windowStack, 0, 0)
         mainWindow.acceptsClickAway = {
             if (it == Key.BUTTON_LEFT) {
-                loadLastProject(studio, usableFile, nameInput, recent)
+                loadLastProject(engine, usableFile, nameInput, recent)
                 usableFile != null
             } else false
         }

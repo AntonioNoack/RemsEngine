@@ -149,7 +149,7 @@ object FlatShaders {
     }
 
     val flatShaderTextureArray = BaseShader(
-        "flatShaderTexture",
+        "flatShaderTextureArray",
         ShaderLib.uiVertexShaderList,
         ShaderLib.uiVertexShader, uvList,
         listOf(
@@ -160,7 +160,7 @@ object FlatShaders {
             Variable(GLSLType.S2DA, "tex"),
         ), "" +
                 tonemapGLSL +
-                "void main(){\n" +
+                "void main() {\n" +
                 "   vec4 col = color;\n" +
                 "   vec4 data = texture(tex, vec3(uv,layer));\n" +
                 alphaModeProcessing +

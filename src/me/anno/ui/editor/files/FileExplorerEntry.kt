@@ -20,7 +20,6 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
@@ -56,7 +55,6 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -66,6 +64,7 @@ import me.anno.ui.base.menu.Menu.askRename
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileExplorer.Companion.rightClickedFiles
 import me.anno.ui.editor.files.FileExplorerIcons.getDefaultIconPath
@@ -106,7 +105,7 @@ import kotlin.math.sign
 
 open class FileExplorerEntry(
     private val explorer: FileExplorer?,
-    val isParent: Boolean, var file: FileReference, style: Style
+    val isParent: Boolean, var file: FileReference, style: Style,
 ) : Panel(style.getChild("fileEntry")) {
 
     constructor(file: FileReference, style: Style) :
@@ -559,7 +558,7 @@ open class FileExplorerEntry(
 
     private fun drawListMode(
         canvas: Canvas,
-        x: Int, y: Int, w: Int, h: Int
+        x: Int, y: Int, w: Int, h: Int,
     ) {
 
         // todo customize weights
@@ -609,7 +608,7 @@ open class FileExplorerEntry(
     private fun drawTileMode(
         canvas: Canvas,
         x: Int, y: Int, w: Int, h: Int,
-        remainingW: Int, remainingH: Int
+        remainingW: Int, remainingH: Int,
     ) {
 
         val t0 = Time.nanoTime
@@ -635,14 +634,14 @@ open class FileExplorerEntry(
 
         val t2 = Time.nanoTime
 
-        if (showTitle) Clipping.clip2Dual(
-            canvas.x0, canvas.y0, canvas.x1, canvas.y1,
-            x + padding,
-            y + h - padding - textH,
-            x + remainingW,
-            y + h/* - padding*/, // only apply the padding, when not playing video?
-            ::drawTitle
-        )
+        if (showTitle) canvas.clip2(
+            max(x + padding, canvas.x0),
+            max(canvas.y0, y + h - padding - textH),
+            min(x + remainingW, canvas.x1),
+            min(y + h, canvas.y1),/* - padding*/ // only apply the padding, when not playing video?
+        ) {
+            drawTitle(canvas)
+        }
 
         val t3 = Time.nanoTime
         if (t3 - t0 > 30 * MILLIS_TO_NANOS) {
@@ -650,14 +649,15 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun drawTitle(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawTitle(canvas: Canvas) {
         val pbb = pushBetterBlending(true)
-        DrawTexts.drawText(
-            (x0 + x1).shr(1), (y0 + y1).shr(1),
+        canvas.drawText(
+            (canvas.x0 + canvas.x1).shr(1),
+            (canvas.y0 + canvas.y1).shr(1),
             titlePanel.font, titlePanel.text,
             titlePanel.textColor,
             backgroundColor.withAlpha(0),
-            x1 - x0, y1 - y0,
+            canvas.dx, canvas.dy,
             AxisAlignment.CENTER, AxisAlignment.CENTER
         )
         popBetterBlending(pbb)
@@ -895,7 +895,7 @@ open class FileExplorerEntry(
         private fun renameTo(
             windowStack: WindowStack, explorer: FileExplorer?,
             src: FileReference, dst: FileReference,
-            callback: () -> Unit
+            callback: () -> Unit,
         ) {
             if (dst.exists) {
                 ask(windowStack, NameDesc("Override existing file?", "", "ui.file.override"), {
@@ -923,7 +923,7 @@ open class FileExplorerEntry(
         private fun replaceDependencies(
             prefabFile: FileReference,
             oldName: FileReference,
-            newName: FileReference
+            newName: FileReference,
         ): Int {
             val prefab = PrefabCache[prefabFile].waitFor()?.prefab ?: return -1
             val numChanged = prefab.replaceReferences(oldName, newName)

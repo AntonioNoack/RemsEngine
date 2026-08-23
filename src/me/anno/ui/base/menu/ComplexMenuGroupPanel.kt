@@ -86,7 +86,7 @@ class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val magicIndex: Int, val
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        DrawTexts.drawText( // draw arrow right-aligned
+        canvas.drawText( // draw arrow right-aligned
             x + width - padding.right, y,
             font, "→",
             textColor, backgroundColor,

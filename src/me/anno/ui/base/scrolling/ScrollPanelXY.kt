@@ -171,7 +171,6 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     override fun draw(canvas: Canvas) {
         clampScrollPosition()
         super.draw(canvas)
-        val batch = DrawRectangles.startBatch()
         if (alwaysShowShadowX) {
             drawShadowX(canvas, shadowRadius)
         }
@@ -202,7 +201,6 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             scrollbarY.height = height - 2 * scrollbarPadding
             drawChild(scrollbarY, canvas)
         }
-        DrawRectangles.finishBatch(batch)
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {

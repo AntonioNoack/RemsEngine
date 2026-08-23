@@ -1,13 +1,14 @@
 package me.anno.ui.editor.graph
 
 import me.anno.fonts.FontManager
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.graph.visual.render.NodeGroup
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color
 import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha

@@ -7,9 +7,11 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
+import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.input.MouseLock
 import me.anno.io.base.BaseWriter
@@ -412,15 +414,17 @@ open class Panel(val style: Style) : PrefabSaveable() {
         return this
     }
 
-    open fun printLayout(tabDepth: Int) {
+    fun toLayoutString(tabDepth: Int): String {
         val tooltip = tooltip
-        println(
-            "${Strings.spaces(tabDepth * 2)}$className(${(weight * 10).roundToIntOr()}, " +
-                    "${if (isVisible) "v" else "_"}${if (isHovered) "h" else ""}${if (isInFocus) "F" else ""}) " +
-                    "$x-${x + width}, $y-${y + height} ($minW $minH) ${
-                        if (tooltip.isBlank2()) "" else "'${tooltip.shorten(20)}' "
-                    }${getPrintSuffix()}"
-        )
+        return "${Strings.spaces(tabDepth * 2)}$className(${(weight * 10).roundToIntOr()}, " +
+                "${if (isVisible) "v" else "_"}${if (isHovered) "h" else ""}${if (isInFocus) "F" else ""}) " +
+                "$x-${x + width}, $y-${y + height} ($minW $minH) ${
+                    if (tooltip.isBlank2()) "" else "'${tooltip.shorten(20)}' "
+                }${getPrintSuffix()}"
+    }
+
+    open fun printLayout(tabDepth: Int) {
+        println(toLayoutString(tabDepth))
     }
 
     open fun getPrintSuffix(): String = "${style.prefix}"

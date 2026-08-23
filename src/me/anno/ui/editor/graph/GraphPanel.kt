@@ -291,10 +291,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         val fract = Maths.fract(log.toFloat())
         val size = Maths.pow(2.0, floor(log))
         // draw 2 grids, one fading, the other becoming more opaque
-        val batch = DrawRectangles.startBatch()
         draw2DLineGrid(canvas, gridColor.withAlpha(2f * (1f - fract)), size)
         draw2DLineGrid(canvas, gridColor.withAlpha(2f * (1f + fract)), size * 2.0)
-        DrawRectangles.finishBatch(batch)
     }
 
     open fun drawNodeConnections(canvas: Canvas) {

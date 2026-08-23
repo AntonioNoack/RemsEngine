@@ -6,7 +6,6 @@ import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawStriped.drawRectStriped
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.Key
@@ -270,13 +269,13 @@ open class CodeEditor(style: Style) : Panel(style) {
         canvas.drawRect(getCharX(xi), getCharY(yi), charWidth, lineHeight, backgroundColor or black)
 
     fun drawCharText(
-        xi: Int, yi: Int, char: Int,
+        canvas: Canvas, xi: Int, yi: Int, char: Int,
         textColor: Int, backgroundColor: Int,
         bold: Boolean = false, italic: Boolean = false,
     ) {
         val font = fonts[bold.toInt(1) + italic.toInt(2)]
         val text = char.joinChars()
-        drawText(
+        canvas.drawText(
             getCharX(xi) + charWidth.shr(1), getCharY(yi), 0,
             font, text,
             textColor, backgroundColor.withAlpha(0),
@@ -412,7 +411,10 @@ open class CodeEditor(style: Style) : Panel(style) {
             val lineBGColor = if (lineIsSelected) selectedLineBGColor else theme.backgroundColor
             val isSelected = isInFocus && minCursor.contains(maxCursor, indexInLine, lineIndex)
             val background = if (isSelected) selectedBGColor else lineBGColor
-            drawCharText(cn + indexInLine, drawnYi + lineIndex, char, textColor, background, style.bold, style.italic)
+            drawCharText(
+                canvas, cn + indexInLine, drawnYi + lineIndex,
+                char, textColor, background, style.bold, style.italic
+            )
         }
 
         for (yi in visibleY0 until visibleY1) {

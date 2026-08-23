@@ -15,7 +15,7 @@ import me.anno.gpu.texture.ITexture2D
 object FluidDebug {
 
     private val textureRShader = BaseShader(
-        "flatShaderTexture",
+        "texR",
         ShaderLib.uiVertexShaderList,
         ShaderLib.uiVertexShader, ShaderLib.uvList,
         listOf(Variable(GLSLType.S2D, "tex")), "" +
@@ -30,7 +30,7 @@ object FluidDebug {
     )
 
     private val textureRGShader = BaseShader(
-        "flatShaderTexture",
+        "texRG",
         ShaderLib.uiVertexShaderList,
         ShaderLib.uiVertexShader, ShaderLib.uvList,
         listOf(Variable(GLSLType.S2D, "tex")), "" +

@@ -17,9 +17,9 @@ object CanvasShader : Shader(
         Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
         Variable(GLSLType.V2F, "invRenderSize"),
         Variable(GLSLType.V2F, "invAtlasSize"),
-        Variable(GLSLType.V2I, "dstOffset"), // todo dstOffset doesn't seem to do anything... maybe not relevant?
+        Variable(GLSLType.V2I, "dstOffset"),
         Variable(GLSLType.M4x4, "transform"),
-        // todo scale/form UVs by clamping using scissor
+        // todo check scissor cutting UVs
     ), """
                         void main() {
                            bounds = instBounds;
@@ -32,7 +32,7 @@ object CanvasShader : Shader(
                            vec2 pos1 = vec2(min(instBounds.zw, instScissor.zw));
                            vec2 pos = mix(pos0, pos1, positions);
                            vec2 uvFactor = (pos - pos0) / (pos1 - pos0);
-                           pos += vec2(dstOffset);
+                           pos -= vec2(dstOffset);
                            pos = pos * invRenderSize * 2.0 - 1.0;
                            pos.y = -pos.y;
                            uv = mix(vec2(instTexBounds.xw), vec2(instTexBounds.zy), uvFactor) * invAtlasSize;

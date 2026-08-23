@@ -136,20 +136,18 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 var lastBarHeight = 0
                 val scale = height1 / maxValue
 
-                val b = DrawRectangles.startBatch()
                 for (x in canvas.x0 until canvas.x1) {
                     val i = x - this.x
                     val v = values[(indexOffset + i) % width]
                     val barHeight = (v * scale).toInt()
                     if (barHeight != lastBarHeight) {
-                        drawLine(lastX, x, lastBarHeight, barColor)
+                        drawLine(canvas, lastX, x, lastBarHeight, barColor)
                         lastX = x
                         lastBarHeight = barHeight
                     }
                 }
 
-                drawLine(lastX, canvas.x1, lastBarHeight, barColor)
-                DrawRectangles.finishBatch(b)
+                drawLine(canvas, lastX, canvas.x1, lastBarHeight, barColor)
             } else {
 
                 // it might be faster to draw this with batching 😄
@@ -183,9 +181,9 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
     }
 
     // to reduce draw calls by bundling stacks of the same height
-    fun drawLine(lastX: Int, nextX: Int, barHeight: Int, barColor: Int) {
+    fun drawLine(canvas: Canvas, lastX: Int, nextX: Int, barHeight: Int, barColor: Int) {
         if (lastX < nextX) {
-            DrawRectangles.drawRect(lastX, y + height1 - barHeight, nextX - lastX, barHeight, barColor)
+            canvas.drawRect(lastX, y + height1 - barHeight, nextX - lastX, barHeight, barColor)
         }
     }
 

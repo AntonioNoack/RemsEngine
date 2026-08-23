@@ -37,6 +37,7 @@ import me.anno.utils.files.LocalFile
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
 
@@ -236,22 +237,24 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
     }
 
     private fun readPrefabJson(file: FileReference, callback: Callback<Saveable>) {
-        if (file.lcExtension == "gltf") {
-            loadPrefabFromFolder(file, callback)
-        } else file.inputStream { it, e ->
-            if (it != null) {
-                val workspace = findWorkspace(file)
-                val prefab = JsonStringReader.read(it, workspace, false).firstOrNull()
-                it.close()
-                onReadPrefab(file, prefab, callback)
-            } else {
-                when (e) {
-                    is UnknownClassException -> LOGGER.warn("$e by $file", e)
-                    is InvalidFormatException -> if (printJsonErrors && file.lcExtension == "json")
-                        LOGGER.warn("$e by $file", e)
-                    else -> e?.printStackTrace() // may be interesting
+        when (file.lcExtension) {
+            "gltf" -> loadPrefabFromFolder(file, callback)
+            "desktop" -> callback.err(IOException("Desktop files are not prefabs"))
+            else -> file.inputStream { stream, err ->
+                if (stream != null) {
+                    val workspace = findWorkspace(file)
+                    val prefab = JsonStringReader.read(stream, workspace, false).firstOrNull()
+                    stream.close()
+                    onReadPrefab(file, prefab, callback)
+                } else {
+                    when (err) {
+                        is UnknownClassException -> LOGGER.warn("$err by $file", err)
+                        is InvalidFormatException -> if (printJsonErrors && file.lcExtension == "json")
+                            LOGGER.warn("$err by $file", err)
+                        else -> err?.printStackTrace() // may be interesting
+                    }
+                    loadPrefabFromFolder(file, callback)
                 }
-                loadPrefabFromFolder(file, callback)
             }
         }
     }
@@ -272,7 +275,7 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
 
     fun setPrefabPair(
         resource: FileReference?, value: PrefabPair,
-        timeoutMillis: Long = PrefabCache.timeoutMillis
+        timeoutMillis: Long = PrefabCache.timeoutMillis,
     ): Boolean {
         var source = resource
         while (source is InnerLinkFile) {
@@ -313,7 +316,7 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
     @Deprecated(Promise.ASYNC_WARNING)
     fun <V : PrefabSaveable> loadOrInit(
         source: FileReference, clazz: KClass<V>, workspace: FileReference,
-        fallbackGenerator: () -> V
+        fallbackGenerator: () -> V,
     ): Triple<FileReference, Prefab, V> {
         val pair = PrefabCache[source].waitFor()
         if (pair != null) {

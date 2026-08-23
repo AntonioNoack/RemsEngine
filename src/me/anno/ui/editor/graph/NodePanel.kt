@@ -274,15 +274,17 @@ class NodePanel(
 
         // to do generally, weights could be useful on either end (maybe?)
 
-        for (con in node.inputs) {
-            var dx = dxTxt
-            val panel = inputFields[con]
-            if (panel != null) dx += panel.width //+ baseTextSize.toInt()
-            drawConnector(con, baseTextSize, mouseX, mouseY, dx, dyTxt, font, textColor)
-        }
-        val outputs = node.outputs
-        for (con in outputs) {
-            drawConnector(con, baseTextSize, mouseX, mouseY, -dxTxt, dyTxt, font, textColor)
+        canvas.custom {
+            for (con in node.inputs) {
+                var dx = dxTxt
+                val panel = inputFields[con]
+                if (panel != null) dx += panel.width //+ baseTextSize.toInt()
+                drawConnector(con, baseTextSize, mouseX, mouseY, dx, dyTxt, font, textColor)
+            }
+            val outputs = node.outputs
+            for (con in outputs) {
+                drawConnector(con, baseTextSize, mouseX, mouseY, -dxTxt, dyTxt, font, textColor)
+            }
         }
 
         drawChildren(canvas)

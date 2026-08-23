@@ -196,12 +196,12 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         for (i in i0 until i1) {
             val gridX = i * gridSize
             val windowX = coordsToWindowX(gridX).toInt()
-            if (windowX in canvas.x0 until canvas.x1) DrawRectangles.drawRect(windowX, canvas.y0, 1, h, color)
+            if (windowX in canvas.x0 until canvas.x1) canvas.drawRect(windowX, canvas.y0, 1, h, color)
         }
         for (j in j0 until j1) {
             val gridY = j * gridSize
             val windowY = coordsToWindowY(gridY).toInt()
-            if (windowY in canvas.y0 until canvas.y1) DrawRectangles.drawRect(canvas.x0, windowY, w, 1, color)
+            if (windowY in canvas.y0 until canvas.y1) canvas.drawRect(canvas.x0, windowY, w, 1, color)
         }
     }
 

@@ -154,10 +154,8 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     private val buffers = ArrayList<ByteArray?>()
     override fun draw(canvas: Canvas) {
         // calculate line number
-        val rectBatch = DrawRectangles.startBatch()
         drawBackground(canvas)
         drawTextOrBackground(canvas, canvas.y0, canvas.y1, false)
-        DrawRectangles.finishBatch(rectBatch)
         val textBatch = DrawTextBatched.startSimpleBatch()
         drawTextOrBackground(canvas, canvas.y0, canvas.y1, true)
         DrawTextBatched.finishSimpleBatch(textBatch)

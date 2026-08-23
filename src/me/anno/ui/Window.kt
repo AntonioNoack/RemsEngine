@@ -1,11 +1,11 @@
 package me.anno.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.Clipping
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.OSWindow
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.GFXx2D.noTiling
@@ -140,14 +140,13 @@ open class Window(
             useWindowXY(max(panel.x, 0), max(panel.y, 0), buffer) {
                 renderDefault {
                     fullRedraw(canvas)
-                    canvas.finish() // finish rendering
                 }
             }
 
             drawCachedImage(panel, canvas)
 
             if (!isFullscreen && !isTransparent) {
-                drawWindowShadow()
+                drawWindowShadow(canvas)
             }
         }
 
@@ -181,7 +180,7 @@ open class Window(
         val canBeHovered = !otherWindowIsFocused() && !otherWindowIsOverUs()
         panel.updateVisibility(
             mouseXi, mouseYi, canBeHovered,
-            dx, dy, dx + windowW, dy + windowH // correct?
+            dx, dy, dx + windowW, dy + windowH
         )
 
         fun markInFocus(p: Panel) {
@@ -219,7 +218,7 @@ open class Window(
         calculateFullLayout(dx, dy, windowW, windowH)
     }
 
-    fun drawWindowShadow() {
+    fun drawWindowShadow(canvas: Canvas) {
 
         val panel = panel
         val radius = DefaultConfig["ui.window.shadowRadius", 12]
@@ -235,7 +234,7 @@ open class Window(
             return
 
         val fb = GFXState.currentBuffer
-        Clipping.clip2(
+        canvas.clip2(
             max(x1, 0), max(y1, 0),
             min(x1 + w1, fb.width), min(y1 + h1, fb.height)
         ) {
@@ -290,6 +289,7 @@ open class Window(
             buffer.clearColor(backgroundColor)
             panel.canBeSeen = true
             canvas.drawClipped(x0, y0, x1, y1, panel)
+            canvas.finish() // finish rendering
         }
     }
 

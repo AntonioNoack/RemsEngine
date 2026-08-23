@@ -128,7 +128,7 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
 
     override fun draw(canvas: Canvas) {
         drawBackground(canvas)
-        drawButtonText()
+        drawButtonText(canvas)
         drawButtonBorder(
             canvas, leftColor, topColor, rightColor, bottomColor,
             isInputAllowed, borderSize, isPressed
@@ -136,7 +136,7 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
         if (isInFocus) showIsInFocus(canvas, borderSize.left)
     }
 
-    fun drawButtonText() {
+    fun drawButtonText(canvas: Canvas) {
         val text = text
         val widthLimit = if (breaksIntoMultiline) this.width else -1
         val alignmentX = textAlignmentX
@@ -144,7 +144,7 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
         val textColor = textColor
         val textAlpha = if (isEnabled && isInputAllowed) textColor.a()
         else textColor.a() / 2
-        DrawTexts.drawText(
+        canvas.drawText(
             alignmentX.getAnchor(x + padding.left, width - padding.width),
             alignmentY.getAnchor(y + padding.top, height - padding.height),
             font, text, textColor.withAlpha(textAlpha), backgroundColor, widthLimit, heightLimit,

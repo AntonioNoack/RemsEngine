@@ -36,6 +36,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
+import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.structures.arrays.IntArrayList
@@ -46,12 +47,19 @@ import org.lwjgl.opengl.GL11C.GL_RGBA
 import org.lwjgl.opengl.GL11C.GL_RGBA8
 import org.lwjgl.opengl.GL11C.glCopyTexSubImage2D
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import kotlin.math.max
 import kotlin.math.min
+
+// todo somehow, many panels are no longer rendered, although they definitely should be!
 
 class Canvas {
 
     companion object {
-        private const val maxTexSize = 64
+
+        private const val maxTexSize = 256
+        private val isLittleEndian = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
+
         private val attr = bind(
             Attribute("instBounds", AttributeType.UINT16, 4), // 8 bytes, where to draw
             Attribute("instScissor", AttributeType.UINT16, 4), // 8 bytes, where to clip
@@ -62,10 +70,10 @@ class Canvas {
             // todo we need a corner-radius and corner-flags(?)...
         )
 
-        private val shapeBuffer = StaticBuffer("canvas", attr, 1024, BufferUsage.DYNAMIC)
+        private val shapeBuffer = StaticBuffer("canvas", attr, 4096, BufferUsage.DYNAMIC)
         private val textureCache = HashMap<ITexture2D, Bounds?>()
         private val storage by lazy {
-            val size = min(GFX.maxTextureSize, 1024)
+            val size = min(GFX.maxTextureSize, 4096)
             Texture2D("canvasCache", size, size, 1)
         }
 
@@ -95,10 +103,10 @@ class Canvas {
 
     fun push(x0: Int, y0: Int, x1: Int, y1: Int) {
         boundsStack.ensureExtra(4)
-        boundsStack.addUnsafe(x0)
-        boundsStack.addUnsafe(y0)
-        boundsStack.addUnsafe(x1)
-        boundsStack.addUnsafe(y1)
+        boundsStack.addUnsafe(this.x0)
+        boundsStack.addUnsafe(this.y0)
+        boundsStack.addUnsafe(this.x1)
+        boundsStack.addUnsafe(this.y1)
         this.x0 = x0
         this.y0 = y0
         this.x1 = x1
@@ -118,30 +126,15 @@ class Canvas {
     // todo a cache, which stores all small textures in one big texture
     // todo big textures are drawn directly
 
-    inline fun clip(x0: Int, y0: Int, w: Int, h: Int, render: () -> Unit) {
-        if (w < 1 || h < 1) return
-        push(x0, y0, x0 + w, y0 + h)
-        render()
-        pop()
-    }
-
     inline fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
-        val w = x1 - x0
-        val h = y1 - y0
-        if (w < 1 || h < 1) return
+        if (x1 <= x0 || y1 <= y0) return
         push(x0, y0, x1, y1)
         render()
         pop()
     }
 
     fun drawClipped(x0: Int, y0: Int, x1: Int, y1: Int, panel: Panel) {
-        // from the bottom to the top
-        val w = x1 - x0
-        val h = y1 - y0
-        GFX.check()
-        if (w < 1 || h < 1) return
-        // val height = RenderState.currentBuffer?.h ?: height
-        // val realY = height - (y + h)
+        if (x1 <= x0 || y1 <= y0) return
         push(x0, y0, x1, y1)
         panel.draw(this)
         pop()
@@ -157,8 +150,13 @@ class Canvas {
         if (nio.position() == 0) return
 
         shapeBuffer.cpuSideChanged()
+        shapeBuffer.ensureBuffer()
+
         val fb = GFXState.framebuffer.last()
-        useFrame(0, 0, fb.width, fb.height) {
+        val texture = storage.createdOrNull() ?: TextureLib.whiteTexture
+        texture.bind(0)
+
+        useFrame(0, 0, fb.width, fb.height, fb) {
             val shader = CanvasShader
             shader.use()
             if (fb is Framebuffer) shader.v2i("dstOffset", fb.offsetX, fb.offsetY)
@@ -166,8 +164,6 @@ class Canvas {
             shader.v2f("invRenderSize", 1f / fb.width, 1f / fb.height)
             shader.v2f("invAtlasSize", 1f / storage.width, 1f / storage.height)
             shader.m4x4("transform", transform)
-            val texture = storage.createdOrNull() ?: TextureLib.whiteTexture
-            texture.bind(0)
             flat01.drawInstanced(shader, shapeBuffer)
         }
 
@@ -202,16 +198,20 @@ class Canvas {
     }
 
     fun pushColor(nio: ByteBuffer, color: Int) {
-        // todo can be optimized, because we know it is Little Endian
-        nio.put(color.r().toByte())
-        nio.put(color.g().toByte())
-        nio.put(color.b().toByte())
-        nio.put(color.a().toByte())
+        if (isLittleEndian) {
+            // can be optimized, because we know it is Little Endian
+            nio.putInt(convertARGB2ABGR(color))
+        } else {
+            nio.put(color.r().toByte())
+            nio.put(color.g().toByte())
+            nio.put(color.b().toByte())
+            nio.put(color.a().toByte())
+        }
     }
 
     fun pushMode(nio: ByteBuffer, mode: CanvasDrawMode) {
         nio.putInt(mode.ordinal)
-        check(nio.position() % attr.stride == 0)
+        check(nio.position() % attr.stride == 0) // can be removed
     }
 
     fun isFinished() = shapeBuffer.getOrCreateNioBuffer().position() == 0
@@ -232,7 +232,12 @@ class Canvas {
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, ignoreAlpha: Boolean, tint: Int = -1,
     ) {
-        if (x >= x1 || y >= y1 || x + w <= x0 || y + h <= y0) return // invisible
+        val minX = min(x, x + w)
+        val maxX = max(x, x + w)
+        val minY = min(y, y + h)
+        val maxY = max(y, y + h)
+        if (minX >= x1 || minY >= y1 || maxX <= x0 || maxY <= y0) return // invisible
+
         val bounds = getBounds(texture)
         // println("Bounds for texture $texture at $x,$y += $w,$h: $bounds")
         if (bounds != null) {
@@ -260,14 +265,20 @@ class Canvas {
     }
 
     fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Int) {
+
+        val minX = min(x, x + w)
+        val maxX = max(x, x + w)
+        val minY = min(y, y + h)
+        val maxY = max(y, y + h)
+        if (minX >= x1 || minY >= y1 || maxX <= x0 || maxY <= y0) return // invisible
+
         val nio = getNioBuffer()
-        val mode = CanvasDrawMode.RECTANGLE
         pushBounds(nio, x, y, w, h)
         pushScissor(nio)
         skipTexBounds(nio)
         pushColor(nio, color)
         pushColor(nio, 0)
-        pushMode(nio, mode)
+        pushMode(nio, CanvasDrawMode.RECTANGLE)
     }
 
     fun drawRoundedRect(
@@ -470,6 +481,7 @@ class Canvas {
     ) {
         custom {
             // todo support this properly
+            //  but we somehow need to encode startDegrees, endDegrees, innerRadius
             GFXx2D.drawCircle(x, y, radiusX, radiusY, innerRadius, startDegrees, endDegrees, color)
         }
     }
@@ -483,7 +495,9 @@ class Canvas {
         smoothness: Float = 1f,
     ) {
         custom {
-            // todo support this properly
+            // todo support this properly:
+            //  we need to encode thickness somehow
+            //  the vertex shader needs to rotate the line
             DrawCurves.drawLine(x0, y0, x1, y1, thickness, color, background, flatEnds, smoothness)
         }
     }

@@ -118,19 +118,19 @@ open class ProgressBar(
         val text = formatProgress()
         val xt = x + w.shr(1)
         val yt = y + (h - monospaceFont.lineHeightI).shr(1)
-        if (x1 > x) canvas.clip(x, y, x1 - x, h) {
+        if (x1 > x) canvas.clip2(x, y, x1, y + h) {
             canvas.drawText(
                 xt, yt, padding, monospaceFont, text, rightColor, leftColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
-        if (x2 > x1) canvas.clip(x1, y, x2 - x1, h) {
+        if (x2 > x1) canvas.clip2(x1, y, x2, y + h) {
             canvas.drawText(
                 xt, yt, padding, monospaceFont, text, leftColor, rightColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
-        if (x3 > x2) canvas.clip(x2, y, x3 - x2, h) {
+        if (x3 > x2) canvas.clip2(x2, y, x3, y + h) {
             canvas.drawText(
                 xt, yt, padding, monospaceFont, text, rightColor, leftColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
