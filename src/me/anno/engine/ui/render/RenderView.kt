@@ -40,7 +40,6 @@ import me.anno.gpu.M4x3Delta.mul4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DeferredRenderer
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.DrawTextures
@@ -212,7 +211,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         FrameTimings.add(t3 - t1, UIColors.cornFlowerBlue)
 
         if (world == null) {
-            drawTextCenter("Scene Not Found!")
+            drawTextCenter(canvas, "Scene Not Found!")
         }
 
         if (playMode == PlayMode.EDITING) {
@@ -316,9 +315,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
     }
 
-    fun drawTextCenter(text: String) {
+    fun drawTextCenter(canvas: Canvas, text: String) {
         val pbb = pushBetterBlending(true)
-        drawText(
+        canvas.drawText(
             x + width / 2, y + height / 2, 4, text,
             AxisAlignment.CENTER, AxisAlignment.CENTER
         )
@@ -736,7 +735,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         drawGrid(pipeline, drawGridMask)
 
-        if (drawDebugShapes) DebugRendering.drawDebugShapes( this, cameraMatrix)
+        if (drawDebugShapes) DebugRendering.drawDebugShapes(this, cameraMatrix)
         DebugShapes.removeExpired()
 
         LineBuffer.finish(cameraMatrix)

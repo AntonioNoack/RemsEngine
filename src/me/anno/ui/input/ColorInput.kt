@@ -285,6 +285,7 @@ open class ColorInput(
                     useFrame(fb) {
                         val canvas = windowX.canvas
                         windowStack.draw(canvas, 0, 0, fb.width, fb.height)
+                        canvas.finish()
                     }
                     val imageData = fb.createImage(flipY = true, withAlpha = false) ?: IntImage(1, 1, false)
                     ColorPicker(fb, fb.getTexture0() as Texture2D, imageData, true, flipTexture = false, style)

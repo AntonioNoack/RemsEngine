@@ -569,6 +569,7 @@ open class FileExplorerEntry(
 
             lines = 1
 
+            canvas.finish()
             Clipping.clip2Dual(
                 canvas.x0, canvas.y0, canvas.x1, canvas.y1,
                 x + padding,
@@ -623,6 +624,7 @@ open class FileExplorerEntry(
 
         val t1 = Time.nanoTime
 
+        canvas.finish()
         Clipping.clip2Dual(
             canvas.x0, canvas.y0, canvas.x1, canvas.y1,
             x + padding,
@@ -640,7 +642,7 @@ open class FileExplorerEntry(
             min(x + remainingW, canvas.x1),
             min(y + h, canvas.y1),/* - padding*/ // only apply the padding, when not playing video?
         ) {
-            drawTitle(canvas)
+            drawTitle(canvas, x + remainingW.shr(1), y + h - textH.shr(1))
         }
 
         val t3 = Time.nanoTime
@@ -649,11 +651,13 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun drawTitle(canvas: Canvas) {
+    private fun drawTitle(
+        canvas: Canvas,
+        x: Int, y: Int,
+    ) {
         val pbb = pushBetterBlending(true)
         canvas.drawText(
-            (canvas.x0 + canvas.x1).shr(1),
-            (canvas.y0 + canvas.y1).shr(1),
+            x, y,
             titlePanel.font, titlePanel.text,
             titlePanel.textColor,
             backgroundColor.withAlpha(0),

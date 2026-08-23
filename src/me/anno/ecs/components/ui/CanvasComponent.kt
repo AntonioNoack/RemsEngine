@@ -240,6 +240,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
                         0, 0, width, height
                     )
                     windowStack.draw(canvas, 0, 0, width, height)
+                    canvas.finish()
                 }
             }
         }

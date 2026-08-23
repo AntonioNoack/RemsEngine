@@ -47,14 +47,7 @@ object CanvasTextDrawHelper : IGlyphLayout() {
 
             val bounds = canvas.getBounds(texture)
             if (bounds != null) {
-                val nio = canvas.getNioBuffer()
-                val mode = CanvasDrawMode.TEXT
-                canvas.pushBounds(nio, x, y, w, h)
-                canvas.pushScissor(nio)
-                canvas.pushTexBounds(nio, bounds)
-                canvas.pushColor(nio, color)
-                canvas.pushColor(nio, bgColor)
-                canvas.pushMode(nio, mode)
+                canvas.pushText(bounds, x, y, w, h)
             } else {
                 canvas.custom {
                     // big text?? todo can we draw properly?

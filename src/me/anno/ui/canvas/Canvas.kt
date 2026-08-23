@@ -17,6 +17,7 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawRounded
+import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.getOffset
 import me.anno.gpu.drawing.DrawTexts.sizeLayoutHelper
 import me.anno.gpu.drawing.DrawTextures
@@ -40,6 +41,7 @@ import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.lists.GrowingList
 import org.joml.Vector2f
 import org.lwjgl.opengl.GL11C.GL_RGB
 import org.lwjgl.opengl.GL11C.GL_RGB8
@@ -51,8 +53,7 @@ import java.nio.ByteOrder
 import kotlin.math.max
 import kotlin.math.min
 
-// todo somehow, many panels are no longer rendered, although they definitely should be!
-
+// todo instanced rendering has no order-guarantee -> we must define order ourselves!
 class Canvas {
 
     companion object {
@@ -70,15 +71,17 @@ class Canvas {
             // todo we need a corner-radius and corner-flags(?)...
         )
 
-        private val shapeBuffer = StaticBuffer("canvas", attr, 4096, BufferUsage.DYNAMIC)
+        private fun createBuffer() = StaticBuffer("canvas", attr, 256, BufferUsage.DYNAMIC)
+        private val shapeBuffers = GrowingList { createBuffer() }
+
         private val textureCache = HashMap<ITexture2D, Bounds?>()
-        private val storage by lazy {
+        private val atlasTexture by lazy {
             val size = min(GFX.maxTextureSize, 4096)
-            Texture2D("canvasCache", size, size, 1)
+            Texture2D("canvasAtlas", size, size, 1)
         }
 
         private val texturePacking by lazy {
-            ShelfPacking(storage.width, storage.height, 4)
+            ShelfPacking(atlasTexture.width, atlasTexture.height, 4)
         }
 
         private val flat01 = SimpleBuffer(
@@ -100,6 +103,7 @@ class Canvas {
     val dy get() = y1 - y0
 
     val boundsStack = IntArrayList()
+    val depth: Int get() = boundsStack.size
 
     fun push(x0: Int, y0: Int, x1: Int, y1: Int) {
         boundsStack.ensureExtra(4)
@@ -146,24 +150,41 @@ class Canvas {
     }
 
     fun finish() {
-        val nio = shapeBuffer.getOrCreateNioBuffer()
-        if (nio.position() == 0) return
+        var first = true
+        for (i in shapeBuffers.indices) {
+            val shapeBuffer = shapeBuffers[i]
+            val nio = shapeBuffer.getOrCreateNioBuffer()
+            if (nio.position() > 0) {
+                renderShapes(shapeBuffer, first)
+                first = false
+            }
+        }
+    }
 
+    fun isFinished(): Boolean = shapeBuffers.all { buffer ->
+        val nio = buffer.nioBuffer
+        nio == null || nio.position() == 0
+    }
+
+    private fun renderShapes(shapeBuffer: StaticBuffer, first: Boolean) {
+        val nio = shapeBuffer.getOrCreateNioBuffer()
         shapeBuffer.cpuSideChanged()
         shapeBuffer.ensureBuffer()
 
         val fb = GFXState.framebuffer.last()
-        val texture = storage.createdOrNull() ?: TextureLib.whiteTexture
+        val texture = atlasTexture.createdOrNull() ?: TextureLib.whiteTexture
         texture.bind(0)
 
         useFrame(0, 0, fb.width, fb.height, fb) {
             val shader = CanvasShader
-            shader.use()
-            if (fb is Framebuffer) shader.v2i("dstOffset", fb.offsetX, fb.offsetY)
-            else shader.v2i("dstOffset", 0, 0)
-            shader.v2f("invRenderSize", 1f / fb.width, 1f / fb.height)
-            shader.v2f("invAtlasSize", 1f / storage.width, 1f / storage.height)
-            shader.m4x4("transform", transform)
+            if (first) {
+                shader.use()
+                if (fb is Framebuffer) shader.v2i("dstOffset", fb.offsetX, fb.offsetY)
+                else shader.v2i("dstOffset", 0, 0)
+                shader.v2f("invRenderSize", 1f / fb.width, 1f / fb.height)
+                shader.v2f("invAtlasSize", 1f / atlasTexture.width, 1f / atlasTexture.height)
+                shader.m4x4("transform", transform)
+            } // else properties already bound
             flat01.drawInstanced(shader, shapeBuffer)
         }
 
@@ -171,21 +192,21 @@ class Canvas {
         nio.limit(nio.capacity())
     }
 
-    fun pushBounds(nio: ByteBuffer, x: Int, y: Int, width: Int, height: Int) {
+    private fun pushBounds(nio: ByteBuffer, x: Int, y: Int, width: Int, height: Int) {
         nio.putShort(x.toShort())
         nio.putShort(y.toShort())
         nio.putShort((x + width).toShort())
         nio.putShort((y + height).toShort())
     }
 
-    fun pushScissor(nio: ByteBuffer) {
+    private fun pushScissor(nio: ByteBuffer) {
         nio.putShort(x0.toShort())
         nio.putShort(y0.toShort())
         nio.putShort(x1.toShort())
         nio.putShort(y1.toShort())
     }
 
-    fun pushTexBounds(nio: ByteBuffer, bounds: Bounds) {
+    private fun pushTexBounds(nio: ByteBuffer, bounds: Bounds) {
         // texBounds
         nio.putShort(bounds.x0.toShort())
         nio.putShort(bounds.y0.toShort())
@@ -197,9 +218,9 @@ class Canvas {
         nio.putLong(0)
     }
 
-    fun pushColor(nio: ByteBuffer, color: Int) {
+    private fun pushColor(nio: ByteBuffer, color: Int) {
         if (isLittleEndian) {
-            // can be optimized, because we know it is Little Endian
+            // optimized insert
             nio.putInt(convertARGB2ABGR(color))
         } else {
             nio.put(color.r().toByte())
@@ -214,10 +235,8 @@ class Canvas {
         check(nio.position() % attr.stride == 0) // can be removed
     }
 
-    fun isFinished() = shapeBuffer.getOrCreateNioBuffer().position() == 0
-
-    fun getNioBuffer(): ByteBuffer {
-        val nio = shapeBuffer.getOrCreateNioBuffer()
+    fun getNioBuffer(extraDepth: Int): ByteBuffer {
+        val nio = shapeBuffers[depth + extraDepth].getOrCreateNioBuffer()
         if (nio.position() == nio.capacity()) finish() // create some space for us
         check(nio.position() < nio.capacity())
         return nio
@@ -231,6 +250,7 @@ class Canvas {
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, ignoreAlpha: Boolean, tint: Int = -1,
+        extraDepth: Int = 1,
     ) {
         val minX = min(x, x + w)
         val maxX = max(x, x + w)
@@ -242,7 +262,7 @@ class Canvas {
         // println("Bounds for texture $texture at $x,$y += $w,$h: $bounds")
         if (bounds != null) {
 
-            val nio = getNioBuffer()
+            val nio = getNioBuffer(extraDepth)
             val mode = if (ignoreAlpha) CanvasDrawMode.TEXTURE_NO_ALPHA else CanvasDrawMode.TEXTURE
             pushBounds(nio, x, y, w, h)
             pushScissor(nio)
@@ -264,7 +284,10 @@ class Canvas {
         }
     }
 
-    fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Int) {
+    fun drawRect(
+        x: Int, y: Int, w: Int, h: Int, color: Int,
+        extraDepth: Int = 0,
+    ) {
 
         val minX = min(x, x + w)
         val maxX = max(x, x + w)
@@ -272,7 +295,7 @@ class Canvas {
         val maxY = max(y, y + h)
         if (minX >= x1 || minY >= y1 || maxX <= x0 || maxY <= y0) return // invisible
 
-        val nio = getNioBuffer()
+        val nio = getNioBuffer(extraDepth)
         pushBounds(nio, x, y, w, h)
         pushScissor(nio)
         skipTexBounds(nio)
@@ -332,17 +355,17 @@ class Canvas {
     }
 
     private fun insertAt(source: ITexture2D, x: Int, y: Int, w: Int, h: Int): Bounds {
-        if (!storage.isCreated()) storage.create(TargetType.UInt8x4)
+        if (!atlasTexture.isCreated()) atlasTexture.create(TargetType.UInt8x4)
 
         // use glCopyTexSubImage2D, if the formats are compatible
         if (source is Texture2D && hasCompatibleFormat(source.internalFormat)) {
             useFrame(source) {
                 // copies framebuffer to texture; first coords are texture, second are framebuffer
-                storage.bind(0)
-                glCopyTexSubImage2D(storage.target, 0, x, y, 0, 0, w, h)
+                atlasTexture.bind(0)
+                glCopyTexSubImage2D(atlasTexture.target, 0, x, y, 0, 0, w, h)
             }
         } else {
-            useFrame(storage) {
+            useFrame(atlasTexture) {
                 GFXState.blendMode.use(null) {
                     GFXState.depthMode.use(DepthMode.ALWAYS) {
                         DrawTextures.drawTexture(x, y, w, h, source)
@@ -432,7 +455,19 @@ class Canvas {
         widthLimit: Int, heightLimit: Int,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN,
+        extraDepth: Int = 2,
     ): Int {
+
+        // compute-shader fallback for true blending
+        if (DrawTexts.enableTrueBlending && DrawTexts.canUseComputeShader()) {
+            finish()
+            return DrawTexts.drawText(
+                x, y, padding, font, text,
+                textColor, backgroundColor, widthLimit, heightLimit, alignX, alignY
+            )
+        }
+
+        this.extraDepth = extraDepth
 
         val sizeHelper = sizeLayoutHelper
         val fontImpl = FontManager.getFontImpl()
@@ -500,6 +535,18 @@ class Canvas {
             //  the vertex shader needs to rotate the line
             DrawCurves.drawLine(x0, y0, x1, y1, thickness, color, background, flatEnds, smoothness)
         }
+    }
+
+    private var extraDepth = 0
+
+    fun pushText(bounds: Bounds, x: Int, y: Int, w: Int, h: Int) {
+        val nio = getNioBuffer(extraDepth)
+        pushBounds(nio, x, y, w, h)
+        pushScissor(nio)
+        pushTexBounds(nio, bounds)
+        pushColor(nio, CanvasTextDrawHelper.color)
+        pushColor(nio, CanvasTextDrawHelper.bgColor)
+        pushMode(nio, CanvasDrawMode.TEXT)
     }
 
 }

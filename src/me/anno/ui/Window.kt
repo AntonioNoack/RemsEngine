@@ -1,13 +1,14 @@
 package me.anno.ui
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.Clipping
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.OSWindow
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.GFXx2D.noTiling
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -136,17 +137,18 @@ open class Window(
             GFX.resetFBStack()
             Frame.reset()
 
-            canvas.finish() // finish anything before
             useWindowXY(max(panel.x, 0), max(panel.y, 0), buffer) {
+                check(canvas.isFinished())
                 renderDefault {
                     fullRedraw(canvas)
+                    check(canvas.isFinished())
                 }
             }
 
-            drawCachedImage(panel, canvas)
+            drawCachedImage(panel)
 
             if (!isFullscreen && !isTransparent) {
-                drawWindowShadow(canvas)
+                drawWindowShadow()
             }
         }
 
@@ -218,7 +220,7 @@ open class Window(
         calculateFullLayout(dx, dy, windowW, windowH)
     }
 
-    fun drawWindowShadow(canvas: Canvas) {
+    fun drawWindowShadow() {
 
         val panel = panel
         val radius = DefaultConfig["ui.window.shadowRadius", 12]
@@ -234,7 +236,7 @@ open class Window(
             return
 
         val fb = GFXState.currentBuffer
-        canvas.clip2(
+        Clipping.clip2(
             max(x1, 0), max(y1, 0),
             min(x1 + w1, fb.width), min(y1 + h1, fb.height)
         ) {
@@ -293,7 +295,7 @@ open class Window(
         }
     }
 
-    private fun drawCachedImage(panel: Panel, canvas: Canvas) {
+    private fun drawCachedImage(panel: Panel) {
         val x0 = max(panel.x, 0)
         val y0 = max(panel.y, 0)
         // we don't need to draw more than is visible
@@ -304,7 +306,7 @@ open class Window(
         GFXState.depthMode.use(GFXState.alwaysDepthMode) {
             val blendMode = if (isTransparent) BlendMode.DEFAULT else null
             GFXState.blendMode.use(blendMode) {
-                canvas.drawTexture(x0, y0, x1 - x0, y1 - y0, texture)
+                DrawTextures.drawTexture(x0, y0, x1 - x0, y1 - y0, texture)
             }
         }
     }

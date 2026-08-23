@@ -31,7 +31,7 @@ object CanvasShader : Shader(
                            vec2 pos0 = vec2(max(instBounds.xy, instScissor.xy));
                            vec2 pos1 = vec2(min(instBounds.zw, instScissor.zw));
                            vec2 pos = mix(pos0, pos1, positions);
-                           vec2 uvFactor = (pos - pos0) / (pos1 - pos0);
+                           vec2 uvFactor = (pos - instBounds.xy) / (instBounds.zw - instBounds.xy);
                            pos -= vec2(dstOffset);
                            pos = pos * invRenderSize * 2.0 - 1.0;
                            pos.y = -pos.y;
@@ -49,6 +49,7 @@ object CanvasShader : Shader(
     ), listOf(
         Variable(GLSLType.S2D, "atlasTexture"),
         Variable(GLSLType.V4F, "result", VariableMode.OUT),
+        // todo emojis have alpha > 0
     ), """
                         void main() {
                             result = fgColor;
@@ -61,10 +62,16 @@ object CanvasShader : Shader(
                                     result.rgb *= texture(atlasTexture, uv).rgb;
                                     break;
                                 case ${CanvasDrawMode.TEXT.ordinal}:
-                                    vec3 factor = texture(atlasTexture, uv).rgb;
-                                    if (dot(factor, vec3(1.0)) < 0.01) discard;
-                                    result.rgb = mix(bgColor.rgb, fgColor.rgb, factor.rgb);
-                                    result.a = fgColor.a * max(factor.r,max(factor.g,factor.b));
+                                    vec4 text = texture(atlasTexture, uv);
+                                    if (text.a > 0.0) { // emoji
+                                        text.a = (text.a - ${1f / 255f}) * ${255f / 254f};
+                                        if (text.a < 0.0) discard;
+                                        result = text;
+                                    } else { // text
+                                        if (dot(text.rgb, vec3(1.0)) < 0.01) discard;
+                                        result.rgb = mix(bgColor.rgb, fgColor.rgb, text.rgb);
+                                        result.a = fgColor.a * max(text.r,max(text.g,text.b));
+                                    }
                                     break;
                                 default:
                                     float c = float(int(dot(gl_FragCoord.xy,vec2(1.0))) & 4) * 0.333;
