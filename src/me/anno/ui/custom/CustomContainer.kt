@@ -5,7 +5,6 @@ import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -13,6 +12,7 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.black
 import me.anno.utils.OS.res
 import org.apache.logging.log4j.LogManager
@@ -40,12 +40,17 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
+        drawCross(canvas)
+    }
+
+    fun drawCross(canvas: Canvas) {
         val icon0 = TextureCache[crossPath, 360_000L].value
         val icon = icon0 ?: whiteTexture
         val x2 = x + width - (crossSize + 2)
         val y2 = y + 2
         val tint = 0x8f8f8f or black
-        canvas.drawTexture(x2, y2, crossSize, crossSize, icon, tint)
+        val extraDepth = 10 // relatively arbitrary
+        canvas.drawTexture(x2, y2, crossSize, crossSize, icon, false, tint, extraDepth)
     }
 
     private fun addBefore(index: Int, parent: CustomList) {

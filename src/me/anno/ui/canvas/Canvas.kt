@@ -1,5 +1,6 @@
 package me.anno.ui.canvas
 
+import me.anno.Time
 import me.anno.fonts.Font
 import me.anno.fonts.FontImpl.Companion.heightLimitToMaxNumLines
 import me.anno.fonts.FontManager
@@ -48,6 +49,8 @@ import org.lwjgl.opengl.GL11C.GL_RGB8
 import org.lwjgl.opengl.GL11C.GL_RGBA
 import org.lwjgl.opengl.GL11C.GL_RGBA8
 import org.lwjgl.opengl.GL11C.glCopyTexSubImage2D
+import org.lwjgl.opengl.GL42C.glMemoryBarrier
+import org.lwjgl.opengl.GL46C
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.max
@@ -74,7 +77,9 @@ class Canvas {
             // todo we need a corner-radius and corner-flags(?)...
         )
 
-        private fun createBuffer() = StaticBuffer("canvas", attr, 1024, BufferUsage.DYNAMIC)
+        // todo setting vertexCount to 1 fixes all issues, so the issue definitely is dependencies...
+
+        private fun createBuffer() = StaticBuffer("canvas", attr, 1, BufferUsage.DYNAMIC)
         private val shapeBuffers = GrowingList { createBuffer() }
 
         private val textureCache = HashMap<ITexture2D, Bounds?>()
@@ -148,8 +153,10 @@ class Canvas {
     }
 
     inline fun custom(crossinline render: () -> Unit) {
+        isInsideCustom = true
         finish()
         Clipping.clip(x0, y0, dx, dy, render)
+        isInsideCustom = false
     }
 
     fun finish() {
@@ -179,25 +186,23 @@ class Canvas {
                 val shapeBuffer = shapeBuffers[i]
                 val nio = shapeBuffer.getOrCreateNioBuffer()
                 if (nio.position() > 0) {
-                    val nio = shapeBuffer.getOrCreateNioBuffer()
                     shapeBuffer.cpuSideChanged()
-                    shapeBuffer.ensureBuffer()
+
+                    flat01.drawInstanced(shader, shapeBuffer)
+                    glMemoryBarrier(GL46C.GL_ALL_BARRIER_BITS)
 
                     nio.position(0)
                     nio.limit(nio.capacity())
-                    flat01.drawInstanced(shader, shapeBuffer)
                 }
             }
         }
     }
 
+    var ctr = 0
+
     fun isFinished(): Boolean = shapeBuffers.all { buffer ->
         val nio = buffer.nioBuffer
         nio == null || nio.position() == 0
-    }
-
-    private fun renderShapes(shapeBuffer: StaticBuffer, first: Boolean) {
-
     }
 
     private fun pushBounds(nio: ByteBuffer, x: Int, y: Int, width: Int, height: Int) {
@@ -208,8 +213,9 @@ class Canvas {
     }
 
     private fun pushScissor(nio: ByteBuffer) {
-        check(x1 > x0)
+        check(x1 > x0) { "Must bind scissor bounds for canvas!" }
         check(y1 > y0)
+        check(!isInsideCustom) { "Cannot use Canvas inside custom {}" }
         nio.putShort(x0.toShort())
         nio.putShort(y0.toShort())
         nio.putShort(x1.toShort())
@@ -542,6 +548,7 @@ class Canvas {
         }
     }
 
+    var isInsideCustom = false
     private var extraDepth = 0
 
     fun pushText(bounds: Bounds, x: Int, y: Int, w: Int, h: Int) {
@@ -552,5 +559,13 @@ class Canvas {
         pushColor(nio, CanvasTextDrawHelper.color)
         pushColor(nio, CanvasTextDrawHelper.bgColor)
         pushMode(nio, CanvasDrawMode.TEXT)
+    }
+
+    inline fun deeper(n: Int, callback: () -> Unit) {
+        val diff = n * 4
+        boundsStack.ensureExtra(diff)
+        boundsStack.size += diff
+        callback()
+        boundsStack.size -= diff
     }
 }

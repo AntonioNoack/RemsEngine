@@ -8,7 +8,8 @@ import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.canvas.Canvas
-import me.anno.utils.Color.mulAlpha
+import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.withAlpha
 
 open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
 
@@ -35,10 +36,8 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
     }
 
     override fun draw(canvas: Canvas) {
-        canvas.drawRect(
-            x, y, width, height,
-            scrollBackground.mulAlpha(activeAlpha * alpha)
-        )
+        val color = mixARGB(background.color, scrollBackground, activeAlpha * alpha)
+        canvas.drawRect(x, y, width, height, color.withAlpha(255))
     }
 
     override fun clone(): Scrollbar {

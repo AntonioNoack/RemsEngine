@@ -4,12 +4,13 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
+import me.anno.ui.canvas.Canvas
+import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.sumOfFloat
@@ -209,10 +210,10 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         scrollbar.updateAlpha()
     }
 
-    private val hoverColor = style.getColor("customList.hoverColor", mixARGB(0x77ffb783, background.originalColor, 0.8f))
+    private val hoverColor =
+        style.getColor("customList.hoverColor", mixARGB(0xffb783 or black, background.originalColor, 0.8f))
 
     override fun draw(canvas: Canvas) {
-        background.color = hoverColor
         drawBackground(canvas)
         drawChildren(canvas)
         ensureScrollbars()
@@ -220,15 +221,15 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
             val scrollbar = scrollbars[i]
             val child = children[i + 1]
             if (isY) {
-                scrollbar.x = x
-                scrollbar.y = child.y - spacing
-                scrollbar.width = width
-                scrollbar.height = spacing
+                scrollbar.setPosSize(
+                    x, child.y - spacing,
+                    width, spacing
+                )
             } else {
-                scrollbar.x = child.x - spacing
-                scrollbar.y = y
-                scrollbar.width = spacing
-                scrollbar.height = height
+                scrollbar.setPosSize(
+                    child.x - spacing, y,
+                    spacing, height
+                )
             }
             updateScrollbar(scrollbar, i)
             drawChild(scrollbar, canvas)
@@ -269,7 +270,9 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     private fun ensureScrollbars() {
         val size = children.size - 1
         while (scrollbars.size < size) {
-            scrollbars.add(Scrollbar(this, style))
+            val scrollbar = Scrollbar(this, style)
+            scrollbar.background.color = hoverColor
+            scrollbars.add(scrollbar)
         }
         while (scrollbars.isNotEmpty() && scrollbars.size > size) {
             scrollbars.removeAt(scrollbars.lastIndex)
