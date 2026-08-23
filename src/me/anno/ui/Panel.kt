@@ -7,8 +7,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.DrawRectangles
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
@@ -211,7 +209,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     fun updateVisibility(
         mx: Int, my: Int, canBeHovered: Boolean,
-        x0: Int, y0: Int, x1: Int, y1: Int
+        x0: Int, y0: Int, x1: Int, y1: Int,
     ) {
         isInFocus = false
         isAnyChildInFocus = false
@@ -692,7 +690,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     fun showIsInFocus(canvas: Canvas, extraPadding: Int = 0) {
 
-        val batch = DrawRectangles.startBatch()
         val padding = 2 + extraPadding
         val th = 2
         val length = 6
@@ -708,22 +705,20 @@ open class Panel(val style: Style) : PrefabSaveable() {
         val y1 = y + height - padding
 
         // top left
-        drawRect(x0, y0, lengthX0, th, color)
-        drawRect(x0, y0 + th, th, lengthY0 - th, color)
+        canvas.drawRect(x0, y0, lengthX0, th, color)
+        canvas.drawRect(x0, y0 + th, th, lengthY0 - th, color)
 
         // top right
-        drawRect(x1 - lengthX1, y0, lengthX1, th, color)
-        drawRect(x1 - th, y0 + th, th, lengthY0 - th, color)
+        canvas.drawRect(x1 - lengthX1, y0, lengthX1, th, color)
+        canvas.drawRect(x1 - th, y0 + th, th, lengthY0 - th, color)
 
         // bottom left
-        drawRect(x0, y1 - th, lengthX0, th, color)
-        drawRect(x0, y1 - lengthY1, th, lengthY1 - th, color)
+        canvas.drawRect(x0, y1 - th, lengthX0, th, color)
+        canvas.drawRect(x0, y1 - lengthY1, th, lengthY1 - th, color)
 
         // bottom right
-        drawRect(x1 - lengthX1, y1 - th, lengthX1, th, color)
-        drawRect(x1 - th, y1 - lengthY1, th, lengthY1 - th, color)
-
-        DrawRectangles.finishBatch(batch)
+        canvas.drawRect(x1 - lengthX1, y1 - th, lengthX1, th, color)
+        canvas.drawRect(x1 - th, y1 - lengthY1, th, lengthY1 - th, color)
     }
 
     companion object {

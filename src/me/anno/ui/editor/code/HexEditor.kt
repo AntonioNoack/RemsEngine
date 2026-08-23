@@ -5,9 +5,7 @@ import me.anno.cache.Promise
 import me.anno.fonts.Font
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTextBatched
-import me.anno.gpu.drawing.DrawTextBatched.drawSimpleTextCharByChar
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.Streams.readNBytes2
@@ -19,12 +17,12 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.MinMax.max
 import me.anno.maths.MinMax.min
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.scrolling.LongScrollable
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
@@ -158,14 +156,14 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         // calculate line number
         val rectBatch = DrawRectangles.startBatch()
         drawBackground(canvas)
-        drawTextOrBackground(canvas.y0, canvas.y1, false)
+        drawTextOrBackground(canvas, canvas.y0, canvas.y1, false)
         DrawRectangles.finishBatch(rectBatch)
         val textBatch = DrawTextBatched.startSimpleBatch()
-        drawTextOrBackground(canvas.y0, canvas.y1, true)
+        drawTextOrBackground(canvas, canvas.y0, canvas.y1, true)
         DrawTextBatched.finishSimpleBatch(textBatch)
     }
 
-    fun drawTextOrBackground(y0: Int, y1: Int, textNotBackground: Boolean) {
+    fun drawTextOrBackground(canvas: Canvas, y0: Int, y1: Int, textNotBackground: Boolean) {
 
         val charWidth = charWidth
         val extraScrolling = extraScrolling
@@ -196,7 +194,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
                     val pairOffset = bx + if ((digitIndex + addressDigits).and(1) > 0) -1 else +1
                     val x = pairOffset + digitIndex * charWidth
                     // group these in pairs as well
-                    drawChar(x, y, hex4(digit.toInt()), tc, bc)
+                    drawChar(canvas, x, y, hex4(digit.toInt()), tc, bc)
                 }
             }
         }
@@ -239,15 +237,19 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
                 val bc1 = if (isSelected) sbc else bc
                 // draw hex
-                drawChar(lineIndex * 2, lineNumber, ox + 1, by0, hex4(value.shr(4)), tc1, bc1, textNotBackground)
-                drawChar(lineIndex * 2 + 1, lineNumber, ox - 1, by0, hex4(value), tc1, bc1, textNotBackground)
+                drawChar(
+                    canvas, lineIndex * 2, lineNumber, ox + 1, by0,
+                    hex4(value.shr(4)), tc1, bc1, textNotBackground
+                )
+                drawChar(
+                    canvas, lineIndex * 2 + 1, lineNumber, ox - 1, by0,
+                    hex4(value), tc1, bc1, textNotBackground
+                )
                 if (showText) {
                     // draw byte as char
                     drawChar(
-                        bytesPerLine * 2 + lineIndex,
-                        lineNumber, ox2, by0,
-                        displayedBytes[value],
-                        tc1, bc1, textNotBackground
+                        canvas, bytesPerLine * 2 + lineIndex, lineNumber, ox2, by0,
+                        displayedBytes[value], tc1, bc1, textNotBackground
                     )
                 }
             }
@@ -262,37 +264,37 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
             forLoop(0, bytesPerLine, lineEveryN) { i ->
                 val x2 = bx + addressDx + i * (spacing2 + 2 * charWidth) - (spacing2 + 1) / 2
                 val lineColor2 = if (i > 0) mixARGB(backgroundColor, lineColor, 0.3f) else lineColor
-                drawRect(x2, yl0i, 1, yl1, lineColor2)
+                canvas.drawRect(x2, yl0i, 1, yl1, lineColor2)
             }
             val x2 = bx + addressDx + bytesPerLine * (spacing2 + 2 * charWidth) - (spacing2 + 1) / 2
-            drawRect(x2, yl0i, 1, yl1, lineColor)
+            canvas.drawRect(x2, yl0i, 1, yl1, lineColor)
         }
     }
 
     fun drawChar(
-        xi: Int, yi: Long, dx: Int, dy: Int, char: String,
+        canvas: Canvas, xi: Int, yi: Long, dx: Int, dy: Int, char: String,
         textColor: Int, backgroundColor: Int,
-        drawTextNotBackground: Boolean
+        drawTextNotBackground: Boolean,
     ) {
         if (char == " ") return
         val x = dx + xi * charWidth
         val y = dy + (yi * lineHeight - extraScrolling).toInt()
         if (drawTextNotBackground) {
-            drawSimpleTextCharByChar(
-                x, y, 0, char, textColor, backgroundColor,
+            canvas.drawText(
+                x, y, monospaceFont, char, textColor, backgroundColor,
                 AxisAlignment.MIN, AxisAlignment.MIN,
             )
         } else if (backgroundColor != this.backgroundColor) {
-            drawRect(x, y, charWidth, lineHeight, backgroundColor)
+            canvas.drawRect(x, y, charWidth, lineHeight, backgroundColor)
         }
     }
 
     fun drawChar(
-        x: Int, y: Int, char: String,
-        textColor: Int, backgroundColor: Int
+        canvas: Canvas, x: Int, y: Int, char: String,
+        textColor: Int, backgroundColor: Int,
     ) {
-        drawSimpleTextCharByChar(
-            x, y, 0, char, textColor, backgroundColor,
+        canvas.drawText(
+            x, y, monospaceFont, char, textColor, backgroundColor,
             AxisAlignment.MIN, AxisAlignment.MIN,
         )
     }

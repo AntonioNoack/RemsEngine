@@ -6,12 +6,12 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.input.Input
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.editor.color.spaces.HSI
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
@@ -32,7 +32,7 @@ import kotlin.math.min
 open class ColorChooser(
     style: Style,
     val withAlpha: Boolean,
-    val palette: ColorPalette
+    val palette: ColorPalette,
 ) : PanelListY(style) {
 
     constructor(style: Style, palette: ColorPalette) : this(style, true, palette)
@@ -172,7 +172,7 @@ open class ColorChooser(
     fun drawColorBox(
         x: Int, y: Int, w: Int, h: Int,
         d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float,
-        mainBox: Boolean
+        mainBox: Boolean,
     ) {
         val visualisation = if (mainBox) visualisation else ColorVisualisation.BOX
         visualisation.drawColorBox(

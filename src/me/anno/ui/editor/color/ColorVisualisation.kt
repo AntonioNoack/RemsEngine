@@ -2,13 +2,13 @@ package me.anno.ui.editor.color
 
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawCurves.drawLine
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.GFXx2D.noTiling
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.GOLDEN_RATIOf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.length
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
 import me.anno.ui.editor.color.HSVBoxMain.Companion.drawColoredAlpha
 import me.anno.utils.Color.black
@@ -92,7 +92,7 @@ enum class ColorVisualisation(val id: Int, val nameDesc: NameDesc, val ratio: Fl
     fun drawColorBox(
         x: Int, y: Int, width: Int, height: Int,
         d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float,
-        self: ColorChooser
+        self: ColorChooser,
     ) {
         val shader = self.colorSpace.getShader(this)
         shader.use()
@@ -125,7 +125,7 @@ enum class ColorVisualisation(val id: Int, val nameDesc: NameDesc, val ratio: Fl
     }
 
     fun drawColorBoxDecoration(
-        x: Int, y: Int, width: Int, height: Int,
+        canvas: Canvas, x: Int, y: Int, width: Int, height: Int,
         backgroundColor: Int, chooser: ColorChooser,
     ) {
         // show the user, where he is
@@ -136,8 +136,8 @@ enum class ColorVisualisation(val id: Int, val nameDesc: NameDesc, val ratio: Fl
 
         fun drawCrossHair(x: Int, y: Int) {
             // draw a circle around instead?
-            drawRect(x, y - 1, 1, 3, black)
-            drawRect(x - 1, y, 3, 1, black)
+            canvas.drawRect(x, y - 1, 1, 3, black)
+            canvas.drawRect(x - 1, y, 3, 1, black)
         }
         when (val style = chooser.visualisation) {
             WHEEL -> {
@@ -182,7 +182,7 @@ enum class ColorVisualisation(val id: Int, val nameDesc: NameDesc, val ratio: Fl
                 drawCrossHair(x2, y2)
                 val w3 = width - w2
                 // 0.515
-                drawRect(
+                canvas.drawRect(
                     x + (w2 * 0.510f / 0.5f).toInt(),
                     y + (dy * (1f - chooser.lightness)).toInt(),
                     (w3 * 0.5f / 0.515f).toInt(),

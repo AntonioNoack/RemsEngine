@@ -7,20 +7,19 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
@@ -179,11 +178,11 @@ open class PureTextInput(style: Style) :
 
         super.draw(canvas)
 
-        showCursorAndSelection()
+        showCursorAndSelection(canvas)
         loadTexturesSync.pop()
     }
 
-    fun showCursorAndSelection() {
+    fun showCursorAndSelection(canvas: Canvas) {
         val font = content.font
         val textSize = font.sizeInt
         val textColor = content.textColor or black
@@ -204,7 +203,7 @@ open class PureTextInput(style: Style) :
                 val maxCursorX = kotlin.math.max(cursorX1, cursorX2)
 
                 // draw box in same line
-                drawRect(
+                canvas.drawRect(
                     panel2.x + minCursorX + panel2.padding.left,
                     panel2.y + padding,
                     maxCursorX - minCursorX,
@@ -212,7 +211,7 @@ open class PureTextInput(style: Style) :
                     textColor and 0x3fffffff
                 ) // marker
 
-                if (showBars) drawRect(
+                if (showBars) canvas.drawRect(
                     panel2.x + cursorX2 + panel2.padding.left - 1,
                     panel2.y + padding,
                     2,
@@ -221,7 +220,7 @@ open class PureTextInput(style: Style) :
                 )
                 // cursor 1
             }
-            if (showBars) drawRect(
+            if (showBars) canvas.drawRect(
                 panel1.x + cursorX1 + panel1.padding.left - 1,
                 panel1.y + padding,
                 2,

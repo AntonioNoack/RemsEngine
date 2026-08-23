@@ -136,9 +136,11 @@ open class Window(
             GFX.resetFBStack()
             Frame.reset()
 
+            canvas.finish() // finish anything before
             useWindowXY(max(panel.x, 0), max(panel.y, 0), buffer) {
                 renderDefault {
                     fullRedraw(canvas)
+                    canvas.finish() // finish rendering
                 }
             }
 

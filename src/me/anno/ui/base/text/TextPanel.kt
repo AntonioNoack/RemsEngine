@@ -148,23 +148,23 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         minH = max(1, getSizeY(size) + padding.height)
     }
 
-    fun underline(i0: Int, i1: Int) {
-        underline(i0, i1, effectiveTextColor, 1)
+    fun underline(canvas: Canvas, i0: Int, i1: Int) {
+        underline(canvas, i0, i1, effectiveTextColor, 1)
     }
 
-    fun underline(i0: Int, i1: Int, color: Int, thickness: Int) {
+    fun underline(canvas: Canvas, i0: Int, i1: Int, color: Int, thickness: Int) {
         val textSize = getTextSize(font, text, widthLimit, heightLimit)
         val dx = textAlignmentX.getOffset(width, getSizeX(textSize) + padding.width)
         val dy = textAlignmentY.getOffset(height, getSizeY(textSize) + padding.height)
-        underline(i0, i1, color, thickness, dx, dy)
+        underline(canvas, i0, i1, color, thickness, dx, dy)
     }
 
-    fun underline(i0: Int, i1: Int, color: Int, thickness: Int, dx: Int, dy: Int) {
+    fun underline(canvas: Canvas, i0: Int, i1: Int, color: Int, thickness: Int, dx: Int, dy: Int) {
         val x = this.x + dx + padding.left
         val y = this.y + dy + padding.top + font.sizeInt * 10 / 8
         val x0 = x + getTextSizeX(font, text.subSequence(0, i0))
         val x1 = x + getTextSizeX(font, text.subSequence(0, i1))
-        DrawRectangles.drawRect(x0, y, x1 - x0, thickness, color)
+        canvas.drawRect(x0, y, x1 - x0, thickness, color)
     }
 
     override fun calculateSize(w: Int, h: Int) {

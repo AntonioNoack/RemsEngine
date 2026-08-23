@@ -6,9 +6,9 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.input.Key
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector3f
@@ -39,8 +39,8 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
 
     override fun draw(canvas: Canvas) {
         drawBackground(canvas)
-        chooser.drawColorBox(this, v0, du, dv, dh, true)
-        chooser.visualisation.drawColorBoxDecoration(x, y, width, height, backgroundColor, chooser)
+        canvas.custom { chooser.drawColorBox(this, v0, du, dv, dh, true) }
+        chooser.visualisation.drawColorBoxDecoration(canvas, x, y, width, height, backgroundColor, chooser)
     }
 
     init {
@@ -50,7 +50,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
     companion object {
         fun drawColoredAlpha(
             x: Int, y: Int, w: Int, h: Int, chooser: ColorChooser,
-            sx: Float, sy: Float, withGradient: Boolean
+            sx: Float, sy: Float, withGradient: Boolean,
         ) {
             if (withGradient) {
                 drawRectGradient(x, y, w, h, chooser.backgroundColor.toVecRGBA(), chooser.rgba)

@@ -751,7 +751,7 @@ object DebugRendering {
         val y2 = rv.y + fontSize * 4
 
         fun drawLine(y: Int, text: String) {
-            DrawTexts.drawText(
+            canvas.drawText(
                 x2, y2 + y * fontSize, 1, monospaceFont,
                 text, FrameTimings.textColor, rv.background.color,
                 AxisAlignment.MIN, AxisAlignment.MAX
@@ -768,7 +768,6 @@ object DebugRendering {
         drawLine(numChannels + 2, "Controls: Alt + Arrows / P")
 
         // draw inspected color as rectangle
-        val rectBatch = DrawRectangles.startBatch()
         val y3 = y2 + menuHeight - tileSize
         val isDepth = isDepthFormat(texture.internalFormat)
         for (yi in 0 until inspectorSize) {
@@ -776,14 +775,13 @@ object DebugRendering {
                 val color = getColor(xi, yi, values, texture.isHDR, isDepth)
                 val xj = x2 - 1 + xi * tileSize
                 val yj = y3 - yi * tileSize
-                drawRect(xj, yj, tileSize, tileSize, color)
+                canvas.drawRect(xj, yj, tileSize, tileSize, color)
                 if (xi == inspectorPadding && yi == inspectorPadding) {
                     val borderColor = if (color.r() > 150) black else white
                     drawBorder(canvas, xj, yj, tileSize, tileSize, borderColor, 1)
                 }
             }
         }
-        DrawRectangles.finishBatch(rectBatch)
     }
 
     private fun getColor(xi: Int, yi: Int, values: FloatArray, isHDR: Boolean, isDepth: Boolean): Int {

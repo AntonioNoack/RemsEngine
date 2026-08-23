@@ -5,7 +5,6 @@ import me.anno.engine.history.StringHistory
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawStriped.drawRectStriped
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.input.ActionManager
@@ -267,8 +266,8 @@ open class CodeEditor(style: Style) : Panel(style) {
         )
     }
 
-    fun drawCharBackground(xi: Int, yi: Int, backgroundColor: Int): Unit =
-        drawRect(getCharX(xi), getCharY(yi), charWidth, lineHeight, backgroundColor or black)
+    fun drawCharBackground(canvas: Canvas, xi: Int, yi: Int, backgroundColor: Int): Unit =
+        canvas.drawRect(getCharX(xi), getCharY(yi), charWidth, lineHeight, backgroundColor or black)
 
     fun drawCharText(
         xi: Int, yi: Int, char: Int,
@@ -337,7 +336,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
         // draw selected line background color
         if (isInFocus && cursor0 == cursor1) {
-            drawRect(bg0, minSY, bg1 - bg0, maxSH, selectedLineBGColor)
+            canvas.drawRect(bg0, minSY, bg1 - bg0, maxSH, selectedLineBGColor)
         }
 
         val drawnYi = 0
@@ -375,7 +374,7 @@ open class CodeEditor(style: Style) : Panel(style) {
             val lineBGColor = if (lineIsSelected) selectedLineBGColor else theme.backgroundColor
             val isSelected = isInFocus && minCursor.contains(maxCursor, indexInLine, lineIndex)
             val background = if (isSelected) selectedBGColor else lineBGColor
-            drawCharBackground(cn + indexInLine, drawnYi + lineIndex, background)
+            drawCharBackground(canvas, cn + indexInLine, drawnYi + lineIndex, background)
             while (varIndex < spellcheckedSections.size &&
                 charIndex >= spellcheckedSections[varIndex].endIndex
             ) {

@@ -2,18 +2,17 @@ package me.anno.ui.input
 
 import me.anno.config.DefaultStyle.iconGray
 import me.anno.fonts.FontStats
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
-import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.unmix
-import me.anno.ui.canvas.Canvas
+import me.anno.maths.MinMax.max
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.Floats.roundToIntOr
@@ -23,7 +22,7 @@ import kotlin.math.round
 // todo possibility to set exact value -> maybe via double click, and an ask-menu
 class SliderInput(
     var minValue: Double, var maxValue: Double, var step: Double,
-    override var value: Double, nameDesc: NameDesc, val visibilityKey: String, style: Style
+    override var value: Double, nameDesc: NameDesc, val visibilityKey: String, style: Style,
 ) : PanelListY(style), InputPanel<Double> {
 
     inner class SliderDrawPanel : Panel(style.getChild("deep")) {
@@ -44,7 +43,7 @@ class SliderInput(
             super.draw(canvas)
             val xi = x + (width * unmix(minValue, maxValue, value)).roundToIntOr()
             val xClamped = clamp(xi, canvas.x0, canvas.x1)
-            drawRect(canvas.x0, canvas.y0, xClamped - canvas.x0, canvas.y1 - canvas.y0, sliderColor)
+            canvas.drawRect(canvas.x0, canvas.y0, xClamped - canvas.x0, canvas.y1 - canvas.y0, sliderColor)
         }
 
         private fun setFromMousePos(x: Float) {

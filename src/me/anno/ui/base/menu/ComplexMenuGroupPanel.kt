@@ -93,7 +93,7 @@ class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val magicIndex: Int, val
             AxisAlignment.MAX, AxisAlignment.MIN
         )
         if (magicIndex in text.indices) {
-            underline(magicIndex, magicIndex + 1)
+            underline(canvas, magicIndex, magicIndex + 1)
         }
     }
 

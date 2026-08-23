@@ -254,7 +254,7 @@ abstract class EngineBase(
         }
 
         if (WindowRenderFlags.showTutorialKeys) {
-            ShowKeys.draw(0, 0, h)
+            ShowKeys.draw(window.canvas, 0, 0, h)
         }
 
         val progressBars = window.progressBars

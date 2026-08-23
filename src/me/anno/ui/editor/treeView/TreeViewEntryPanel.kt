@@ -5,19 +5,18 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
 import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.gpu.Cursor
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.sq
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.utils.Color.b
@@ -31,7 +30,7 @@ import org.apache.logging.log4j.LogManager
 class TreeViewEntryPanel<V : Any>(
     val elementIndex: Int,
     private val treeView: TreeView<V>,
-    style: Style
+    style: Style,
 ) : PanelListX(style), ITreeViewEntryPanel {
 
     companion object {
@@ -139,9 +138,9 @@ class TreeViewEntryPanel<V : Any>(
             val lineWidth = textSize * 7
             val lineColor = midGray
             when (showAddIndex) {
-                0 -> drawRect(x, y, lineWidth, 1, lineColor)
-                1 -> drawRect(x + indent, y + height - 1, lineWidth, 1, lineColor)
-                2 -> drawRect(x, y + height - 1, lineWidth, 1, lineColor)
+                0 -> canvas.drawRect(x, y, lineWidth, 1, lineColor)
+                1 -> canvas.drawRect(x + indent, y + height - 1, lineWidth, 1, lineColor)
+                2 -> canvas.drawRect(x, y + height - 1, lineWidth, 1, lineColor)
             }
         }
     }

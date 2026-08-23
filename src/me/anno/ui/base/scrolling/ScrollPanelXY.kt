@@ -333,13 +333,13 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             // draw left shadow
             for (x in max(x0, x) until min(x1, x + shadowRadius)) {
                 val alpha = Maths.sq(1f - (x - this.x).toFloat() / shadowRadius)
-                DrawRectangles.drawRect(x, y0, 1, y1 - y0, shadowColor.mulAlpha(alpha))
+                canvas.drawRect(x, y0, 1, y1 - y0, shadowColor.mulAlpha(alpha))
             }
 
             // draw right shadow
             for (x in max(x0, x + width - shadowRadius) until min(x1, x + width)) {
                 val alpha = Maths.sq(1f - ((this.x + width) - x).toFloat() / shadowRadius)
-                DrawRectangles.drawRect(x, y0, 1, y1 - y0, shadowColor.mulAlpha(alpha))
+                canvas.drawRect(x, y0, 1, y1 - y0, shadowColor.mulAlpha(alpha))
             }
         }
 
@@ -352,13 +352,13 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             // draw top shadow
             for (y in max(y0, y) until min(y1, y + shadowRadius)) {
                 val alpha = Maths.sq(1f - (y - this.y).toFloat() / shadowRadius)
-                DrawRectangles.drawRect(x0, y, x1 - x0, 1, shadowColor.mulAlpha(alpha))
+                canvas.drawRect(x0, y, x1 - x0, 1, shadowColor.mulAlpha(alpha))
             }
 
             // draw bottom shadow
             for (y in max(y0, y + height - shadowRadius) until min(y1, y + height)) {
                 val alpha = Maths.sq(1f - ((this.y + height) - y).toFloat() / shadowRadius)
-                DrawRectangles.drawRect(x0, y, x1 - x0, 1, shadowColor.mulAlpha(alpha))
+                canvas.drawRect(x0, y, x1 - x0, 1, shadowColor.mulAlpha(alpha))
             }
         }
     }

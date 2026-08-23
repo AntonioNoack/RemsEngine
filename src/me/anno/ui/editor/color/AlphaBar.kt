@@ -1,9 +1,8 @@
 package me.anno.ui.editor.color
 
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths.clamp
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.black
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector3f
@@ -31,6 +30,6 @@ class AlphaBar(chooser: ColorChooser, style: Style) : HSVBox(
         // colorShowTexture.bind(0, NearestMode.TRULY_NEAREST, ClampMode.REPEAT)
         // drawTexture(x, y, w, h, colorShowTexture, -1, Vector4f(w.toFloat() / h, 1f, 0f, 0f))
         HSVBoxMain.drawColoredAlpha(x, y, width, height, chooser, width.toFloat() / height, 1f, true)
-        drawRect(dragX, canvas.y0, 1, canvas.y1 - canvas.y0, black)
+        canvas.drawRect(dragX, canvas.y0, 1, canvas.y1 - canvas.y0, black)
     }
 }

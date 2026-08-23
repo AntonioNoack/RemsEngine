@@ -17,8 +17,9 @@ object CanvasShader : Shader(
         Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
         Variable(GLSLType.V2F, "invRenderSize"),
         Variable(GLSLType.V2F, "invAtlasSize"),
-        Variable(GLSLType.V2I, "dstOffset"),
+        Variable(GLSLType.V2I, "dstOffset"), // todo dstOffset doesn't seem to do anything... maybe not relevant?
         Variable(GLSLType.M4x4, "transform"),
+        // todo scale/form UVs by clamping using scissor
     ), """
                         void main() {
                            bounds = instBounds;
@@ -27,10 +28,14 @@ object CanvasShader : Shader(
                            fgColor = instFgColor;
                            bgColor = instBgColor;
                            mode = instMode;
-                           vec2 pos = mix(vec2(instBounds.xy + dstOffset), vec2(instBounds.zw + dstOffset), positions);
+                           vec2 pos0 = vec2(max(instBounds.xy, instScissor.xy));
+                           vec2 pos1 = vec2(min(instBounds.zw, instScissor.zw));
+                           vec2 pos = mix(pos0, pos1, positions);
+                           vec2 uvFactor = (pos - pos0) / (pos1 - pos0);
+                           pos += vec2(dstOffset);
                            pos = pos * invRenderSize * 2.0 - 1.0;
                            pos.y = -pos.y;
-                           uv = mix(vec2(instTexBounds.xw), vec2(instTexBounds.zy), positions) * invAtlasSize;
+                           uv = mix(vec2(instTexBounds.xw), vec2(instTexBounds.zy), uvFactor) * invAtlasSize;
                            gl_Position = matMul(transform, vec4(pos, 0.0, 1.0));
                         }
                     """.trimIndent(), listOf(
@@ -56,9 +61,10 @@ object CanvasShader : Shader(
                                     result.rgb *= texture(atlasTexture, uv).rgb;
                                     break;
                                 case ${CanvasDrawMode.TEXT.ordinal}:
-                                    vec4 factor = texture(atlasTexture, uv).rgbg;
-                                    if (dot(factor.rgb, vec3(1.0)) < 0.01) discard;
-                                    result = mix(bgColor, fgColor, factor);
+                                    vec3 factor = texture(atlasTexture, uv).rgb;
+                                    if (dot(factor, vec3(1.0)) < 0.01) discard;
+                                    result.rgb = mix(bgColor.rgb, fgColor.rgb, factor.rgb);
+                                    result.a = fgColor.a * max(factor.r,max(factor.g,factor.b));
                                     break;
                                 default:
                                     float c = float(int(dot(gl_FragCoord.xy,vec2(1.0))) & 4) * 0.333;

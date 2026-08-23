@@ -7,14 +7,12 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
@@ -22,6 +20,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
@@ -229,7 +228,7 @@ open class PureTextInputML(style: Style) :
                     val maxCursorX = max(cursorX1, cursorX2)
 
                     // draw box in same line
-                    drawRect(
+                    canvas.drawRect(
                         panel2.x + minCursorX + panel2.padding.left,
                         panel2.y + padding,
                         maxCursorX - minCursorX,
@@ -244,7 +243,7 @@ open class PureTextInputML(style: Style) :
                     val maxPanel = children[maxCursor.y] as TextPanel
 
                     // draw end of first line
-                    drawRect(
+                    canvas.drawRect(
                         x + panel2.padding.left + firstCursorX,
                         minPanel.y + padding,
                         width - panel2.padding.width - firstCursorX,
@@ -254,7 +253,7 @@ open class PureTextInputML(style: Style) :
 
                     // draw in between lines
                     if (minCursor.y + 1 < maxCursor.y) {
-                        drawRect(
+                        canvas.drawRect(
                             x + panel2.padding.left,
                             minPanel.y + minPanel.height,
                             width - panel2.padding.width,
@@ -265,7 +264,7 @@ open class PureTextInputML(style: Style) :
 
                     // draw start of last line
                     val endX = maxPanel.x + lastCursorX
-                    drawRect(
+                    canvas.drawRect(
                         x + panel2.padding.left,
                         maxPanel.y,
                         endX - x,
@@ -273,7 +272,7 @@ open class PureTextInputML(style: Style) :
                         textColor and 0x3fffffff
                     )
                 }
-                if (showBars) drawRect(
+                if (showBars) canvas.drawRect(
                     panel2.x + cursorX2 + panel2.padding.left - 1,
                     panel2.y + padding,
                     2,
@@ -282,7 +281,7 @@ open class PureTextInputML(style: Style) :
                 )
                 // cursor 1
             }
-            if (showBars) drawRect(
+            if (showBars) canvas.drawRect(
                 panel1.x + cursorX1 + panel1.padding.left - 1,
                 panel1.y + padding,
                 2,

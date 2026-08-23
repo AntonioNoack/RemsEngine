@@ -3,9 +3,8 @@ package me.anno.ui.debug
 import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
-import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
-import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
@@ -166,17 +165,17 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
                 texture.createMonochromeFP16(fp16s, false)
 
-                GFX.check()
-                val shader = shader.value
-                shader.use()
-                shader.v1f("height", height1.toFloat())
-                posSize(shader, x, y, width, height)
-                shader.v4f("color", barColor)
-                shader.v4f("background", background)
-                noTiling(shader)
-                texture.bindTrulyNearest(shader, "tex")
-                SimpleBuffer.flat01.draw(shader)
-                GFX.check()
+                canvas.custom {
+                    val shader = shader.value
+                    shader.use()
+                    shader.v1f("height", height1.toFloat())
+                    posSize(shader, x, y, width, height)
+                    shader.v4f("color", barColor)
+                    shader.v4f("background", background)
+                    noTiling(shader)
+                    texture.bindTrulyNearest(shader, "tex")
+                    flat01.draw(shader)
+                }
 
                 background = background.withAlpha(0)
             }

@@ -3,14 +3,13 @@ package me.anno.input
 import me.anno.Time.uiDeltaTime
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFXState.renderDefault
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.maths.Maths.clamp
-import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
+import me.anno.maths.MinMax.min
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.types.Strings.joinChars
 
 /**
@@ -37,7 +36,7 @@ object ShowKeys {
         val key: Key,
         val isSuperKey: Boolean,
         var time: Float,
-        val state: KeyNames.InputState = KeyNames.InputState()
+        val state: KeyNames.InputState = KeyNames.InputState(),
     ) {
         var stateId = KeyNames.stateId
         var name = findName()
@@ -68,7 +67,7 @@ object ShowKeys {
     }
 
     @JvmStatic
-    private fun drawKey(text: String, alpha: Float, x0: Int, hmy: Int): Int {
+    private fun drawKey(canvas: Canvas, text: String, alpha: Float, x0: Int, hmy: Int): Int {
 
         val bgColor = template.backgroundColor
         val textColor = template.textColor
@@ -79,7 +78,7 @@ object ShowKeys {
         val alphaMask = clamp(alpha * 255, 0f, 255f).toInt().shl(24) or rgbMask
         val color = textColor and alphaMask
         val w0 = getTextSizeX(font, text)
-        drawRect(x0 + 5, hmy - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
+        canvas.drawRect(x0 + 5, hmy - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
 
         // text
         val textColor2 = color and alphaMask
@@ -87,14 +86,14 @@ object ShowKeys {
         val x = x0 + 10
         val y = hmy - 10 - fontSize
         val pbb = DrawTexts.pushBetterBlending(true)
-        drawText(x, y, font, text, textColor2, bgColor2, -1, -1)
+        canvas.drawText(x, y, font, text, textColor2, bgColor2, -1, -1)
         DrawTexts.popBetterBlending(pbb)
 
         return x0 + w0 + 16
     }
 
     @JvmStatic
-    fun draw(x: Int, y: Int, h: Int) {
+    fun draw(canvas: Canvas, x: Int, y: Int, h: Int) {
 
         // draw the current keys for a tutorial...
         // fade out keys
@@ -105,13 +104,17 @@ object ShowKeys {
         for ((key, _) in Input.keysDown) {
             when (key) {
                 Key.KEY_LEFT_CONTROL,
-                Key.KEY_RIGHT_CONTROL -> addKey(Key.KEY_LEFT_CONTROL, true)
+                Key.KEY_RIGHT_CONTROL,
+                    -> addKey(Key.KEY_LEFT_CONTROL, true)
                 Key.KEY_LEFT_SHIFT,
-                Key.KEY_RIGHT_SHIFT -> addKey(Key.KEY_LEFT_SHIFT, true)
+                Key.KEY_RIGHT_SHIFT,
+                    -> addKey(Key.KEY_LEFT_SHIFT, true)
                 Key.KEY_LEFT_ALT,
-                Key.KEY_RIGHT_ALT -> addKey(Key.KEY_LEFT_ALT, true)
+                Key.KEY_RIGHT_ALT,
+                    -> addKey(Key.KEY_LEFT_ALT, true)
                 Key.KEY_LEFT_SUPER,
-                Key.KEY_RIGHT_SUPER -> addKey(Key.KEY_LEFT_SUPER, true)
+                Key.KEY_RIGHT_SUPER,
+                    -> addKey(Key.KEY_LEFT_SUPER, true)
                 else -> addKey(key, false)
             }
         }
@@ -137,7 +140,7 @@ object ShowKeys {
                 if (key.stateId != KeyNames.stateId) {
                     key.name = key.findName()
                 }
-                x0 = drawKey(key.name, alpha, x0, h - y)
+                x0 = drawKey(canvas, key.name, alpha, x0, h - y)
             }
         }
     }

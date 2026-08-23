@@ -21,7 +21,9 @@ open class HSVBox(
     }
 
     override fun draw(canvas: Canvas) {
-        chooser.drawColorBox(this, v0, du, dv, dh, false)
+       canvas.custom {
+           chooser.drawColorBox(this, v0, du, dv, dh, false)
+       }
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

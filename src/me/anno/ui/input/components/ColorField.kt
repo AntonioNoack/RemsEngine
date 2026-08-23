@@ -1,20 +1,19 @@
 package me.anno.ui.input.components
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.drawing.DrawRectangles
+import me.anno.engine.EngineBase
+import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.input.Key
-import me.anno.utils.Color.mixARGB
-import me.anno.engine.EngineBase
-import me.anno.gpu.Cursor
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
-import me.anno.ui.dragging.Draggable
 import me.anno.ui.Style
+import me.anno.ui.canvas.Canvas
+import me.anno.ui.dragging.Draggable
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing
@@ -26,7 +25,7 @@ class ColorField(
     private val paletteX: Int,
     private val paletteY: Int,
     private val constSize: Int,
-    style: Style
+    style: Style,
 ) : Panel(style) {
 
     constructor(base: ColorField) : this(
@@ -59,10 +58,12 @@ class ColorField(
         // draw border/background depending on hover/focus
         val backgroundColor = if (isHovered) if (isInFocus) focusHoverColor else hoverColor
         else if (isInFocus) focusColor else backgroundColor
-        DrawRectangles.drawRect(x, y, width, height, backgroundColor)
-        TextureLib.colorShowTexture.bind(0, Filtering.TRULY_NEAREST, Clamping.REPEAT)
-        DrawTextures.drawTexture(x + 1, y + 1, width - 2, height - 2, TextureLib.colorShowTexture, -1, tiling)
-        DrawRectangles.drawRect(x + 1, y + 1, width - 2, height - 2, color)
+        canvas.drawRect(x, y, width, height, backgroundColor)
+        canvas.custom {
+            TextureLib.colorShowTexture.bind(0, Filtering.TRULY_NEAREST, Clamping.REPEAT)
+            DrawTextures.drawTexture(x + 1, y + 1, width - 2, height - 2, TextureLib.colorShowTexture, -1, tiling)
+        }
+        canvas.drawRect(x + 1, y + 1, width - 2, height - 2, color)
     }
 
     override fun onCopyRequested(x: Float, y: Float) = color.toHexColor()
@@ -101,7 +102,7 @@ class ColorField(
         dx: Float,
         dy: Float,
         action: String,
-        isContinuous: Boolean
+        isContinuous: Boolean,
     ): Boolean {
         when (action) {
             "DragStart" -> {

@@ -5,29 +5,28 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Clipboard.getClipboardContent
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.ITreeViewEntryPanel
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.editor.treeView.TreeViewEntryPanel
 import me.anno.utils.structures.Collections.setContains
-import me.anno.maths.Maths.clamp
-import me.anno.ui.canvas.Canvas
 import org.apache.logging.log4j.LogManager
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -47,7 +46,7 @@ import kotlin.math.pow
 abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     title: String, // todo add title
     val visibilityKey: String,
-    val newValue: () -> EntryType, style: Style
+    val newValue: () -> EntryType, style: Style,
 ) : TreeView<IntRange>(
     object : FileContentImporter<IntRange>() {},
     true,
@@ -116,7 +115,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
             val y2 = max(child.y + buttonPadding, lastY)
             val y3 = child.y + child.height - buttonPadding
             if (y3 > y2) {
-                drawRect(buttonX, y2, buttonW, y3 - y2, -1)
+                canvas.drawRect(buttonX, y2, buttonW, y3 - y2, -1)
             }
             lastY = y2 + buttonPadding
         }
@@ -368,7 +367,8 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
             )
         } else if (button == Key.BUTTON_RIGHT) {
             // todo when everything is working, use actions instead
-            openMenu(windowStack, listOf(
+            openMenu(
+                windowStack, listOf(
                 MenuOption(NameDesc("Add Entry")) {
                     val value = newValue()
                     values.add(value)
