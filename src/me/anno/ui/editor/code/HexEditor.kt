@@ -19,6 +19,7 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.MinMax.max
 import me.anno.maths.MinMax.min
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -153,14 +154,14 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     val addressDx get() = spacing2 + charWidth * addressDigits
 
     private val buffers = ArrayList<ByteArray?>()
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         // calculate line number
         val rectBatch = DrawRectangles.startBatch()
-        drawBackground(x0, y0, x1, y1)
-        drawTextOrBackground(y0, y1, false)
+        drawBackground(canvas)
+        drawTextOrBackground(canvas.y0, canvas.y1, false)
         DrawRectangles.finishBatch(rectBatch)
         val textBatch = DrawTextBatched.startSimpleBatch()
-        drawTextOrBackground(y0, y1, true)
+        drawTextOrBackground(canvas.y0, canvas.y1, true)
         DrawTextBatched.finishSimpleBatch(textBatch)
     }
 

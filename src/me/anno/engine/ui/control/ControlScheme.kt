@@ -38,6 +38,7 @@ import me.anno.input.controller.ControllerType
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo10
+import me.anno.ui.Canvas
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.debug.FrameTimings
@@ -427,12 +428,12 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     }
 
     // to do call events before we draw the scene? that way we would not get the 1-frame delay
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         // no background
         makeBackgroundTransparent()
-        super.draw(x0, y0, x1, y1)
+        super.draw(canvas)
         if (settings.showRenderTimes) {
-            DebugRendering.showTimeRecords(renderView)
+            DebugRendering.showTimeRecords(canvas, renderView)
         }
     }
 

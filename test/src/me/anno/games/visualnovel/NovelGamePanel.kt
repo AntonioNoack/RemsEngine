@@ -75,7 +75,7 @@ class NovelGamePanel(val stateMachine: StateMachine) : PanelList(DefaultConfig.s
         )
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
 
         if (textTime == 0L) textTime = Time.nanoTime
 
@@ -89,7 +89,7 @@ class NovelGamePanel(val stateMachine: StateMachine) : PanelList(DefaultConfig.s
             val (w, h) = ImageScale.scaleMin(bgImage.width, bgImage.height, width, height)
             val yi = if (hasText) y + (height * 8 / 10 - h) / 2 else y + (height - h) / 2
             DrawTextures.drawTexture(x + (width - w) / 2, yi, w, h, bgImage)
-        } else drawBackground(x0, y0, x1, y1)
+        } else drawBackground(canvas)
 
         val charWidth = (0.38f * max(width, height)).toInt()
 

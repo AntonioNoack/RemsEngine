@@ -6,6 +6,7 @@ import me.anno.engine.WindowRenderFlags
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import org.joml.Quaternionf
@@ -15,14 +16,14 @@ import org.joml.Vector3f
 /**
  * panel to test drawing functions
  * */
-open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
+open class TestDrawPanel(val draw: (p: TestDrawPanel, canvas: Canvas) -> Unit) : Panel(style) {
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        draw(this)
+    override fun draw(canvas: Canvas) {
+        draw(this, canvas)
     }
 
-    fun clear() {
-        drawBackground(x, y, x + width, y + height)
+    fun clear(canvas: Canvas) {
+        drawBackground(canvas)
     }
 
     override val canDrawOverBorders get() = true
@@ -54,12 +55,16 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
     companion object {
 
         @JvmStatic
-        fun testDrawing(title: String, draw: (p: TestDrawPanel) -> Unit) {
+        fun testDrawing(title: String, draw: (p: TestDrawPanel, canvas: Canvas) -> Unit) {
             testUI3(title) { TestDrawPanel(draw) }
         }
 
         @JvmStatic
-        fun testDrawing(title: String, init: (p: TestDrawPanel) -> Unit, draw: (p: TestDrawPanel) -> Unit) {
+        fun testDrawing(
+            title: String,
+            init: (p: TestDrawPanel) -> Unit,
+            draw: (p: TestDrawPanel, canvas: Canvas) -> Unit
+        ) {
             testUI3(title) {
                 val panel = TestDrawPanel(draw)
                 init(panel)
@@ -68,17 +73,22 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
         }
 
         @JvmStatic
-        fun testDrawingWithControls(title: String, draw: (p: TestDrawPanel, pos: Vector3f, rot: Quaternionf) -> Unit) {
+        fun testDrawingWithControls(
+            title: String, draw: (
+                p: TestDrawPanel, canvas: Canvas,
+                pos: Vector3f, rot: Quaternionf
+            ) -> Unit
+        ) {
             val cameraPosition = Vector3f(0f, 2f, -3f)
             val cameraRotation = Quaternionf()
             val accumulatedRotation = Vector2f()
             val velocity = Vector3f()
-            testDrawing(title) {
-                val scale = 5f / it.height
-                accumulatedRotation.add(it.mx * scale, it.my * scale)
+            testDrawing(title) { p, _ ->
+                val scale = 5f / p.height
+                accumulatedRotation.add(p.mx * scale, p.my * scale)
                 accumulatedRotation.y = clamp(accumulatedRotation.y, -1.57f, +1.57f)
-                it.mx = 0f
-                it.my = 0f
+                p.mx = 0f
+                p.my = 0f
                 cameraRotation.identity()
                     .rotateY(accumulatedRotation.x)
                     .rotateX(accumulatedRotation.y)
@@ -90,7 +100,7 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
                 if (Input.isKeyDown(Key.KEY_Q)) velocity.y -= 1f
                 if (Input.isKeyDown(Key.KEY_E)) velocity.y += 1f
                 cameraPosition.add(velocity.mul(3f * Time.uiDeltaTime.toFloat()).rotate(cameraRotation))
-                draw(it, cameraPosition, cameraRotation)
+                draw(p, cameraPosition, cameraRotation)
             }
         }
     }

@@ -193,8 +193,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
     val hasRoundedCorners get() = background.radius > 0f || background.outlineThickness > 0f
     open val canDrawOverBorders get() = hasRoundedCorners
 
-    open fun drawBackground(x0: Int, y0: Int, x1: Int, y1: Int, dx: Int = 0, dy: Int = dx) {
-        background.drawBackground(x, y, width, height, x0, y0, x1, y1, dx, dy, hasRoundedCorners, uiParent)
+    open fun drawBackground(canvas: Canvas, dx: Int = 0, dy: Int = dx) {
+        background.drawBackground(x, y, width, height, canvas, dx, dy, hasRoundedCorners, uiParent)
     }
 
     @NotSerializedProperty
@@ -233,8 +233,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * more does not need to be drawn;
      * the area is already clipped with useFrame(x0,y0,x1-x0,y1-y0)
      * */
-    open fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawBackground(x0, y0, x1, y1)
+    open fun draw(canvas: Canvas) {
+        drawBackground(canvas)
     }
 
     fun setPosSizeAligned(x: Int, y: Int, availableW: Int, availableH: Int) {
@@ -689,7 +689,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
     }
 
-    fun showIsInFocus(extraPadding: Int = 0) {
+    fun showIsInFocus(canvas: Canvas, extraPadding: Int = 0) {
 
         val batch = DrawRectangles.startBatch()
         val padding = 2 + extraPadding

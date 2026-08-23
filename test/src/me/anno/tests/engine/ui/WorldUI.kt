@@ -37,8 +37,8 @@ fun main() {
             text = "[${ws.mouseXi},${ws.mouseYi}]"
         }
 
-        override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-            super.draw(x0, y0, x1, y1)
+        override fun draw(canvas: Canvas) {
+            super.draw(canvas)
             // draw cursor position
             val ws = windowStack
             DrawRectangles.drawRect(ws.mouseXi, ws.mouseYi, 1, 1, -1)

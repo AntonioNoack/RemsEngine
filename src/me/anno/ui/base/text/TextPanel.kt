@@ -14,6 +14,7 @@ import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -98,7 +99,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             font = font.withItalic(value)
         }
 
-    open fun drawText(color: Int) {
+    open fun drawText(canvas: Canvas, color: Int) {
         val textAlignmentX = textAlignmentX
         val textAlignmentY = textAlignmentY
         val padding = padding
@@ -171,11 +172,11 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         calculateSize(w, text)
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         val bg = background.color
         background.color = if (isInFocus && enableFocusColor) focusBackgroundColor else background.color
-        drawBackground(x0, y0, x1, y1)
-        drawText(effectiveTextColor)
+        drawBackground(canvas)
+        drawText(canvas, effectiveTextColor)
         background.color = bg
     }
 

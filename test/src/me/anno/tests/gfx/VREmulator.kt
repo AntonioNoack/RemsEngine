@@ -108,14 +108,14 @@ object VREmulator : VRRendering(), VRRenderingRoutine {
 
 object VRViewPanel : Panel(style) {
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         val texture = VREmulator.framebuffer.getTexture0()
         if (texture.isCreated()) {
             DrawTextures.drawTexture(
                 x, y, width, height, texture,
                 ignoreAlpha = true
             )
-        } else drawBackground(x0, y0, x1, y1)
+        } else drawBackground(canvas)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

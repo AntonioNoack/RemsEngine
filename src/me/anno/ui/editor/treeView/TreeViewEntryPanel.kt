@@ -128,8 +128,8 @@ class TreeViewEntryPanel<V : Any>(
         uiSymbol?.background?.color = backgroundColor
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
         // draw the paste-preview
         val showAddIndex = showAddIndex
         if (showAddIndex != null) {

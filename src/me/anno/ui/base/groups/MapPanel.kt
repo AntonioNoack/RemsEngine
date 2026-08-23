@@ -8,6 +8,7 @@ import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawsOverX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawsOverY
@@ -181,24 +182,26 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         isDownOnScrollbarY = hasScrollbarY && drawsOverY(xi, yi)
     }
 
-    fun draw2DLineGrid(x0: Int, y0: Int, x1: Int, y1: Int, color: Int, gridSize: Double) {
-        val gridX0 = windowToCoordsX(x0.toDouble())
-        val gridX1 = windowToCoordsX(x1.toDouble())
-        val gridY0 = windowToCoordsY(y0.toDouble())
-        val gridY1 = windowToCoordsY(y1.toDouble())
+    fun draw2DLineGrid(canvas: Canvas, color: Int, gridSize: Double) {
+        val gridX0 = windowToCoordsX(canvas.x0.toDouble())
+        val gridX1 = windowToCoordsX(canvas.x1.toDouble())
+        val gridY0 = windowToCoordsY(canvas.y0.toDouble())
+        val gridY1 = windowToCoordsY(canvas.y1.toDouble())
         val i0 = floor(gridX0 / gridSize).toLong()
         val i1 = ceil(gridX1 / gridSize).toLong()
         val j0 = floor(gridY0 / gridSize).toLong()
         val j1 = ceil(gridY1 / gridSize).toLong()
+        val w = canvas.x1 - canvas.x0
+        val h = canvas.y1 - canvas.y0
         for (i in i0 until i1) {
             val gridX = i * gridSize
             val windowX = coordsToWindowX(gridX).toInt()
-            if (windowX in x0 until x1) DrawRectangles.drawRect(windowX, y0, 1, y1 - y0, color)
+            if (windowX in canvas.x0 until canvas.x1) DrawRectangles.drawRect(windowX, canvas.y0, 1, h, color)
         }
         for (j in j0 until j1) {
             val gridY = j * gridSize
             val windowY = coordsToWindowY(gridY).toInt()
-            if (windowY in y0 until y1) DrawRectangles.drawRect(x0, windowY, x1 - x0, 1, color)
+            if (windowY in canvas.y0 until canvas.y1) DrawRectangles.drawRect(canvas.x0, windowY, w, 1, color)
         }
     }
 
@@ -215,10 +218,10 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         scrollbarY.height = height - 2 * scrollbarPadding
     }
 
-    fun drawScrollbars(x0: Int, y0: Int, x1: Int, y1: Int) {
-        layoutScrollbars(x1, y1)
-        if (hasScrollbarX) drawChild(scrollbarX, x0, y0, x1, y1)
-        if (hasScrollbarY) drawChild(scrollbarY, x0, y0, x1, y1)
+    fun drawScrollbars(canvas: Canvas) {
+        layoutScrollbars(canvas.x1, canvas.y1)
+        if (hasScrollbarX) drawChild(scrollbarX, canvas)
+        if (hasScrollbarY) drawChild(scrollbarY, canvas)
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {

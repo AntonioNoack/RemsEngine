@@ -16,6 +16,7 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.maths.MinMax.min
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -303,7 +304,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
 
         var x = getCharX(0)
         val y = getCharY(0)
@@ -314,7 +315,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val maxCursor = maxCursor
 
         background.color = theme.backgroundColor or black
-        drawBackground(x0, y0, x1, y1)
+        drawBackground(canvas)
 
         // draw the selected lines with special color background
         val selectedBGColor = theme.selectedBGColor or black
@@ -326,11 +327,11 @@ open class CodeEditor(style: Style) : Panel(style) {
         val lineNumberBGColor = theme.numbersBGColor or black
 
         // draw number line background color
-        drawLineNumberBackground(cn, y0, y1, lineNumberBGColor)
+        drawLineNumberBackground(cn, canvas.y0, canvas.y1, lineNumberBGColor)
 
         val selectedLineBGColor = theme.selectedLineBGColor.withAlpha(1f)
-        val bg0 = max(x0, this.x + cn * charWidth + padding.left)
-        val bg1 = min(x1, this.x + this.width - padding.right)
+        val bg0 = max(canvas.x0, this.x + cn * charWidth + padding.left)
+        val bg1 = min(canvas.x1, this.x + this.width - padding.right)
 
         // draw selected line background color
         if (isInFocus && cursor0 == cursor1) {

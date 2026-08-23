@@ -2,6 +2,7 @@ package me.anno.ui.background
 
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawRounded.drawRoundedRectSquircle
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.a
@@ -19,7 +20,7 @@ class Background(style: Style) {
 
     fun drawBackground(
         x: Int, y: Int, width: Int, height: Int,
-        x0: Int, y0: Int, x1: Int, y1: Int, dx: Int, dy: Int,
+        canvas: Canvas, dx: Int, dy: Int,
         hasRoundedCorners: Boolean, uiParent: Panel?
     ) {
         // if the children are overlapping, this is incorrect
@@ -37,10 +38,10 @@ class Background(style: Style) {
                     radius, th, color, outlineColor, bg, 1f
                 )
             } else {
-                val x2 = max(x0, x + dx)
-                val y2 = max(y0, y + dy)
-                val x3 = min(x1, x + width - dx)
-                val y3 = min(y1, y + height - dy)
+                val x2 = max(canvas.x0, x + dx)
+                val y2 = max(canvas.y0, y + dy)
+                val x3 = min(canvas.x1, x + width - dx)
+                val y3 = min(canvas.y1, y + height - dy)
                 drawRect(x2, y2, x3 - x2, y3 - y2, color)
             }
         }

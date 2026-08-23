@@ -6,6 +6,7 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
@@ -29,15 +30,15 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
             } else null
 
     private var loadTextSync = false
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         loadTexturesSync.push(loadTextSync)
-        super.draw(x0, y0, x1, y1)
-        drawSuggestionLines(x0, x1)
+        super.draw(canvas)
+        drawSuggestionLines(canvas)
         loadTexturesSync.pop()
     }
 
     var suggestionSquiggleColor = 0xffff00 or black
-    fun drawSuggestionLines(x0: Int, x1: Int) {
+    fun drawSuggestionLines(canvas: Canvas) {
         val suggestions = suggestions?.value
         if (!suggestions.isNullOrEmpty()) {
             // display all suggestions
@@ -46,8 +47,8 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
             val color = suggestionSquiggleColor
             for (si in suggestions.indices) {
                 val s = suggestions[si]
-                val startX = max(x0, offset + getXOffset(s.start))
-                val endX = min(x1, offset + getXOffset(s.end))
+                val startX = max(canvas.x0, offset + getXOffset(s.start))
+                val endX = min(canvas.x1, offset + getXOffset(s.end))
                 drawSquiggles1(startX, endX, lineY, 3, color)
             }
             val window = window

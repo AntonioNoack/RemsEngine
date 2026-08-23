@@ -3,6 +3,7 @@ package me.anno.ui.input
 import me.anno.gpu.Cursor
 import me.anno.input.Input.isLeftDown
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextStyleable
@@ -81,12 +82,12 @@ abstract class NumberInput<BaseType>(
             titleView?.isItalic = value
         }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         val focused1 = titleView?.isInFocus == true || isInFocus || inputPanel.isInFocus
         if (focused1) {
             isSelectedListener?.invoke()
         }
-        super.draw(x0, y0, x1, y1)
+        super.draw(canvas)
         when (this) {
             is IntInput -> updateValueMaybe()
             is FloatInput -> updateValueMaybe()

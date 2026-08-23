@@ -535,9 +535,9 @@ open class FileExplorerEntry(
 
     private var lines = 0
     private var padding = 0
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
 
-        drawBackground(x0, y0, x1, y1)
+        drawBackground(canvas)
 
         val w = width
         val h = height

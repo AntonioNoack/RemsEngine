@@ -34,7 +34,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
 
     var isLocking = false
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         DrawTexts.drawText(x, y, 2, number)
         DrawTexts.drawText(x, y + 20, 2, mode.name)
     }

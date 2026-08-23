@@ -37,8 +37,8 @@ class TriggerPanel(
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
         // -1 = start, +1 = end
         val v01 = controller.getRawAxis(axis0) * .5f + .5f
         val v0h = (v01 * height).toInt()

@@ -10,6 +10,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.maths.MinMax.min
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -120,28 +121,28 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         clampScrollPosition()
-        super.draw(x0, y0, x1, y1)
-        drawShadowsAndScrollbar(x0, y0, x1, y1)
+        super.draw(canvas)
+        drawShadowsAndScrollbar(canvas)
     }
 
-    fun drawShadowsAndScrollbar(x0: Int, y0: Int, x1: Int, y1: Int) {
+    fun drawShadowsAndScrollbar(canvas: Canvas) {
         val batch = DrawRectangles.startBatch()
         if (alwaysShowShadowX) {
-            drawShadowX(x0, y0, x1, y1, shadowRadius)
+            drawShadowX(canvas, shadowRadius)
         }
         if (hasScrollbar) {
             if (!alwaysShowShadowX) {
                 val shadowRadius = min(maxScrollPositionX, shadowRadius.toLong()).toInt()
-                drawShadowX(x0, y0, x1, y1, shadowRadius)
+                drawShadowX(canvas, shadowRadius)
             }
             val scrollbar = scrollbar
             scrollbar.x = x + scrollbarPadding
             scrollbar.y = y + height - scrollbarHeight - scrollbarPadding
             scrollbar.width = width - 2 * scrollbarPadding
             scrollbar.height = scrollbarHeight
-            drawChild(scrollbar, x0, y0, x1, y1)
+            drawChild(scrollbar, canvas)
         }
         DrawRectangles.finishBatch(batch)
     }

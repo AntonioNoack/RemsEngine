@@ -16,7 +16,7 @@ class IntArrayListTest {
         assertEquals(list.toList(), listOf(1, 3))
         list.add(0, 5)
         assertEquals(list.toList(), listOf(5, 1, 3))
-        list.removeBetween(0, 1)
+        list.removeRange(0, 1)
         assertEquals(list.toList(), listOf(1, 3))
     }
 }

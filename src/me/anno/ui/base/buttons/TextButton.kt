@@ -7,6 +7,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -122,14 +123,14 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
         else normalBackgroundColor
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawBackground(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        drawBackground(canvas)
         drawButtonText()
         drawButtonBorder(
             leftColor, topColor, rightColor, bottomColor,
             isInputAllowed, borderSize, isPressed
         )
-        if (isInFocus) showIsInFocus(borderSize.left)
+        if (isInFocus) showIsInFocus(canvas, borderSize.left)
     }
 
     fun drawButtonText() {

@@ -36,8 +36,8 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
         } else super.onKeyDown(x, y, key)
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawBackground(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        drawBackground(canvas)
         chooser.drawColorBox(this, v0, du, dv, dh, true)
         chooser.visualisation.drawColorBoxDecoration(x, y, width, height, backgroundColor, chooser)
     }

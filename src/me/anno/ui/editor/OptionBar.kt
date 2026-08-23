@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.ExtraKeyListeners
@@ -23,8 +24,8 @@ class OptionBar(style: Style) : PanelListX(style.getChild("options")) {
             this.name = name
         }
 
-        override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-            super.draw(x0, y0, x1, y1)
+        override fun draw(canvas: Canvas) {
+            super.draw(canvas)
             if (magicIndex in text.indices) {
                 underline(magicIndex, magicIndex + 1)
             }

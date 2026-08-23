@@ -1,6 +1,7 @@
 package me.anno.ui.dragging
 
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel
@@ -37,9 +38,9 @@ open class Draggable(
         return Vector2i(ui.minW, ui.minH)
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        ui.setPosSize(x0, y0, x1 - x0, y1 - y0)
-        ui.draw(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        ui.setPosSize(canvas.x0, canvas.y0, canvas.x1 - canvas.x0, canvas.y1 - canvas.y0)
+        ui.draw(canvas)
     }
 
     override fun getContent(): String = content

@@ -9,6 +9,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.input.InputPanel
@@ -53,8 +54,8 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         return this
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
         val texture = getImage(value) ?: whiteTexture
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
         drawTexture(

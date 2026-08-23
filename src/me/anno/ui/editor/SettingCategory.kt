@@ -3,6 +3,7 @@ package me.anno.ui.editor
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.language.translation.NameDesc
 import me.anno.maths.MinMax.min
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -46,9 +47,9 @@ open class SettingCategory private constructor(
         if (isInputAllowed) InputVisibility.toggle(visibilityKey)
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
-        if (isInFocus) showIsInFocus()
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
+        if (isInFocus) showIsInFocus(canvas)
     }
 
     fun showByDefault(): SettingCategory {

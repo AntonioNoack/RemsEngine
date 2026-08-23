@@ -22,7 +22,7 @@ class AlphaBar(chooser: ColorChooser, style: Style) : HSVBox(
             8, true
         )
     }) {
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         val dragX = clamp(x0 + ((x1 - x0) * chooser.opacity).roundToIntOr(), x0, x1 - 1)
         // drawRectGradient(x, y, w, h, backgroundColor.toVecRGBA(), Vector4f(1f))
         // colorShowTexture.bind(0, NearestMode.TRULY_NEAREST, ClampMode.REPEAT)

@@ -1,6 +1,5 @@
 package me.anno.tests.geometry
 
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawingWithControls
 import me.anno.utils.hpc.HeavyProcessing
@@ -31,13 +30,13 @@ fun main() {
     val bounds = AABBf(-1f, 0f, -1f, +1f, 0f, +1f)
     val texture = Texture2D("render", 1, 1, 1)
     LogManager.disableLogger("WorkSplitter")
-    testDrawingWithControls("AABBHitTest") { it, cameraPosition, cameraRotation ->
-        it.clear()
-        val x0f = it.width / 2f
-        val y0f = it.height / 2f
+    testDrawingWithControls("AABBHitTest") { p, canvas, cameraPosition, cameraRotation ->
+        p.clear(canvas)
+        val x0f = p.width / 2f
+        val y0f = p.height / 2f
         val z = max(x0f, y0f)
-        val w = it.width
-        val h = it.height
+        val w = p.width
+        val h = p.height
         val data = ByteArray(w * h)
         HeavyProcessing.processBalanced2d(
             0, 0, w, h, 32, 8
@@ -56,6 +55,6 @@ fun main() {
         texture.width = w
         texture.height = h
         texture.createMonochrome(data, false)
-        drawTexture(it.x, it.y, w, h, texture)
+        canvas.drawTexture(p.x, p.y, w, h, texture)
     }
 }

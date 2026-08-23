@@ -2,6 +2,7 @@ package me.anno.ui.custom
 
 import me.anno.gpu.Cursor
 import me.anno.input.Key
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -117,10 +118,10 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
 
     private val hoverColor = style.getColor("customList.hoverColor", mixARGB(0x77ffb783, background.originalColor, 0.8f))
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         background.color = hoverColor
-        drawBackground(x0, y0, x1, y1)
-        drawChildren(x0, y0, x1, y1)
+        drawBackground(canvas)
+        drawChildren(canvas)
         if (isX) {
             val scrollbar = scrollbars[0]
             scrollbar.x = child.x + child.width
@@ -128,7 +129,7 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
             scrollbar.width = spacing
             scrollbar.height = height
             updateScrollbar(scrollbar, false)
-            drawChild(scrollbar, x0, y0, x1, y1)
+            drawChild(scrollbar, canvas)
         }
         if (isY) {
             val scrollbar = scrollbars[isX.toInt()]
@@ -137,7 +138,7 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
             scrollbar.width = width
             scrollbar.height = spacing
             updateScrollbar(scrollbar, true)
-            drawChild(scrollbar, x0, y0, x1, y1)
+            drawChild(scrollbar, canvas)
         }
     }
 

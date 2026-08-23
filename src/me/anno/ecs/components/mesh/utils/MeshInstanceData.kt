@@ -103,6 +103,10 @@ class MeshInstanceData(
             emptyList()
         )
 
+        /**
+         * translation + rotation + scale (px,py,pz,scale,rx,ry,rz,rw)
+         * */
+        @Deprecated("We can replace all TRS with TRC")
         val TRS = MeshInstanceData(
             listOf(
                 ShaderStage(
@@ -137,34 +141,41 @@ class MeshInstanceData(
             ), emptyList()
         )
 
+        /**
+         * translation + rotation + color + scale (px,py,pz,color,rx*scale,ry*scale,rz*scale,rw*scale)
+         * */
         val TRC = MeshInstanceData(
             listOf(
                 ShaderStage(
-                    "trs-pos",
+                    "trc-pos",
                     listOf(
                         Variable(GLSLType.V4F, "instancePosSize", VariableMode.ATTR),
                         Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR),
                         Variable(GLSLType.V3F, "localPosition"),
+                        Variable(GLSLType.V4F, "instanceRotNor", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
                     ),
-                    "finalPosition = quatRot(localPosition, instanceRot) + instancePosSize.xyz;\n" +
+                    "" +
+                            "float scale = length(instanceRot);\n" +
+                            "instanceRotNor = instanceRot / scale;\n" +
+                            "finalPosition = quatRot(localPosition, instanceRotNor) * scale + instancePosSize.xyz;\n" +
                             "vertexColor0 = unpackNumber(instancePosSize.w);\n"
                 ).add(ShaderLib.quatRot).add(ShaderLib.unpackNumber)
             ),
             listOf(
                 ShaderStage(
-                    "trs-nor", listOf(
-                        Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR),
+                    "trc-nor", listOf(
+                        Variable(GLSLType.V4F, "instanceRotNor"),
                         Variable(GLSLType.V3F, "normal", VariableMode.INOUT),
                         Variable(GLSLType.V4F, "tangent", VariableMode.INOUT)
-                    ), "normal = quatRot(normal, instanceRot);\n" +
-                            "tangent.xyz = quatRot(tangent.xyz, instanceRot);\n"
+                    ), "normal = quatRot(normal, instanceRotNor);\n" +
+                            "tangent.xyz = quatRot(tangent.xyz, instanceRotNor);\n"
                 ).add(ShaderLib.quatRot)
             ),
             emptyList(), // colors aren't changed
             listOf(
                 ShaderStage(
-                    "trs-mov", listOf(
+                    "trc-mov", listOf(
                         Variable(GLSLType.V3F, "finalPosition"),
                         Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
                     ), "prevPosition = vec4(finalPosition,1.0);\n"

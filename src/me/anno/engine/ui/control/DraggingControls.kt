@@ -36,6 +36,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.pow
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.UIColors
 import me.anno.ui.base.buttons.TextButton
@@ -223,14 +224,14 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     val movedSample = Entity()
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
         drawRectangleSelection()
         drawStats()
         drawModeName()
         if (settings.drawInspected) {
             // redraw children if we drew over everything
-            drawChildren(x0, y0, x1, y1)
+            drawChildren(canvas)
         }
     }
 

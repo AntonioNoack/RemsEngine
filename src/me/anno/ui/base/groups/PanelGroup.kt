@@ -1,8 +1,8 @@
 package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.Clipping
 import me.anno.io.base.BaseWriter
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.types.Strings
@@ -25,48 +25,40 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
-        drawChildren(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
+        drawChildren(canvas)
     }
 
-    open fun drawChildren(x0: Int, y0: Int, x1: Int, y1: Int) {
+    open fun drawChildren(canvas: Canvas) {
         val children = children
         for (index in children.indices) {
             val child = children[index]
             if (child.canBeSeen) {
-                drawChild(child, x0, y0, x1, y1)
+                drawChild(child, canvas)
             }
         }
     }
 
-    open fun drawChild(child: Panel, x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
-        val x02 = max(child.x, x0)
-        val y02 = max(child.y, y0)
-        val x12 = min(child.x + child.width, x1)
-        val y12 = min(child.y + child.height, y1)
+    open fun drawChild(child: Panel, canvas: Canvas): Boolean {
+        val x02 = max(child.x, canvas.x0)
+        val y02 = max(child.y, canvas.y0)
+        val x12 = min(child.x + child.width, canvas.x1)
+        val y12 = min(child.y + child.height, canvas.y1)
         return if (x12 > x02 && y12 > y02) {
-            if (child.canDrawOverBorders) {
-                Clipping.clip2(x02, y02, x12, y12) {
-                    child.draw(x02, y02, x12, y12)
-                }
-            } else {
-                child.draw(x02, y02, x12, y12)
-            }
+            canvas.clip2(x02, y02, x12, y12, child)
             true
         } else false
     }
 
     open fun updateChildrenVisibility(
-        mx: Int, my: Int, canBeHovered: Boolean,
+        mx: Int, my: Int,
+        canBeHovered: Boolean,
         x0: Int, y0: Int, x1: Int, y1: Int
     ) {
         val children = children
         for (i in children.indices) {
-            children[i].updateVisibility(
-                mx, my, canBeHovered,
-                x0, y0, x1, y1
-            )
+            children[i].updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
         }
     }
 

@@ -17,6 +17,7 @@ import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.SaveableArray
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.UIColors
@@ -252,36 +253,36 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawBackground(x0, y0, x1, y1)
-        drawGrid(x0, y0, x1, y1)
-        drawNodeGroups(x0, y0, x1, y1)
-        drawNodeConnections(x0, y0, x1, y1)
-        drawNodePanels(x0, y0, x1, y1)
-        drawScrollbars(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        drawBackground(canvas)
+        drawGrid(canvas)
+        drawNodeGroups(canvas)
+        drawNodeConnections(canvas)
+        drawNodePanels(canvas)
+        drawScrollbars(canvas)
     }
 
-    open fun drawNodeGroups(x0: Int, y0: Int, x1: Int, y1: Int) {
+    open fun drawNodeGroups(canvas: Canvas) {
         val children = children
         for (index in children.indices) {
             val child = children[index]
             if (child.isVisible && child is NodeGroupPanel) {
-                drawChild(child, x0, y0, x1, y1)
+                drawChild(child, canvas)
             }
         }
     }
 
-    open fun drawNodePanels(x0: Int, y0: Int, x1: Int, y1: Int) {
+    open fun drawNodePanels(canvas: Canvas) {
         val children = children
         for (index in children.indices) {
             val child = children[index]
             if (child.isVisible && child is NodePanel) {
-                drawChild(child, x0, y0, x1, y1)
+                drawChild(child, canvas)
             }
         }
     }
 
-    open fun drawGrid(x0: Int, y0: Int, x1: Int, y1: Int) {
+    open fun drawGrid(canvas: Canvas) {
         val gridColor = Color.mixARGB(background.color, gridColor, gridColor.a() / 255f) or Color.black
         // what grid makes sense? power of 2
         // what is a good grid? one stripe every 10-20 px maybe
@@ -291,12 +292,12 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         val size = Maths.pow(2.0, floor(log))
         // draw 2 grids, one fading, the other becoming more opaque
         val batch = DrawRectangles.startBatch()
-        draw2DLineGrid(x0, y0, x1, y1, gridColor.withAlpha(2f * (1f - fract)), size)
-        draw2DLineGrid(x0, y0, x1, y1, gridColor.withAlpha(2f * (1f + fract)), size * 2.0)
+        draw2DLineGrid(canvas, gridColor.withAlpha(2f * (1f - fract)), size)
+        draw2DLineGrid(canvas, gridColor.withAlpha(2f * (1f + fract)), size * 2.0)
         DrawRectangles.finishBatch(batch)
     }
 
-    open fun drawNodeConnections(x0: Int, y0: Int, x1: Int, y1: Int) {
+    open fun drawNodeConnections(canvas: Canvas) {
         // it would make sense to implement multiple styles, so this could be used in a game in the future as well
         // -> split into multiple subroutines, so you can implement your own style :)
         val graph = graph ?: return
@@ -335,9 +336,9 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         type: String
     ) {
         // if you want other connection styles, just implement them here :)
-        drawCurvyNodeConnection(x0, y0, x1, y1, c0, c1, type)
+        drawCurvyNodeConnection(canvas, c0, c1, type)
         // e.g., straight connections
-        // drawStraightNodeConnection(x0, y0, x1, y1, inIndex, outIndex, c0, c1, type)
+        // drawStraightNodeConnection(canvas, inIndex, outIndex, c0, c1, type)
     }
 
     fun drawCurvyNodeConnection(
@@ -426,7 +427,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                     x0.toInt() - lt2, y0.toInt() - lt2, (x1 - x0).toInt() + lt, lt,
                     c0, c1, true
                 )
-                else -> Grid.drawSmoothLine(x0, y0, x1, y1, c0, c0.a() / 255f)
+                else -> Grid.drawSmoothLine(canvas, c0, c0.a() / 255f)
             }
         }
     }
@@ -612,11 +613,11 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         }
     }
 
-    override fun drawsOverlayOverChildren(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
+    override fun drawsOverlayOverChildren(canvas: Canvas): Boolean {
         return true
     }
 
-    override fun capturesChildEvents(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
+    override fun capturesChildEvents(canvas: Canvas): Boolean {
         return false
     }
 

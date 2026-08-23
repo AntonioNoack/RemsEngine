@@ -9,6 +9,6 @@ fun main() {
     disableRenderDoc()
     addEvent { showFPS = false }
     testDrawing("Show in focus") {
-        it.showIsInFocus()
+        it.showIsInFocus(canvas)
     }
 }

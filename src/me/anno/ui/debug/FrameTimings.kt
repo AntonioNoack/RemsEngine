@@ -20,6 +20,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.maths.Maths
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.GFXFeatures
@@ -109,11 +110,11 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
     val withoutInterpolation get() = GFXFeatures.isOpenGLES
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
 
         val containers = containers
         if (containers.isEmpty()) {
-            drawBackground(x0, y0, x1, y1)
+            drawBackground(canvas)
             return
         }
 
@@ -131,14 +132,14 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
             if (withoutInterpolation) {
 
-                if (j == 0) drawBackground(x0, y0, x1, y1)
+                if (j == 0) drawBackground(canvas)
 
-                var lastX = x0
+                var lastX = canvas.x0
                 var lastBarHeight = 0
                 val scale = height1 / maxValue
 
                 val b = DrawRectangles.startBatch()
-                for (x in x0 until x1) {
+                for (x in canvas.x0 until canvas.x1) {
                     val i = x - this.x
                     val v = values[(indexOffset + i) % width]
                     val barHeight = (v * scale).toInt()
@@ -149,7 +150,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                     }
                 }
 
-                drawLine(lastX, x1, lastBarHeight, barColor)
+                drawLine(lastX, canvas.x1, lastBarHeight, barColor)
                 DrawRectangles.finishBatch(b)
             } else {
 
@@ -158,10 +159,10 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 // it's the same speed on my RTX 3070
 
                 val scale = 1f / maxValue
-                for (x in x0 until x1) {
+                for (x in canvas.x0 until canvas.x1) {
                     val i = x - this.x
                     val v = values[(indexOffset + i) % width]
-                    fp16s.put(x - x0, float32ToFloat16(max(v * scale, 0f)).toShort())
+                    fp16s.put(x - canvas.x0, float32ToFloat16(max(v * scale, 0f)).toShort())
                 }
 
                 texture.createMonochromeFP16(fp16s, false)
@@ -196,17 +197,17 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         putValue(nanos * 1e-9f, color)
     }
 
-    fun showFPS(window: OSWindow) {
+    fun showFPS(canvas: Canvas, window: OSWindow) {
         val x0 = max(0, window.width - width1)
         val y0 = max(0, window.height - height1)
-        showFPS(x0, y0)
+        showFPS(canvas, x0, y0)
     }
 
-    private fun showFPS(x0: Int, y0: Int) {
+    private fun showFPS(canvas: Canvas, x0: Int, y0: Int) {
         setPosSize(x0, y0, width1, height1)
 
         canBeSeen = true
-        draw(x, y, x + width, y + height)
+        canvas.clip2(x, y, x + width, y + height, this)
 
         formatNumber(text.value, 0, 6, Time.currentFPS.toFloat())
         formatNumber(text.value, 13, 6, Time.currentMinFPS.toFloat())

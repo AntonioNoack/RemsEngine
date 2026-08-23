@@ -3,6 +3,7 @@ package me.anno.ui.input
 import me.anno.gpu.Cursor
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
@@ -84,8 +85,8 @@ open class TextInputML(nameDesc: NameDesc, style: Style) :
         return this
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
         if (isAnyChildInFocus) {
             isSelectedListener?.invoke()
         }

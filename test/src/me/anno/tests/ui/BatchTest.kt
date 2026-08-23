@@ -26,7 +26,7 @@ fun main() {
 
             val color = Vector4f(0f, 0f, 0f, 1f)
 
-            override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            override fun draw(canvas: Canvas) {
                 val v = if (batch) DrawRectangles.startBatch() else 0
                 val s = 3
                 for (y in y0 until y1 step s) {

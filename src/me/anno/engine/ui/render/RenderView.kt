@@ -177,7 +177,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     var drawnInstances0 = 0L
     var drawCalls0 = 0L
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
 
         if (tryRenderVRViews()) return
 

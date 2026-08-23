@@ -3,6 +3,7 @@ package me.anno.ui.base.groups
 import me.anno.gpu.Cursor
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.base.scrolling.Scrollbar
@@ -104,27 +105,27 @@ open class WeightBasedTablePanel(sizeX: Int, sizeY: Int, style: Style) :
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
         val window = window!!
         val padding = interactionPadding
         for (xi in scrollbarsX.indices) {
             val xc = x + xs[xi + 1]
-            val x0i = max(x0, xc - spacing)
-            val x1i = min(x1, xc)
+            val x0i = max(canvas.x0, xc - spacing)
+            val x1i = min(canvas.x1, xc)
             val sb = scrollbarsX[xi]
-            sb.isHovered = containsMouse(window, x0i - padding, y0, x1i + padding, y1)
+            sb.isHovered = containsMouse(window, x0i - padding, canvas.y0, x1i + padding, canvas.y1)
             sb.updateAlpha()
-            sb.draw(x0i, y0, x1i, y1)
+            canvas.clip2(x0i, canvas.y0, x1i, canvas.y1, sb)
         }
         for (yi in scrollbarsY.indices) {
             val yc = y + ys[yi + 1]
-            val y0i = max(y0, yc - spacing)
-            val y1i = min(y1, yc)
+            val y0i = max(canvas.y0, yc - spacing)
+            val y1i = min(canvas.y1, yc)
             val sb = scrollbarsY[yi]
-            sb.isHovered = containsMouse(window, x0 - padding, y0i, x1 + padding, y1i)
+            sb.isHovered = containsMouse(window, canvas.x0 - padding, y0i, canvas.x1 + padding, y1i)
             sb.updateAlpha()
-            sb.draw(x0, y0i, x1, y1i)
+            canvas.clip2(canvas.x0, y0i, canvas.x1, y1i, sb)
         }
     }
 

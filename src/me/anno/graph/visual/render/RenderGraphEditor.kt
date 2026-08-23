@@ -8,6 +8,7 @@ import me.anno.graph.visual.render.compiler.ShaderGraphNode
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.StartNode
+import me.anno.ui.Canvas
 import me.anno.ui.editor.graph.GraphEditor
 import me.anno.ui.Style
 
@@ -42,19 +43,19 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : Gr
 
     var drawResultInBackground = true
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         if (drawResultInBackground) {
             // these two calls could be joined
-            drawBackground(x0, y0, x1, y1)
+            drawBackground(canvas)
             drawTransparentBackground(x, y, width, height)
             // actually drawing the graph
             RenderGraph.draw(rv, this, graph as FlowGraph)
-            drawNodeGroups(x0, y0, x1, y1)
-            drawNodeConnections(x0, y0, x1, y1)
-            drawNodePanels(x0, y0, x1, y1)
-            drawSelection(x0, y0, x1, y1)
-            drawScrollbars(x0, y0, x1, y1)
-        } else super.draw(x0, y0, x1, y1)
+            drawNodeGroups(canvas)
+            drawNodeConnections(canvas)
+            drawNodePanels(canvas)
+            drawSelection(canvas)
+            drawScrollbars(canvas)
+        } else super.draw(canvas)
     }
 
     override fun canDeleteNode(node: Node): Boolean {

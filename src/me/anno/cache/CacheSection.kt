@@ -143,6 +143,35 @@ open class CacheSection<Key, Value : Any>(val name: String) : Comparable<CacheSe
         return entry
     }
 
+    fun <KeyI : Key> getEntrySync(
+        key: KeyI, timeoutMillis: Long,
+         generator: (KeyI, Promise<Value>) -> Unit
+    ): Promise<Value> {
+        checkKey(key)
+
+        // new, async cache
+        // only the key needs to be locked, not the whole cache
+
+        var isGenerating: Boolean
+        val entry = synchronized(cache) {
+            var entry = cache[key]
+            isGenerating = entry == null || entry.hasBeenDestroyed
+            if (isGenerating) {
+                entry = Promise()
+                cache[key] = entry
+            }
+            entry!!
+        }
+
+        entry.update(timeoutMillis)
+
+        if (isGenerating) {
+            generateSafely(key, entry, generator)
+        }
+
+        return entry
+    }
+
     fun update() {
         synchronized(cache) {
             // avoiding allocations for clean memory debugging XD

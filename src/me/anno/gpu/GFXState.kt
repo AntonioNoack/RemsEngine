@@ -400,10 +400,11 @@ object GFXState {
         timer.stop()
         if (timer.result >= 0L) {
             val last = timeRecords.lastOrNull()
+            val value = timer.average
             if (last?.name != name) {
-                timeRecords.add(TimeRecord(name, timer.result, 1))
+                timeRecords.add(TimeRecord(name, value, 1))
             } else {
-                last.deltaNanos += timer.result
+                last.deltaNanos += value
                 last.divisor++
             }
         }

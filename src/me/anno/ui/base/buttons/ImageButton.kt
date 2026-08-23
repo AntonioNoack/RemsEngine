@@ -8,6 +8,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.utils.types.Floats.roundToIntOr
@@ -40,8 +41,8 @@ open class ImageButton(
         if (canBeSeen) icon // ensure it stays loaded
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawBackground(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        drawBackground(canvas)
         val icon = icon ?: return
         renderDefault {
             icon.bind(0, Filtering.LINEAR, Clamping.CLAMP)

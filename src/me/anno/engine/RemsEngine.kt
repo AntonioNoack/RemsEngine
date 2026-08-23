@@ -178,7 +178,7 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
             override val canDrawOverBorders get() = true
             private val modelMatrix = AssetThumbHelper.createModelMatrix().scale(0.62f)
             private val pipeline = Pipeline(null)
-            override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            override fun draw(canvas: Canvas) {
                 useFrame(previewRenderer) {
                     GFXState.drawingSky.use(true) {
                         sky.nadirSharpness = 10f

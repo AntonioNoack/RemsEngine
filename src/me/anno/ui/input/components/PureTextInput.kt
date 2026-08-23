@@ -14,6 +14,7 @@ import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -173,10 +174,10 @@ open class PureTextInput(style: Style) :
 
     private val showBars get() = isAnyChildInFocus && blinkVisible
     private var loadTextSync = false
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         loadTexturesSync.push(loadTextSync)
 
-        super.draw(x0, y0, x1, y1)
+        super.draw(canvas)
 
         showCursorAndSelection()
         loadTexturesSync.pop()

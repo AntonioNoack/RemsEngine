@@ -258,8 +258,8 @@ fun run2dPhysicsWithUI() {
             val anchorLS = Vec2()
             val anchorWS = Vec2()
 
-            override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                super.draw(x0, y0, x1, y1)
+            override fun draw(canvas: Canvas) {
+                super.draw(canvas)
 
                 val x0i = x + this.width / 2 - (center.x * scale.x).toFloat()
                 val y0i = y + this.height / 2 - (center.y * scale.y).toFloat()

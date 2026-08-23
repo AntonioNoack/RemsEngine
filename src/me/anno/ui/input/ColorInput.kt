@@ -20,6 +20,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.pow
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -222,10 +223,10 @@ open class ColorInput(
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         val focused1 = titleView.isInFocus || base.any { it.isInFocus }
         if (focused1) isSelectedListener?.invoke()
-        super.draw(x0, y0, x1, y1)
+        super.draw(canvas)
     }
 
     fun setChangeListener(listener: (r: Float, g: Float, b: Float, a: Float, mask: Int) -> Unit): ColorInput {

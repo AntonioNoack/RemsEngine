@@ -19,6 +19,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.MinMax.max
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelList2D
@@ -63,8 +64,8 @@ object DebugGPUStorage {
             minH = sh + fontSize
         }
 
-        override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-            super.draw(x0, y0, x1, y1)
+        override fun draw(canvas: Canvas) {
+            super.draw(canvas)
             if (isFine()) {
                 val (w, h) = scaleMaxPreview(getTexW(), getTexH(), width, height - fontSize, 5)
                 val xi = x + (this.width - w) / 2

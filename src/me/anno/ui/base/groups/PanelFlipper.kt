@@ -9,6 +9,7 @@ import me.anno.input.Input
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelContainer.Companion.setPosSizeWithPadding
@@ -118,14 +119,14 @@ open class PanelFlipper(style: Style) : PanelList(style) {
         }
     }
 
-    override fun drawChild(child: Panel, x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
+    override fun drawChild(child: Panel, canvas: Canvas): Boolean {
         val rotateChildren = transitionType == TransitionType.ROTATE_HORIZONTAL ||
                 transitionType == TransitionType.ROTATE_VERTICAL
         return if (rotateChildren) {
-            val x02 = max(child.x, x0)
-            val y02 = max(child.y, y0)
-            val x12 = min(child.x + child.width, x1)
-            val y12 = min(child.y + child.height, y1)
+            val x02 = max(child.x, canvas.x0)
+            val y02 = max(child.y, canvas.y0)
+            val x12 = min(child.x + child.width, canvas.x1)
+            val y12 = min(child.y + child.height, canvas.y1)
             if (x12 > x02 && y12 > y02) {
                 // rotate child
                 // todo define rotation center properly, currently is somehow at the top center, right center
@@ -134,11 +135,11 @@ open class PanelFlipper(style: Style) : PanelList(style) {
                 transform.scale(1f, aspect, 1f)
                 transform.rotateZ(child.weight2)
                 transform.scale(1f, 1f / aspect, 1f)
-                child.draw(x02, y02, x12, y12)
+                canvas.clip2(x02, y02, x12, y12, child)
                 transform.popMatrix()
                 true
             } else false
-        } else super.drawChild(child, x0, y0, x1, y1)
+        } else super.drawChild(child, canvas)
     }
 
     // if they are overlapping, we need to redraw the others as well
@@ -147,10 +148,10 @@ open class PanelFlipper(style: Style) : PanelList(style) {
         // todo ok so?
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         updatePosition()
         setPosition(x, y)
-        super.draw(x0, y0, x1, y1)
+        super.draw(canvas)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

@@ -11,9 +11,9 @@ class TestPressingPanel : Panel(style) {
 
     var pressed = false
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         background.color = if (pressed) black else background.originalColor
-        super.draw(x0, y0, x1, y1)
+        super.draw(canvas)
         pressed = false
     }
 

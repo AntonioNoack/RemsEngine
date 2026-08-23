@@ -6,6 +6,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.mulAlpha
@@ -35,8 +36,12 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
         )
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawRect(x0, y0, x1 - x0, y1 - y0, scrollBackground.mulAlpha(activeAlpha * alpha))
+    override fun draw(canvas: Canvas) {
+        drawRect(
+            canvas.x0, canvas.y0,
+            canvas.x1 - canvas.x0, canvas.y1 - canvas.y0,
+            scrollBackground.mulAlpha(activeAlpha * alpha)
+        )
     }
 
     override fun clone(): Scrollbar {

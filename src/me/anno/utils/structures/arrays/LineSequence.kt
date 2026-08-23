@@ -136,7 +136,7 @@ class LineSequence : IntSequence {
                 // split line
                 val newBuilder = IntArrayList(16)
                 newBuilder.add(oldBuilder, indexInLine)
-                oldBuilder.removeBetween(indexInLine, oldBuilder.size)
+                oldBuilder.removeRange(indexInLine, oldBuilder.size)
                 lines.add(lineIndex + 1, newBuilder)
                 maxLineLength = lines.maxOf { it.size }
                 rebuildIndexTable()

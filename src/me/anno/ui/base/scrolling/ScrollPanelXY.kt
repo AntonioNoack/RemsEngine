@@ -12,6 +12,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -167,39 +168,39 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         clampScrollPosition()
-        super.draw(x0, y0, x1, y1)
+        super.draw(canvas)
         val batch = DrawRectangles.startBatch()
         if (alwaysShowShadowX) {
-            drawShadowX(x0, y0, x1, y1, shadowRadius)
+            drawShadowX(canvas, shadowRadius)
         }
         if (alwaysShowShadowY) {
-            drawShadowY(x0, y0, x1, y1, shadowRadius)
+            drawShadowY(canvas, shadowRadius)
         }
         if (hasScrollbarX) {
             if (!alwaysShowShadowX) {
                 val shadowRadius = min(maxScrollPositionX, shadowRadius.toLong()).toInt()
-                drawShadowX(x0, y0, x1, y1, shadowRadius)
+                drawShadowX(canvas, shadowRadius)
             }
             val scrollbarX = scrollbarX
             scrollbarX.x = x + scrollbarPadding
             scrollbarX.y = y + height - scrollbarHeight - scrollbarPadding
             scrollbarX.width = width - 2 * scrollbarPadding
             scrollbarX.height = scrollbarHeight
-            drawChild(scrollbarX, x0, y0, x1, y1)
+            drawChild(scrollbarX, canvas)
         }
         if (hasScrollbarY) {
             if (!alwaysShowShadowY) {
                 val shadowRadius = min(maxScrollPositionY, shadowRadius.toLong()).toInt()
-                drawShadowY(x0, y0, x1, y1, shadowRadius)
+                drawShadowY(canvas, shadowRadius)
             }
             val scrollbarY = scrollbarY
             scrollbarY.x = x + width - scrollbarWidth - scrollbarPadding
             scrollbarY.y = y + scrollbarPadding
             scrollbarY.width = scrollbarWidth
             scrollbarY.height = height - 2 * scrollbarPadding
-            drawChild(scrollbarY, x0, y0, x1, y1)
+            drawChild(scrollbarY, canvas)
         }
         DrawRectangles.finishBatch(batch)
     }
@@ -315,15 +316,20 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
                     abs((y0 + y1) - (y2 + y3)) < (y1 - y0) + (y3 - y2)
         }
 
-        fun PanelContainer.drawShadowX(x0: Int, y0: Int, x1: Int, y1: Int, shadowRadius: Int) {
-            drawShadowX(x0, y0, x1, y1, shadowColor, shadowRadius)
+        fun PanelContainer.drawShadowX(canvas: Canvas, shadowRadius: Int) {
+            drawShadowX(canvas, shadowColor, shadowRadius)
         }
 
-        fun PanelContainer.drawShadowY(x0: Int, y0: Int, x1: Int, y1: Int, shadowRadius: Int) {
-            drawShadowY(x0, y0, x1, y1, shadowColor, shadowRadius)
+        fun PanelContainer.drawShadowY(canvas: Canvas, shadowRadius: Int) {
+            drawShadowY(canvas, shadowColor, shadowRadius)
         }
 
-        fun Panel.drawShadowX(x0: Int, y0: Int, x1: Int, y1: Int, shadowColor: Int, shadowRadius: Int) {
+        fun Panel.drawShadowX(canvas: Canvas, shadowColor: Int, shadowRadius: Int) {
+            val x0 = canvas.x0
+            val y0 = canvas.y0
+            val x1 = canvas.x1
+            val y1 = canvas.y1
+
             // draw left shadow
             for (x in max(x0, x) until min(x1, x + shadowRadius)) {
                 val alpha = Maths.sq(1f - (x - this.x).toFloat() / shadowRadius)
@@ -337,7 +343,12 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             }
         }
 
-        fun Panel.drawShadowY(x0: Int, y0: Int, x1: Int, y1: Int, shadowColor: Int, shadowRadius: Int) {
+        fun Panel.drawShadowY(canvas: Canvas, shadowColor: Int, shadowRadius: Int) {
+            val x0 = canvas.x0
+            val y0 = canvas.y0
+            val x1 = canvas.x1
+            val y1 = canvas.y1
+
             // draw top shadow
             for (y in max(y0, y) until min(y1, y + shadowRadius)) {
                 val alpha = Maths.sq(1f - (y - this.y).toFloat() / shadowRadius)

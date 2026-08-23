@@ -2,6 +2,7 @@ package me.anno.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.text.TextPanel
@@ -80,11 +81,11 @@ class BooleanInput(
         return this
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
         if (isAnyChildInFocus) {
             isSelectedListener?.invoke()
-            showIsInFocus()
+            showIsInFocus(canvas)
         }
     }
 

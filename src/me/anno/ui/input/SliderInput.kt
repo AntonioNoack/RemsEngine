@@ -10,6 +10,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.MinMax.max
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.unmix
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
@@ -39,10 +40,11 @@ class SliderInput(
             get() = InputVisibility[visibilityKey]
             set(_) {}
 
-        override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-            super.draw(x0, y0, x1, y1)
-            val x = clamp(x + (width * unmix(minValue, maxValue, value)).roundToIntOr(), x0, x1)
-            drawRect(x0, y0, x - x0, y1 - y0, sliderColor)
+        override fun draw(canvas: Canvas) {
+            super.draw(canvas)
+            val xi = x + (width * unmix(minValue, maxValue, value)).roundToIntOr()
+            val xClamped = clamp(xi, canvas.x0, canvas.x1)
+            drawRect(canvas.x0, canvas.y0, xClamped - canvas.x0, canvas.y1 - canvas.y0, sliderColor)
         }
 
         private fun setFromMousePos(x: Float) {

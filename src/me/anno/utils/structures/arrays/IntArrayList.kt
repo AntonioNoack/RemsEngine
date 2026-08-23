@@ -49,11 +49,8 @@ open class IntArrayList(
     }
 
     fun add(index: Int, value: Int) {
-        ensureCapacity(size + 1)
-        val values = values
-        values.copyInto(values, index + 1, index, size)
+        insertRange(index, 1)
         values[index] = value
-        size++
     }
 
     fun add(values: List<Int>, index0: Int = 0, index1: Int = values.size) {
@@ -93,7 +90,7 @@ open class IntArrayList(
     fun removeAt(index: Int): Int {
         val array = values
         val value = array[index]
-        removeBetween(index, index + 1)
+        removeRange(index, index + 1)
         return value
     }
 
@@ -109,7 +106,14 @@ open class IntArrayList(
         return value
     }
 
-    fun removeBetween(index0: Int, index1: Int) {
+    fun insertRange(index: Int, length: Int) {
+        ensureCapacity(size + length)
+        val values = values
+        values.copyInto(values, index + length, index, size)
+        size += length
+    }
+
+    fun removeRange(index0: Int, index1: Int) {
         assertLessThanEquals(index1, size)
         assertGreaterThanEquals(index0, 0)
         assertLessThanEquals(index0, index1)

@@ -189,12 +189,12 @@ class NodePanel(
             background.outlineThickness = 0f
             background.color = background.color.withAlpha(bgAlpha)
         }
-        drawBackground(x0, y0, x1, y1)
+        drawBackground(canvas)
     }
 
     private var cachedTexture: Framebuffer? = null
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         // if gp is zooming, take a screenshot of this panel, and redraw it as such (because that's cheaper)
         // it allows us to render really smooth zooming :)
         // todo we could use texture for redraw as well, if nothing changed, and just the node is moved

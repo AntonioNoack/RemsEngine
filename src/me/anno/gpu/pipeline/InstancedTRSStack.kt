@@ -22,6 +22,7 @@ import kotlin.math.min
 /**
  * instanced stack, supporting position, uniform scale, and rotation
  * */
+@Deprecated("We can replace all TRS with TRC")
 open class InstancedTRSStack(instanceData: MeshInstanceData, capacity: Int = 64) :
     DrawableStack(instanceData) {
 

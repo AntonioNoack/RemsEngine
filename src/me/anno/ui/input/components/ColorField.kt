@@ -10,6 +10,7 @@ import me.anno.input.Key
 import me.anno.utils.Color.mixARGB
 import me.anno.engine.EngineBase
 import me.anno.gpu.Cursor
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.Style
@@ -54,7 +55,7 @@ class ColorField(
 
     var changeListener: (ColorField, Int) -> Unit = { _, _ -> }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         // draw border/background depending on hover/focus
         val backgroundColor = if (isHovered) if (isInFocus) focusHoverColor else hoverColor
         else if (isInFocus) focusColor else backgroundColor

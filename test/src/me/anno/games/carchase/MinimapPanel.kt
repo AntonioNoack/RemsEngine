@@ -56,7 +56,7 @@ class MinimapPanel : Panel(style) {
     private val fovRadians = 1.4f
     private val aspect = 1f
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
 
         val rv = RenderView.currentInstance ?: return
         val pipeline = rv.pipeline

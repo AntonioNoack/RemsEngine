@@ -466,8 +466,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
         if (loading != 0L) {
             drawLoadingCircle((Time.nanoTime - loading) / 1e9f, x0, y0, x1, y1)
         }

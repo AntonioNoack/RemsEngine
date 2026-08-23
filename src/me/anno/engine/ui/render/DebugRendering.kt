@@ -58,6 +58,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.UIColors
 import me.anno.ui.base.components.AxisAlignment
@@ -195,16 +196,16 @@ object DebugRendering {
         )
     }
 
-    fun showTimeRecords(rv: RenderView) {
+    fun showTimeRecords(canvas: Canvas, rv: RenderView) {
         GFXState.drawCall("ShowTimeRecords") {
             val records = GFXState.timeRecords
             var total = 0L
             for (i in records.indices) {
                 val record = records[i]
-                drawTime(rv, i, record.name, record.deltaNanos, record.divisor)
+                drawTime(canvas, rv, i, record.name, record.deltaNanos, record.divisor)
                 total += record.deltaNanos
             }
-            drawTime(rv, records.size, "Total", total, 1)
+            drawTime(canvas, rv, records.size, "Total", total, 1)
             val maySkip = rv.renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
             if (!(maySkip && !FrameGenInitNode.isLastFrame())) {
                 records.clear()
@@ -212,7 +213,7 @@ object DebugRendering {
         }
     }
 
-    private fun drawTime(rv: Panel, i: Int, name: String, time: Long, divisor: Int) {
+    private fun drawTime(canvas: Canvas, rv: Panel, i: Int, name: String, time: Long, divisor: Int) {
         val y = rv.y + i * monospaceFont.sizeInt
         if (divisor > 1) debugBuilder.append(divisor).append("x ")
         debugBuilder.append(name).append(": ")

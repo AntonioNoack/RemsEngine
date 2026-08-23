@@ -30,7 +30,7 @@ class ColorPreviewField(private val refSize: Panel, val padding: Int, style: Sty
         minH = size
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         val bgColor = if (YUVHelper.YUV_Y.dot(color.r01(), color.g01(), color.b01(), 0f) > 0.5f) black else white
         val size = min(width, height)
         DrawRectangles.drawRect(

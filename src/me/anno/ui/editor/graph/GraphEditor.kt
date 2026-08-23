@@ -11,6 +11,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.saveable.SaveableArray
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu
@@ -208,17 +209,17 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
 
     override fun shallMoveMap(): Boolean = Input.isLeftDown && dragged == null && selectingStart == null
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawBackground(x0, y0, x1, y1)
-        drawGrid(x0, y0, x1, y1)
-        drawNodeGroups(x0, y0, x1, y1)
-        drawNodeConnections(x0, y0, x1, y1)
-        drawNodePanels(x0, y0, x1, y1)
-        drawSelection(x0, y0, x1, y1)
-        drawScrollbars(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        drawBackground(canvas)
+        drawGrid(canvas)
+        drawNodeGroups(canvas)
+        drawNodeConnections(canvas)
+        drawNodePanels(canvas)
+        drawSelection(canvas)
+        drawScrollbars(canvas)
     }
 
-    open fun drawSelection(x0: Int, y0: Int, x1: Int, y1: Int) {
+    open fun drawSelection(canvas: Canvas) {
         val start = selectingStart
         val window = window
         if (start != null && window != null) {
@@ -234,10 +235,10 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
         }
     }
 
-    override fun drawNodeConnections(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun drawNodeConnections(canvas: Canvas) {
         // it would make sense to implement multiple styles, so this could be used in a game in the future as well
         // -> split into multiple subroutines, so you can implement your own style :)
-        super.drawNodeConnections(x0, y0, x1, y1)
+        super.drawNodeConnections(canvas)
         val graph = graph
         val dragged = dragged
         if (dragged != null) {

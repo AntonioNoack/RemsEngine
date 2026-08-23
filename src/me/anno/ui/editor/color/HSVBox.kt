@@ -19,7 +19,7 @@ open class HSVBox(
         minW = w
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(canvas: Canvas) {
         chooser.drawColorBox(this, v0, du, dv, dh, false)
     }
 

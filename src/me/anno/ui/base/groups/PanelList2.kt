@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.ui.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 
@@ -8,12 +9,12 @@ abstract class PanelList2(style: Style) : PanelList(style) {
     open val visibleIndex0: Int get() = 0
     open val visibleIndex1: Int get() = children.size
 
-    override fun drawChildren(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun drawChildren(canvas: Canvas) {
         val children = children
         for (index in visibleIndex0 until visibleIndex1) {
             val child = children[index]
             if (child.canBeSeen) {
-                drawChild(child, x0, y0, x1, y1)
+                drawChild(child, canvas)
             }
         }
     }

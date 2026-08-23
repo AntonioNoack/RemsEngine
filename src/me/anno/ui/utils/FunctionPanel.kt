@@ -5,6 +5,7 @@ import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawCurves.lineBatch
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.maths.Maths.clamp
+import me.anno.ui.Canvas
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
@@ -53,14 +54,14 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
     }
 
     private fun draw2DGridNumbers(
-        x0: Int, y0: Int, x1: Int, y1: Int,
+        canvas: Canvas,
         color: Int, gridSize: Double, all: Boolean,
     ) {
         if (color.a() == 0) return
-        val gridX0 = windowToCoordsX(x0.toDouble())
-        val gridX1 = windowToCoordsX(x1.toDouble())
-        val gridY0 = windowToCoordsY(y0.toDouble())
-        val gridY1 = windowToCoordsY(y1.toDouble())
+        val gridX0 = windowToCoordsX(canvas.x0.toDouble())
+        val gridX1 = windowToCoordsX(canvas.x1.toDouble())
+        val gridY0 = windowToCoordsY(canvas.y0.toDouble())
+        val gridY1 = windowToCoordsY(canvas.y1.toDouble())
         val i0 = floor(gridX0 / gridSize).toLong()
         val i1 = ceil(gridX1 / gridSize).toLong()
         val j0 = floor(gridY0 / gridSize).toLong()
@@ -70,8 +71,8 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         val msl = maxStringLength(max(abs(i0), abs(i1)), pow)
         val dx = (monospaceFont.sampleWidth * (2f + 0.5f * msl)).toInt()
         val dy = monospaceFont.sampleHeight shr 1
-        val textX = clamp(coordsToWindowX(0.0).toInt(), x0 + dx, x1 - dx)
-        val textY = clamp(coordsToWindowY(0.0).toInt(), y0 + dy, y1 - dy)
+        val textX = clamp(coordsToWindowX(0.0).toInt(), canvas.x0 + dx, canvas.x1 - dx)
+        val textY = clamp(coordsToWindowY(0.0).toInt(), canvas.y0 + dy, canvas.y1 - dy)
         val backgroundColor = backgroundColor.withAlpha(0)
         var mod10i = i0 % 10
         if (mod10i < 0) mod10i += 10
@@ -103,29 +104,29 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
-        drawNumbered2DLineGrid(x0, y0, x1, y1)
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
+        drawNumbered2DLineGrid(canvas)
         for (funcIndex in 0 until getNumFunctions()) {
             val lineColor = getColor(funcIndex)
-            drawCurve(x0, y0, x1, y1, funcIndex, lineColor, lineThickness)
+            drawCurve(canvas, funcIndex, lineColor, lineThickness)
         }
         if (isHovered) {
             showValueAtCursor()
         }
     }
 
-    fun drawNumbered2DLineGrid(x0: Int, y0: Int, x1: Int, y1: Int) {
+    fun drawNumbered2DLineGrid(canvas: Canvas) {
         val s0 = log10(max(windowToCoordsDirY(height.toDouble()), 1e-308))
         if (!s0.isFinite()) return
         val s1 = floor(s0)
         val s2 = 10.0.pow(s1)
         val sf = 1f - (s0 - s1).toFloat()
         val color = -1
-        draw2DLineGrid(x0, y0, x1, y1, color.withAlpha(0.3f * sf), s2 * 0.1)
-        draw2DLineGrid(x0, y0, x1, y1, color.withAlpha(0.3f), s2)
-        draw2DGridNumbers(x0, y0, x1, y1, color.withAlpha(0.7f * max(sf * 2f - 1f, 0f)), s2 * 0.1, false)
-        draw2DGridNumbers(x0, y0, x1, y1, color.withAlpha(0.7f), s2, true)
+        draw2DLineGrid(canvas, color.withAlpha(0.3f * sf), s2 * 0.1)
+        draw2DLineGrid(canvas, color.withAlpha(0.3f), s2)
+        draw2DGridNumbers(canvas, color.withAlpha(0.7f * max(sf * 2f - 1f, 0f)), s2 * 0.1, false)
+        draw2DGridNumbers(canvas, color.withAlpha(0.7f), s2, true)
     }
 
     fun showValueAtCursor() {
@@ -139,21 +140,21 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         }
     }
 
-    fun drawCurve(x0: Int, y0: Int, x1: Int, y1: Int, funcIndex: Int, lineColor: Int, lineThickness: Float) {
+    fun drawCurve(canvas: Canvas, funcIndex: Int, lineColor: Int, lineThickness: Float) {
         val bgColor = backgroundColor
         var lx = 0f
         var ly = 0f
         val batch = lineBatch.start()
         val thHalf = lineThickness * 0.5f
-        val minY = y0 - thHalf
-        val maxY = y1 + thHalf
-        for (x in x0 until x1) {
+        val minY = canvas.y0 - thHalf
+        val maxY = canvas.y1 + thHalf
+        for (x in canvas.x0 until canvas.x1) {
             val xd = x.toDouble()
             val xv = windowToCoordsX(xd)
             val yv = -getValue(funcIndex, xv)
             val yf = coordsToWindowY(yv).toFloat()
             val xf = xd.toFloat()
-            if (x > x0 && min(ly, yf) > minY && max(ly, yf) < maxY) {
+            if (x > canvas.x0 && min(ly, yf) > minY && max(ly, yf) < maxY) {
                 drawLine(lx, ly, xf, yf, lineThickness, lineColor, bgColor, true)
             }
             lx = xf
