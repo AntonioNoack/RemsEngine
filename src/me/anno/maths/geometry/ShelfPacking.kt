@@ -9,7 +9,7 @@ import kotlin.math.min
  *
  * Rectangles are packed left-to-right into shelves. A shelf has a fixed
  * height equal to the tallest rectangle placed into it. Once a rectangle
- * has been placed into a shelf, the shelf height does not change.
+ * has been placed into a shelf, the shelf height does not change (much).
  *
  * This is intentionally a simple and predictable algorithm. It avoids
  * the potentially expensive skyline updates/scans of SkylinePacking.
@@ -31,6 +31,7 @@ class ShelfPacking(
     private val shelves = IntArrayList()
 
     init {
+        // last shelf is 0 tall
         shelves.add(0)
     }
 

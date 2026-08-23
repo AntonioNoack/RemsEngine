@@ -178,6 +178,7 @@ class CompileTest {
                 } else {
                     canvas.drawClipped(0, 0, rv.width, rv.height, rv)
                 }
+                canvas.finish()
             } catch (e: Exception) {
                 throw Exception(mode.nameDesc.englishName, e)
             }

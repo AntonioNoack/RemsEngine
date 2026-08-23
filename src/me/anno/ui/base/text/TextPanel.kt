@@ -7,7 +7,6 @@ import me.anno.fonts.Font
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeX
@@ -105,7 +104,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val padding = padding
         val ax = textAlignmentX.getAnchor(x + padding.left, width - padding.width)
         val ay = textAlignmentY.getAnchor(y + padding.top, height - padding.height)
-        drawText(
+        canvas.drawText(
             ax, ay, 0,
             font, text,
             color, backgroundColor,

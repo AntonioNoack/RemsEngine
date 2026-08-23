@@ -42,7 +42,7 @@ import kotlin.math.min
 object DrawTexts {
 
     private val LOGGER = LogManager.getLogger(DrawTexts::class)
-    private const val BARRIER_BITS =
+    const val BARRIER_BITS =
         GL_SHADER_IMAGE_ACCESS_BARRIER_BIT or
                 GL_TEXTURE_FETCH_BARRIER_BIT or
                 GL_BUFFER_UPDATE_BARRIER_BIT or
@@ -94,9 +94,9 @@ object DrawTexts {
         -1, -1
     )
 
-    private val sizeLayoutHelper = SizeLayoutHelper()
+    val sizeLayoutHelper = SizeLayoutHelper()
 
-    private object DrawLayoutHelper : IGlyphLayout() {
+    object DrawLayoutHelper : IGlyphLayout() {
 
         var x = 0
         var y = 0
