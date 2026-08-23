@@ -22,7 +22,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Packing.unpackHighFrom64
 import me.anno.maths.Packing.unpackLowFrom64
-import me.anno.maths.geometry.SkylinePacking
+import me.anno.maths.geometry.ShelfPacking
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.structures.arrays.IntArrayList
@@ -55,7 +55,7 @@ class Canvas {
         }
 
         private val packing by lazy {
-            SkylinePacking(storage.width, storage.height, 4)
+            ShelfPacking(storage.width, storage.height, 4)
         }
     }
 

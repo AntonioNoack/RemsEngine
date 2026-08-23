@@ -138,8 +138,8 @@ open class IntArrayList(
     }
 
     @Suppress("unused")
-    fun addUnsafe(x: Int) {
-        values[size++] = x
+    fun addUnsafe(value: Int) {
+        values[size++] = value
     }
 
     @Suppress("unused")
