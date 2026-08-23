@@ -1,7 +1,6 @@
 package me.anno.ui.input.components
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D

@@ -63,7 +63,7 @@ class Canvas {
         private val shapeBuffer = StaticBuffer("canvas", attr, 1024, BufferUsage.DYNAMIC)
         private val textureCache = HashMap<ITexture2D, Bounds?>()
         private val storage by lazy {
-            val size = min(GFX.maxTextureSize, 4096)
+            val size = min(GFX.maxTextureSize, 1024)
             Texture2D("canvasCache", size, size, 1)
         }
 
@@ -116,14 +116,17 @@ class Canvas {
     // todo a cache, which stores all small textures in one big texture
     // todo big textures are drawn directly
 
-    fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
-        // from the bottom to the top
+    inline fun clip(x0: Int, y0: Int, w: Int, h: Int, render: () -> Unit) {
+        if (w < 1 || h < 1) return
+        push(x0, y0, x0 + w, y0 + h)
+        render()
+        pop()
+    }
+
+    inline fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
         val w = x1 - x0
         val h = y1 - y0
-        GFX.check()
         if (w < 1 || h < 1) return
-        // val height = RenderState.currentBuffer?.h ?: height
-        // val realY = height - (y + h)
         push(x0, y0, x1, y1)
         render()
         pop()
@@ -277,13 +280,8 @@ class Canvas {
         }
     }
 
-    private fun clearCalls() {
-        shapeBuffer.getOrCreateNioBuffer().position(0)
-    }
-
     fun fill(color: Int) {
-        if (color.a() == 255) clearCalls()
-        drawTexture(x0, y0, dx, dy, TextureLib.whiteTexture, color)
+        drawRect(x0, y0, dx, dy, color)
     }
 
     private fun getBounds(texture: ITexture2D): Bounds? {
@@ -323,7 +321,7 @@ class Canvas {
             useFrame(source) {
                 // copies framebuffer to texture; first coords are texture, second are framebuffer
                 storage.bind(0)
-                glCopyTexSubImage2D(storage.target, 0, x, y, 0, 0, w, h)
+                glCopyTexSubImage2D(storage.target, 0, x, storage.height - (y + h), 0, 0, w, h)
             }
         } else {
             useFrame(storage) {

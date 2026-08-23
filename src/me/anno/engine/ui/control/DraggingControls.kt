@@ -27,7 +27,6 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.drawing.DrawRectangles.drawBorder
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.input.Key
@@ -36,7 +35,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.pow
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.UIColors
 import me.anno.ui.base.buttons.TextButton
@@ -45,6 +43,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Hierarchical
@@ -650,7 +649,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     fun onChangeTransform1(
         entity: Entity?, prefab: Prefab?, path: Path,
-        position: Any, rotation: Any, scale: Any
+        position: Any, rotation: Any, scale: Any,
     ) {
         // save changes to file
         if (prefab != null) {
@@ -670,7 +669,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     fun addToParent(
         prefab: Prefab, root: PrefabSaveable, type: Char,
         position: Any?, rotation: Any?, scale: Any?,
-        results: MutableCollection<PrefabSaveable>
+        results: MutableCollection<PrefabSaveable>,
     ) {
         val ci = PrefabInspector.currentInspector ?: return
         val path = ci.addNewChild(root, type, prefab)!!
@@ -681,7 +680,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     fun setTransform(
         ci: PrefabInspector, path: Path,
-        position: Any?, rotation: Any?, scale: Any?
+        position: Any?, rotation: Any?, scale: Any?,
     ) {
         var hasValidTransform = true
         if (position != null) {
@@ -705,7 +704,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     private fun getDropTransform(
         root: Entity, sampleInstance: Entity?,
-        dropPosition: Vector3d
+        dropPosition: Vector3d,
     ): Triple<Vector3d, Quaternionf, Vector3f> {
         val newTransform = Matrix4x3()
             .translationRotateScale(dropPosition, dropRotation, dropScale)
@@ -740,7 +739,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     fun pasteFromFile(
         file: FileReference, ci: PrefabInspector,
         hovEntity: Entity?, hovComponent: Component?,
-        dropPosition: Vector3d, results: ArrayList<PrefabSaveable>
+        dropPosition: Vector3d, results: ArrayList<PrefabSaveable>,
     ) {
         val prefab = PrefabCache[file].waitFor()?.prefab ?: return
         when (val sampleInstance = prefab.getSampleInstance()) {

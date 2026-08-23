@@ -25,6 +25,7 @@ object CanvasShader : Shader(
                            tint = instTint;
                            mode = instMode;
                            vec2 pos = mix(vec2(instBounds.xy), vec2(instBounds.zw), positions) * invRenderSize * 2.0 - 1.0;
+                           pos.y = -pos.y;
                            uv = mix(vec2(instTexBounds.xy), vec2(instTexBounds.zw), positions) * invAtlasSize * 2.0 - 1.0;
                            gl_Position = matMul(transform, vec4(pos, 0.0, 1.0));
                         }

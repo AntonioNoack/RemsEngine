@@ -1,19 +1,16 @@
 package me.anno.ui.base.progress
 
 import me.anno.Time
-import me.anno.gpu.Clipping
 import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
-import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
 import me.anno.maths.MinMax.max
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.files.Files.formatFileSize
@@ -24,7 +21,7 @@ import kotlin.math.min
 open class ProgressBar(
     var name: String,
     var unit: String,
-    var total: Double
+    var total: Double,
 ) {
 
     var progress = 0.0
@@ -105,10 +102,7 @@ open class ProgressBar(
 
     var padding = 1
 
-    private fun drawIndeterminate(
-        canvas: Canvas,
-        x: Int, y: Int, w: Int, h: Int, time: Long,
-    ) {
+    private fun drawIndeterminate(canvas: Canvas, x: Int, y: Int, w: Int, h: Int, time: Long) {
         val time1 = (time % 3_000_000_000L) * 0.666e-9f
         val dw = w / 3
         val x1r = x + (fract(1f - cos(time1 * PIf * 0.5f)) * (w + dw)).toInt() - dw
@@ -117,71 +111,68 @@ open class ProgressBar(
         val x3 = x + w
         val leftColor = backgroundColor
         val rightColor = textColor
-        drawRect(x, y, x1 - x, h, leftColor)
-        drawRect(x1, y, x2 - x1, h, rightColor)
-        drawRect(x2, y, x3 - x2, h, leftColor)
+        canvas.drawRect(x, y, x1 - x, h, leftColor)
+        canvas.drawRect(x1, y, x2 - x1, h, rightColor)
+        canvas.drawRect(x2, y, x3 - x2, h, leftColor)
         // show num/total unit
         val text = formatProgress()
         val xt = x + w.shr(1)
         val yt = y + (h - monospaceFont.lineHeightI).shr(1)
-        if (x1 > x) Clipping.clip(x, y, x1 - x, h) {
-            drawText(
+        if (x1 > x) canvas.clip(x, y, x1 - x, h) {
+            canvas.drawText(
                 xt, yt, padding, monospaceFont, text, rightColor, leftColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
-        if (x2 > x1) Clipping.clip(x1, y, x2 - x1, h) {
-            drawText(
+        if (x2 > x1) canvas.clip(x1, y, x2 - x1, h) {
+            canvas.drawText(
                 xt, yt, padding, monospaceFont, text, leftColor, rightColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
-        if (x3 > x2) Clipping.clip(x2, y, x3 - x2, h) {
-            drawText(
+        if (x3 > x2) canvas.clip(x2, y, x3 - x2, h) {
+            canvas.drawText(
                 xt, yt, padding, monospaceFont, text, rightColor, leftColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
     }
 
-    private fun drawDeterminate(
-        canvas: Canvas,
-        x: Int, y: Int, w: Int, h: Int, percentage: Double,
-    ) {
+    private fun drawDeterminate(canvas: Canvas, x: Int, y: Int, w: Int, h: Int, percentage: Double) {
         val wx = (5 + percentage * (w - 5)).toFloat()
         val leftColor = textColor
         val rightColor = backgroundColor
         val wxi = wx.toInt()
         val wxf = fract(wx)
         val mixedColor = mixARGB(rightColor, leftColor, wxf)
-        drawRect(x, y, wxi, h, leftColor)
-        drawRect(x + wxi, y, 1, h, mixedColor)
-        drawRect(x + 1 + wxi, y, w - wxi - 1, h, rightColor)
+        canvas.drawRect(x, y, wxi, h, leftColor)
+        canvas.drawRect(x + wxi, y, 1, h, mixedColor)
+        canvas.drawRect(x + 1 + wxi, y, w - wxi - 1, h, rightColor)
         // show num/total unit
         val mid = wxi + (wxf >= 0.5f).toInt()
         val text = formatProgress()
         val xt = x + w.shr(1)
         val yt = y + (h - monospaceFont.sizeInt).shr(1)
-        Clipping.clip2Save(
+        canvas.clip2(
             max(canvas.x0, x),
             max(canvas.y0, y),
             min(canvas.x1, x + mid),
             min(canvas.y1, y + h)
         ) {
-            drawText(
+            canvas.drawText(
                 xt, yt, padding,
                 monospaceFont, text,
                 rightColor, leftColor,
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
-        Clipping.clip2Save(
+        canvas.clip2(
             max(canvas.x0, x + mid),
             max(canvas.y0, y),
             min(canvas.x1, x + w),
             min(canvas.y1, y + h)
         ) {
-            drawText(
+            canvas.drawText(
                 xt, yt, padding,
                 monospaceFont, text,
                 leftColor, rightColor,
@@ -193,7 +184,7 @@ open class ProgressBar(
     open fun draw(
         canvas: Canvas,
         x: Int, y: Int, w: Int, h: Int,
-        time: Long
+        time: Long,
     ) {
         val dt = Maths.dtTo01((time - lastDrawn) * 1e-9 * updateSpeed)
         lastDrawn = time

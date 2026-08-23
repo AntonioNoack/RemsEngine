@@ -2,7 +2,6 @@ package me.anno.engine.ui.control
 
 import me.anno.ecs.Transform
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Key
 import me.anno.maths.Maths.length
@@ -36,8 +35,8 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
     var isLocking = false
 
     override fun draw(canvas: Canvas) {
-        DrawTexts.drawText(x, y, 2, number)
-        DrawTexts.drawText(x, y + 20, 2, mode.name)
+        canvas.drawText(x, y, 2, number)
+        canvas.drawText(x, y + 20, 2, mode.name)
     }
 
     fun getAxis(): Vector3f {
