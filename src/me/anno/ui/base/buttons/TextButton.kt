@@ -127,7 +127,7 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
     }
 
     override fun draw(canvas: Canvas) {
-        drawBackground(canvas)
+        drawBackgroundMaybe(canvas)
         drawButtonText(canvas)
         drawButtonBorder(
             canvas, leftColor, topColor, rightColor, bottomColor,

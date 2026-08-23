@@ -315,7 +315,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val maxCursor = maxCursor
 
         background.color = theme.backgroundColor or black
-        drawBackground(canvas)
+        drawBackgroundMaybe(canvas)
 
         // draw the selected lines with special color background
         val selectedBGColor = theme.selectedBGColor or black

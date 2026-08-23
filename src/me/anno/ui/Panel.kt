@@ -7,11 +7,9 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.input.MouseLock
 import me.anno.io.base.BaseWriter
@@ -235,7 +233,17 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * the area is already clipped with useFrame(x0,y0,x1-x0,y1-y0)
      * */
     open fun draw(canvas: Canvas) {
-        drawBackground(canvas)
+        drawBackgroundMaybe(canvas)
+    }
+
+    fun drawBackgroundMaybe(canvas: Canvas) {
+        val parent = uiParent
+        if (parent == null ||
+            parent.background.color != background.color ||
+            background.outlineThickness > 0f
+        ) {
+            drawBackground(canvas)
+        } // else optimized
     }
 
     fun setPosSizeAligned(x: Int, y: Int, availableW: Int, availableH: Int) {

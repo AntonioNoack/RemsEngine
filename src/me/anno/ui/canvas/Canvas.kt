@@ -53,10 +53,13 @@ import java.nio.ByteOrder
 import kotlin.math.max
 import kotlin.math.min
 
-// todo instanced rendering has no order-guarantee -> we must define order ourselves!
 class Canvas {
 
     companion object {
+
+        const val RECT_ORDER = 0
+        const val TEXTURE_ORDER = 1
+        const val TEXT_ORDER = 2
 
         private const val maxTexSize = 256
         private val isLittleEndian = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
@@ -153,8 +156,6 @@ class Canvas {
         if (isFinished()) return
 
         val fb = GFXState.framebuffer.last()
-        val texture = atlasTexture.createdOrNull() ?: TextureLib.whiteTexture
-        texture.bind(0)
 
         var dx = 0
         var dy = 0
@@ -170,6 +171,9 @@ class Canvas {
             shader.v2f("invRenderSize", 1f / fb.width, 1f / fb.height)
             shader.v2f("invAtlasSize", 1f / atlasTexture.width, 1f / atlasTexture.height)
             shader.m4x4("transform", transform)
+
+            val texture = atlasTexture.createdOrNull() ?: TextureLib.whiteTexture
+            texture.bind(0)
 
             for (i in shapeBuffers.indices) {
                 val shapeBuffer = shapeBuffers[i]
@@ -204,6 +208,8 @@ class Canvas {
     }
 
     private fun pushScissor(nio: ByteBuffer) {
+        check(x1 > x0)
+        check(y1 > y0)
         nio.putShort(x0.toShort())
         nio.putShort(y0.toShort())
         nio.putShort(x1.toShort())
@@ -254,13 +260,13 @@ class Canvas {
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, ignoreAlpha: Boolean, tint: Int = -1,
-        extraDepth: Int = 1,
+        extraDepth: Int = TEXTURE_ORDER,
     ) {
         val minX = min(x, x + w)
         val maxX = max(x, x + w)
         val minY = min(y, y + h)
         val maxY = max(y, y + h)
-        if (minX >= x1 || minY >= y1 || maxX <= x0 || maxY <= y0) return // invisible
+        if (minX >= x1 || minY >= y1 || maxX <= x0 || maxY <= y0 || tint.a() == 0) return // invisible
 
         val bounds = getBounds(texture)
         if (bounds != null) {
@@ -289,14 +295,14 @@ class Canvas {
 
     fun drawRect(
         x: Int, y: Int, w: Int, h: Int, color: Int,
-        extraDepth: Int = 0,
+        extraDepth: Int = RECT_ORDER,
     ) {
 
         val minX = min(x, x + w)
         val maxX = max(x, x + w)
         val minY = min(y, y + h)
         val maxY = max(y, y + h)
-        if (minX >= x1 || minY >= y1 || maxX <= x0 || maxY <= y0) return // invisible
+        if (minX >= x1 || minY >= y1 || maxX <= x0 || maxY <= y0 || color.a() == 0) return // invisible
 
         val nio = getNioBuffer(extraDepth)
         pushBounds(nio, x, y, w, h)
@@ -454,7 +460,7 @@ class Canvas {
         widthLimit: Int, heightLimit: Int,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN,
-        extraDepth: Int = 2,
+        extraDepth: Int = TEXT_ORDER,
     ): Int {
 
         // compute-shader fallback for true blending

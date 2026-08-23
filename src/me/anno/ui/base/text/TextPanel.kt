@@ -105,9 +105,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val ax = textAlignmentX.getAnchor(x + padding.left, width - padding.width)
         val ay = textAlignmentY.getAnchor(y + padding.top, height - padding.height)
         canvas.drawText(
-            ax, ay, 0,
-            font, text,
-            color, backgroundColor,
+            ax, ay, 0, font, text,
+            color, backgroundColor.withAlpha(0),
             widthLimit, heightLimit,
             textAlignmentX, textAlignmentY
         )
@@ -174,7 +173,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     override fun draw(canvas: Canvas) {
         val bg = background.color
         background.color = if (isInFocus && enableFocusColor) focusBackgroundColor else background.color
-        drawBackground(canvas)
+        drawBackgroundMaybe(canvas)
         drawText(canvas, effectiveTextColor)
         background.color = bg
     }
