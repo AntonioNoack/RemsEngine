@@ -71,7 +71,7 @@ class Canvas {
             // todo we need a corner-radius and corner-flags(?)...
         )
 
-        private fun createBuffer() = StaticBuffer("canvas", attr, 256, BufferUsage.DYNAMIC)
+        private fun createBuffer() = StaticBuffer("canvas", attr, 1024, BufferUsage.DYNAMIC)
         private val shapeBuffers = GrowingList { createBuffer() }
 
         private val textureCache = HashMap<ITexture2D, Bounds?>()
@@ -103,7 +103,7 @@ class Canvas {
     val dy get() = y1 - y0
 
     val boundsStack = IntArrayList()
-    val depth: Int get() = boundsStack.size
+    val depth: Int get() = boundsStack.size shr 2
 
     fun push(x0: Int, y0: Int, x1: Int, y1: Int) {
         boundsStack.ensureExtra(4)
@@ -150,13 +150,39 @@ class Canvas {
     }
 
     fun finish() {
-        var first = true
-        for (i in shapeBuffers.indices) {
-            val shapeBuffer = shapeBuffers[i]
-            val nio = shapeBuffer.getOrCreateNioBuffer()
-            if (nio.position() > 0) {
-                renderShapes(shapeBuffer, first)
-                first = false
+        if (isFinished()) return
+
+        val fb = GFXState.framebuffer.last()
+        val texture = atlasTexture.createdOrNull() ?: TextureLib.whiteTexture
+        texture.bind(0)
+
+        var dx = 0
+        var dy = 0
+        if (fb is Framebuffer) {
+            dx = fb.offsetX
+            dy = fb.offsetY
+        }
+
+        useFrame(dx, dy, fb.width, fb.height, fb) {
+            val shader = CanvasShader
+            shader.use()
+            shader.v2f("dstOffset", dx.toFloat(), dy.toFloat())
+            shader.v2f("invRenderSize", 1f / fb.width, 1f / fb.height)
+            shader.v2f("invAtlasSize", 1f / atlasTexture.width, 1f / atlasTexture.height)
+            shader.m4x4("transform", transform)
+
+            for (i in shapeBuffers.indices) {
+                val shapeBuffer = shapeBuffers[i]
+                val nio = shapeBuffer.getOrCreateNioBuffer()
+                if (nio.position() > 0) {
+                    val nio = shapeBuffer.getOrCreateNioBuffer()
+                    shapeBuffer.cpuSideChanged()
+                    shapeBuffer.ensureBuffer()
+
+                    nio.position(0)
+                    nio.limit(nio.capacity())
+                    flat01.drawInstanced(shader, shapeBuffer)
+                }
             }
         }
     }
@@ -167,29 +193,7 @@ class Canvas {
     }
 
     private fun renderShapes(shapeBuffer: StaticBuffer, first: Boolean) {
-        val nio = shapeBuffer.getOrCreateNioBuffer()
-        shapeBuffer.cpuSideChanged()
-        shapeBuffer.ensureBuffer()
 
-        val fb = GFXState.framebuffer.last()
-        val texture = atlasTexture.createdOrNull() ?: TextureLib.whiteTexture
-        texture.bind(0)
-
-        useFrame(0, 0, fb.width, fb.height, fb) {
-            val shader = CanvasShader
-            if (first) {
-                shader.use()
-                if (fb is Framebuffer) shader.v2i("dstOffset", fb.offsetX, fb.offsetY)
-                else shader.v2i("dstOffset", 0, 0)
-                shader.v2f("invRenderSize", 1f / fb.width, 1f / fb.height)
-                shader.v2f("invAtlasSize", 1f / atlasTexture.width, 1f / atlasTexture.height)
-                shader.m4x4("transform", transform)
-            } // else properties already bound
-            flat01.drawInstanced(shader, shapeBuffer)
-        }
-
-        nio.position(0)
-        nio.limit(nio.capacity())
     }
 
     private fun pushBounds(nio: ByteBuffer, x: Int, y: Int, width: Int, height: Int) {
@@ -259,7 +263,6 @@ class Canvas {
         if (minX >= x1 || minY >= y1 || maxX <= x0 || maxY <= y0) return // invisible
 
         val bounds = getBounds(texture)
-        // println("Bounds for texture $texture at $x,$y += $w,$h: $bounds")
         if (bounds != null) {
 
             val nio = getNioBuffer(extraDepth)
@@ -319,10 +322,6 @@ class Canvas {
                 outlineThickness, centerColor, outlineColor, backgroundColor, smoothness
             )
         }
-    }
-
-    fun fill(color: Int) {
-        drawRect(x0, y0, dx, dy, color)
     }
 
     fun getBounds(texture: ITexture2D): Bounds? {
@@ -548,5 +547,4 @@ class Canvas {
         pushColor(nio, CanvasTextDrawHelper.bgColor)
         pushMode(nio, CanvasDrawMode.TEXT)
     }
-
 }

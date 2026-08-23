@@ -5,9 +5,9 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.input.Input
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.mulAlpha
 
 open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
@@ -35,7 +35,10 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
     }
 
     override fun draw(canvas: Canvas) {
-        canvas.fill(scrollBackground.mulAlpha(activeAlpha * alpha))
+        canvas.drawRect(
+            x, y, width, height,
+            scrollBackground.mulAlpha(activeAlpha * alpha)
+        )
     }
 
     override fun clone(): Scrollbar {

@@ -5,19 +5,18 @@ import me.anno.Time.uiDeltaTime
 import me.anno.config.ConfigRef
 import me.anno.engine.EngineBase
 import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
-import me.anno.maths.MinMax.min
 import me.anno.maths.Maths.mix
-import me.anno.ui.canvas.Canvas
+import me.anno.maths.MinMax.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.mulAlpha
 import kotlin.math.abs
 import kotlin.math.max
@@ -183,10 +182,12 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
                 drawShadowX(canvas, shadowRadius)
             }
             val scrollbarX = scrollbarX
-            scrollbarX.x = x + scrollbarPadding
-            scrollbarX.y = y + height - scrollbarHeight - scrollbarPadding
-            scrollbarX.width = width - 2 * scrollbarPadding
-            scrollbarX.height = scrollbarHeight
+            scrollbarX.setPosSize(
+                x + scrollbarPadding,
+                y + height - scrollbarHeight - scrollbarPadding,
+                width - 2 * scrollbarPadding,
+                scrollbarHeight
+            )
             drawChild(scrollbarX, canvas)
         }
         if (hasScrollbarY) {
@@ -195,10 +196,12 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
                 drawShadowY(canvas, shadowRadius)
             }
             val scrollbarY = scrollbarY
-            scrollbarY.x = x + width - scrollbarWidth - scrollbarPadding
-            scrollbarY.y = y + scrollbarPadding
-            scrollbarY.width = scrollbarWidth
-            scrollbarY.height = height - 2 * scrollbarPadding
+            scrollbarY.setPosSize(
+                x + width - scrollbarWidth - scrollbarPadding,
+                y + scrollbarPadding,
+                scrollbarWidth,
+                height - 2 * scrollbarPadding
+            )
             drawChild(scrollbarY, canvas)
         }
     }
@@ -293,7 +296,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         fun drawsOverX(
             lx0: Int, ly0: Int, lx1: Int, ly1: Int,
             sbHeight: Int,
-            x0: Int, y0: Int, x1: Int = x0 + 1, y1: Int = y0 + 1
+            x0: Int, y0: Int, x1: Int = x0 + 1, y1: Int = y0 + 1,
         ) = overlaps(
             lx0, ly1 - sbHeight, lx1, ly1,
             x0, y0, x1, y1
@@ -303,12 +306,12 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         fun drawsOverY(
             lx0: Int, ly0: Int, lx1: Int, ly1: Int,
             sbWidth: Int,
-            x0: Int, y0: Int, x1: Int = x0 + 1, y1: Int = y0 + 1
+            x0: Int, y0: Int, x1: Int = x0 + 1, y1: Int = y0 + 1,
         ) = overlaps(lx1 - sbWidth, ly0, lx1, ly1, x0, y0, x1, y1)
 
         fun overlaps(
             x0: Int, y0: Int, x1: Int, y1: Int,
-            x2: Int, y2: Int, x3: Int, y3: Int
+            x2: Int, y2: Int, x3: Int, y3: Int,
         ): Boolean {
             return abs((x0 + x1) - (x2 + x3)) < (x1 - x0) + (x3 - x2) &&
                     abs((y0 + y1) - (y2 + y3)) < (y1 - y0) + (y3 - y2)
