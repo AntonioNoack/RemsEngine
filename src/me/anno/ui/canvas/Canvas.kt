@@ -1,13 +1,10 @@
 package me.anno.ui.canvas
 
-import me.anno.Time
 import me.anno.fonts.Font
 import me.anno.fonts.FontImpl.Companion.heightLimitToMaxNumLines
 import me.anno.fonts.FontManager
 import me.anno.gpu.Clipping
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
@@ -26,15 +23,13 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.transform
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
-import me.anno.maths.Packing.unpackHighFrom64
-import me.anno.maths.Packing.unpackLowFrom64
-import me.anno.maths.geometry.ShelfPacking
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.canvas.CanvasAtlasCache.atlas
+import me.anno.ui.canvas.CanvasAtlasCache.getBounds
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
@@ -43,19 +38,24 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.GrowingList
+import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Vector2f
-import org.lwjgl.opengl.GL11C.GL_RGB
-import org.lwjgl.opengl.GL11C.GL_RGB8
-import org.lwjgl.opengl.GL11C.GL_RGBA
-import org.lwjgl.opengl.GL11C.GL_RGBA8
-import org.lwjgl.opengl.GL11C.glCopyTexSubImage2D
-import org.lwjgl.opengl.GL42C.glMemoryBarrier
-import org.lwjgl.opengl.GL46C
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Converts many small draw calls into bigger ones for better performance.
+ * This assumes a strict order text > texture > background.
+ * This must only be used if that order is valid. Otherwise, call .custom {} and call the draw methods directly.
+ *
+ * Structure:
+ * - an instanced buffer, where we store all draw operations
+ * - a super shader, which can render text, textures and rectangles (maybe circles and lines in the future)
+ * - a cache, which stores all small textures in one big texture
+ * - big textures are drawn directly
+ * */
 class Canvas {
 
     companion object {
@@ -64,7 +64,6 @@ class Canvas {
         const val TEXTURE_ORDER = 1
         const val TEXT_ORDER = 2
 
-        private const val maxTexSize = 256
         private val isLittleEndian = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
 
         private val attr = bind(
@@ -78,18 +77,14 @@ class Canvas {
         )
 
         // todo setting vertexCount to 1 fixes all issues, so the issue definitely is dependencies...
+        //  with higher values we also get duplicated renders... how??
+        //  and some too-big-faces <- I can only explain those by corrupted data or if the wrong framebuffer is used
 
-        private fun createBuffer() = StaticBuffer("canvas", attr, 1, BufferUsage.DYNAMIC)
+        // todo define a VAO for each buffer, so we can bind them quicker
+        private fun createBuffer() = StaticBuffer("canvas", attr, 128, BufferUsage.STREAM)
         private val shapeBuffers = GrowingList { createBuffer() }
-
-        private val textureCache = HashMap<ITexture2D, Bounds?>()
-        private val atlasTexture by lazy {
-            val size = min(GFX.maxTextureSize, 4096)
-            Texture2D("canvasAtlas", size, size, 1)
-        }
-
-        private val texturePacking by lazy {
-            ShelfPacking(atlasTexture.width, atlasTexture.height, 4)
+        private val vaos = GrowingList { index ->
+            FixedAttributeBinding(flat01, shapeBuffers[index], CanvasShader)
         }
 
         private val flat01 = SimpleBuffer(
@@ -113,6 +108,12 @@ class Canvas {
     val boundsStack = IntArrayList()
     val depth: Int get() = boundsStack.size shr 2
 
+    lateinit var framebuffer: IFramebuffer
+
+    fun define(framebuffer: IFramebuffer) {
+        this.framebuffer = framebuffer
+    }
+
     fun push(x0: Int, y0: Int, x1: Int, y1: Int) {
         boundsStack.ensureExtra(4)
         boundsStack.addUnsafe(this.x0)
@@ -133,17 +134,22 @@ class Canvas {
         x0 = boundsStack.removeLast()
     }
 
-    // todo an instanced buffer, where we store all draw operations
-    // todo a super shader, which can render text and shapes
-    // todo a cache, which stores all small textures in one big texture
-    // todo big textures are drawn directly
-
     inline fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
         if (x1 <= x0 || y1 <= y0) return
         push(x0, y0, x1, y1)
         render()
         pop()
     }
+
+    inline fun clip2Dual(
+        x0: Int, y0: Int, x1: Int, y1: Int,
+        x2: Int, y2: Int, x3: Int, y3: Int,
+        crossinline render: () -> Unit,
+    ) = clip2(
+        max(x0, x2), max(y0, y2),
+        min(x1, x3), min(y1, y3),
+        render
+    )
 
     fun drawClipped(x0: Int, y0: Int, x1: Int, y1: Int, panel: Panel) {
         if (x1 <= x0 || y1 <= y0) return
@@ -152,17 +158,26 @@ class Canvas {
         pop()
     }
 
+    /**
+     * sometimes custom is the background:
+     *   add a parameter for which depths to render, and we only render until that depth
+     * */
     inline fun custom(crossinline render: () -> Unit) {
+        custom(10000, render)
+    }
+
+    inline fun custom(maxExtraDepth: Int, crossinline render: () -> Unit) {
         isInsideCustom = true
-        finish()
+        finish(maxExtraDepth)
         Clipping.clip(x0, y0, dx, dy, render)
         isInsideCustom = false
     }
 
-    fun finish() {
-        if (isFinished()) return
+    fun finish(maxExtraDepth: Int = 10000) {
+        val depth = min(depth + maxExtraDepth, shapeBuffers.size)
+        if (isFinished(depth)) return
 
-        val fb = GFXState.framebuffer.last()
+        val fb = framebuffer
 
         var dx = 0
         var dy = 0
@@ -174,35 +189,41 @@ class Canvas {
         useFrame(dx, dy, fb.width, fb.height, fb) {
             val shader = CanvasShader
             shader.use()
-            shader.v2f("dstOffset", dx.toFloat(), dy.toFloat())
+            shader.v2i("dstOffset", dx, dy)
             shader.v2f("invRenderSize", 1f / fb.width, 1f / fb.height)
-            shader.v2f("invAtlasSize", 1f / atlasTexture.width, 1f / atlasTexture.height)
+            shader.v1f("invAtlasSize", 1f / atlas.size)
             shader.m4x4("transform", transform)
 
-            val texture = atlasTexture.createdOrNull() ?: TextureLib.whiteTexture
+            val texture = atlas.texture.createdOrNull() ?: TextureLib.whiteTexture
             texture.bind(0)
 
-            for (i in shapeBuffers.indices) {
+            for (i in 0 until depth) {
                 val shapeBuffer = shapeBuffers[i]
                 val nio = shapeBuffer.getOrCreateNioBuffer()
                 if (nio.position() > 0) {
-                    shapeBuffer.cpuSideChanged()
-
-                    flat01.drawInstanced(shader, shapeBuffer)
-                    glMemoryBarrier(GL46C.GL_ALL_BARRIER_BITS)
-
-                    nio.position(0)
-                    nio.limit(nio.capacity())
+                    shapeBuffer.ensureBuffer()
+                    val vao = vaos[i]
+                    vao.bind()
+                    vao.drawInstanced(flat01, shapeBuffer, flat01.drawMode)
+                    shapeBuffer.clear()
                 }
             }
+
+            FixedAttributeBinding.unbind()
         }
     }
 
     var ctr = 0
 
-    fun isFinished(): Boolean = shapeBuffers.all { buffer ->
-        val nio = buffer.nioBuffer
-        nio == null || nio.position() == 0
+    fun isFinished(): Boolean = isFinished(shapeBuffers.size)
+
+    fun isFinished(depth: Int): Boolean {
+        for (i in 0 until min(depth, shapeBuffers.size)) {
+            val buffer = shapeBuffers[i]
+            val nio = buffer.nioBuffer
+            if (nio != null && nio.position() > 0) return false
+        }
+        return true
     }
 
     private fun pushBounds(nio: ByteBuffer, x: Int, y: Int, width: Int, height: Int) {
@@ -258,6 +279,21 @@ class Canvas {
         return nio
     }
 
+    private fun pushTexture(
+        x: Int, y: Int, w: Int, h: Int,
+        bounds: Bounds, ignoreAlpha: Boolean, tint: Int,
+        extraDepth: Int,
+    ) {
+        val nio = getNioBuffer(extraDepth)
+        val mode = if (ignoreAlpha) CanvasDrawMode.TEXTURE_NO_ALPHA else CanvasDrawMode.TEXTURE
+        pushBounds(nio, x, y, w, h)
+        pushScissor(nio)
+        pushTexBounds(nio, bounds)
+        pushColor(nio, tint)
+        pushColor(nio, 0)
+        pushMode(nio, mode)
+    }
+
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, tint: Int = -1,
@@ -268,24 +304,11 @@ class Canvas {
         texture: ITexture2D, ignoreAlpha: Boolean, tint: Int = -1,
         extraDepth: Int = TEXTURE_ORDER,
     ) {
-        val minX = min(x, x + w)
-        val maxX = max(x, x + w)
-        val minY = min(y, y + h)
-        val maxY = max(y, y + h)
-        if (minX >= x1 || minY >= y1 || maxX <= x0 || maxY <= y0 || tint.a() == 0) return // invisible
+        if (!overlaps2(x, y, w, h) || tint.a() == 0) return // invisible
 
-        val bounds = getBounds(texture)
+        val bounds = getBounds(this, texture)
         if (bounds != null) {
-
-            val nio = getNioBuffer(extraDepth)
-            val mode = if (ignoreAlpha) CanvasDrawMode.TEXTURE_NO_ALPHA else CanvasDrawMode.TEXTURE
-            pushBounds(nio, x, y, w, h)
-            pushScissor(nio)
-            pushTexBounds(nio, bounds)
-            pushColor(nio, tint)
-            pushColor(nio, 0)
-            pushMode(nio, mode)
-
+            pushTexture(x, y, w, h, bounds, ignoreAlpha, tint, extraDepth)
         } else custom {
             // check if we overlap the bounds
             val isSafe = x >= x0 && y >= y0 && x + w <= x1 && y + h <= y1
@@ -299,16 +322,46 @@ class Canvas {
         }
     }
 
+    fun drawTexture(
+        x: Int, y: Int, w: Int, h: Int, frame: GPUFrame,
+        extraDepth: Int = TEXTURE_ORDER,
+    ) {
+        if (!overlaps2(x, y, w, h)) return // invisible
+
+        val bounds = getBounds(this, frame)
+        if (bounds != null) {
+            pushTexture(x, y, w, h, bounds, ignoreAlpha = false, tint = -1, extraDepth)
+        } else custom {
+            // check if we overlap the bounds
+            val isSafe = x >= x0 && y >= y0 && x + w <= x1 && y + h <= y1
+            if (isSafe) {
+                DrawTextures.drawTexture(x, y, w, h, frame)
+            } else {
+                useFrame(x0, y0, x1 - x0, y1 - y0) {
+                    DrawTextures.drawTexture(x, y, w, h, frame)
+                }
+            }
+        }
+    }
+
+    fun overlaps2(x: Int, y: Int, w: Int, h: Int): Boolean {
+        return overlaps(x, y, x + w, y + h)
+    }
+
+    fun overlaps(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
+        val minX = min(x0, x1)
+        val maxX = max(x0, x1)
+        val minY = min(y0, y1)
+        val maxY = max(y0, y1)
+        return minX < x1 && minY < y1 &&
+                maxX > x0 && maxY > y0
+    }
+
     fun drawRect(
         x: Int, y: Int, w: Int, h: Int, color: Int,
         extraDepth: Int = RECT_ORDER,
     ) {
-
-        val minX = min(x, x + w)
-        val maxX = max(x, x + w)
-        val minY = min(y, y + h)
-        val maxY = max(y, y + h)
-        if (minX >= x1 || minY >= y1 || maxX <= x0 || maxY <= y0 || color.a() == 0) return // invisible
+        if (!overlaps2(x, y, w, h) || color.a() == 0) return // invisible
 
         val nio = getNioBuffer(extraDepth)
         pushBounds(nio, x, y, w, h)
@@ -333,66 +386,6 @@ class Canvas {
                 x, y, w, h, topRightRadius, bottomRightRadius, topLeftRadius, bottomLeftRadius,
                 outlineThickness, centerColor, outlineColor, backgroundColor, smoothness
             )
-        }
-    }
-
-    fun getBounds(texture: ITexture2D): Bounds? {
-        if (!texture.isCreated()) return null
-        val w = texture.width
-        val h = texture.height
-        if (w <= 0 || h <= 0 || w > maxTexSize || h > maxTexSize) return null
-        return textureCache.getOrPut(texture) { insert(texture, w, h) }
-    }
-
-    private fun clearCache() {
-        texturePacking.clear()
-        textureCache.clear()
-    }
-
-    private fun insert(texture: ITexture2D, w: Int, h: Int): Bounds {
-        var pos = texturePacking.allocate(w, h)
-        if (pos < 0) {
-            // if cache is full, reset
-            finish()
-            clearCache()
-            pos = texturePacking.allocate(w, h)
-            println("Inserted $texture at ${unpackHighFrom64(pos)},${unpackLowFrom64(pos)}")
-            check(pos >= 0)
-        }
-
-        val x = unpackHighFrom64(pos)
-        val y = unpackLowFrom64(pos)
-        return insertAt(texture, x, y, w, h)
-    }
-
-    private fun insertAt(source: ITexture2D, x: Int, y: Int, w: Int, h: Int): Bounds {
-        if (!atlasTexture.isCreated()) atlasTexture.create(TargetType.UInt8x4)
-
-        // use glCopyTexSubImage2D, if the formats are compatible
-        if (source is Texture2D && hasCompatibleFormat(source.internalFormat)) {
-            useFrame(source) {
-                // copies framebuffer to texture; first coords are texture, second are framebuffer
-                atlasTexture.bind(0)
-                glCopyTexSubImage2D(atlasTexture.target, 0, x, y, 0, 0, w, h)
-            }
-        } else {
-            useFrame(atlasTexture) {
-                GFXState.blendMode.use(null) {
-                    GFXState.depthMode.use(DepthMode.ALWAYS) {
-                        DrawTextures.drawTexture(x, y, w, h, source)
-                    }
-                }
-            }
-        }
-        return Bounds(x, y, x + w, y + h)
-    }
-
-    private fun hasCompatibleFormat(format: Int): Boolean {
-        return when (format) {
-            GL_RGB, GL_RGBA,
-            GL_RGB8, GL_RGBA8,
-                -> true
-            else -> false
         }
     }
 
@@ -471,6 +464,7 @@ class Canvas {
 
         // compute-shader fallback for true blending
         if (DrawTexts.enableTrueBlending && DrawTexts.canUseComputeShader()) {
+            // todo why is this not used for 'tris, inst, ...'??
             finish()
             return DrawTexts.drawText(
                 x, y, padding, font, text,
@@ -552,6 +546,8 @@ class Canvas {
     private var extraDepth = 0
 
     fun pushText(bounds: Bounds, x: Int, y: Int, w: Int, h: Int) {
+        if (!overlaps2(x, y, w, h)) return
+
         val nio = getNioBuffer(extraDepth)
         pushBounds(nio, x, y, w, h)
         pushScissor(nio)
@@ -559,13 +555,5 @@ class Canvas {
         pushColor(nio, CanvasTextDrawHelper.color)
         pushColor(nio, CanvasTextDrawHelper.bgColor)
         pushMode(nio, CanvasDrawMode.TEXT)
-    }
-
-    inline fun deeper(n: Int, callback: () -> Unit) {
-        val diff = n * 4
-        boundsStack.ensureExtra(diff)
-        boundsStack.size += diff
-        callback()
-        boundsStack.size -= diff
     }
 }

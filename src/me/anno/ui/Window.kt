@@ -288,8 +288,9 @@ open class Window(
         }
 
         useFrame(x0, y0, x1 - x0, y1 - y0, buffer, Renderer.colorRenderer) {
-            buffer.clearColor(backgroundColor)
+            if (!panel.background.isFullyOpaque()) buffer.clearColor(backgroundColor)
             panel.canBeSeen = true
+            canvas.define(buffer)
             canvas.drawClipped(x0, y0, x1, y1, panel)
             canvas.finish() // finish rendering
         }

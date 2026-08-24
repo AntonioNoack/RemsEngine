@@ -200,7 +200,9 @@ abstract class EngineBase(
             if (isFirstFrame) tick("Window drawing")
 
             GFXState.useFrame(0, 0, w, h, NullFramebuffer, Renderer.colorRenderer) {
-                window.canvas.clip2(0, 0, w, h) {
+                val canvas = window.canvas
+                canvas.clip2(0, 0, w, h) {
+                    canvas.define(NullFramebuffer)
                     drawUIOverlay(window, w, h)
                 }
             }

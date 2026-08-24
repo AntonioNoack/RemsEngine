@@ -16,32 +16,31 @@ object CanvasShader : Shader(
         Variable(GLSLType.V1I, "instMode", VariableMode.ATTR),
         Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
         Variable(GLSLType.V2F, "invRenderSize"),
-        Variable(GLSLType.V2F, "invAtlasSize"),
-        Variable(GLSLType.V2F, "dstOffset"),
+        Variable(GLSLType.V1F, "invAtlasSize"),
+        Variable(GLSLType.V2I, "dstOffset"),
         Variable(GLSLType.M4x4, "transform"),
-        // todo check scissor cutting UVs
     ), """
                         void main() {
-                           bounds = instBounds;
-                           scissor = instScissor;
-                           texBounds = instTexBounds;
-                           fgColor = instFgColor;
-                           bgColor = instBgColor;
-                           mode = instMode;
                            vec2 pos0 = vec2(max(instBounds.xy, instScissor.xy));
                            vec2 pos1 = vec2(min(instBounds.zw, instScissor.zw));
                            vec2 pos = mix(pos0, pos1, positions);
                            vec2 uvFactor = (pos - instBounds.xy) / (instBounds.zw - instBounds.xy);
-                           pos -= dstOffset;
+                           uvFactor = clamp(uvFactor, vec2(0.0), vec2(1.0));
+                           pos -= vec2(dstOffset);
                            pos = pos * invRenderSize * 2.0 - 1.0;
                            pos.y = -pos.y;
                            uv = mix(vec2(instTexBounds.xw), vec2(instTexBounds.zy), uvFactor) * invAtlasSize;
                            gl_Position = matMul(transform, vec4(pos, 0.0, 1.0));
+                           
+                           bounds = instBounds;
+                           scissor = instScissor - dstOffset.xyxy;
+                           fgColor = instFgColor;
+                           bgColor = instBgColor;
+                           mode = instMode;
                         }
                     """.trimIndent(), listOf(
         Variable(GLSLType.V4I, "bounds").flat(),
         Variable(GLSLType.V4I, "scissor").flat(),
-        Variable(GLSLType.V4I, "texBounds").flat(),
         Variable(GLSLType.V4F, "fgColor").flat(),
         Variable(GLSLType.V4F, "bgColor").flat(),
         Variable(GLSLType.V1I, "mode").flat(),
@@ -49,7 +48,6 @@ object CanvasShader : Shader(
     ), listOf(
         Variable(GLSLType.S2D, "atlasTexture"),
         Variable(GLSLType.V4F, "result", VariableMode.OUT),
-        // todo emojis have alpha > 0
     ), """
                         void main() {
                             result = fgColor;
@@ -69,6 +67,8 @@ object CanvasShader : Shader(
                                         result = text;
                                     } else { // text
                                         if (dot(text.rgb, vec3(1.0)) < 0.01) discard;
+                                        int coordsX = int(gl_FragCoord.x);
+                                        if (coordsX == scissor.x || coordsX == scissor.z) text.rgb = text.ggg; // hide subpixel-rendering on the edges
                                         result.rgb = mix(bgColor.rgb, fgColor.rgb, text.rgb);
                                         result.a = fgColor.a * max(text.r,max(text.g,text.b));
                                     }

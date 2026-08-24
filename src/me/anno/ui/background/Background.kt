@@ -32,7 +32,7 @@ class Background(style: Style) {
                 val bg = if (uiParent == null) black else uiParent.background.color and 0xffffff
                 val th = outlineThickness
                 val radius = radius + th
-                canvas.custom {
+                canvas.custom(Canvas.RECT_ORDER) {
                     drawRoundedRectSquircle(
                         x + dx, y + dy, width - 2 * dx, height - 2 * dy,
                         radius, th, color, outlineColor, bg, 1f
@@ -46,5 +46,9 @@ class Background(style: Style) {
                 canvas.drawRect(x2, y2, x3 - x2, y3 - y2, color)
             }
         }
+    }
+
+    fun isFullyOpaque(): Boolean {
+        return radius <= 0f && color.a() == 255
     }
 }

@@ -81,6 +81,7 @@ import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 
 // todo star assets, and they will always (?) come first in sorting
 
@@ -470,12 +471,14 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
         if (loading != 0L) {
-            canvas.custom {
-                drawLoadingCircle(
-                    (Time.nanoTime - loading) / 1e9f,
-                    canvas.x0, canvas.y0, canvas.x1, canvas.y1
-                )
-            }
+            val imgSize = min(width, height)
+            drawLoadingCircle(
+                canvas,
+                x + width.shr(1),
+                y + height.shr(1),
+                imgSize * 0.5f,
+                (Time.nanoTime - loading) / 1e9f
+            )
         }
     }
 

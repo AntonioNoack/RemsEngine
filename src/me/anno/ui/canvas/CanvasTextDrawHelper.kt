@@ -9,6 +9,7 @@ import me.anno.gpu.drawing.DrawTexts.disableSubpixelRendering
 import me.anno.gpu.drawing.DrawTexts.isJustALine
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.ui.canvas.CanvasAtlasCache.getBounds
 import me.anno.utils.types.Floats.roundToIntOr
 
 object CanvasTextDrawHelper : IGlyphLayout() {
@@ -45,7 +46,7 @@ object CanvasTextDrawHelper : IGlyphLayout() {
             val w = if (isJustALine) x1 - x0 + 2 else texture.width
             val h = texture.height
 
-            val bounds = canvas.getBounds(texture)
+            val bounds = getBounds(canvas, texture)
             if (bounds != null) {
                 canvas.pushText(bounds, x, y, w, h)
             } else {

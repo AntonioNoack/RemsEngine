@@ -23,7 +23,7 @@ import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
-import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -52,7 +52,6 @@ import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.utils.TrashManager.moveToTrash
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
 import me.anno.ui.Panel
@@ -93,7 +92,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.log10
 import kotlin.math.max
@@ -225,27 +223,34 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun drawDefaultIcon(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawDefaultIcon(canvas: Canvas, imgSize: Int) {
         val image = TextureCache[iconPath].value ?: whiteTexture
-        drawTexture(x0, y0, x1, y1, image)
+        canvas.drawTexture(
+            x + (width - imgSize).shr(1), y + (height - imgSize).shr(1),
+            imgSize, imgSize, image
+        )
     }
 
-    private fun drawTexture(x0: Int, y0: Int, x1: Int, y1: Int, image: ITexture2D) {
-        val w = x1 - x0
-        val h = y1 - y0
+    private fun drawTexture(canvas: Canvas, imgSize: Int, image: ITexture2D) {
         // if aspect ratio is extreme, use a different scale
-        var (iw, ih) = scaleMaxPreview(image.width, image.height, abs(w), abs(h), 5)
-        iw *= w.sign
-        ih *= h.sign
-        val applyToneMapping = image.isHDR.toFloat()
+        var (iw, ih) = scaleMaxPreview(image.width, image.height, imgSize, imgSize, 5)
+        iw *= imgSize.sign
+        ih *= imgSize.sign
+        val applyToneMapping = image.isHDR
         // we can use FSR to upsample the images xD
-        val x = x0 + (w - iw) / 2
-        val y = y0 + (h - ih) / 2
+        val x = x + (width - iw).shr(1)
+        val y = y + (width /* meh */ - ih).shr(1)
         if (image is Texture2D) image.filtering = Filtering.LINEAR
         if (iw > image.width && ih > image.height) {// maybe use fsr only, when scaling < 4x
-            FSR.upscale(image, x, y, iw, ih, backgroundColor, false, applyToneMapping, true)// ^^
+            canvas.custom {
+                FSR.upscale(image, x, y, iw, ih, backgroundColor, false, applyToneMapping.toFloat(), true)// ^^
+            }
+        } else if (applyToneMapping) {
+            canvas.custom {
+                DrawTextures.drawTexture(x, y, iw, ih, image, applyToneMapping = 1f)
+            }
         } else {
-            drawTexture(x, y, iw, ih, image, -1, null, applyToneMapping)
+            canvas.drawTexture(x, y, iw, ih, image)
         }
     }
 
@@ -258,9 +263,9 @@ open class FileExplorerEntry(
             ?: getDefaultIcon()?.createdOrNull()
     }
 
-    private fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val w = x1 - x0
-        val h = y1 - y0
+    private fun drawImageOrThumb(canvas: Canvas, imgSize: Int) {
+        val w = canvas.dx
+        val h = canvas.dy
         if (isHovered) {
             val file = file
             // todo reset time when not hovered
@@ -298,7 +303,7 @@ open class FileExplorerEntry(
                     Blitting.copyColor(tmp, true)
                 } else {
                     // use current buffer directly
-                    GFXState.useFrame(x0, y0, w, h, GFXState.currentBuffer, Renderers.simpleRenderer) {
+                    GFXState.useFrame(canvas.x0, canvas.y0, w, h, GFXState.currentBuffer, Renderers.simpleRenderer) {
                         // todo clip to correct area
                         val depthMode = if (GFX.supportsClipControl) DepthMode.CLOSE
                         else DepthMode.FORWARD_CLOSE
@@ -317,12 +322,13 @@ open class FileExplorerEntry(
         val rot = (image as? Texture2D)?.rotation
         image.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
         if (rot == null || rot.isNull()) {
-            drawTexture(x0, y0, x1, y1, image)
+            drawTexture(canvas, imgSize, image)
         } else if (rot.angleCW == 0 && rot.mirrorVertical && !rot.mirrorHorizontal) {
-            drawTexture(x0, y1, x1, y0, image)
+            drawTexture(canvas, imgSize, image)
         } else {
             // todo draw image without overflowing into other things
             // todo maybe use transform for that :)
+            canvas.finish() // we don't want to store the transform
             val transform = GFXx2D.transform
             transform.pushMatrix()
 
@@ -330,9 +336,11 @@ open class FileExplorerEntry(
 
             // transform.rotateY(45f.toRadians())
 
-            drawTexture(x0, y0, x1, y1, image)
+            drawTexture(canvas, imgSize, image)
 
             transform.popMatrix()
+            canvas.finish() // we don't want to continue with that transform
+
             /* GFX.clip2(x0, y0, x1, y1) {
                  val stack = Matrix4fArrayList()
                  rot.apply(stack)
@@ -345,27 +353,30 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun drawCircle(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawCircle(canvas: Canvas, imgSize: Int) {
         if (time < 0.0) {
             // countdown-circle, pseudo-loading
             // saves us some computations
             val relativeTime = ((hoverPlaybackDelay + time) / hoverPlaybackDelay).toFloat()
-            drawLoadingCircle(relativeTime, x0, y0, x1, y1)
+            drawLoadingCircle(canvas, x + width.shr(1), y + width.shr(1), imgSize * 0.5f, relativeTime)
         }
     }
 
-    private fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int, meta: MediaMetadata) {
+    private fun drawVideo(canvas: Canvas, imgSize: Int, meta: MediaMetadata) {
         val image = video?.getFrame()
         if (image != null) {
-            val size = width - 2 * padding
-            val (nw, nh) = ImageScale.scaleMin(image.width, image.height, size, size)
-            drawTexture((x0 + x1 - nw) / 2, (y0 + y1 - nh) / 2, nw, nh, image)
-            drawCircle(x0, y0, x1, y1)
+            val (iw, ih) = ImageScale.scaleMin(image.width, image.height, imgSize, imgSize)
+            canvas.drawTexture(
+                x + (width - iw).shr(1),
+                y + (width - ih).shr(1),
+                iw, ih, image
+            )
+            drawCircle(canvas, imgSize)
         } else {
-            drawDefaultIcon(x0, y0, x1, y1)
+            drawDefaultIcon(canvas, imgSize)
         }
         if (hasSpaceForVideoProgress()) {
-            drawVideoProgress(x0, y0, x1, y1, meta)
+            drawVideoProgress(canvas, meta)
         }
     }
 
@@ -376,7 +387,7 @@ open class FileExplorerEntry(
     /**
      * show video progress on playback, e.g. hh:mm:ss/hh:mm:ss
      * */
-    private fun drawVideoProgress(x0: Int, y0: Int, x1: Int, y1: Int, meta: MediaMetadata) {
+    private fun drawVideoProgress(canvas: Canvas, meta: MediaMetadata) {
         val totalSeconds = (meta.duration).roundToIntOr()
         val needsHours = totalSeconds >= 3600
         val seconds = max((time % meta.duration).toInt(), 0)
@@ -399,15 +410,15 @@ open class FileExplorerEntry(
 
         // more clip space, and draw it a little more left and at the top
         val extra = padding / 2
-        Clipping.clip2Dual(
-            x0 - extra, y0 - extra, x1, y1,
+        canvas.clip2Dual(
+            canvas.x0 - extra, canvas.y0 - extra, canvas.x1, canvas.y1,
             this.lx0, this.ly0, this.lx1, this.ly1
-        ) { _, _, _, _ ->
-            drawText(x + padding - extra, y + padding - extra, 1, format)
+        ) {
+            canvas.drawText(x + padding - extra, y + padding - extra, 1, format)
         }
     }
 
-    private fun drawThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawThumb(canvas: Canvas, imgSize: Int) {
         when (importType) {
             // todo audio preview???
             // todo animation preview: draw the animated skeleton
@@ -416,22 +427,22 @@ open class FileExplorerEntry(
                 if (meta != null) {
                     if (meta.videoWidth > 0) {
                         if (time == 0.0 || !supportsPlayback) { // not playing
-                            drawImageOrThumb(x0, y0, x1, y1)
+                            drawImageOrThumb(canvas, imgSize)
                         } else {
-                            drawVideo(x0, y0, x1, y1, meta)
+                            drawVideo(canvas, imgSize, meta)
                         }
                     } else {
-                        drawDefaultIcon(x0, y0, x1, y1)
-                        drawCircle(x0, y0, x1, y1)
+                        drawDefaultIcon(canvas, imgSize)
+                        drawCircle(canvas, imgSize)
                         if (!(time == 0.0 || !supportsPlayback) &&
                             audio != null && hasSpaceForVideoProgress()
                         ) {
-                            drawVideoProgress(x0, y0, x1, y1, meta)
+                            drawVideoProgress(canvas, meta)
                         }
                     }
-                } else drawDefaultIcon(x0, y0, x1, y1)
+                } else drawDefaultIcon(canvas, imgSize)
             }
-            else -> drawImageOrThumb(x0, y0, x1, y1)
+            else -> drawImageOrThumb(canvas, imgSize)
         }
     }
 
@@ -541,24 +552,18 @@ open class FileExplorerEntry(
 
         val w = width
         val h = height
-
         padding = h / 16
 
-        // why not twice the padding?????
-        // only once centers it...
-        val remainingW = w - padding// * 2
-        val remainingH = h - padding// * 2
-
         if (listMode) {
-            drawListMode(canvas, x, y, w, h)
+            drawListMode(canvas, w, h)
         } else {
-            drawTileMode(canvas, x, y, w, h, remainingW, remainingH)
+            drawTileMode(canvas, w, h)
         }
     }
 
     private fun drawListMode(
         canvas: Canvas,
-        x: Int, y: Int, w: Int, h: Int,
+        w: Int, h: Int,
     ) {
 
         // todo customize weights
@@ -569,15 +574,7 @@ open class FileExplorerEntry(
 
             lines = 1
 
-            canvas.finish()
-            Clipping.clip2Dual(
-                canvas.x0, canvas.y0, canvas.x1, canvas.y1,
-                x + padding,
-                y + padding,
-                x + padding + imgSize,
-                y + padding + imgSize,
-                ::drawThumb
-            )
+            drawThumb(canvas, imgSize)
 
             // todo draw lines for separation?
             val spacing = padding
@@ -593,6 +590,7 @@ open class FileExplorerEntry(
                 val xi1 = xi + ((sumW + column.weight) * invW).toInt()
                 val text = column.type.getValue(ref1s)
                 val alignment = column.type.alignment
+                // todo check this...
                 Clipping.clip(xi0, y, xi1 - xi0, h) {
                     drawText(
                         alignment.getAnchor(xi0, xi1 - xi0),
@@ -606,49 +604,15 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun drawTileMode(
-        canvas: Canvas,
-        x: Int, y: Int, w: Int, h: Int,
-        remainingW: Int, remainingH: Int,
-    ) {
-
-        val t0 = Time.nanoTime
-
+    private fun drawTileMode(canvas: Canvas, w: Int, h: Int, ) {
         val font0 = titlePanel.font
         val fontSize = font0.size
         val extraHeight = h - w
         lines = if (showTitle) max(ceil(extraHeight / fontSize).toInt(), 1) else 0
 
-        val textH = (lines * fontSize).toInt()
-        val imageH = remainingH - textH
+        drawThumb(canvas, min(width, height) - 2 * padding)
 
-        val t1 = Time.nanoTime
-
-        canvas.finish()
-        Clipping.clip2Dual(
-            canvas.x0, canvas.y0, canvas.x1, canvas.y1,
-            x + padding,
-            y + padding,
-            x + remainingW,
-            y + padding + imageH,
-            ::drawThumb
-        )
-
-        val t2 = Time.nanoTime
-
-        if (showTitle) canvas.clip2(
-            max(x + padding, canvas.x0),
-            max(canvas.y0, y + h - padding - textH),
-            min(x + remainingW, canvas.x1),
-            min(y + h, canvas.y1),/* - padding*/ // only apply the padding, when not playing video?
-        ) {
-            drawTitle(canvas, x + remainingW.shr(1), y + h - textH.shr(1))
-        }
-
-        val t3 = Time.nanoTime
-        if (t3 - t0 > 30 * MILLIS_TO_NANOS) {
-            LOGGER.warn("Drawing too slowly! ${(t1 - t0) / 1e6f}, ${(t2 - t1) / 1e6f}, ${(t3 - t2) / 1e6f} for $fileName")
-        }
+        if (showTitle) drawTitle(canvas, x + width.shr(1), y + width)
     }
 
     private fun drawTitle(
@@ -662,7 +626,7 @@ open class FileExplorerEntry(
             titlePanel.textColor,
             backgroundColor.withAlpha(0),
             canvas.dx, canvas.dy,
-            AxisAlignment.CENTER, AxisAlignment.CENTER
+            AxisAlignment.CENTER, AxisAlignment.MIN
         )
         popBetterBlending(pbb)
     }
@@ -861,16 +825,17 @@ open class FileExplorerEntry(
             ) {}
 
         @JvmStatic
-        fun drawLoadingCircle(relativeTime: Float, x0: Int, y0: Int, x1: Int, y1: Int) {
+        fun drawLoadingCircle(canvas: Canvas, x: Int, y: Int, radius: Float, relativeTime: Float) {
             val r = 1f - sq(relativeTime * 2 - 1)
-            val radius = min(y1 - y0, x1 - x0) / 2f
             val color = JomlPools.vec4f.borrow()
-            GFXx2D.drawCircleOld(
-                (x0 + x1) / 2, (y0 + y1) / 2, radius, radius, 0f,
-                relativeTime * 360f * 4 / 3,
-                relativeTime * 360f * 2,
-                color.set(1f, 1f, 1f, r * 0.2f)
-            )
+            canvas.custom {
+                GFXx2D.drawCircleOld(
+                    x, y, radius, radius, 0f,
+                    relativeTime * 360f * 4 / 3,
+                    relativeTime * 360f * 2,
+                    color.set(1f, 1f, 1f, r * 0.2f)
+                )
+            }
         }
 
         @JvmStatic
