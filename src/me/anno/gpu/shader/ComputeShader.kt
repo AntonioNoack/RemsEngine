@@ -49,7 +49,7 @@ class ComputeShader(
         checkGroupSizeBounds()
 
         builder.clear()
-        builder.append("#version ").append(version).append('\n')
+        builder.append(formatVersion(version)).append('\n')
         for (line in source.splitLines()
             .filter { it.trim().startsWith("#extension ") }) {
             builder.append(line).append('\n')

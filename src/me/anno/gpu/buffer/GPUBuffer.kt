@@ -246,11 +246,17 @@ abstract class GPUBuffer(
         // actual copy
         toBuffer.bind()
         // println("glBufferSubData(${toBuffer.target},#${toBuffer.pointer},offset $to,$fromBuffer)")
-        val fromOffsetInDataL = fromOffsetInDataI.toLong()
         if (fromData is Buffer) {
+            // some validations
+            val elemSize = when (fromData) {
+                is ByteBuffer -> 1
+                is ShortBuffer -> 2
+                is IntBuffer, is FloatBuffer -> 4
+                else -> throw NotImplementedError("Unknown type for uploadBytesPartially: ${fromData.javaClass}")
+            }
             assertTrue(fromData.isDirect)
-            assertEquals(fromData.position(), fromOffsetInDataI)
-            assertEquals(0, fromOffsetInDataL)
+            assertEquals(fromData.position() * elemSize, fromOffsetInDataI)
+            assertEquals(fromData.remaining().toLong() * elemSize, sizeInBytes)
         }
         when (fromData) {
 

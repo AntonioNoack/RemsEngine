@@ -24,7 +24,7 @@ object CanvasShader : Shader(
                            vec2 pos0 = vec2(max(instBounds.xy, instScissor.xy));
                            vec2 pos1 = vec2(min(instBounds.zw, instScissor.zw));
                            vec2 pos = mix(pos0, pos1, positions);
-                           vec2 uvFactor = (pos - instBounds.xy) / (instBounds.zw - instBounds.xy);
+                           vec2 uvFactor = (pos - vec2(instBounds.xy)) / vec2(instBounds.zw - instBounds.xy);
                            uvFactor = clamp(uvFactor, vec2(0.0), vec2(1.0));
                            pos -= vec2(dstOffset);
                            pos = pos * invRenderSize * 2.0 - 1.0;

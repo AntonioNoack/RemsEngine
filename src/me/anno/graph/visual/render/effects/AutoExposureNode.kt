@@ -180,8 +180,8 @@ class AutoExposureNode : TimedRenderingNode(
                         "shared uint localBins[$numBins];\n" +
                         "void main() {\n" +
                         // Init shared histogram
-                        "    for (uint i = gl_LocalInvocationIndex; i < $numBins; i += ${localSize.product()}) {\n" +
-                        "        localBins[i] = 0;\n" +
+                        "    for (uint i = gl_LocalInvocationIndex; i < ${numBins}u; i += ${localSize.product()}u) {\n" +
+                        "        localBins[i] = 0u;\n" +
                         "    }\n" +
                         "    barrier();\n" +
 
@@ -192,7 +192,7 @@ class AutoExposureNode : TimedRenderingNode(
                         "        vec3 color = texelFetch(colorTex, coord, 0).rgb;\n" +
                         "        float logLum = 0.5 * log2(max(brightnessSq(color), 1e-36));\n" + // 0.5 for sqrt
                         "        float normalized = (logLum - minLogLum) * $numBins.0 / (maxLogLum - minLogLum);\n" +
-                        "        int binIndex = int(clamp(normalized, 0.0, ${numBins - 2f}));\n" +
+                        "        int binIndex = int(clamp(normalized, 0.0, ${numBins - 2}.0));\n" +
                         "        float delta = clamp(normalized-float(binIndex), 0.0, 1.0);\n" +
                         // add fractional index for smooth transitions
                         "        int value1 = int(100.0 * delta);\n" +
@@ -203,7 +203,7 @@ class AutoExposureNode : TimedRenderingNode(
                         "    barrier();\n" +
 
                         // Merge into global histogram
-                        "    for (uint i = gl_LocalInvocationIndex; i < $numBins; i += ${localSize.product()}) {\n" +
+                        "    for (uint i = gl_LocalInvocationIndex; i < ${numBins}u; i += ${localSize.product()}u) {\n" +
                         "        atomicAdd(bins[i], localBins[i]);\n" +
                         "    }\n" +
                         "}"
