@@ -510,13 +510,13 @@ object ShaderLib {
             "    vec2 deltaTexCoords =  P / numLayers;\n" +
             // get initial values
             "    vec2  currentTexCoords     = texCoords;\n" +
-            "    float currentDepthMapValue = heightScale.y - texture(depthMap, currentTexCoords, 0).r;\n" +
+            "    float currentDepthMapValue = heightScale.y - textureLod(depthMap, currentTexCoords, 0.0).r;\n" +
             "    int maxSteps = int(maxLayers * 2.0); numSteps = 0;\n" +
             "    while (currentLayerDepth < currentDepthMapValue && numSteps <= maxSteps) {\n" +
             // shift texture coordinates along direction of P
             "       currentTexCoords -= deltaTexCoords;\n" +
             // get depth map value at current texture coordinates
-            "       currentDepthMapValue = heightScale.y - texture(depthMap, currentTexCoords, 0).r;  \n" +
+            "       currentDepthMapValue = heightScale.y - textureLod(depthMap, currentTexCoords, 0.0).r;  \n" +
             // get depth of next layer
             "       currentLayerDepth += layerDepth;\n" +
             "       numSteps++;\n" +
@@ -526,7 +526,7 @@ object ShaderLib {
 
             // get depth after and before collision for linear interpolation
             "    float afterDepth  = currentDepthMapValue - currentLayerDepth;\n" +
-            "    float beforeDepth = heightScale.y - texture(depthMap, prevTexCoords, 0).r - currentLayerDepth + layerDepth;\n" +
+            "    float beforeDepth = heightScale.y - textureLod(depthMap, prevTexCoords, 0.0).r - currentLayerDepth + layerDepth;\n" +
 
             // interpolation of texture coordinates
             "    float weight = afterDepth / (afterDepth - beforeDepth);\n" +

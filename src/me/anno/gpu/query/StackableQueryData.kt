@@ -1,7 +1,5 @@
 package me.anno.gpu.query
 
-import me.anno.utils.assertions.assertTrue
-
 class StackableQueryData(var target: Int) {
 
     // there can only be one query active at a time, so implement a hierarchy/stack,
@@ -23,7 +21,6 @@ class StackableQueryData(var target: Int) {
     }
 
     fun startTimer(timer: SimpleGPUQuery) {
-        assertTrue(timer.start())
-        currentTimer = timer
+        if (timer.start()) currentTimer = timer
     }
 }

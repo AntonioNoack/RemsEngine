@@ -76,12 +76,7 @@ class Canvas {
             // todo we need a corner-radius and corner-flags(?)...
         )
 
-        // todo setting vertexCount to 1 fixes all issues, so the issue definitely is dependencies...
-        //  with higher values we also get duplicated renders... how??
-        //  and some too-big-faces <- I can only explain those by corrupted data or if the wrong framebuffer is used
-
-        // todo define a VAO for each buffer, so we can bind them quicker
-        private fun createBuffer() = StaticBuffer("canvas", attr, 128, BufferUsage.STREAM)
+        private fun createBuffer() = StaticBuffer("canvas", attr, 2048, BufferUsage.STREAM)
         private val shapeBuffers = GrowingList { createBuffer() }
         private val vaos = GrowingList { index ->
             FixedAttributeBinding(flat01, shapeBuffers[index], CanvasShader)
