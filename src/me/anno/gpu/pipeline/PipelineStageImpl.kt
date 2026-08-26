@@ -23,9 +23,11 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.M4x3Delta.buffer16x256
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
@@ -37,6 +39,7 @@ import me.anno.gpu.texture.TextureHelper
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.input.Input
 import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.LazyList
@@ -61,7 +64,7 @@ class PipelineStageImpl(
     var depthMode: DepthMode,
     var writeDepth: Boolean,
     var cullMode: CullMode,
-    var defaultShader: BaseShader
+    var defaultShader: BaseShader,
 ) {
 
     companion object {
@@ -85,7 +88,7 @@ class PipelineStageImpl(
         val tmpAABBd = AABBd()
 
         fun KeyTripleMap<IMesh, MaterialBase, Int, InstancedStack>.getStack(
-            mesh: IMesh, material: MaterialBase, matIndex: Int
+            mesh: IMesh, material: MaterialBase, matIndex: Int,
         ): InstancedStack {
             return getOrPut(mesh, material, matIndex, stackCreator)
         }
@@ -207,7 +210,7 @@ class PipelineStageImpl(
 
         fun bindUtilityUniforms(
             shader: GPUShader, material: MaterialBase, mesh: IMesh,
-            renderer: Component
+            renderer: Component,
         ) {
             shader.v4f("tint", 1f)
             shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
@@ -429,7 +432,7 @@ class PipelineStageImpl(
 
         fun putTextures(
             buffer: FloatBuffer, currSlot: Int, index0: Int,
-            light: LightComponent, maxTextureIndex: Int, maxNumLights: Int
+            light: LightComponent, maxTextureIndex: Int, maxNumLights: Int,
         ): Int {
             var currSlot = currSlot
             buffer.put(currSlot.toFloat()) // start index
@@ -498,6 +501,9 @@ class PipelineStageImpl(
         }
     }
 
+    val nonInstancedTimer = GPUClockNanos()
+    val instancedTimer = GPUClockNanos()
+
     var lastReceiveShadows = false
     var previousMaterialInScene: MaterialBase? = null
     var hasLights = false
@@ -533,31 +539,37 @@ class PipelineStageImpl(
 
         optimizeInstancedToNonInstanced()
 
-        // draw non-instanced meshes
-        for (index in 0 until nextInsertIndex) {
-            val request = drawRequests[index]
-            draw(
-                pipeline,
-                request.transform,
-                request.component,
-                request.material,
-                request.materialIndex,
-                request.mesh
-            )
+        timeRendering("Non-Instanced", nonInstancedTimer) {
+
+            // draw non-instanced meshes
+            for (index in 0 until nextInsertIndex) {
+                val request = drawRequests[index]
+                draw(
+                    pipeline,
+                    request.transform,
+                    request.component,
+                    request.material,
+                    request.materialIndex,
+                    request.mesh
+                )
+            }
+
+            clearLastElements()
         }
 
-        clearLastElements()
+        timeRendering("Instanced", instancedTimer) {
+            // instanced rendering of all kinds
+            for (i in instances.indices) {
+                val (drawPrimitivesI, drawInstancesI, drawCallsI) =
+                    instances[i].draw0(pipeline, this, needsLightUpdateForEveryMesh, time, false)
+                if (Input.isKeyDown('g')) println("$drawPrimitivesI by ${instances[i].javaClass.simpleName}")
+                drawnPrimitives += drawPrimitivesI
+                drawnInstances += drawInstancesI
+                drawCalls += drawCallsI
+            }
 
-        // instanced rendering of all kinds
-        for (i in instances.indices) {
-            val (drawPrimitivesI, drawInstancesI, drawCallsI) =
-                instances[i].draw0(pipeline, this, needsLightUpdateForEveryMesh, time, false)
-            drawnPrimitives += drawPrimitivesI
-            drawnInstances += drawInstancesI
-            drawCalls += drawCallsI
+            clearLastElements()
         }
-
-        clearLastElements()
 
         Companion.drawnPrimitives += drawnPrimitives
         Companion.drawnInstances += drawnInstances
@@ -604,7 +616,7 @@ class PipelineStageImpl(
         renderer: Component,
         material: MaterialBase,
         materialIndex: Int,
-        mesh: IMesh
+        mesh: IMesh,
     ) {
 
         val oqp = occlusionQueryPrepass
@@ -703,7 +715,7 @@ class PipelineStageImpl(
 
     fun addInstanced(
         mesh: IMesh, component: Component, transform: Transform,
-        material: MaterialBase, materialIndex: Int
+        material: MaterialBase, materialIndex: Int,
     ) {
         val stack = instanced.data.getStack(mesh, material, materialIndex)
         addToStack(stack, component, transform, mesh)

@@ -2,19 +2,26 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.timeRendering
+import me.anno.gpu.query.GPUClockNanos
 import me.anno.utils.structures.tuples.LongTriple
 
 abstract class DrawableStack(val instanceData: MeshInstanceData) {
+
+    var name = this.javaClass.simpleName ?: "DrawableStack"
+    val timer = GPUClockNanos()
 
     fun draw0(
         pipeline: Pipeline,
         stage: PipelineStageImpl,
         needsLightUpdateForEveryMesh: Boolean,
         time: Long,
-        depth: Boolean
+        depth: Boolean,
     ): LongTriple {
-        return GFXState.instanceData.use(instanceData) {
-            draw1(pipeline, stage, needsLightUpdateForEveryMesh, time, depth)
+        return timeRendering(name, timer) {
+            GFXState.instanceData.use(instanceData) {
+                draw1(pipeline, stage, needsLightUpdateForEveryMesh, time, depth)
+            }
         }
     }
 
@@ -26,7 +33,7 @@ abstract class DrawableStack(val instanceData: MeshInstanceData) {
         stage: PipelineStageImpl,
         needsLightUpdateForEveryMesh: Boolean,
         time: Long,
-        depth: Boolean
+        depth: Boolean,
     ): LongTriple
 
     abstract fun clear()

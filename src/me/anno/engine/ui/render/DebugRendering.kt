@@ -26,13 +26,12 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.TriangleBuffer
 import me.anno.gpu.debug.DebugGPUStorage.isDepthFormat
+import me.anno.gpu.debug.TimeRecord
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
-import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawBorder
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -203,32 +202,46 @@ object DebugRendering {
         GFXState.drawCall("ShowTimeRecords") {
             val records = GFXState.timeRecords
             var total = 0L
-            for (i in records.indices) {
-                val record = records[i]
-                drawTime(canvas, rv, i, record.name, record.deltaNanos, record.divisor)
+            var yi = 0
+            for (j in records.indices) {
+                val record = records[j]
+                drawTime(canvas, rv, yi++, record.name, record.deltaNanos, record.divisor, 0)
+                yi = showTimeRecordsI(canvas, rv, record.children, 1, yi)
                 total += record.deltaNanos
             }
-            drawTime(canvas, rv, records.size, "Total", total, 1)
+            drawTime(canvas, rv, yi, "Total", total, 1, 0)
             val maySkip = rv.renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
             if (!(maySkip && !FrameGenInitNode.isLastFrame())) {
-                records.clear()
+                GFXState.timeRecords.clear()
             }
         }
     }
 
-    private fun drawTime(canvas: Canvas, rv: Panel, i: Int, name: String, time: Long, divisor: Int) {
+    fun showTimeRecordsI(canvas: Canvas, rv: RenderView, records: List<TimeRecord>, depth: Int, yi0: Int): Int {
+        var yi = yi0
+        for (j in records.indices) {
+            val record = records[j]
+            drawTime(canvas, rv, yi++, record.name, record.deltaNanos, record.divisor, depth)
+            yi = showTimeRecordsI(canvas, rv, record.children, depth + 1, yi)
+        }
+        return yi
+    }
+
+    private fun drawTime(canvas: Canvas, rv: Panel, i: Int, name: String, time: Long, divisor: Int, depth: Int) {
+        val dst = debugBuilder
         val y = rv.y + i * monospaceFont.sizeInt
-        if (divisor > 1) debugBuilder.append(divisor).append("x ")
-        debugBuilder.append(name).append(": ")
+        if (divisor > 1) dst.append(divisor).append("x ")
+        dst.append(name)
+            .append('[').append(depth).append("]: ")
             .formatFloat(time / (1e6 * divisor), 3, false)
             .append(" ms")
         canvas.drawText(
             rv.x + rv.width, y, 1,
-            monospaceFont, debugBuilder,
+            monospaceFont, dst,
             FrameTimings.textColor, FrameTimings.backgroundColor,
             AxisAlignment.MAX, AxisAlignment.MIN
         )
-        debugBuilder.clear()
+        dst.clear()
     }
 
     fun drawDebugShapes(view: RenderView, cameraMatrix: Matrix4f) {

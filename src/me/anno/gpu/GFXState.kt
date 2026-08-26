@@ -80,6 +80,7 @@ object GFXState {
         GFXContext.invalidateState()
         BufferState.invalidateBinding()
         vao = glCreateVertexArrays()
+        numActiveTimers = 0
         bindVAO()
         if (session != 1) {
             clearGPUCaches()
@@ -250,17 +251,17 @@ object GFXState {
     fun useFrame(
         buffer: IFramebuffer,
         renderer: Renderer,
-        render: () -> Unit
+        render: () -> Unit,
     ) = useFrame(0, 0, buffer.width, buffer.height, buffer, renderer, render)
 
     fun useFrame(
         x: Int, y: Int, w: Int, h: Int,
-        buffer: IFramebuffer, renderer: Renderer, render: () -> Unit
+        buffer: IFramebuffer, renderer: Renderer, render: () -> Unit,
     ) = useFrame(x, y, w, h, false, buffer, renderer, render)
 
     private fun useFrame(
         x: Int, y: Int, w: Int, h: Int, changeSize: Boolean,
-        buffer: IFramebuffer, renderer: Renderer, render: () -> Unit
+        buffer: IFramebuffer, renderer: Renderer, render: () -> Unit,
     ) {
         if (w > 0 && h > 0) {
             val index = framebuffer.size
@@ -284,7 +285,7 @@ object GFXState {
 
     fun useFrame(
         w: Int, h: Int, changeSize: Boolean,
-        buffer: IFramebuffer, renderer: Renderer, render: () -> Unit
+        buffer: IFramebuffer, renderer: Renderer, render: () -> Unit,
     ) = useFrame(0, 0, w, h, changeSize, buffer, renderer, render)
 
     fun useFrame(w: Int, h: Int, changeSize: Boolean, buffer: IFramebuffer, render: () -> Unit) =
@@ -298,17 +299,17 @@ object GFXState {
 
     fun useFrame(
         x: Int, y: Int, w: Int, h: Int,
-        buffer: IFramebuffer, render: () -> Unit
+        buffer: IFramebuffer, render: () -> Unit,
     ) = useFrame(x, y, w, h, buffer, currentRenderer, render)
 
     fun useFrame(
         w: Int, h: Int, changeSize: Boolean,
-        renderer: Renderer, render: () -> Unit
+        renderer: Renderer, render: () -> Unit,
     ) = useFrame(w, h, changeSize, currentBuffer, renderer, render)
 
     fun useFrame(
         x: Int, y: Int, w: Int, h: Int,
-        renderer: Renderer, render: () -> Unit
+        renderer: Renderer, render: () -> Unit,
     ) = useFrame(x, y, w, h, currentBuffer, renderer, render)
 
     private val tmp = Framebuffer("tmp", 1, 1, 1, emptyList(), DepthBufferType.NONE)
@@ -340,7 +341,7 @@ object GFXState {
     private fun useFrameColorNDepth(
         width: Int, height: Int,
         colorDstPointer: Int, depthDstPointer: Int,
-        render: (IFramebuffer) -> Unit
+        render: (IFramebuffer) -> Unit,
     ) {
         tmp.width = width
         tmp.height = height
@@ -386,31 +387,60 @@ object GFXState {
     }
 
     inline fun <R> timeRendering(name: String, timer: GPUClockNanos?, runRendering: () -> R): R {
-        pushDrawCallName(name)
-        timer?.start()
-        val result = runRendering()
-        stopTimer(name, timer)
-        popDrawCallName()
-        return result
+        startTimeRendering(name, timer)
+        return try {
+            runRendering()
+        } finally {
+            stopTimeRendering(name, timer)
+        }
     }
 
     @InternalAPI
-    fun stopTimer(name: String, timer: GPUClockNanos?) {
-        timer ?: return
-        timer.stop()
-        if (timer.result >= 0L) {
-            val last = timeRecords.lastOrNull()
-            val value = timer.average
-            if (last?.name != name) {
-                timeRecords.add(TimeRecord(name, value, 1))
-            } else {
-                last.deltaNanos += value
-                last.divisor++
+    fun startTimeRendering(name: String, timer: GPUClockNanos?) {
+        pushDrawCallName(name)
+        if (timer != null) {
+            timer.start()
+            numActiveTimers++
+        }
+    }
+
+    @InternalAPI
+    fun stopTimeRendering(name: String, timer: GPUClockNanos?) {
+        popDrawCallName()
+        if (timer != null) {
+            timer.stop()
+            val depth = --numActiveTimers
+            val records = timeRecords
+            if (timer.result >= 0L) {
+                val last = records.lastOrNull()
+                val value = timer.average
+                if (last?.name != name) {
+                    pushTreeEntry(name, value, depth)
+                } else {
+                    last.deltaNanos += value
+                    last.divisor++
+                }
             }
         }
     }
 
+    private fun pushTreeEntry(name: String, value: Long, depth: Int) {
+        val created = TimeRecord(name, value, 1, depth)
+        val records = timeRecords
+        while (true) { // build tree
+            val last = records.lastOrNull() ?: break
+            if (last.depth > depth) {
+                created.children.add(last)
+                records.removeLast()
+            } else break
+        }
+        created.children.reverse()
+        records.add(created)
+    }
+
     const val PUSH_DEBUG_GROUP_MAGIC = -93 // just some random number, that's unlikely to appear otherwise
 
+    // todo should be thread.local
+    var numActiveTimers = 0
     val timeRecords = ArrayList<TimeRecord>()
 }
