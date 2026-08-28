@@ -10,15 +10,16 @@ import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.Frustum
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.CompactAttributeLayout
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.Shader
 import me.anno.maths.MinMax.min
-import me.anno.utils.Clock
 import me.anno.utils.Logging.hash32
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Ranges.size
@@ -43,7 +44,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     val attributes: CompactAttributeLayout,
     override val vertexData: MeshVertexData,
     indexedRendering: Boolean,
-    val drawMode: DrawMode
+    val drawMode: DrawMode,
 ) : MeshSpawner(), IMesh, ICacheData {
 
     /**
@@ -70,6 +71,12 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     val values: List<Mesh> get() = umrVertexData.instances
     val buffer: StaticBuffer get() = umrVertexData.buffer
 
+    val timer = GPUClockNanos()
+
+    init {
+        name = javaClass.simpleName ?: "UMR"
+    }
+
     @DebugProperty
     @NotSerializedProperty
     override var numPrimitives: Long = 0
@@ -94,8 +101,6 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     open fun bindBuffer(shader: Shader, buffer: StaticBuffer) {
         buffer.bind(shader)
     }
-
-    val clock = Clock(LOGGER)
 
     operator fun set(key: Key, entry: Mesh): Boolean {
         val prev = umrVertexData.entries[key]
@@ -167,6 +172,12 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     }
 
     override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {
+        timeRendering(name, timer) {
+            drawImpl(pipeline, shader)
+        }
+    }
+
+    fun drawImpl(pipeline: Pipeline?, shader: Shader) {
         if (totalNumPrimitives == 0L) return
         val buffer = umrVertexData.buffer
         if (!buffer.isUpToDate) {
@@ -216,7 +227,7 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
 
     override fun drawInstanced(
         pipeline: Pipeline, shader: Shader, materialIndex: Int,
-        instanceData: Buffer, drawLines: Boolean
+        instanceData: Buffer, drawLines: Boolean,
     ) {
         LOGGER.warn("Drawing a bulk-mesh instanced would be overkill, only rendering one")
         draw(pipeline, shader, materialIndex, drawLines)
