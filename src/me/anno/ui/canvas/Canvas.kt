@@ -26,6 +26,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib
+import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.canvas.CanvasAtlasCache.atlas
@@ -67,8 +68,8 @@ class Canvas {
         private val isLittleEndian = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
 
         private val attr = bind(
-            Attribute("instBounds", AttributeType.UINT16, 4), // 8 bytes, where to draw
-            Attribute("instScissor", AttributeType.UINT16, 4), // 8 bytes, where to clip
+            Attribute("instBounds", AttributeType.SINT16, 4), // 8 bytes, where to draw
+            Attribute("instScissor", AttributeType.SINT16, 4), // 8 bytes, where to clip
             Attribute("instTexBounds", AttributeType.UINT16, 4), // 8 bytes,
             Attribute("instFgColor", AttributeType.UINT8_NORM, 4), // 4 bytes,
             Attribute("instBgColor", AttributeType.UINT8_NORM, 4), // 4 bytes,
@@ -221,29 +222,33 @@ class Canvas {
         return true
     }
 
+    private fun Int.clampToShort(): Short {
+        return clamp(this,-0x8000,0x7fff).toShort()
+    }
+
     private fun pushBounds(nio: ByteBuffer, x: Int, y: Int, width: Int, height: Int) {
-        nio.putShort(x.toShort())
-        nio.putShort(y.toShort())
-        nio.putShort((x + width).toShort())
-        nio.putShort((y + height).toShort())
+        nio.putShort(x.clampToShort())
+        nio.putShort(y.clampToShort())
+        nio.putShort((x + width).clampToShort())
+        nio.putShort((y + height).clampToShort())
     }
 
     private fun pushScissor(nio: ByteBuffer) {
         check(x1 > x0) { "Must bind scissor bounds for canvas!" }
         check(y1 > y0)
         check(!isInsideCustom) { "Cannot use Canvas inside custom {}" }
-        nio.putShort(x0.toShort())
-        nio.putShort(y0.toShort())
-        nio.putShort(x1.toShort())
-        nio.putShort(y1.toShort())
+        nio.putShort(x0.clampToShort())
+        nio.putShort(y0.clampToShort())
+        nio.putShort(x1.clampToShort())
+        nio.putShort(y1.clampToShort())
     }
 
     private fun pushTexBounds(nio: ByteBuffer, bounds: Bounds) {
         // texBounds
-        nio.putShort(bounds.x0.toShort())
-        nio.putShort(bounds.y0.toShort())
-        nio.putShort(bounds.x1.toShort())
-        nio.putShort(bounds.y1.toShort())
+        nio.putShort(bounds.x0)
+        nio.putShort(bounds.y0)
+        nio.putShort(bounds.x1)
+        nio.putShort(bounds.y1)
     }
 
     private fun skipTexBounds(nio: ByteBuffer) {

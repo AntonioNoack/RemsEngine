@@ -108,7 +108,7 @@ object CanvasAtlasCache {
                 }
             }
         }
-        return Bounds(x, y, x + w, y + h)
+        return createBounds(x, y, w, h)
     }
 
     private fun insertAt(source: GPUFrame, x: Int, y: Int, w: Int, h: Int): Bounds {
@@ -120,7 +120,11 @@ object CanvasAtlasCache {
                 }
             }
         }
-        return Bounds(x, y, x + w, y + h)
+        return createBounds(x, y, w, h)
+    }
+
+    private fun createBounds(x: Int, y: Int, w: Int, h: Int): Bounds {
+        return Bounds(x.toShort(), y.toShort(), (x + w).toShort(), (y + h).toShort())
     }
 
     private fun hasCompatibleFormat(format: Int): Boolean {
