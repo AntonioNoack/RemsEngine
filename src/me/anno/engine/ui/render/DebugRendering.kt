@@ -229,16 +229,17 @@ object DebugRendering {
 
     private fun drawTime(canvas: Canvas, rv: Panel, i: Int, name: String, time: Long, divisor: Int, depth: Int) {
         val dst = debugBuilder
-        val y = rv.y + i * monospaceFont.sizeInt
+        val padding = 1
+        val y = rv.y + i * (monospaceFont.sizeInt + 2 * padding)
         if (divisor > 1) dst.append(divisor).append("x ")
         dst.append(name)
             .append('[').append(depth).append("]: ")
             .formatFloat(time / (1e6 * divisor), 3, false)
             .append(" ms")
         canvas.drawText(
-            rv.x + rv.width, y, 1,
+            rv.x + rv.width, y, padding,
             monospaceFont, dst,
-            FrameTimings.textColor, FrameTimings.backgroundColor,
+            FrameTimings.textColor, FrameTimings.backgroundColor.withAlpha(127),
             AxisAlignment.MAX, AxisAlignment.MIN
         )
         dst.clear()
