@@ -153,7 +153,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
      * returns whether it is animated
      * */
     fun updateAnimState(): Boolean {
-        val time = Time.gameTimeN
+        val time = Time.gameTimeNanos
         val mesh = getMeshOrNull()
         return if (time != prevTime && mesh != null) {
             prevTime = time

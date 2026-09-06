@@ -267,7 +267,7 @@ abstract class AudioComponentBase : Component(), OnUpdate {
         if (transform != null) {
             transform.validate()
             val pos = transform.globalPosition
-            val time = Time.gameTimeN
+            val time = Time.gameTimeNanos
             val deltaTime = time - lastTime
             if (deltaTime > 0) {
                 lastTime = time
@@ -300,7 +300,7 @@ abstract class AudioComponentBase : Component(), OnUpdate {
             addAudioTask("Update", 1) {
 
                 // once per frame, also set the camera :3
-                val time = Time.gameTimeN
+                val time = Time.gameTimeNanos
                 if (time != lastCameraUpdate) {
                     val dt = time - lastCameraUpdate
                     lastCameraUpdate = time

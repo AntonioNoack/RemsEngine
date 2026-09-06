@@ -436,7 +436,7 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
         // between GFXBase->Time.updateTime and this, the time will be jumpy...
         // predicted system time was 60ms ahead of my CPU time
         val predictedSystemTime = fs.frameState.predictedDisplayTime()
-        val engineTime = predictedSystemTime - Time.startTimeN
+        val engineTime = predictedSystemTime - Time.startTimeNanos
         Time.updateTime(engineTime, lastTime)
         lastTime = engineTime
     }

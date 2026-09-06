@@ -525,7 +525,7 @@ class PipelineStageImpl(
         var drawnInstances = 0L
         var drawCalls = 0L
 
-        val time = Time.gameTimeN
+        val time = Time.gameTimeNanos
 
         // we could theoretically cluster them to need fewer uploads
         // but that would probably be hard to implement reliably

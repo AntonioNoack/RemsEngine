@@ -57,9 +57,9 @@ class TimeTest {
 
     class TimeRecord {
         val gameTime = Time.gameTime
-        val gameTimeN = Time.gameTimeN
+        val gameTimeN = Time.gameTimeNanos
         val lastGameTime = Time.lastGameTime
-        val lastGameTimeN = Time.lastGameTimeN
+        val lastGameTimeN = Time.lastGameTimeNanos
         val nanoTime = Time.nanoTime
         val deltaTime = Time.deltaTime
         val uiDeltaTime = Time.uiDeltaTime
@@ -95,7 +95,7 @@ class TimeTest {
         val delayNanos = t3 - t0
         println("Wanted to sleep for $delayMs, actually slept ${delayNanos / MILLIS_TO_NANOS}")
 
-        val tStart = Time.startTimeN
+        val tStart = Time.startTimeNanos
         assertEquals(timeSpeed, Time.timeSpeed)
         assertEquals(min(timeSpeed * delayNanos * 1e-9, 0.1), end.gameTime - start.gameTime, 0.001)
         assertEquals(

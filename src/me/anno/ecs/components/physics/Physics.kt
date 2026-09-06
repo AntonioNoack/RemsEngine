@@ -334,7 +334,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     fun skipTimeIfNeeded() {
         // the absolute worst case time
-        val targetTime = Time.gameTimeN
+        val targetTime = Time.gameTimeNanos
         val targetStepNanos = timeStepNanos
         val absMinimumTime = targetTime - targetStepNanos * 3
         if (timeNanos < absMinimumTime) {
@@ -387,7 +387,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     var maxStepsPerFrame = 10
     val numPhysicsSteps: Int
-        get() = min(ceilDiv(Time.gameTimeN - timeNanos, timeStepNanos).toInt(), maxStepsPerFrame)
+        get() = min(ceilDiv(Time.gameTimeNanos - timeNanos, timeStepNanos).toInt(), maxStepsPerFrame)
 
     val shallExecute: Boolean
         get() {
@@ -411,7 +411,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                     }
                 } else stopWorker()
             }
-            updateDynamicEntities(Time.gameTimeN)
+            updateDynamicEntities(Time.gameTimeNanos)
             validateEntityTransforms()
         } else stopWorker()
     }

@@ -19,7 +19,7 @@ class SnakeGamePanel : Panel(style) {
     val sy = 9
 
     var gameOver = false
-    var lastStep = Time.gameTimeN
+    var lastStep = Time.gameTimeNanos
     var stepDelayNanos = 0L
     var isPaused = false
 
@@ -104,7 +104,7 @@ class SnakeGamePanel : Panel(style) {
                 generateFood()
             }
         }
-        lastStep = Time.gameTimeN
+        lastStep = Time.gameTimeNanos
         if (windowStack.inFocus0 == null)
             requestFocus()
     }
@@ -182,7 +182,7 @@ class SnakeGamePanel : Panel(style) {
 
     override fun onUpdate() {
         super.onUpdate()
-        if (Time.gameTimeN - lastStep > stepDelayNanos) {
+        if (Time.gameTimeNanos - lastStep > stepDelayNanos) {
             step()
         }
     }

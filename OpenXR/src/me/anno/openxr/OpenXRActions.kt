@@ -277,7 +277,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             }
         }
         for (i in engineButtons.indices) {
-            ButtonUpdateState.callButtonUpdateEvents(window, Time.gameTimeN, false, buttonsTimers, i, engineButtons[i])
+            ButtonUpdateState.callButtonUpdateEvents(window, Time.gameTimeNanos, false, buttonsTimers, i, engineButtons[i])
         }
     }
 

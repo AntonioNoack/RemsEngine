@@ -31,7 +31,7 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate, FillSpace
     var lastDrawn = 0L
 
     override fun fill(pipeline: Pipeline, transform: Transform) {
-        lastDrawn = Time.gameTimeN
+        lastDrawn = Time.gameTimeNanos
     }
 
     fun needsAutoUpdate(cascade: Int, numCascades: Int): Boolean {
@@ -44,7 +44,7 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate, FillSpace
     }
 
     override fun onUpdate() {
-        if (lastDrawn >= Time.lastGameTimeN) {
+        if (lastDrawn >= Time.lastGameTimeNanos) {
             onVisibleUpdate()
         }
     }

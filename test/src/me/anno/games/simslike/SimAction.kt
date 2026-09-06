@@ -25,7 +25,7 @@ open class SimAction : Component() {
     /**
      * execution time in seconds
      * */
-    val executionTime get() = (Time.gameTimeN - startTime) * 1e-9
+    val executionTime get() = (Time.gameTimeNanos - startTime) * 1e-9
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

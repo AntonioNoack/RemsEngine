@@ -144,7 +144,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
     override fun generateMesh(mesh: Mesh) {
         val entity = entity
         if (entity == null) {
-            lastWarning = "Missing entity, $parent, ${Time.gameTimeN}"
+            lastWarning = "Missing entity, $parent, ${Time.gameTimeNanos}"
             invalidateMesh()
             return
         }

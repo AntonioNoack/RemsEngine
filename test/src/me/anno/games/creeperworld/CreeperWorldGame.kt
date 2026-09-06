@@ -255,7 +255,7 @@ fun main() {
             }
 
             fun updateIfNeeded() {
-                val time = Time.gameTimeN
+                val time = Time.gameTimeNanos
                 if (time >= nextUpdate) {
                     nextUpdate = Long.MAX_VALUE
                     worker += {

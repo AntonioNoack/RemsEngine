@@ -53,7 +53,7 @@ object Time {
      * nanoTime of when the engine was started in OS time
      * */
     @JvmField
-    val startTimeN = System.nanoTime()
+    val startTimeNanos = System.nanoTime()
 
     /**
      * current frame time in nanoseconds;
@@ -74,7 +74,7 @@ object Time {
      * should be used for UI, and animations that shouldn't be scaled in time
      * */
     @JvmStatic
-    val nanoTime get(): Long = System.nanoTime() - startTimeN
+    val nanoTime get(): Long = System.nanoTime() - startTimeNanos
 
     /**
      * time of current frame; integrated by time speed; in nanoseconds
@@ -85,7 +85,7 @@ object Time {
      * Use nanoTime there instead.
      * */
     @JvmStatic
-    var gameTimeN: Long = 0L
+    var gameTimeNanos: Long = 0L
         private set
 
     /**
@@ -101,7 +101,7 @@ object Time {
         private set
 
     @JvmStatic
-    var lastGameTimeN: Long = 0L
+    var lastGameTimeNanos: Long = 0L
         private set
 
     @JvmStatic
@@ -153,9 +153,9 @@ object Time {
         updateFPS(thisTime)
 
         lastGameTime = gameTime
-        lastGameTimeN = gameTimeN
-        gameTimeN += (deltaTime * 1e9).toLong()
-        gameTime = gameTimeN * 1e-9
+        lastGameTimeNanos = gameTimeNanos
+        gameTimeNanos += (deltaTime * 1e9).toLong()
+        gameTime = gameTimeNanos * 1e-9
 
         frameIndex++
     }

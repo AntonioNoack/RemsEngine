@@ -496,9 +496,9 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         }
     }
 
-    fun moveCameraByTouch() {
+    fun moveCameraByTouch(speed: Float = 1f) {
         // move the camera around
-        val speed = -3f * renderView.radius / windowStack.height
+        val speed = -speed * renderView.radius / windowStack.height
         val dx = Touch.avgDeltaX() * speed
         val dy = Touch.avgDeltaY() * speed
         if (Input.isShiftDown) {

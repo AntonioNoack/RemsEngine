@@ -64,7 +64,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
     override fun onUpdate() {
 
-        lastDrawn = Time.gameTimeN
+        lastDrawn = Time.gameTimeNanos
 
         val instance = RenderView.currentInstance ?: return
         val pipeline = instance.pipeline

@@ -208,7 +208,7 @@ class PathFinding<Node : Any>(capacityGuess: Int = 16) {
                     if (distFromTo < 0.0 || distToEnd < 0.0) LOGGER.warn("Distances must be non-negative")
                     val newDistance = currentDistance + distFromTo
                     val newScore = newDistance + distToEnd
-                    if (end == null && newScore < maxDistance) {// check whether the route is good enough
+                    if (end == null && newScore <= maxDistance) {// check whether the route is good enough
                         // LOGGER.debug("$from -> $to = $currentDistance + $distFromTo = $newDistance")
                         if (earlyExit && isEnd(to)) {
                             // LOGGER.debug("Found $to at ($newDistance,$newScore)")

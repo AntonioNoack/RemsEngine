@@ -66,19 +66,19 @@ object LastModifiedCache {
 
     private var nextCheckTime = 0L
     fun update() {
-        if (Time.gameTimeN < nextCheckTime) return
-        val deathTime = Time.gameTimeN - timeoutNanos
+        if (Time.gameTimeNanos < nextCheckTime) return
+        val deathTime = Time.gameTimeNanos - timeoutNanos
         values.removeIf { (_, value) ->
             value.lastChecked < deathTime
         }
-        nextCheckTime = Time.gameTimeN + timeoutNanos.shr(1)
+        nextCheckTime = Time.gameTimeNanos + timeoutNanos.shr(1)
     }
 
     operator fun get(file: File, absolutePath: String): Result {
         return values.getOrPut(absolutePath) {
             val r = Result(file)
             // randomness for random decay: from 0.75x to 1.5x
-            r.lastChecked = Time.gameTimeN + ((Maths.randomInt(196, 2 * 196) * timeoutNanos) ushr 8)
+            r.lastChecked = Time.gameTimeNanos + ((Maths.randomInt(196, 2 * 196) * timeoutNanos) ushr 8)
             values[absolutePath.replace('/', '\\')] = r
             values[absolutePath.replace('\\', '/')] = r
             r

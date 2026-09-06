@@ -49,7 +49,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
     private var progress = 0f
     override fun onEnterState(oldState: StateNode?) {
         progress = 0f
-        lastTime = Time.gameTimeN
+        lastTime = Time.gameTimeNanos
         setOutput(1, 0f)
         setOutput(2, 0f)
     }
@@ -80,7 +80,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
     private var lastTime = 0L
     fun updateRenderer(target: AnimMeshComponent) {
 
-        val time = Time.gameTimeN
+        val time = Time.gameTimeNanos
         if (time == lastTime) return
 
         val source = getFileInput(SOURCE)

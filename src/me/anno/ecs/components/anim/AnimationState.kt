@@ -40,7 +40,7 @@ class AnimationState(
 
     private var lastTime = 0L
     fun update(ar: AnimMeshComponent?, dt: Float) {
-        val time = Time.gameTimeN
+        val time = Time.gameTimeNanos
         if (lastTime != time) {
             lastTime = time
             progress += speed * dt

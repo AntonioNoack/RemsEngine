@@ -209,7 +209,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
 
     open fun updateShadowMaps(cascadeIndex: Int) {
 
-        lastDrawn = Time.gameTimeN
+        lastDrawn = Time.gameTimeNanos
 
         val pipeline = pipeline
         val entity = entity!!

@@ -194,7 +194,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         val skeleton = SkeletonCache.getEntry(skeleton).waitFor() ?: return
         if (previewData == null) previewData = PreviewData(skeleton, this)
         return previewData!!.run {
-            if (renderer.prevTime != Time.gameTimeN) {
+            if (renderer.prevTime != Time.gameTimeNanos) {
                 state.update(renderer, Time.deltaTime.toFloat())
                 renderer.updateAnimState()
             }

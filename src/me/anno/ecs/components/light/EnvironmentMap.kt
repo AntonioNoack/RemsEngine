@@ -67,7 +67,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
     }
 
     override fun fill(pipeline: Pipeline, transform: Transform) {
-        lastDrawn = Time.gameTimeN
+        lastDrawn = Time.gameTimeNanos
         pipeline.lightStage.add(this)
         clickId = pipeline.getClickId(this)
     }

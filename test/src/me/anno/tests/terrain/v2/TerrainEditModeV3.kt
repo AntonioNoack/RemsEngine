@@ -15,7 +15,6 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
@@ -78,8 +77,8 @@ class TerrainEditModeV3 : Component(), CustomEditMode {
     override fun onEditMove(x: Float, y: Float, dx: Float, dy: Float): Boolean {
         // only run once per frame, because applying the brush can be expensive,
         // and we can get many onEditMove()-calls per frame
-        if (currTime == Time.gameTimeN) return true
-        currTime = Time.gameTimeN
+        if (currTime == Time.gameTimeNanos) return true
+        currTime = Time.gameTimeNanos
         val terrain = getComponent(TriTerrainRenderer::class)
         // raycast, then apply brush
         val renderView = RenderView.currentInstance!!

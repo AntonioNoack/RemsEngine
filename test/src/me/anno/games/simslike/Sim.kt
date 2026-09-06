@@ -29,7 +29,7 @@ class Sim : Component(), OnUpdate {
             nav.isEnabled = true
             nav.target.set(target)
             action.state = ActionState.TRAVERSAL
-            action.startTime = Time.gameTimeN
+            action.startTime = Time.gameTimeNanos
         }
 
         if (action.state == ActionState.TRAVERSAL) {
@@ -40,7 +40,7 @@ class Sim : Component(), OnUpdate {
                 setIdleAnimState()
                 stopNavigation()
                 action.state = ActionState.EXECUTION
-                action.startTime = Time.gameTimeN
+                action.startTime = Time.gameTimeNanos
             }
         }
 

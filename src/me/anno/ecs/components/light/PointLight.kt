@@ -60,7 +60,7 @@ class PointLight : LightComponent(LightType.POINT) {
     override fun updateShadowMaps(cascadeIndex: Int) {
         if (cascadeIndex > 0) return // only one cascade is supported
 
-        lastDrawn = Time.gameTimeN
+        lastDrawn = Time.gameTimeNanos
 
         val pipeline = pipeline
 

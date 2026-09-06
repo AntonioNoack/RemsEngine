@@ -118,12 +118,12 @@ class BallPhysics(
         if (Input.isKeyDown(Key.KEY_A)) dynamicBody.applyTorque(+s, 0f, +c)
         if (Input.isKeyDown(Key.KEY_D)) dynamicBody.applyTorque(-s, 0f, -c)
 
-        if (jumpForce > 0f && abs(Time.gameTimeN - lastJumpTime) > jumpTimeout) {
+        if (jumpForce > 0f && abs(Time.gameTimeNanos - lastJumpTime) > jumpTimeout) {
             // only jump if we are on something
             val query = RayQuery(entity.position, down, radius)
             query.result.hitType = HitType.ANY
             if (Raycast.raycast(staticScene, query)) {
-                lastJumpTime = Time.gameTimeN
+                lastJumpTime = Time.gameTimeNanos
                 val iy = -10000f * strength * jumpForce
                 println("jumping with force $iy")
                 dynamicBody.applyImpulse(0f, iy, 0f)
