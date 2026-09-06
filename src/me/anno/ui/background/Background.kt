@@ -15,7 +15,7 @@ class Background(style: Style) {
     var outlineThickness = 0f
     var radius = style.getSize("background.radius", 0f)
     var color = style.getColor("background", -1)
-    val originalColor = color
+    var originalColor = color
 
     fun drawBackground(
         x: Int, y: Int, width: Int, height: Int,
