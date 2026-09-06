@@ -95,6 +95,7 @@ class FrameGenProjectiveXNode : FrameGenProjective0Node("FrameGenProjectiveX") {
                     "   }\n" +
                     "   if(depth == 0.0) color = texture(backupTex,uv).xyz;\n" +
                     "   result = vec4(color, 1.0);\n" +
+                    "   #define CUSTOM_DEPTH\n" +
                     "   gl_FragDepth = depth;\n" +
                     "}\n"
         )

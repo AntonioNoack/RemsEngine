@@ -441,8 +441,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         // so lights don't override our settings, or we'd have to repeat our definition
         validateTransform(world)
 
-        near = camera.near
-        far = camera.far
+        if (camera !== editorCamera) {
+            near = camera.near
+            far = camera.far
+        }// else nothing to do
         val isPerspective = camera.isPerspective
         val fov = findFOV(camera)
 
@@ -803,8 +805,17 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     var fovXCenter = 0.5f
     var fovYCenter = 0.5f
 
-    var near = 1e-3f
-    var far = 1e10f
+    var near: Float
+        get() = editorCamera.near
+        set(value) {
+            editorCamera.near = value
+        }
+
+    var far: Float
+        get() = editorCamera.far
+        set(value) {
+            editorCamera.far = value
+        }
 
     val isPerspective: Boolean
         get() = abs(cameraMatrix.m33 - 1f) > 1e-5f

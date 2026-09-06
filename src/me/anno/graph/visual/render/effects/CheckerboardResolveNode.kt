@@ -194,6 +194,7 @@ class CheckerboardResolveNode : TimedRenderingNode(
 
                     "   outColor = vec4(color, 1.0);\n" +
                     "   outNormal = vec4(normal, 0.0, 0.0);\n" +
+                    "   #define CUSTOM_DEPTH\n" +
                     "   gl_FragDepth = depth;\n" +
                     "}\n"
         )

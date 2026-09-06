@@ -219,6 +219,7 @@ object SDFComposer {
                                         "   vec3 localHit = localPos + ray.x * localDir;\n" +
                                         "   finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" + // convert localHit to global hit
                                         "   vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
+                                        "   #define CUSTOM_DEPTH\n" +
                                         "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
                                         "}\n"
                                 numStepsRenderer -> showNumberOfSteps

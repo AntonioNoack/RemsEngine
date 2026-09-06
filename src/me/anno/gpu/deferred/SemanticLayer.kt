@@ -4,7 +4,7 @@ data class SemanticLayer(
     val type: DeferredLayerType,
     val textureName: String,
     val texIndex: Int,
-    val mapping: String
+    val mapping: String,
 ) {
     fun appendMapping(
         builder: StringBuilder,
@@ -13,7 +13,7 @@ data class SemanticLayer(
         texSuffix: String,
         uv: String,
         imported: MutableSet<String>?,
-        sampleVariableName: String?
+        sampleVariableName: String?,
     ) {
         val texName = textureName + texSuffix
         if (imported != null && imported.add(texName)) {
@@ -44,8 +44,16 @@ data class SemanticLayer(
         }
         output.append(if (useRandomRounding) " = (" else " = ")
         if (type == DeferredLayerType.DEPTH) {
-            val depthVariableName = if ("gl_FragDepth" in output) "gl_FragDepth" else "gl_FragCoord.z"
-            output.append(depthVariableName)
+            // gl_FragDepth must not be read if it is not written
+            //  it is not defined to gl_FragCoord.z by default, NaN instead, and causes weird depth behavior on OpenGL ES
+            output.append(
+                "\n" +
+                        "#ifdef CUSTOM_DEPTH\n" +
+                        "  gl_FragDepth\n" +
+                        "#else\n" +
+                        "  gl_FragCoord.z\n" +
+                        "#endif\n"
+            )
         } else {
             val w2d = type.workToData
             when {

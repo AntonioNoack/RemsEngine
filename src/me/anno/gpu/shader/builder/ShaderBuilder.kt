@@ -7,6 +7,7 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
+import me.anno.utils.GFXFeatures
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import kotlin.math.max
@@ -16,6 +17,10 @@ import kotlin.math.max
  * Resolves variables and functions somewhat.
  * */
 class ShaderBuilder(val name: String) {
+
+    companion object {
+        var defaultRandomness = !GFXFeatures.hasWeakGPU
+    }
 
     constructor(name: String, settingsV2: DeferredSettings?, ditherMode: DitherMode) : this(name) {
         settings = settingsV2
@@ -36,7 +41,7 @@ class ShaderBuilder(val name: String) {
 
     var settings: DeferredSettings? = null
     var disabledLayers: BooleanArrayList? = null
-    var useRandomness = true
+    var useRandomness = defaultRandomness
 
     var glslVersion = GPUShader.DEFAULT_GLSL_VERSION
 
@@ -106,7 +111,7 @@ class ShaderBuilder(val name: String) {
 
     private fun createVertexFragmentBridge(
         variable: Variable, bridgeIndex0: Int,
-        bridges: HashMap<Variable, Variable>
+        bridges: HashMap<Variable, Variable>,
     ): Int {
         // the stage uses it -> might be relevant
         // and also exports it -> build a bridge
@@ -129,7 +134,7 @@ class ShaderBuilder(val name: String) {
 
     private fun createAttribFragmentBridge(
         variable: Variable, bridgeIndex0: Int,
-        bridges: HashMap<Variable, Variable>
+        bridges: HashMap<Variable, Variable>,
     ): Int {
         val bridge = Variable(variable.type, "attr_bridge_${bridgeIndex0}", variable.arraySize)
         bridge.isFlat = variable.isFlat
@@ -140,7 +145,7 @@ class ShaderBuilder(val name: String) {
     private fun createBridgesForVariable(
         variable: Variable, bridgeIndex0: Int,
         vertexFragmentBridges: HashMap<Variable, Variable>,
-        attribFragmentBridges: HashMap<Variable, Variable>
+        attribFragmentBridges: HashMap<Variable, Variable>,
     ): Int {
         return when {
             needsVertexFragmentBridge(variable) ->
@@ -153,7 +158,7 @@ class ShaderBuilder(val name: String) {
 
     private fun collectVaryings(
         bridgeVariablesV2F: Map<Variable, Variable>,
-        bridgeVariablesI2F: Map<Variable, Variable>
+        bridgeVariablesI2F: Map<Variable, Variable>,
     ): List<Variable> {
         val dst = ArrayList<Variable>(vertex.imported.size + vertex.exported.size)
         dst.addAll(vertex.imported)

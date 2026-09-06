@@ -89,6 +89,7 @@ object FlatShaders {
                     "   if (overrideAlpha) result.a = newAlpha;\n" +
                     // is this [-1,1] or [0,1]? -> looks like it works just fine for now
                     (if (writeDepth) {
+                        "#define CUSTOM_DEPTH\n" +
                         "gl_FragDepth = getColor${depthMS.toInt()}(depthTex, depthSamples, uv, false).$depthMask;\n"
                     } else "") +
                     "}"
