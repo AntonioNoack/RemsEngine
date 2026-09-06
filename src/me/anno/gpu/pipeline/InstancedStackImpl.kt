@@ -104,7 +104,7 @@ class InstancedStackImpl(capacity: Int = 512) : DrawableStack(MeshInstanceData.D
             // todo test with lots and lots of attributes
             //  (whether we still fail before this)
             // Android works :)
-            val useAttributeLayout = mesh is Mesh && mesh.helperMeshes == null && mesh.buffer != null &&
+            val useAttributeLayout = mesh is Mesh && mesh.subMeshes == null && mesh.buffer != null &&
                     GFXFeatures.supportsShaderStorageBuffers
 
             val tmpShader = stage.getShader(material)

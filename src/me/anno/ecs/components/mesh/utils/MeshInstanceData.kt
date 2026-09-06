@@ -158,9 +158,8 @@ class MeshInstanceData(
                     "" +
                             "float scale = length(instanceRot);\n" +
                             "instanceRotNor = instanceRot / scale;\n" +
-                            "finalPosition = quatRot(localPosition, instanceRotNor) * scale + instancePosSize.xyz;\n" +
-                            "vertexColor0 = unpackNumber(instancePosSize.w);\n"
-                ).add(ShaderLib.quatRot).add(ShaderLib.unpackNumber)
+                            "finalPosition = quatRot(localPosition, instanceRotNor) * scale + instancePosSize.xyz;\n"
+                ).add(ShaderLib.quatRot)
             ),
             listOf(
                 ShaderStage(
@@ -172,7 +171,15 @@ class MeshInstanceData(
                             "tangent.xyz = quatRot(tangent.xyz, instanceRotNor);\n"
                 ).add(ShaderLib.quatRot)
             ),
-            emptyList(), // colors aren't changed
+            listOf(
+                ShaderStage(
+                    "trc-col",
+                    listOf(
+                        Variable(GLSLType.V4F, "instancePosSize", VariableMode.ATTR),
+                        Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT)
+                    ), "vertexColor0 = unpackNumber(instancePosSize.w);\n"
+                ).add(ShaderLib.unpackNumber)
+            ),
             listOf(
                 ShaderStage(
                     "trc-mov", listOf(

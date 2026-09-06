@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.ecs.components.mesh.HelperMesh.Companion.updateHelperMeshes
+import me.anno.ecs.components.mesh.SubMesh.Companion.updateSubMeshes
 import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.MeshAttributes.color1
 import me.anno.ecs.components.mesh.MeshAttributes.color2
@@ -253,6 +253,6 @@ object MeshBufferUtils {
         val buffer = createVertexBuffer(layout)
         fillVertexData(attributes, layout, buffer)
         createAndFillIndexBuffer(buffer)
-        updateHelperMeshes()
+        updateSubMeshes()
     }
 }

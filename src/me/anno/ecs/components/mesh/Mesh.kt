@@ -8,7 +8,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.HelperMesh.Companion.destroyHelperMeshes
+import me.anno.ecs.components.mesh.SubMesh.Companion.destroySubMeshes
 import me.anno.ecs.components.mesh.MeshAttribute.Companion.copyOf
 import me.anno.ecs.components.mesh.MeshAttributes.boneIndicesType
 import me.anno.ecs.components.mesh.MeshAttributes.boneWeightsType
@@ -177,7 +177,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     override var numMaterials = 1
 
     @NotSerializedProperty
-    var helperMeshes: List<HelperMesh?>? = null
+    var subMeshes: List<SubMesh?>? = null
 
     // to allow for quads, and strips and such
     /**
@@ -246,7 +246,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         dst.hasUVs = hasUVs
         dst.hasVertexColors = hasVertexColors
         dst.hasBonesInBuffer = hasBonesInBuffer
-        dst.helperMeshes = helperMeshes
+        dst.subMeshes = subMeshes
         dst.hasHighPrecisionNormals = hasHighPrecisionNormals
         dst.skeleton = skeleton
         // aabb
@@ -383,7 +383,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     override fun destroy() {
         // todo only if we were not cloned...
-        destroyHelperMeshes()
+        destroySubMeshes()
         clearGPUData()
         // clearCPUData()
     }

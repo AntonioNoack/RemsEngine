@@ -50,7 +50,7 @@ object MeshIterators {
      * Runs callback function for every point in the mesh.
      * Uses HelperMesh.indices.
      * */
-    fun HelperMesh.forEachPointIndex(callback: I1Z) {
+    fun SubMesh.forEachPointIndex(callback: I1Z) {
         forEachPointIndex(indices, callback)
     }
 
@@ -66,9 +66,9 @@ object MeshIterators {
     /**
      * Runs callback function for every point in the mesh.
      * */
-    fun Mesh.forEachPoint(helperMesh: HelperMesh, callback: F3Z) {
+    fun Mesh.forEachPoint(subMesh: SubMesh, callback: F3Z) {
         val positions = positions ?: return
-        helperMesh.forEachPointIndex { i ->
+        subMesh.forEachPointIndex { i ->
             val ai = i * 3
             callback.call(positions[ai], positions[ai + 1], positions[ai + 2])
         }
@@ -308,8 +308,8 @@ object MeshIterators {
      * Calls callback on every line with x = first line index, y = second line index for that helperMesh.
      * Quits execution early, if the callback returns true
      * */
-    fun Mesh.forEachLineIndex(helperMesh: HelperMesh, callback: I2Z) {
-        forEachLineIndex(helperMesh.indices, callback)
+    fun Mesh.forEachLineIndex(subMesh: SubMesh, callback: I2Z) {
+        forEachLineIndex(subMesh.indices, callback)
     }
 
     private fun Mesh.forEachLineIndex(indices: IntArray, callback: I2Z) {

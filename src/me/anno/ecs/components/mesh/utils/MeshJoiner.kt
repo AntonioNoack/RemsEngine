@@ -111,12 +111,12 @@ abstract class MeshJoiner<V>(
         val numBoneIndices = numPositions * 4
         val dstBoneIndices = alloc(hasBones, numBoneIndices, dstMesh.boneIndices)
         val dstBoneWeights = if (dstBoneIndices != null) {
-            val w = alloc(true, numBoneIndices, dstMesh.boneWeights)!!
+            val newWeights = alloc(true, numBoneIndices, dstMesh.boneWeights)!!
             // set every 4th value to 1
-            forLoopSafely(w.size, 4) { i ->
-                w[i] = 1f
+            forLoopSafely(newWeights.size, 4) { i ->
+                newWeights[i] = 1f
             }
-            w
+            newWeights
         } else null
 
         var i = 0

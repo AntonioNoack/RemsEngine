@@ -1,7 +1,7 @@
 package me.anno.tests.mesh.spline
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.HelperMesh.Companion.updateHelperMeshes
+import me.anno.ecs.components.mesh.SubMesh.Companion.updateSubMeshes
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.MeshCache
@@ -46,7 +46,7 @@ fun mulARGB(ca: Int, cb: Vector4f): Int {
 fun mergeMaterials(mesh: Mesh): Mesh {
     val n = mesh.numMaterials
     if (n < 2) return mesh
-    mesh.updateHelperMeshes()
+    mesh.updateSubMeshes()
     val clone = mesh.shallowClone()
     val materials = (0 until n).map {
         MaterialCache.getEntry(mesh.materials.getOrNull(it))
@@ -55,7 +55,7 @@ fun mergeMaterials(mesh: Mesh): Mesh {
     val materialToTint = materials.map { it.diffuseBase }
     val colors = IntArray(mesh.positions!!.size / 3)
     val baseColor = mesh.color0
-    val helperMeshes = mesh.helperMeshes!!
+    val helperMeshes = mesh.subMeshes!!
     materialToTint.mapIndexed { mi, tint ->
         val tintRGB = tint.toARGB()
         helperMeshes[mi]?.forEachPointIndex { pi ->
@@ -72,7 +72,7 @@ fun mergeMaterials(mesh: Mesh): Mesh {
     clone.numMaterials = 1
     clone.materials = listOf(material0.ref)
     clone.materialIds = null
-    clone.helperMeshes = null
+    clone.subMeshes = null
     return clone
 }
 
@@ -82,8 +82,8 @@ fun mergeMaterials(mesh: Mesh): Mesh {
  *    only track lines, where all points are on the line
  * */
 fun meshToPathProfile(mesh: Mesh): List<ColoredProfile> {
-    mesh.updateHelperMeshes()
-    val helperMeshes = mesh.helperMeshes
+    mesh.updateSubMeshes()
+    val helperMeshes = mesh.subMeshes
     if (helperMeshes != null) {
         return helperMeshes.withIndex()
             .filter { it.value != null }

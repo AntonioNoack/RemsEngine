@@ -13,8 +13,8 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
-import me.anno.ecs.components.mesh.HelperMesh
-import me.anno.ecs.components.mesh.HelperMesh.Companion.createHelperMeshes
+import me.anno.ecs.components.mesh.SubMesh
+import me.anno.ecs.components.mesh.SubMesh.Companion.createSubMeshes
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
@@ -618,10 +618,10 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
 
                 // for each material add a primitive
                 val matIds = mesh.materialIds
-                val ownHelpers = mesh.helperMeshes == null
+                val ownHelpers = mesh.subMeshes == null
                 val helpers = if (matIds != null) {
-                    if (ownHelpers) mesh.createHelperMeshes(matIds, false)
-                    mesh.helperMeshes
+                    if (ownHelpers) mesh.createSubMeshes(matIds, false)
+                    mesh.subMeshes
                 } else null
 
                 fun getMaterial(i: Int): Material {
@@ -638,7 +638,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                     }
                     if (ownHelpers) {
                         // because they have no buffers
-                        mesh.helperMeshes = null
+                        mesh.subMeshes = null
                     }
                 } else {
                     val material = getMaterial(0)
@@ -666,7 +666,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
 
     private fun writeMeshHelper(
         mode: DrawMode,
-        helper: HelperMesh,
+        helper: SubMesh,
         material: Material?,
         cullMode: CullMode,
         writeMeshAttributes: () -> Unit
