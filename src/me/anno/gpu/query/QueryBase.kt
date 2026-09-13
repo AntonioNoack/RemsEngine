@@ -2,7 +2,7 @@ package me.anno.gpu.query
 
 import me.anno.utils.types.Floats.roundToLongOr
 
-abstract class QueryBase {
+open class QueryBase {
 
     /**
      * actually measured last value, or -1 if never measured before;

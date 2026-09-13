@@ -413,19 +413,20 @@ object GFXState {
             val records = timeRecords
             if (timer.result >= 0L) {
                 val last = records.lastOrNull()
-                val value = timer.average
+                val deltaNanosGPU = timer.average
+                val deltaNanosCPU = timer.cpuTime.average
                 if (last?.name != name) {
-                    pushTreeEntry(name, value, depth)
+                    pushTreeEntry(name, deltaNanosGPU, deltaNanosCPU, depth)
                 } else {
-                    last.deltaNanos += value
+                    last.deltaNanosCPU += deltaNanosGPU
                     last.divisor++
                 }
             }
         }
     }
 
-    private fun pushTreeEntry(name: String, value: Long, depth: Int) {
-        val created = TimeRecord(name, value, 1, depth)
+    private fun pushTreeEntry(name: String, deltaNanosGPU: Long, deltaNanosCPU: Long, depth: Int) {
+        val created = TimeRecord(name, deltaNanosGPU, deltaNanosCPU, 1, depth)
         val records = timeRecords
         while (true) { // build tree
             val last = records.lastOrNull() ?: break
@@ -440,7 +441,7 @@ object GFXState {
 
     const val PUSH_DEBUG_GROUP_MAGIC = -93 // just some random number, that's unlikely to appear otherwise
 
-    // todo should be thread.local
+    // todo should be thread-local
     var numActiveTimers = 0
     val timeRecords = ArrayList<TimeRecord>()
 }

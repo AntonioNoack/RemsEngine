@@ -201,15 +201,17 @@ object DebugRendering {
     fun showTimeRecords(canvas: Canvas, rv: RenderView) {
         GFXState.drawCall("ShowTimeRecords") {
             val records = GFXState.timeRecords
-            var total = 0L
+            var deltaNanosGPU = 0L
+            var deltaNanosCPU = 0L
             var yi = 0
             for (j in records.indices) {
                 val record = records[j]
-                drawTime(canvas, rv, yi++, record.name, record.deltaNanos, record.divisor, 0)
+                drawTime(canvas, rv, yi++, record.name, record.deltaNanosGPU, record.deltaNanosCPU, record.divisor, 0)
                 yi = showTimeRecordsI(canvas, rv, record.children, 1, yi)
-                total += record.deltaNanos
+                deltaNanosGPU += record.deltaNanosGPU
+                deltaNanosCPU += record.deltaNanosCPU
             }
-            drawTime(canvas, rv, yi, "Total", total, 1, 0)
+            drawTime(canvas, rv, yi, "Total", deltaNanosGPU, deltaNanosCPU, 1, 0)
             val maySkip = rv.renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
             if (!(maySkip && !FrameGenInitNode.isLastFrame())) {
                 GFXState.timeRecords.clear()
@@ -221,20 +223,25 @@ object DebugRendering {
         var yi = yi0
         for (j in records.indices) {
             val record = records[j]
-            drawTime(canvas, rv, yi++, record.name, record.deltaNanos, record.divisor, depth)
+            drawTime(canvas, rv, yi++, record.name, record.deltaNanosGPU, record.deltaNanosCPU, record.divisor, depth)
             yi = showTimeRecordsI(canvas, rv, record.children, depth + 1, yi)
         }
         return yi
     }
 
-    private fun drawTime(canvas: Canvas, rv: Panel, i: Int, name: String, time: Long, divisor: Int, depth: Int) {
+    private fun drawTime(
+        canvas: Canvas, rv: Panel, i: Int, name: String,
+        deltaNanosGPU: Long, deltaNanosCPU: Long, divisor: Int, depth: Int,
+    ) {
         val dst = debugBuilder
         val padding = 1
-        val y = rv.y + i * (monospaceFont.sizeInt + 2 * padding)
+        val y = rv.y + i * (monospaceFont.sampleHeight + 2 * padding)
         if (divisor > 1) dst.append(divisor).append("x ")
         dst.append(name)
             .append('[').append(depth).append("]: ")
-            .formatFloat(time / (1e6 * divisor), 3, false)
+            .formatFloat(deltaNanosGPU / (1e6 * divisor), 3, false)
+            .append(" / ")
+            .formatFloat(deltaNanosCPU / (1e6 * divisor), 3, false)
             .append(" ms")
         canvas.drawText(
             rv.x + rv.width, y, padding,

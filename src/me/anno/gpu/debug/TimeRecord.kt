@@ -2,7 +2,8 @@ package me.anno.gpu.debug
 
 data class TimeRecord(
     val name: String,
-    var deltaNanos: Long,
+    var deltaNanosGPU: Long,
+    var deltaNanosCPU: Long,
     var divisor: Int,
     val depth: Int,
 ) {

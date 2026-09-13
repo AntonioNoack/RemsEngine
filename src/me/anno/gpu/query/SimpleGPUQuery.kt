@@ -28,6 +28,7 @@ open class SimpleGPUQuery(
     var frameCounter = 0
     var session = INVALID_SESSION
 
+    /** returns whether the first timer of this type was started */
     fun start(): Boolean {
         if (target in isTimerActive) {
             return false
