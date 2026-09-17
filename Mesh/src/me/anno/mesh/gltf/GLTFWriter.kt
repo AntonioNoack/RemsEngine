@@ -13,13 +13,9 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
-import me.anno.ecs.components.mesh.SubMesh
-import me.anno.ecs.components.mesh.SubMesh.Companion.createSubMeshes
-import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.MeshAttributes.color0
-import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.SubMesh.Companion.createSubMeshes
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.prefab.Prefab
@@ -47,13 +43,7 @@ import me.anno.mesh.gltf.GLTFConstants.GL_FLOAT
 import me.anno.mesh.gltf.GLTFConstants.GL_UNSIGNED_BYTE
 import me.anno.mesh.gltf.GLTFConstants.GL_UNSIGNED_INT
 import me.anno.mesh.gltf.GLTFConstants.JSON_CHUNK_MAGIC
-import me.anno.mesh.gltf.writer.Accessor
-import me.anno.mesh.gltf.writer.AnimationData
-import me.anno.mesh.gltf.writer.BufferView
-import me.anno.mesh.gltf.writer.MaterialData
-import me.anno.mesh.gltf.writer.MeshData
-import me.anno.mesh.gltf.writer.Sampler
-import me.anno.mesh.gltf.writer.SkinData
+import me.anno.mesh.gltf.writer.*
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
@@ -69,13 +59,7 @@ import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Ranges.size
 import me.anno.utils.types.Vectors.toLinear
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBf
-import org.joml.Matrix4x3f
-import org.joml.Quaterniond
-import org.joml.Quaternionf
-import org.joml.Vector3d
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import speiger.primitivecollections.ObjectToIntHashMap
 import speiger.primitivecollections.UniqueValueIndexMap
 import java.io.ByteArrayOutputStream
@@ -337,7 +321,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
 
     private fun addBuffer(
         type: String, componentType: Int, count: Int, normalized: Boolean,
-        min: String?, max: String?, pos: Int, target: Int, byteStride: Int
+        min: String?, max: String?, pos: Int, target: Int, byteStride: Int,
     ): Int {
         accessors.add(Accessor(bufferViews.size, type, componentType, count, normalized, min, max))
         bufferViews.add(BufferView(pos, binary.size() - pos, target, byteStride))
@@ -488,8 +472,10 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                 }
                 write(color1)
             }
-            attr("metallicFactor", material.metallicMinMax.y.toDouble())
-            attr("roughnessFactor", material.roughnessMinMax.y.toDouble())
+
+            // why can't we set them higher? :/
+            attr("metallicFactor", clamp(material.metallicMinMax.y).toDouble())
+            attr("roughnessFactor", clamp(material.roughnessMinMax.y).toDouble())
         }
     }
 
@@ -522,8 +508,12 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                 write(true)
             }
             writeTextureProperty(material.emissiveMap, "emissiveTexture", sampler)
-            attr("emissiveFactor")
-            write(Vector3f(material.emissiveBase).mul(1f / GLTFReader.BRIGHTNESS_FACTOR))
+
+            attr("emissiveFactor") // must be between 0 and 1 :/
+            val emissive0 = Vector3f(material.emissiveBase)
+            val emissive1 = emissive0.mul(1f / max(GLTFReader.BRIGHTNESS_FACTOR, emissive0.max()))
+            write(emissive0)
+
             writeTextureProperty(material.normalMap, "normalTexture", sampler)
             writeTextureProperty(material.occlusionMap, "occlusionTexture", sampler)
         }
@@ -642,7 +632,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                     }
                 } else {
                     val material = getMaterial(0)
-                    val cullMode = material.cullMode * material.cullMode
+                    val cullMode = material.cullMode
                     writeMesh1(mesh.drawMode, mesh.indices, material, cullMode, ::writeMeshAttributes)
                 }
             }
@@ -654,7 +644,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         indices: IntArray?,
         material: Material,
         cullMode: CullMode,
-        writeMeshAttributes: () -> Unit
+        writeMeshAttributes: () -> Unit,
     ) {
         writeObject {
             attr("mode", mode.id) // triangles / triangle-strip, ...
@@ -669,7 +659,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         helper: SubMesh,
         material: Material?,
         cullMode: CullMode,
-        writeMeshAttributes: () -> Unit
+        writeMeshAttributes: () -> Unit,
     ) {
         writeObject {
             attr("mode", mode.id) // triangles, triangle-strip, ...
@@ -716,7 +706,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                 // copy the file
                 val newFile = dstParent.getChild(src.name)
                 newFile.writeFile(src) {}
-                writeURI(newFile.absolutePath)
+                writeURI(src.name) // relative path to newFile = src.name
             } else {
                 val path = src.relativePathTo(dstParent, maxNumBackPaths)
                 if ((packed && packedDepsToBinary) || (!sameFolder && allDepsToBinary) || path == null) {
@@ -744,20 +734,23 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         val ext = when (SignatureCache[src].waitFor()?.name) {
             "png" -> "image/png"
             "jpg" -> "image/jpeg"
-            else -> null
+            "webp" -> "image/webp"
+            else -> "image/png" // just assume this, we must set something
         }
-        if (ext != null) attr("mimeType", ext)
+        attr("mimeType", ext)
     }
 
     private fun writeMeshCompAttributes(node: MeshComponent) {
         val name = node.name
         if (name.isNotEmpty()) attr("name", name)
         val mesh = node.getMesh()
-        if (mesh is Mesh && node is AnimMeshComponent) {
+        if (mesh is Mesh) {
             attr("mesh")
             write(meshes.add(getMeshData(node, mesh)))
-            val skin = meshCompToSkin[node]
-            if (skin != -1) attr("skin", skin)
+            if (node is AnimMeshComponent) {
+                val skin = meshCompToSkin[node]
+                if (skin != -1) attr("skin", skin)
+            }
         }
     }
 
@@ -1001,7 +994,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             val baseId = animData.baseId
             val animation = animData.animation
             val frameTimes = FloatArray(animation.numFrames)
-            val dt = animation.duration / frameTimes.size
+            val dt = animation.duration / max(frameTimes.size, 1)
             for (i in frameTimes.indices) {
                 frameTimes[i] = dt * i
             }
