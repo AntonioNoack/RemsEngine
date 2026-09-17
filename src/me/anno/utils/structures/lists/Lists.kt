@@ -234,20 +234,22 @@ object Lists {
      * returns the index of the first element failing the condition; or end if none
      * */
     @JvmStatic
-    fun <V> MutableList<V>.partition1(start: Int, end: Int, condition: (V) -> Boolean): Int {
-
+    fun <V> MutableList<V>.partition1(start: Int, endExclusive: Int, condition: (V) -> Boolean): Int {
         var i = start
-        var j = end - 1
+        var j = endExclusive - 1
 
-        if (i == j) return i
         while (true) {
             // while front is fine, progress front
-            while (i < j && condition(this[i])) i++
+            while (i <= j && condition(this[i])) i++
             // while back is fine, progress back
-            while (i < j && !condition(this[j])) j--
+            while (i <= j && !condition(this[j])) j--
             // if nothing works, swap i and j
-            if (i < j) swap(i, j)
-            else return i
+            if (i < j) {
+                swap(i, j)
+                // both of these are now proven:
+                i++
+                j--
+            } else return i
         }
     }
 
@@ -549,7 +551,7 @@ object Lists {
     @JvmStatic
     private fun <V : Any> sortByTopology1(
         list: MutableList<V>, getDependencies: (V) -> Collection<V>?,
-        restoreOriginal: Boolean
+        restoreOriginal: Boolean,
     ): List<V>? {
         return object : TopologicalSort<V, MutableList<V>>(list) {
             override fun visitDependencies(node: V): Boolean {
@@ -571,7 +573,7 @@ object Lists {
     @JvmStatic
     private fun <V : Any> sortByParent1(
         list: MutableList<V>, getParent: (V) -> V?,
-        restoreOriginal: Boolean
+        restoreOriginal: Boolean,
     ): List<V>? {
         return object : TopologicalSort<V, MutableList<V>>(list) {
             override fun visitDependencies(node: V): Boolean {
