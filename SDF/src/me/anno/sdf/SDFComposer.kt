@@ -125,12 +125,12 @@ object SDFComposer {
         val dt = tree.transform?.getDrawMatrix()
         if (dt != null) {
             val pos = JomlPools.vec3d.create()
-            val dtInverse = JomlPools.mat4x3m.create()
+            val dtInverse = JomlPools.mat4x3.create()
             dt.invert(dtInverse) // have we cached this inverse anywhere? would save .invert()
             dtInverse.transformPosition(RenderState.cameraPosition, pos)
             dst.set(pos)
             JomlPools.vec3d.sub(1)
-            JomlPools.mat4x3m.sub(1)
+            JomlPools.mat4x3.sub(1)
         }
         return dst
     }
@@ -142,7 +142,7 @@ object SDFComposer {
         // compute first and second intersection with aabb
         // transform camera position into local space
         val localPos = JomlPools.vec3d.create()
-        val dtInverse = JomlPools.mat4x3m.create()
+        val dtInverse = JomlPools.mat4x3.create()
         if (dt != null) dt.invert(dtInverse)
         else dtInverse.identity()
         dtInverse.transformPosition(RenderState.cameraPosition, localPos)
@@ -159,7 +159,7 @@ object SDFComposer {
         tree.camFar = max
         dst.set(max(0f, min), max)
         JomlPools.vec3d.sub(1)
-        JomlPools.mat4x3m.sub(1)
+        JomlPools.mat4x3.sub(1)
         return dst
     }
 

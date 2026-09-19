@@ -43,7 +43,7 @@ object JomlPools {
     val mat4d = Stack(Matrix4d::class)
     val mat4x3f = Stack(Matrix4x3f::class)
     val mat4x3d = Stack(Matrix4x3d::class)
-    val mat4x3m = Stack(Matrix4x3::class)
+    val mat4x3 = Stack(Matrix4x3::class)
     val aabbf = Stack(AABBf::class)
     val aabbd = Stack(AABBd::class)
 }

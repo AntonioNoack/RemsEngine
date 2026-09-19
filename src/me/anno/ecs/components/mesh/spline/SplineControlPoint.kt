@@ -24,7 +24,7 @@ class SplineControlPoint : Component() {
             ?.invalidateMesh()
     }
 
-    private val localTransform get() = transform!!.getLocalTransform(JomlPools.mat4x3m.borrow())
+    private val localTransform get() = transform!!.getLocalTransform(JomlPools.mat4x3.borrow())
 
     fun getLocalPosition(dst: Vector3d, fx: Double, fz: Double = 0.0): Vector3d =
         localTransform.transformPosition(dst.set(fx * width, 0.0, fz * width))

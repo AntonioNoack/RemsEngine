@@ -318,7 +318,7 @@ class Transform() : Saveable() {
         if (parent == null || parent.globalTransform.isIdentity()) {
             setPosRotSca(globalTransform, false)
         } else {
-            val localTransform = JomlPools.mat4x3m.borrow()
+            val localTransform = JomlPools.mat4x3.borrow()
             // parent.global * self.local * point = self.global * point
             // parent.global * self.local = self.global
             // self.local = inv(parent.global) * self.global
@@ -379,7 +379,7 @@ class Transform() : Saveable() {
             setLocal(matrix)
         } else {
             // a little more complex
-            val inverseParent = JomlPools.mat4x3m.borrow()
+            val inverseParent = JomlPools.mat4x3.borrow()
             parent.globalTransform.invert(inverseParent).mul(matrix)
             setLocal(inverseParent)
         }

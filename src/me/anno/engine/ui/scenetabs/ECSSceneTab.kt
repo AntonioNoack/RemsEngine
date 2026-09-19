@@ -116,10 +116,10 @@ class ECSSceneTab(
             }
             is CollidingComponent -> {
                 val aabb = JomlPools.aabbd.create().clear()
-                val mat = JomlPools.mat4x3m.create().identity()
+                val mat = JomlPools.mat4x3.create().identity()
                 root.fillSpace(mat, aabb)
                 resetCamera(aabb)
-                JomlPools.mat4x3m.sub(1)
+                JomlPools.mat4x3.sub(1)
                 JomlPools.aabbd.sub(1)
             }
             is Skeleton -> {

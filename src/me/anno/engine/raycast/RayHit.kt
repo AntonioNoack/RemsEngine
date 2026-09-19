@@ -40,7 +40,7 @@ class RayHit(maxDistance: Double) {
     val tmpVector3fs = Array(16) { Vector3f() }
     val tmpVector3ds = Array(10) { Vector3d() }
     val tmpVector4fs = Array(3) { Vector4f() }
-    val tmpMat4x3m = Matrix4x3()
+    val tmpMat4x3 = Matrix4x3()
     val tmpAABBd = AABBd()
 
     // mesh data, that we could calculate

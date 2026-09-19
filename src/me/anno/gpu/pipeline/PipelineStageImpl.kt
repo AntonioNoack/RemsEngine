@@ -118,9 +118,9 @@ class PipelineStageImpl(
                     )
                 }
             } else {
-                val localTransform = JomlPools.mat4x3m.create().identity()
+                val localTransform = JomlPools.mat4x3.create().identity()
                 bindTransformUniforms(shader, localTransform)
-                JomlPools.mat4x3m.sub(1)
+                JomlPools.mat4x3.sub(1)
             }
         }
 

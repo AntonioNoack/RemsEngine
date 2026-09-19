@@ -11,7 +11,7 @@ object RaycastCollider {
     fun raycastGlobalCollider(query: RayQuery, entity: Entity, collider: Collider): Boolean {
 
         val localToGlobal = entity.transform.globalTransform
-        val globalToLocal = localToGlobal.invert(JomlPools.mat4x3m.create())
+        val globalToLocal = localToGlobal.invert(JomlPools.mat4x3.create())
 
         // radius for the ray, like sphere-trace, e.g. for bullets + spread for the radius, so we can test cones
         // (e.g., for inaccurate checks like a large beam)
@@ -43,7 +43,7 @@ object RaycastCollider {
         val localDir0 = globalToLocal.transformDirection(tmp3f[1].set(query.direction))
         val localDir = local.direction.set(localDir0)
 
-        JomlPools.mat4x3m.sub(1)
+        JomlPools.mat4x3.sub(1)
 
         val scale = localDir.length()
         val maxDistance = (query.result.distance * scale).toFloat()

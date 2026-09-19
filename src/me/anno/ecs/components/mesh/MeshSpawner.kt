@@ -190,14 +190,14 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         // calculate local aabb
         val local = localAABB
         local.clear()
-        val tmp = JomlPools.mat4x3m.create()
+        val tmp = JomlPools.mat4x3.create()
         forEachMesh(null) { mesh, _, transform ->
             transform.validate()
             val lt = transform.getLocalTransform(tmp)
             mesh.getBounds().transformUnion(lt, local, local)
             false
         }
-        JomlPools.mat4x3m.sub(1)
+        JomlPools.mat4x3.sub(1)
 
         // calculate global aabb
         val global = globalAABB

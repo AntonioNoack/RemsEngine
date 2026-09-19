@@ -368,8 +368,8 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
             val result = query.result
             val globalTransform = transform?.globalTransform  // local -> global
             val globalInv =
-                if (globalTransform != null) result.tmpMat4x3m.set(globalTransform).invert()
-                else result.tmpMat4x3m.identity()
+                if (globalTransform != null) result.tmpMat4x3.set(globalTransform).invert()
+                else result.tmpMat4x3.identity()
 
             val vec3f = result.tmpVector3fs
             val vec3d = result.tmpVector3ds
