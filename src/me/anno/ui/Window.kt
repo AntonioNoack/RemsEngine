@@ -89,6 +89,10 @@ open class Window(
      * disables caching of drawn components, and always redraws everything
      * */
     var drawDirectly = false
+        set(value) {
+            field = value
+            if (value) buffer.destroy()
+        }
 
     init {
         panel.window = this

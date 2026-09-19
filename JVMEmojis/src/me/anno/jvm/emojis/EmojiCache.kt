@@ -43,7 +43,7 @@ object EmojiCache : IEmojiCache {
         val zipBytes = res.getChild("twemoji.zip").inputStreamSync()
         val zis = ZipInputStream(zipBytes)
         var size = 0
-        var tmpRawBytes = ByteArray(1 shl 22)
+        var tmpRawBytes = ByteArray(16 shl 20) // size guess: 16MiB
         while (true) {
             val entry = zis.nextEntry ?: break
             val name = entry.name

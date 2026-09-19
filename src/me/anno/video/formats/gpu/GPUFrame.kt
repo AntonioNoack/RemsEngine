@@ -62,9 +62,9 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
     abstract fun getTextures(): List<Texture2D>
 
     fun bind(offset: Int, nearestFiltering: Filtering, clamping: Clamping) {
-        val tex = getTextures()
-        for (i in tex.indices.reversed()) {
-            tex[i].bind(offset + i, nearestFiltering, clamping)
+        val textures = getTextures()
+        for (i in textures.lastIndex downTo 0) {
+            textures[i].bind(offset + i, nearestFiltering, clamping)
         }
     }
 
@@ -79,8 +79,9 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
     }
 
     override fun destroy() {
-        for (texture in getTextures()) {
-            texture.destroy()
+        val textures = getTextures()
+        for (i in textures.indices) {
+            textures[i].destroy()
         }
     }
 
@@ -115,7 +116,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
      * Creates a new texture, which contains the image data of the frame
      * */
     fun toTexture(flipY: Boolean = false): Texture2D {
-        return toTexture(Texture2D("GpuFrame", width, height, 1), flipY)
+        return toTexture(Texture2D("GPUFrame", width, height, 1), flipY)
     }
 
     /**

@@ -24,7 +24,7 @@ object CanvasAtlasCache {
     private const val maxTexSize = 256
 
     val atlas by lazy {
-        Atlas(clamp(GFX.maxTextureSize, maxTexSize, 4096))
+        Atlas(clamp(GFX.maxTextureSize, maxTexSize, 1024))
     }
 
     class Atlas(val size: Int) {

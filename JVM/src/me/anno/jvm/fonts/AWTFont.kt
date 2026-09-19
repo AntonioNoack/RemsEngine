@@ -9,7 +9,6 @@ import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.Color.g
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Booleans.hasFlag
-import me.anno.utils.types.Strings.iff
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
@@ -20,23 +19,38 @@ import kotlin.math.max
 
 object AWTFont : FontImpl<List<FontMatrix>>() {
 
+    private val matrixCache = HashMap<Font, FontMatrix>()
+    private val fallbackCache = HashMap<Font, List<FontMatrix>>()
+
     override fun getBaselineY(font: Font): Float {
         return FontManagerImpl.getAWTFont(font).baselineY
     }
 
     override fun getFallbackFonts(font: Font): List<FontMatrix> {
-        return (listOf(font.name) + fallbackFontList).map { newName ->
-            val named = font.withName(newName)
-            createMatrix(named)
+        return synchronized(fallbackCache) {
+            fallbackCache.getOrPut(font) {
+                val fallbackNames = fallbackFontList
+                val result = ArrayList<FontMatrix>(1 + fallbackNames.size)
+                result.add(createMatrix(font))
+                for (i in fallbackNames.indices) {
+                    val fallbackName = fallbackNames[i]
+                    result.add(createMatrix(font.withName(fallbackName)))
+                }
+                result
+            }
         }
     }
 
     private fun createMatrix(font: Font): FontMatrix {
-        return List(4) { flags ->
-            val isBold = flags.hasFlag(GlyphStyle.BOLD)
-            val isItalic = flags.hasFlag(GlyphStyle.ITALIC)
-            val subFont = font.withBold(isBold).withItalic(isItalic)
-            FontManagerImpl.getAWTFont(subFont)
+        return synchronized(matrixCache) {
+            matrixCache.getOrPut(font) {
+                List(4) { flags ->
+                    val isBold = flags.hasFlag(GlyphStyle.BOLD)
+                    val isItalic = flags.hasFlag(GlyphStyle.ITALIC)
+                    val subFont = font.withBold(isBold).withItalic(isItalic)
+                    FontManagerImpl.getAWTFont(subFont)
+                }
+            }
         }
     }
 
@@ -57,7 +71,7 @@ object AWTFont : FontImpl<List<FontMatrix>>() {
         x0: Int, x1: Int, y0: Int, y1: Int, strictBounds: Boolean,
         font: Font, fallbackFonts: List<FontMatrix>, fontIndex: Int,
         codepoint: Int, textColor: Int, backgroundColor: Int,
-        portableImages: Boolean
+        portableImages: Boolean,
     ) {
 
         // todo cache the value if it makes sense... discretize fract(x0) and fract(y0) reasonably

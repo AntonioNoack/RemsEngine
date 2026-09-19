@@ -138,7 +138,7 @@ class GPUFrameTest {
             bytes[i * 3 + 1] = rgb.g().toByte()
             bytes[i * 3 + 2] = rgb.b().toByte()
         }
-        val frame = RGBFrame(image.width, image.height)
+        val frame = RGBFrame(image.width, image.height, "rgb-frame")
         validateToTexture(image, frame, bytes, 0xffffff)
     }
 
@@ -212,7 +212,7 @@ class GPUFrameTest {
     @Suppress("SameParameterValue")
     private fun validateToTextureApproximate(
         image: Image, frame: GPUFrame, bytes: ByteArray,
-        margin: Int, ratio: Float
+        margin: Int, ratio: Float,
     ) {
         val clonedImage = frameToImage(frame, bytes)
         val bounds = AABBf()

@@ -318,7 +318,7 @@ object GFXState {
      * render onto that texture
      * */
     fun useFrame(colorDst: Texture2D, render: (IFramebuffer) -> Unit) {
-        useFrameColorNDepth(colorDst.width, colorDst.height, colorDst.pointer, 0, render)
+        useFrameColorNDepth(0, colorDst.width, colorDst.height, colorDst.pointer, render)
     }
 
     /**
@@ -332,16 +332,15 @@ object GFXState {
         val dri = if (dr > 0) dr.inv() else 0
         val width = colorDst?.width ?: depthDstI!!.width
         val height = colorDst?.height ?: depthDstI!!.height
-        useFrameColorNDepth(width, height, colorDst?.pointer ?: 0, dt?.pointer ?: dri, render)
+        useFrameColorNDepth(dt?.pointer ?: dri, width, height, colorDst?.pointer ?: 0, render)
     }
 
     /**
      * render onto that texture
      * */
-    private fun useFrameColorNDepth(
-        width: Int, height: Int,
-        colorDstPointer: Int, depthDstPointer: Int,
-        render: (IFramebuffer) -> Unit,
+    fun useFrameColorNDepth(
+        textureOrRenderbufferInv: Int, width: Int, height: Int,
+        colorDstPointer: Int, render: (IFramebuffer) -> Unit,
     ) {
         tmp.width = width
         tmp.height = height
@@ -355,8 +354,8 @@ object GFXState {
             // bind color, 0 = unbinding
             glFramebufferTexture2D(target, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorDstPointer, 0)
             // bind depth, 0 = unbinding
-            if (depthDstPointer >= 0) glFramebufferTexture2D(target, attach, GL_TEXTURE_2D, depthDstPointer, 0)
-            else glFramebufferRenderbuffer(target, attach, GL_RENDERBUFFER, depthDstPointer.inv())
+            if (textureOrRenderbufferInv >= 0) glFramebufferTexture2D(target, attach, GL_TEXTURE_2D, textureOrRenderbufferInv, 0)
+            else glFramebufferRenderbuffer(target, attach, GL_RENDERBUFFER, textureOrRenderbufferInv.inv())
             Framebuffer.drawBuffersN(1)
             tmp.checkIsComplete()
             render(tmp)

@@ -121,8 +121,10 @@ class TextureReader(val file: FileReference, val result: Promise<ITexture2D>) {
                         frame == null || frame.isCreated || frame.isDestroyed
                     }) { frame ->
                         if (frame != null) {
-                            addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
-                                result.value = frame.toTexture()
+                            addGPUTask("TextureReader.useFFMPEG", frame.width, frame.height) {
+                                if (!result.hasBeenDestroyed) {
+                                    result.value = frame.toTexture()
+                                }
                             }
                         } else result.value = null
                     }

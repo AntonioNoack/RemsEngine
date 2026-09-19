@@ -28,6 +28,8 @@ import org.joml.Matrix4x3
 import org.lwjgl.PointerBuffer
 import org.lwjgl.opengl.GL46C.GL_ELEMENT_ARRAY_BUFFER
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
+import org.lwjgl.opengl.GL46C.glDrawArrays
+import org.lwjgl.opengl.GL46C.glDrawElements
 import org.lwjgl.opengl.GL46C.glMultiDrawArrays
 import org.lwjgl.opengl.GL46C.glMultiDrawElements
 import java.nio.IntBuffer
@@ -156,19 +158,24 @@ abstract class UniqueMeshRenderer<Key, Mesh>(
     }
 
     private fun finish() {
-        if (tmpLengths.position() > 0) {
-            tmpLengths.flip()
-            tmpStarts.flip()
-            tmpStartsI.flip()
-            if (umrIndexData != null) {
-                glMultiDrawElements(drawMode.id, tmpLengths, INDEX_TYPE, tmpStartsI)
-            } else {
-                glMultiDrawArrays(drawMode.id, tmpStarts, tmpLengths)
-            }
-            tmpStarts.clear()
-            tmpStartsI.clear()
-            tmpLengths.clear()
+        val count = tmpLengths.position()
+        if (count <= 0) return
+
+        tmpLengths.flip()
+        tmpStarts.flip()
+        tmpStartsI.flip()
+
+        if (umrIndexData != null) {
+            if (count == 1) glDrawElements(drawMode.id, tmpLengths[0], INDEX_TYPE, tmpStartsI[0])
+            else glMultiDrawElements(drawMode.id, tmpLengths, INDEX_TYPE, tmpStartsI)
+        } else {
+            if (count == 1) glDrawArrays(drawMode.id, tmpStarts[0], tmpLengths[0])
+            else glMultiDrawArrays(drawMode.id, tmpStarts, tmpLengths)
         }
+
+        tmpStarts.clear()
+        tmpStartsI.clear()
+        tmpLengths.clear()
     }
 
     override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {

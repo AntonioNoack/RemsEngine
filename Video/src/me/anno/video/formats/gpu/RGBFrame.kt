@@ -8,11 +8,12 @@ import me.anno.utils.pooling.Pools
 import java.io.IOException
 import java.io.InputStream
 
-open class RGBFrame(w: Int, h: Int, numChannels: Int) : GPUFrame(w, h, numChannels) {
+open class RGBFrame(w: Int, h: Int, numChannels: Int, frameName: String) :
+    GPUFrame(w, h, numChannels) {
 
-    constructor(w: Int, h: Int) : this(w, h, 3)
+    constructor(w: Int, h: Int, frameName: String) : this(w, h, 3, frameName)
 
-    val rgb = Texture2D("rgb-frame", width, height, 1)
+    val rgb = Texture2D(frameName, width, height, 1)
 
     override fun load(input: InputStream, callback: Callback<GPUFrame>) {
         if (isDestroyed) return callback.err(IOException("Already destroyed"))

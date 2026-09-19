@@ -13,7 +13,7 @@ import java.io.InputStream
 class GPUFrameReader(
     file: FileReference, frame0: Int, bufferLength: Int,
     nextFrameCallback: (GPUFrame) -> Unit,
-    finishedCallback: (List<GPUFrame>) -> Unit
+    finishedCallback: (List<GPUFrame>) -> Unit,
 ) : FrameReader<GPUFrame>(file, frame0, bufferLength, nextFrameCallback, finishedCallback) {
 
     override fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream, callback: Callback<GPUFrame>) {
@@ -58,7 +58,7 @@ class GPUFrameReader(
                 "ARGB" -> ARGBFrame(w, h)
                 "BGRA" -> BGRAFrame(w, h)
                 "RGBA" -> RGBAFrame(w, h)
-                "RGB" -> RGBFrame(w, h)
+                "RGB" -> RGBFrame(w, h, "rgb-frame")
                 "BGR", "BGR[24]" -> BGRFrame(w, h)
                 // bw
                 "Y4", "Y800" -> Y4Frame(w, h) // seems correct, awkward, that it has the same name

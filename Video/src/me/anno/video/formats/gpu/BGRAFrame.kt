@@ -7,7 +7,7 @@ import me.anno.utils.pooling.Pools
 import java.io.IOException
 import java.io.InputStream
 
-class BGRAFrame(w: Int, h: Int) : RGBFrame(w, h, 4) {
+class BGRAFrame(w: Int, h: Int) : RGBFrame(w, h, 4, "bgra-frame") {
 
     override fun load(input: InputStream, callback: Callback<GPUFrame>) {
         if (isDestroyed) return callback.err(IOException("Already destroyed"))

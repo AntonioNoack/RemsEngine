@@ -6,7 +6,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GLNames
 import me.anno.gpu.buffer.GPUBuffer
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.CubemapTexture
@@ -19,7 +18,6 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.MinMax.max
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelList2D
@@ -27,6 +25,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.canvas.Canvas
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.Compare.ifSame
 import org.lwjgl.opengl.GL46C
@@ -71,9 +70,11 @@ object DebugGPUStorage {
                 val xi = x + (this.width - w) / 2
                 val yi = y + fontSize + (this.height - fontSize - h) / 2
                 // transparency-showing background
-                DrawTextures.drawTransparentBackground(xi, yi, w, h)
-                drawTexture(xi, yi, w, h)
-                DrawTexts.drawText(x, y, 2, title)
+                canvas.custom {
+                    DrawTextures.drawTransparentBackground(xi, yi, w, h)
+                    drawTexture(xi, yi, w, h)
+                }
+                canvas.drawText(x, y, 2, title)
             } else isVisible = false
         }
 
@@ -86,7 +87,8 @@ object DebugGPUStorage {
         GL46C.GL_DEPTH24_STENCIL8,
         GL46C.GL_DEPTH32F_STENCIL8,
         GL46C.GL_DEPTH_COMPONENT32,
-        GL46C.GL_DEPTH_COMPONENT32F -> true
+        GL46C.GL_DEPTH_COMPONENT32F,
+            -> true
         else -> false
     }
 
@@ -108,12 +110,16 @@ object DebugGPUStorage {
         }
 
         override fun getTooltipText(x: Float, y: Float) =
-            "${tex.width} x ${tex.height} x ${tex.samples}, ${GLNames.getName(tex.internalFormat)}"
+            "${tex.width} x ${tex.height} x ${tex.samples}, " +
+                    "${GLNames.getName(tex.internalFormat)}, ${tex.locallyAllocated.formatFileSize()}"
     }
 
     // todo test this
     class TexturePanel3D(tex: Texture3D) :
-        TexturePanel<Texture3D>("${tex.name}, ${tex.width} x ${tex.height} x ${tex.depth}", tex) {
+        TexturePanel<Texture3D>(
+            "${tex.name}, ${tex.width} x ${tex.height} x ${tex.depth}",
+            tex
+        ) {
 
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
             // how can we display them? as slices...
@@ -127,6 +133,10 @@ object DebugGPUStorage {
             val isDepth = isDepthFormat(tex.internalFormat)
             DrawTextures.draw3dSlice(x, y, w, h, z, tex, true, -1, 0f, isDepth)
         }
+
+        override fun getTooltipText(x: Float, y: Float) =
+            "${tex.width} x ${tex.height} x ${tex.depth} x ${tex.samples}, " +
+                    "${GLNames.getName(tex.internalFormat)}, ${tex.locallyAllocated.formatFileSize()}"
     }
 
     class TexturePanel2DA(tex: Texture2DArray) :
@@ -149,6 +159,10 @@ object DebugGPUStorage {
                 tex, true, -1, 0f, isDepth
             )
         }
+
+        override fun getTooltipText(x: Float, y: Float) =
+            "${tex.width} x ${tex.height} x ${tex.layers} x ${tex.samples}, " +
+                    "${GLNames.getName(tex.internalFormat)}, ${tex.locallyAllocated.formatFileSize()}"
     }
 
     class TexturePanelCubes(tex: CubemapTexture) :
@@ -160,11 +174,15 @@ object DebugGPUStorage {
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
             DrawTextures.drawProjection(x, y, w, h, tex, false, -1, 0f, isDepth)
         }
+
+        override fun getTooltipText(x: Float, y: Float) =
+            "${tex.width} x ${tex.height} x 6 x ${tex.samples}, " +
+                    "${GLNames.getName(tex.internalFormat)}, ${tex.locallyAllocated.formatFileSize()}"
     }
 
     private fun <V : ITexture2D> createEntry(
         title: String, tex2d: Collection<V>,
-        createPanel: (V) -> Panel
+        createPanel: (V) -> Panel,
     ): MenuOption {
         val sizeSum = tex2d.sumOf(ITexture2D::locallyAllocated).formatFileSize()
         return MenuOption(NameDesc("$title (${tex2d.size}, $sizeSum)")) {
@@ -185,45 +203,45 @@ object DebugGPUStorage {
         val bufferSum = buffers.sumOf { it.locallyAllocated }
         Menu.openMenu(
             GFX.someWindow.windowStack, listOf(
-            createEntry("Texture2Ds", tex2d) { TexturePanel2D(it.name, it, false) },
-            createEntry("Texture3Ds", tex3d) { TexturePanel3D(it) },
-            createEntry("Texture2D[]s", tex2da) { TexturePanel2DA(it) },
-            createEntry("CubemapTextures", texCubes) { TexturePanelCubes(it) },
-            MenuOption(NameDesc("Framebuffers (${fbs.size}, ${fbsSum.formatFileSize()})")) {
-                create2DListOfPanels("Framebuffers") { list ->
-                    for (fb in fbs.sortedBy { it.width * it.height }) {
-                        val textures = fb.textures
-                        for (i in textures.indices) {
-                            val tex = textures[i]
-                            list.add(TexturePanel2D(tex.name, tex, false))
+                createEntry("Texture2Ds", tex2d) { TexturePanel2D(it.name, it, false) },
+                createEntry("Texture3Ds", tex3d) { TexturePanel3D(it) },
+                createEntry("Texture2D[]s", tex2da) { TexturePanel2DA(it) },
+                createEntry("CubemapTextures", texCubes) { TexturePanelCubes(it) },
+                MenuOption(NameDesc("Framebuffers (${fbs.size}, ${fbsSum.formatFileSize()})")) {
+                    create2DListOfPanels("Framebuffers") { list ->
+                        for (fb in fbs.sortedBy { it.width * it.height }) {
+                            val textures = fb.textures
+                            for (i in textures.indices) {
+                                val tex = textures[i]
+                                list.add(TexturePanel2D(tex.name, tex, false))
+                            }
+                            val dt = fb.depthTexture
+                            if (dt != null) {
+                                list.add(TexturePanel2D(dt.name, dt, true))
+                            }
                         }
-                        val dt = fb.depthTexture
-                        if (dt != null) {
-                            list.add(TexturePanel2D(dt.name, dt, true))
+                    }
+                },
+                MenuOption(NameDesc("Buffers (${buffers.size}, ${bufferSum.formatFileSize()})")) {
+                    // how can we display them?
+                    // to do maybe like in RenderDoc, or as plain list with attributes, vertex count and such
+                    // we have name data, so we could show colors, uvs, coordinates and such :)
+                    // first, easy way:
+                    openMenuOfPanels("Buffers", PanelListY(style)) { list ->
+                        for (buffer in buffers.sortedBy { it.locallyAllocated }) {
+                            list.add(
+                                TextPanel(
+                                    "\"${buffer.name}\", ${GLNames.getName(buffer.target)}, " +
+                                            "${buffer.elementCount} x ${buffer.attributes}, " +
+                                            "total: ${
+                                                (buffer.nioBuffer?.capacity()?.toLong() ?: buffer.locallyAllocated)
+                                                    .formatFileSize()
+                                            }", style
+                                ).apply { breaksIntoMultiline = true })
                         }
                     }
                 }
-            },
-            MenuOption(NameDesc("Buffers (${buffers.size}, ${bufferSum.formatFileSize()})")) {
-                // how can we display them?
-                // to do maybe like in RenderDoc, or as plain list with attributes, vertex count and such
-                // we have name data, so we could show colors, uvs, coordinates and such :)
-                // first, easy way:
-                openMenuOfPanels("Buffers", PanelListY(style)) { list ->
-                    for (buffer in buffers.sortedBy { it.locallyAllocated }) {
-                        list.add(
-                            TextPanel(
-                                "\"${buffer.name}\", ${GLNames.getName(buffer.target)}, " +
-                                        "${buffer.elementCount} x ${buffer.attributes}, " +
-                                        "total: ${
-                                            (buffer.nioBuffer?.capacity()?.toLong() ?: buffer.locallyAllocated)
-                                                .formatFileSize()
-                                        }", style
-                            ).apply { breaksIntoMultiline = true })
-                    }
-                }
-            }
-        ))
+            ))
     }
 
     private fun create2DListOfPanels(title: String, fillList: (PanelList) -> Unit) {

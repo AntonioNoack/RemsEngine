@@ -38,7 +38,7 @@ object DefaultAssets {
     val cylinderY11 = CylinderModel.createCylinder(32, 2, top = true, bottom = true, null, 3f, Mesh())
     val uvSphere = UVSphereModel.createUVSphere(40, 20)
     val icoSphere = IcosahedronModel.createIcosphere(3)
-    val plane = PlaneModel.createPlaneXZ(2, 2, Vector2f(1f))
+    val plane = PlaneModel.createPlaneXZ(1, 1, Vector2f(1f))
     val circle = CircleModel.createCircle(32, Mesh())
 
     // textures

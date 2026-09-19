@@ -77,7 +77,7 @@ open class RenderDeferredNode : RenderViewNode(
         setInput(2, 256) // height
         setInput(3, 1) // samples
         setInput(4, PipelineStage.OPAQUE) // stage
-        setInput(5, false) // don't apply tonemapping
+        setInput(5, 0f) // don't apply tonemapping
         setInput(6, 0) // skybox resolution
         setInput(7, DrawSkyMode.DONT_DRAW_SKY)
     }
