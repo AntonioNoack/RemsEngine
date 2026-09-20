@@ -26,7 +26,7 @@ object RenderStep {
     private val LOGGER = LogManager.getLogger(RenderStep::class)
 
     @JvmStatic
-    private fun clearState() {
+    fun clearState() {
         GFXState.bindVAO() // just in case
         GPUShader.invalidateBinding()
         Texture2D.invalidateBinding()

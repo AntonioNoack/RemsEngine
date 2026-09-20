@@ -66,6 +66,28 @@ class ComparableStringBuilder(init: Int = 16) : CharSequence {
         value = value.copyOf(size)
     }
 
+    fun insert(index: Int, v: Char): ComparableStringBuilder {
+        ensureCapacity(length + 1)
+        val value = value
+        value.copyInto(value, index + 1, index, length)
+        value[index] = v
+        length++
+        hash = 0
+        return this
+    }
+
+    fun insert(index: Int, v: CharSequence): ComparableStringBuilder {
+        ensureCapacity(length + v.length)
+        val value = value
+        value.copyInto(value, index + v.length, index, length)
+        for (i in v.indices) {
+            value[index + i] = v[i]
+        }
+        length += v.length
+        hash = 0
+        return this
+    }
+
     private var hash = 0
     override fun hashCode(): Int {
         var h = hash

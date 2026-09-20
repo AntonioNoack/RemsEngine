@@ -10,6 +10,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Strings.joinChars
 import java.io.ByteArrayInputStream
 import java.io.EOFException
+import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
 
@@ -166,7 +167,13 @@ open class JsonReader(val data: Reader) : GenericReader {
         }
     }
 
-    fun skipString() {
+    @Suppress("unused")
+    fun skipString(next: Char = skipSpace()) {
+        assertEquals('"', next)
+        skipStringBody()
+    }
+
+    fun skipStringBody() {
         while (true) {
             when (next()) {
                 '\\' -> {
@@ -187,9 +194,18 @@ open class JsonReader(val data: Reader) : GenericReader {
         }
     }
 
-    fun readNumber(builder: ComparableStringBuilder): CharSequence {
+    @Suppress("unused")
+    fun readNumber(prefix: Char): CharSequence {
+        return readNumber(type0, prefix)
+    }
+
+    fun readNumber(builder: ComparableStringBuilder, prefix: Char = ' '): CharSequence {
         builder.clear()
         var isFirst = true
+        if (prefix != ' ') {
+            isFirst = false
+            builder.append(prefix)
+        }
         while (true) {
             when (val next = if (isFirst) skipSpace() else nextOrSpace()) {
                 in '0'..'9', '+', '-', '.', 'e', 'E' -> {
@@ -210,7 +226,7 @@ open class JsonReader(val data: Reader) : GenericReader {
     }
 
     fun readNumber(): CharSequence {
-        return readNumber(type0).toString()
+        return readNumber(type0)
     }
 
     fun skipNumber(readOpeningChar: Boolean = true) {
@@ -222,7 +238,7 @@ open class JsonReader(val data: Reader) : GenericReader {
                 '_' -> {}
                 '"' -> {
                     if (isEmpty) {
-                        skipString()
+                        skipStringBody()
                         return
                     } else throw RuntimeException("Unexpected symbol \" inside number!")
                 }
@@ -237,7 +253,7 @@ open class JsonReader(val data: Reader) : GenericReader {
 
     fun readObject(readOpeningBracket: Boolean, writer: GenericWriter) {
         if (writer.beginObject(null)) {
-            if (readOpeningBracket) assertEquals(skipSpace(), '{')
+            if (readOpeningBracket) assertEquals('{', skipSpace())
             var next = skipSpace()
             loop@ while (true) {
                 when (next) {
@@ -265,7 +281,7 @@ open class JsonReader(val data: Reader) : GenericReader {
     }
 
     private fun readObjectProperty(writer: GenericWriter, name: String) {
-        assertEquals(skipSpace(), ':')
+        assertEquals(':', skipSpace())
         if (writer.attr(name)) {
             readValue(skipSpace(), writer)
         } else {
@@ -287,14 +303,14 @@ open class JsonReader(val data: Reader) : GenericReader {
     }
 
     fun skipObject(readOpeningBracket: Boolean = true) {
-        if (readOpeningBracket) assertEquals(skipSpace(), '{')
+        if (readOpeningBracket) assertEquals('{', skipSpace())
         var next = skipSpace()
         while (true) {
             when (next) {
                 '}' -> return
                 '"' -> {
-                    skipString() // name
-                    assertEquals(skipSpace(), ':')
+                    skipStringBody() // name
+                    assertEquals(':', skipSpace())
                     skipValue()
                     next = skipSpace()
                 }
@@ -321,57 +337,57 @@ open class JsonReader(val data: Reader) : GenericReader {
                 putBack(next)
                 writer.write(readNumber(), isString = false)
             }
-            '"' -> {
-                writer.write(readString(false), isString = true)
-            }
+            '"' -> writer.write(readString(false), isString = true)
             '[' -> readArray(false, writer)
             '{' -> readObject(false, writer)
+            't', 'T', 'f', 'F' -> writer.write(readBoolean(next))
+            'n', 'N' -> writer.write(readNull(next))
+            else -> assertFail("Expected value, got $next")
+        }
+    }
+
+    @Suppress("unused")
+    fun readBoolean(next: Char = skipSpace()): Boolean {
+        return when (next) {
             't', 'T' -> {
                 assert(next(), 'r', 'R')
                 assert(next(), 'u', 'U')
                 assert(next(), 'e', 'E')
-                writer.write(true)
+                true
             }
             'f', 'F' -> {
                 assert(next(), 'a', 'A')
                 assert(next(), 'l', 'L')
                 assert(next(), 's', 'S')
                 assert(next(), 'e', 'E')
-                writer.write(false)
+                false
             }
+            else -> throw IOException("Unexpected char '$next' for boolean")
+        }
+    }
+
+    @Suppress("unused")
+    fun readNull(next: Char = skipSpace()): Nothing? {
+        return when (next) {
             'n', 'N' -> {
                 assert(next(), 'u', 'U')
                 assert(next(), 'l', 'L')
                 assert(next(), 'l', 'L')
-                writer.write(null)
+                null
             }
-            else -> assertFail("Expected value, got $next")
+            else -> throw IOException("Unexpected char '$next' for null")
         }
     }
 
     fun skipValue(next: Char = skipSpace()) {
         when (next) {
             in '0'..'9', '.', '+', '-' -> skipNumber(false)
-            '"' -> skipString()
+            '"' -> skipStringBody()
             '[' -> skipArray(false)
             '{' -> skipObject(false)
             // should we throw errors while skipping?
-            't', 'T' -> {
-                assert(next(), 'r', 'R')
-                assert(next(), 'u', 'U')
-                assert(next(), 'e', 'E')
-            }
-            'f', 'F' -> {
-                assert(next(), 'a', 'A')
-                assert(next(), 'l', 'L')
-                assert(next(), 's', 'S')
-                assert(next(), 'e', 'E')
-            }
-            'n', 'N' -> {
-                assert(next(), 'u', 'U')
-                assert(next(), 'l', 'L')
-                assert(next(), 'l', 'L')
-            }
+            't', 'T', 'f', 'F' -> readBoolean(next)
+            'n', 'N' -> readNull(next)
             else -> assertFail("Expected value, got $next")
         }
     }
@@ -385,7 +401,7 @@ open class JsonReader(val data: Reader) : GenericReader {
 
     fun readArray(readOpeningBracket: Boolean, writer: GenericWriter) {
         if (writer.beginArray()) {
-            if (readOpeningBracket) assertEquals(skipSpace(), '[')
+            if (readOpeningBracket) assertEquals('[', skipSpace())
             var next = skipSpace()
             loop@ while (true) {
                 when (next) {
@@ -402,7 +418,7 @@ open class JsonReader(val data: Reader) : GenericReader {
     }
 
     fun skipArray(readOpeningBracket: Boolean = true) {
-        if (readOpeningBracket) assertEquals(skipSpace(), '[')
+        if (readOpeningBracket) assertEquals('[', skipSpace())
         var next = skipSpace()
         while (true) {
             when (next) {

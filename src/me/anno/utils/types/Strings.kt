@@ -507,6 +507,7 @@ object Strings {
         var number = 0L
         for (i in ix until i1) {
             val digit = Character.digit(this[i], base)
+            if (digit < 0) throw NumberFormatException("Invalid digit '${this[i]}' for base $base integer")
             number = base * number - digit
         }
         return if (c0 == '-') number else -number
