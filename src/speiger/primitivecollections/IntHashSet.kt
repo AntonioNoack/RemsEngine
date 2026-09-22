@@ -1,61 +1,65 @@
 package speiger.primitivecollections
 
-import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.IntCallback
 import speiger.primitivecollections.callbacks.IntPredicate
 
 /**
- * Wrapper around LongHashSet
+ * Space-efficient IntToHashMap without any values
  * */
-class IntHashSet(
-    @property:InternalAPI
-    val content: LongHashSet
-) : PrimitiveCollection {
+class IntHashSet : IntToHashMap<Unit> {
 
     constructor(
         minCapacity: Int = DEFAULT_MIN_CAPACITY,
-        loadFactor: Float = DEFAULT_LOAD_FACTOR
-    ) : this(LongHashSet(minCapacity, loadFactor))
+        loadFactor: Float = DEFAULT_LOAD_FACTOR,
+    ) : super(minCapacity, loadFactor)
 
-    override val size: Int get() = content.size
-    override val maxFill: Int get() = content.maxFill
+    constructor(base: IntHashSet) : super(base)
+
+    override fun createValues(size: Int) {}
+    override fun fillNullValues(values: Unit) {}
+    override fun copyOver(dstValues: Unit, dstIndex: Int, srcValues: Unit, srcIndex: Int) {}
+    override fun copyOver(dstValues: Unit, srcValues: Unit) {}
+    override fun setNull(dstValues: Unit, dstIndex: Int) {}
 
     fun add(key: Int): Boolean {
-        return content.add(key.toLong())
+        val slot = findSlot(key)
+        if (slot < 0) {
+            insert(-slot - 1, key)
+            return true
+        } else return false
     }
 
     fun remove(key: Int): Boolean {
-        return content.remove(key.toLong())
-    }
-
-    override fun clear() {
-        content.clear()
-    }
-
-    override fun clearAndTrim(size: Int) {
-        content.clearAndTrim(size)
+        val slot = findSlot(key)
+        if (slot >= 0) removeIndex(slot)
+        return slot >= 0
     }
 
     operator fun contains(key: Int): Boolean {
-        return content.contains(key.toLong())
+        return containsKey(key)
     }
 
-    fun forEach(callback: IntCallback) {
-        content.forEach { value ->
-            callback.call(value.toInt())
+    private fun insert(slot: Int, key: Int) {
+        if (slot == nullIndex) {
+            containsNull = true
         }
+
+        keys[slot] = key
+        size++
+        growMaybe()
     }
 
     fun addAll(source: IntHashSet) {
         source.forEach(this::add)
     }
 
-    fun first(ifEmpty: Int): Int = content.firstKey(ifEmpty.toLong()).toInt()
+    fun forEach(callback: IntCallback) =
+        forEachKey(callback)
 
     fun removeIf(predicate: IntPredicate) =
-        content.removeIf { predicate.test(it.toInt()) }
+        removeIfImpl { predicate.test(keys[it]) }
 
-    override fun clone(): IntHashSet = IntHashSet(content.clone())
+    override fun clone(): IntHashSet = IntHashSet(this)
 }

@@ -1,5 +1,6 @@
 package me.anno.recast
 
+import me.anno.engine.debug.DebugArrow
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes.showDebugArrow
 import me.anno.engine.debug.DebugShapes.showDebugLine
@@ -35,7 +36,7 @@ object NavMeshUtils {
         for (i in 1 until centers.size) {
             val from = centers[i - 1]
             val to = centers[i]
-            showDebugArrow(DebugLine(from, to, color, 0f))
+            showDebugArrow(DebugArrow(from, to, color, 0f))
         }
     }
 

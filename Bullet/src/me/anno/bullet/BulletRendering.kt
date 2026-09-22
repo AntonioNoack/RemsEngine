@@ -8,6 +8,7 @@ import com.bulletphysics.collision.shapes.ConvexHullShape
 import cz.advel.stack.Stack
 import me.anno.bullet.bodies.PhysicalBody
 import me.anno.bullet.bodies.PhysicsBody
+import me.anno.engine.debug.DebugArrow
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.showDebugArrow
@@ -122,7 +123,7 @@ object BulletRendering {
         val n = point.normalWorldOnB
         val d = 0.05 * cam.distance(a.x, a.y, a.z)
         val b2 = Vector3d(a.x + n.x * d, a.y + n.y * d, a.z + n.z * d)
-        showDebugArrow(DebugLine(a, b2, color, 0f))
+        showDebugArrow(DebugArrow(a, b2, color, 0f))
     }
 
     private fun BulletPhysics.drawAABBs() {

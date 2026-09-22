@@ -3,6 +3,7 @@ package me.anno.games.flatworld.vehicles
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.debug.DebugArrow
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes.showDebugArrow
 import me.anno.engine.serialization.NotSerializedProperty
@@ -66,7 +67,7 @@ class Vehicle(
             // show link to previous vehicle with arrow
             val dy = Vector3d(0.0, 1.0, 0.0)
             showDebugArrow(
-                DebugLine(
+                DebugArrow(
                     prevPosition + dy, previousVehicle.prevPosition + dy,
                     -1, 0f
                 )

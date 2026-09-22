@@ -5,6 +5,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.interfaces.CustomEditMode
+import me.anno.engine.debug.DebugArrow
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes.showDebugArrow
 import me.anno.engine.raycast.Raycast
@@ -36,7 +37,7 @@ class SimpleShootingControls : Component(), CustomEditMode {
                     hitRigidbody.applyImpulse(relativePos, impulse)
                 } else {
                     showDebugArrow(
-                        DebugLine(
+                        DebugArrow(
                             Vector3d(query.start),
                             Vector3d(query.result.positionWS),
                             0x3377ff or black

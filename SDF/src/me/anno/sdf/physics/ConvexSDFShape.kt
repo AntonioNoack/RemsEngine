@@ -63,7 +63,7 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
             start, dir2, 0f,
             maxDistance * 2f,
             maxSteps, seeds,
-        ) - margin.toFloat()
+        ) - margin
 
         val hit = dir2.mulAdd(distance, start, start)
         out.set(hit.x.toDouble(), hit.y.toDouble(), hit.z.toDouble())

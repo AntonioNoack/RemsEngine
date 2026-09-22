@@ -82,6 +82,7 @@ import me.anno.utils.types.Vectors.toSRGB
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector4f
+import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.log2
 import kotlin.math.max
@@ -278,26 +279,35 @@ object DebugRendering {
 
     private fun drawDebugArrows() {
         val arrows = DebugShapes.debugArrows
+        if (arrows.isEmpty()) return
+
         val dirX = JomlPools.vec3d.create()
         val dirY = JomlPools.vec3d.create()
         val dirZ = JomlPools.vec3d.create()
+
+        var arrow = arrows.first()
+        fun addPt(dxi: Double, dzi: Double, t: Double) {
+            val anchor = arrow.from.mix(arrow.to, t, dirY)
+            dirX.mulAdd(dxi, anchor, anchor)
+            dirZ.mulAdd(dzi, anchor, anchor)
+            LineBuffer.addLine(anchor, arrow.to, arrow.color)
+        }
+
         for (i in arrows.indices) {
-            val arrow = arrows.getOrNull(i) ?: break
+            arrow = arrows.getOrNull(i) ?: break
+            val len = arrow.from.distance(arrow.to)
+            if (abs(len) < 1e-300) continue
+
             LineBuffer.addLine(arrow.from, arrow.to, arrow.color)
             arrow.to.sub(arrow.from, dirY)
-            val len = dirY.length()
             dirY.findSystem(dirZ, dirX, true)
-            val s = len * 0.2
-            fun addPt(dxi: Double, dzi: Double) {
-                val anchor = arrow.from.mix(arrow.to, 0.6, dirY)
-                dirX.mulAdd(dxi, anchor, anchor)
-                dirZ.mulAdd(dzi, anchor, anchor)
-                LineBuffer.addLine(anchor, arrow.to, arrow.color)
-            }
-            addPt(+s, 0.0)
-            addPt(-s, 0.0)
-            addPt(0.0, +s)
-            addPt(0.0, -s)
+
+            val headSize = arrow.headSize.toDouble()
+            val t = 1.0 - headSize * 2.0 / len
+            addPt(+headSize, 0.0, t)
+            addPt(-headSize, 0.0, t)
+            addPt(0.0, +headSize, t)
+            addPt(0.0, -headSize, t)
         }
         JomlPools.vec3d.sub(3)
     }

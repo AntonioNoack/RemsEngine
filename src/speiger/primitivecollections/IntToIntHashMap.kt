@@ -3,67 +3,115 @@ package speiger.primitivecollections
 import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
-import speiger.primitivecollections.callbacks.IntCallback
 import speiger.primitivecollections.callbacks.IntIntCallback
 import speiger.primitivecollections.callbacks.IntIntPredicate
 
 /**
- * Wrapper around LongToLongHashMap
+ * Long2LongOpenHashMap from https://github.com/Speiger/Primitive-Collections/,
+ * Converted to Kotlin and trimmed down to my needs.
  * */
-class IntToIntHashMap(
-    @property:InternalAPI
-    val content: LongToLongHashMap
-) : PrimitiveCollection {
+class IntToIntHashMap : IntToHashMap<IntArray> {
 
-    constructor(missingValue: Int, minCapacity: Int = DEFAULT_MIN_CAPACITY, loadFactor: Float = DEFAULT_LOAD_FACTOR) :
-            this(LongToLongHashMap(missingValue.toLong(), minCapacity, loadFactor))
-
-    override val size get() = content.size
-    override val maxFill get() = content.maxFill
-
-    @Suppress("unused")
     val missingValue: Int
-        get() = content.missingValue.toInt()
+
+    constructor(
+        missingValue: Int,
+        minCapacity: Int = DEFAULT_MIN_CAPACITY,
+        loadFactor: Float = DEFAULT_LOAD_FACTOR,
+    ) : super(minCapacity, loadFactor) {
+        this.missingValue = missingValue
+    }
+
+    constructor(
+        missingValue: Int,
+        base: IntToIntHashMap,
+    ) : super(base) {
+        this.missingValue = missingValue
+    }
+
+    override fun createValues(size: Int): IntArray = IntArray(size)
+    override fun fillNullValues(values: IntArray) {
+        values.fill(0)
+    }
+
+    override fun copyOver(
+        dstValues: IntArray, dstIndex: Int,
+        srcValues: IntArray, srcIndex: Int,
+    ) {
+        dstValues[dstIndex] = srcValues[srcIndex]
+    }
+
+    override fun copyOver(dstValues: IntArray, srcValues: IntArray) {
+        srcValues.copyInto(dstValues)
+    }
+
+    override fun setNull(dstValues: IntArray, dstIndex: Int) {
+        dstValues[dstIndex] = missingValue
+    }
 
     operator fun set(key: Int, value: Int) {
         put(key, value)
     }
 
     inline fun getOrPut(key: Int, generateIfNull: () -> Int): Int {
-        return content.getOrPut(key.toLong()) { generateIfNull().toLong() }.toInt()
+        val slot = findSlot(key)
+        if (slot >= 0) return values[slot]
+
+        val newValue = generateIfNull()
+        this[key] = newValue
+        return newValue
     }
 
     fun getOrPut(key: Int, valueIfNull: Int): Int {
-        return content.getOrPut(key.toLong(), valueIfNull.toLong()).toInt()
+        val slot = findSlot(key)
+        if (slot >= 0) return values[slot]
+
+        insert(-slot - 1, key, valueIfNull)
+        return valueIfNull
     }
 
     fun put(key: Int, value: Int): Int {
-        return content.put(key.toLong(), value.toLong()).toInt()
+        val slot = findSlot(key)
+        if (slot < 0) {
+            insert(-slot - 1, key, value)
+            return missingValue
+        } else {
+            val oldValue = values[slot]
+            values[slot] = value
+            return oldValue
+        }
     }
 
     fun remove(key: Int): Int {
-        return content.remove(key.toLong()).toInt()
-    }
-
-    fun containsKey(key: Int): Boolean {
-        return content.containsKey(key.toLong())
+        val slot = findSlot(key)
+        return if (slot < 0) missingValue else {
+            val value = values[slot]
+            if (removeIndex(slot)) value else missingValue
+        }
     }
 
     operator fun get(key: Int): Int {
-        return content[key.toLong()].toInt()
+        val slot = findSlot(key)
+        return if (slot < 0) missingValue else values[slot]
     }
 
-    override fun clear() {
-        content.clear()
-    }
+    @InternalAPI
+    fun insert(slot: Int, key: Int, value: Int) {
+        if (slot == nullIndex) {
+            containsNull = true
+        }
 
-    override fun clearAndTrim(size: Int) {
-        content.clearAndTrim(size)
+        keys[slot] = key
+        values[slot] = value
+        size++
+        growMaybe()
     }
 
     fun forEach(callback: IntIntCallback) {
-        content.forEach { k, v ->
-            callback.call(k.toInt(), v.toInt())
+        if (containsNull) callback.call(0, values[nullIndex])
+        for (i in nullIndex - 1 downTo 0) {
+            val key = keys[i]
+            if (key != 0) callback.call(key, values[i])
         }
     }
 
@@ -71,13 +119,9 @@ class IntToIntHashMap(
         source.forEach(this::put)
     }
 
-    fun keysToHashSet() = content.keysToHashSet()
-    fun forEachKey(callback: IntCallback) {
-        content.forEachKey { key -> callback.call(key.toInt()) }
+    fun removeIf(predicate: IntIntPredicate): Int {
+        return removeIfImpl { predicate.test(keys[it], values[it]) }
     }
 
-    fun removeIf(predicate: IntIntPredicate): Int =
-        content.removeIf { key, value -> predicate.test(key.toInt(), value.toInt()) }
-
-    override fun clone(): IntToIntHashMap = IntToIntHashMap(content.clone())
+    override fun clone() = IntToIntHashMap(missingValue, this)
 }

@@ -9,6 +9,7 @@ import me.anno.ecs.components.collider.ConeCollider
 import me.anno.ecs.components.collider.CylinderCollider
 import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.collider.SphereCollider
+import me.anno.engine.debug.DebugArrow
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes.showDebugArrow
 import me.anno.engine.raycast.RayQuery
@@ -193,18 +194,18 @@ class RaycastColliderTest {
             if (hit0 != hit1) {
                 // bad rays
                 if (hit0) {
-                    showDebugArrow(DebugLine(pos, query0.result.positionWS, UIColors.dodgerBlue, 1e3f))
+                    showDebugArrow(DebugArrow(pos, query0.result.positionWS, UIColors.dodgerBlue, 1e3f))
                 }
                 if (hit1) {
-                    showDebugArrow(DebugLine(pos, query1.result.positionWS, UIColors.midOrange, 1e3f))
+                    showDebugArrow(DebugArrow(pos, query1.result.positionWS, UIColors.midOrange, 1e3f))
                 }
             } else {
                 // good rays
                 if (hit0) {
-                    showDebugArrow(DebugLine(pos, query0.result.positionWS, UIColors.blueishGray, 1e3f))
+                    showDebugArrow(DebugArrow(pos, query0.result.positionWS, UIColors.blueishGray, 1e3f))
                 } else {
                     showDebugArrow(
-                        DebugLine(
+                        DebugArrow(
                             pos,
                             Vector3d(dir).mul(0.1).add(pos),
                             UIColors.fireBrick,

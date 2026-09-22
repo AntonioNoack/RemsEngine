@@ -348,7 +348,8 @@ class HierarchicalDatabase(
         synchronized(storageFiles) {
             val maxFillSize = targetFileSize - size
             if (maxFillSize >= 0) {
-                val validFile = storageFiles.values.firstOrNull { it.size <= maxFillSize }
+                val validFile = storageFiles.values
+                    .firstOrNull { it != null && it.size <= maxFillSize }
                 if (validFile != null) return validFile
             }
             // none was found, so create a new one
@@ -357,7 +358,9 @@ class HierarchicalDatabase(
     }
 
     private fun createNewStorageFile(): StorageFile {
-        val maxOldIndex = storageFiles.values.maxOfOrNull { it.index } ?: -1
+        val maxOldIndex = storageFiles.values
+            .filterNotNull()
+            .maxOfOrNull { it.index } ?: -1
         val newFile = StorageFile(maxOldIndex + 1)
         storageFiles[newFile.index] = newFile
         return newFile

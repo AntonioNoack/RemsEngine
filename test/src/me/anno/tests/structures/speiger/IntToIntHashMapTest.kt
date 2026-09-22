@@ -121,9 +121,9 @@ class IntToIntHashMapTest {
             map[i] = i * i + 5
         }
         val keys = map.keysToHashSet()
-        assertFalse(-1L in keys)
-        assertFalse(1000L in keys)
-        for (i in 0 until 1000L) {
+        assertFalse(-1 in keys)
+        assertFalse(1000 in keys)
+        for (i in 0 until 1000) {
             assertTrue(i in keys)
         }
     }

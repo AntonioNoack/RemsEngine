@@ -5,8 +5,11 @@ import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.HashUtil.getMaxFill
+import speiger.primitivecollections.HashUtil.sizeToPower2Capacity
 import speiger.primitivecollections.callbacks.SlotPredicate
+import kotlin.math.ceil
 import kotlin.math.max
+import kotlin.math.min
 
 abstract class BaseHashMap<AK, AV>(
     val loadFactor: Float,
@@ -79,6 +82,21 @@ abstract class BaseHashMap<AK, AV>(
             containsNull = false
             fillNullKeys(keys)
             fillNullValues(values)
+        }
+    }
+
+    override fun clearAndTrim(size: Int) {
+        val request = max(minCapacity, sizeToPower2Capacity(size, loadFactor))
+        if (request >= nullIndex) {
+            clear()
+        } else {
+            nullIndex = request
+            mask = request - 1
+            maxFill = min(ceil(nullIndex.toDouble() * loadFactor).toInt(), nullIndex - 1)
+            keys = createKeys(request + 1)
+            values = createValues(request + 1)
+            this.size = 0
+            containsNull = false
         }
     }
 

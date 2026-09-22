@@ -12,7 +12,7 @@ object DebugShapes {
     val debugLines = ArrayList<DebugLine>()
 
     @InternalAPI
-    val debugArrows = ArrayList<DebugLine>()
+    val debugArrows = ArrayList<DebugArrow>()
 
     @InternalAPI
     val debugRays = ArrayList<DebugRay>()
@@ -38,7 +38,7 @@ object DebugShapes {
 
     fun showDebugPoint(point: DebugPoint) = addItem(debugPoints, point)
     fun showDebugLine(line: DebugLine) = addItem(debugLines, line)
-    fun showDebugArrow(arrow: DebugLine) = addItem(debugArrows, arrow)
+    fun showDebugArrow(arrow: DebugArrow) = addItem(debugArrows, arrow)
     fun showDebugRay(ray: DebugRay) = addItem(debugRays, ray)
     fun showDebugText(text: DebugText) = addItem(debugTexts, text)
     fun showDebugAABB(aabb: DebugAABB) = addItem(debugAABBs, aabb)

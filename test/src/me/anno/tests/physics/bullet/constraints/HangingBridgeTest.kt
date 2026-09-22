@@ -16,6 +16,7 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.DefaultAssets.plane
 import me.anno.engine.ECSRegistry
+import me.anno.engine.debug.DebugArrow
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes.showDebugArrow
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -134,7 +135,7 @@ fun main() {
 
                         // visualize these points
                         showDebugArrow(
-                            DebugLine(
+                            DebugArrow(
                                 Vector3d(globalA), Vector3d(globalB),
                                 UIColors.paleGoldenRod, 0f
                             )

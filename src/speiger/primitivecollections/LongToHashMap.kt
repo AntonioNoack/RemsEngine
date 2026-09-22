@@ -5,12 +5,8 @@ import me.anno.utils.assertions.assertEquals
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.HashUtil.getMaxFill
-import speiger.primitivecollections.HashUtil.sizeToPower2Capacity
 import speiger.primitivecollections.callbacks.LongCallback
 import java.util.Random
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Base of Long2LongOpenHashMap from https://github.com/Speiger/Primitive-Collections/,
@@ -20,12 +16,12 @@ abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
 
     constructor(
         minCapacity: Int = DEFAULT_MIN_CAPACITY,
-        loadFactor: Float = DEFAULT_LOAD_FACTOR
+        loadFactor: Float = DEFAULT_LOAD_FACTOR,
     ) : super(minCapacity, loadFactor)
 
     constructor(
         loadFactor: Float,
-        nullIndex: Int
+        nullIndex: Int,
     ) : super(loadFactor, nullIndex)
 
     constructor(base: LongToHashMap<AV>) :
@@ -38,21 +34,6 @@ abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
 
     override fun createKeys(size: Int): LongArray = LongArray(size)
     override fun fillNullKeys(keys: LongArray) = keys.fill(0L)
-
-    override fun clearAndTrim(size: Int) {
-        val request = max(minCapacity, sizeToPower2Capacity(size, loadFactor))
-        if (request >= nullIndex) {
-            clear()
-        } else {
-            nullIndex = request
-            mask = request - 1
-            maxFill = min(ceil(nullIndex.toDouble() * loadFactor).toInt(), nullIndex - 1)
-            keys = LongArray(request + 1)
-            values = createValues(request + 1)
-            this.size = 0
-            containsNull = false
-        }
-    }
 
     @InternalAPI
     fun findSlot(key: Long): Int {
@@ -86,7 +67,7 @@ abstract class LongToHashMap<AV> : BaseHashMap<LongArray, AV> {
     override fun rehash(newSize: Int) {
 
         val newMask = newSize - 1
-        val newKeys = LongArray(newSize + 1)
+        val newKeys = createKeys(newSize + 1)
         val newValues = createValues(newSize + 1)
 
         var numRemainingItems = size - (if (containsNull) 1 else 0)

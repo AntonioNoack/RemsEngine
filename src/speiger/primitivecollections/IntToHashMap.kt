@@ -5,28 +5,26 @@ import me.anno.utils.assertions.assertEquals
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.HashUtil.getMaxFill
-import speiger.primitivecollections.HashUtil.sizeToPower2Capacity
+import speiger.primitivecollections.callbacks.IntCallback
 import java.util.Random
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
 
 /**
- * Converted from LongToHashMap
+ * Base of Long2LongOpenHashMap from https://github.com/Speiger/Primitive-Collections/,
+ * Converted to Kotlin and trimmed down to my needs.
  * */
-abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
+abstract class IntToHashMap<AV> : BaseHashMap<IntArray, AV> {
 
     constructor(
         minCapacity: Int = DEFAULT_MIN_CAPACITY,
-        loadFactor: Float = DEFAULT_LOAD_FACTOR
+        loadFactor: Float = DEFAULT_LOAD_FACTOR,
     ) : super(minCapacity, loadFactor)
 
     constructor(
         loadFactor: Float,
-        nullIndex: Int
+        nullIndex: Int,
     ) : super(loadFactor, nullIndex)
 
-    constructor(base: ObjectToHashMap<K, AV>) :
+    constructor(base: IntToHashMap<AV>) :
             super(base.loadFactor, base.nullIndex) {
         base.keys.copyInto(keys)
         copyOver(values, base.values)
@@ -34,17 +32,17 @@ abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
         containsNull = base.containsNull
     }
 
-    override fun createKeys(size: Int): Array<Any?> = arrayOfNulls(size + 1)
-    override fun fillNullKeys(keys: Array<Any?>) = keys.fill(null)
+    override fun createKeys(size: Int): IntArray = IntArray(size)
+    override fun fillNullKeys(keys: IntArray) = keys.fill(0)
 
     @InternalAPI
-    fun findSlot(key: K): Int {
-        if (key == null) {
+    fun findSlot(key: Int): Int {
+        if (key == 0) {
             return if (containsNull) nullIndex else -(nullIndex + 1)
         } else {
             var pos = HashUtil.mix(key.hashCode()) and mask
             var current = keys[pos]
-            if (current != null) {
+            if (current != 0) {
                 if (current == key) {
                     return pos
                 }
@@ -52,7 +50,7 @@ abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
                 while (true) {
                     pos = (pos + 1) and mask
                     current = keys[pos]
-                    if (current == null) {
+                    if (current == 0) {
                         break
                     }
 
@@ -75,9 +73,9 @@ abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
         var numRemainingItems = size - (if (containsNull) 1 else 0)
         for (srcIndex in 0 until nullIndex) {
             val key = keys[srcIndex]
-            if (key != null) {
+            if (key != 0) {
                 var dstIndex = HashUtil.mix(key.hashCode()) and newMask
-                while (newKeys[dstIndex] != null) {
+                while (newKeys[dstIndex] != 0) {
                     dstIndex = (dstIndex + 1) and newMask
                 }
 
@@ -97,17 +95,19 @@ abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
         values = newValues
     }
 
+    @InternalAPI
     override fun shiftKeys(removedSlot: Int) {
         var startPos = removedSlot
         while (true) {
             val last = startPos
             startPos = (startPos + 1) and mask
 
-            var current: Any?
+            var current: Int
             while (true) {
                 current = keys[startPos]
-                if (current == null) {
-                    setEntryNull(last)
+                if (current == 0) {
+                    keys[last] = 0
+                    setNull(values, last)
                     return
                 }
 
@@ -129,60 +129,54 @@ abstract class ObjectToHashMap<K, AV> : BaseHashMap<Array<Any?>, AV> {
     }
 
     override fun setEntryNull(slot: Int) {
-        keys[slot] = null
+        keys[slot] = 0
         setNull(values, slot)
     }
 
     override fun hasKey(slot: Int): Boolean {
-        return keys[slot] != null
+        return keys[slot] != 0
     }
 
-    fun containsKey(key: K): Boolean {
+    fun containsKey(key: Int): Boolean {
         return findSlot(key) >= 0
     }
 
-    fun forEachKey(callback: (K) -> Unit) {
-        @Suppress("UNCHECKED_CAST")
-        if (containsNull) callback(null as K)
-        for (i in nullIndex - 1 downTo 0) {
+    fun forEachKey(callback: IntCallback) {
+        if (containsNull) callback.call(0)
+        for (i in 0 until nullIndex) {
             val key = keys[i]
-            @Suppress("UNCHECKED_CAST")
-            if (key != null) callback(key as K)
+            if (key != 0) callback.call(key)
         }
     }
 
-    fun firstKey(): K? {
-        for (i in nullIndex - 1 downTo 0) {
+    fun firstKey(ifEmpty: Int = -1): Int {
+        if (containsNull) return 0
+        for (i in 0 until nullIndex) {
             val key = keys[i]
-            @Suppress("UNCHECKED_CAST")
-            if (key != null) return key as K?
+            if (key != 0) return key
         }
-        // whether not found, or null-key is contained,
-        // we can handle both the same way: return null
-        return null
+        return ifEmpty
     }
 
     /**
      * Query a random key to avoid running into any O(n²) trouble.
      * */
-    fun randomKey(random: Random): K? {
+    fun randomKey(random: Random, ifEmpty: Int): Int {
         val index0 = random.nextInt(nullIndex)
         for (i in index0 until nullIndex) {
             val key = keys[i]
-            @Suppress("UNCHECKED_CAST")
-            if (key != null) return key as K
+            if (key != 0) return key
         }
-        if (containsNull) return null
+        if (containsNull) return 0
         for (i in 0 until index0) {
             val key = keys[i]
-            @Suppress("UNCHECKED_CAST")
-            if (key != null) return key as K
+            if (key != 0) return key
         }
-        return null
+        return ifEmpty
     }
 
-    fun keysToHashSet(): ObjectHashSet<K> {
-        val dst = ObjectHashSet<K>(0, loadFactor)
+    fun keysToHashSet(): IntHashSet {
+        val dst = IntHashSet(0, loadFactor)
         dst.keys = keys.copyOf()
         copyBasePropertiesInto(dst)
         return dst

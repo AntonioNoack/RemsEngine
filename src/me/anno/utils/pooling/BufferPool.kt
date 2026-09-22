@@ -217,7 +217,7 @@ abstract class BufferPool<V>(
                 }
             }
             for (pool in smallSizes.values) {
-                pool.gc()
+                pool?.gc()
             }
             smallSizes.clear()
         }
