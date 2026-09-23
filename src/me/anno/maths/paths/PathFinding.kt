@@ -170,7 +170,8 @@ class PathFinding<Node : Any>(capacityGuess: Int = 16) {
     )
 
     /**
-     * @param earlyExit whether we can immediately return when any solution was found (within children; might be a child farther away): true for aStar, false for dijkstra
+     * @param earlyExit whether we can immediately return when any solution was found (within children; might be a child farther away):
+     * true for aStar, false for dijkstra; true for regular grids, false for arbitrary shapes
      * */
     fun genericSearchMany(
         starts: Collection<Node>,
@@ -186,6 +187,11 @@ class PathFinding<Node : Any>(capacityGuess: Int = 16) {
         val poolStartIndex = POOL.index
         try {
             for (start in starts) {
+                if (earlyExit && isEnd(start)) { // truly early exit
+                    return if (includeStart || includeEnd) listOf(start)
+                    else emptyList()
+                }
+
                 @Suppress("UNCHECKED_CAST")
                 cache[start] = POOL.create().set(0.0, distStartEnd, null) as DataNode<Node>
                 queue.add(start)
