@@ -27,7 +27,7 @@ open class Shader(
     val vertexShader: String,
     val varyings: List<Variable>,
     val fragmentVariables: List<Variable>,
-    val fragmentShader: String
+    val fragmentShader: String,
 ) : GPUShader(shaderName, countUniforms(vertexVariables, fragmentVariables)) {
 
     companion object {
@@ -54,7 +54,7 @@ open class Shader(
         shaderName: String,
         vertex: String,
         varying: List<Variable>,
-        fragment: String
+        fragment: String,
     ) : this(shaderName, emptyList(), vertex, varying, emptyList(), fragment)
 
     var attributes = vertexVariables.filter { it.isAttribute }
@@ -90,12 +90,6 @@ open class Shader(
                 builder.append("precision highp ").append(type.glslName).append(";\n")
             }
         }
-    }
-
-    fun getVaryingModifiers(v: Variable): String {
-        // matrix interpolation is not supported properly on my RTX3070. Although the value should be constant, the matrix is not.
-        val isFlat = v.isFlat || v.type.isNativeInt || v.type.glslName.startsWith("mat")
-        return if (isFlat) "flat " else ""
     }
 
     override fun compile() {
@@ -157,7 +151,7 @@ open class Shader(
 
         for (vi in varyings.indices) {
             val v = varyings[vi]
-            builder.append(getVaryingModifiers(v))
+            builder.append(v.getVaryingModifiers())
             builder.append("out ")
             builder.append(v.type.glslName)
             builder.append(' ')
@@ -182,7 +176,7 @@ open class Shader(
 
         for (vi in varyings.indices) {
             val v = varyings[vi]
-            builder.append(getVaryingModifiers(v))
+            builder.append(v.getVaryingModifiers())
             builder.append("in ").append(v.type.glslName)
                 .append(' ').append(v.name).append(";\n")
         }

@@ -9,11 +9,12 @@ import kotlin.math.max
 
 class Variable(
     val type: GLSLType, var name: String,
-    var arraySize: Int, var inOutMode: VariableMode
+    var arraySize: Int, var inOutMode: VariableMode,
 ) {
 
     // layout(rgba8, binding = 1) restrict coherent readonly writeonly uniform image2D dst;
     // layout(std430, binding=5) readonly buffer volumeBuffer1 { int volumeBuffer[]; };
+    @Suppress("unused")
     companion object {
 
         const val FLAG_FLAT = 1
@@ -21,6 +22,7 @@ class Variable(
         const val FLAG_READONLY = 4
         const val FLAG_WRITEONLY = 8
         const val FLAG_COHERENT = 16
+        const val FLAG_NO_PERSPECTIVE = 32
 
         const val CHANNEL_OFFSET = 32 - 11
         const val CHANNEL_R = 0 shl CHANNEL_OFFSET
@@ -135,6 +137,12 @@ class Variable(
 
     fun flat(): Variable {
         isFlat = true
+        return this
+    }
+
+    @Suppress("unused")
+    fun noPerspective(): Variable {
+        isPerspective = false
         return this
     }
 
@@ -266,10 +274,22 @@ class Variable(
     var slot = -1
     var flags = 0
 
+    /**
+     * disables interpolation; any vertex will be picked for the value
+     * */
     var isFlat: Boolean
         get() = flags.hasFlag(FLAG_FLAT)
         set(value) {
             flags = flags.withFlag(FLAG_FLAT, value)
+        }
+
+    /**
+     * disables perspective interpolation; uses PlayStation1-style (affine) interpolation
+     * */
+    var isPerspective: Boolean
+        get() = !flags.hasFlag(FLAG_NO_PERSPECTIVE)
+        set(value) {
+            flags = flags.withFlag(FLAG_NO_PERSPECTIVE, !value)
         }
 
     /**
@@ -298,8 +318,20 @@ class Variable(
         return type.hashCode() * 31 + name.hashCode()
     }
 
+    fun isEffectivelyFlat() = isFlat || type.isNativeInt || type.glslName.startsWith("mat")
+
+    fun getVaryingModifiers(): String {
+        return when {
+            // matrix interpolation is not supported properly on my RTX3070. Although the value should be constant, the matrix is not.
+            isEffectivelyFlat() -> "flat "
+            isPerspective -> ""
+            else -> "noperspective "
+        }
+    }
+
     override fun toString(): String {
-        return "${if (isFlat) "flat " else ""}${inOutMode.glslName} ${type.glslName} $name"
+        val prefix = getVaryingModifiers()
+        return "$prefix${inOutMode.glslName} ${type.glslName} $name"
     }
 
     val isAttribute get() = inOutMode == VariableMode.ATTR
