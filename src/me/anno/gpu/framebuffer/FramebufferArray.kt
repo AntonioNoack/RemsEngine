@@ -17,6 +17,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.createList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
@@ -35,9 +36,10 @@ class FramebufferArray(
     var layers: Int,
     override val samples: Int, // todo when we support multi-sampled 2d-arrays, also support them here
     val targets: List<TargetType>,
-    override val depthBufferType: DepthBufferType
+    override val depthBufferType: DepthBufferType,
 ) : IFramebuffer {
 
+    @Suppress("unused")
     constructor(
         name: String,
         width: Int,
@@ -46,7 +48,7 @@ class FramebufferArray(
         samples: Int,
         targetCount: Int,
         fpTargets: Boolean,
-        depthBufferType: DepthBufferType
+        depthBufferType: DepthBufferType,
     ) : this(
         name, width, height, layers, samples,
         createList(targetCount, if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4),
@@ -76,6 +78,7 @@ class FramebufferArray(
     override fun getTargetType(slot: Int) = targets[slot]
 
     override fun ensure() {
+        checkSession()
         if (!isPointerValid(pointer)) create()
     }
 
@@ -110,26 +113,14 @@ class FramebufferArray(
 
     override fun bindDirectly() = bind()
     override fun bindDirectly(w: Int, h: Int) {
-        checkSize(w, h)
+        ensureSize(w, h, layers)
         bind()
     }
 
     private fun bind() {
-        if (!isPointerValid(pointer)) create()
+        ensure()
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
-    }
-
-    private fun checkSize(w: Int, h: Int) {
-        if (w != width || h != height) {
-            width = w
-            height = h
-            GFX.check()
-            destroy()
-            GFX.check()
-            create()
-            GFX.check()
-        }
     }
 
     private fun create() {
@@ -142,7 +133,9 @@ class FramebufferArray(
         Frame.lastPtr = pointer
         //stack.push(this)
         GFX.check()
-        if (textures.size != targets.size) {
+        if (textures.size != targets.size ||
+            textures.any2 { !it.isCreated() }
+        ) {
             textures = targets.mapIndexed { index, target ->
                 val texture = Texture2DArray("$name-$index", width, height, layers)
                 texture.autoUpdateMipmaps = autoUpdateMipmaps
@@ -159,6 +152,7 @@ class FramebufferArray(
                 GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index,
                 texture.pointer, 0, 0
             )
+            // println("bound ${texture.pointer} to slot $index, session match? ${texture.session} vs ${GFXState.session}")
         }
         GFX.check()
         drawBuffersN(targets.size)

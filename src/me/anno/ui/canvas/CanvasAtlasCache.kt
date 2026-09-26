@@ -2,6 +2,7 @@ package me.anno.ui.canvas
 
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isPointerValid
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.DrawTextures
@@ -35,8 +36,19 @@ object CanvasAtlasCache {
     private val textureCache = HashMap<ITexture2D, Bounds?>()
     private val frameCache = HashMap<GPUFrame, Bounds?>()
 
+    private fun clearIfSessionMismatched() {
+        val texture = atlas.texture
+        if (texture.session != GFXState.session || !isPointerValid(texture.pointer)) {
+            textureCache.clear()
+            frameCache.clear()
+            texture.reset()
+        }
+    }
+
     fun getBounds(canvas: Canvas, texture: ITexture2D): Bounds? {
         if (!texture.isCreated()) return null
+        clearIfSessionMismatched()
+
         val w = texture.width
         val h = texture.height
         if (w <= 0 || h <= 0 || w > maxTexSize || h > maxTexSize) return null

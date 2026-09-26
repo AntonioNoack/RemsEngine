@@ -158,7 +158,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             h = GFXx2D.getSizeY(size)
             if (!txt.text.isBlank2()) {
                 val texture = FontManager.getTexture(txt).waitFor()
-                if (texture != null && texture.wasCreated) {
+                if (texture != null && texture.isCreated()) {
                     texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
                     val x2 = fx + (w - texture.width) / 2
                     if (resetTransform) transform.set(backup)

@@ -123,7 +123,7 @@ object DrawTexts {
             val key = CharCacheKey(font, codepoint, disableSubpixelRendering)
             val texture = FontManager.getTexture(key)
                 .waitFor("drawTextCharByChar")
-            if (texture != null && texture.wasCreated) {
+            if (texture != null && texture.isCreated()) {
                 texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
                 drawChar(
                     shader, texture, x + x0, x + x1, y + y0, codepoint, style,

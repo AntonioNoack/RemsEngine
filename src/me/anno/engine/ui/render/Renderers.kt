@@ -434,8 +434,9 @@ object Renderers {
                     "   depth = gl_FragDepth;\n" +
                     "#endif\n" +
                     "float depth1 = reverseDepth ? depth : 1.0 - depth;\n" +
-                    "float color = fract(log2(max(depth1, reverseDepth ? 1.0e-36 : 0.8e-7)));\n" +
-                    "finalResult = vec4(vec3(color),1.0);\n"
+                    "float depth2 = max(depth1, reverseDepth ? 1.0e-36 : 0.8e-7);\n" +
+                    "vec3 color = fract(log2(depth2) * vec3(10.0, 100.0, 1.0));\n" +
+                    "finalResult = vec4(color, 1.0);\n"
             else -> {
                 val prefix = if (type == DeferredLayerType.COLOR || type == DeferredLayerType.EMISSIVE) colorToSRGB
                 else ""

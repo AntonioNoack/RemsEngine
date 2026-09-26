@@ -129,7 +129,7 @@ open class Texture2D(
     override val name: String,
     final override var width: Int,
     final override var height: Int,
-    samples: Int
+    samples: Int,
 ) : ITexture2D {
 
     constructor(img: Image, checkRedundancy: Boolean) : this("img", img, checkRedundancy)
@@ -229,10 +229,17 @@ open class Texture2D(
         if (!isPointerValid(pointer)) throw RuntimeException("Could not allocate texture pointer")
     }
 
+    override fun isCreated(): Boolean {
+        return super.isCreated() &&
+                session == GFXState.session &&
+                isPointerValid(pointer)
+    }
+
     private fun unbindUnpackBuffer() {
         bindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
     }
 
+    @Suppress("unused")
     private fun unbindPackBuffer() {
         bindBuffer(GL_PIXEL_PACK_BUFFER, 0)
     }
@@ -306,7 +313,7 @@ open class Texture2D(
     private fun uploadPartial(
         target: Int,
         w: Int, h: Int, dataFormat: Int, dataType: Int,
-        unbind: Boolean, data: Any
+        unbind: Boolean, data: Any,
     ) {
         setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
         when (data) {
@@ -325,7 +332,7 @@ open class Texture2D(
     private fun uploadFull(
         target: Int, internalFormat: Int,
         w: Int, h: Int, dataFormat: Int, dataType: Int,
-        unbind: Boolean, data: Any?
+        unbind: Boolean, data: Any?,
     ) {
         // extracted into a separate function, so we get a little more space horizontally (2 tabs)
         if (data != null) setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
@@ -350,7 +357,7 @@ open class Texture2D(
         dataFormat: Int,
         dataType: Int,
         data: Any,
-        unbind: Boolean = true
+        unbind: Boolean = true,
     ) {
         check()
         ensurePointer()
@@ -522,7 +529,7 @@ open class Texture2D(
         dataI: Buffer,
         data1: ByteBuffer?,
         numChannels: Int,
-        callback: Callback<ITexture2D>
+        callback: Callback<ITexture2D>,
     ) {
         val width = width
         val height = height

@@ -64,7 +64,7 @@ open class Texture2DArray(
     override var name: String,
     override var width: Int,
     override var height: Int,
-    var layers: Int
+    var layers: Int,
 ) : ITexture2D {
 
     var pointer = INVALID_POINTER
@@ -109,6 +109,12 @@ open class Texture2DArray(
             DebugGPUStorage.tex2da.add(this)
         }
         isDestroyed = false
+    }
+
+    override fun isCreated(): Boolean {
+        return super.isCreated() &&
+                session == GFXState.session &&
+                isPointerValid(pointer)
     }
 
     private fun bindBeforeUpload() {

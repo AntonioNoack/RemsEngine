@@ -34,7 +34,7 @@ object CanvasTextDrawHelper : IGlyphLayout() {
         val texture = FontManager.getTexture(key)
             .waitFor("drawTextCharByChar")
         val isJustALine = isJustALine(codepoint)
-        if (texture != null && texture.wasCreated) {
+        if (texture != null && texture.isCreated()) {
 
             val x = x + x0
             var y = y + y0
