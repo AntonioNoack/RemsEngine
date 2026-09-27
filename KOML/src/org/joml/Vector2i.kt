@@ -8,7 +8,7 @@ import kotlin.math.sqrt
 @Suppress("unused")
 open class Vector2i(
     @JvmField var x: Int,
-    @JvmField var y: Int
+    @JvmField var y: Int,
 ) : Vector {
 
     constructor() : this(0, 0)

@@ -24,6 +24,7 @@ open class Vector3d(
 
     constructor() : this(0.0, 0.0, 0.0)
     constructor(v: Double) : this(v, v, v)
+    constructor(x: Int, y: Int, z: Int) : this(x.toDouble(), y.toDouble(), z.toDouble())
     constructor(x: Float, y: Float, z: Float) : this(x.toDouble(), y.toDouble(), z.toDouble())
     constructor(v: Vector3f) : this(v.x, v.y, v.z)
     constructor(v: Vector3i) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble())

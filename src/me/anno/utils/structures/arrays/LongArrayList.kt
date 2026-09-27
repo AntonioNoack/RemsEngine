@@ -27,6 +27,9 @@ open class LongArrayList(initCapacity: Int = 16) : NativeArrayList {
         values = values.copyOf(newSize)
     }
 
+    fun first() = values[0]
+    fun last() = values[size - 1]
+
     operator fun get(index: Int) = values[index]
     operator fun plusAssign(value: Long) {
         ensureExtra(1)

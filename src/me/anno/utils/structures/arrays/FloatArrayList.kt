@@ -94,6 +94,9 @@ open class FloatArrayList(initCapacity: Int = 16, val pool: FloatArrayPool? = nu
         addUnsafe(src.values, startIndex, length)
     }
 
+    fun first() = values[0]
+    fun last() = values[size - 1]
+
     operator fun get(index: Int) = values[index]
     operator fun plusAssign(value: Float) {
         add(value)

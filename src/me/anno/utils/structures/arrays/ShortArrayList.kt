@@ -34,6 +34,9 @@ open class ShortArrayList(initCapacity: Int) : NativeArrayList {
         values = values.copyOf(newSize)
     }
 
+    fun first() = values[0]
+    fun last() = values[size - 1]
+
     operator fun get(index: Int) = values[index]
     operator fun plusAssign(value: Short) {
         ensureExtra(1)

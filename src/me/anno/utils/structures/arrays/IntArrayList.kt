@@ -125,7 +125,8 @@ open class IntArrayList(
         values[index] = value
     }
 
-    fun last(): Int = values[size - 1]
+    fun first() = values[0]
+    fun last() = values[size - 1]
 
     operator fun get(index: Int): Int = values[index]
 

@@ -16,13 +16,14 @@ open class Vector4d(
     @JvmField var x: Double,
     @JvmField var y: Double,
     @JvmField var z: Double,
-    @JvmField var w: Double
+    @JvmField var w: Double,
 ) : Vector {
 
     constructor() : this(0.0, 0.0, 0.0, 1.0)
     constructor(v: Vector4d) : this(v.x, v.y, v.z, v.w)
     constructor(v: Vector4i) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble())
     constructor(v: Vector4f) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble())
+    constructor(x: Int, y: Int, z: Int, w: Int) : this(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
     constructor(x: Float, y: Float, z: Float, w: Float) : this(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
     constructor(v: Vector3d, w: Double) : this(v.x, v.y, v.z, w)
     constructor(v: Vector2d, z: Double, w: Double) : this(v.x, v.y, z, w)
@@ -577,13 +578,13 @@ open class Vector4d(
         @JvmStatic
         fun distance(
             x1: Double, y1: Double, z1: Double, w1: Double,
-            x2: Double, y2: Double, z2: Double, w2: Double
+            x2: Double, y2: Double, z2: Double, w2: Double,
         ): Double = length(x1 - x2, y1 - y2, z1 - z2, w1 - w2)
 
         @JvmStatic
         fun distanceSquared(
             x1: Double, y1: Double, z1: Double, w1: Double,
-            x2: Double, y2: Double, z2: Double, w2: Double
+            x2: Double, y2: Double, z2: Double, w2: Double,
         ): Double {
             val dx = x1 - x2
             val dy = y1 - y2

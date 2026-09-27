@@ -83,6 +83,7 @@ class PathFinding<Node : Any>(capacityGuess: Int = 16) {
      * searches for the shortest path within a graph;
      * @return list of nodes from start to end; without start and end; null if no path is found
      * */
+    @Suppress("unused")
     fun dijkstra(
         start: Node,
         isEnd: (Node) -> Boolean,

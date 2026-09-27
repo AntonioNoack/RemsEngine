@@ -19,9 +19,9 @@ class BooleanArrayList(var size: Int) : Saveable() {
     constructor() : this(0)
 
     private var values = LongArray((size + 63) shr 6)
+
     operator fun get(index: Int): Boolean {
-        if (index < 0 || index >= size) return false
-        return getUnsafe(index)
+        return index in 0 until size && getUnsafe(index)
     }
 
     fun getUnsafe(index: Int): Boolean {
@@ -130,7 +130,8 @@ class BooleanArrayList(var size: Int) : Saveable() {
         }
     }
 
-    fun last(): Boolean = get(size - 1)
+    fun first() = get(0)
+    fun last() = get(size - 1)
     fun peek(): Boolean = last()
 
     fun push(v: Boolean) {

@@ -35,6 +35,9 @@ open class DoubleArrayList(initCapacity: Int) : NativeArrayList {
         values.fill(value, index0, index1)
     }
 
+    fun first() = values[0]
+    fun last() = values[size - 1]
+
     operator fun get(index: Int) = values[index]
     operator fun plusAssign(value: Double) {
         ensureExtra(1)

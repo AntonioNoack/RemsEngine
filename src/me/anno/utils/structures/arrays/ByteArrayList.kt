@@ -45,6 +45,9 @@ open class ByteArrayList(initialCapacity: Int) {
         addAll(src.values, startIndex, length)
     }
 
+    fun first() = values[0]
+    fun last() = values[size - 1]
+
     operator fun get(index: Int): Byte = values[index]
     operator fun plusAssign(value: Byte) {
         ensureExtra(1)
