@@ -110,6 +110,16 @@ class Canvas {
         this.framebuffer = framebuffer
     }
 
+    fun push() {
+        push(x0, y0, x1, y1)
+    }
+
+    inline fun renderOnTop(render: () -> Unit) {
+        push()
+        render()
+        pop()
+    }
+
     fun push(x0: Int, y0: Int, x1: Int, y1: Int) {
         boundsStack.ensureExtra(4)
         boundsStack.addUnsafe(this.x0)
@@ -223,7 +233,7 @@ class Canvas {
     }
 
     private fun Int.clampToShort(): Short {
-        return clamp(this,-0x8000,0x7fff).toShort()
+        return clamp(this, -0x8000, 0x7fff).toShort()
     }
 
     private fun pushBounds(nio: ByteBuffer, x: Int, y: Int, width: Int, height: Int) {

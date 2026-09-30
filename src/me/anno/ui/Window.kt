@@ -152,7 +152,7 @@ open class Window(
             drawCachedImage(panel)
 
             if (!isFullscreen && !isTransparent) {
-                drawWindowShadow()
+                drawWindowShadow(canvas)
             }
         }
 
@@ -224,15 +224,16 @@ open class Window(
         calculateFullLayout(dx, dy, windowW, windowH)
     }
 
-    fun drawWindowShadow() {
+    fun drawWindowShadow(canvas: Canvas) {
 
-        val panel = panel
+        // todo draw shadow using canvas
+
         val radius = DefaultConfig["ui.window.shadowRadius", 12]
         val color = DefaultConfig["ui.window.shadowColor", black.withAlpha(30)]
-        val w0 = panel.width
-        val h0 = panel.height
-        val x1 = panel.x - radius
-        val y1 = panel.y - radius
+        val w0 = width
+        val h0 = height
+        val x1 = x - radius
+        val y1 = y - radius
         val w1 = w0 + 2 * radius
         val h1 = h0 + 2 * radius
 

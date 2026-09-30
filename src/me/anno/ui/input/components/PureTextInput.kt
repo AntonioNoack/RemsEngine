@@ -178,7 +178,7 @@ open class PureTextInput(style: Style) :
 
         super.draw(canvas)
 
-        showCursorAndSelection(canvas)
+        canvas.renderOnTop { showCursorAndSelection(canvas) }
         loadTexturesSync.pop()
     }
 

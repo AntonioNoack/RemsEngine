@@ -45,6 +45,7 @@ import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
+import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.node.Node
@@ -254,17 +255,23 @@ object DebugRendering {
     }
 
     fun drawDebugShapes(view: RenderView, cameraMatrix: Matrix4f) {
+        // line shapes
         drawDebugPoints(view)
         drawDebugLines()
         drawDebugArrows()
         drawDebugRays(view)
         drawDebugAABBs()
         LineBuffer.finish(cameraMatrix)
+
+        // triangle shapes
         drawDebugTriangles()
         TriangleBuffer.finish(cameraMatrix)
+
+        // texture-based shapes
         GFXState.depthMode.use(view.depthMode.alwaysMode) {
             GFXState.depthMask.use(false) {
                 drawDebugTexts(view)
+                drawDebugIcons(view)
             }
         }
     }
@@ -351,29 +358,28 @@ object DebugRendering {
     }
 
     private fun drawDebugTexts(view: RenderView) {
+        if (DebugShapes.debugTexts.isEmpty()) return
         val camPosition = view.cameraPosition
         val v = JomlPools.vec4f.borrow()
         // transform is only correct, if we use a temporary framebuffer!
-        val sx = +view.width * 0.5f
-        val sy = -view.height * 0.5f
-        val x0 = +sx
-        val y0 = -sy
+        val sx = view.width * 0.5f
+        val sy = view.height * 0.5f
         val betterBlending = GFXState.currentBuffer.getTargetType(0) == TargetType.UInt8x4 &&
                 GFXState.currentBuffer.samples == 1 && DrawTexts.canUseComputeShader()
         if (betterBlending) {
             val pbb = DrawTexts.pushBetterBlending(true)
-            drawDebugTexts2(view, camPosition, v, x0, y0, sx, sy)
+            drawDebugTexts2(view, camPosition, v, sx, sy)
             DrawTexts.popBetterBlending(pbb)
         } else {
             GFXState.blendMode.use(BlendMode.DEFAULT) {
-                drawDebugTexts2(view, camPosition, v, x0, y0, sx, sy)
+                drawDebugTexts2(view, camPosition, v, sx, sy)
             }
         }
     }
 
     private fun drawDebugTexts2(
         view: RenderView, camPosition: Vector3d, v: Vector4f,
-        x0: Float, y0: Float, sx: Float, sy: Float,
+        sx: Float, sy: Float,
     ) {
         val texts = DebugShapes.debugTexts
         val cameraMatrix = view.cameraMatrix
@@ -386,16 +392,58 @@ object DebugRendering {
             val pz = pos.z - camPosition.z
             cameraMatrix.transform(v.set(px, py, pz, 1.0))
             if (v.w > 0f && v.x in -v.w..v.w && v.y in -v.w..v.w) {
-                val vx = v.x * sx / v.w + x0
-                val vy = v.y * sy / v.w + y0
+                val cx = sx + v.x * sx / v.w
+                val cy = sy - v.y * sy / v.w
                 DrawTexts.drawText(
-                    vx.toInt(), vy.toInt(), monospaceFont, text.text,
+                    cx.toInt(), cy.toInt(), monospaceFont, text.text,
                     text.color, text.color.withAlpha(0),
                     AxisAlignment.CENTER, AxisAlignment.CENTER,
                 )
             }
         }
         DrawTexts.popTrueBlending(ptb)
+    }
+
+    private fun drawDebugIcons(view: RenderView) {
+        if (DebugShapes.debugIcons.isEmpty()) return
+        val camPosition = view.cameraPosition
+        val v = JomlPools.vec4f.borrow()
+        // transform is only correct, if we use a temporary framebuffer!
+        val sx = view.width * 0.5f
+        val sy = view.height * 0.5f
+
+        val scale = min(view.width, view.height).toFloat()
+        GFXState.blendMode.use(BlendMode.DEFAULT) {
+            useFrame(Renderer.colorRenderer) {
+                val icons = DebugShapes.debugIcons
+                val cameraMatrix = view.cameraMatrix
+                for (index in icons.indices) {
+                    val icon = icons[index]
+                    val pos = icon.position
+                    val px = pos.x - camPosition.x
+                    val py = pos.y - camPosition.y
+                    val pz = pos.z - camPosition.z
+                    cameraMatrix.transform(v.set(px, py, pz, 1.0))
+                    if (v.w > 0f && v.x in -v.w..v.w && v.y in -v.w..v.w) {
+                        val cx = sx + v.x * sx / v.w
+                        val cy = sy - v.y * sy / v.w
+                        val texture = TextureCache[icon.source].value
+                            ?.createdOrNull() ?: continue // loading
+                        val maxTexSize = max(max(texture.width, texture.height), 1)
+                        val size = icon.size * scale / maxTexSize
+                        val sxi = size * texture.width
+                        val syi = size * texture.height
+                        if (sxi < 2f || syi < 2f) continue // to small
+                        DrawTextures.drawTexture(
+                            (cx - sxi * 0.5f).toInt(),
+                            (cy - syi * 0.5f).toInt(),
+                            sxi.toInt(), syi.toInt(),
+                            texture, icon.color
+                        )
+                    }
+                }
+            }
+        }
     }
 
     fun drawDebugPoint(view: RenderView, p: Vector3d, color: Int) {

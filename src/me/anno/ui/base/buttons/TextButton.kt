@@ -2,15 +2,14 @@ package me.anno.ui.base.buttons
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
@@ -144,10 +143,12 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
         val textColor = textColor
         val textAlpha = if (isEnabled && isInputAllowed) textColor.a()
         else textColor.a() / 2
+        val px = alignmentX.getAnchor(x + padding.left, width - padding.width)
+        val py = alignmentY.getAnchor(y + padding.top, height - padding.height)
         canvas.drawText(
-            alignmentX.getAnchor(x + padding.left, width - padding.width),
-            alignmentY.getAnchor(y + padding.top, height - padding.height),
-            font, text, textColor.withAlpha(textAlpha), backgroundColor, widthLimit, heightLimit,
+            px, py, font, text,
+            textColor.withAlpha(textAlpha), backgroundColor.withAlpha(0),
+            widthLimit, heightLimit,
             alignmentX, alignmentY
         )
     }

@@ -3,6 +3,7 @@ package me.anno.engine.debug
 import me.anno.Time
 import me.anno.utils.InternalAPI
 
+@Suppress("unused")
 object DebugShapes {
 
     @InternalAPI
@@ -21,6 +22,9 @@ object DebugShapes {
     val debugTexts = ArrayList<DebugText>()
 
     @InternalAPI
+    val debugIcons = ArrayList<DebugIcon>()
+
+    @InternalAPI
     val debugAABBs = ArrayList<DebugAABB>()
 
     @InternalAPI
@@ -32,6 +36,7 @@ object DebugShapes {
         debugArrows,
         debugRays,
         debugTexts,
+        debugIcons,
         debugAABBs,
         debugTriangles
     )
@@ -41,6 +46,7 @@ object DebugShapes {
     fun showDebugArrow(arrow: DebugArrow) = addItem(debugArrows, arrow)
     fun showDebugRay(ray: DebugRay) = addItem(debugRays, ray)
     fun showDebugText(text: DebugText) = addItem(debugTexts, text)
+    fun showDebugIcon(icon: DebugIcon) = addItem(debugIcons, icon)
     fun showDebugAABB(aabb: DebugAABB) = addItem(debugAABBs, aabb)
     fun showDebugTriangle(triangle: DebugTriangle) = addItem(debugTriangles, triangle)
 
