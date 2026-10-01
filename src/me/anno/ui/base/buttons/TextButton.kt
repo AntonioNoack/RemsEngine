@@ -11,7 +11,6 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.canvas.Canvas
 import me.anno.ui.input.InputPanel
-import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
@@ -127,7 +126,7 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
 
     override fun draw(canvas: Canvas) {
         drawBackgroundMaybe(canvas)
-        drawButtonText(canvas)
+        drawText(canvas, effectiveTextColor)
         drawButtonBorder(
             canvas, leftColor, topColor, rightColor, bottomColor,
             isInputAllowed, borderSize, isPressed
@@ -135,23 +134,8 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
         if (isInFocus) showIsInFocus(canvas, borderSize.left)
     }
 
-    fun drawButtonText(canvas: Canvas) {
-        val text = text
-        val widthLimit = if (breaksIntoMultiline) this.width else -1
-        val alignmentX = textAlignmentX
-        val alignmentY = textAlignmentY
-        val textColor = textColor
-        val textAlpha = if (isEnabled && isInputAllowed) textColor.a()
-        else textColor.a() / 2
-        val px = alignmentX.getAnchor(x + padding.left, width - padding.width)
-        val py = alignmentY.getAnchor(y + padding.top, height - padding.height)
-        canvas.drawText(
-            px, py, font, text,
-            textColor.withAlpha(textAlpha), backgroundColor.withAlpha(0),
-            widthLimit, heightLimit,
-            alignmentX, alignmentY
-        )
-    }
+    override val effectiveTextColor: Int
+        get() = super.effectiveTextColor.withAlpha(if (isEnabled && isInputAllowed) 255 else 127)
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
         super.onKeyDown(x, y, key)

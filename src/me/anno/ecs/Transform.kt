@@ -14,6 +14,7 @@ import org.joml.Vector3f
  * represents position, rotation and scale of an Entity,
  * including lerping, and relative to its parent
  * */
+@Suppress("unused")
 class Transform() : Saveable() {
 
     companion object {
@@ -148,7 +149,6 @@ class Transform() : Saveable() {
             invalidateGlobal()
         }
 
-    @Suppress("unused")
     fun setLocalEulerAngle(x: Float, y: Float, z: Float): Transform {
         localRotation = localRotation.rotateY(y).rotateX(x).rotateZ(z)
         return this
@@ -354,19 +354,21 @@ class Transform() : Saveable() {
         return this
     }
 
-    @Suppress("unused")
     fun setLocalScale(scale: Float): Transform {
         localScale = localScale.set(scale)
         return this
     }
 
-    @Suppress("unused")
+    fun setLocalScale(sx: Float, sy: Float, sz: Float): Transform {
+        localScale = localScale.set(sx, sy, sz)
+        return this
+    }
+
     fun setLocalScale(sx: Double, sy: Double, sz: Double): Transform {
         localScale = localScale.set(sx, sy, sz)
         return this
     }
 
-    @Suppress("unused")
     fun setGlobalPosition(x: Double, y: Double, z: Double): Transform {
         globalPosition = globalPosition.set(x, y, z)
         return this
@@ -385,13 +387,11 @@ class Transform() : Saveable() {
         }
     }
 
-    @Suppress("unused")
     fun translateLocal(dx: Double, dy: Double, dz: Double): Transform {
         localPosition = localPosition.add(dx, dy, dz)
         return this
     }
 
-    @Suppress("unused")
     fun translateGlobal(dx: Double, dy: Double, dz: Double): Transform {
         globalPosition = globalPosition.add(dx, dy, dz)
         return this
@@ -407,25 +407,21 @@ class Transform() : Saveable() {
         return this
     }
 
-    @Suppress("unused")
     fun rotateLocalZ(angleRadians: Float): Transform {
         localRotation = localRotation.rotateZ(angleRadians)
         return this
     }
 
-    @Suppress("unused")
     fun getGlobalScaleX(): Float {
         val tmp = JomlPools.vec3f.borrow()
         return globalTransform.getScale(tmp).x
     }
 
-    @Suppress("unused")
     fun getGlobalScaleY(): Float {
         val tmp = JomlPools.vec3f.borrow()
         return globalTransform.getScale(tmp).y
     }
 
-    @Suppress("unused")
     fun getGlobalScaleZ(): Float {
         val tmp = JomlPools.vec3f.borrow()
         return globalTransform.getScale(tmp).z
