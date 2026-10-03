@@ -10,8 +10,8 @@ import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialBase
 import me.anno.ecs.components.mesh.material.MaterialOverride
 import me.anno.ecs.components.mesh.material.Materials.getMaterial
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
@@ -181,7 +181,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         mesh: IMesh,
         renderer: Component,
         materialOverrides: List<FileReference>?,
-        transform: Transform
+        transform: Transform,
     ) {
         validate(mesh, transform)
         val materials = mesh.materials
@@ -355,7 +355,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             lightList.clear()
             this.lightStage.listOfAll(lightList)
             val smallest = lightList
-            for (i in 0 until smallest.size) {
+            repeat(smallest.size) { i ->
                 lights[i] = smallest[i]
             }
             // sort by type, and whether they have a shadow

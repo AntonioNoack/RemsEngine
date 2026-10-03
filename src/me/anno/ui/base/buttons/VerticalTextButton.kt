@@ -14,7 +14,7 @@ import me.anno.ui.Style
 import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.withAlpha
 
-class VerticalTextButton(nameDesc: NameDesc, style: Style) : TextButton(nameDesc, style) {
+open class VerticalTextButton(nameDesc: NameDesc, style: Style) : TextButton(nameDesc, style) {
     @Suppress("unused")
     constructor(style: Style) : this(NameDesc.EMPTY, style)
 

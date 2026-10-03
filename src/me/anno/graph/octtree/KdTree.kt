@@ -1,6 +1,7 @@
 package me.anno.graph.octtree
 
 import me.anno.utils.algorithms.Recursion
+import me.anno.utils.algorithms.Sorting.sortWith2
 import me.anno.utils.assertions.assertNull
 
 /**
@@ -16,7 +17,7 @@ import me.anno.utils.assertions.assertNull
  * */
 abstract class KdTree<Point, Value>(
     val maxNumValues: Int,
-    var min: Point, var max: Point
+    var min: Point, var max: Point,
 ) {
 
     var axis = 0
@@ -56,7 +57,7 @@ abstract class KdTree<Point, Value>(
 
     open fun createChild(
         children: ArrayList<Value>,
-        min: Point, max: Point
+        min: Point, max: Point,
     ): KdTree<Point, Value> {
         val child = createChild()
         child.values = children
@@ -173,7 +174,7 @@ abstract class KdTree<Point, Value>(
 
         this.values = null // passed to the left child -> recycling not necessary
         val axis = chooseSplitDimension(min, max)
-        children.sortWith { a, b ->
+        children.sortWith2 { a, b ->
             getValue(a, axis)
                 .compareTo(getValue(b, axis))
         }
