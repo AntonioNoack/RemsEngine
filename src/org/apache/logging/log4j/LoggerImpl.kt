@@ -8,8 +8,6 @@ import me.anno.io.config.ConfigBasics
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.OSFeatures
-import me.anno.utils.types.Strings.indexOf2
-import org.apache.commons.logging.Log
 import me.anno.utils.StringStyles.BG_BLACK
 import me.anno.utils.StringStyles.BOLD
 import me.anno.utils.StringStyles.ITALIC
@@ -17,6 +15,8 @@ import me.anno.utils.StringStyles.UNDERLINE
 import me.anno.utils.StringStyles.bgColor
 import me.anno.utils.StringStyles.color
 import me.anno.utils.StringStyles.style
+import me.anno.utils.types.Strings.indexOf2
+import org.apache.commons.logging.Log
 import java.io.IOException
 import java.io.OutputStream
 import java.io.PrintWriter
@@ -190,7 +190,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
     }
 
     override fun error(msg: String) {
-        if (isErrorEnabled()) {
+        if (isErrorEnabled() && shouldWarnAgain(msg)) {
             print("ERR!", msg, ERROR_STYLE)
         }
     }
@@ -202,7 +202,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
     }
 
     override fun error(msg: String, thrown: Throwable) {
-        if (isErrorEnabled()) {
+        if (isErrorEnabled() && shouldWarnAgain(msg)) {
             printStackTrace("ERR!", msg, thrown, ERROR_STYLE)
         }
     }
@@ -221,7 +221,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
     }
 
     override fun severe(msg: String) {
-        if (isSevereEnabled()) {
+        if (isSevereEnabled() && shouldWarnAgain(msg)) {
             print("SEVERE", msg, SEVERE_STYLE)
         }
     }
@@ -233,13 +233,13 @@ open class LoggerImpl(val name: String) : Logger, Log {
     }
 
     override fun severe(msg: String, thrown: Throwable) {
-        if (isSevereEnabled()) {
+        if (isSevereEnabled() && shouldWarnAgain(msg)) {
             printStackTrace("SEVERE", msg, thrown, SEVERE_STYLE)
         }
     }
 
     override fun fatal(msg: String) {
-        if (isFatalEnabled()) {
+        if (isFatalEnabled() && shouldWarnAgain(msg)) {
             print("FATAL", msg, FATAL_STYLE)
         }
     }
@@ -251,7 +251,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
     }
 
     override fun fatal(msg: String, thrown: Throwable) {
-        if (isFatalEnabled()) {
+        if (isFatalEnabled() && shouldWarnAgain(msg)) {
             printStackTrace("FATAL", msg, thrown, FATAL_STYLE)
         }
     }
@@ -281,7 +281,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
     }
 
     override fun warn(msg: String, thrown: Throwable) {
-        if (isWarnEnabled()) {
+        if (isWarnEnabled() && shouldWarnAgain(msg)) {
             printStackTrace("WARN", msg, thrown, WARN_STYLE)
         }
     }
