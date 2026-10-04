@@ -3,23 +3,21 @@ package me.anno.ecs.components.audio
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.openal.AudioTasks.addAudioTask
-import me.anno.audio.openal.SoundListener
 import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.audio.AttenuationModel.Companion.model
+import me.anno.ecs.components.audio.AttenuationModel.Companion.updateGlobalDistanceModel
+import me.anno.ecs.components.audio.AudioCamera.updateCameraAsync
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
-import me.anno.engine.ui.render.RenderState
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.MediaMetadata
 import me.anno.utils.types.Floats.toLongOr
 import org.joml.Vector3f
-import org.lwjgl.openal.AL11.AL_EXPONENT_DISTANCE_CLAMPED
-import org.lwjgl.openal.AL11.AL_INVERSE_DISTANCE_CLAMPED
-import org.lwjgl.openal.AL11.AL_LINEAR_DISTANCE_CLAMPED
-import org.lwjgl.openal.AL11.alDistanceModel
 import kotlin.math.max
 
 // todo some kind of event system for when music changed
@@ -35,41 +33,15 @@ abstract class AudioComponentBase : Component(), OnUpdate {
 
     companion object {
 
-        private var lastCameraUpdate = 0L
-
-        var model = AttenuationModel.INVERSE
-            set(value) {
-                if (field != value) {
-                    field = value
-                    addAudioTask("dm", 1) {
-                        updateGlobalDistanceModel()
-                    }
-                }
-            }
-
         val prevCamPos = Vector3f()
         val currCamPos = Vector3f()
         val currCamDirZ = Vector3f()
         val currCamDirY = Vector3f()
-
-        enum class AttenuationModel(val id: Int) {
-            LINEAR(0), INVERSE(1), EXPONENTIAL(2)
-        }
-
-        fun updateGlobalDistanceModel() {
-            alDistanceModel(
-                when (model) {
-                    AttenuationModel.LINEAR -> AL_LINEAR_DISTANCE_CLAMPED
-                    AttenuationModel.INVERSE -> AL_INVERSE_DISTANCE_CLAMPED
-                    AttenuationModel.EXPONENTIAL -> AL_EXPONENT_DISTANCE_CLAMPED
-                }
-            )
-        }
     }
 
     var playMode = PlayMode.ONCE
 
-    // serialized??
+    @NotSerializedProperty
     var globalAttenuationModel
         get() = model
         set(value) {
@@ -79,7 +51,7 @@ abstract class AudioComponentBase : Component(), OnUpdate {
     // todo detect that...
     var hasFinished = false
 
-    var startTime = 0L
+    var startTime = Long.MIN_VALUE
 
     @Docs("How loud the audio is")
     @Range(0.0, Double.POSITIVE_INFINITY)
@@ -108,8 +80,6 @@ abstract class AudioComponentBase : Component(), OnUpdate {
                 }
             }
         }
-
-    enum class PlayMode(val id: Int) { ONCE(0), LOOP(1) }
 
     // todo end offset? (pre-ending)
 
@@ -193,24 +163,28 @@ abstract class AudioComponentBase : Component(), OnUpdate {
         set(value) {
             if (field != value) {
                 field = value
-                if (stream0 != null) addAudioTask("distance", 1) { updateDistanceModel() }
+                updateDistanceModelAsync()
             }
         }
     var referenceDistance = 1f
         set(value) {
-            val f = max(value, 0f)
-            if (field != f) {
-                field = f
-                if (stream0 != null) addAudioTask("distance", 1) { updateDistanceModel() }
+            val value1 = max(value, 0f)
+            if (field != value1) {
+                field = value1
+                updateDistanceModelAsync()
             }
         }
     var maxDistance = 32f
         set(value) {
             if (field != value) {
                 field = value
-                if (stream0 != null) addAudioTask("distance", 1) { updateDistanceModel() }
+                updateDistanceModelAsync()
             }
         }
+
+    private fun updateDistanceModelAsync() {
+        if (stream0 != null) addAudioTask("distance", 1) { updateDistanceModel() }
+    }
 
     fun updateDistanceModel() {
         val rof = max(0f, rollOffFactor)
@@ -288,38 +262,18 @@ abstract class AudioComponentBase : Component(), OnUpdate {
     }
 
     override fun onUpdate() {
-        val stream0 = stream0
-        if (stream0 != null) {
+        val stream0 = stream0 ?: return
+        updateCameraAsync()
 
-            // set this here, because RenderState might be overridden, e.g., by thumbs,
-            // when the audio task is being run
-            currCamPos.set(RenderState.cameraPosition)
-            currCamDirY.set(RenderState.cameraDirectionUp)
-            currCamDirZ.set(RenderState.cameraDirection)
-
-            addAudioTask("Update", 1) {
-
-                // once per frame, also set the camera :3
-                val time = Time.gameTimeNanos
-                if (time != lastCameraUpdate) {
-                    val dt = time - lastCameraUpdate
-                    lastCameraUpdate = time
-                    SoundListener.setPosition(currCamPos)
-                    SoundListener.setVelocity(prevCamPos.sub(currCamPos).mul(-1e9f / dt))
-                    SoundListener.setOrientation(currCamDirZ, currCamDirY)
-                    prevCamPos.set(currCamPos)
-                }
-
-                val transform = transform
-                if (rollOffFactor > 0f && transform != null) {
-                    updatePosition()
-                    stream0.alSource.setPosition(lastPosition0)
-                    stream0.alSource.setVelocity(lastVelocity0)
-                    val stream1 = stream1
-                    if (stream1 != null) {
-                        stream1.alSource.setPosition(lastPosition1)
-                        stream1.alSource.setVelocity(lastVelocity1)
-                    }
+        addAudioTask("Update", 1) {
+            if (rollOffFactor > 0f) {
+                updatePosition()
+                stream0.alSource.setPosition(lastPosition0)
+                stream0.alSource.setVelocity(lastVelocity0)
+                val stream1 = stream1
+                if (stream1 != null) {
+                    stream1.alSource.setPosition(lastPosition1)
+                    stream1.alSource.setVelocity(lastVelocity1)
                 }
             }
         }

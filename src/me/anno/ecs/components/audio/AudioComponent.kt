@@ -10,6 +10,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.maths.Maths.SECONDS_TO_NANOS
 import kotlin.math.abs
 import kotlin.math.ceil
 
@@ -57,6 +58,7 @@ class AudioComponent : AudioComponentBase() {
         ).value != null
     }
 
+    @Suppress("unused")
     fun isFullyLoaded(): Boolean {
         val meta = MediaMetadata.getMeta(source).value ?: return false
         val duration = meta.duration
@@ -72,7 +74,7 @@ class AudioComponent : AudioComponentBase() {
         if (keepInMemory && source !is AudioReadable) {
             keepInMemory()
         }
-        if (autoStart && !isPlaying && abs(startTime - Time.nanoTime) > 1e9) {
+        if (autoStart && !isPlaying && abs(startTime - Time.nanoTime) > SECONDS_TO_NANOS) {
             start()
         }
     }

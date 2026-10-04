@@ -29,7 +29,7 @@ class AudioFileStreamOpenAL(
     val relative: Boolean,
     meta: MediaMetadata,
     speed: Double,
-    left: Boolean, center: Boolean, right: Boolean
+    left: Boolean, center: Boolean, right: Boolean,
 ) : AudioFileStream(
     file, repeat, getIndex(startTime, speed, playbackSampleRate),
     meta, speed, playbackSampleRate, left, center, right
@@ -44,7 +44,7 @@ class AudioFileStreamOpenAL(
 
     var startTimeNanos = 0L
     var realStartTimeNanos = 0L
-    val alSource by lazy { SoundSource(loop = false, relative) }
+    val alSource = SoundSource(loop = false, relative)
 
     var queued = AtomicLong()
     var processed = 0
@@ -52,7 +52,7 @@ class AudioFileStreamOpenAL(
     val buffers = ArrayList<SoundBuffer>()
 
     fun checkProcessed() {
-        processed = alGetSourcei(alSource.sourcePtr, AL_BUFFERS_PROCESSED)
+        processed = alGetSourcei(alSource.ensurePointer(), AL_BUFFERS_PROCESSED)
         ALBase.check()
     }
 
@@ -127,7 +127,12 @@ class AudioFileStreamOpenAL(
 
     var hadFirstBuffer = false
 
-    override fun onBufferFilled(stereoBuffer: ShortBuffer, byteBuffer: ByteBuffer, bufferIndex: Long, session: Int): Boolean {
+    override fun onBufferFilled(
+        stereoBuffer: ShortBuffer,
+        byteBuffer: ByteBuffer,
+        bufferIndex: Long,
+        session: Int,
+    ): Boolean {
 
         if (!isPlaying) return true
 
@@ -177,7 +182,7 @@ class AudioFileStreamOpenAL(
 
                 ALBase.check()
 
-                alSourceQueueBuffers(alSource.sourcePtr, soundBuffer.pointer)
+                alSourceQueueBuffers(alSource.ensurePointer(), soundBuffer.pointer)
                 ALBase.check()
 
                 alSource.play()
