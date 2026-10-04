@@ -13,11 +13,12 @@ import me.anno.utils.structures.lists.PairArrayList
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
+import kotlin.math.min
 
 abstract class AudioStream(
     val speed: Double,
     val playbackSampleRate: Int = 48000,
-    val left: Boolean, val center: Boolean, val right: Boolean
+    val left: Boolean, val center: Boolean, val right: Boolean,
 ) {
 
     val stereo = left && right && !center
@@ -43,6 +44,21 @@ abstract class AudioStream(
         }
 
         private val EMPTY_PAIR = AudioData(ShortArray(0), ShortArray(0))
+
+        /**
+         * the usual function calls d.toInt().toShort(),
+         * which causes breaking from max to -max, which ruins audio quality (cracking)
+         * this fixes that :)
+         * */
+        @JvmStatic
+        @Suppress("unused")
+        fun floatToShort(d: Float): Short {
+            return when {
+                d >= 32767f -> 32767
+                d >= -32768f -> d.toInt().toShort()
+                else -> -32768
+            }
+        }
     }
 
     private val filledBuffers = PairArrayList<ShortBuffer, ByteBuffer>(8)
@@ -67,7 +83,7 @@ abstract class AudioStream(
      * */
     open fun onBufferFilled(
         stereoBuffer: ShortBuffer, byteBuffer: ByteBuffer,
-        bufferIndex: Long, session: Int
+        bufferIndex: Long, session: Int,
     ): Boolean {
         assertNotNull(stereoBuffer)
         synchronized(filledBuffers) {
@@ -98,60 +114,44 @@ abstract class AudioStream(
         val sb0 = byteBufferPool[size, false, true]
             .order(ByteOrder.nativeOrder())
         val stereoBuffer = sb0.asShortBuffer()
+        stereoBuffer.clear()
 
         when {
             center -> {
                 val (left, right) = getBuffer(bufferIndex).waitFor() ?: EMPTY_PAIR
-                if (left.size >= bufferSize && right.size >= bufferSize) {
-                    for (i in 0 until bufferSize) {
-                        stereoBuffer.put(floatToShort((left[i] + right[i]) * 0.5f))
-                    }
+                val usableSize = min(bufferSize, min(left.size, right.size))
+                for (i in 0 until usableSize) {
+                    val l = left[i]
+                    val r = right[i]
+                    val v = (l.toInt() + r.toInt()).shr(1)
+                    stereoBuffer.put(v.toShort())
                 }
             }
             stereo -> {
                 val (left, right) = getBuffer(bufferIndex).waitFor() ?: EMPTY_PAIR
-                if (left.size >= bufferSize && right.size >= bufferSize) {
-                    for (i in 0 until bufferSize) {
-                        stereoBuffer.put(left[i])
-                        stereoBuffer.put(right[i])
-                    }
+                val usableSize = min(bufferSize, min(left.size, right.size))
+                for (i in 0 until usableSize) {
+                    stereoBuffer.put(left[i])
+                    stereoBuffer.put(right[i])
                 }
             }
             left -> {
                 val (left, _) = getBuffer(bufferIndex).waitFor() ?: EMPTY_PAIR
-                if (left.size >= bufferSize) {
-                    for (i in 0 until bufferSize) {
-                        stereoBuffer.put(left[i])
-                    }
-                }
+                val usableSize = min(bufferSize, left.size)
+                stereoBuffer.put(left, 0, usableSize)
             }
-            else -> {
+            right -> {
                 val (_, right) = getBuffer(bufferIndex).waitFor() ?: EMPTY_PAIR
-                if (right.size >= bufferSize) {
-                    for (i in 0 until bufferSize) {
-                        stereoBuffer.put(right[i])
-                    }
-                }
+                val usableSize = min(bufferSize, right.size)
+                stereoBuffer.put(right, 0, usableSize)
             }
         }
 
-        stereoBuffer.position(0)
+        stereoBuffer.flip()
+        sb0.limit(stereoBuffer.limit().shl(1))
 
         if (onBufferFilled(stereoBuffer, sb0, bufferIndex, session)) {
             byteBufferPool.returnBuffer(sb0)
-        }
-    }
-
-    /**
-     * the usual function calls d.toInt().toShort(),
-     * which causes breaking from max to -max, which ruins audio quality (cracking)
-     * this fixes that :)
-     * */
-    private fun floatToShort(d: Float): Short {
-        return when {
-            d >= 32767f -> 32767
-            d >= -32768f -> d.toInt().toShort()
-            else -> -32768
         }
     }
 }

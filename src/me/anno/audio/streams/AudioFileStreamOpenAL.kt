@@ -159,7 +159,6 @@ class AudioFileStreamOpenAL(
                     }
 
                     if (capacity > targetIndex + 256 && targetIndex >= 0) {
-
                         LOGGER.info("Skipping ${dt}s, $targetIndex/$capacity")
                         stereoBuffer.position(targetIndex.toInt())
                     } else {
