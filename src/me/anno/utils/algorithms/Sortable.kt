@@ -8,7 +8,11 @@ interface Sortable {
     fun restore(dstI: Int)
 
     fun compare(indexI: Int, indexJ: Int): Int
-    fun swap(indexI: Int, indexJ: Int)
+    fun swap(indexI: Int, indexJ: Int) {
+        store(indexI)
+        move(indexI, indexJ)
+        restore(indexJ)
+    }
 
     fun sortWith2(from: Int, to: Int) {
         sortWith2Impl(from, to)

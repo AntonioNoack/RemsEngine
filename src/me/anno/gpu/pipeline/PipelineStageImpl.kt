@@ -39,7 +39,6 @@ import me.anno.gpu.texture.TextureHelper
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.input.Input
 import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.LazyList
@@ -562,7 +561,7 @@ class PipelineStageImpl(
             for (i in instances.indices) {
                 val (drawPrimitivesI, drawInstancesI, drawCallsI) =
                     instances[i].draw0(pipeline, this, needsLightUpdateForEveryMesh, time, false)
-                if (Input.isKeyDown('g')) println("$drawPrimitivesI by ${instances[i].javaClass.simpleName}")
+                // if (Input.isKeyDown('g')) println("$drawPrimitivesI by ${instances[i].javaClass.simpleName}")
                 drawnPrimitives += drawPrimitivesI
                 drawnInstances += drawInstancesI
                 drawCalls += drawCallsI
