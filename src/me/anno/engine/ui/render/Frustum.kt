@@ -400,11 +400,62 @@ class Frustum {
                 min(-my, xy),
                 min(-mz, xz)
             ) // distance²
-            val relativeSizeGuess = guessedSize / guessedDistance // (bounds / distance)²
-            return relativeSizeGuess
+            return guessedSize / guessedDistance // (bounds / distance)²
         } else {
+            return calculateArea(cameraRotation, aabb.deltaX, aabb.deltaY, aabb.deltaZ) // area
+        }
+    }
+
+    /**
+     * of an AABB on screen
+     * */
+    fun estimateRelativeSize(aabb: AABBf): Float {
+        val cameraPosition = cameraPosition
+        val cx = cameraPosition.x.toFloat()
+        val cy = cameraPosition.y.toFloat()
+        val cz = cameraPosition.z.toFloat()
+        if (isPerspective) {
+
+            // if the aabb contains the camera,
+            // it will be visible
+            if (aabb.testPoint(cx, cy, cz)) {
+                return Float.POSITIVE_INFINITY
+            }
+
+            val mx = aabb.minX - cx
+            val my = aabb.minY - cy
+            val mz = aabb.minZ - cz
+            val xx = aabb.maxX - cx
+            val xy = aabb.maxY - cy
+            val xz = aabb.maxZ - cz
+
+            // if the aabb has a regular shape, we can use a simpler test than this 8-fold loop
+            /*for (i in 0 until 8) {
+                v.set(
+                    (if ((i and 1) != 0) aabb.minX else aabb.maxX).toDouble()-cam.x,
+                    (if ((i and 2) != 0) aabb.minY else aabb.maxY).toDouble()-cam.y,
+                    (if ((i and 4) != 0) aabb.minZ else aabb.maxZ).toDouble()-cam.z,
+                    1.0
+                )
+                viewTransform.transform(v)
+                v.div(v.w)
+                // clamp to screen?
+                scaledMax.max(v)
+                scaledMin.min(v)
+            }*/
+            // quaternion * vec ~ 47 flops
+            // mat3 * vec ~ 15 flops -> much more effective
+            // val transformedBounds = cameraRotation.transform(tmp.set(xx - mx, xy - my, xz - mz))
+            // abs(transformedBounds.x * transformedBounds.y) // area
             val guessedSize = calculateArea(cameraRotation, aabb.deltaX, aabb.deltaY, aabb.deltaZ) // area
-            return guessedSize
+            val guessedDistance = sq(
+                min(-mx, xx),
+                min(-my, xy),
+                min(-mz, xz)
+            ) // distance²
+            return guessedSize / guessedDistance // (bounds / distance)²
+        } else {
+            return calculateArea(cameraRotation, aabb.deltaX, aabb.deltaY, aabb.deltaZ) // area
         }
     }
 
@@ -412,6 +463,13 @@ class Frustum {
      * check if larger than a single pixel
      * */
     fun hasEffectiveSize(aabb: AABBd): Boolean {
+        return estimateRelativeSize(aabb) > sizeThreshold
+    }
+
+    /**
+     * check if larger than a single pixel
+     * */
+    fun hasEffectiveSize(aabb: AABBf): Boolean {
         return estimateRelativeSize(aabb) > sizeThreshold
     }
 
@@ -485,6 +543,17 @@ class Frustum {
      * */
     private fun calculateArea(mat: Matrix3f, x: Double, y: Double, z: Double): Double {
         if (x.isInfinite() || y.isInfinite() || z.isInfinite()) return Double.POSITIVE_INFINITY
+        val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z
+        val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z
+        val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z
+        return rx * rx + ry * ry + rz * rz
+    }
+
+    /**
+     * Rotates the dimensions dx, dy, dz with the camera rotation, then takes the square length.
+     * */
+    private fun calculateArea(mat: Matrix3f, x: Float, y: Float, z: Float): Float {
+        if (x.isInfinite() || y.isInfinite() || z.isInfinite()) return Float.POSITIVE_INFINITY
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z
@@ -591,6 +660,14 @@ class Frustum {
      * This test is just a rough approximation!
      * */
     fun isVisible(aabb: AABBd) =
+        contains(aabb) && hasEffectiveSize(aabb)
+
+    /**
+     * Checks whether an axis aligned box would be approximately visible on screen.
+     * If too small, or outside, it will be discarded.
+     * This test is just a rough approximation!
+     * */
+    fun isVisible(aabb: AABBf) =
         contains(aabb) && hasEffectiveSize(aabb)
 
     /**

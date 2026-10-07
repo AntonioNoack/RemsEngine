@@ -90,7 +90,7 @@ fun Frustum.containsV1(aabb: AABBd): Boolean {
  * */
 fun Frustum.containsV2(aabb: AABBd): Boolean {
     val planes = planesD
-    var i = numPlanes * 3
+    var i = numPlanes * 4
     val minX = aabb.minX
     val minY = aabb.minY
     val minZ = aabb.minZ
@@ -98,15 +98,16 @@ fun Frustum.containsV2(aabb: AABBd): Boolean {
     val maxY = aabb.maxY
     val maxZ = aabb.maxZ
     while (i > 0) {
-        i -= 3
+        i -= 4
         val pdx = planes[i]
         val pdy = planes[i + 1]
         val pdz = planes[i + 2]
+        val pdw = planes[i + 3]
         val x = if (pdx > 0.0) minX else maxX
         val y = if (pdy > 0.0) minY else maxY
         val z = if (pdz > 0.0) minZ else maxZ
         // outside
-        if (pdx * x + pdy * y + pdz * z >= 0.0) return false
+        if (pdx * x + pdy * y + pdz * z + pdw >= 0.0) return false
     }
     return true
 }
