@@ -15,7 +15,7 @@ class MeshInstanceData(
     val transformNorTan: List<ShaderStage>,
     val transformColors: List<ShaderStage>,
     val transformMotionVec: List<ShaderStage>,
-    val onFragmentShader: List<ShaderStage>
+    val onFragmentShader: List<ShaderStage>,
 ) {
 
     constructor(
@@ -101,44 +101,6 @@ class MeshInstanceData(
                 ).add(ShaderLib.loadMat4x3)
             ) + DEFAULT.transformMotionVec,
             emptyList()
-        )
-
-        /**
-         * translation + rotation + scale (px,py,pz,scale,rx,ry,rz,rw)
-         * */
-        @Deprecated("We can replace all TRS with TRC")
-        val TRS = MeshInstanceData(
-            listOf(
-                ShaderStage(
-                    "trs-pos",
-                    listOf(
-                        Variable(GLSLType.V4F, "instancePosSize", VariableMode.ATTR),
-                        Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "localPosition"),
-                        Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
-                    ),
-                    "finalPosition = quatRot(localPosition, instanceRot) * instancePosSize.w + instancePosSize.xyz;\n"
-                ).add(ShaderLib.quatRot)
-            ),
-            listOf(
-                ShaderStage(
-                    "trs-nor", listOf(
-                        Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "normal", VariableMode.INOUT),
-                        Variable(GLSLType.V4F, "tangent", VariableMode.INOUT)
-                    ), "normal = quatRot(normal, instanceRot);\n" +
-                            "tangent.xyz = quatRot(tangent.xyz, instanceRot);\n"
-                ).add(ShaderLib.quatRot)
-            ),
-            emptyList(), // colors aren't changed
-            listOf(
-                ShaderStage(
-                    "trs-mov", listOf(
-                        Variable(GLSLType.V3F, "finalPosition"),
-                        Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
-                    ), "prevPosition = vec4(finalPosition,1.0);\n"
-                )
-            ), emptyList()
         )
 
         /**
