@@ -13,7 +13,8 @@ import speiger.primitivecollections.callbacks.IntObjectPredicate
  *
  * This improves our smooth normal calculation from 54ms for 110k triangles down to 32ms (1.68x speedup).
  * */
-class IntToObjectHashMap<V> : IntToHashMap<Array<V?>> {
+@Suppress("UNCHECKED_CAST")
+class IntToObjectHashMap<V> : IntToHashMap<Array<Any?>> {
 
     constructor(
         minCapacity: Int = DEFAULT_MIN_CAPACITY,
@@ -22,27 +23,26 @@ class IntToObjectHashMap<V> : IntToHashMap<Array<V?>> {
 
     constructor(base: IntToObjectHashMap<V>) : super(base)
 
-    override fun createValues(size: Int): Array<V?> {
-        @Suppress("UNCHECKED_CAST")
-        return arrayOfNulls<Any>(size) as Array<V?>
+    override fun createValues(size: Int): Array<Any?> {
+        return arrayOfNulls(size)
     }
 
-    override fun fillNullValues(values: Array<V?>) {
+    override fun fillNullValues(values: Array<Any?>) {
         values.fill(null)
     }
 
     override fun copyOver(
-        dstValues: Array<V?>, dstIndex: Int,
-        srcValues: Array<V?>, srcIndex: Int,
+        dstValues: Array<Any?>, dstIndex: Int,
+        srcValues: Array<Any?>, srcIndex: Int,
     ) {
         dstValues[dstIndex] = srcValues[srcIndex]
     }
 
-    override fun copyOver(dstValues: Array<V?>, srcValues: Array<V?>) {
+    override fun copyOver(dstValues: Array<Any?>, srcValues: Array<Any?>) {
         srcValues.copyInto(dstValues)
     }
 
-    override fun setNull(dstValues: Array<V?>, dstIndex: Int) {
+    override fun setNull(dstValues: Array<Any?>, dstIndex: Int) {
         dstValues[dstIndex] = null
     }
 
@@ -52,7 +52,6 @@ class IntToObjectHashMap<V> : IntToHashMap<Array<V?>> {
 
     inline fun getOrPut(key: Int, generateIfNull: () -> V): V {
         val slot = findSlot(key)
-        @Suppress("UNCHECKED_CAST")
         if (slot >= 0) return values[slot] as V
 
         val newValue = generateIfNull()
@@ -69,7 +68,7 @@ class IntToObjectHashMap<V> : IntToHashMap<Array<V?>> {
         } else {
             val oldValue = values[slot]
             values[slot] = value
-            return oldValue
+            return oldValue as? V
         }
     }
 
@@ -77,13 +76,13 @@ class IntToObjectHashMap<V> : IntToHashMap<Array<V?>> {
         val slot = findSlot(key)
         return if (slot < 0) null else {
             val value = values[slot]
-            if (removeIndex(slot)) value else null
+            if (removeIndex(slot)) value as? V else null
         }
     }
 
     operator fun get(key: Int): V? {
         val slot = findSlot(key)
-        return if (slot < 0) null else values[slot]
+        return if (slot < 0) null else values[slot] as? V
     }
 
     @InternalAPI
@@ -99,12 +98,10 @@ class IntToObjectHashMap<V> : IntToHashMap<Array<V?>> {
     }
 
     fun forEach(callback: IntObjectCallback<V>) {
-        @Suppress("UNCHECKED_CAST")
         if (containsNull) callback.call(0, values[nullIndex] as V)
 
         for (i in nullIndex - 1 downTo 0) {
             val key = keys[i]
-            @Suppress("UNCHECKED_CAST")
             if (key != 0) callback.call(key, values[i] as V)
         }
     }
@@ -114,7 +111,6 @@ class IntToObjectHashMap<V> : IntToHashMap<Array<V?>> {
     }
 
     fun removeIf(predicate: IntObjectPredicate<V>): Int {
-        @Suppress("UNCHECKED_CAST")
         return removeIfImpl { predicate.test(keys[it], values[it] as V) }
     }
 

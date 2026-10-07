@@ -86,7 +86,7 @@ object Arrays {
         return -1
     }
 
-    fun <V : Any> Array<V?>.getOrPut(i: Int, generate: () -> V): V {
+    inline fun <reified V : Any> Array<V?>.getOrPut(i: Int, generate: () -> V): V {
         if (this[i] == null) this[i] = generate()
         return this[i]!!
     }
