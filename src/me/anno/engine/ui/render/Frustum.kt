@@ -5,9 +5,9 @@ import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
 import me.anno.maths.Maths.sq
 import me.anno.utils.Color.black
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import org.joml.AABBd
+import org.joml.AABBf
 import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.joml.Matrix4x3
@@ -16,7 +16,6 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
-import sun.net.www.content.text.plain
 import kotlin.math.atan
 import kotlin.math.cos
 import kotlin.math.max
@@ -25,20 +24,26 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.math.tan
 
+@Suppress("unused")
 class Frustum {
+
+    companion object {
+        const val MAX_NUM_PLANES = 13
+    }
 
     // this class might be replaceable with org.joml.FrustumIntersection,
     // if we replace those floats with doubles
 
     // -x,+x,-y,+y,-z,+z
-    val planes = Array(13) { Plane() }
-    val planesD = DoubleArray(13 * 3)
+    val planes = Array(MAX_NUM_PLANES) { Plane() }
+    val planesD = DoubleArray(MAX_NUM_PLANES * 4)
+    val planesF = FloatArray(MAX_NUM_PLANES * 4)
     var planesS = 0L // 13 * 4 = 52 bits
 
     var numPlanes = 6
 
-    private val normals = Array(13) { Vector3f() }
-    private val positions = Array(13) { Vector3d() }
+    private val normals = Array(MAX_NUM_PLANES) { Vector3f() }
+    private val positions = Array(MAX_NUM_PLANES) { Vector3d() }
 
     // frustum information, for the size estimation
     val cameraPosition = Vector3d()
@@ -102,6 +107,7 @@ class Frustum {
         transform2(cameraPosition, cameraRotation)
 
         isPerspective = false
+        updatePlanesArray()
     }
 
     fun transform(cameraPosition: Vector3d, cameraRotation: Quaternionf) {
@@ -173,6 +179,8 @@ class Frustum {
         transform2(cameraPosition, cameraRotation)
 
         isPerspective = false
+        numPlanes = 6
+        updatePlanesArray()
     }
 
     fun defineOrthographic(
@@ -208,6 +216,9 @@ class Frustum {
 
         this.cameraPosition.set(cameraPosition)
         this.cameraRotation.set(cameraRotation)
+
+        numPlanes = 6
+        updatePlanesArray()
     }
 
     fun definePerspective(
@@ -300,17 +311,24 @@ class Frustum {
     }
 
     fun updatePlanesArray() {
-        val dst = planesD
+        val dstD = planesD
+        val dstF = planesF
         var planesS = 0L
         for (srcI in 0 until numPlanes) {
             val src = planes[srcI]
-            val dstI = srcI * 3
-            val sx = src.dirX.toDouble()
-            val sy = src.dirY.toDouble()
-            val sz = src.dirZ.toDouble()
-            dst[dstI] = sx
-            dst[dstI + 1] = sy
-            dst[dstI + 2] = sz
+            val dstI = srcI * 4
+            val sx = src.dirX
+            val sy = src.dirY
+            val sz = src.dirZ
+            val sw = src.distance
+            dstD[dstI] = sx.toDouble()
+            dstF[dstI] = sx
+            dstD[dstI + 1] = sy.toDouble()
+            dstF[dstI + 1] = sy
+            dstD[dstI + 2] = sz.toDouble()
+            dstF[dstI + 2] = sz
+            dstD[dstI + 3] = sw
+            dstF[dstI + 3] = sw.toFloat()
             val bits = (sx > 0).toInt(1) or
                     (sy > 0).toInt(2) or
                     (sz > 0).toInt(4)
@@ -473,33 +491,68 @@ class Frustum {
         return rx * rx + ry * ry + rz * rz
     }
 
+    operator fun contains(aabb: AABBd): Boolean {
+        return contains(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)
+    }
+
+    operator fun contains(aabb: AABBf): Boolean {
+        return contains(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)
+    }
+
     /**
      * algorithm from https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
      * just slightly optimized
      * */
-   operator fun contains(aabb: AABBd): Boolean {
+    fun contains(
+        minX: Double, minY: Double, minZ: Double,
+        maxX: Double, maxY: Double, maxZ: Double,
+    ): Boolean {
         val planes = planesD
         val sides = planesS
-        var i = numPlanes.shl(2)
-        val minX = aabb.minX
-        val minY = aabb.minY
-        val minZ = aabb.minZ
-        val maxX = aabb.maxX
-        val maxY = aabb.maxY
-        val maxZ = aabb.maxZ
+        var i = numPlanes * 4
+        var inside = true
         while (i > 0) {
             i -= 4
             val pdx = planes[i]
             val pdy = planes[i + 1]
             val pdz = planes[i + 2]
-            val bits = (sides shr (i.shl(2))).toInt()
+            val pdw = planes[i + 3]
+            val bits = (sides shr i).toInt()
             val x = if ((bits and 1) != 0) minX else maxX
             val y = if ((bits and 2) != 0) minY else maxY
             val z = if ((bits and 4) != 0) minZ else maxZ
             // outside
-            if (pdx * x + pdy * y + pdz * z >= 0.0) return false
+            inside = inside and (pdx * x + pdy * y + pdz * z + pdw <= 0.0)
         }
-        return true
+        return inside
+    }
+
+    /**
+     * algorithm from https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
+     * just slightly optimized; 1.5x faster than doubles
+     * */
+    fun contains(
+        minX: Float, minY: Float, minZ: Float,
+        maxX: Float, maxY: Float, maxZ: Float,
+    ): Boolean {
+        val planes = planesF
+        val sides = planesS
+        var i = numPlanes * 4
+        var inside = true
+        while (i > 0) {
+            i -= 4
+            val pdx = planes[i]
+            val pdy = planes[i + 1]
+            val pdz = planes[i + 2]
+            val pdw = planes[i + 3]
+            val bits = (sides shr i).toInt()
+            val x = if ((bits and 1) != 0) minX else maxX
+            val y = if ((bits and 2) != 0) minY else maxY
+            val z = if ((bits and 4) != 0) minZ else maxZ
+            // outside
+            inside = inside and (pdx * x + pdy * y + pdz * z + pdw < 0f)
+        }
+        return inside
     }
 
     fun containsSphere(position: Vector3d, radius: Double): Boolean {
@@ -508,16 +561,28 @@ class Frustum {
 
     fun containsSphere(px: Double, py: Double, pz: Double, radius: Double): Boolean {
         if (radius < 0.0) return false
-        // https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
-        for (i in 0 until numPlanes) {
-            val plane = planes[i]
-            val x = if (plane.dirX > 0.0) px - radius else px + radius
-            val y = if (plane.dirY > 0.0) py - radius else py + radius
-            val z = if (plane.dirZ > 0.0) pz - radius else pz + radius
-            // outside
-            if (plane.dot(x, y, z) >= 0.0) return false
-        }
-        return true
+        val minX = px - radius
+        val minY = py - radius
+        val minZ = pz - radius
+        val maxX = px + radius
+        val maxY = py + radius
+        val maxZ = pz + radius
+        return contains(minX, minY, minZ, maxX, maxY, maxZ)
+    }
+
+    fun containsSphere(position: Vector3f, radius: Float): Boolean {
+        return containsSphere(position.x, position.y, position.z, radius)
+    }
+
+    fun containsSphere(px: Float, py: Float, pz: Float, radius: Float): Boolean {
+        if (radius < 0f) return false
+        val minX = px - radius
+        val minY = py - radius
+        val minZ = pz - radius
+        val maxX = px + radius
+        val maxY = py + radius
+        val maxZ = pz + radius
+        return contains(minX, minY, minZ, maxX, maxY, maxZ)
     }
 
     /**
