@@ -5,6 +5,8 @@ import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
 import me.anno.maths.Maths.sq
 import me.anno.utils.Color.black
+import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.toInt
 import org.joml.AABBd
 import org.joml.Matrix3f
 import org.joml.Matrix4f
@@ -14,6 +16,7 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
+import sun.net.www.content.text.plain
 import kotlin.math.atan
 import kotlin.math.cos
 import kotlin.math.max
@@ -29,6 +32,9 @@ class Frustum {
 
     // -x,+x,-y,+y,-z,+z
     val planes = Array(13) { Plane() }
+    val planesD = DoubleArray(13 * 3)
+    var planesS = 0L // 13 * 4 = 52 bits
+
     var numPlanes = 6
 
     private val normals = Array(13) { Vector3f() }
@@ -67,7 +73,7 @@ class Frustum {
         far: Float,
         resolution: Int,
         cameraPosition: Vector3d,
-        cameraRotation: Quaternionf
+        cameraRotation: Quaternionf,
     ) {
 
         val sizeX = sizeY * aspectRatio
@@ -141,7 +147,7 @@ class Frustum {
         sizeZ: Float,
         resolution: Int,
         cameraPosition: Vector3d,
-        cameraRotation: Quaternionf
+        cameraRotation: Quaternionf,
     ) {
 
         val objectSizeThreshold = minObjectSizePixels * sizeX / resolution
@@ -173,7 +179,7 @@ class Frustum {
         transform: Matrix4x3,
         resolution: Int,
         cameraPosition: Vector3d,
-        cameraRotation: Quaternionf
+        cameraRotation: Quaternionf,
     ) {
 
         transform.transformPosition(positions[0].set(+1.0, 0.0, 0.0))
@@ -211,7 +217,7 @@ class Frustum {
         height: Int,
         aspectRatio: Float,
         cameraPosition: Vector3d,
-        cameraRotation: Quaternionf
+        cameraRotation: Quaternionf,
     ) {
 
         // pixelSize = max(width, height) * 0.5 * objectSize * projMatFOVFactor
@@ -262,6 +268,7 @@ class Frustum {
         transform(cameraPosition, cameraRotation)
 
         isPerspective = true
+        updatePlanesArray()
     }
 
     fun defineGenerally(
@@ -289,6 +296,27 @@ class Frustum {
 
         numPlanes = 6
         isPerspective = cameraMatrix.m30 != 1f // mmh
+        updatePlanesArray()
+    }
+
+    fun updatePlanesArray() {
+        val dst = planesD
+        var planesS = 0L
+        for (srcI in 0 until numPlanes) {
+            val src = planes[srcI]
+            val dstI = srcI * 3
+            val sx = src.dirX.toDouble()
+            val sy = src.dirY.toDouble()
+            val sz = src.dirZ.toDouble()
+            dst[dstI] = sx
+            dst[dstI + 1] = sy
+            dst[dstI + 2] = sz
+            val bits = (sx > 0).toInt(1) or
+                    (sy > 0).toInt(2) or
+                    (sz > 0).toInt(4)
+            planesS += bits.shl(srcI * 4)
+        }
+        this.planesS = planesS
     }
 
     fun showPlanes() {
@@ -445,16 +473,31 @@ class Frustum {
         return rx * rx + ry * ry + rz * rz
     }
 
-    operator fun contains(aabb: AABBd): Boolean {
-        if (aabb.isEmpty()) return false
-        // https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
-        for (i in 0 until numPlanes) {
-            val plane = planes[i]
-            val x = if (plane.dirX > 0.0) aabb.minX else aabb.maxX
-            val y = if (plane.dirY > 0.0) aabb.minY else aabb.maxY
-            val z = if (plane.dirZ > 0.0) aabb.minZ else aabb.maxZ
+    /**
+     * algorithm from https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
+     * just slightly optimized
+     * */
+   operator fun contains(aabb: AABBd): Boolean {
+        val planes = planesD
+        val sides = planesS
+        var i = numPlanes.shl(2)
+        val minX = aabb.minX
+        val minY = aabb.minY
+        val minZ = aabb.minZ
+        val maxX = aabb.maxX
+        val maxY = aabb.maxY
+        val maxZ = aabb.maxZ
+        while (i > 0) {
+            i -= 4
+            val pdx = planes[i]
+            val pdy = planes[i + 1]
+            val pdz = planes[i + 2]
+            val bits = (sides shr (i.shl(2))).toInt()
+            val x = if ((bits and 1) != 0) minX else maxX
+            val y = if ((bits and 2) != 0) minY else maxY
+            val z = if ((bits and 4) != 0) minZ else maxZ
             // outside
-            if (plane.dot(x, y, z) >= 0.0) return false
+            if (pdx * x + pdy * y + pdz * z >= 0.0) return false
         }
         return true
     }
