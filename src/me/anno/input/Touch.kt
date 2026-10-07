@@ -61,8 +61,8 @@ class Touch(var x: Float, var y: Float) {
         fun getZoomFactor(): Float {
             val touches = touches.values.filterNotNull()
             return if (touches.size == 2) {
-                val t0 = touches[0]
-                val t1 = touches[1]
+                val t0 = touches[0] as Touch
+                val t1 = touches[1] as Touch
                 val dist0 = sq(t0.x - t1.x, t0.y - t1.y)
                 val dist1 = sq(t0.lastX - t1.lastX, t0.lastY - t1.lastY)
                 if (dist0 < 1f || dist1 < 1f) return 1f
@@ -71,10 +71,12 @@ class Touch(var x: Float, var y: Float) {
         }
 
         @JvmStatic
-        fun sumDeltaX(): Float = touches.values.sumOf { it?.dx?.toDouble() ?: 0.0 }.toFloat()
+        fun sumDeltaX(): Float = touches.values
+            .sumOf { if (it is Touch) it.dx.toDouble() else 0.0 }.toFloat()
 
         @JvmStatic
-        fun sumDeltaY(): Float = touches.values.sumOf { it?.dy?.toDouble() ?: 0.0 }.toFloat()
+        fun sumDeltaY(): Float = touches.values
+            .sumOf { if (it is Touch) it.dy.toDouble() else 0.0 }.toFloat()
 
         @JvmStatic
         fun avgDeltaX(): Float = sumDeltaX() / max(1, touches.size)

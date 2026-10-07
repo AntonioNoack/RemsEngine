@@ -18,7 +18,7 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.InstancedI32Stack
 import me.anno.gpu.pipeline.InstancedStack
 import me.anno.gpu.pipeline.InstancedStaticStack
-import me.anno.gpu.pipeline.InstancedTRSStack
+import me.anno.gpu.pipeline.InstancedTRCStack
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.getStack
 import me.anno.maths.bvh.HitType
@@ -45,7 +45,6 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     override fun fill(pipeline: Pipeline, transform: Transform) {
         clickId = pipeline.getClickId(this)
         instancedGroupFill(pipeline) ||
-                instancedTRSFill(pipeline) ||
                 instancedTRCFill(pipeline) ||
                 instancedMeshGroupFill(pipeline) ||
                 instancedFill(pipeline)
@@ -97,21 +96,11 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         return result
     }
 
-    fun instancedTRSFill(pipeline: Pipeline): Boolean {
-        return forEachMeshGroupTRS(pipeline) { mesh, material ->
-            val material2 = material ?: Material.defaultMaterial
-            val stage = pipeline.findStage(material2)
-            val stack = stage.instancedTRS.data.getOrPut(mesh, material2) { _, _ -> InstancedTRSStack.Data() }
-            stack.pushGfxId(gfxId)
-            stack.posSizeRot
-        }
-    }
-
     fun instancedTRCFill(pipeline: Pipeline): Boolean {
         return forEachMeshGroupTRC(pipeline) { mesh, material ->
             val material2 = material ?: Material.defaultMaterial
             val stage = pipeline.findStage(material2)
-            val stack = stage.instancedTRC.data.getOrPut(mesh, material2) { _, _ -> InstancedTRSStack.Data() }
+            val stack = stage.instancedTRC.data.getOrPut(mesh, material2) { _, _ -> InstancedTRCStack.Data() }
             stack.pushGfxId(gfxId)
             stack.posSizeRot
         }
@@ -255,7 +244,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * */
     open fun forEachInstancedGroup(
         pipeline: Pipeline,
-        callback: (IMesh, MaterialBase?, StaticBuffer, Map<String, TypeValue>) -> Unit
+        callback: (IMesh, MaterialBase?, StaticBuffer, Map<String, TypeValue>) -> Unit,
     ) = false
 
     fun <V : InstancedI32Stack> getOrPutI32Stack(
@@ -263,7 +252,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         mesh: IMesh,
         material: MaterialBase,
         clazz: KClass<V>,
-        newInstance: () -> V = { clazz.createInstance() }
+        newInstance: () -> V = { clazz.createInstance() },
     ): InstancedI32Stack.Data {
         val stage = pipeline.findStage(material)
         var list = stage.instances.firstOrNull2 { clazz.isInstance(it) } as? InstancedI32Stack

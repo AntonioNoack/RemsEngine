@@ -15,7 +15,7 @@ import kotlin.math.min
 abstract class BufferPool<V>(
     val size: Int,
     val elementSize: Int,
-    val timeoutMillis: Long = 250L // idk what would be good...
+    val timeoutMillis: Long = 250L, // idk what would be good...
 ) {
     companion object {
         private val LOGGER = LogManager.getLogger(BufferPool::class)
@@ -217,7 +217,7 @@ abstract class BufferPool<V>(
                 }
             }
             for (pool in smallSizes.values) {
-                pool?.gc()
+                if (pool is ObjectPool<*>) pool.gc()
             }
             smallSizes.clear()
         }
