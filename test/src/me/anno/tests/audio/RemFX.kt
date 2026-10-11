@@ -39,35 +39,44 @@ fun main() {
         sounds.add(PlayedModulator(Key.KEY_O, NoisyBang()))
 
         // Short, upward “tweet”
-        val c0 = BirdChirps(
-            startHz = 1800f,
-            endHz = 3000f,
-            durationSeconds = 0.09f,
-            sweepPower = 0.7f
+        sounds.add(
+            PlayedModulator(
+                Key.KEY_N, BirdChirps(
+                    startHz = 1800f,
+                    endHz = 3000f,
+                    durationSeconds = 0.09f,
+                    sweepPower = 0.7f
+                )
+            )
         )
-        sounds.add(PlayedModulator(Key.KEY_N, c0))
 
         // Downward, slightly longer call
-        val c1 = BirdChirps(
-            startHz = 2800f,
-            endHz = 1500f,
-            durationSeconds = 0.22f,
-            sweepPower = 1.4f
+        sounds.add(
+            PlayedModulator(
+                Key.KEY_B, BirdChirps(
+                    startHz = 2800f,
+                    endHz = 1500f,
+                    durationSeconds = 0.22f,
+                    sweepPower = 1.4f
+                )
+            )
         )
-        sounds.add(PlayedModulator(Key.KEY_B, c1))
 
         // Nearly flat whistle
-        val c2 = BirdChirps(
-            startHz = 2200f,
-            endHz = 2250f,
-            durationSeconds = 0.35f,
-            spacing = 0f,
-            runs = 1,
+        sounds.add(
+            PlayedModulator(
+                Key.KEY_V, BirdChirps(
+                    startHz = 2200f,
+                    endHz = 2250f,
+                    durationSeconds = 0.35f,
+                    spacing = 0f,
+                    runs = 1,
+                    delay = 10f
+                )
+            )
         )
-        sounds.add(PlayedModulator(Key.KEY_V, c2))
 
-        val c3 = WoodpeckerDrum()
-        sounds.add(PlayedModulator(Key.KEY_C, c3))
+        sounds.add(PlayedModulator(Key.KEY_C, WoodpeckerDrum()))
 
         sounds.add(
             PlayedModulator(

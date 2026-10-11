@@ -4,6 +4,7 @@ import me.anno.audio.remfx.RemFXContext
 import me.anno.maths.FastSin
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.mix
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
@@ -83,10 +84,7 @@ class BirdChirps(
                 ctr = 0
 
                 if (outerT >= limitN) {
-                    // we can skip long runs here,
-                    //  we just need to know what to calculate
-                    val rnd = nextRandomFloat() * 0.5f + 0.5f
-                    samplesToSkip = ((delay - outerT) * rnd * totalSamples).toInt()
+                    nextRun(totalSamples)
                     continue
                 }
             }
@@ -95,11 +93,17 @@ class BirdChirps(
             outerT += invTotalSamples
             innerT += spacingN
             if (outerT >= delay) {
-                outerT -= delay
-                innerT = outerT // ~0
+                nextRun(totalSamples)
             } else if (innerT >= spacingN) {
                 innerT -= spacingN
             }
         }
+    }
+
+    fun nextRun(totalSamples: Float) {
+        // we can skip long runs here,
+        //  we just need to know what to calculate
+        val rnd = nextRandomFloat() * 0.5f + 0.5f
+        samplesToSkip = max(((delay - outerT) * rnd * totalSamples).toInt(), 1)
     }
 }
