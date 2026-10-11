@@ -219,8 +219,8 @@ open class Window(
 
         panel.forAllVisiblePanels(Panel::onUpdate)
 
-        this.width = windowW
-        this.height = windowH
+        this.width = min(windowW, panel.width)
+        this.height = min(windowH, panel.height)
         calculateFullLayout(dx, dy, windowW, windowH)
     }
 
