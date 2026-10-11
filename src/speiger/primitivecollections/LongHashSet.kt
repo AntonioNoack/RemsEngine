@@ -2,6 +2,8 @@ package speiger.primitivecollections
 
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
+import speiger.primitivecollections.ToStringHelper.finishKVMap
+import speiger.primitivecollections.ToStringHelper.nextKV
 import speiger.primitivecollections.callbacks.LongCallback
 import speiger.primitivecollections.callbacks.LongPredicate
 
@@ -12,7 +14,7 @@ class LongHashSet : LongToHashMap<Unit> {
 
     constructor(
         minCapacity: Int = DEFAULT_MIN_CAPACITY,
-        loadFactor: Float = DEFAULT_LOAD_FACTOR
+        loadFactor: Float = DEFAULT_LOAD_FACTOR,
     ) : super(minCapacity, loadFactor)
 
     constructor(base: LongHashSet) : super(base)
@@ -60,6 +62,12 @@ class LongHashSet : LongToHashMap<Unit> {
 
     fun removeIf(predicate: LongPredicate) =
         removeIfImpl { predicate.test(keys[it]) }
+
+    override fun toString(): String {
+        val sb = StringBuilder()
+        forEach { v -> sb.nextKV().append(v) }
+        return sb.finishKVMap()
+    }
 
     override fun clone(): LongHashSet = LongHashSet(this)
 }

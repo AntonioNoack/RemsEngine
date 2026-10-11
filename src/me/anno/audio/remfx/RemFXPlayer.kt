@@ -1,13 +1,13 @@
 package me.anno.audio.remfx
 
 import me.anno.audio.openal.AudioTasks.addAudioTask
+import me.anno.audio.remfx.sound.Modulator
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.audio.AttenuationModel.Companion.updateGlobalDistanceModel
 import me.anno.ecs.components.audio.AudioCamera
 import me.anno.ecs.systems.OnUpdate
-import me.anno.audio.remfx.sound.Modulator
 import kotlin.math.max
 
 open class RemFXPlayer : Component(), OnUpdate {
@@ -55,6 +55,9 @@ open class RemFXPlayer : Component(), OnUpdate {
 
     var minAmplitude = 10f
     val sounds = ArrayList<Modulator>()
+
+    // todo bug: there is a 10% chance that it doesn't play anything...
+    //  isPlaying returns true though...
 
     private val context = RemFXContext()
     open fun fill(bufferIndex: Long, left: ShortArray, right: ShortArray) {

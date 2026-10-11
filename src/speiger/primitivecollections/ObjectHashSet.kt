@@ -2,6 +2,8 @@ package speiger.primitivecollections
 
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
+import speiger.primitivecollections.ToStringHelper.finishKVMap
+import speiger.primitivecollections.ToStringHelper.nextKV
 
 /**
  * Space-efficient ObjectToHashMap without any values.
@@ -11,7 +13,7 @@ class ObjectHashSet<K> : ObjectToHashMap<K, Unit> {
 
     constructor(
         minCapacity: Int = DEFAULT_MIN_CAPACITY,
-        loadFactor: Float = DEFAULT_LOAD_FACTOR
+        loadFactor: Float = DEFAULT_LOAD_FACTOR,
     ) : super(minCapacity, loadFactor)
 
     constructor(base: ObjectHashSet<K>) : super(base)
@@ -53,6 +55,12 @@ class ObjectHashSet<K> : ObjectToHashMap<K, Unit> {
     fun forEach(callback: (K) -> Unit) = forEachKey(callback)
 
     override fun clone(): ObjectHashSet<K> = ObjectHashSet(this)
+
+    override fun toString(): String {
+        val sb = StringBuilder()
+        forEach { v -> sb.nextKV().append(v) }
+        return sb.finishKVMap()
+    }
 
     fun removeIf(predicate: (K) -> Boolean): Int {
         @Suppress("UNCHECKED_CAST")

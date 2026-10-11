@@ -5,7 +5,9 @@ package me.anno.utils.structures.maps
  * */
 open class CountMap<V>(capacity: Int = 16) {
 
-    class Count(var value: Int = 0)
+    class Count(var value: Int = 0) {
+        override fun toString(): String = value.toString()
+    }
 
     val values = HashMap<V, Count>(capacity)
 
@@ -26,4 +28,7 @@ open class CountMap<V>(capacity: Int = 16) {
     fun clear() {
         values.clear()
     }
+
+    override fun toString(): String = values.toString()
+
 }

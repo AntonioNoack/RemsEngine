@@ -2,6 +2,8 @@ package speiger.primitivecollections
 
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
+import speiger.primitivecollections.ToStringHelper.finishKVMap
+import speiger.primitivecollections.ToStringHelper.nextKV
 import speiger.primitivecollections.callbacks.IntCallback
 import speiger.primitivecollections.callbacks.IntPredicate
 
@@ -60,6 +62,12 @@ class IntHashSet : IntToHashMap<Unit> {
 
     fun removeIf(predicate: IntPredicate) =
         removeIfImpl { predicate.test(keys[it]) }
+
+    override fun toString(): String {
+        val sb = StringBuilder()
+        forEach { v -> sb.nextKV().append(v) }
+        return sb.finishKVMap()
+    }
 
     override fun clone(): IntHashSet = IntHashSet(this)
 }

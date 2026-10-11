@@ -1,6 +1,9 @@
 package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
+import speiger.primitivecollections.ToStringHelper.eqKV
+import speiger.primitivecollections.ToStringHelper.finishKVMap
+import speiger.primitivecollections.ToStringHelper.nextKV
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.LongLongCallback
@@ -121,6 +124,15 @@ class LongToLongHashMap : LongToHashMap<LongArray> {
 
     fun removeIf(predicate: LongLongPredicate): Int {
         return removeIfImpl { predicate.test(keys[it], values[it]) }
+    }
+
+    override fun toString(): String {
+        val sb = StringBuilder()
+        forEach { k, v ->
+            sb.nextKV().append(k)
+                .eqKV().append(v)
+        }
+        return sb.finishKVMap()
     }
 
     override fun clone() = LongToLongHashMap(missingValue, this)

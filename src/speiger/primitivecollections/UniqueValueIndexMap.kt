@@ -9,13 +9,13 @@ import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
  * */
 class UniqueValueIndexMap<K>(
     @property:InternalAPI
-    val content: ObjectToIntHashMap<K>
+    val content: ObjectToIntHashMap<K>,
 ) : PrimitiveCollection {
 
     constructor(
         missingId: Int,
         minCapacity: Int = DEFAULT_MIN_CAPACITY,
-        loadFactor: Float = DEFAULT_LOAD_FACTOR
+        loadFactor: Float = DEFAULT_LOAD_FACTOR,
     ) : this(ObjectToIntHashMap<K>(missingId, minCapacity, loadFactor))
 
     val values = ArrayList<K>()
@@ -44,6 +44,8 @@ class UniqueValueIndexMap<K>(
     operator fun get(value: K): Int {
         return content[value]
     }
+
+    override fun toString(): String = values.toString()
 
     override fun clone(): UniqueValueIndexMap<K> = UniqueValueIndexMap<K>(content.clone())
 }

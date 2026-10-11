@@ -1,6 +1,9 @@
 package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
+import speiger.primitivecollections.ToStringHelper.eqKV
+import speiger.primitivecollections.ToStringHelper.finishKVMap
+import speiger.primitivecollections.ToStringHelper.nextKV
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.ObjectIntCallback
@@ -77,6 +80,15 @@ class ObjectToIntHashMap<K>(
     fun forEachKey(callback: (K) -> Unit) = content.forEachKey(callback)
     fun removeIf(predicate: ObjectIntPredicate<K>): Int =
         content.removeIf { key, value -> predicate.test(key, value.toInt()) }
+
+    override fun toString(): String {
+        val sb = StringBuilder()
+        forEach { k, v ->
+            sb.nextKV().append(k)
+                .eqKV().append(v)
+        }
+        return sb.finishKVMap()
+    }
 
     override fun clone(): ObjectToIntHashMap<K> = ObjectToIntHashMap(content.clone())
 }

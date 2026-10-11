@@ -2,6 +2,9 @@ package speiger.primitivecollections
 
 import me.anno.utils.InternalAPI
 import me.anno.utils.types.Booleans.toInt
+import speiger.primitivecollections.ToStringHelper.eqKV
+import speiger.primitivecollections.ToStringHelper.finishKVMap
+import speiger.primitivecollections.ToStringHelper.nextKV
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
 import speiger.primitivecollections.callbacks.IntObjectCallback
@@ -126,6 +129,15 @@ class IntToObjectHashMap<V> : IntToHashMap<Array<Any?>> {
             found = found || predicate.test(k, v)
         }
         return found
+    }
+
+    override fun toString(): String {
+        val sb = StringBuilder()
+        forEach { k, v ->
+            sb.nextKV().append(k)
+                .eqKV().append(v)
+        }
+        return sb.finishKVMap()
     }
 
     override fun clone(): IntToObjectHashMap<V> = IntToObjectHashMap(this)

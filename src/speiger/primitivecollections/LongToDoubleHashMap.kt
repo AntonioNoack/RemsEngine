@@ -3,6 +3,9 @@ package speiger.primitivecollections
 import me.anno.utils.InternalAPI
 import speiger.primitivecollections.HashUtil.DEFAULT_LOAD_FACTOR
 import speiger.primitivecollections.HashUtil.DEFAULT_MIN_CAPACITY
+import speiger.primitivecollections.ToStringHelper.eqKV
+import speiger.primitivecollections.ToStringHelper.finishKVMap
+import speiger.primitivecollections.ToStringHelper.nextKV
 import speiger.primitivecollections.callbacks.LongCallback
 import speiger.primitivecollections.callbacks.LongDoubleCallback
 import speiger.primitivecollections.callbacks.LongDoublePredicate
@@ -74,6 +77,15 @@ class LongToDoubleHashMap(
     fun forEachKey(callback: LongCallback) = content.forEachKey(callback)
     fun removeIf(predicate: LongDoublePredicate): Int =
         content.removeIf { key, value -> predicate.test(key, Double.fromBits(value)) }
+
+    override fun toString(): String {
+        val sb = StringBuilder()
+        forEach { k, v ->
+            sb.nextKV().append(k)
+                .eqKV().append(v)
+        }
+        return sb.finishKVMap()
+    }
 
     override fun clone(): LongToDoubleHashMap = LongToDoubleHashMap(content.clone())
 }
