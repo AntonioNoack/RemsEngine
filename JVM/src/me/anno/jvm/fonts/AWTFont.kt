@@ -81,7 +81,11 @@ object AWTFont : FontImpl<List<FontMatrix>>() {
         assertEquals(fontIndex.hasFlag(GlyphStyle.BOLD), fontData.awtFont.isBold)
         assertEquals(fontIndex.hasFlag(GlyphStyle.ITALIC), fontData.awtFont.isItalic)
 
-        val tmp = BufferedImage(max(x1 - x0 + 1, 1), y1 - y0, BI_FORMAT)
+        val tmp = BufferedImage(
+            max(x1 - x0 + 1, 1),
+            max(y1 - y0, 1),
+            BI_FORMAT
+        )
         val gfx = tmp.graphics as Graphics2D
         gfx.prepareGraphics(portableImages)
 

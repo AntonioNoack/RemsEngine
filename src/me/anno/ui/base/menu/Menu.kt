@@ -10,7 +10,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.language.translation.DefaultNames
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
-import me.anno.ui.canvas.Canvas
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window
@@ -24,6 +23,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.canvas.Canvas
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
@@ -122,7 +122,7 @@ object Menu {
         value0: String,
         actionName: NameDesc,
         getColor: (String) -> Int,
-        callback: (String) -> Unit
+        callback: (String) -> Unit,
     ) = askName(
         windowStack,
         windowStack.mouseXi - paddingX,
@@ -141,13 +141,32 @@ object Menu {
         value0: String,
         actionName: NameDesc,
         getColor: (String) -> Int,
-        callback: (String) -> Unit
+        callback: (String) -> Unit,
+    ): Window = askName(
+        windowStack, x, y, nameDesc, value0, actionName,
+        enableSpellcheck = true, getColor, callback
+    )
+
+    /**
+     * ask the user for a name;
+     * names can be given tints/colors to indicate invalidate or incomplete names
+     * */
+    fun askName(
+        windowStack: WindowStack,
+        x: Int, y: Int,
+        nameDesc: NameDesc,
+        value0: String,
+        actionName: NameDesc,
+        enableSpellcheck: Boolean,
+        getColor: (String) -> Int,
+        callback: (String) -> Unit,
     ): Window {
 
         val style = style.getChild("menu")
 
         val textInput = PureTextInput(style)
         textInput.setText(value0, false)
+        textInput.enableSpellcheck = enableSpellcheck
         textInput.placeholder = nameDesc.name
         textInput.tooltip = nameDesc.desc
         textInput.setEnterListener {
@@ -181,6 +200,39 @@ object Menu {
         return window
     }
 
+
+    /**
+     * ask the user for a number
+     * */
+    @Suppress("unused")
+    fun askNumber(
+        windowStack: WindowStack,
+        nameDesc: NameDesc,
+        value0: String,
+        actionName: NameDesc,
+        callback: (String) -> Unit,
+    ) = askNumber(
+        windowStack,
+        windowStack.mouseXi - paddingX,
+        windowStack.mouseYi - paddingY,
+        nameDesc, value0, actionName, callback
+    )
+
+    /**
+     * ask the user for a number
+     * */
+    fun askNumber(
+        windowStack: WindowStack,
+        x: Int, y: Int,
+        nameDesc: NameDesc,
+        value0: String,
+        actionName: NameDesc,
+        callback: (String) -> Unit,
+    ): Window = askName(
+        windowStack, x, y, nameDesc, value0, actionName,
+        enableSpellcheck = false, getColor = { -1 }, callback
+    )
+
     /**
      * ask the user to rename a file; shows green/yellow/red tint depending on
      * whether the new name is valid and a file with that name already exists
@@ -191,7 +243,7 @@ object Menu {
         value0: String,
         actionName: NameDesc,
         folder: FileReference,
-        callback: (FileReference) -> Unit
+        callback: (FileReference) -> Unit,
     ) = askRename(
         windowStack,
         windowStack.mouseXi - paddingX,
@@ -210,7 +262,7 @@ object Menu {
         value0: String,
         actionName: NameDesc,
         folder: FileReference,
-        callback: (FileReference) -> Unit
+        callback: (FileReference) -> Unit,
     ): Window {
         return askName(windowStack, x, y, nameDesc, value0, actionName, { name ->
             val validName = name.toAllowedFilename()
@@ -254,7 +306,7 @@ object Menu {
 
     fun openComplexMenu(
         windowStack: WindowStack, nameDesc: NameDesc,
-        options: List<ComplexMenuEntry>
+        options: List<ComplexMenuEntry>,
     ): Window? {
         return openComplexMenu(
             windowStack,
@@ -267,7 +319,7 @@ object Menu {
     fun openComplexMenu(
         windowStack: WindowStack,
         x: Int, y: Int, nameDesc: NameDesc,
-        options: List<ComplexMenuEntry>
+        options: List<ComplexMenuEntry>,
     ): Window? {
 
         if (options.isEmpty()) return null
@@ -524,7 +576,7 @@ object Menu {
     fun openComplexMenu(
         windowStack: WindowStack,
         x: Float, y: Float,
-        nameDesc: NameDesc, options: List<ComplexMenuEntry>
+        nameDesc: NameDesc, options: List<ComplexMenuEntry>,
     ) = openComplexMenu(windowStack, x.roundToIntOr(), y.roundToIntOr(), nameDesc, options)
 
     fun openMenu(windowStack: WindowStack, options: List<MenuOption>) =
@@ -535,12 +587,12 @@ object Menu {
 
     fun openMenu(
         windowStack: WindowStack,
-        x: Int, y: Int, nameDesc: NameDesc, options: List<MenuOption>, delta: Int = 10
+        x: Int, y: Int, nameDesc: NameDesc, options: List<MenuOption>, delta: Int = 10,
     ): Window? = openMenu(windowStack, x.toFloat(), y.toFloat(), nameDesc, options, delta)
 
     fun openMenu(
         windowStack: WindowStack,
-        x: Float, y: Float, nameDesc: NameDesc, options: List<MenuOption>, delta: Int = 10
+        x: Float, y: Float, nameDesc: NameDesc, options: List<MenuOption>, delta: Int = 10,
     ): Window? = openComplexMenu(
         windowStack, x.roundToIntOr() - delta, y.roundToIntOr() - delta, nameDesc,
         options.map { option -> option.toComplex() })

@@ -14,6 +14,7 @@ import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib
 import me.anno.image.raw.IntImage
 import me.anno.utils.Color.undoPremultiply
+import me.anno.utils.StringStyles.ESC_CHAR
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.types.Booleans.toInt
@@ -21,7 +22,6 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank
-import me.anno.utils.StringStyles.ESC_CHAR
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -65,7 +65,7 @@ abstract class FontImpl<FallbackFonts> {
         fun heightLimitToMaxNumLines(heightLimit: Int, fontSize: Float, relativeLineSpacing: Float): Int {
             if (heightLimit <= 0) return Int.MAX_VALUE
             val effectiveLineHeight = fontSize * relativeLineSpacing
-            return 1 + ((heightLimit - fontSize) / effectiveLineHeight).roundToIntOr()
+            return max((heightLimit / effectiveLineHeight).roundToIntOr(), 1)
         }
     }
 
@@ -105,7 +105,7 @@ abstract class FontImpl<FallbackFonts> {
         portableImages: Boolean,
         callback: Callback<ITexture2D>,
         textColor: Int = -1, // white with full alpha
-        backgroundColor: Int = 255 shl 24 // white with no alpha
+        backgroundColor: Int = 255 shl 24, // white with no alpha
     ) {
         if (text.isEmpty())
             return callback.ok(TextureLib.blackTexture)
@@ -173,7 +173,7 @@ abstract class FontImpl<FallbackFonts> {
         font: Font, portableImages: Boolean,
         callback: Callback<Texture2DArray>,
         textColor: Int = -1, // white with full alpha
-        backgroundColor: Int = 255 shl 24 // white with no alpha
+        backgroundColor: Int = 255 shl 24, // white with no alpha
     ) {
         val widthLimit = GFX.maxTextureSize
         val heightLimit = GFX.maxTextureSize
