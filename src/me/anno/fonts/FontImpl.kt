@@ -65,6 +65,7 @@ abstract class FontImpl<FallbackFonts> {
         fun heightLimitToMaxNumLines(heightLimit: Int, fontSize: Float, relativeLineSpacing: Float): Int {
             if (heightLimit <= 0) return Int.MAX_VALUE
             val effectiveLineHeight = fontSize * relativeLineSpacing
+            // heightLimit = fontSize, relativeLineSpacing = 1.5, must return 1 line
             return max((heightLimit / effectiveLineHeight).roundToIntOr(), 1)
         }
     }

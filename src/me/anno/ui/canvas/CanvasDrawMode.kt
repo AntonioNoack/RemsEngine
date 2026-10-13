@@ -10,5 +10,6 @@ enum class CanvasDrawMode {
     SQUIRCLE,
     ROUNDED_RECT,
     TEXT,
+    MULTI_SDF,
     LINE
 }

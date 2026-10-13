@@ -1,11 +1,10 @@
 package me.anno.jvm
 
 import me.anno.Engine
-import me.anno.cache.Promise
 import me.anno.cache.CacheSection
 import me.anno.cache.IgnoredException
+import me.anno.cache.Promise
 import me.anno.config.DefaultConfig
-import me.anno.engine.EngineBase
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.installer.Installer
 import me.anno.io.Streams.listen
@@ -14,7 +13,6 @@ import me.anno.io.json.generic.JsonReader
 import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.language.Language
 import me.anno.language.spellcheck.Spellchecking
-import me.anno.language.spellcheck.Spellchecking.defaultLanguage
 import me.anno.language.spellcheck.Suggestion
 import me.anno.utils.Color
 import me.anno.utils.OS
@@ -32,7 +30,6 @@ import java.util.Queue
 object SpellcheckingImpl {
 
     private val path = DefaultConfig["spellchecking.path", OS.downloads.getChild("lib/spellchecking")]
-    private val language: Language? get() = EngineBase.instance?.language ?: defaultLanguage
 
     private val queues = HashMap<Language, TaskQueue>()
     private val LOGGER = LogManager.getLogger(Spellchecking::class)
@@ -43,7 +40,7 @@ object SpellcheckingImpl {
 
     fun check(sentence: CharSequence, allowFirstLowercase: Boolean): Promise<List<Suggestion>> {
 
-        val language = language
+        val language = Spellchecking.language
         if (language == null || sentence.isBlank2()) {
             return Promise.empty()
         }
@@ -241,7 +238,7 @@ object SpellcheckingImpl {
 
     private fun processRequest(
         sentence: CharSequence, callback: Promise<List<Suggestion>>,
-        reader: BufferedReader, writer: BufferedWriter
+        reader: BufferedReader, writer: BufferedWriter,
     ) {
 
         writer.write(formatSentence(sentence))

@@ -3,6 +3,8 @@ package me.anno.ui.canvas
 import me.anno.fonts.Font
 import me.anno.fonts.FontImpl.Companion.heightLimitToMaxNumLines
 import me.anno.fonts.FontManager
+import me.anno.fonts.FontStats.subpixelOffsetB
+import me.anno.fonts.FontStats.subpixelOffsetR
 import me.anno.gpu.Clipping
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
@@ -198,6 +200,10 @@ class Canvas {
             shader.v2i("dstOffset", dx, dy)
             shader.v2f("invRenderSize", 1f / fb.width, 1f / fb.height)
             shader.v1f("invAtlasSize", 1f / atlas.size)
+            val (rx, ry) = subpixelOffsetR
+            val (bx, by) = subpixelOffsetB
+            val ss = 0.5f
+            shader.v4f("subpixelOffsets", rx * ss, ry * ss, bx * ss, by * ss)
             shader.m4x4("transform", transform)
 
             val texture = atlas.texture.createdOrNull() ?: TextureLib.whiteTexture
@@ -565,5 +571,17 @@ class Canvas {
         pushColor(nio, CanvasTextDrawHelper.color)
         pushColor(nio, CanvasTextDrawHelper.bgColor)
         pushMode(nio, CanvasDrawMode.TEXT)
+    }
+
+    fun pushMSDFText(bounds: Bounds, x: Int, y: Int, w: Int, h: Int) {
+        if (!overlaps2(x, y, w, h)) return
+
+        val nio = getNioBuffer(extraDepth)
+        pushBounds(nio, x, y, w, h)
+        pushScissor(nio)
+        pushTexBounds(nio, bounds)
+        pushColor(nio, CanvasTextDrawHelper.color)
+        pushColor(nio, CanvasTextDrawHelper.bgColor)
+        pushMode(nio, CanvasDrawMode.MULTI_SDF)
     }
 }

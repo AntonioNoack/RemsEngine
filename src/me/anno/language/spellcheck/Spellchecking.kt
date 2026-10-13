@@ -1,8 +1,8 @@
 package me.anno.language.spellcheck
 
 import me.anno.Engine
-import me.anno.cache.Promise
 import me.anno.cache.DualCacheSection
+import me.anno.cache.Promise
 import me.anno.language.Language
 import me.anno.utils.InternalAPI
 
@@ -11,8 +11,10 @@ object Spellchecking : DualCacheSection<CharSequence, Language, List<Suggestion>
     @InternalAPI
     var checkImpl: ((sentence: CharSequence, allowFirstLowercase: Boolean) -> Promise<List<Suggestion>>)? = null
 
-    // just which language I personally like best
-    var defaultLanguage: Language? = Language.AmericanEnglish
+    /**
+     * which language to use, null = spellchecking disabled
+     * */
+    var language: Language? = Language.AmericanEnglish
 
     fun check(sentence: CharSequence, allowFirstLowercase: Boolean): Promise<List<Suggestion>> {
         if (Engine.shutdown) return Promise.empty() // service isn't running anyway

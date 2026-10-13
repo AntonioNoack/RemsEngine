@@ -23,8 +23,6 @@ import me.anno.input.ShowKeys
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.language.Language
-import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.Panel
@@ -309,8 +307,6 @@ abstract class EngineBase(
     }
 
     open fun isSelected(obj: Any?) = false
-
-    open val language get() = Language.get(Dict["en-US", "lang.spellcheck"])
 
     companion object {
 

@@ -62,7 +62,7 @@ fun main() {
         )
     )*/
     // for my brother
-    Spellchecking.defaultLanguage = Language.French
+    Spellchecking.language = Language.French
     findWords(
         listOf(
             "surveillant",
