@@ -4,6 +4,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.utils.GFXFeatures
 
 object CanvasShader : Shader(
     "CanvasShader",
@@ -33,6 +34,7 @@ object CanvasShader : Shader(
                            gl_Position = matMul(transform, vec4(pos, 0.0, 1.0));
                            
                            bounds = instBounds;
+                           texBounds = instTexBounds;
                            scissor = instScissor - dstOffset.xyxy;
                            fgColor = instFgColor;
                            bgColor = instBgColor;
@@ -40,6 +42,7 @@ object CanvasShader : Shader(
                         }
                     """.trimIndent(), listOf(
         Variable(GLSLType.V4I, "bounds").flat(),
+        Variable(GLSLType.V4I, "texBounds").flat(),
         Variable(GLSLType.V4I, "scissor").flat(),
         Variable(GLSLType.V4F, "fgColor").flat(),
         Variable(GLSLType.V4F, "bgColor").flat(),
@@ -49,7 +52,6 @@ object CanvasShader : Shader(
         Variable(GLSLType.S2D, "atlasTexture"),
         Variable(GLSLType.V4F, "subpixelOffsets"),
         Variable(GLSLType.V4F, "result", VariableMode.OUT),
-        // todo for SDFs, clamp uvi to the given bounds
     ), """
                         float median(float r, float g, float b) {
                             return max(min(r, g), min(max(r, g), b));
@@ -79,9 +81,38 @@ object CanvasShader : Shader(
                                     }
                                     break;
                                 case ${CanvasDrawMode.MULTI_SDF.ordinal}:
+                                    ${
+        // for weak gpus, disable subpixel rendering for multi-sdf
+        // todo if size is <= 1:1, we can just sample directly
+        // todo clamp uvi to the given bounds
+        if (GFXFeatures.hasWeakGPU) {
+            """
                                     vec2 ts = vec2(textureSize(atlasTexture,0));
                                     vec2 uvf = uv * ts + 0.5;
-                                    ivec2 uvi = ivec2(uvf);
+                                    ivec2 uvi = clamp(ivec2(uvf), texBounds.xy, texBounds.zw);
+                                    vec3 px00 = texelFetch(atlasTexture, uvi+ivec2(0,0), 0).rgb;
+                                    vec3 px01 = texelFetch(atlasTexture, uvi+ivec2(0,1), 0).rgb;
+                                    vec3 px10 = texelFetch(atlasTexture, uvi+ivec2(1,0), 0).rgb;
+                                    vec3 px11 = texelFetch(atlasTexture, uvi+ivec2(1,1), 0).rgb;
+                                    vec2 uvG = uvf - vec2(uvi);
+                                    float screenSize = dFdx(uv.x) * ts.x;
+                                    vec3 msdG = mix(
+                                        mix(px00, px01, uvG.y),
+                                        mix(px10, px11, uvG.y),
+                                        uvG.x
+                                    );
+                                    float sdG = median(msdG.r, msdG.g, msdG.b);
+                                    float screenRange = max(2.0 / screenSize, 1.0);
+                                    float screenPxDistance = screenRange * (sd - 0.5);
+                                    float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
+                                    result = mix(bgColor, fgColor, opacity);
+                                    break;
+                                            """.trimIndent()
+        } else {
+            """
+                                    vec2 ts = vec2(textureSize(atlasTexture,0));
+                                    vec2 uvf = uv * ts + 0.5;
+                                    ivec2 uvi = clamp(ivec2(uvf), texBounds.xy, texBounds.zw);
                                     vec3 px00 = texelFetch(atlasTexture, uvi+ivec2(0,0), 0).rgb;
                                     vec3 px01 = texelFetch(atlasTexture, uvi+ivec2(0,1), 0).rgb;
                                     vec3 px10 = texelFetch(atlasTexture, uvi+ivec2(1,0), 0).rgb;
@@ -113,6 +144,9 @@ object CanvasShader : Shader(
                                     vec3 opacity = clamp(screenPxDistance + 0.5, vec3(0.0), vec3(1.0));
                                     result = mix(bgColor, fgColor, opacity.rgbg);
                                     break;
+                                            """.trimIndent()
+        }
+    }
                                 default:
                                     float c = float(int(dot(gl_FragCoord.xy,vec2(1.0))) & 4) * 0.333;
                                     result = vec4(c,0.0,c,1.0);

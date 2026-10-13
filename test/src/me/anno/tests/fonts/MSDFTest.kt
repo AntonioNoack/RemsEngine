@@ -1,7 +1,7 @@
 package me.anno.tests.fonts
 
 import me.anno.gpu.texture.TextureCache
-import me.anno.input.Input
+import me.anno.ui.canvas.Bounds
 import me.anno.ui.canvas.CanvasAtlasCache.getBounds
 import me.anno.ui.canvas.CanvasTextDrawHelper
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
@@ -15,13 +15,21 @@ fun main() {
             val bounds = getBounds(canvas, texture)!!
             val x = p.x
             val y = p.y
-            val s = if (Input.isShiftDown) 2 else 1
-            val k = if (Input.isControlDown) 1 else 2
-            val w = texture.width * s / k
-            val h = texture.height * s / k
+            val s = 3//if (Input.isShiftDown) 2 else 1
+            val k = 1//if (Input.isControlDown) 1 else 2
+            val w = 26 * s / k
+            val h = 36 * s / k
             CanvasTextDrawHelper.color = -1
             CanvasTextDrawHelper.bgColor = (-1) shl 24
-            canvas.pushMSDFText(bounds, x, y, w, h)
+            // todo 26x36 is the first thing to draw
+            canvas.pushMSDFText(
+                Bounds(
+                    bounds.x0,
+                    (bounds.y1 - 36).toShort(),
+                    (bounds.x0 + 26).toShort(),
+                    bounds.y1,
+                ), x, y, w, h
+            )
         }
     }
 }
