@@ -16,6 +16,7 @@ object GlyphStyle {
 
     private const val QUANT_MASK = (3 shl 24).inv()
 
+    // should be the same as for Java AWT (bold / italic)
     const val BOLD = 1
     const val ITALIC = 2
     const val STRIKETHROUGH = 4

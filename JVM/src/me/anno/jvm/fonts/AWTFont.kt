@@ -6,9 +6,11 @@ import me.anno.fonts.FontImpl
 import me.anno.fonts.GlyphStyle
 import me.anno.image.raw.IntImage
 import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
+import me.anno.jvm.fonts.FontManagerImpl.DEFAULT_FONT_SIZE
 import me.anno.utils.Color.g
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
@@ -19,43 +21,47 @@ import kotlin.math.max
 
 object AWTFont : FontImpl<List<FontMatrix>>() {
 
-    private val matrixCache = HashMap<Font, FontMatrix>()
-    private val fallbackCache = HashMap<Font, List<FontMatrix>>()
+    private val matrixCache = HashMap<FontKey, FontMatrix>()
+    private val fallbackCache = HashMap<FontKey, List<FontMatrix>>()
+
+    fun getScale(font: Font): Float = font.size / DEFAULT_FONT_SIZE
 
     override fun getBaselineY(font: Font): Float {
-        return FontManagerImpl.getAWTFont(font).baselineY
+        return FontManagerImpl.getAWTFont(font).baselineY * getScale(font)
     }
 
     override fun getFallbackFonts(font: Font): List<FontMatrix> {
+        val awtStyle = font.isBold.toInt(GlyphStyle.BOLD) or
+                font.isItalic.toInt(GlyphStyle.ITALIC)
+        val key = FontKey(font.name, awtStyle)
         return synchronized(fallbackCache) {
-            fallbackCache.getOrPut(font) {
+            fallbackCache.getOrPut(key) {
                 val fallbackNames = fallbackFontList
                 val result = ArrayList<FontMatrix>(1 + fallbackNames.size)
-                result.add(createMatrix(font))
+                result.add(createMatrix(key))
                 for (i in fallbackNames.indices) {
                     val fallbackName = fallbackNames[i]
-                    result.add(createMatrix(font.withName(fallbackName)))
+                    result.add(createMatrix(FontKey(fallbackName, awtStyle)))
                 }
                 result
             }
         }
     }
 
-    private fun createMatrix(font: Font): FontMatrix {
+    private fun createMatrix(font: FontKey): FontMatrix {
+        assertEquals(java.awt.Font.BOLD, GlyphStyle.BOLD)
+        assertEquals(java.awt.Font.ITALIC, GlyphStyle.ITALIC)
+        assertEquals(1, GlyphStyle.BOLD)
+        assertEquals(2, GlyphStyle.ITALIC)
         return synchronized(matrixCache) {
             matrixCache.getOrPut(font) {
-                List(4) { flags ->
-                    val isBold = flags.hasFlag(GlyphStyle.BOLD)
-                    val isItalic = flags.hasFlag(GlyphStyle.ITALIC)
-                    val subFont = font.withBold(isBold).withItalic(isItalic)
-                    FontManagerImpl.getAWTFont(subFont)
-                }
+                List(4) { style -> FontManagerImpl.getAWTFont(Font(font.name, style)) }
             }
         }
     }
 
     override fun getLineHeight(font: Font): Float {
-        return FontManagerImpl.getAWTFont(font).lineHeight
+        return FontManagerImpl.getAWTFont(font).lineHeight * getScale(font)
     }
 
     override fun getTextLength(font: Font, codepoint: Int): Int {
@@ -93,8 +99,8 @@ object AWTFont : FontImpl<List<FontMatrix>>() {
         gfx.color = Color.WHITE
 
         val text = if (codepoint in 0 until 128) asciiStrings[codepoint] else codepoint.joinChars()
-        gfx.font = fontData.awtFont
-        gfx.drawString(text, 0f, fontData.baselineY)
+        gfx.font = fontData.awtFont.deriveFont(fontIndex.and(3), font.size)
+        gfx.drawString(text, 0f, fontData.baselineY * getScale(font))
         gfx.dispose()
 
         for (yi in 0 until tmp.height) {
