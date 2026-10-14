@@ -5,7 +5,6 @@ import me.anno.fonts.msdf.MSDFFont
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.ui.UIColors
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.OS.documents

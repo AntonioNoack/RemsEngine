@@ -1,5 +1,6 @@
 package me.anno.jvm.fonts
 
+import speiger.primitivecollections.LongToDoubleHashMap
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
@@ -20,4 +21,7 @@ class FontData(val awtFont: Font) {
         baselineY = exampleLayout.ascent
         lineHeight = exampleLayout.ascent + exampleLayout.descent
     }
+
+    val textLengthCache = LongToDoubleHashMap(0.0)
+
 }

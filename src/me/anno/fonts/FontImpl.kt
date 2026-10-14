@@ -1,6 +1,7 @@
 package me.anno.fonts
 
-import me.anno.fonts.CharacterOffsetCache.Companion.getOffsetCache
+import me.anno.fonts.CharacterOffsets.getOffset
+import me.anno.fonts.CharacterOffsets.getSpaceWidth
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.IEmojiCache.Companion.emojiPadding
 import me.anno.gpu.GFX
@@ -179,8 +180,7 @@ abstract class FontImpl<FallbackFonts> {
         val widthLimit = GFX.maxTextureSize
         val heightLimit = GFX.maxTextureSize
 
-        val alignment = getOffsetCache(font)
-        val size = alignment.getOffset('w'.code, 'w'.code)
+        val size = getOffset(font, this, 'w'.code, 'w'.code)
         val width = min(widthLimit, size + 1)
         val height = min(heightLimit, ceil(getLineHeight(font)).toIntOr())
 
@@ -273,13 +273,12 @@ abstract class FontImpl<FallbackFonts> {
         maxNumLines: Int,
     ) {
 
-        val offsetCache = getOffsetCache(font)
         val fonts = getFallbackFonts(font)
 
         val widthLimit = relativeWidthLimit * font.size
         val hasAutomaticLineBreak = widthLimit > 0f
 
-        val spaceWidth = offsetCache.spaceWidth
+        val spaceWidth = getSpaceWidth(font, this)
         val extraSpacing = (font.relativeCharSpacing * spaceWidth).toIntOr()
         val tabSize = ((spaceWidth + extraSpacing) * font.relativeTabSize).toIntOr()
         val charSpacing = (font.size * font.relativeCharSpacing).toIntOr()
@@ -307,7 +306,7 @@ abstract class FontImpl<FallbackFonts> {
             for (index in wordStartI until wordEndI) {
                 val currCodepoint = codepoints[index]
                 val nextCodepoint = if (index + 1 < wordEndI) codepoints[index + 1] else ' '.code
-                val deltaX = offsetCache.getOffset(currCodepoint, nextCodepoint)
+                val deltaX = getOffset(font, this, currCodepoint, nextCodepoint)
                 val nextX = currentX + deltaX
                 if (!currCodepoint.isBlank()) {
                     val style = if (styles != null) styles[index] else 0L
@@ -392,7 +391,7 @@ abstract class FontImpl<FallbackFonts> {
 
                         wordEndI++
 
-                        wordX += extraSpacing + offsetCache.getOffset(currCodepoint, nextCodepoint)
+                        wordX += extraSpacing + getOffset(font, this, currCodepoint, nextCodepoint)
                         if (hasAutomaticLineBreak && wordX > widthLimit) {
                             fitsOnThisLine = false
                         } else {

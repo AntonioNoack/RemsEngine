@@ -5,6 +5,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.jvm.fonts.AWTFont.getScale
 import me.anno.maths.Maths
+import me.anno.maths.Packing.pack64
 import me.anno.utils.Clock
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Threads.runOnNonGFXThread
@@ -70,17 +71,21 @@ object FontManagerImpl {
 
     fun getTextLength1(font: me.anno.fonts.Font, codepoint: Int): Int {
         val awtFont = getAWTFont(font)
-        val layout = TextLayout(codepoint.joinChars(), awtFont.awtFont, awtFont.renderContext)
-        val length = layout.bounds.maxX * getScale(font)
-        return length.roundToIntOr()
+        val baseValue = awtFont.textLengthCache.getOrPut(codepoint.toLong()) {
+            val layout = TextLayout(codepoint.joinChars(), awtFont.awtFont, awtFont.renderContext)
+            layout.bounds.maxX
+        }
+        return (baseValue * getScale(font)).roundToIntOr()
     }
 
     fun getTextLength2(font: me.anno.fonts.Font, codepointA: Int, codepointB: Int): Int {
         val awtFont = getAWTFont(font)
-        val text = listOf(codepointA, codepointB).joinChars().toString()
-        val layout = TextLayout(text, awtFont.awtFont, awtFont.renderContext)
-        val length = layout.bounds.maxX * getScale(font)
-        return length.roundToIntOr()
+        val baseValue = awtFont.textLengthCache.getOrPut(pack64(codepointA, codepointB)) {
+            val text = listOf(codepointA, codepointB).joinChars().toString()
+            val layout = TextLayout(text, awtFont.awtFont, awtFont.renderContext)
+            layout.bounds.maxX
+        }
+        return (baseValue * getScale(font)).roundToIntOr()
     }
 
     private fun getDefaultFont(name: String): FontData? {

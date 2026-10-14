@@ -157,24 +157,22 @@ class MSDFFont(val image: FileReference) : FontImpl<MSDFFont>() {
     }
 
     override fun getTextLength(font: Font, codepoint: Int): Int {
-        return getTextLengthF(font, codepoint).roundToIntOr()
+        return (getTextLengthF(codepoint) * font.size).roundToIntOr()
     }
 
-    fun getTextLengthF(font: Font, codepoint: Int): Float {
+    fun getTextLengthF(codepoint: Int): Float {
         val index = getIndex(codepoint)
-        if (index < 0) return (0.35f * font.size)
+        if (index < 0) return 0.35f
 
-        val left = getPlaneLeft(index)
-        val right = getPlaneRight(index)
-        return right - left
+        return getAdvance(index)
     }
 
     override fun getTextLength(font: Font, codepointA: Int, codepointB: Int): Int {
         val kerning = getKerning(codepointA, codepointB)
-        val lenA = getTextLengthF(font, codepointA)
-        val lenB = getTextLengthF(font, codepointB)
+        val lenA = getTextLengthF(codepointA)
+        val lenB = getTextLengthF(codepointB)
         val length = lenA + kerning + lenB
-        return length.roundToIntOr()
+        return (length * font.size).roundToIntOr()
     }
 
     override fun drawGlyph(
