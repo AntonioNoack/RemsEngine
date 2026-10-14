@@ -1,35 +1,43 @@
 package me.anno.tests.fonts
 
-import me.anno.gpu.texture.TextureCache
-import me.anno.ui.canvas.Bounds
-import me.anno.ui.canvas.CanvasAtlasCache.getBounds
-import me.anno.ui.canvas.CanvasTextDrawHelper
+import me.anno.fonts.Font
+import me.anno.fonts.msdf.MSDFFont
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.input.Input
+import me.anno.input.Key
+import me.anno.ui.UIColors
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.OS.documents
 
 fun main() {
-    testDrawing("MultiSDFText") { p, canvas ->
-        val texture =
-            TextureCache[documents.getChild("Satiplanner/msdf-atlas-gen-1.4-win64/msdf-atlas-gen/VerdanaMSDF.png")].value
-        if (texture != null && texture.isCreated()) {
-            val bounds = getBounds(canvas, texture)!!
-            val x = p.x
-            val y = p.y
-            val s = 3//if (Input.isShiftDown) 2 else 1
-            val k = 1//if (Input.isControlDown) 1 else 2
-            val w = 26 * s / k
-            val h = 36 * s / k
-            CanvasTextDrawHelper.color = -1
-            CanvasTextDrawHelper.bgColor = (-1) shl 24
-            // todo 26x36 is the first thing to draw
-            canvas.pushMSDFText(
-                Bounds(
-                    bounds.x0,
-                    (bounds.y1 - 36).toShort(),
-                    (bounds.x0 + 26).toShort(),
-                    bounds.y1,
-                ), x, y, w, h
-            )
+
+    val folder = documents.getChild("Satiplanner/msdf-atlas-gen-1.4")
+    val texName = folder.getChild("VerdanaMSDF.png")
+
+    val fontImpl = MSDFFont(texName)
+    folder.getChild("VerdanaMSDF.json")
+        .inputStream { input, exception ->
+            exception?.printStackTrace()
+            input?.use { fontImpl.read(input) }
         }
+
+    var font = Font("Verdana", 20f)
+    testDrawing("MultiSDFText") { p, canvas ->
+        if (Input.wasKeyPressed(Key.KEY_LEFT_SHIFT)) font = font.withSize(font.size * 0.7f)
+        if (Input.wasKeyPressed(Key.KEY_LEFT_CONTROL)) font = font.withSize(font.size / 0.7f)
+
+        val size = canvas.drawText(
+            p.x, p.y, 1, font, fontImpl, "Hello Wgrld!",
+            -1, p.background.color,
+            -1, -1,
+            AxisAlignment.MIN, AxisAlignment.MIN, 0
+        )
+        canvas.drawText(
+            p.x + getSizeX(size), p.y, 1, font, "Hello Wgrld!",
+            -1, p.background.color,
+            -1, -1,
+            AxisAlignment.MIN, AxisAlignment.MIN, 0
+        )
     }
 }

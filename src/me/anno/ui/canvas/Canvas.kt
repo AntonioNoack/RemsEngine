@@ -1,6 +1,7 @@
 package me.anno.ui.canvas
 
 import me.anno.fonts.Font
+import me.anno.fonts.FontImpl
 import me.anno.fonts.FontImpl.Companion.heightLimitToMaxNumLines
 import me.anno.fonts.FontManager
 import me.anno.fonts.FontStats.subpixelOffsetB
@@ -17,7 +18,6 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.DefaultFonts.monospaceFont
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawRounded
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.getOffset
 import me.anno.gpu.drawing.DrawTexts.sizeLayoutHelper
 import me.anno.gpu.drawing.DrawTextures
@@ -202,8 +202,7 @@ class Canvas {
             shader.v1f("invAtlasSize", 1f / atlas.size)
             val (rx, ry) = subpixelOffsetR
             val (bx, by) = subpixelOffsetB
-            val ss = 0.5f
-            shader.v4f("subpixelOffsets", rx * ss, ry * ss, bx * ss, by * ss)
+            shader.v4f("subpixelOffsets", rx, ry, bx, by)
             shader.m4x4("transform", transform)
 
             val texture = atlas.texture.createdOrNull() ?: TextureLib.whiteTexture
@@ -265,6 +264,17 @@ class Canvas {
         nio.putShort(bounds.y0)
         nio.putShort(bounds.x1)
         nio.putShort(bounds.y1)
+    }
+
+    private fun pushTexBounds(
+        nio: ByteBuffer,
+        x0: Short, y0: Short, x1: Short, y1: Short,
+    ) {
+        // texBounds
+        nio.putShort(x0)
+        nio.putShort(y0)
+        nio.putShort(x1)
+        nio.putShort(y1)
     }
 
     private fun skipTexBounds(nio: ByteBuffer) {
@@ -476,22 +486,26 @@ class Canvas {
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN,
         extraDepth: Int = TEXT_ORDER,
-    ): Int {
+    ): Int = drawText(
+        x, y, padding, font, fontImpl = FontManager.getFontImpl(),
+        text, textColor, backgroundColor,
+        widthLimit, heightLimit, alignX, alignY,
+        extraDepth
+    )
 
-        // compute-shader fallback for true blending
-        if (DrawTexts.enableTrueBlending && DrawTexts.canUseComputeShader()) {
-            // todo why is this not used for 'tris, inst, ...'??
-            finish()
-            return DrawTexts.drawText(
-                x, y, padding, font, text,
-                textColor, backgroundColor, widthLimit, heightLimit, alignX, alignY
-            )
-        }
+    fun drawText(
+        x: Int, y: Int, padding: Int,
+        font: Font, fontImpl: FontImpl<*>, text: CharSequence,
+        textColor: Int, backgroundColor: Int,
+        widthLimit: Int, heightLimit: Int,
+        alignX: AxisAlignment = AxisAlignment.MIN,
+        alignY: AxisAlignment = AxisAlignment.MIN,
+        extraDepth: Int = TEXT_ORDER,
+    ): Int {
 
         this.extraDepth = extraDepth
 
         val sizeHelper = sizeLayoutHelper
-        val fontImpl = FontManager.getFontImpl()
         val relativeWidthLimit = widthLimit / font.size
         val maxNumLines =
             if (heightLimit < 0) Int.MAX_VALUE
@@ -508,6 +522,7 @@ class Canvas {
 
         val drawHelper = CanvasTextDrawHelper
         drawHelper.font = font
+        drawHelper.fontImpl = fontImpl
         drawHelper.canvas = this
         drawHelper.lineHeight = font.lineSpacingI
         drawHelper.x = xi
@@ -573,13 +588,17 @@ class Canvas {
         pushMode(nio, CanvasDrawMode.TEXT)
     }
 
-    fun pushMSDFText(bounds: Bounds, x: Int, y: Int, w: Int, h: Int) {
+    fun pushMSDFText(
+        x0: Short, y0: Short,
+        x1: Short, y1: Short,
+        x: Int, y: Int, w: Int, h: Int,
+    ) {
         if (!overlaps2(x, y, w, h)) return
 
         val nio = getNioBuffer(extraDepth)
         pushBounds(nio, x, y, w, h)
         pushScissor(nio)
-        pushTexBounds(nio, bounds)
+        pushTexBounds(nio, x0, y0, x1, y1)
         pushColor(nio, CanvasTextDrawHelper.color)
         pushColor(nio, CanvasTextDrawHelper.bgColor)
         pushMode(nio, CanvasDrawMode.MULTI_SDF)
