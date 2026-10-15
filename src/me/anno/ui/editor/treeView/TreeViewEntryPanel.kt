@@ -240,8 +240,6 @@ class TreeViewEntryPanel<V : Any>(
                 val e = getElement()
                 askName(
                     windowStack,
-                    x.toInt(),
-                    y.toInt(),
                     NameDesc("Name"),
                     treeView.getName(e),
                     getColor = { -1 },

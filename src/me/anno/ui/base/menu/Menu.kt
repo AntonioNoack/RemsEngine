@@ -25,6 +25,9 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.canvas.Canvas
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
+import me.anno.ui.input.FloatInput
+import me.anno.ui.input.IntInput
+import me.anno.ui.input.NumberType
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Color.mixARGB
@@ -59,6 +62,8 @@ object Menu {
     // like in Android
     val shortDurationMillis get() = 2_000L
     val longDurationMillis get() = 3_500L
+
+    val menuStyle get() = style.getChild("menu")
 
     /**
      * show an Android-toast-like message to the user
@@ -123,27 +128,8 @@ object Menu {
         actionName: NameDesc,
         getColor: (String) -> Int,
         callback: (String) -> Unit,
-    ) = askName(
-        windowStack,
-        windowStack.mouseXi - paddingX,
-        windowStack.mouseYi - paddingY,
-        nameDesc, value0, actionName, getColor, callback
-    )
-
-    /**
-     * ask the user for a name;
-     * names can be given tints/colors to indicate invalidate or incomplete names
-     * */
-    fun askName(
-        windowStack: WindowStack,
-        x: Int, y: Int,
-        nameDesc: NameDesc,
-        value0: String,
-        actionName: NameDesc,
-        getColor: (String) -> Int,
-        callback: (String) -> Unit,
     ): Window = askName(
-        windowStack, x, y, nameDesc, value0, actionName,
+        windowStack, nameDesc, value0, actionName,
         enableSpellcheck = true, getColor, callback
     )
 
@@ -153,7 +139,6 @@ object Menu {
      * */
     fun askName(
         windowStack: WindowStack,
-        x: Int, y: Int,
         nameDesc: NameDesc,
         value0: String,
         actionName: NameDesc,
@@ -161,10 +146,7 @@ object Menu {
         getColor: (String) -> Int,
         callback: (String) -> Unit,
     ): Window {
-
-        val style = style.getChild("menu")
-
-        val textInput = PureTextInput(style)
+        val textInput = PureTextInput(menuStyle)
         textInput.setText(value0, false)
         textInput.enableSpellcheck = enableSpellcheck
         textInput.placeholder = nameDesc.name
@@ -178,26 +160,7 @@ object Menu {
             textInput.textColor = getColor(it)
         }
 
-        val submit = TextButton(NameDesc(actionName.name), style)
-        submit.weight = 1f
-        submit.tooltip = actionName.desc
-        submit.addLeftClickListener {
-            callback(textInput.value)
-            close(textInput)
-        }
-
-        val cancel = TextButton(DefaultNames.cancel, style)
-        cancel.weight = 1f
-        cancel.addLeftClickListener { close(textInput) }
-
-        val buttons = PanelListX(style)
-        buttons += cancel
-        buttons += submit
-
-        val window = openMenuByPanels(windowStack, x, y, nameDesc, listOf(textInput, buttons))!!
-        textInput.requestFocus()
-        window.drawDirectly = true
-        return window
+        return openMenuByInput(windowStack, nameDesc, actionName, textInput) { callback(textInput.value) }
     }
 
 
@@ -211,27 +174,80 @@ object Menu {
         value0: String,
         actionName: NameDesc,
         callback: (String) -> Unit,
-    ) = askNumber(
+    ) = askName(
         windowStack,
-        windowStack.mouseXi - paddingX,
-        windowStack.mouseYi - paddingY,
-        nameDesc, value0, actionName, callback
+        nameDesc, value0, actionName, enableSpellcheck = false,
+        { -1 }, callback
     )
 
-    /**
-     * ask the user for a number
-     * */
-    fun askNumber(
+    @Suppress("unused")
+    fun askFloat(
         windowStack: WindowStack,
-        x: Int, y: Int,
         nameDesc: NameDesc,
-        value0: String,
+        value0: Double,
         actionName: NameDesc,
-        callback: (String) -> Unit,
-    ): Window = askName(
-        windowStack, x, y, nameDesc, value0, actionName,
-        enableSpellcheck = false, getColor = { -1 }, callback
-    )
+        type: NumberType,
+        callback: (Double) -> Unit,
+    ): Window {
+        val input = object : FloatInput(NameDesc.EMPTY, "", value0, type, menuStyle) {
+            override fun onEnterKey(x: Float, y: Float) {
+                callback(value)
+                close(this)
+            }
+        }
+        input.tooltip = nameDesc.desc
+
+        return openMenuByInput(windowStack, nameDesc, actionName, input) { callback(input.value) }
+    }
+
+    @Suppress("unused")
+    fun askInt(
+        windowStack: WindowStack,
+        nameDesc: NameDesc,
+        value0: Long,
+        actionName: NameDesc,
+        type: NumberType,
+        callback: (Long) -> Unit,
+    ): Window {
+        val input = object : IntInput(NameDesc.EMPTY, "", value0, type, menuStyle) {
+            override fun onEnterKey(x: Float, y: Float) {
+                callback(value)
+                close(this)
+            }
+        }
+        input.tooltip = nameDesc.desc
+
+        return openMenuByInput(windowStack, nameDesc, actionName, input) { callback(input.value) }
+    }
+
+    fun openMenuByInput(
+        windowStack: WindowStack,
+        nameDesc: NameDesc,
+        actionName: NameDesc,
+        inputPanel: Panel,
+        callback: () -> Unit,
+    ): Window {
+        val submit = TextButton(NameDesc(actionName.name), style)
+        submit.weight = 1f
+        submit.tooltip = actionName.desc
+        submit.addLeftClickListener {
+            callback()
+            close(it)
+        }
+
+        val cancel = TextButton(DefaultNames.cancel, style)
+        cancel.weight = 1f
+        cancel.addLeftClickListener(::close)
+
+        val buttons = PanelListX(style)
+        buttons += cancel
+        buttons += submit
+
+        val window = openMenuByPanels(windowStack, nameDesc, listOf(inputPanel, buttons))!!
+        inputPanel.requestFocus()
+        window.drawDirectly = true
+        return window
+    }
 
     /**
      * ask the user to rename a file; shows green/yellow/red tint depending on
@@ -239,32 +255,13 @@ object Menu {
      * */
     fun askRename(
         windowStack: WindowStack,
-        nameDesc: NameDesc,
-        value0: String,
-        actionName: NameDesc,
-        folder: FileReference,
-        callback: (FileReference) -> Unit,
-    ) = askRename(
-        windowStack,
-        windowStack.mouseXi - paddingX,
-        windowStack.mouseYi - paddingY,
-        nameDesc, value0, actionName, folder, callback
-    )
-
-    /**
-     * ask the user to rename a file; shows green/yellow/red tint depending on
-     * whether the new name is valid and a file with that name already exists
-     * */
-    fun askRename(
-        windowStack: WindowStack,
-        x: Int, y: Int,
         nameDesc: NameDesc,
         value0: String,
         actionName: NameDesc,
         folder: FileReference,
         callback: (FileReference) -> Unit,
     ): Window {
-        return askName(windowStack, x, y, nameDesc, value0, actionName, { name ->
+        return askName(windowStack, nameDesc, value0, actionName, { name ->
             val validName = name.toAllowedFilename()
             if (validName != name) {
                 0xff0000
@@ -338,7 +335,7 @@ object Menu {
             }
         } else options
 
-        val style = style.getChild("menu")
+        val style = menuStyle
 
         val list = ArrayList<Panel>()
         val keyListeners = ExtraKeyListeners()
@@ -472,7 +469,7 @@ object Menu {
 
         if (panels.isEmpty()) return null
 
-        val style = style.getChild("menu")
+        val style = menuStyle
         val list = PanelListY(style)
         val container = MenuScrollPanel(list, extraKeyListeners)
 

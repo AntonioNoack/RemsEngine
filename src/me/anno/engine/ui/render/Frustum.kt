@@ -591,7 +591,7 @@ class Frustum {
             val y = if ((bits and 2) != 0) minY else maxY
             val z = if ((bits and 4) != 0) minZ else maxZ
             // outside
-            inside = inside and (pdx * x + pdy * y + pdz * z + pdw <= 0.0)
+            inside = inside and !(pdx * x + pdy * y + pdz * z + pdw > 0.0) // allow NaN, just in case
         }
         return inside
     }
@@ -619,7 +619,7 @@ class Frustum {
             val y = if ((bits and 2) != 0) minY else maxY
             val z = if ((bits and 4) != 0) minZ else maxZ
             // outside
-            inside = inside and (pdx * x + pdy * y + pdz * z + pdw < 0f)
+            inside = inside and !(pdx * x + pdy * y + pdz * z + pdw > 0f) // allow NaN, just in case
         }
         return inside
     }

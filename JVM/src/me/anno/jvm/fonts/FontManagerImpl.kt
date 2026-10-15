@@ -71,19 +71,25 @@ object FontManagerImpl {
 
     fun getTextLength1(font: me.anno.fonts.Font, codepoint: Int): Int {
         val awtFont = getAWTFont(font)
-        val baseValue = awtFont.textLengthCache.getOrPut(codepoint.toLong()) {
-            val layout = TextLayout(codepoint.joinChars(), awtFont.awtFont, awtFont.renderContext)
-            layout.bounds.maxX
+        val cache = awtFont.textLengthCache
+        val baseValue = synchronized(cache) {
+            cache.getOrPut(codepoint.toLong()) {
+                val layout = TextLayout(codepoint.joinChars(), awtFont.awtFont, awtFont.renderContext)
+                layout.bounds.maxX
+            }
         }
         return (baseValue * getScale(font)).roundToIntOr()
     }
 
     fun getTextLength2(font: me.anno.fonts.Font, codepointA: Int, codepointB: Int): Int {
         val awtFont = getAWTFont(font)
-        val baseValue = awtFont.textLengthCache.getOrPut(pack64(codepointA, codepointB)) {
-            val text = listOf(codepointA, codepointB).joinChars().toString()
-            val layout = TextLayout(text, awtFont.awtFont, awtFont.renderContext)
-            layout.bounds.maxX
+        val cache = awtFont.textLengthCache
+        val baseValue = synchronized(cache) {
+            cache.getOrPut(pack64(codepointA, codepointB)) {
+                val text = listOf(codepointA, codepointB).joinChars().toString()
+                val layout = TextLayout(text, awtFont.awtFont, awtFont.renderContext)
+                layout.bounds.maxX
+            }
         }
         return (baseValue * getScale(font)).roundToIntOr()
     }

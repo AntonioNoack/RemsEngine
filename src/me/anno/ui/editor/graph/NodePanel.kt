@@ -568,7 +568,7 @@ class NodePanel(
             abs(xi * 2 - (this.x * 2 + this.width)) < max(titleWidth, titleY1 - titleY0)
         ) {
             Menu.askName(
-                windowStack, xi, yi, NameDesc("Set Node Name"), node.name, DefaultNames.ok,
+                windowStack, NameDesc("Set Node Name"), node.name, DefaultNames.ok,
                 { textColor }, { newName -> node.name = newName })
         } else {
             gp.target.set(node.position.x, node.position.y)
