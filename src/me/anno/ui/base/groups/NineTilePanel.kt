@@ -3,8 +3,8 @@ package me.anno.ui.base.groups
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.Style
+import me.anno.ui.base.components.AxisAlignment
 import kotlin.math.max
 
 /**
@@ -21,17 +21,16 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
 
     override fun remove(child: Panel) {
         children.remove(child)
+        child.parent = null
     }
 
     fun add(panel: Panel) {
         children.add(panel)
-        panel.uiParent?.remove(panel)
         panel.parent = this
     }
 
     fun add(index: Int, panel: Panel) {
         children.add(index, panel)
-        panel.uiParent?.remove(panel)
         panel.parent = this
     }
 

@@ -13,6 +13,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.canvas.Canvas
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.cos
@@ -120,19 +121,22 @@ open class ProgressBar(
         val yt = y + (h - monospaceFont.lineHeightI).shr(1)
         if (x1 > x) canvas.clip2(x, y, x1, y + h) {
             canvas.drawText(
-                xt, yt, padding, monospaceFont, text, rightColor, leftColor,
+                xt, yt, padding, monospaceFont, text,
+                rightColor, leftColor.withAlpha(0),
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
         if (x2 > x1) canvas.clip2(x1, y, x2, y + h) {
             canvas.drawText(
-                xt, yt, padding, monospaceFont, text, leftColor, rightColor,
+                xt, yt, padding, monospaceFont, text,
+                leftColor, rightColor.withAlpha(0),
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
         if (x3 > x2) canvas.clip2(x2, y, x3, y + h) {
             canvas.drawText(
-                xt, yt, padding, monospaceFont, text, rightColor, leftColor,
+                xt, yt, padding, monospaceFont, text,
+                rightColor, leftColor.withAlpha(0),
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
@@ -160,9 +164,8 @@ open class ProgressBar(
             min(canvas.y1, y + h)
         ) {
             canvas.drawText(
-                xt, yt, padding,
-                monospaceFont, text,
-                rightColor, leftColor,
+                xt, yt, padding, monospaceFont, text,
+                rightColor, leftColor.withAlpha(0),
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }
@@ -173,9 +176,8 @@ open class ProgressBar(
             min(canvas.y1, y + h)
         ) {
             canvas.drawText(
-                xt, yt, padding,
-                monospaceFont, text,
-                leftColor, rightColor,
+                xt, yt, padding, monospaceFont, text,
+                leftColor, rightColor.withAlpha(0),
                 AxisAlignment.CENTER, AxisAlignment.MIN
             )
         }

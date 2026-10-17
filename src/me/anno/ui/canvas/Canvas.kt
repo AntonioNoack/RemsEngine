@@ -241,6 +241,10 @@ class Canvas {
         return clamp(this, -0x8000, 0x7fff).toShort()
     }
 
+    fun isInvisible(x: Int, y: Int, width: Int, height: Int): Boolean {
+        return x >= x1 || y >= y1 || x + width <= x0 || y + height <= y0 || width < 1 || height < 1
+    }
+
     private fun pushBounds(nio: ByteBuffer, x: Int, y: Int, width: Int, height: Int) {
         nio.putShort(x.clampToShort())
         nio.putShort(y.clampToShort())
@@ -310,6 +314,8 @@ class Canvas {
         bounds: Bounds, ignoreAlpha: Boolean, tint: Int,
         extraDepth: Int,
     ) {
+        if (isInvisible(x, y, w, h)) return
+
         val nio = getNioBuffer(extraDepth)
         val mode = if (ignoreAlpha) CanvasDrawMode.TEXTURE_NO_ALPHA else CanvasDrawMode.TEXTURE
         pushBounds(nio, x, y, w, h)
@@ -387,7 +393,7 @@ class Canvas {
         x: Int, y: Int, w: Int, h: Int, color: Int,
         extraDepth: Int = RECT_ORDER,
     ) {
-        if (!overlaps2(x, y, w, h) || color.a() == 0) return // invisible
+        if (isInvisible(x, y, w, h) || color.a() == 0) return // invisible
 
         val nio = getNioBuffer(extraDepth)
         pushBounds(nio, x, y, w, h)
@@ -577,7 +583,7 @@ class Canvas {
     private var extraDepth = 0
 
     fun pushText(bounds: Bounds, x: Int, y: Int, w: Int, h: Int) {
-        if (!overlaps2(x, y, w, h)) return
+        if (isInvisible(x, y, w, h)) return
 
         val nio = getNioBuffer(extraDepth)
         pushBounds(nio, x, y, w, h)
@@ -593,7 +599,7 @@ class Canvas {
         x1: Short, y1: Short,
         x: Int, y: Int, w: Int, h: Int,
     ) {
-        if (!overlaps2(x, y, w, h)) return
+        if (isInvisible(x, y, w, h)) return
 
         val nio = getNioBuffer(extraDepth)
         pushBounds(nio, x, y, w, h)
