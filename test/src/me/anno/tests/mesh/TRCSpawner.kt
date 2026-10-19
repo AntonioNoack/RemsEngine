@@ -9,6 +9,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.mesh.Shapes
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.add
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -32,24 +33,28 @@ fun main() {
     }
     val mesh = Shapes.flatCube.front
     val spawner = object : MeshSpawner() {
+
         override fun forEachMesh(pipeline: Pipeline?, callback: (IMesh, MaterialBase?, Transform) -> Boolean) {
             for (tr in transforms) {
                 if (callback(mesh, null, tr)) break
             }
         }
 
-        override fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, MaterialBase?) -> FloatArrayList): Boolean {
-            return if (Input.isShiftDown) {
-                val data = callback(mesh, null)
-                data.ensureExtra(transforms.size * 8)
-                for (tr in transforms) {
-                    data.add(tr.localPosition)
-                    data.add(1f)
-                    data.add(tr.localRotation)
-                }
-                true
-            } else false
+        override fun forEachMeshGroupTRC(
+            pipeline: Pipeline,
+            callback: (IMesh, MaterialBase?) -> FloatArrayList,
+        ): Boolean {
+            val data = callback(mesh, null)
+            data.ensureExtra(transforms.size * 8)
+            for (i in transforms.indices) {
+                val tr = transforms[i]
+                val color = (0x10101 * i * 2).withAlpha(255)
+                data.add(tr.localPosition)
+                data.add(Float.fromBits(color))
+                data.add(tr.localRotation)
+            }
+            return true
         }
     }
-    testSceneWithUI("TRSSpawner", spawner)
+    testSceneWithUI("TRCSpawner", spawner)
 }

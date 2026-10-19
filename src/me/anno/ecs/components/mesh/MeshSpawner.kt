@@ -214,16 +214,6 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * iterates over each mesh group, which is actively visible;
      * if this is implemented, return true; and forEachMeshGroup just will be a fallback;
      *
-     * each element must be added as position (translation; x,y,z), scale (1d), rotation (quaternion; x,y,z,w)
-     *
-     * useful, if there are thousands of pre-grouped meshes with the same material; and just P+R+S, no shearing, only uniform scaling; reduced overhead
-     * */
-    open fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, MaterialBase?) -> FloatArrayList) = false
-
-    /**
-     * iterates over each mesh group, which is actively visible;
-     * if this is implemented, return true; and forEachMeshGroup just will be a fallback;
-     *
      * each element must be added as position (translation; x,y,z), color (ARGB int -> float), rotation (quaternion; x,y,z,w)
      *
      * useful, if there are thousands of pre-grouped meshes with the same material, but different colors; and just P+R, no shearing, no scaling, reduced overhead

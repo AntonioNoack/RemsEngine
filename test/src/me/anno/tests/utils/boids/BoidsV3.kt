@@ -143,14 +143,15 @@ class BoidV3(val n: Int) : MeshSpawner(), OnUpdate, OnDrawGUI {
         }
     }
 
-    override fun forEachMeshGroupTRS(pipeline: Pipeline, callback: (IMesh, MaterialBase?) -> FloatArrayList): Boolean {
+    override fun forEachMeshGroupTRC(pipeline: Pipeline, callback: (IMesh, MaterialBase?) -> FloatArrayList): Boolean {
         val list = callback(birdMesh, null)
         list.ensureExtra(8 * n)
+        val color = Float.fromBits(-1)
         for (i in 0 until n) {
             val pos = positions[i]
             val rot = rotations[i]
             list.add(pos)
-            list.add(1f)
+            list.add(color)
             list.add(rot)
         }
         return true
