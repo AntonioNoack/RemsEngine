@@ -28,6 +28,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib
+import me.anno.input.Input
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
@@ -45,8 +46,11 @@ import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Vector2f
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.round
 
 /**
  * Converts many small draw calls into bigger ones for better performance.
@@ -550,17 +554,55 @@ class Canvas {
         return getSize(totalWidth, totalHeight)
     }
 
+    private fun floatToShort(f: Float): Short {
+        return (f * 65536f).toInt().toShort()
+    }
+
     fun drawCircle(
         x: Float, y: Float,
         radiusX: Float, radiusY: Float, innerRadius: Float,
         startDegrees: Float, endDegrees: Float,
         color: Int,
     ) {
-        custom {
-            // todo support this properly
-            //  but we somehow need to encode startDegrees, endDegrees, innerRadius
-            GFXx2D.drawCircle(x, y, radiusX, radiusY, innerRadius, startDegrees, endDegrees, color)
-        }
+        val x0 = ceil(x - radiusX).toInt()
+        val y0 = ceil(y - radiusY).toInt()
+        val w = floor(radiusX * 2).toInt()
+        val h = floor(radiusY * 2).toInt()
+        if (isInvisible(x0, y0, w, h)) return
+
+        val commonDegrees = round((startDegrees + endDegrees) / 180f) * 360f
+        val nio = getNioBuffer(extraDepth)
+        pushBounds(nio, x0, y0, w, h)
+        pushScissor(nio)
+        pushTexBounds(
+            nio,
+            floatToShort(innerRadius), 0,
+            floatToShort((startDegrees - commonDegrees) / 720f + 0.25f),
+            floatToShort((endDegrees - commonDegrees) / 720f + 0.25f),
+        )
+        pushColor(nio, color)
+        pushColor(nio, 0)
+        pushMode(nio, CanvasDrawMode.CIRCLE)
+    }
+
+    fun drawCircle(
+        x: Float, y: Float,
+        radiusX: Float, radiusY: Float,
+        color: Int,
+    ) {
+        val x0 = ceil(x - radiusX).toInt()
+        val y0 = ceil(y - radiusY).toInt()
+        val w = floor(radiusX * 2).toInt()
+        val h = floor(radiusY * 2).toInt()
+        if (isInvisible(x0, y0, w, h)) return
+
+        val nio = getNioBuffer(extraDepth)
+        pushBounds(nio, x0, y0, w, h)
+        pushScissor(nio)
+        pushTexBounds(nio, 0, 0, 0, 0)
+        pushColor(nio, color)
+        pushColor(nio, 0)
+        pushMode(nio, CanvasDrawMode.CIRCLE)
     }
 
     fun drawLine(

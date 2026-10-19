@@ -4,6 +4,7 @@ import me.anno.gpu.shader.ShaderLib.uiVertexShader
 import me.anno.gpu.shader.ShaderLib.uiVertexShaderList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.maths.Maths.TAUf
 
 object FlatSymbols {
 
@@ -21,13 +22,41 @@ object FlatSymbols {
                 "   float p0 = -0.5 + (uv.x - uv.y);\n" +
                 "   float p1 = -1.5 + (uv.x + uv.y);\n" +
                 "   float mn = max(p0, p1);\n" +
-                "   float fc = mn/delta+0.5;\n" +
+                "   float fc = mn*dx+0.5;\n" +
                 "   if(fc >= 1.0) discard;\n" +
                 "   vec4 fragColor = mix(color, backgroundColor, clamp(fc, 0.0, 1.0));\n" +
                 "   finalColor = fragColor.rgb;\n" +
                 "   finalAlpha = fragColor.a;\n" +
                 "}"
     )
+
+    val circleAngleLogic = """
+                float a0 = angleLimits.x;
+                float a1 = angleLimits.y;
+                
+                float x = uv2.x;
+                float y = uv2.y;
+                
+                float angle = atan(-y, x);
+                float sweep = mod(angleLimits.y - angleLimits.x + $TAUf, $TAUf);
+                float relativeAngle = mod(angle - angleLimits.x + $TAUf, $TAUf);
+                
+                // Estimate angular derivatives (atan is discontinuous).
+                vec2 dx = dFdx(uv2);
+                vec2 dy = dFdy(uv2);
+                float da = dot(uv2,uv2) / max(
+                    abs(uv2.y * dx.x - uv2.x * dx.y) +
+                    abs(uv2.y * dy.x - uv2.x * dy.y),
+                    1e-18
+                );
+                
+                 // force symmetric anti-aliasing at start-angle
+                if ((relativeAngle - $TAUf) * da > -0.5) relativeAngle -= $TAUf;
+                
+                float alpha0 = relativeAngle;
+                float alpha1 = sweep - relativeAngle;
+                float angleAlpha = clamp(min(alpha0, alpha1) * da + 0.5, 0.0, 1.0);
+                """.trimIndent()
 
     val flatShaderCircle = BaseShader(
         "flatShaderCircle",
@@ -45,18 +74,17 @@ object FlatSymbols {
                 "void main(){\n" +
                 "   vec2 uv2 = uv*2.0-1.0;\n" +
                 "   float radius = length(uv2), safeRadius = max(radius, 1e-16);\n" +
-                "   float delta = smoothness * 2.0 * mix(dFdx(uv.x), -dFdy(uv.y), clamp(abs(uv2.y)/safeRadius, 0.0, 1.0));\n" +
+                "   float dr = 1.0 / fwidth(dot(uv2,uv2)-1.0);\n" +
                 "   vec4 fragColor;\n" +
-                "   if(angleLimits.x != angleLimits.y){\n" +
-                "       float angle = atan(uv2.y, uv2.x);\n" +
-                // todo this angle logic is not good enough... somehow employ the same logic as in 3d
-                "       float alpha0 = clamp((angle - angleLimits.x)/delta + .5, 0.0, 1.0);\n" +
-                "       float alpha1 = clamp((angleLimits.y - angle)/delta + .5, 0.0, 1.0);\n" +
-                "       vec4 baseColor = mix(innerColor, circleColor, clamp((radius-innerRadius)/delta+0.5, 0.0, 1.0));\n" +
-                "       fragColor = mix(backgroundColor, baseColor, (1.0 - clamp((radius-outerRadius)/delta+0.5, 0.0, 1.0)) * max(alpha0, alpha1));\n" +
+                "   if(angleLimits.x != angleLimits.y) {\n" +
+
+                circleAngleLogic +
+
+                "       vec4 baseColor = mix(innerColor, circleColor, clamp((radius-innerRadius) * dr + 0.5, 0.0, 1.0));\n" +
+                "       fragColor = mix(backgroundColor, baseColor, (clamp((outerRadius-radius) * dr + 0.5, 0.0, 1.0)) * angleAlpha);\n" +
                 "   } else {\n" +
-                "       vec4 baseColor = mix(innerColor, circleColor, clamp((radius-innerRadius)/delta+0.5, 0.0, 1.0));\n" +
-                "       fragColor = mix(baseColor, backgroundColor, clamp((radius-outerRadius)/delta+0.5, 0.0, 1.0));\n" +
+                "       vec4 baseColor = mix(innerColor, circleColor, clamp((radius-innerRadius) * dr + 0.5, 0.0, 1.0));\n" +
+                "       fragColor = mix(baseColor, backgroundColor, clamp((radius-outerRadius) * dr + 0.5, 0.0, 1.0));\n" +
                 "   }\n" +
                 "   finalColor = fragColor.rgb;\n" +
                 "   finalAlpha = fragColor.a;\n" +

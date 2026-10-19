@@ -1,11 +1,14 @@
 package me.anno.ui.canvas
 
+import me.anno.gpu.shader.FlatSymbols.circleAngleLogic
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.maths.Maths.PIf
 import me.anno.utils.GFXFeatures
 
+// instBounds must always overlap with instScissor, or pos0,pos1 will be invalid (larger than expected using negative size)
 object CanvasShader : Shader(
     "CanvasShader",
     listOf(
@@ -39,6 +42,7 @@ void main() {
     fgColor = instFgColor;
     bgColor = instBgColor;
     mode = instMode;
+    uv01 = uvFactor;
 }
                     """.trimIndent(), listOf(
         Variable(GLSLType.V4I, "bounds").flat(),
@@ -48,6 +52,7 @@ void main() {
         Variable(GLSLType.V4F, "bgColor").flat(),
         Variable(GLSLType.V1I, "mode").flat(),
         Variable(GLSLType.V2F, "uv"),
+        Variable(GLSLType.V2F, "uv01"),
     ), listOf(
         Variable(GLSLType.S2D, "atlasTexture"),
         Variable(GLSLType.V4F, "subpixelOffsets"),
@@ -95,6 +100,24 @@ void main() {
             break;
         case ${CanvasDrawMode.TEXTURE_NO_ALPHA.ordinal}:
             result.rgb *= texture(atlasTexture, uv).rgb;
+            break;
+        case ${CanvasDrawMode.CIRCLE.ordinal}:
+            vec2 uv2 = uv01 - 0.5;
+            float r2 = dot(uv2,uv2);
+            float dist = 0.25 - r2;
+            float dr = 1.0 / fwidth(dist);
+            float alpha = clamp(dist * dr + 0.5, 0.0, 1.0);
+            if (texBounds.x > 0) {
+                float innerRadius = float(texBounds.x) * ${0.5f / 65536};
+                innerRadius *= innerRadius;
+                alpha *= clamp((r2 - innerRadius) * dr + 0.5, 0.0, 1.0);
+            }
+            if (alpha > 0.0 && texBounds.z != texBounds.w) {
+                vec2 angleLimits = vec2(texBounds.zw) * ${PIf * 4f / 65536} - $PIf;
+                $circleAngleLogic
+                alpha *= angleAlpha;
+            }
+            result.a *= alpha;
             break;
         case ${CanvasDrawMode.TEXT.ordinal}:
             vec4 text = texture(atlasTexture, uv);
@@ -185,8 +208,7 @@ void main() {
         }
     }
         default:
-            float c = float(int(dot(gl_FragCoord.xy,vec2(1.0))) & 4) * 0.333;
-            result = vec4(c,0.0,c,1.0);
+            result = vec4(1.0,0.0,1.0,1.0);
             break;
     }
 }

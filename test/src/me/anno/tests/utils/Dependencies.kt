@@ -192,7 +192,7 @@ fun main() {
                 // draw circle
                 val radius = r0 * 0.5f
                 if (radius < 1f) return
-                canvas.drawCircle(x, y, radius, radius, 0f, 0f, 0f, circleColor)
+                canvas.drawCircle(x, y, radius, radius, circleColor)
                 // draw name into it
                 val rx = radius * 3f
                 if (x + rx > this.x && y + rx > this.y && x - rx < this.x + width && y - rx < this.y + height) {

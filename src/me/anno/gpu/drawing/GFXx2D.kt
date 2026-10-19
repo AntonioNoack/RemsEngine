@@ -14,6 +14,7 @@ import me.anno.maths.MinMax.min
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import kotlin.math.round
 
 object GFXx2D {
 
@@ -46,7 +47,7 @@ object GFXx2D {
         x: Int, y: Int,
         radiusX: Float, radiusY: Float, innerRadius: Float,
         startDegrees: Float, endDegrees: Float,
-        color: Vector4f
+        color: Vector4f,
     ) {
 
         val rx = +(x - GFX.viewportX).toFloat() / GFX.viewportWidth * 2 - 1
@@ -79,7 +80,7 @@ object GFXx2D {
         x: Int, y: Int,
         radiusX: Float, radiusY: Float, innerRadius: Float,
         startDegrees: Float, endDegrees: Float,
-        color: Vector4f
+        color: Vector4f,
     ) {
 
         val shader = flatShaderCircle.value
@@ -106,14 +107,14 @@ object GFXx2D {
         x: Int, y: Int,
         radiusX: Float, radiusY: Float, innerRadius: Float,
         startDegrees: Float, endDegrees: Float,
-        color: Int
+        color: Int,
     ) = drawCircle(x.toFloat(), y.toFloat(), radiusX, radiusY, innerRadius, startDegrees, endDegrees, color)
 
     fun drawCircle(
         x: Float, y: Float,
         radiusX: Float, radiusY: Float, innerRadius: Float,
         startDegrees: Float, endDegrees: Float,
-        color: Int
+        color: Int,
     ) {
 
         val shader = flatShaderCircle.value
@@ -132,10 +133,12 @@ object GFXx2D {
             shader.v4f("innerColor", color)
         }
 
+        val commonDegrees = round((startDegrees + endDegrees) / 180f) * 360f
+
         noTiling(shader)
         shader.v4f("circleColor", color)
         shader.v4f("backgroundColor", 0f, 0f, 0f, 0f)
-        shader.v2f("angleLimits", startDegrees.toRadians(), endDegrees.toRadians())
+        shader.v2f("angleLimits", (startDegrees - commonDegrees).toRadians(), (endDegrees - commonDegrees).toRadians())
         shader.v1f("smoothness", 1.5f)
 
         flat01.draw(shader)
@@ -148,7 +151,7 @@ object GFXx2D {
         innerColor: Int,
         circleColor: Int,
         backgroundColor: Int,
-        smoothness: Float = 1f
+        smoothness: Float = 1f,
     ) {
 
         val shader = flatShaderCircle.value
@@ -176,7 +179,7 @@ object GFXx2D {
         w: Float, h: Float,
         color: Int,
         backgroundColor: Int,
-        smoothness: Float = 1f
+        smoothness: Float = 1f,
     ) {
 
         val shader = flatShaderHalfArrow.value
