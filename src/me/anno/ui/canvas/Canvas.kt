@@ -21,7 +21,6 @@ import me.anno.gpu.drawing.DrawRounded
 import me.anno.gpu.drawing.DrawTexts.getOffset
 import me.anno.gpu.drawing.DrawTexts.sizeLayoutHelper
 import me.anno.gpu.drawing.DrawTextures
-import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.transform
 import me.anno.gpu.framebuffer.Framebuffer
@@ -48,9 +47,11 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
+import kotlin.math.roundToInt
 
 /**
  * Converts many small draw calls into bigger ones for better performance.
@@ -562,7 +563,7 @@ class Canvas {
         x: Float, y: Float,
         radiusX: Float, radiusY: Float, innerRadius: Float,
         startDegrees: Float, endDegrees: Float,
-        color: Int,
+        color: Int, extraDepth: Int = TEXT_ORDER,
     ) {
         val x0 = ceil(x - radiusX).toInt()
         val y0 = ceil(y - radiusY).toInt()
@@ -588,7 +589,7 @@ class Canvas {
     fun drawCircle(
         x: Float, y: Float,
         radiusX: Float, radiusY: Float,
-        color: Int,
+        color: Int, extraDepth: Int = TEXT_ORDER,
     ) {
         val x0 = ceil(x - radiusX).toInt()
         val y0 = ceil(y - radiusY).toInt()
@@ -614,9 +615,8 @@ class Canvas {
         smoothness: Float = 1f,
     ) {
         custom {
-            // todo support this properly:
-            //  we need to encode thickness somehow
-            //  the vertex shader needs to rotate the line
+            // having a specialized function here is fine, because if you want to draw tons of lines,
+            //  you should just use DrawCurves.lineBatch.start/finish() with DrawCurves.drawLine()
             DrawCurves.drawLine(x0, y0, x1, y1, thickness, color, background, flatEnds, smoothness)
         }
     }

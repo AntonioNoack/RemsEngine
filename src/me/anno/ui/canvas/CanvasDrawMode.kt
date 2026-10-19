@@ -7,9 +7,11 @@ enum class CanvasDrawMode {
     TEXTURE,
     TEXTURE_NO_ALPHA,
     CIRCLE,
+
+    // todo implement them?
     SQUIRCLE,
     ROUNDED_RECT,
+
     TEXT,
     MULTI_SDF,
-    LINE
 }
