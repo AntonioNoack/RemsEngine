@@ -175,16 +175,18 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         if (jump) {
             rotationTargetToQuat(renderView.orbitRotation)
         } else {
-            val tmp = rotationTargetToQuat(Quaternionf())
+            val tmp = rotationTargetToQuat(JomlPools.quat4f.borrow())
             renderView.orbitRotation.slerp(tmp, Maths.dtTo01(uiDeltaTime * 25.0).toFloat())
         }
     }
 
     private fun rotationTargetToQuat(dst: Quaternionf): Quaternionf {
-        return dst.identity()
-            .rotateY(rotationTargetDegrees.y.toRadians())
-            .rotateX(rotationTargetDegrees.x.toRadians())
-            .rotateZ(rotationTargetDegrees.z.toRadians())
+        val angles = rotationTargetDegrees
+        return dst.rotationYXZ(
+            angles.y.toRadians(),
+            angles.x.toRadians(),
+            angles.z.toRadians()
+        )
     }
 
     fun rotateCameraTo(vx: Float, vy: Float, vz: Float) =

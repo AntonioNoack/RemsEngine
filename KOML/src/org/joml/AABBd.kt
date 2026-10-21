@@ -8,7 +8,7 @@ import kotlin.math.sqrt
 @Suppress("unused")
 class AABBd(
     var minX: Double, var minY: Double, var minZ: Double,
-    var maxX: Double, var maxY: Double, var maxZ: Double
+    var maxX: Double, var maxY: Double, var maxZ: Double,
 ) : Vector {
 
     constructor(base: AABBd) :
@@ -78,9 +78,10 @@ class AABBd(
     fun set(
         minX: Double, minY: Double, minZ: Double,
         maxX: Double, maxY: Double, maxZ: Double,
-    ) {
+    ): AABBd {
         setMin(minX, minY, minZ)
         setMax(maxX, maxY, maxZ)
+        return this
     }
 
     fun getMin(dim: Int) =
@@ -122,7 +123,7 @@ class AABBd(
 
     fun union(
         x0: Double, y0: Double, z0: Double,
-        x1: Double, y1: Double, z1: Double, dst: AABBd = this
+        x1: Double, y1: Double, z1: Double, dst: AABBd = this,
     ): AABBd {
         return dst
             .setMin(min(minX, x0), min(minY, y0), min(minZ, z0))
@@ -552,7 +553,7 @@ class AABBd(
     fun isRayIntersecting(
         rayOrigin: Vector3d,
         invRayDirection: Vector3d,
-        margin: Double, maxDistance: Double
+        margin: Double, maxDistance: Double,
     ): Boolean = isRayIntersecting(
         rayOrigin.x, rayOrigin.y, rayOrigin.z,
         invRayDirection.x, invRayDirection.y, invRayDirection.z,
@@ -562,7 +563,7 @@ class AABBd(
     fun isRayIntersecting(
         rx: Double, ry: Double, rz: Double,
         rdx: Double, rdy: Double, rdz: Double,
-        margin: Double, maxDistance: Double
+        margin: Double, maxDistance: Double,
     ): Boolean {
         val dist = whereIsRayIntersecting(rx, ry, rz, rdx, rdy, rdz, margin)
         return dist < maxDistance

@@ -7,7 +7,7 @@ import kotlin.math.sqrt
 
 class AABBf(
     var minX: Float, var minY: Float, var minZ: Float,
-    var maxX: Float, var maxY: Float, var maxZ: Float
+    var maxX: Float, var maxY: Float, var maxZ: Float,
 ) : Vector {
 
     constructor(base: AABBf) : this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
@@ -176,9 +176,10 @@ class AABBf(
     fun set(
         minX: Float, minY: Float, minZ: Float,
         maxX: Float, maxY: Float, maxZ: Float,
-    ) {
+    ): AABBf {
         setMin(minX, minY, minZ)
         setMax(maxX, maxY, maxZ)
+        return this
     }
 
     fun clear(): AABBf {
@@ -560,7 +561,7 @@ class AABBf(
         start: Vector3f,
         end: Vector3f,
         radiusAtOrigin: Float,
-        radiusPerUnit: Float
+        radiusPerUnit: Float,
     ): Boolean {
 
         if (isEmpty()) return false
@@ -658,7 +659,7 @@ class AABBf(
         start: Vector3f,
         radiusAtOrigin: Float,
         radiusPerUnit: Float,
-        dx: Float, dy: Float, dz: Float
+        dx: Float, dy: Float, dz: Float,
     ): Float {
         var radiusAtPoint = max(radiusAtOrigin, 0f)
         if (radiusPerUnit != 0f) {
@@ -753,7 +754,7 @@ class AABBf(
     fun isRayIntersecting(
         rayOrigin: Vector3f,
         invRayDirection: Vector3f,
-        maxDistance: Float
+        maxDistance: Float,
     ): Boolean = isRayIntersecting(
         rayOrigin.x, rayOrigin.y, rayOrigin.z,
         invRayDirection.x, invRayDirection.y, invRayDirection.z,
@@ -763,13 +764,13 @@ class AABBf(
     fun isRayIntersecting(
         px: Float, py: Float, pz: Float,
         invDx: Float, invDy: Float, invDz: Float,
-        maxDistance: Float
+        maxDistance: Float,
     ): Boolean = isRayIntersecting(px, py, pz, invDx, invDy, invDz, 0f, maxDistance)
 
     fun isRayIntersecting(
         px: Float, py: Float, pz: Float,
         invDx: Float, invDy: Float, invDz: Float,
-        margin: Float, maxDistance: Float
+        margin: Float, maxDistance: Float,
     ): Boolean = whereIsRayIntersecting(px, py, pz, invDx, invDy, invDz, margin) < maxDistance
 
     fun whereIsRayIntersecting(rayOrigin: Vector3f, invRayDirection: Vector3f, margin: Float): Float {
