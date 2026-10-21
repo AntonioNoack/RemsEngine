@@ -8,6 +8,7 @@ import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.joml.Vector3i
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -230,6 +231,33 @@ class ConvexHull3DTest {
                 val point = pts[i]
                 assertTrue(hull.contains(point, 0.03))
                 point.normalize(0.501, scaledPoint)
+                assertFalse(hull.contains(scaledPoint))
+            }
+        }
+    }
+
+    @Test
+    fun testHullFRoughlyContainsAllItsPoints() {
+        val rnd = Random(123)
+        repeat(10) {
+            val pts = ArrayList<Vector3d>()
+            repeat(20) {
+                val p = Vector3d(1.0)
+                while (p.lengthSquared() > 0.25) {
+                    p.set(
+                        rnd.nextDouble(),
+                        rnd.nextDouble(),
+                        rnd.nextDouble()
+                    ).sub(0.5)
+                }
+                pts.add(p)
+            }
+            val hull = calculateConvexHullNaive(pts)!!.toConvexHullF()
+            val scaledPoint = Vector3f()
+            for (i in pts.indices) {
+                scaledPoint.set(pts[i])
+                assertTrue(hull.contains(scaledPoint, 0.03f))
+                scaledPoint.normalize(0.501f)
                 assertFalse(hull.contains(scaledPoint))
             }
         }

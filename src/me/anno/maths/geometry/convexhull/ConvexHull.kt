@@ -19,7 +19,7 @@ class ConvexHull(val vertices: ArrayList<Vector3d>, val triangles: IntArray) {
 
     /**
      * Returns whether a point lies within the hull.
-     * Margin makes this support a hull-sphere test.
+     * Margin makes this a hull-sphere test.
      * */
     fun contains(vertex: Vector3d, margin: Double): Boolean {
 
@@ -52,6 +52,35 @@ class ConvexHull(val vertices: ArrayList<Vector3d>, val triangles: IntArray) {
         }
         JomlPools.vec3d.sub(2)
         return true
+    }
+
+    fun toConvexHullF(): ConvexHullF {
+        val vertices = vertices
+        val triangles = triangles
+
+        val normal = JomlPools.vec3d.borrow()
+        val planes = FloatArray(triangles.size / 3 * 4)
+        var k = 0
+        forLoopSafely(triangles.size, 3) { i ->
+
+            val a = vertices[triangles[i]]
+            val b = vertices[triangles[i + 1]]
+            val c = vertices[triangles[i + 2]]
+
+            // Compute face normal
+            subCross(a, b, c, normal)
+
+            // normalize is not strictly needed,
+            // but it allows us sphere-hull-tests :)
+            normal.safeNormalize()
+
+            // store triangle's plane
+            planes[k++] = normal.x.toFloat()
+            planes[k++] = normal.y.toFloat()
+            planes[k++] = normal.z.toFloat()
+            planes[k++] = -normal.dot(a).toFloat()
+        }
+        return ConvexHullF(planes)
     }
 
     fun toMesh(mesh: Mesh = Mesh()): Mesh {

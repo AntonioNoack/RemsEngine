@@ -61,10 +61,9 @@ class ConvexHulls {
         // re-index triangle mesh so it refers to only used vertices, rebuild a new vertex table.
         val resultVertices = ArrayList<Vector3d>(cleanVertices.size)
         val finalNumVertices = compactVertices(cleanVertices, resultVertices, triangles)
-
-        val result = ConvexHull(resultVertices, triangles)
         resultVertices.subList(finalNumVertices, resultVertices.size).clear()
-        return result
+
+        return ConvexHull(resultVertices, triangles)
     }
 
     private fun allocateTriangle(a: Int, b: Int, c: Int): Triangle {
