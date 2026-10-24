@@ -13,7 +13,7 @@ import kotlin.math.sqrt
 @Suppress("unused")
 class AABBi(
     var minX: Int, var minY: Int, var minZ: Int,
-    var maxX: Int, var maxY: Int, var maxZ: Int
+    var maxX: Int, var maxY: Int, var maxZ: Int,
 ) : Vector {
 
     constructor(base: AABBi) : this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
@@ -157,6 +157,19 @@ class AABBi(
         return this
     }
 
+    fun set(
+        minX: Int, minY: Int, minZ: Int,
+        maxX: Int, maxY: Int, maxZ: Int,
+    ): AABBi {
+        this.minX = minX
+        this.minY = minY
+        this.minZ = minZ
+        this.maxX = maxX
+        this.maxY = maxY
+        this.maxZ = maxZ
+        return this
+    }
+
     fun clear(): AABBi {
         minX = Int.MAX_VALUE
         minY = Int.MAX_VALUE
@@ -243,7 +256,11 @@ class AABBi(
 
     fun addMargin(r: Int, dst: AABBi = this): AABBi {
         return dst
-            .setMin(satSub(minX, r), satSub(minY, r), satSub(minZ, r)) // satAdd(x,-r) != satSub(x,r) for r == Int.MIN_VALUE
+            .setMin(
+                satSub(minX, r),
+                satSub(minY, r),
+                satSub(minZ, r)
+            ) // satAdd(x,-r) != satSub(x,r) for r == Int.MIN_VALUE
             .setMax(satAdd(maxX, r), satAdd(maxY, r), satAdd(maxZ, r))
     }
 
@@ -269,7 +286,7 @@ class AABBi(
     fun isRayIntersecting(
         rayOrigin: Vector3d,
         invRayDirection: Vector3d,
-        maxDistance: Double = Double.POSITIVE_INFINITY
+        maxDistance: Double = Double.POSITIVE_INFINITY,
     ): Boolean = isRayIntersecting(
         rayOrigin.x, rayOrigin.y, rayOrigin.z,
         invRayDirection.x, invRayDirection.y, invRayDirection.z,
@@ -279,7 +296,7 @@ class AABBi(
     fun isRayIntersecting(
         rx: Double, ry: Double, rz: Double,
         rdx: Double, rdy: Double, rdz: Double,
-        maxDistance: Double = Double.POSITIVE_INFINITY
+        maxDistance: Double = Double.POSITIVE_INFINITY,
     ): Boolean {
         val dist = whereIsRayIntersecting(rx, ry, rz, rdx, rdy, rdz)
         return dist < maxDistance

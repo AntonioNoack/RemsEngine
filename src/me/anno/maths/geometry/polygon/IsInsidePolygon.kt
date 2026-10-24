@@ -16,13 +16,13 @@ object IsInsidePolygon {
     @JvmStatic
     fun Vector2i.isInsidePolygon(
         polygon: List<Vector2i>,
-        i0: Int = 0, i1: Int = polygon.size - i0
+        i0: Int = 0, i1: Int = polygon.size - i0,
     ): Boolean = isInsidePolygon(x, y, polygon, i0, i1)
 
     @JvmStatic
     fun isInsidePolygon(
         x: Int, y: Int, polygon: List<Vector2i>,
-        i0: Int = 0, i1: Int = polygon.size - i0
+        i0: Int = 0, i1: Int = polygon.size - i0,
     ): Boolean {
         var isInside = false
         val j = polygon[i1 - 1]
@@ -43,13 +43,13 @@ object IsInsidePolygon {
     @JvmStatic
     fun Vector2i.isInsidePolygon(
         polygon: IntArray,
-        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0
+        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0,
     ): Boolean = isInsidePolygon(x, y, polygon, i0, i1)
 
     @JvmStatic
     fun isInsidePolygon(
         x: Int, y: Int, polygon: IntArray,
-        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0
+        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0,
     ): Boolean {
         var isInside = false
         val j = (i1 - 1) * 2
@@ -70,13 +70,13 @@ object IsInsidePolygon {
     @JvmStatic
     fun Vector2f.isInsidePolygon(
         polygon: List<Vector2f>,
-        i0: Int = 0, i1: Int = polygon.size - i0
+        i0: Int = 0, i1: Int = polygon.size - i0,
     ): Boolean = isInsidePolygon(x, y, polygon, i0, i1)
 
     @JvmStatic
     fun isInsidePolygon(
         x: Float, z: Float, polygon: List<Vector2f>,
-        i0: Int = 0, i1: Int = polygon.size - i0
+        i0: Int = 0, i1: Int = polygon.size - i0,
     ): Boolean {
         var isInside = false
         val j = polygon[i1 - 1]
@@ -85,7 +85,7 @@ object IsInsidePolygon {
         for (i in i0 until i1) {
             val ix = polygon[i].x
             val iy = polygon[i].y
-            if ((iy > z) != (jy > z) && x < (jx - ix) * (z - iy) / (jy - iy) + ix) {
+            if ((iy > z) != (jy > z) && x - ix < (jx - ix) * (z - iy) / (jy - iy)) {
                 isInside = !isInside
             }
             jx = ix
@@ -97,13 +97,13 @@ object IsInsidePolygon {
     @JvmStatic
     fun Vector2f.isInsidePolygon(
         polygon: FloatArray,
-        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0
+        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0,
     ): Boolean = isInsidePolygon(x, y, polygon, i0, i1)
 
     @JvmStatic
     fun isInsidePolygon(
         x: Float, y: Float, polygon: FloatArray,
-        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0
+        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0,
     ): Boolean {
         var isInside = false
         val j = (i1 - 1) * 2
@@ -112,7 +112,7 @@ object IsInsidePolygon {
         for (i in i0 until i1) {
             val ix = polygon[i * 2]
             val iy = polygon[i * 2 + 1]
-            if ((iy > y) != (jy > y) && x < (jx - ix) * (y - iy) / (jy - iy) + ix) {
+            if ((iy > y) != (jy > y) && x - ix < (jx - ix) * (y - iy) / (jy - iy)) {
                 isInside = !isInside
             }
             jx = ix
@@ -124,13 +124,13 @@ object IsInsidePolygon {
     @JvmStatic
     fun Vector2d.isInsidePolygon(
         polygon: List<Vector2d>,
-        i0: Int = 0, i1: Int = polygon.size - i0
+        i0: Int = 0, i1: Int = polygon.size - i0,
     ): Boolean = isInsidePolygon(x, y, polygon, i0, i1)
 
     @JvmStatic
     fun isInsidePolygon(
         x: Double, y: Double, polygon: List<Vector2d>,
-        i0: Int = 0, i1: Int = polygon.size - i0
+        i0: Int = 0, i1: Int = polygon.size - i0,
     ): Boolean {
         var isInside = false
         val j = polygon[i1 - 1]
@@ -139,7 +139,7 @@ object IsInsidePolygon {
         for (i in i0 until i1) {
             val ix = polygon[i].x
             val iy = polygon[i].y
-            if ((iy > y) != (jy > y) && x < (jx - ix) * (y - iy) / (jy - iy) + ix) {
+            if ((iy > y) != (jy > y) && x - ix < (jx - ix) * (y - iy) / (jy - iy)) {
                 isInside = !isInside
             }
             jx = ix
@@ -152,13 +152,13 @@ object IsInsidePolygon {
     @JvmStatic
     fun Vector2d.isInsidePolygon(
         polygon: DoubleArray,
-        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0
+        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0,
     ): Boolean = isInsidePolygon(x, y, polygon, i0, i1)
 
     @JvmStatic
     fun isInsidePolygon(
         x: Double, y: Double, polygon: DoubleArray,
-        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0
+        i0: Int = 0, i1: Int = polygon.size.shr(1) - i0,
     ): Boolean {
         var isInside = false
         val j = (i1 - 1) * 2
@@ -167,7 +167,7 @@ object IsInsidePolygon {
         for (i in i0 until i1) {
             val ix = polygon[i * 2]
             val iy = polygon[i * 2 + 1]
-            if ((iy > y) != (jy > y) && x < (jx - ix) * (y - iy) / (jy - iy) + ix) {
+            if ((iy > y) != (jy > y) && x - ix < (jx - ix) * (y - iy) / (jy - iy)) {
                 isInside = !isInside
             }
             jx = ix
@@ -192,8 +192,8 @@ object IsInsidePolygon {
         val axisZ = JomlPools.vec3f.create()
         up.findSystem(axisX, axisZ, true)
 
-        val posX = dot(axisX)
-        val posZ = dot(axisZ)
+        val px = dot(axisX)
+        val pz = dot(axisZ)
 
         val pj = polygon.last()
         var jx = pj.dot(axisX)
@@ -204,8 +204,8 @@ object IsInsidePolygon {
             val ix = pi.dot(axisX)
             val iz = pi.dot(axisZ)
 
-            if ((iz > posZ) != (jz > posZ) &&
-                posX < (jx - ix) * (posZ - iz) / (jz - iz) + ix
+            if ((iz > pz) != (jz > pz) &&
+                px - ix < (jx - ix) * (pz - iz) / (jz - iz)
             ) isInside = !isInside
 
             jx = ix
@@ -232,8 +232,8 @@ object IsInsidePolygon {
         val axisZ = JomlPools.vec3d.create()
         up.findSystem(axisX, axisZ, true)
 
-        val posX = dot(axisX)
-        val posZ = dot(axisZ)
+        val px = dot(axisX)
+        val pz = dot(axisZ)
 
         val pj = polygon.last()
         var jx = pj.dot(axisX)
@@ -244,8 +244,8 @@ object IsInsidePolygon {
             val ix = pi.dot(axisX)
             val iz = pi.dot(axisZ)
 
-            if ((iz > posZ) != (jz > posZ) &&
-                posX < (jx - ix) * (posZ - iz) / (jz - iz) + ix
+            if ((iz > pz) != (jz > pz) &&
+                px - ix < (jx - ix) * (pz - iz) / (jz - iz)
             ) isInside = !isInside
 
             jx = ix

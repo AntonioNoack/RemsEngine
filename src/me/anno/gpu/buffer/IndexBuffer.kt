@@ -58,11 +58,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         if (indices.isEmpty()) return
 
         val target = GL_ELEMENT_ARRAY_BUFFER
-        if (!isPointerValid(pointer)) {
-            pointer = glGenBuffers()
-            if (!isPointerValid(pointer)) throw OutOfMemoryError("Could not generate OpenGL buffer")
-            if (Build.isDebug && name.isNotBlank2()) glObjectLabel(GL_BUFFER, pointer, name)
-        }
+        prepareUpload()
 
         bindBuffer(target, pointer)
 
