@@ -31,8 +31,8 @@ class LongToDoubleHashMap(
     val missingValue: Double
         get() = Double.fromBits(content.missingValue)
 
-    operator fun set(key: Long, value: Double) {
-        put(key, value)
+    operator fun set(key: Long, value: Double): Double {
+        return put(key, value)
     }
 
     inline fun getOrPut(key: Long, generateIfNull: () -> Double): Double {

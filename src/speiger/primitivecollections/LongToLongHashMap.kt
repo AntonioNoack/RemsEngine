@@ -52,8 +52,8 @@ class LongToLongHashMap : LongToHashMap<LongArray> {
         dstValues[dstIndex] = missingValue
     }
 
-    operator fun set(key: Long, value: Long) {
-        put(key, value)
+    operator fun set(key: Long, value: Long): Long {
+        return put(key, value)
     }
 
     inline fun getOrPut(key: Long, generateIfNull: () -> Long): Long {

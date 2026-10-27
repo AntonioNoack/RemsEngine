@@ -376,10 +376,10 @@ abstract class GPUBuffer(
             GFX.check()
         }
 
-        copyBytesToCPU(toBuffer, from, from, size)
+        copyNioBytesTo(toBuffer, from, from, size)
     }
 
-    fun copyBytesToCPU(toBuffer: GPUBuffer, from: Long, to: Long, size: Long) {
+    fun copyNioBytesTo(toBuffer: GPUBuffer, from: Long, to: Long, size: Long) {
         // todo should we have this???
         // todo test this...
         val fromNio = nioBuffer

@@ -52,8 +52,8 @@ class IntToIntHashMap : IntToHashMap<IntArray> {
         dstValues[dstIndex] = missingValue
     }
 
-    operator fun set(key: Int, value: Int) {
-        put(key, value)
+    operator fun set(key: Int, value: Int): Int {
+        return put(key, value)
     }
 
     inline fun getOrPut(key: Int, generateIfNull: () -> Int): Int {

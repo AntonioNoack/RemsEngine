@@ -49,8 +49,8 @@ class LongToObjectHashMap<V> : LongToHashMap<Array<Any?>> {
         dstValues[dstIndex] = null
     }
 
-    operator fun set(key: Long, value: V) {
-        put(key, value)
+    operator fun set(key: Long, value: V): V? {
+        return put(key, value)
     }
 
     inline fun getOrPut(key: Long, generateIfNull: () -> V): V {

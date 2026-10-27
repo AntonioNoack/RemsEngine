@@ -49,8 +49,8 @@ class IntToObjectHashMap<V> : IntToHashMap<Array<Any?>> {
         dstValues[dstIndex] = null
     }
 
-    operator fun set(key: Int, value: V) {
-        put(key, value)
+    operator fun set(key: Int, value: V): V? {
+        return put(key, value)
     }
 
     inline fun getOrPut(key: Int, generateIfNull: () -> V): V {

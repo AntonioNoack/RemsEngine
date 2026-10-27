@@ -32,8 +32,8 @@ class LongToIntHashMap(
     val missingValue: Int
         get() = content.missingValue.toInt()
 
-    operator fun set(key: Long, value: Int) {
-        put(key, value)
+    operator fun set(key: Long, value: Int): Int {
+        return put(key, value)
     }
 
     inline fun getOrPut(key: Long, generateIfNull: () -> Int): Int {

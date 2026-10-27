@@ -244,7 +244,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     open fun drawGizmos() {
     }
 
-    fun invalidateInspector() {
+    open fun invalidateInspector() {
         for (window in windowStack) {
             window.panel.forAllVisiblePanels { panel ->
                 when (panel) {
