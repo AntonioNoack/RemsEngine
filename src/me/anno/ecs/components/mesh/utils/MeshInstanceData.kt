@@ -139,7 +139,7 @@ class MeshInstanceData(
                     listOf(
                         Variable(GLSLType.V4F, "instancePosSize", VariableMode.ATTR),
                         Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT)
-                    ), "vertexColor0 = unpackNumber(instancePosSize.w);\n"
+                    ), "vertexColor0 *= unpackNumber(instancePosSize.w);\n"
                 ).add(ShaderLib.unpackNumber)
             ),
             listOf(

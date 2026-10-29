@@ -79,6 +79,7 @@ import me.anno.utils.Color.hex24
 import me.anno.utils.GFXFeatures
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -231,7 +232,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         FrameTimings.add(t4 - t1, paleGoldenRod)
     }
 
+    var resolutionFactor = 1f
     fun render(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val width = (width * resolutionFactor).toIntOr()
+        val height = (height * resolutionFactor).toIntOr()
         renderSize.updateSize(width, height)
         val renderGraph = renderMode.renderGraph
         if (renderGraph != null) {

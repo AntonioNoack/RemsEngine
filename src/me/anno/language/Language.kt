@@ -62,7 +62,7 @@ enum class Language(prettyName: String, val code: String) {
 
     companion object {
         @JvmStatic
-        fun get(code: String) = entries
+        operator fun get(code: String) = entries
             .firstOrNull { it.code.equals(code, true) }
             ?: AmericanEnglish
     }
