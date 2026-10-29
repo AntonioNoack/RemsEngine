@@ -25,16 +25,22 @@ import kotlin.math.min
 abstract class MeshJoiner<V>(
     val hasColors: Boolean,
     val hasBones: Boolean,
-    val mayHaveUVs: Boolean
+    val mayHaveUVs: Boolean,
 ) {
 
     abstract fun getMesh(element: V): Mesh
 
     open fun getTransform(element: V, dst: Matrix4x3f) {}
-    open fun getVertexColor(element: V): Int = -1
+    open fun getColor(element: V): Int = -1
     open fun getMaterials(element: V): List<FileReference> = emptyList()
     open fun getBoneIndex(element: V): Byte = 0
-    open fun multiplyColors(element: V): Boolean = false
+
+    /**
+     * customizable implementation for color mixing
+     * */
+    open fun mixColors(meshColor: Int, elementColor: Int): Int {
+        return meshColor.mulARGB(elementColor)
+    }
 
     open fun onFinishedMesh(index0: Int, index1: Int) {}
 
@@ -194,7 +200,7 @@ abstract class MeshJoiner<V>(
         srcMesh: Mesh,
         srcPositions: FloatArray,
         srcNormals: FloatArray,
-        i0: Int, tmp: Vector3f
+        i0: Int, tmp: Vector3f,
     ): Int {
         val srcTangents = srcMesh.tangents
         if (is3x3Identity(localToGlobal)) { // fast path with translation only
@@ -236,7 +242,7 @@ abstract class MeshJoiner<V>(
 
     private fun translatePosNorTan(
         dstPositions: FloatArray, dstNormals: FloatArray, dstTangents: FloatArray?,
-        localToGlobal: Matrix4x3f, srcPositions: FloatArray, srcNormals: FloatArray, srcTangents: FloatArray?, i0: Int
+        localToGlobal: Matrix4x3f, srcPositions: FloatArray, srcNormals: FloatArray, srcTangents: FloatArray?, i0: Int,
     ): Int {
         var i = i0
         val px = localToGlobal.m30
@@ -268,7 +274,7 @@ abstract class MeshJoiner<V>(
 
     private fun fillBones(
         dstBoneIndices: ByteArray, dstBoneWeights: FloatArray,
-        srcMesh: Mesh, srcPositions: FloatArray, element: V, i0: Int
+        srcMesh: Mesh, srcPositions: FloatArray, element: V, i0: Int,
     ) {
         val j0 = i0 / 3 * 4
         val dataSize = srcPositions.size / 3 * 4
@@ -286,27 +292,23 @@ abstract class MeshJoiner<V>(
     }
 
     private fun fillColors(dstColors: IntArray, srcMesh: Mesh, srcNormals: FloatArray, element: V, i0: Int) {
-        val color = getVertexColor(element)
+        val extraColor = getColor(element)
         val srcColor = srcMesh.color0
-        if (color == -1 && srcColor != null) {
+        if (extraColor == -1 && srcColor != null) {
             srcColor.copyInto(dstColors, i0 / 3, 0, min(srcNormals.size, srcColor.size))
-        } else if (srcColor != null && multiplyColors(element)) {
+        } else if (srcColor != null) {
             // multiply colors
             val k0 = i0 / 3
             val s0 = k0 + min(srcNormals.size / 3, srcColor.size)
             for (k in k0 until s0) {
-                dstColors[k] = mixColors(srcColor[k - k0], color)
+                dstColors[k] = mixColors(srcColor[k - k0], extraColor)
             }
             // fill rest
-            dstColors.fill(color, s0, k0 + srcNormals.size / 3)
+            dstColors.fill(extraColor, s0, k0 + srcNormals.size / 3)
         } else {
             // override color
-            dstColors.fill(color, i0 / 3, (i0 + srcNormals.size) / 3)
+            dstColors.fill(extraColor, i0 / 3, (i0 + srcNormals.size) / 3)
         }
-    }
-
-    open fun mixColors(color0: Int, color1: Int): Int {
-        return color0.mulARGB(color1)
     }
 
     private fun fillIndices(dstIndices: IntArray, srcMesh: Mesh, srcPositions: FloatArray, i0: Int, j0: Int): Int {
@@ -328,7 +330,7 @@ abstract class MeshJoiner<V>(
     private fun fillMaterialIds(
         dstMaterialIds: IntArray, element: V, srcMesh: Mesh,
         materialToId: UniqueValueIndexMap<FileReference>, j0: Int, j: Int,
-        drawMode: DrawMode
+        drawMode: DrawMode,
     ) {
         // apply material ids
         val materials = getMaterials(element)

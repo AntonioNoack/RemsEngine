@@ -43,7 +43,7 @@ fun main() {
     val noiseMap = PerlinNoise(1234L, 8, 0.5f, -1f, 1f)
     val meshBuilder = object : MeshJoiner<SphereTriangle>(true, false, false) {
 
-        override fun getVertexColor(element: SphereTriangle): Int {
+        override fun getColor(element: SphereTriangle): Int {
             val c = element.globalCenter
             val v = abs(noiseMap[c.x.toFloat(), c.y.toFloat(), c.z.toFloat()])
             val waterLevel = 0.1f

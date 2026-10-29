@@ -17,7 +17,7 @@ class SimpleMeshJoiner(val joinMaterials: Boolean, hasColors: Boolean, hasUVs: B
         return if (joinMaterials) emptyList() else element.materials
     }
 
-    override fun getVertexColor(element: Mesh): Int {
+    override fun getColor(element: Mesh): Int {
         return if (joinMaterials) {
             val materialRef = element.materials.firstOrNull() ?: InvalidRef
             val material = MaterialCache.getEntry(materialRef).waitFor() as? Material ?: Material.defaultMaterial
