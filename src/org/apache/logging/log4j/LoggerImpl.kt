@@ -5,6 +5,7 @@ import me.anno.Time
 import me.anno.io.Streams.writeString
 import me.anno.io.VoidOutputStream
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileReference
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.OSFeatures
@@ -24,6 +25,7 @@ import java.io.StringWriter
 import java.util.Calendar
 import java.util.Locale
 import java.util.logging.Level
+import kotlin.math.min
 
 open class LoggerImpl(val name: String) : Logger, Log {
 
@@ -410,17 +412,34 @@ open class LoggerImpl(val name: String) : Logger, Log {
             return logFileStream
         }
 
+        private fun deleteOldLogFiles(currTimeMillis: Long, logFolder: FileReference) {
+            val deleteTime = currTimeMillis - 14L * 24L * 3600L * 1000L
+
+            // best files first
+            val children = logFolder.listChildren()
+                .filter { it.lcExtension == "log" && it.nameWithoutExtension.toLongOrNull() != null }
+                .sortedByDescending { it.nameWithoutExtension.toLong() }
+
+            var deleteIndex = min(children.size, 20)
+            while (deleteIndex > 0 && children[deleteIndex - 1].nameWithoutExtension.toLong() < deleteTime) {
+                // delete one more
+                deleteIndex--
+            }
+
+            for (i in deleteIndex until children.size) {
+                children[i].delete()
+            }
+        }
+
         private fun createFileLogStream(): OutputStream? {
             val logFolder = ConfigBasics.cacheFolder.getChild("logs")
             logFolder.tryMkdirs()
+
             // to do pack all existing .log files into .zip files? -> no, the file size shouldn't be THAT big
-            // delete log files older than 14 days
+            // delete log files older than 14 days, and if we have more than 20
             val time = System.currentTimeMillis()
-            val deleteTime = time - 14L * 24L * 3600L * 1000L
-            for (child in logFolder.listChildren()) {
-                val childCreated = child.nameWithoutExtension.toLongOrNull() ?: continue
-                if (childCreated < deleteTime) child.delete()
-            }
+            deleteOldLogFiles(time, logFolder)
+
             val logFile = logFolder.getChild("$time.log")
             logFileStream = try {
                 logFile.outputStream(true).apply {
