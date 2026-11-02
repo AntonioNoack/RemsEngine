@@ -142,6 +142,9 @@ object GFX {
     @JvmField
     var glThread: Thread? = null
 
+    @JvmField
+    var debugLimitedGPUs = false
+
     @JvmStatic
     fun setupBasics(tick: Clock?) {
         LOGGER.info("OpenGL Version: ${GL46C.glGetString(GL46C.GL_VERSION)}")
@@ -165,20 +168,31 @@ object GFX {
         }
         // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
         // todo check if rendering is still broken in DX11 in default render mode
-        val debugLimitedGPUs = false
-        supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true
+
+        supportsDepthTextures = capabilities?.GL_ARB_depth_texture == true
         supportsClipControl = !GFXFeatures.isOpenGLES
-        if (debugLimitedGPUs) supportsClipControl = false
-        supportsComputeShaders = if (OS.isWeb) false else capabilities?.GL_ARB_compute_shader == true || glVersion >= 43
+        if (debugLimitedGPUs) {
+            supportsDepthTextures = false
+            supportsClipControl = false
+        }
+
+        supportsComputeShaders = !OS.isWeb && (capabilities?.GL_ARB_compute_shader == true || glVersion >= 43)
         ClickIdBoundsArray.needsBoxes = supportsComputeShaders
         maxVertexUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_VERTEX_UNIFORM_COMPONENTS)
         maxFragmentUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
         maxBoundTextures = GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_IMAGE_UNITS)
         maxAttributes = GL46C.glGetInteger(GL46C.GL_MAX_VERTEX_ATTRIBS)
         maxUniforms = GL46C.glGetInteger(GL46C.GL_MAX_UNIFORM_LOCATIONS)
-        maxColorAttachments = if (debugLimitedGPUs) 1 else GL46C.glGetInteger(GL46C.GL_MAX_COLOR_ATTACHMENTS)
-        maxSamples = if (debugLimitedGPUs) 1 else max(1, GL46C.glGetInteger(GL46C.GL_MAX_SAMPLES))
-        maxTextureSize = if (debugLimitedGPUs) 1024 else max(256, GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_SIZE))
+        maxColorAttachments = GL46C.glGetInteger(GL46C.GL_MAX_COLOR_ATTACHMENTS)
+        maxSamples = max(1, GL46C.glGetInteger(GL46C.GL_MAX_SAMPLES))
+        maxTextureSize = max(256, GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_SIZE))
+
+        if (debugLimitedGPUs) {
+            maxColorAttachments = 1
+            maxSamples = 1
+            maxTextureSize = min(1024, maxTextureSize)
+        }
+
         GPUShader.useShaderFileCache = !WindowManagement.usesRenderDoc && glVersion >= 41
         if (!GFXFeatures.isOpenGLES && glVersion >= 43) {
             OcclusionQuery.target = GL46C.GL_ANY_SAMPLES_PASSED_CONSERVATIVE

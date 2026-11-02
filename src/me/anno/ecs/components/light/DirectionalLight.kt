@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawBox
+import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.ShaderLib
 import me.anno.mesh.Shapes
@@ -46,7 +47,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         cameraDirection: Vector3f,
         drawTransform: Matrix4x3,
         pipeline: Pipeline,
-        resolution: Int
+        resolution: Int,
     ) {
 
         // todo allow to set the high-resolution point non-centered
@@ -146,7 +147,9 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             "           shadowBias /= shadowMapPower;\n" + // bias is a spatial unit -> needs to be adjusted, too
                             "       }\n" +
 
-                            "       float depthFromShader = (lightPos.z + 1.0) * 0.5 + shadowBias;\n" +
+                            // todo bug: why is there this factor of two??? it should be orthographic, independent of clip-control
+                            (if (GFX.supportsClipControl) "float depthFromShader = (lightPos.z + 1.0) * 0.50 + shadowBias;\n"
+                            else "                         float depthFromShader = (lightPos.z + 3.0) * 0.25 + shadowBias;\n") +
 
                             // do the shadow map function and compare
                             "       float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, vec3(shadowDir.xy,layerIdx), NdotL, depthFromShader);\n" +
