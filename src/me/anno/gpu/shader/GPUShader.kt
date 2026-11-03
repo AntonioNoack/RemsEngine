@@ -98,7 +98,7 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
         private val identity3f = Matrix3f()
         private val identity4f = Matrix4f()
         private val identity4x3f = Matrix4x3f()
-        private val identity4x3m = Matrix4x3()
+        private val identity4x3 = Matrix4x3()
 
         const val DEFAULT_GLSL_VERSION = 150
 
@@ -871,7 +871,7 @@ abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
             potentiallyUse()
             val matrixBuffer = matrixBuffer
             matrixBuffer.position(0).limit(12)
-            (value ?: identity4x3m).putInto(matrixBuffer)
+            (value ?: identity4x3).putInto(matrixBuffer)
             matrixBuffer.flip()
             glUniformMatrix4x3fv(loc, false, matrixBuffer)
         }

@@ -361,9 +361,10 @@ object DebugRendering {
         if (DebugShapes.debugTexts.isEmpty()) return
         val camPosition = view.cameraPosition
         val v = JomlPools.vec4f.borrow()
+        val renderSize = view.renderSize
         // transform is only correct, if we use a temporary framebuffer!
-        val sx = view.width * 0.5f
-        val sy = view.height * 0.5f
+        val sx = renderSize.renderWidth * 0.5f
+        val sy = renderSize.renderHeight * 0.5f
         val betterBlending = GFXState.currentBuffer.getTargetType(0) == TargetType.UInt8x4 &&
                 GFXState.currentBuffer.samples == 1 && DrawTexts.canUseComputeShader()
         if (betterBlending) {
@@ -409,10 +410,11 @@ object DebugRendering {
         val camPosition = view.cameraPosition
         val v = JomlPools.vec4f.borrow()
         // transform is only correct, if we use a temporary framebuffer!
-        val sx = view.width * 0.5f
-        val sy = view.height * 0.5f
+        val renderSize = view.renderSize
+        val sx = renderSize.renderWidth * 0.5f
+        val sy = renderSize.renderHeight * 0.5f
 
-        val scale = min(view.width, view.height).toFloat()
+        val scale = min(renderSize.renderWidth, renderSize.renderHeight).toFloat()
         GFXState.blendMode.use(BlendMode.DEFAULT) {
             useFrame(Renderer.colorRenderer) {
                 val icons = DebugShapes.debugIcons

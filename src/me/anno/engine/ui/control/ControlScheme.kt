@@ -37,6 +37,7 @@ import me.anno.input.controller.ControllerType
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo10
+import me.anno.maths.Maths.sq
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.canvas.Canvas
@@ -477,7 +478,10 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         when (Touch.touches.size) {
             0, 1 -> {
             } // handled like a mouse
-            2 -> turnCameraByTouch()
+            2 -> {
+                turnCameraByTouch()
+                zoomCameraByTouch()
+            }
             else -> moveCameraByTouch()
         }
     }
@@ -487,14 +491,17 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         // this gesture started on this view -> this is our gesture
         // rotating is the hardest on a touchpad, because we need to click right
         // -> rotation
-        val dx = Touch.sumDeltaX() * speed
-        val dy = Touch.sumDeltaY() * speed
-        rotateCamera(dy, dx, 0f)
+        val rotYDegrees = Touch.avgDeltaX() * speed
+        val rotXDegrees = Touch.avgDeltaY() * speed
+        if (sq(rotYDegrees, rotXDegrees) < 100f) {
+            rotateCamera(rotXDegrees, rotYDegrees, 0f)
+        } // else just a random blip
+    }
 
-        // zoom in/out
-        val r = Touch.getZoomFactor()
-        if (r in 0.7f..1.4f) {
-            zoom(r)
+    fun zoomCameraByTouch() {
+        val zoomFactor = Touch.getZoomFactor()
+        if (zoomFactor in 0.7f..1.4f) {
+            zoom(zoomFactor)
         }
     }
 
