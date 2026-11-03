@@ -24,6 +24,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
@@ -55,17 +56,17 @@ class Framebuffer(
     override var name: String,
     override var width: Int, override var height: Int,
     samples: Int, val targets: List<TargetType>,
-    override var depthBufferType: DepthBufferType
+    override var depthBufferType: DepthBufferType,
 ) : IFramebuffer, ICacheData {
 
     constructor(
         name: String, w: Int, h: Int, samples: Int, targetType: TargetType,
-        depthBufferType: DepthBufferType
+        depthBufferType: DepthBufferType,
     ) : this(name, w, h, samples, listOf(targetType), depthBufferType)
 
     constructor(
         name: String, w: Int, h: Int, targetType: TargetType,
-        depthBufferType: DepthBufferType = DepthBufferType.NONE
+        depthBufferType: DepthBufferType = DepthBufferType.NONE,
     ) : this(name, w, h, 1, listOf(targetType), depthBufferType)
 
     override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
@@ -232,7 +233,9 @@ class Framebuffer(
         val h = height
         if (w * h < 1) throw RuntimeException("Invalid framebuffer size $w x $h")
         GFX.check()
-        if (textures.size != targets.size) {
+        if (textures.size != targets.size ||
+            textures.any2 { !it.isCreated() }
+        ) {
             textures = targets.mapIndexed { index, target ->
                 val texture = Texture2D("$name-tex[$index]", w, h, samples)
                 texture.owner = this
@@ -243,6 +246,7 @@ class Framebuffer(
                 texture
             }
         } else {
+            // when is this ever the case??
             for (index in targets.indices) {
                 val texture = textures[index]
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)

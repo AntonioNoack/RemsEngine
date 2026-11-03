@@ -16,6 +16,7 @@ import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.structures.lists.Lists.any2
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.GL46C.GL_DRAW_FRAMEBUFFER
@@ -33,7 +34,7 @@ class Framebuffer3D(
     override var height: Int,
     var depth: Int,
     val targets: List<TargetType>,
-    override val depthBufferType: DepthBufferType
+    override val depthBufferType: DepthBufferType,
 ) : IFramebuffer {
 
     override var pointer by ContextPointer()
@@ -67,7 +68,9 @@ class Framebuffer3D(
         val d = depth
         assertTrue(w > 0 && h > 0 && d > 0, "Invalid framebuffer size")
         GFX.check()
-        if (textures.size != targets.size) {
+        if (textures.size != targets.size ||
+            textures.any2 { !it.isCreated() }
+        ) {
             textures = targets.mapIndexed { index, target ->
                 val texture = Texture3D("$name-tex[$index]", w, h, d)
                 // texture.autoUpdateMipmaps = autoUpdateMipmaps

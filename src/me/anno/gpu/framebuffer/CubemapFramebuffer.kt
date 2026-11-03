@@ -15,6 +15,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
 import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.createList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
@@ -31,13 +32,13 @@ class CubemapFramebuffer(
     override var name: String, var size: Int,
     override val samples: Int, // todo when we support multi-sampled cubemaps, also support them here
     val targets: List<TargetType>,
-    override val depthBufferType: DepthBufferType
+    override val depthBufferType: DepthBufferType,
 ) : IFramebuffer {
 
     constructor(
         name: String, size: Int, samples: Int,
         targetCount: Int, fpTargets: Boolean,
-        depthBufferType: DepthBufferType
+        depthBufferType: DepthBufferType,
     ) : this(
         name, size, samples,
         createList(targetCount, if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4),
@@ -136,7 +137,9 @@ class CubemapFramebuffer(
         Frame.lastPtr = pointer
         //stack.push(this)
         GFX.check()
-        if (textures.size != targets.size) {
+        if (textures.size != targets.size ||
+            textures.any2 { !it.isCreated() }
+        ) {
             textures = targets.mapIndexed { index, target ->
                 val texture = CubemapTexture("$name-$index", size, samples)
                 texture.autoUpdateMipmaps = autoUpdateMipmaps
