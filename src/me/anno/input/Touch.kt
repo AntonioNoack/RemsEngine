@@ -58,16 +58,31 @@ class Touch(var x: Float, var y: Float) {
         }
 
         @JvmStatic
+        fun getTouchPair(): Pair<Touch, Touch>? {
+            if (touches.size != 2) return null
+            var t0: Touch? = null
+            var t1: Touch? = null
+            touches.forEach { _, touch ->
+                if (t0 == null || t0!!.t0 > touch.t0) {
+                    t1 = t0
+                    t0 = touch
+                } else {
+                    t1 = touch
+                }
+            }
+            val t0i = t0 ?: return null
+            val t1i = t1 ?: return null
+            return t0i to t1i
+        }
+
+        @JvmStatic
         fun getZoomFactor(): Float {
-            val touches = touches.values.filterNotNull()
-            return if (touches.size == 2) {
-                val t0 = touches[0] as Touch
-                val t1 = touches[1] as Touch
-                val dist0 = sq(t0.x - t1.x, t0.y - t1.y)
-                val dist1 = sq(t0.lastX - t1.lastX, t0.lastY - t1.lastY)
-                if (dist0 < 1f || dist1 < 1f) return 1f
-                sqrt(dist1 / dist0)
-            } else 1f
+            val (t0, t1) = getTouchPair() ?: return 1f
+
+            val dist0 = sq(t0.x - t1.x, t0.y - t1.y)
+            val dist1 = sq(t0.lastX - t1.lastX, t0.lastY - t1.lastY)
+            if (dist0 < 1f || dist1 < 1f) return 1f
+            return sqrt(dist1 / dist0)
         }
 
         @JvmStatic
