@@ -33,6 +33,16 @@ object CanvasAtlasCache {
         val packing = ShelfPacking(size, size, 4)
     }
 
+    fun invalidate(texture: ITexture2D) {
+        // todo if we just redraw it, and it already has a slot,
+        //  we could immediately refresh it...
+        textureCache.remove(texture)
+    }
+
+    fun invalidate(frame: GPUFrame) {
+        frameCache.remove(frame)
+    }
+
     private val textureCache = HashMap<ITexture2D, Bounds?>()
     private val frameCache = HashMap<GPUFrame, Bounds?>()
 
