@@ -42,4 +42,12 @@ open class ShortArrayList(initCapacity: Int) : NativeArrayList {
         ensureExtra(1)
         values[size++] = value
     }
+
+    override fun appendValue(sb: StringBuilder, index: Int) {
+        sb.append(values[index])
+    }
+
+    override fun toString(): String {
+        return toStringImpl()
+    }
 }

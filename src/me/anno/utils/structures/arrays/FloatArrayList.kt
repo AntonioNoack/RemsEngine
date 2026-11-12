@@ -143,16 +143,24 @@ open class FloatArrayList(initCapacity: Int = 16, val pool: FloatArrayPool? = nu
     override fun equals(other: Any?): Boolean {
         return other is FloatArrayList &&
                 other.size == size &&
-                (0 until size).all {
+                indices.all {
                     other[it] == this[it]
                 }
     }
 
     override fun hashCode(): Int {
         var result = 1
-        for (i in 0 until size) {
+        for (i in indices) {
             result = 31 * result + this[i].toRawBits()
         }
         return result
+    }
+
+    override fun appendValue(sb: StringBuilder, index: Int) {
+        sb.append(values[index])
+    }
+
+    override fun toString(): String {
+        return toStringImpl()
     }
 }

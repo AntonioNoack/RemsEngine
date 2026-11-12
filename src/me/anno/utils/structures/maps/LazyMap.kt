@@ -9,7 +9,7 @@ package me.anno.utils.structures.maps
 open class LazyMap<K, V>(
     val generator: (K) -> V,
     val nullsAreValid: Boolean = false,
-    initialCapacity: Int = 16
+    initialCapacity: Int = 16,
 ) : Map<K, V> {
 
     constructor(generator: (K) -> V) :
@@ -70,5 +70,9 @@ open class LazyMap<K, V>(
 
     fun clear() {
         cache.clear()
+    }
+
+    override fun toString(): String {
+        return "LazyMap $cache"
     }
 }

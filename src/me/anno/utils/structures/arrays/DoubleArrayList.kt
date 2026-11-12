@@ -44,5 +44,11 @@ open class DoubleArrayList(initCapacity: Int) : NativeArrayList {
         values[size++] = value
     }
 
-    override fun toString(): String = toList().toString()
+    override fun appendValue(sb: StringBuilder, index: Int) {
+        sb.append(values[index])
+    }
+
+    override fun toString(): String {
+        return toStringImpl()
+    }
 }

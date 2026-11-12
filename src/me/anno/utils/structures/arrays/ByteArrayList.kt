@@ -1,21 +1,17 @@
 package me.anno.utils.structures.arrays
 
 import org.apache.logging.log4j.LogManager
-import kotlin.math.max
 
 @Suppress("unused")
-open class ByteArrayList(initialCapacity: Int) {
+open class ByteArrayList(initialCapacity: Int) : NativeArrayList {
 
     companion object {
         private val LOGGER = LogManager.getLogger(ByteArrayList::class)
     }
 
-    var size = 0
+    override var size = 0
     var values: ByteArray = ByteArray(initialCapacity)
-
-    fun clear() {
-        size = 0
-    }
+    override val capacity: Int get() = values.size
 
     fun add(value: Byte) = plusAssign(value)
 
@@ -54,25 +50,7 @@ open class ByteArrayList(initialCapacity: Int) {
         addUnsafe(value)
     }
 
-    fun ensureExtra(delta: Int) {
-        ensureCapacity(size + delta)
-    }
-
-    fun ensureCapacity(requestedSize: Int) {
-        val array = values
-        if (requestedSize >= array.size) {
-            val suggestedSize = max(array.size * 2, 16)
-            val newSize = max(suggestedSize, requestedSize)
-            this.values = try {
-                array.copyOf(newSize)
-            } catch (e: OutOfMemoryError) {
-                LOGGER.warn("Failed to allocated $newSize bytes for ExpandingByteArray")
-                throw e
-            }
-        }
-    }
-
-    fun skip(delta: Int) {
+    override fun skip(delta: Int) {
         ensureExtra(delta)
         size += delta
     }
@@ -87,7 +65,19 @@ open class ByteArrayList(initialCapacity: Int) {
         return array.copyOf(dstSize)
     }
 
+    override fun resize(newSize: Int) {
+        values = values.copyOf(newSize)
+    }
+
     fun decodeToString(dstSize: Int = size): String {
         return values.decodeToString(0, dstSize)
+    }
+
+    override fun appendValue(sb: StringBuilder, index: Int) {
+        sb.append(values[index])
+    }
+
+    override fun toString(): String {
+        return toStringImpl()
     }
 }

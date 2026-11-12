@@ -12,6 +12,7 @@ import kotlin.math.sqrt
  * Stores the current state of which touches are present, where, and for how long;
  * useful for Android, Web on phone, and touch-enabled laptops
  * */
+@Suppress("unused")
 class Touch(var x: Float, var y: Float) {
 
     val t0 = Time.nanoTime

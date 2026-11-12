@@ -275,6 +275,7 @@ open class IntArrayList(
         values.fill(value, index0, index1)
     }
 
+    @Suppress("unused") // is this used anywhere???
     fun removeDuplicatesSorted() {
         if (size < 2) return // already unique
         var writeIndex = 1
@@ -295,31 +296,27 @@ open class IntArrayList(
         size = 0
     }
 
-    override fun toString(): String {
-        val builder = StringBuilder(size * 4)
-        builder.append('[')
-        if (!isEmpty()) builder.append(this[0])
-        for (i in 1 until size) {
-            builder.append(',')
-            builder.append(this[i])
-        }
-        builder.append(']')
-        return builder.toString()
-    }
-
     override fun equals(other: Any?): Boolean {
         return other is IntArrayList &&
                 other.size == size &&
-                (0 until size).all {
+                indices.all {
                     other[it] == this[it]
                 }
     }
 
     override fun hashCode(): Int {
         var result = 1
-        for (i in 0 until size) {
+        for (i in indices) {
             result = 31 * result + this[i]
         }
         return result
+    }
+
+    override fun appendValue(sb: StringBuilder, index: Int) {
+        sb.append(values[index])
+    }
+
+    override fun toString(): String {
+        return toStringImpl()
     }
 }

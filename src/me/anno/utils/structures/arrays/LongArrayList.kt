@@ -97,4 +97,12 @@ open class LongArrayList(initCapacity: Int = 16) : NativeArrayList {
             values.copyOf(size1)
         }
     }
+
+    override fun appendValue(sb: StringBuilder, index: Int) {
+        sb.append(values[index])
+    }
+
+    override fun toString(): String {
+        return toStringImpl()
+    }
 }

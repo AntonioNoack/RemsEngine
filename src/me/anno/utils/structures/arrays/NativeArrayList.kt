@@ -36,4 +36,18 @@ interface NativeArrayList {
 
     val indices: IntRange get() = 0 until size
     val lastIndex: Int get() = size - 1
+
+    fun toStringImpl(): String {
+        if (isEmpty()) return "[]"
+        return buildString {
+            append("[")
+            for (i in this@NativeArrayList.indices) {
+                if (i > 0) append(", ")
+                appendValue(this, i)
+            }
+            append("]")
+        }
+    }
+
+    fun appendValue(sb: StringBuilder, index: Int)
 }
