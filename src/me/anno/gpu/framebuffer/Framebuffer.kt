@@ -301,7 +301,7 @@ class Framebuffer(
     }
 
     private fun ensureRenderbuffer() {
-        if (depthRenderbuffer == null) {
+        if (depthRenderbuffer?.isCreated() != true) {
             depthRenderbuffer = createAndAttachRenderbuffer()
         }
     }
@@ -495,7 +495,7 @@ class Framebuffer(
             val ssBuffer = ssBuffer!!
             ssBuffer.ensureSize(width, height, 0)
             val isDepthTexture = index == numTextures
-            return LazyTexture(
+            LazyTexture(
                 if (isDepthTexture) ssBuffer.depthTexture!!
                 else ssBuffer.textures[index],
                 if (isDepthTexture) depthTexture!!

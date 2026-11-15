@@ -165,14 +165,14 @@ class CubemapFramebuffer(
             }
             DepthBufferType.INTERNAL -> {
                 val renderBuffer = depthRenderBuffer
-                if (renderBuffer == null) {
+                if (renderBuffer?.isCreated() != true) {
                     createDepthBuffer()
                 } else {
                     renderBuffer.attachToFramebuffer(true)
                 }
             }
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                if (depthTexture == null) {
+                if (depthTexture?.isCreated() != true) {
                     GFX.check()
                     val texture = this.depthTexture ?: CubemapTexture("$name-depth", size, samples)
                     texture.autoUpdateMipmaps = autoUpdateMipmaps

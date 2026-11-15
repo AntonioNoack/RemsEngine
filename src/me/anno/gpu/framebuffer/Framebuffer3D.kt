@@ -110,7 +110,7 @@ class Framebuffer3D(
             }
             DepthBufferType.INTERNAL -> throw NotImplementedError()// createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                if (depthTexture == null) {
+                if (depthTexture?.isCreated() != true) {
                     val depthTexture = Texture3D("$name-depth", w, h, d)
                     // depthTexture.autoUpdateMipmaps = autoUpdateMipmaps
                     depthTexture.create(depthBufferType.chooseDepthFormat())

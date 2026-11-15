@@ -162,14 +162,14 @@ class FramebufferArray(
             }
             DepthBufferType.INTERNAL -> {
                 val renderBuffer = depthRenderBuffer
-                if (renderBuffer == null) {
+                if (renderBuffer?.isCreated() != true) {
                     createDepthBuffer()
                 } else {
                     renderBuffer.attachToFramebuffer(true)
                 }
             }
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                if (depthTexture == null) {
+                if (depthTexture?.isCreated() != true) {
                     GFX.check()
                     val texture = Texture2DArray("$name-depth", width, height, layers)
                     texture.autoUpdateMipmaps = autoUpdateMipmaps

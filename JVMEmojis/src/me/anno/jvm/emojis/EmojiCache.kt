@@ -15,7 +15,7 @@ import me.anno.maths.Packing.unpackLowFrom64
 import me.anno.utils.OS.res
 import me.anno.utils.structures.arrays.LongArrayList
 import me.anno.utils.types.Strings.joinChars
-import speiger.primitivecollections.IntHashSet
+import speiger.primitivecollections.IntToIntHashMap
 import speiger.primitivecollections.ObjectToIntHashMap
 import java.io.ByteArrayInputStream
 import java.util.zip.ZipInputStream
@@ -32,8 +32,8 @@ object EmojiCache : IEmojiCache {
     private val rasterCache = CacheSection<EmojiKey, Image>("EmojiRasterCache")
     private val contourCache = CacheSection<EmojiKey, Contours>("EmojiContourCache")
 
-    private val knownEmojis = ObjectToIntHashMap<List<Int>>(-1)
-    private val knownEmojiChars = IntHashSet()
+    private val knownEmojis = ObjectToIntHashMap<List<Int>>(-1, 256)
+    private val knownEmojiChars = IntToIntHashMap(-1, 256)
     private val emojiStrings = ArrayList<String>()
 
     private val svgEmojiOffsets = LongArrayList(256)
@@ -66,8 +66,10 @@ object EmojiCache : IEmojiCache {
                 }
             }
 
-            if (path.size == 1) knownEmojiChars.add(path[0])
-            knownEmojis[path] = knownEmojis.size
+            val index = svgEmojiOffsets.size
+            if (path.size == 1) knownEmojiChars[path[0]] = index
+            else knownEmojis[path] = index
+
             svgEmojiOffsets.add(Packing.pack64(startIndex, size))
             emojiStrings.add(path.joinChars().toString())
         }
@@ -75,15 +77,17 @@ object EmojiCache : IEmojiCache {
     }
 
     override fun contains(codepoint: Int): Boolean {
-        return knownEmojiChars.contains(codepoint)
+        return knownEmojiChars.containsKey(codepoint)
     }
 
     override fun contains(codepoints: List<Int>): Boolean {
-        return knownEmojis.containsKey(codepoints)
+        return if (codepoints.size == 1) knownEmojiChars.containsKey(codepoints.first())
+        else knownEmojis.containsKey(codepoints)
     }
 
     override fun getEmojiId(codepoints: List<Int>): Int {
-        return knownEmojis[codepoints]
+        return if (codepoints.size == 1) knownEmojiChars[codepoints.first()]
+        else knownEmojis[codepoints]
     }
 
     override fun getEmojiString(emojiId: Int): String {
