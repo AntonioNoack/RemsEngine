@@ -82,7 +82,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     /**
      * Spreads this panel with the given weight
      * */
-    fun fill(weight: Float): Panel {
+    open fun fill(weight: Float): Panel {
         this.weight = weight
         this.weight2 = weight
         alignmentX = AxisAlignment.FILL

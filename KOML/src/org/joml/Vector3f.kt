@@ -19,7 +19,7 @@ import kotlin.math.sqrt
 open class Vector3f(
     @JvmField var x: Float,
     @JvmField var y: Float,
-    @JvmField var z: Float
+    @JvmField var z: Float,
 ) : Vector {
 
     constructor() : this(0f, 0f, 0f)
@@ -760,12 +760,7 @@ open class Vector3f(
     }
 
     fun rotateInv(q: Quaternionf, dst: Vector3f = this): Vector3f {
-        synchronized(q) {
-            q.conjugate()
-            q.transform(this, dst)
-            q.conjugate()
-        }
-        return dst
+        return q.transformInverse(this, dst)
     }
 
     fun fract(dst: Vector3f = this): Vector3f =

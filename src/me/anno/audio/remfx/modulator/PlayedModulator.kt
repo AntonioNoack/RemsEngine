@@ -1,4 +1,4 @@
-package me.anno.audio.remfx.sound
+package me.anno.audio.remfx.modulator
 
 import me.anno.input.Input
 import me.anno.input.Key

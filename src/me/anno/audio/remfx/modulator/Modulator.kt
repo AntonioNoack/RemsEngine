@@ -1,4 +1,4 @@
-package me.anno.audio.remfx.sound
+package me.anno.audio.remfx.modulator
 
 import me.anno.audio.remfx.RemFXContext
 import me.anno.audio.remfx.effect.Sound

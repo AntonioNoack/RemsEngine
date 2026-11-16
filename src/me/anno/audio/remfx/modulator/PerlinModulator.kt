@@ -1,4 +1,4 @@
-package me.anno.audio.remfx.sound
+package me.anno.audio.remfx.modulator
 
 import me.anno.maths.Maths.mix
 import me.anno.maths.noise.PerlinNoise

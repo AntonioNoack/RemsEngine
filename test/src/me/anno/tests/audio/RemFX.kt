@@ -9,9 +9,9 @@ import me.anno.audio.remfx.effect.NoteSound
 import me.anno.audio.remfx.effect.ReverbEffect
 import me.anno.audio.remfx.effect.WhiteNoiseSound
 import me.anno.audio.remfx.effect.WoodpeckerDrum
-import me.anno.audio.remfx.sound.PerlinModulator
-import me.anno.audio.remfx.sound.PlayedModulator
-import me.anno.audio.remfx.sound.SpacialModulator
+import me.anno.audio.remfx.modulator.PerlinModulator
+import me.anno.audio.remfx.modulator.PlayedModulator
+import me.anno.audio.remfx.modulator.SpacialModulator
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.ecs.Entity
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI

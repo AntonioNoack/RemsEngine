@@ -31,7 +31,7 @@ class ReverbEffect(val sound: Sound) : Sound() {
         vl.fill(0, totalReverb)
         vr.fill(0, totalReverb)
 
-        // fill highest data
+        // fill the highest data
         val b0 = context.bufferOffset
         context.bufferOffset = totalReverb
         sound.add(context, bufferL.values, bufferR.values)

@@ -11,7 +11,7 @@ object FibonacciSphere {
 
     val goldenAngle = (PI * (3.0 - sqrt(5.0))).toFloat() // golden angle in radians
 
-    private fun get(i: Int, n: Int, dst: Vector3f): Vector3f {
+    fun get(i: Int, n: Int, dst: Vector3f): Vector3f {
         val div = 2f / (n - 1f)
         val y = 1f - i * div  // y goes from 1 to -1
         val radius = sqrt(1f - y * y)  // radius at y
