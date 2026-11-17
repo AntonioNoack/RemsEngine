@@ -2,8 +2,13 @@ package me.anno.audio.remfx.modulator
 
 import me.anno.audio.remfx.RemFXContext
 import me.anno.audio.remfx.effect.Sound
+import kotlin.math.max
 
-open class Modulator(val sound: Sound) {
+open class Modulator(var sound: Sound) : Sound {
+
+    companion object {
+        var minAmplitude = 10f
+    }
 
     var left = 20e3f
     var right = 20e3f
@@ -17,6 +22,26 @@ open class Modulator(val sound: Sound) {
         return this
     }
 
-    open fun update(context: RemFXContext) {}
+    override fun hasTimeDelay(): Boolean = sound.hasTimeDelay()
 
+    override fun add(context: RemFXContext, left: ShortArray, right: ShortArray) {
+        val l = lastLeft
+        val r = lastRight
+        context.amplitudeL0 = l
+        context.amplitudeR0 = r
+
+        val invSize = 1f / context.bufferSize
+        context.deltaAmplitudeL = (this.left - l) * invSize
+        context.deltaAmplitudeR = (this.right - r) * invSize
+
+        val sound = sound
+        val maxAmplitude = max(max(this.left, l), max(this.right, r))
+        if (maxAmplitude >= minAmplitude || sound.hasTimeDelay()) {
+            sound.update(context)
+            sound.add(context, left, right)
+        }
+
+        lastLeft = this.left
+        lastRight = this.right
+    }
 }

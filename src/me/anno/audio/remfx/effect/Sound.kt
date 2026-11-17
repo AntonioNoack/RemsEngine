@@ -1,16 +1,17 @@
 package me.anno.audio.remfx.effect
 
-import me.anno.maths.Maths.clamp
 import me.anno.audio.remfx.RemFXContext
+import me.anno.maths.Maths.clamp
 
-abstract class Sound {
+interface Sound {
 
-    abstract fun add(
+    fun add(
         context: RemFXContext,
-        left: ShortArray, right: ShortArray
+        left: ShortArray, right: ShortArray,
     )
 
-    open fun hasTimeDelay() = false
+    fun update(context: RemFXContext) {}
+    fun hasTimeDelay() = false
 
     fun add(value: Float, i: Int, dst: ShortArray) {
         add(value.toInt(), i, dst)
@@ -23,7 +24,7 @@ abstract class Sound {
 
     fun add(
         context: RemFXContext, value: Float, i: Int,
-        left: ShortArray, right: ShortArray
+        left: ShortArray, right: ShortArray,
     ) {
         left[i] = clampS(left[i] + (value * (context.amplitudeL0 + i * context.deltaAmplitudeL)).toInt())
         right[i] = clampS(right[i] + (value * (context.amplitudeR0 + i * context.deltaAmplitudeR)).toInt())

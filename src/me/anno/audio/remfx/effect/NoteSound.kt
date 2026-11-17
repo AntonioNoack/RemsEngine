@@ -9,7 +9,7 @@ import me.anno.maths.Maths.fract
 import kotlin.math.pow
 import kotlin.math.sin
 
-class NoteSound(frequency: Float) : Sound() {
+class NoteSound(frequency: Float) : Sound {
 
     constructor(note: Note, octave: Int = 0) :
             this(note.frequency * 2f.pow(octave))

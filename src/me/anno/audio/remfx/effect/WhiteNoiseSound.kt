@@ -3,7 +3,7 @@ package me.anno.audio.remfx.effect
 import me.anno.audio.remfx.RemFXContext
 import kotlin.random.Random
 
-class WhiteNoiseSound : Sound() {
+class WhiteNoiseSound : Sound {
 
     private val random = Random(1234)
 

@@ -3,7 +3,7 @@ package me.anno.audio.remfx.effect
 import me.anno.audio.remfx.RemFXContext
 import me.anno.utils.structures.arrays.ShortArrayList
 
-class ReverbEffect(val sound: Sound) : Sound() {
+class ReverbEffect(val sound: Sound) : Sound {
 
     val bufferL = ShortArrayList(512 * 2)
     val bufferR = ShortArrayList(512 * 2)

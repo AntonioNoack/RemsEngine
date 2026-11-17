@@ -1,14 +1,13 @@
 package me.anno.audio.remfx
 
 import me.anno.audio.openal.AudioTasks.addAudioTask
-import me.anno.audio.remfx.modulator.Modulator
+import me.anno.audio.remfx.effect.Sound
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.audio.AttenuationModel.Companion.updateGlobalDistanceModel
 import me.anno.ecs.components.audio.AudioCamera
 import me.anno.ecs.systems.OnUpdate
-import kotlin.math.max
 
 open class RemFXPlayer : Component(), OnUpdate {
 
@@ -53,8 +52,7 @@ open class RemFXPlayer : Component(), OnUpdate {
         AudioCamera.updateCameraAsync()
     }
 
-    var minAmplitude = 10f
-    val sounds = ArrayList<Modulator>()
+    val sounds = ArrayList<Sound>()
 
     // todo bug: there is a 10% chance that it doesn't play anything...
     //  isPlaying returns true though...
@@ -70,29 +68,10 @@ open class RemFXPlayer : Component(), OnUpdate {
         context.sampleOffset = bufferIndex * bufferSize
         context.bufferSize = bufferSize
 
-        val invSize = 1f / left.size
         for (i in sounds.indices) {
             val sound = sounds[i]
             sound.update(context)
-
-            val effect = sound.sound
-            val l = sound.lastLeft
-            val r = sound.lastRight
-            context.amplitudeL0 = l
-            context.amplitudeR0 = r
-            context.deltaAmplitudeL = (sound.left - l) * invSize
-            context.deltaAmplitudeR = (sound.right - r) * invSize
-
-            val maxAmplitude = max(
-                max(sound.left, l),
-                max(sound.right, r)
-            )
-            if (maxAmplitude >= minAmplitude || effect.hasTimeDelay()) {
-                effect.add(context, left, right)
-            }
-
-            sound.lastLeft = sound.left
-            sound.lastRight = sound.right
+            sound.add(context, left, right)
         }
     }
 }

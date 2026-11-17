@@ -4,7 +4,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.audio.remfx.RemFXContext
 import kotlin.random.Random
 
-class NoisyBang : Sound() {
+class NoisyBang : Sound {
 
     private val random = Random(1234)
 
