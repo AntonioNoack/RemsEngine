@@ -1,11 +1,13 @@
 package me.anno.video
 
-import me.anno.cache.Promise
 import me.anno.cache.CacheSection
+import me.anno.cache.Promise
+import me.anno.gpu.texture.ITexture2D
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.video.formats.gpu.GPUFrame
+import java.io.IOException
 import kotlin.math.max
 import kotlin.math.min
 
@@ -27,6 +29,7 @@ object VideoCache {
     var getProxyFile: ((file: FileReference, sliceIndex: Int) -> Promise<FileReference>)? = null
     var getProxyFileDontUpdate: ((file: FileReference, sliceIndex: Int) -> FileReference?)? = null
     var generateVideoFrames: ((key: VideoFramesKey, result: Promise<VideoSlice>) -> Unit)? = null
+    var generateImageTexture: ((key: FileReference, result: Promise<ITexture2D>) -> Unit)? = null
 
     fun getVideoFramesWithoutGenerator(key: VideoFramesKey, delta: Long = 0L): Promise<VideoSlice>? =
         slices.getEntryWithoutGenerator(key, delta)
@@ -34,7 +37,7 @@ object VideoCache {
     fun getVideoFramesWithoutGenerator(
         file: FileReference, scale: Int,
         bufferIndex: Int, bufferLength: Int, fps: Double,
-        delta: Long = 0L
+        delta: Long = 0L,
     ): Promise<VideoSlice>? =
         getVideoFramesWithoutGenerator(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps), delta)
 
@@ -62,7 +65,7 @@ object VideoCache {
     fun getVideoFrameImpl(
         file: FileReference, scale: Int,
         frameIndex: Int, bufferIndex: Int, bufferLength: Int,
-        fps: Double, timeout: Long
+        fps: Double, timeout: Long,
     ): Promise<GPUFrame> {
 
         val localIndex = frameIndex % bufferLength
@@ -85,7 +88,7 @@ object VideoCache {
     fun getVideoFrameWithoutGenerator(
         file: FileReference, scale: Int,
         frameIndex: Int, bufferIndex: Int,
-        bufferLength: Int, fps: Double
+        bufferLength: Int, fps: Double,
     ): Promise<GPUFrame> {
         val videoData = getVideoFramesWithoutGenerator(file, scale, bufferIndex, bufferLength, fps)
             ?.value ?: return Promise.empty()
@@ -99,7 +102,7 @@ object VideoCache {
     fun getVideoFrame(
         file: FileReference, scale: Int, index: Int,
         bufferLength0: Int, fps: Double, timeout: Long,
-        meta: MediaMetadata
+        meta: MediaMetadata,
     ): Promise<GPUFrame> {
         if (index < 0 || scale < 1) return Promise.empty()
         val bufferLength = max(1, bufferLength0)
@@ -128,7 +131,7 @@ object VideoCache {
     @Suppress("unused")
     fun getVideoFrameWithoutGenerator(
         meta: MediaMetadata, index: Int,
-        bufferLength0: Int, fps: Double
+        bufferLength0: Int, fps: Double,
     ): GPUFrame? {
         if (index < 0) return null
         val bufferLength = max(1, bufferLength0)
@@ -161,7 +164,7 @@ object VideoCache {
      * */
     fun getVideoFrame(
         file: FileReference, scale: Int, index: Int,
-        bufferLength0: Int, fps: Double, timeout: Long
+        bufferLength0: Int, fps: Double, timeout: Long,
     ): Promise<GPUFrame> {
         if (index < 0 || scale < 1) return Promise.empty()
         // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
@@ -179,9 +182,18 @@ object VideoCache {
         return getVideoFrameImpl(file, scale, index, bufferLength0, fps, timeout)
     }
 
+    /**
+     * reads one video frame as a texture; used for reading Webp textures.
+     * */
+    fun readVideoFrameAsTexture(file: FileReference, callback: Promise<ITexture2D>) {
+        val generator = generateImageTexture
+        if (generator != null) generator(file, callback)
+        else callback.err(IOException("Missing VideoCache.generateImageTexture"))
+    }
+
     fun getVideoFrameImpl(
         file: FileReference, scale: Int, index: Int,
-        bufferLength0: Int, fps: Double, timeout: Long
+        bufferLength0: Int, fps: Double, timeout: Long,
     ): Promise<GPUFrame> {
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength

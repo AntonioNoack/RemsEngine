@@ -5,7 +5,7 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.types.Floats.toLongOr
 import kotlin.math.min
 
-abstract class DebugItem(val color: Int, val timeOfDeath: Long = defaultTime()) {
+abstract class DebugItem(var color: Int, val timeOfDeath: Long = defaultTime()) {
     companion object {
         fun timeByDuration(duration: Float): Long {
             val nanoTime = Time.nanoTime

@@ -2,6 +2,7 @@ package me.anno.engine.debug
 
 import me.anno.Time
 import me.anno.utils.InternalAPI
+import me.anno.utils.structures.lists.Lists.removeIf2
 
 @Suppress("unused")
 object DebugShapes {
@@ -59,7 +60,7 @@ object DebugShapes {
         for (i in collections.indices) {
             val collection = collections[i]
             synchronized(collection) {
-                collection.removeAll { it.timeOfDeath < time }
+                collection.removeIf2 { it.timeOfDeath < time }
             }
         }
     }

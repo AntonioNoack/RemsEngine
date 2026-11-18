@@ -6,9 +6,16 @@ import me.anno.utils.types.Strings.distance
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 
-class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
+@JvmInline
+value class KeyCombination private constructor(val encoded: Int) {
 
-    val hash = key.ordinal.shl(8) + modifiers * 6 + type.id
+    constructor(key: Key, modifiers: Int, type: Type) :
+            this(key.ordinal.shl(11) or modifiers.and(0xff).shl(3) or type.ordinal)
+
+    // we have more than enough bits to encode the value in one int
+    val key: Key get() = Key.entries[encoded.shr(11)]
+    val modifiers: Int get() = encoded.shr(3).and(0xff)
+    val type: Type get() = Type.entries[encoded.and(7)]
 
     val isControl: Boolean get() = modifiers.hasFlag(GLFW.GLFW_MOD_CONTROL)
     val isShift: Boolean get() = modifiers.hasFlag(GLFW.GLFW_MOD_SHIFT)
@@ -35,16 +42,19 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
         DOUBLE(5)
     }
 
-    override fun hashCode() = hash
-    override fun equals(other: Any?) =
-        other is KeyCombination && other.key == key && other.modifiers == modifiers && other.type == type
-
-    override fun toString() =
-        "${get(key) ?: key}:${if (isControl) "c" else ""}${if (isShift) "s" else ""}${if (isAlt) "a" else ""}:$type"
+    override fun toString() = buildString {
+        append(get(key) ?: key.name)
+        if (isControl) append('c')
+        if (isShift) append('s')
+        if (isAlt) append('a')
+        append(':').append(type.name)
+    }
 
     companion object {
 
         private val LOGGER = LogManager.getLogger(KeyCombination::class)
+
+        val NULL = KeyCombination(0)
 
         operator fun get(name: String): Key? = keyMapping[name]
         operator fun get(key: Key): String? = keyMapping.reverse[key]

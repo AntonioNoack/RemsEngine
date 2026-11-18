@@ -694,4 +694,40 @@ object Lists {
     fun <V> List<V>.roundRobin(i: Int): V {
         return this[posMod(i, size)]
     }
+
+    /**
+     * allocation-free removeAll/removeIf();
+     * returns whether anything was changed
+     * */
+    @JvmStatic
+    inline fun <V> ArrayList<V>.removeIf2(removeCondition: (V) -> Boolean): Boolean {
+        var writeIndex = 0
+        for (readIndex in indices) {
+            val value = this[readIndex]
+            if (!removeCondition(value)) {
+                this[writeIndex++] = value
+            }
+        }
+        val numRemoved = size - writeIndex
+        repeat(numRemoved) {
+            removeLast()
+        }
+        return numRemoved > 0
+    }
+
+    /**
+     * getOrPut() on a dense map
+     * */
+    @JvmStatic
+    inline fun <V : Any> ArrayList<V?>.getOrPut(index: Int, defaultValue: () -> V): V {
+        var value = getOrNull(index)
+        if (value != null) return value
+
+        value = defaultValue()
+        ensureCapacity(index + 1)
+        while (index >= size) add(null)
+        set(index, value)
+        return value
+    }
+
 }

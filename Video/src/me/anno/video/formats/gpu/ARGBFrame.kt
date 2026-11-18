@@ -17,7 +17,7 @@ class ARGBFrame(w: Int, h: Int) : RGBFrame(w, h, 4, "argb-frame") {
                 ?: return callback.err(null)
 
             blankDetector.putARGB(data)
-            addGPUTask("RGBA", width, height) {
+            addGPUTask("ARGB", width, height) {
                 if (!isDestroyed && !rgb.isDestroyed) {
                     rgb.createRGBA(data, false)
                 } else warnAlreadyDestroyed(data, null)

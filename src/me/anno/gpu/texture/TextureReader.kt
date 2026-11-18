@@ -2,14 +2,12 @@ package me.anno.gpu.texture
 
 import me.anno.cache.Promise
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.image.Image
 import me.anno.image.ImageAsFolder
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageTransform
 import me.anno.image.raw.GPUImage
-import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
@@ -78,10 +76,12 @@ class TextureReader(val file: FileReference, val result: Promise<ITexture2D>) {
     }
 
     private fun loadTexture0(signature: Signature?) {
-        when (signature?.name) {
-            "dds", "media" -> tryUsingVideoCache(file)
-            else -> loadTexture1()
+        val useVideoCache = when (signature?.name) {
+            "webp", "dds", "media" -> true
+            else -> false
         }
+        if (useVideoCache) tryUsingVideoCache(file)
+        else loadTexture1()
     }
 
     private fun loadTexture1() {
@@ -110,25 +110,6 @@ class TextureReader(val file: FileReference, val result: Promise<ITexture2D>) {
     }
 
     private fun tryUsingVideoCache(file: FileReference) {
-        // calculate required scale? no, without animation, we don't need to scale it down ;)
-        getMeta(file).waitFor { meta ->
-            if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
-                LOGGER.warn("Cannot load $file using VideoCache")
-                result.value = null
-            } else {
-                VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout)
-                    .waitFor({ frame ->
-                        frame == null || frame.isCreated || frame.isDestroyed
-                    }) { frame ->
-                        if (frame != null) {
-                            addGPUTask("TextureReader.useFFMPEG", frame.width, frame.height) {
-                                if (!result.hasBeenDestroyed) {
-                                    result.value = frame.toTexture()
-                                }
-                            }
-                        } else result.value = null
-                    }
-            }
-        }
+        VideoCache.readVideoFrameAsTexture(file, result)
     }
 }

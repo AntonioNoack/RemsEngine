@@ -3,8 +3,9 @@ package me.anno.video.ffmpeg
 import me.anno.Engine
 import me.anno.Time
 import me.anno.audio.openal.SoundBuffer
-import me.anno.cache.Promise
 import me.anno.cache.IgnoredException
+import me.anno.cache.Promise
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
@@ -16,6 +17,7 @@ import me.anno.utils.hpc.HeavyProcessing
 import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrame
 import me.anno.video.formats.gpu.GPUFrameReader
+import me.anno.video.formats.gpu.BGRATextureReader
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.util.concurrent.Semaphore
@@ -46,7 +48,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             originalFPS: Double, // meta?.videoFPS ?: 0.0001
             totalFrameCount: Int,
             nextFrameCallback: (Image) -> Unit,
-            finishedCallback: (List<Image>) -> Unit
+            finishedCallback: (List<Image>) -> Unit,
         ) {
             val threadName = "$input/${w}x${h}/$frameIndex"
             val args = getImageSequenceArguments(
@@ -67,7 +69,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             originalFPS: Double, // meta?.videoFPS ?: 0.0001
             totalFrameCount: Int,
             nextFrameCallback: (GPUFrame) -> Unit,
-            finishedCallback: (List<GPUFrame>) -> Unit
+            finishedCallback: (List<GPUFrame>) -> Unit,
         ) {
             val threadName = "$input/${w}x${h}/$frameIndex"
             val args = getImageSequenceArguments(
@@ -81,6 +83,22 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         }
 
         @JvmStatic
+        fun getImageGPU(
+            input: FileReference,
+            callback: (Texture2D?) -> Unit,
+        ) {
+            val args = listOf(
+                "-i", input.absolutePath,
+                "-pix_fmt", "bgra", // expect BGRA
+                "-vf", "vflip", // flip vertically
+                "-vframes", "1", // just one frame
+                "-f", "rawvideo", "-"
+            )
+            BGRATextureReader(input, 0, 1, {}, { callback(it.firstOrNull()) })
+                .runAsync(input.absolutePath, args)
+        }
+
+        @JvmStatic
         fun getImageSequenceArguments(
             input: FileReference,
             signature: String?,
@@ -88,7 +106,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             frameCount: Int, fps: Double,
             originalWidth: Int, // meta?.videoWidth
             originalFPS: Double, // meta?.videoFPS ?: 0.0001
-            totalFrameCount: Int
+            totalFrameCount: Int,
         ): List<String> {
             val args = ArrayList<String>()
             if (totalFrameCount > 1 && startTime > 0) {
@@ -128,7 +146,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         @JvmStatic
         fun getAudioSequence(
             input: FileReference, startTime: Double, duration: Double, sampleRate: Int,
-            result: Promise<SoundBuffer>
+            result: Promise<SoundBuffer>,
         ) {
             FFMPEGAudio(
                 input, MediaMetadata.getMeta(input).waitFor()!!.audioChannels,

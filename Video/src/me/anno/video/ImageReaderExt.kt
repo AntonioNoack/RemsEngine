@@ -25,9 +25,8 @@ object ImageReaderExt {
         } else {
             // todo when we have native ffmpeg, don't copy the file
             val tmp = FileFileRef.createTempFile("4ffmpeg", file.extension)
-            file.readBytes { bytes, e ->
-                if (bytes != null) {
-                    tmp.writeBytes(bytes)
+            file.copyTo(tmp) { e ->
+                if (e == null) {
                     tryFFMPEG(tmp, signature, forGPU, callback.then { _, _ -> tmp.delete() })
                 } else callback.call(null, e)
             }

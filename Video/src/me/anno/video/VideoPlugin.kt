@@ -27,6 +27,7 @@ class VideoPlugin : Plugin() {
 
     private fun registerProxyCreator() {
         VideoCache.generateVideoFrames = VideoCacheImpl::generateVideoFrames
+        VideoCache.generateImageTexture = VideoCacheImpl::generateImageTexture
         VideoCache.getProxyFile = VideoProxyCreator::getProxyFile
         VideoCache.getProxyFileDontUpdate = VideoProxyCreator::getProxyFileDontUpdate
     }
@@ -63,6 +64,7 @@ class VideoPlugin : Plugin() {
     override fun onDisable() {
         super.onDisable()
         VideoCache.generateVideoFrames = null
+        VideoCache.generateImageTexture = null
         VideoCache.getProxyFile = null
         VideoStream.runVideoStreamWorker = null
         ImageAsFolder.tryFFMPEG = null

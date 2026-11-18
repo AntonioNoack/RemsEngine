@@ -3,7 +3,6 @@ package me.anno.video.formats.gpu
 import me.anno.cache.IgnoredException
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.io.files.FileReference
-import me.anno.utils.assertions.assertFail
 import me.anno.utils.async.Callback
 import me.anno.video.ffmpeg.FrameReader
 import java.io.EOFException
@@ -63,7 +62,7 @@ class GPUFrameReader(
                 // bw
                 "Y4", "Y800" -> Y4Frame(w, h) // seems correct, awkward, that it has the same name
                 // to do PAL: to do decode somehow (if still needed; ico is no longer being loaded with ffmpeg); sample: pictures/fav128.ico
-                else -> assertFail("Unsupported Codec $codec for $file")
+                else -> error("Unsupported Codec $codec for $file")
             }
             frame.frameIndex = frameIndex
             return frame

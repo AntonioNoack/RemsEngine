@@ -9,11 +9,12 @@ import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.jvm.fonts.FontManagerImpl.DEFAULT_FONT_SIZE
 import me.anno.utils.Color.g
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.structures.lists.Lists.getOrPut
 import me.anno.utils.types.Booleans.hasFlag
-import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
+import speiger.primitivecollections.UniqueValueIndexMap
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -21,8 +22,16 @@ import kotlin.math.max
 
 object AWTFont : FontImpl<List<FontMatrix>>() {
 
-    private val matrixCache = HashMap<FontKey, FontMatrix>()
-    private val fallbackCache = HashMap<FontKey, List<FontMatrix>>()
+    private val knownFontNames = UniqueValueIndexMap<String>(-1)
+    fun getFontId(name: String): Int {
+        return synchronized(knownFontNames) {
+            knownFontNames.add(name)
+        }
+    }
+
+    // fontKey is relatively dense, so this even can be a denseMap...
+    private val matrixCache = ArrayList<FontMatrix?>()
+    private val fallbackCache = ArrayList<List<FontMatrix>?>()
 
     fun getScale(font: Font): Float = font.size / DEFAULT_FONT_SIZE
 
@@ -31,31 +40,32 @@ object AWTFont : FontImpl<List<FontMatrix>>() {
     }
 
     override fun getFallbackFonts(font: Font): List<FontMatrix> {
-        val awtStyle = font.isBold.toInt(GlyphStyle.BOLD) or
-                font.isItalic.toInt(GlyphStyle.ITALIC)
-        val key = FontKey(font.name, awtStyle)
         return synchronized(fallbackCache) {
-            fallbackCache.getOrPut(key) {
+            val fontName = font.name
+            fallbackCache.getOrPut(getFontId(fontName)) {
                 val fallbackNames = fallbackFontList
                 val result = ArrayList<FontMatrix>(1 + fallbackNames.size)
-                result.add(createMatrix(key))
+                result.add(createMatrix(fontName))
                 for (i in fallbackNames.indices) {
                     val fallbackName = fallbackNames[i]
-                    result.add(createMatrix(FontKey(fallbackName, awtStyle)))
+                    result.add(createMatrix(fallbackName))
                 }
                 result
             }
         }
     }
 
-    private fun createMatrix(font: FontKey): FontMatrix {
+    init {
         assertEquals(java.awt.Font.BOLD, GlyphStyle.BOLD)
         assertEquals(java.awt.Font.ITALIC, GlyphStyle.ITALIC)
         assertEquals(1, GlyphStyle.BOLD)
         assertEquals(2, GlyphStyle.ITALIC)
+    }
+
+    private fun createMatrix(fontName: String): FontMatrix {
         return synchronized(matrixCache) {
-            matrixCache.getOrPut(font) {
-                List(4) { style -> FontManagerImpl.getAWTFont(Font(font.name, style)) }
+            matrixCache.getOrPut(getFontId(fontName)) {
+                List(4) { style -> FontManagerImpl.getAWTFont(Font(fontName, style)) }
             }
         }
     }

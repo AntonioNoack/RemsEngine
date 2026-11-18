@@ -7,10 +7,12 @@ import me.anno.input.Input.minDragDistance
 import me.anno.io.config.ConfigBasics.loadConfig
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
+import me.anno.maths.Packing.pack64
 import me.anno.ui.Panel
 import me.anno.utils.Reflections.getParentClass
-import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
+import speiger.primitivecollections.LongToObjectHashMap
+import speiger.primitivecollections.UniqueValueIndexMap
 import kotlin.reflect.KClass
 
 object ActionManager : StringMap() {
@@ -30,11 +32,29 @@ object ActionManager : StringMap() {
      * (NameSpace(PanelClass | global), KeyCombination) -> List<ActionName>
      * */
     @JvmStatic
-    private val registeredActions = KeyPairMap<String, KeyCombination, List<String>>(512)
+    private val registeredActions = LongToObjectHashMap<List<String>>(512)
 
     @JvmStatic
     private val globalActions = HashMap<String, () -> Boolean>()
 
+    private val knownClassNames = UniqueValueIndexMap<String>(-1)
+    fun getClassId(name: String): Int {
+        return synchronized(knownClassNames) {
+            knownClassNames.add(name)
+        }
+    }
+
+    private fun getRegisteredActions(className: String, keyCombination: KeyCombination): List<String>? {
+        return synchronized(registeredActions) {
+            registeredActions[getRegisteredActionsKey(className, keyCombination)]
+        }
+    }
+
+    private fun getRegisteredActionsKey(className: String, keyCombination: KeyCombination): Long {
+        return pack64(getClassId(className), keyCombination.encoded)
+    }
+
+    @Suppress("unused")
     enum class CombinationDirection(val id: Int) {
         OVERRIDE(0),
         PREPEND(1),
@@ -96,16 +116,18 @@ object ActionManager : StringMap() {
     @JvmStatic
     fun register(
         namespace: String, keyCombination: KeyCombination, actions: List<String>,
-        direction: CombinationDirection = CombinationDirection.OVERRIDE
+        direction: CombinationDirection = CombinationDirection.OVERRIDE,
     ) {
-        registeredActions[namespace, keyCombination] =
-            combine(registeredActions[namespace, keyCombination], actions, direction)
+        synchronized(registeredActions) {
+            val key = getRegisteredActionsKey(namespace, keyCombination)
+            registeredActions[key] = combine(registeredActions[key], actions, direction)
+        }
     }
 
     @JvmStatic
     fun register(
         namespace: String, keyCombination: KeyCombination, action: String,
-        direction: CombinationDirection = CombinationDirection.OVERRIDE
+        direction: CombinationDirection = CombinationDirection.OVERRIDE,
     ) {
         register(namespace, keyCombination, listOf(action), direction)
     }
@@ -191,18 +213,17 @@ object ActionManager : StringMap() {
         }
         // LOGGER.info("is writing: $isWriting, combination: $combination, has value? ${combination in globalKeyCombinations}")
         if (!isWriting) {
-            executeGlobally(window, 0f, 0f, false, registeredActions[GLOBAL_ACTION, combination])
+            executeGlobally(window, 0f, 0f, false, getRegisteredActions(GLOBAL_ACTION, combination))
         }
         val x = window.mouseX
         val y = window.mouseY
-        val localActions = registeredActions
-        val globalActions = localActions["*", combination]
+        val globalActions = getRegisteredActions("*", combination)
         val print = lastComb != combination
         // if (print) LOGGER.info("-- processing $universally, $combination")
         lastComb = combination
         val lastParentClass = getParentClass(Panel::class)
         while (panel != null) {
-            val actions = localActions[panel.className, combination]
+            val actions = getRegisteredActions(panel.className, combination)
             if (processActions(panel, x, y, dx, dy, isContinuous, actions, print)) {
                 return true
             }
@@ -212,7 +233,7 @@ object ActionManager : StringMap() {
                 val entry = getByClass(clazz)
                 val className = entry?.sampleInstance?.className ?: clazz.simpleName
                 if (className != null) {
-                    val actions1 = localActions[className, combination]
+                    val actions1 = getRegisteredActions(className, combination)
                     if (processActions(panel, x, y, dx, dy, isContinuous, actions1, print)) {
                         return true
                     }
@@ -228,8 +249,7 @@ object ActionManager : StringMap() {
         return false
     }
 
-    @JvmField
-    var lastComb: KeyCombination? = null
+    var lastComb: KeyCombination = KeyCombination.NULL
 
     @JvmStatic
     fun processActions(
@@ -255,7 +275,7 @@ object ActionManager : StringMap() {
     fun executeLocally(
         window: OSWindow,
         dx: Float, dy: Float, isContinuous: Boolean,
-        panel: Panel, actions: List<String>?
+        panel: Panel, actions: List<String>?,
     ): Boolean {
         // LOGGER.info("el ${panel::class.simpleName}/${panel.className}, ${actions?.size}")
         if (actions == null) return false

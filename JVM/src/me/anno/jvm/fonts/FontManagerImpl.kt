@@ -3,6 +3,7 @@ package me.anno.jvm.fonts
 import me.anno.fonts.FontStats
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
+import me.anno.jvm.fonts.AWTFont.getFontId
 import me.anno.jvm.fonts.AWTFont.getScale
 import me.anno.maths.Maths
 import me.anno.maths.Packing.pack64
@@ -10,6 +11,7 @@ import me.anno.utils.Clock
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Threads.runOnNonGFXThread
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.structures.lists.Lists.getOrPut
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.joinChars
@@ -26,8 +28,7 @@ object FontManagerImpl {
     const val DEFAULT_FONT_SIZE = 12f
 
     private val LOGGER = LogManager.getLogger(FontManagerImpl::class)
-
-    private val awtFonts = HashMap<FontKey, FontData>()
+    private val awtFonts = ArrayList<FontData?>()
 
     fun register() {
         FontStats.getTextGeneratorImpl = { AWTFont }
@@ -46,7 +47,7 @@ object FontManagerImpl {
         val result = synchronized(awtFonts) {
             val style = font.isItalic.toInt(Font.ITALIC) or
                     font.isBold.toInt(Font.BOLD)
-            val key = FontKey(name, style)
+            val key = getFontId(name).shl(2) or style
             awtFonts.getOrPut(key) {
                 val font0 = getDefaultFont(name) ?: error("Font $name was not found")
                 if (style == 0) font0 else font0.deriveFont(style, DEFAULT_FONT_SIZE)

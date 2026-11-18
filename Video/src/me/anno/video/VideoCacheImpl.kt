@@ -1,11 +1,15 @@
 package me.anno.video
 
 import me.anno.cache.Promise
+import me.anno.gpu.texture.ITexture2D
 import me.anno.io.MediaMetadata
+import me.anno.io.files.FileFileRef
+import me.anno.io.files.FileReference
 import me.anno.io.files.SignatureCache
 import me.anno.utils.types.Strings.shorten
 import me.anno.video.ffmpeg.FFMPEGStream
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 import kotlin.math.max
 
 object VideoCacheImpl {
@@ -61,5 +65,28 @@ object VideoCacheImpl {
                 slice.hasFinished = true
             }
         )
+    }
+
+    fun generateImageTexture(file: FileReference, result: Promise<ITexture2D>) {
+        val file = file.resolved()
+        if (file is FileFileRef) {
+            FFMPEGStream.getImageGPU(file) { result.call(it, err(it)) }
+        } else {
+            // todo when we have native ffmpeg, don't copy the file
+            val tmp = FileFileRef.createTempFile("4ffmpeg", file.extension)
+            file.copyTo(tmp) { e ->
+                if (e == null) {
+                    FFMPEGStream.getImageGPU(tmp) {
+                        result.call(it, err(it))
+                        tmp.delete()
+                    }
+                } else result.err(e)
+            }
+        }
+    }
+
+    private fun err(result: ITexture2D?): Exception? {
+        if (result != null) return null
+        return IOException("FFMPEG failed")
     }
 }
