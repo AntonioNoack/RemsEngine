@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.unique
 
 import me.anno.cache.ICacheData
+import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.CompactAttributeLayout
 import me.anno.gpu.buffer.StaticBuffer
@@ -38,6 +39,17 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
     val stride: Int get() = buffer0.stride
 
     private val clock = Clock(LOGGER)
+
+    @Suppress("unused")
+    fun hasNewSession(destroyMeshes: Boolean): Boolean {
+        val s = GFXState.session
+        val needsClear = (buffer0.session != s || buffer1.session != s) && storageSize > 0
+        if (needsClear) {
+            storageSize = 0
+            clear(destroyMeshes)
+        }
+        return needsClear
+    }
 
     fun add(key: Key, mesh: Mesh): Boolean {
         val entries = entries
@@ -91,11 +103,13 @@ abstract class UMRData<Key, Mesh>(attributes: CompactAttributeLayout) :
     override fun destroy() {
         buffer0.destroy()
         buffer1.destroy()
+        storageSize = 0
         for ((_, entry) in entries) {
             if (entry is ICacheData) {
                 entry.destroy()
             }
         }
+        clear()
     }
 
     override fun allocate(newSize: Int): StaticBuffer {

@@ -31,10 +31,6 @@ import org.lwjgl.openxr.XrViewState
 
 class OpenXRFrameManager {
 
-    companion object {
-        private val LOGGER = LogManager.getLogger(OpenXRFrameManager::class)
-    }
-
     // frame structs
     val frameState: XrFrameState = XrFrameState.calloc()
     val frameWaitInfo: XrFrameWaitInfo = XrFrameWaitInfo.calloc()
@@ -92,12 +88,12 @@ class OpenXRFrameManager {
     private fun findSubmittedLayerCount(): Int {
         var submittedLayerCount = 1
         if (!viewState.viewStateFlags().hasFlag(XR_VIEW_STATE_ORIENTATION_VALID_BIT.toLong())) {
-            LOGGER.info("Submitting no layers, because orientation is invalid")
+            // LOGGER.info("Submitting no layers, because orientation is invalid")
             submittedLayerCount = 0
         }
 
         if (!frameState.shouldRender()) {
-            LOGGER.info("Submitting no layers, because shouldRender is false")
+            // LOGGER.info("Submitting no layers, because shouldRender is false")
             submittedLayerCount = 0
         }
         return submittedLayerCount

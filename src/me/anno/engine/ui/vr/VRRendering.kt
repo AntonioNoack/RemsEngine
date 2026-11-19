@@ -17,6 +17,10 @@ import kotlin.math.max
 
 abstract class VRRendering {
 
+    companion object {
+        var vrScale = 1f
+    }
+
     val position = Vector3f()
     val rotation = Quaternionf()
 
@@ -72,14 +76,14 @@ abstract class VRRendering {
 
         val delta = position.sub(lastPosition, tmp)
             .rotate(VROffset.additionalRotation)
-        rv.orbitCenter.add(delta) // scene space
+        rv.orbitCenter.fma(vrScale, delta) // scene space
 
-        rv.radius = 3f // define the general speed
+        rv.radius = 3f * vrScale// define the general speed
         lastPosition.set(position)
 
         VROffset.additionalOffset
             .set(position).rotate(VROffset.additionalRotation).negate()
-            .add(rv.orbitCenter)
+            .fma(1.0 / vrScale, rv.orbitCenter)
 
         VROffset.additionalRotation.rotateY(newRotationY)
 
@@ -110,7 +114,7 @@ abstract class VRRendering {
         x: Int, y: Int, width: Int, height: Int,
         colorTextureI: Int, depthTextureI: Int,
         pos: Vector3f, rot: Quaternionf,
-        projectionMatrix: Matrix4f
+        projectionMatrix: Matrix4f,
     ) {
 
         RenderState.viewIndex = viewIndex
@@ -128,7 +132,8 @@ abstract class VRRendering {
         rv.cameraMatrix.rotateInv(rv.cameraRotation)
 
         // no scale needed, because we're using 1:1 scale between character and world
-        rv.cameraPosition.set(rv.orbitCenter).sub(dx, dy, dz)
+        rv.cameraPosition.set(rv.orbitCenter)
+            .sub(dx * vrScale, dy * vrScale, dz * vrScale)
 
         // reduce used VRAM, if both eyes have the same resolution
         FBStack.reset()
@@ -151,12 +156,12 @@ abstract class VRRendering {
 
     abstract fun setupFramebuffer(
         viewIndex: Int, width: Int, height: Int,
-        colorTextureI: Int, depthTextureI: Int
+        colorTextureI: Int, depthTextureI: Int,
     ): Framebuffer
 
     fun renderFrame(
         x: Int, y: Int, width: Int, height: Int,
-        rv: RenderView, framebuffer: Framebuffer
+        rv: RenderView, framebuffer: Framebuffer,
     ) {
         val ox = rv.x
         val oy = rv.y

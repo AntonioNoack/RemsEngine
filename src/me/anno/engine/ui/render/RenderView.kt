@@ -156,7 +156,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         fsr22.destroy()
     }
 
-    private fun tryRenderVRViews(): Boolean {
+    private fun tryRenderVRViews(canvas: Canvas): Boolean {
         val vrr = VRRenderingRoutine.vrRoutine
         if (vrr == null || !vrr.isActive) return false
 
@@ -165,12 +165,14 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         if (!leftTexture.isCreated() || !rightTexture.isCreated()) return false
 
         val showBoth = controlScheme?.settings?.displayVRInRedCyan == true
-        showStereoView(
-            x, y, width, height,
-            leftTexture, vrr.leftView,
-            rightTexture, vrr.rightView,
-            1f / vrr.previewGamma, showBoth
-        )
+        canvas.custom {
+            showStereoView(
+                x, y, width, height,
+                leftTexture, vrr.leftView,
+                rightTexture, vrr.rightView,
+                1f / vrr.previewGamma, showBoth
+            )
+        }
         return true
     }
 
@@ -180,7 +182,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     override fun draw(canvas: Canvas) {
 
-        if (tryRenderVRViews()) return
+        if (tryRenderVRViews(canvas)) return
 
         drawnPrimitives0 = PipelineStageImpl.drawnPrimitives
         drawnInstances0 = PipelineStageImpl.drawnInstances
