@@ -64,7 +64,7 @@ import kotlin.math.roundToInt
  * - a cache, which stores all small textures in one big texture
  * - big textures are drawn directly
  * */
-class Canvas {
+open class Canvas {
 
     companion object {
 

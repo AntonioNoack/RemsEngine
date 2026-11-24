@@ -163,5 +163,10 @@ class Touch(var x: Float, var y: Float) {
                 listeners[i].onTouchUp(touch)
             }
         }
+
+        @JvmStatic
+        fun clear() {
+            touches.clear()
+        }
     }
 }

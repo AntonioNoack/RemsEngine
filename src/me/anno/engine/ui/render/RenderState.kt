@@ -52,6 +52,6 @@ object RenderState {
     var near = 0f
     var far = 0f
 
-    // 0 or 1; for effects, which need to store data between frames
+    // 0 or 1; for effects, which need to store data between frames in VR
     var viewIndex = 0
 }

@@ -105,6 +105,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     val depth: Int get() = 1 + (uiParent?.depth ?: 0)
 
+    @Suppress("unused")
     fun toggleVisibility(): Panel {
         isVisible = !isVisible
         return this
@@ -115,6 +116,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         return this
     }
 
+    @Suppress("unused")
     fun makeBackgroundOpaque(): Panel {
         background.color = background.color or black
         return this
@@ -609,6 +611,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun onPropertiesChanged() {}
 
+    @Suppress("unused")
     val isRootElement get() = uiParent == null
 
     /**
@@ -633,6 +636,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         return MouseLock.isMouseLocked
     }
 
+    @Suppress("unused")
     fun unlockMouse() {
         MouseLock.unlockMouse()
     }
@@ -651,7 +655,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         dst.width = width
         dst.height = height
         dst.tooltip = tooltip
-        dst.tooltipPanel = dst.tooltipPanel // could create issues, should be found in parent or cloned
+        dst.tooltipPanel = tooltipPanel // could create issues, should be found in parent or cloned
         dst.weight = weight
         dst.isVisible = isVisible
         dst.background.color = background.color

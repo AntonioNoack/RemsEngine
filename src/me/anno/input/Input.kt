@@ -577,6 +577,27 @@ object Input {
         dragged = null
     }
 
+    /**
+     * Call this method from your Window manager, when the user cancels their mouse click,
+     * e.g. when they put a second finger on the display
+     * */
+    @Suppress("unused")
+    fun onMouseCancel() {
+        for (button in mouseKeysDown) {
+            when (button) {
+                Key.BUTTON_LEFT -> isLeftDown = false
+                Key.BUTTON_RIGHT -> isRightDown = false
+                Key.BUTTON_MIDDLE -> isMiddleDown = false
+                else -> {}
+            }
+            keysDown.remove(button)
+        }
+        mouseKeysDown.clear()
+        // suppress any clicks:
+        mouseMovementSinceMouseDown += maxClickDistance * 2f
+        dragged = null
+    }
+
     fun copy(window: OSWindow): Boolean {
         val mouseX = window.mouseX
         val mouseY = window.mouseY
