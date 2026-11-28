@@ -1,12 +1,12 @@
 package me.anno.image.exr;
 
-import com.sun.istack.internal.Nullable;
 import me.anno.image.raw.FloatImage;
 import me.anno.image.raw.HalfImage;
 import me.anno.utils.OS;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class OpenEXRJava {
     private static final Logger LOGGER = LogManager.getLogger(OpenEXRJava.class);

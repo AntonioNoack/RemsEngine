@@ -34,7 +34,7 @@ object OpenEXRReader {
                 val image = HalfImage(size.x, size.y, channels.size)
                 OpenEXRJava.readHalfImage(image, data)
             }
-        }
+        } ?: IOException("Failed reading EXR image")
     }
 
 }

@@ -1,6 +1,5 @@
 package me.anno.mesh.blender.impl.attr
 
-import com.sun.org.slf4j.internal.LoggerFactory
 import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.DNAField
 import me.anno.mesh.blender.DNAStruct
@@ -10,11 +9,12 @@ import me.anno.mesh.blender.impl.BlendData
 import me.anno.mesh.blender.impl.primitives.BVector1i
 import me.anno.mesh.blender.impl.primitives.BVector2f
 import me.anno.mesh.blender.impl.primitives.BVector3f
+import org.apache.logging.log4j.LogManager
 
 class AttributeStorage(ptr: ConstructorData) : BlendData(ptr) {
 
     companion object {
-        private val LOGGER = LoggerFactory.getLogger(AttributeStorage::class.java)
+        private val LOGGER = LogManager.getLogger(AttributeStorage::class.java)
 
         private val vec1iType = lazy {
             val type0 = DNAType("vec1i", 4)
