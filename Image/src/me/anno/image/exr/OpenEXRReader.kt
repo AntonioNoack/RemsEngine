@@ -18,7 +18,7 @@ object OpenEXRReader {
     }
 
     /**
-     * returns FloatImage, HalfFloatImage, or Exception
+     * returns FloatImage, HalfImage, or Exception
      * */
     fun readImage(data: ByteArray): Any {
         val size = OpenEXRStatsReader.findSize(data.inputStream()) as? Vector2i
@@ -34,7 +34,7 @@ object OpenEXRReader {
                 val image = HalfImage(size.x, size.y, channels.size)
                 OpenEXRJava.readHalfImage(image, data)
             }
-        }
+        } ?: IOException("Failed reading EXR image")
     }
 
 }

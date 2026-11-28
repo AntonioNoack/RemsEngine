@@ -336,7 +336,7 @@ open class Canvas {
         texture: ITexture2D, tint: Int = -1,
     ) = drawTexture(x, y, w, h, texture, false, tint)
 
-    fun drawTexture(
+    open fun drawTexture(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, ignoreAlpha: Boolean, tint: Int = -1,
         extraDepth: Int = TEXTURE_ORDER,
@@ -359,7 +359,7 @@ open class Canvas {
         }
     }
 
-    fun drawTexture(
+    open fun drawTexture(
         x: Int, y: Int, w: Int, h: Int, frame: GPUFrame,
         extraDepth: Int = TEXTURE_ORDER,
     ) {
@@ -394,7 +394,7 @@ open class Canvas {
                 maxX > x0 && maxY > y0
     }
 
-    fun drawRect(
+    open fun drawRect(
         x: Int, y: Int, w: Int, h: Int, color: Int,
         extraDepth: Int = RECT_ORDER,
     ) {
@@ -409,7 +409,7 @@ open class Canvas {
         pushMode(nio, CanvasDrawMode.RECTANGLE)
     }
 
-    fun drawRoundedRect(
+    open fun drawRoundedRect(
         x: Int, y: Int, w: Int, h: Int,
         topRightRadius: Float, bottomRightRadius: Float,
         topLeftRadius: Float, bottomLeftRadius: Float,
@@ -504,7 +504,7 @@ open class Canvas {
         extraDepth
     )
 
-    fun drawText(
+    open fun drawText(
         x: Int, y: Int, padding: Int,
         font: Font, fontImpl: FontImpl<*>, text: CharSequence,
         textColor: Int, backgroundColor: Int,
@@ -559,7 +559,7 @@ open class Canvas {
         return (f * 65536f).toInt().toShort()
     }
 
-    fun drawCircle(
+    open fun drawCircle(
         x: Float, y: Float,
         radiusX: Float, radiusY: Float, innerRadius: Float,
         startDegrees: Float, endDegrees: Float,
@@ -586,7 +586,7 @@ open class Canvas {
         pushMode(nio, CanvasDrawMode.CIRCLE)
     }
 
-    fun drawCircle(
+    open fun drawCircle(
         x: Float, y: Float,
         radiusX: Float, radiusY: Float,
         color: Int, extraDepth: Int = TEXT_ORDER,
@@ -606,7 +606,7 @@ open class Canvas {
         pushMode(nio, CanvasDrawMode.CIRCLE)
     }
 
-    fun drawLine(
+    open fun drawLine(
         x0: Float, y0: Float,
         x1: Float, y1: Float,
         thickness: Float,

@@ -22,8 +22,7 @@ import kotlin.math.max
 /**
  * stores float16 values instead of float32
  *
- * channel layout:
- * r = 0, g = 1, b = 2, a = 3
+ * channel layout: RGBA
  * */
 class HalfImage(
     width: Int, height: Int, numChannels: Int,
