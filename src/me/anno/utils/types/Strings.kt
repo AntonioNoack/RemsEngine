@@ -244,13 +244,20 @@ object Strings {
     @JvmStatic
     fun formatDownload(fileName: String, dt: Long, dl: Long, length1: Long, contentLength: Long): String {
         val speed = dl * 1e9 / dt
-        val remaining = contentLength - length1
-        val remainingTime = remaining / speed
-        return "Downloading " +
-                "$fileName " +
-                "(${length1.formatFileSize()}/${contentLength.formatFileSize()}, ${(length1 * 100f / contentLength).f1()}%) " +
-                "with ${speed.toLong().formatFileSize()}/s, " +
-                "${remainingTime.formatTime(0)} remaining"
+        if (contentLength >= length1) {
+            val remaining = contentLength - length1
+            val remainingTime = remaining / speed
+            return "Downloading " +
+                    "$fileName " +
+                    "(${length1.formatFileSize()}/${contentLength.formatFileSize()}, ${(length1 * 100f / contentLength).f1()}%) " +
+                    "with ${speed.toLong().formatFileSize()}/s, " +
+                    "${remainingTime.formatTime(0)} remaining"
+        } else {
+            return "Downloading " +
+                    "$fileName " +
+                    "(${length1.formatFileSize()}) " +
+                    "with ${speed.toLong().formatFileSize()}/s"
+        }
     }
 
     @JvmStatic
@@ -419,7 +426,8 @@ object Strings {
             0x2028, 0x2029, 0x202f,
             0x205f, 0x2060, 0x3000,
             in 0xfe00..0xfe0f,
-            0xfeff -> true
+            0xfeff,
+                -> true
             else -> false
         }
     }
